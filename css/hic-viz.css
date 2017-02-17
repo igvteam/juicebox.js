@@ -6,8 +6,10 @@
 
     left: 0;
     right: 0;
+    width: 500px;
+    height: 500px;
 
-    height: auto;
+   // height: auto;
 
     margin-left: 10px;
     margin-right: 10px;
@@ -28,7 +30,7 @@
     float: left;
 
     position: relative;
-    /*width: 100%;*/
+    width: 100%;
     height: 100%;
 
     overflow-x: hidden;

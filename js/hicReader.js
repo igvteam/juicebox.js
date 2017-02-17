@@ -279,11 +279,10 @@ var hic = (function (hic) {
 
         var blockIndex = zd.blockIndexMap;
         if (blockIndex != null) {
-
             var idx = blockIndex[blockNumber];
         }
         if (idx == null) {
-            return Promise.resolve(new Block());
+            return Promise.resolve(null);
         }
         else {
 
@@ -372,7 +371,8 @@ var hic = (function (hic) {
                             reject("Unknown block type: " + type);
                         }
                     }
-                    fulfill(new Block(blockNumber, records));
+                    console.log("Block " + blockNumber);
+                    fulfill(new Block(blockNumber, zd, records));
                 }).catch(reject);
             });
         }
@@ -518,8 +518,9 @@ var hic = (function (hic) {
         this.counts = counts;
     }
 
-    Block = function (blockNumber, records) {
+    Block = function (blockNumber, zoomData, records) {
         this.blockNumber = blockNumber;
+        this.zoomData = zoomData;
         this.records = records;
     }
 

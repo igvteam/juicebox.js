@@ -1,6 +1,3 @@
-/**
- * Created by jrobinso on 2/7/17.
- */
 /*
  * The MIT License (MIT)
  *
@@ -29,31 +26,42 @@
 
 var hic = (function (hic) {
 
+    hic.createBrowser = function (config) {
 
-    hic.Browser = function (parentDiv, config) {
+        var browser = new hic.Browser(config);
+
+        return new Promise(function (fulfill, reject) {
+            browser.hicReader.readHeader().then(function () {
+                browser.hicReader.readFooter().then(function () {
+                    fulfill(browser);
+                }).catch(reject);
+            }).catch(reject);
+        });
+    }
+
+    hic.Browser = function (config) {
 
         var $content,
             $root,
             browser;
 
-        hic.browser = this;  // Expose globally
+        this.hicReader = new hic.HiCReader(config);
 
         this.config = config;
         $root = $('<div id="hicRootDiv" class="hic-root-div">');
-        $(parentDiv).append(browser.$root[0]);
-
-
         $content = $('<div class="hic-content-div">');
-        this.$root.append($content[0]);
-        
-        this.contactMatrixView = new hic.ContactMatrixView();
+        $root.append($content[0]);
+
+        this.contactMatrixView = new hic.ContactMatrixView(this);
         $content.append(this.contactMatrixView.viewport);
+
 
         // phone home -- counts launches.  Count is anonymous, needed for our continued funding.  Please don't delete
         // phoneHome();
 
-        return browser;
-
+        this.div = $root[0];
+        
+        
     };
 
 
