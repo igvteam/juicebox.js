@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser) {
 
-        var $viewport, $viewportContent;
+        var $viewport, $viewportContent, $spinner;
 
         this.browser = browser;
 
@@ -46,6 +46,15 @@ var hic = (function (hic) {
         this.canvas = $('<canvas class = "hic-viewport-canvas">')[0];
         $viewportContent.append(this.canvas);
 
+        //spinner
+        $spinner = $('<div class="hic-viewport-spinner">');
+        $spinner.css({ 'font-size' :  '32px'});
+
+        // $spinner.append($('<i class="fa fa-cog fa-spin fa-fw">'));
+        $spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
+        $viewport.append($spinner[0]);
+
+
         this.canvas.setAttribute('width', this.viewport.clientWidth);
         this.canvas.setAttribute('height', this.viewport.clientHeight);
         this.ctx = this.canvas.getContext("2d");
@@ -58,7 +67,7 @@ var hic = (function (hic) {
                 lowR: 255,
                 lowG: 255,
                 lowB: 255,
-                high: 4000,
+                high: 2000,
                 highR: 255,
                 highG: 0,
                 highB: 0
@@ -99,8 +108,7 @@ var hic = (function (hic) {
                 row1 = Math.floor(state.y / blockBinCount),
                 row2 = Math.floor((state.y + imageHeight) / blockBinCount),
                 r, c, i, b,
-                promises = [],
-                blocks = [];
+                promises = [];
 
             for (r = row1; r <= row2; r++) {
                 for (c = col1; c <= col2; c++) {
@@ -110,8 +118,10 @@ var hic = (function (hic) {
             }
 
             Promise.all(promises).then(function (blocks) {
+                stopSpinner.call(self);
                 self.draw(blocks, zd)
             }).catch(function (error) {
+                stopSpinner.call(self);
                 console.error(error);
             })
         }).catch(function (error) {
@@ -189,6 +199,7 @@ var hic = (function (hic) {
         }
         else {
             return new Promise(function (fulfill, reject) {
+                startSpinner.call(self);
                 reader.readMatrix(key).then(function (matrix) {
                     self.matrixCache[key] = matrix;
                     fulfill(matrix);
@@ -197,6 +208,18 @@ var hic = (function (hic) {
 
         }
     }
+
+    function startSpinner() {
+        var $spinner = $(this.viewport).find('.fa-spinner');
+        $spinner.addClass("fa-spin");
+        $spinner.show();
+    };
+
+    function stopSpinner() {
+        var $spinner = $(this.viewport).find('.fa-spinner');
+        $spinner.hide();
+        $spinner.removeClass("fa-spin");
+    };
 
     return hic;
 
