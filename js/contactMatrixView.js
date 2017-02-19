@@ -30,18 +30,20 @@
 var hic = (function (hic) {
 
     var state = {
-            chr1: 1,
-            chr2: 1,
-            x: 0,
-            y: 0,
-            zoom: 4,
-            shiftPixels: function (dx, dy) {
-                state.x += dx / pixelSize;
-                state.y += dy / pixelSize;
-            }
-        },
-        pixelSize = 1,
-        dragThreshold = 2;
+        chr1: 1,
+        chr2: 1,
+        x: 0,
+        y: 0,
+        zoom: 4,
+        pixelSize: 1,
+        shiftPixels: function (dx, dy) {
+            state.x += dx;// / pixelSize;
+            state.y += dy;// / pixelSize;
+            console.log(state.x);
+        }
+    };
+
+    dragThreshold = 2;
 
     hic.ContactMatrixView = function (browser) {
 
@@ -91,47 +93,49 @@ var hic = (function (hic) {
 
 
     hic.ContactMatrixView.prototype.update = function () {
+
         var self = this;
 
-        if(self.updating) return;
+        if (self.updating) return;
 
         self.updating = true;
-        // Get zoom data
+
         this.getMatrix(state.chr1, state.chr2)
+
             .then(function (matrix) {
 
-                var imageWidth = self.viewport.clientWidth / pixelSize;
-                var imageHeight = self.viewport.clientHeight / pixelSize;
-                var zd = matrix.bpZoomData[state.zoom],
+                var widthInBins = self.viewport.clientWidth / state.pixelSize,
+                    heightInBins = self.viewport.clientHeight / state.pixelSize,
+                    zd = matrix.bpZoomData[state.zoom],
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     col1 = Math.floor(state.x / blockBinCount),
-                    col2 = Math.floor((state.x + imageWidth) / blockBinCount),
+                    col2 = Math.floor((state.x + widthInBins) / blockBinCount),
                     row1 = Math.floor(state.y / blockBinCount),
-                    row2 = Math.floor((state.y + imageHeight) / blockBinCount),
+                    row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, i, b,
                     promises = [];
 
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {
                         b = r * blockColumnCount + c;
-                        if(b >= 0) {
+                        if (b >= 0) {
                             promises.push(self.getBlock(zd, b));
                         }
                     }
                 }
 
                 Promise.all(promises).then(function (blocks) {
-                    stopSpinner.call(self);
+                    self.stopSpinner();
                     self.draw(blocks, zd);
                     self.updating = false;
                 }).catch(function (error) {
-                    stopSpinner.call(self);
+                    self.stopSpinner(self);
                     self.updating = false;
                     console.error(error);
                 })
             }).catch(function (error) {
-            stopSpinner.call(self);
+            self.stopSpinner(self);
             self.updating = false;
             console.error(error);
         })
@@ -175,7 +179,7 @@ var hic = (function (hic) {
         }
         else {
             return new Promise(function (fulfill, reject) {
-                startSpinner.call(self);
+                self.startSpinner();
                 reader.readMatrix(key).then(function (matrix) {
                     self.matrixCache[key] = matrix;
                     fulfill(matrix);
@@ -188,7 +192,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
 
         var self = this,
-            key = "" + zd.chr1 + "_" + zd.chr2 + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
+            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
 
         if (this.blockImageCache.hasOwnProperty(key)) {
             return Promise.resolve(this.blockImageCache[key]);
@@ -200,41 +204,45 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
-                    imageSize = widthInBins * pixelSize;
+                    imageSize = widthInBins * state.pixelSize;
 
-                startSpinner.call(self);
+                self.startSpinner();
+
+                function drawBlock(block) {
+                    var blockNumber, row, col, x0, y0, image, ctx;
+                    blockNumber = block.blockNumber;
+                    row = Math.floor(blockNumber / blockColumnCount);
+                    col = blockNumber - row * blockColumnCount;
+                    x0 = blockBinCount * row;
+                    y0 = blockBinCount * col;
+
+                    image = document.createElement('canvas');
+                    image.width = imageSize;
+                    image.height = imageSize;
+                    ctx = image.getContext('2d');
+
+                    // Draw the image
+                    var i, rec, x, y, rgb;
+                    for (i = 0; i < block.records.length; i++) {
+                        rec = block.records[i];
+                        x = (rec.bin1 - x0) * state.pixelSize;
+                        y = (rec.bin2 - y0) * state.pixelSize;
+                        rgb = self.colorScale.getColor(rec.counts);
+
+                        ctx.fillStyle = rgb;
+                        ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
+                        ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                    }
+                    return image;
+                }
 
                 reader.readBlock(blockNumber, zd)
                     .then(function (block) {
 
-                        var blockNumber, row, col, x0, y0, image, ctx, blockImage;
+                        var image;
 
                         if (block != null) {
-
-                            blockNumber = block.blockNumber,
-                                row = Math.floor(blockNumber / blockColumnCount),
-                                col = blockNumber - row * blockColumnCount,
-                                x0 = blockBinCount * row,
-                                y0 = blockBinCount * col,
-
-
-                                image = document.createElement('canvas'),
-                                image.width = imageSize;
-                            image.height = imageSize;
-                            ctx = image.getContext('2d');
-
-                            // Draw the image
-                            var i, rec, x, y, rgb;
-                            for (i = 0; i < block.records.length; i++) {
-                                rec = block.records[i];
-                                x = (rec.bin1 - x0) * pixelSize;
-                                y = (rec.bin2 - y0) * pixelSize;
-                                rgb = self.colorScale.getColor(rec.counts);
-
-                                ctx.fillStyle = rgb;
-                                ctx.fillRect(x, y, pixelSize, pixelSize);
-                                ctx.fillRect(y, x, pixelSize, pixelSize);
-                            }
+                            image = drawBlock(block);
                         }
 
                         blockImage = {
@@ -244,7 +252,7 @@ var hic = (function (hic) {
 
                         self.blockImageCache[key] = blockImage;
 
-                        stopSpinner.call(self);
+                        self.stopSpinner();
 
                         fulfill(blockImage);
 
@@ -254,19 +262,19 @@ var hic = (function (hic) {
         }
     }
 
-    function startSpinner() {
+    hic.ContactMatrixView.prototype.startSpinner = function () {
         var $spinner = $(this.viewport).find('.fa-spinner');
         $spinner.addClass("fa-spin");
         $spinner.show();
     };
 
-    function stopSpinner() {
+    hic.ContactMatrixView.prototype.stopSpinner = function () {
         var $spinner = $(this.viewport).find('.fa-spinner');
         $spinner.hide();
         $spinner.removeClass("fa-spin");
     };
 
-    function addMouseHandlers ($viewport) {
+    function addMouseHandlers($viewport) {
 
         var self = this,
             viewport = $viewport[0],
@@ -312,6 +320,8 @@ var hic = (function (hic) {
                 maxEnd,
                 maxStart;
 
+            if(self.updating) return;
+
             e.preventDefault();
 
             coords = translateMouseCoordinates(e, viewport);
@@ -348,7 +358,7 @@ var hic = (function (hic) {
             // }
 
             if (isDragging) {
-             //   igv.browser.fireEvent('trackdragend');
+                //   igv.browser.fireEvent('trackdragend');
                 isDragging = false;
             }
 
@@ -379,7 +389,7 @@ var hic = (function (hic) {
         return {x: posx, y: posy}
     };
 
-    function throttle (fn, threshhold, scope) {
+    function throttle(fn, threshhold, scope) {
         threshhold || (threshhold = 200);
         var last, deferTimer;
 

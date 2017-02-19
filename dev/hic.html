@@ -50,8 +50,8 @@
     $(document).ready(function () {
 
 
-        hic.createBrowser({url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"}).then(function (browser) {
-            $("#myDiv").append(browser.div);
+        hic.createBrowser($('#myDiv')[0], {url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"}).then(function (browser) {
+
             browser.contactMatrixView.update();
         }).catch(function (error) {
             console.error(error);

@@ -237,8 +237,7 @@ var hic = (function (hic) {
 
 
                 var dis = new igv.BinaryParser(new DataView(data));
-
-
+                
                 var c1 = dis.getInt();
                 var c2 = dis.getInt();
 

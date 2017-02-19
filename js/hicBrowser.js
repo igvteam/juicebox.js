@@ -26,31 +26,59 @@
 
 var hic = (function (hic) {
 
-    hic.createBrowser = function (config) {
+    hic.createBrowser = function (parentDiv, config) {
 
-        var browser = new hic.Browser(config);
+        var browser = new hic.Browser(parentDiv, config);
 
         return new Promise(function (fulfill, reject) {
-            browser.hicReader.readHeader().then(function () {
-                browser.hicReader.readFooter().then(function () {
-                    fulfill(browser);
-                }).catch(reject);
-            }).catch(reject);
+
+            browser.contactMatrixView.startSpinner();
+
+            browser.hicReader.readHeader()
+                .then(function () {
+                    browser.hicReader.readFooter()
+                        .then(function () {
+
+                            browser.chromosomes = browser.hicReader.chromosomes;
+                            browser.bpResolutions = browser.hicReader.bpResolutions;
+                            browser.fragResolutions = browser.hicReader.fragResolutions;
+                            browser.update();
+                            browser.contactMatrixView.stopSpinner();
+                            fulfill(browser);
+                        })
+                        .catch(function (error) {
+                            browser.contactMatrixView.stopSpinner();
+                            reject(error);
+                        });
+                })
+                .catch(function (error) {
+                    browser.contactMatrixView.stopSpinner();
+                    reject(error);
+                });
         });
     }
 
-    hic.Browser = function (config) {
+    hic.Browser = function (parentDiv, config) {
 
         var $content,
             $root,
+            $xaxis,
+            $yaxis,
             browser;
 
         this.hicReader = new hic.HiCReader(config);
 
         this.config = config;
         $root = $('<div id="hicRootDiv" class="hic-root-div">');
+
         $content = $('<div class="hic-content-div">');
         $root.append($content[0]);
+
+        $xaxis = $('<div class="hic-x-axis-div">');
+        $content.append($xaxis[0]);
+
+        $yaxis = $('<div class="hic-y-axis-div">');
+        $content.append($yaxis[0]);
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content.append(this.contactMatrixView.viewport);
@@ -59,10 +87,13 @@ var hic = (function (hic) {
         // phone home -- counts launches.  Count is anonymous, needed for our continued funding.  Please don't delete
         // phoneHome();
 
-        this.div = $root[0];
-        
-        
+        $(parentDiv).append($root[0]);
+
     };
+
+    hic.Browser.prototype.update = function () {
+        this.contactMatrixView.update();
+    }
 
 
     return hic;
