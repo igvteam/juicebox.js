@@ -28,8 +28,7 @@ var igv = (function (igv) {
     //
     igv.RulerTrack = function () {
 
-        this.height = 50;
-        // this.height = 24;
+        this.height = 32;
         this.name = "";
         this.id = "ruler";
         this.disableButtons = true;
@@ -61,7 +60,7 @@ var igv = (function (igv) {
 
     igv.RulerTrack.prototype.getFeatures = function (chr, bpStart, bpEnd) {
 
-        return new Promise(function (fulfill, reject) {
+        return new Promise(function (fulfill) {
             fulfill([]);
         });
     };
