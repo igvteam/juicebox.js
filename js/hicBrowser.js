@@ -26,9 +26,9 @@
 
 var hic = (function (hic) {
 
-    hic.createBrowser = function (parentDiv, config) {
+    hic.createBrowser = function ($hic_container, config) {
 
-        var browser = new hic.Browser(parentDiv, config);
+        var browser = new hic.Browser($hic_container, config);
 
         return new Promise(function (fulfill, reject) {
 
@@ -38,7 +38,6 @@ var hic = (function (hic) {
                 .then(function () {
                     browser.hicReader.readFooter()
                         .then(function () {
-
                             browser.chromosomes = browser.hicReader.chromosomes;
                             browser.bpResolutions = browser.hicReader.bpResolutions;
                             browser.fragResolutions = browser.hicReader.fragResolutions;
@@ -56,38 +55,13 @@ var hic = (function (hic) {
                     reject(error);
                 });
         });
-    }
+    };
 
-    hic.Browser = function (parentDiv, config) {
-
-        var $content,
-            $root,
-            $xaxis,
-            $yaxis,
-            browser;
-
-        this.hicReader = new hic.HiCReader(config);
-
+    hic.Browser = function ($hic_container, config) {
         this.config = config;
-        $root = $('<div id="hicRootDiv" class="hic-root-div">');
-
-        $content = $('<div class="hic-content-div">');
-        $root.append($content[0]);
-
-        $xaxis = $('<div class="hic-x-axis-div">');
-        $content.append($xaxis[0]);
-
-        $yaxis = $('<div class="hic-y-axis-div">');
-        $content.append($yaxis[0]);
-
+        this.hicReader = new hic.HiCReader(config);
         this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content.append(this.contactMatrixView.viewport);
-
-
-        // phone home -- counts launches.  Count is anonymous, needed for our continued funding.  Please don't delete
-        // phoneHome();
-
-        $(parentDiv).append($root[0]);
+        $hic_container.append(this.contactMatrixView.viewport);
 
         this.state = new State(1, 1, 0, 0, 0, 1);
 
@@ -95,7 +69,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.update = function () {
         this.contactMatrixView.update();
-    }
+    };
 
     /**
      * Set the matrix state.  Used ot restore state from a bookmark

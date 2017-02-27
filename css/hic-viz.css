@@ -1,9 +1,15 @@
-.hic-root-div {
+
+.hic-root-container {
+    text-align: center;
+}
+
+.hic-root {
 
     position: relative;
 
     left: 0;
     right: 0;
+
     width: 500px;
     height: 500px;
 
@@ -13,48 +19,65 @@
     padding-top:4px;
 }
 
-.hic-content-div {
+.hic-content-container {
     position: absolute;
-    left: 0px;
-    right: 0px;
+    left: 0;
+    right: 0;
 }
 
-.hic-viewport-div {
+.hic-x-axis {
 
     position: absolute;
     left: 100px;
-    top: 100px;
-    width: 800px;
-    height: 800px;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    border: 1px solid black;
-
-}
-
-.hic-x-axis-div {
-
-    position: absolute;
-    left: 100px;
-    top: 0px;
+    top: 0;
     width: 800px;
     height: 100px;
     overflow-x: hidden;
     overflow-y: hidden;
     border: 1px solid black;
-
+    background-color: lightblue;
 }
 
-.hic-y-axis-div {
+.hic-y-axis {
 
     position: absolute;
-    left: 0px;
+    left: 0;
     top: 100px;
     width: 100px;
     height: 800px;
     overflow-x: hidden;
     overflow-y: hidden;
     border: 1px solid black;
+    background-color: lightblue;
+}
+
+.hic-x-axis-ruler-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 25%;
+    background-color: lightpink;
+}
+
+.hic-y-axis-ruler-container {
+    position: absolute;
+    right:0;
+    height: 100%;
+    width: 25%;
+    background-color: lightpink;
+}
+
+.hic-viewport {
+
+    position: absolute;
+    left: 100px;
+    top: 100px;
+    width: 800px;
+    height: 800px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    border: 1px solid black;
+
 }
 
 .hic-viewport-canvas {

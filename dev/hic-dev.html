@@ -37,7 +37,6 @@
     <script type="text/javascript" src="../vendor/underscore-min.js"></script>
 
     <!-- IGV JS -->
-    <script type="text/javascript" src="../js/igv-create.js"></script>
     <script type="text/javascript" src="../js/ui/userFeedback.js"></script>
     <script type="text/javascript" src="../js/ui/alertDialog.js"></script>
     <script type="text/javascript" src="../js/ui/popover.js"></script>
@@ -140,8 +139,34 @@
 
 <body>
 
-<div id="myDiv" style="padding-top:50px; padding-bottom:20px; height: auto">
+<div class="hic-root-container">
 
+    <h1>Juicebox JS</h1>
+
+    <div class="hic-root">
+
+        <div class="hic-content-container">
+            <div class="hic-x-axis">
+                <!--x-axis-->
+                <div class="hic-x-axis-ruler-container">
+
+                </div>
+            </div>
+            <div class="hic-y-axis">
+                <!--y-axis-->
+                <div class="hic-y-axis-ruler-container">
+
+                </div>
+
+            </div>
+            <div class="hic-viewport">
+                <canvas class="hic-viewport-canvas" width="800" height="800"></canvas>
+                <div class="hic-viewport-spinner" style="font-size: 32px;">
+                    <i class="fa fa-spinner fa-fw" style="display: none;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -149,11 +174,9 @@
     $(document).ready(function () {
 
         hic
-            .createBrowser($('#myDiv')[0], { url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic" })
+            .createBrowser($('.hic-content-container'), {url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"})
             .then(function (browser) {
-
                 browser.contactMatrixView.update();
-
             })
             .catch(function (error) {
                 console.error(error);

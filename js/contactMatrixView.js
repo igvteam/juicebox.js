@@ -38,7 +38,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $viewport = $('<div class="hic-viewport-div">');
+        $viewport = $('<div class="hic-viewport">');
         this.viewport = $viewport[0];
 
         //content canvas
