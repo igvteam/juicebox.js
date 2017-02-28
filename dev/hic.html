@@ -18,6 +18,7 @@
 
     <!-- juicebox CSS -->
     <link rel="stylesheet" type="text/css" href="../css/hic-viz.css">
+    <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.css"></script>
 
     <!-- jQuery JS -->
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -25,10 +26,8 @@
     <!-- jQuery UI JS -->
     <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <script type="text/javascript" src="https://igv.org/web/release/1.0.6/igv-1.0.6.min.js"></script>
+    <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
 
-
-    <script type="text/javascript" src="../vendor/underscore-min.js"></script>
 
     <script src="../js/hicReader.js"></script>
     <script src="../js/hicBrowser.js"></script>
@@ -50,9 +49,10 @@
     $(document).ready(function () {
 
 
-        hic.createBrowser($('#myDiv')[0], {url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"}).then(function (browser) {
+        hic.createBrowser($('#myDiv')[0], {url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic"}).then(function (browser) {
+            browser.setState(1, 1, 4, 0, 0, 1);
 
-            browser.contactMatrixView.update();
+            /// browser.contactMatrixView.update();
         }).catch(function (error) {
             console.error(error);
         })

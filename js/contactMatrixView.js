@@ -29,19 +29,6 @@
 
 var hic = (function (hic) {
 
-    var state = {
-        chr1: 1,
-        chr2: 1,
-        x: 0,
-        y: 0,
-        zoom: 4,
-        pixelSize: 1,
-        shiftPixels: function (dx, dy) {
-            state.x += dx;// / pixelSize;
-            state.y += dy;// / pixelSize;
-            console.log(state.x);
-        }
-    };
 
     dragThreshold = 2;
 
@@ -88,15 +75,14 @@ var hic = (function (hic) {
             }
         );
 
-
     }
 
 
     hic.ContactMatrixView.prototype.update = function () {
 
-        var self = this;
+        var self = this,
+            state = this.browser.state;
 
-        if (self.updating) return;
 
         self.updating = true;
 
@@ -144,6 +130,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.draw = function (blocks, zd) {
 
         var self = this,
+            state = this.browser.state,
             blockBinCount = zd.blockBinCount,
             blockColumnCount = zd.blockColumnCount;
 
@@ -201,6 +188,7 @@ var hic = (function (hic) {
             return new Promise(function (fulfill, reject) {
 
                 var reader = self.browser.hicReader,
+                    state = self.browser.state,
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
@@ -320,7 +308,7 @@ var hic = (function (hic) {
                 maxEnd,
                 maxStart;
 
-            if(self.updating) return;
+            if (self.updating) return;
 
             e.preventDefault();
 
@@ -332,7 +320,9 @@ var hic = (function (hic) {
 
                     isDragging = true;
 
-                    state.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
+                    if(self.updating) return;
+
+                    self.browser.state.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
 
                     self.update();
 

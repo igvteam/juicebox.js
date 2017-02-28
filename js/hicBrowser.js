@@ -89,10 +89,43 @@ var hic = (function (hic) {
 
         $(parentDiv).append($root[0]);
 
+        this.state = new State(1, 1, 0, 0, 0, 1);
+
     };
 
     hic.Browser.prototype.update = function () {
         this.contactMatrixView.update();
+    }
+
+    /**
+     * Set the matrix state.  Used ot restore state from a bookmark
+     * @param chr1  The chromosome index (not the name)
+     * @param chr2  The cnormosome index (not the name)
+     * @param zoom  Zoom level index (int)
+     * @param x     Bin position at upper left corner
+     * @param y     Bin position at upper right corner
+     */
+    hic.Browser.prototype.setState = function(chr1, chr2, zoom, x, y, pixelSize) {
+
+        this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
+
+        this.contactMatrixView.update();
+    }
+
+    State = function(chr1, chr2, zoom, x, y, pixelSize) {
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        this.zoom = zoom;
+        this.x = x;
+        this.y = y;
+        this.pixelSize = pixelSize;
+    }
+
+    State.prototype.shiftPixels = function(dx, dy) {
+
+        this.x += dx;
+        this.y += dy;
+
     }
 
 

@@ -228,45 +228,49 @@ var hic = (function (hic) {
                     headers: self.config.headers,
                     range: {start: idx.start, size: idx.size},
                     withCredentials: self.config.withCredentials
-                }).then(function (data) {
+                })
+                .then(function (data) {
 
-                if (!data) {
-                    fulfill(null);
-                    return;
-                }
+                        if (!data) {
+                            fulfill(null);
+                            return;
+                        }
 
 
-                var dis = new igv.BinaryParser(new DataView(data));
-                
-                var c1 = dis.getInt();
-                var c2 = dis.getInt();
+                        var dis = new igv.BinaryParser(new DataView(data));
 
-                var chr1 = self.chromosomes[c1];
-                var chr2 = self.chromosomes[c2];
+                        var c1 = dis.getInt();
+                        var c2 = dis.getInt();
 
-                // # of resolution levels (bp and frags)
-                var nResolutions = dis.getInt();
+                        var chr1 = self.chromosomes[c1];
+                        var chr2 = self.chromosomes[c2];
 
-                var zdList = [];
+                        // # of resolution levels (bp and frags)
+                        var nResolutions = dis.getInt();
 
-                var p1 = getSites.call(self, chr1.name);
-                var p2 = getSites.call(self, chr2.name);
+                        var zdList = [];
 
-                Promise.all([p1, p2]).then(function (results) {
-                    var sites1 = results[0];
-                    var sites2 = results[1];
+                        var p1 = getSites.call(self, chr1.name);
+                        var p2 = getSites.call(self, chr2.name);
 
-                    while (nResolutions-- > 0) {
-                        var zd = parseMatixZoomData(chr1, chr2, sites1, sites2, dis);
-                        zdList.push(zd);
+                        Promise.all([p1, p2])
+                            .then(function (results) {
+                                var sites1 = results[0];
+                                var sites2 = results[1];
+
+                                while (nResolutions-- > 0) {
+                                    var zd = parseMatixZoomData(chr1, chr2, sites1, sites2, dis);
+                                    zdList.push(zd);
+                                }
+
+                                fulfill(new Matrix(c1, c2, zdList));
+
+                            })
+                            .catch(function (err) {
+                                reject(err);
+                            });
                     }
-
-                    fulfill(new Matrix(c1, c2, zdList));
-
-                }).catch(function (err) {
-                    reject(err);
-                });
-            }).catch(reject)
+                ).catch(reject)
         });
     }
 
@@ -292,87 +296,89 @@ var hic = (function (hic) {
                         headers: self.config.headers,
                         range: {start: idx.filePosition, size: idx.size},
                         withCredentials: self.config.withCredentials
-                    }).then(function (data) {
+                    })
+                    .then(function (data) {
 
-                    if (!data) {
-                        fulfill(null);
-                        return;
-                    }
-
-                    var inflate = new Zlib.Inflate(new Uint8Array(data));
-                    var plain = inflate.decompress();
-                    data = plain.buffer;
-
-
-                    var parser = new igv.BinaryParser(new DataView(data));
-                    var nRecords = parser.getInt();
-                    var records = [];
-
-                    if (self.version < 7) {
-                        for (i = 0; i < nRecords; i++) {
-                            var binX = parser.getInt();
-                            var binY = parser.getInt();
-                            var counts = parser.getFloat();
-                            records.add(new ContactRecord(binX, binY, counts));
+                        if (!data) {
+                            fulfill(null);
+                            return;
                         }
-                    } else {
 
-                        var binXOffset = parser.getInt();
-                        var binYOffset = parser.getInt();
+                        var inflate = new Zlib.Inflate(new Uint8Array(data));
+                        var plain = inflate.decompress();
+                        data = plain.buffer;
 
-                        var useShort = parser.getByte() == 0;
-                        var type = parser.getByte();
 
-                        if (type === 1) {
-                            // List-of-rows representation
-                            var rowCount = parser.getShort();
+                        var parser = new igv.BinaryParser(new DataView(data));
+                        var nRecords = parser.getInt();
+                        var records = [];
 
-                            for (i = 0; i < rowCount; i++) {
-
-                                binY = binYOffset + parser.getShort();
-                                var colCount = parser.getShort();
-
-                                for (j = 0; j < colCount; j++) {
-
-                                    binX = binXOffset + parser.getShort();
-                                    counts = useShort ? parser.getShort() : parser.getFloat();
-                                    records.push(new ContactRecord(binX, binY, counts));
-                                }
+                        if (self.version < 7) {
+                            for (i = 0; i < nRecords; i++) {
+                                var binX = parser.getInt();
+                                var binY = parser.getInt();
+                                var counts = parser.getFloat();
+                                records.add(new ContactRecord(binX, binY, counts));
                             }
-                        } else if (type == 2) {
-
-                            var nPts = parser.getInt();
-                            var w = parser.getShort();
-
-                            for (i = 0; i < nPts; i++) {
-                                //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                                var row = i / w;
-                                var col = i - row * w;
-                                var bin1 = binXOffset + col;
-                                var bin2 = binYOffset + row;
-
-                                if (useShort) {
-                                    counts = parser.getShort();
-                                    if (counts != Short_MIN_VALUE) {
-                                        records.push(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                } else {
-                                    counts = parser.getFloat();
-                                    if (!isNaN(counts)) {
-                                        records.push(new ContactRecord(bin1, bin2, counts));
-                                    }
-                                }
-
-
-                            }
-
                         } else {
-                            reject("Unknown block type: " + type);
+
+                            var binXOffset = parser.getInt();
+                            var binYOffset = parser.getInt();
+
+                            var useShort = parser.getByte() == 0;
+                            var type = parser.getByte();
+
+                            if (type === 1) {
+                                // List-of-rows representation
+                                var rowCount = parser.getShort();
+
+                                for (i = 0; i < rowCount; i++) {
+
+                                    binY = binYOffset + parser.getShort();
+                                    var colCount = parser.getShort();
+
+                                    for (j = 0; j < colCount; j++) {
+
+                                        binX = binXOffset + parser.getShort();
+                                        counts = useShort ? parser.getShort() : parser.getFloat();
+                                        records.push(new ContactRecord(binX, binY, counts));
+                                    }
+                                }
+                            } else if (type == 2) {
+
+                                var nPts = parser.getInt();
+                                var w = parser.getShort();
+
+                                for (i = 0; i < nPts; i++) {
+                                    //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
+                                    var row = i / w;
+                                    var col = i - row * w;
+                                    var bin1 = binXOffset + col;
+                                    var bin2 = binYOffset + row;
+
+                                    if (useShort) {
+                                        counts = parser.getShort();
+                                        if (counts != Short_MIN_VALUE) {
+                                            records.push(new ContactRecord(bin1, bin2, counts));
+                                        }
+                                    } else {
+                                        counts = parser.getFloat();
+                                        if (!isNaN(counts)) {
+                                            records.push(new ContactRecord(bin1, bin2, counts));
+                                        }
+                                    }
+
+
+                                }
+
+                            } else {
+                                reject("Unknown block type: " + type);
+                            }
                         }
-                    }
-                    console.log("Block " + blockNumber);
-                    fulfill(new Block(blockNumber, zd, records));
-                }).catch(reject);
+                        console.log("Block " + blockNumber);
+                        fulfill(new Block(blockNumber, zd, records));
+                    })
+                    .catch(reject);
             });
         }
     }
