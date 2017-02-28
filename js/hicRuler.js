@@ -25,11 +25,17 @@
 
 var igv = (function (igv) {
 
-    //
     igv.RulerTrack = function ($container) {
+        var w,
+            h;
+        w = $container.width();
+        h = $container.height();
         this.$canvas = $('<canvas class ="hic-viewport-canvas">');
-        this.$canvas.attr('width', $container.width());
-        this.$canvas.attr('height', $container.height());
+        this.$canvas.attr('width', w);
+        this.$canvas.attr('height', h);
+
+        $container.append(this.$canvas);
+
         this.ctx = this.$canvas.get(0).getContext("2d");
     };
 
