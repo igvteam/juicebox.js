@@ -34,7 +34,9 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser) {
 
-        var $spinner;
+        var $spinner,
+            w,
+            h;
 
         this.browser = browser;
 
@@ -42,8 +44,10 @@ var hic = (function (hic) {
 
         //content canvas
         this.$canvas = $('<canvas class = "hic-viewport-canvas">');
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.attr('height', this.$viewport.height());
+        w = this.$viewport.width();
+        h = this.$viewport.height();
+        this.$canvas.attr('width', w);
+        this.$canvas.attr('height', h);
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner

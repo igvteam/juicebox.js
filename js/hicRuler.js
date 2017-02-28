@@ -23,9 +23,9 @@
  * THE SOFTWARE.
  */
 
-var igv = (function (igv) {
+var hic = (function (hic) {
 
-    igv.RulerTrack = function ($container) {
+    hic.Ruler = function ($container) {
         var w,
             h;
         w = $container.width();
@@ -39,11 +39,11 @@ var igv = (function (igv) {
         this.ctx = this.$canvas.get(0).getContext("2d");
     };
 
-    igv.RulerTrack.prototype.updateWithBrowserState = function (browserState) {
+    hic.Ruler.prototype.updateWithBrowserState = function (browserState) {
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(80, 240) });
     };
 
-    igv.RulerTrack.prototype.draw = function (options) {
+    hic.Ruler.prototype.draw = function (options) {
 
         var fontStyle,
             ts,
@@ -58,7 +58,6 @@ var igv = (function (igv) {
         if (options.referenceFrame.chrName === "all") {
             drawAll.call(this);
         } else {
-            updateLocusLabelWithGenomicState(options.genomicState);
 
             fontStyle = {
                 textAlign: 'center',
@@ -95,24 +94,6 @@ var igv = (function (igv) {
                 nTick++;
             }
             igv.graphics.strokeLine(options.context, 0, this.height - yShim, options.pixelWidth, this.height - yShim);
-
-        }
-
-        function updateLocusLabelWithGenomicState(genomicState) {
-            var $e,
-                viewports;
-
-            $e = options.viewport.$viewport.find('.igv-viewport-content-ruler-div');
-            $e.text(genomicState.locusSearchString);
-
-            // viewports = _.filter(igv.Viewport.viewportsWithLocusIndex(genomicState.locusIndex), function(viewport){
-            //     return (viewport.trackView.track instanceof igv.RulerTrack);
-            // });
-            //
-            // if (1 === _.size(viewports)) {
-            //     $e = _.first(viewports).$viewport.find('.igv-viewport-content-ruler-div');
-            //     $e.text( genomicState.locusSearchString );
-            // }
 
         }
 
@@ -196,7 +177,7 @@ var igv = (function (igv) {
 
                 lastX = x;
 
-            })
+            });
             igv.graphics.strokeLine(options.context, 0, self.height - yShim, options.pixelWidth, self.height - yShim);
         }
 
@@ -244,5 +225,5 @@ var igv = (function (igv) {
         }
     }
 
-    return igv;
-})(igv || {});
+    return hic;
+})(hic || {});
