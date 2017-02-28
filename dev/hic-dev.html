@@ -159,12 +159,6 @@
                 </div>
 
             </div>
-            <div class="hic-viewport">
-                <canvas class="hic-viewport-canvas" width="800" height="800"></canvas>
-                <div class="hic-viewport-spinner" style="font-size: 32px;">
-                    <i class="fa fa-spinner fa-fw" style="display: none;"></i>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -173,10 +167,30 @@
 
     $(document).ready(function () {
 
+        var config = {};
+//        config.url = 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic';
+        config.url = 'https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic';
+
         hic
-            .createBrowser($('.hic-content-container'), {url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"})
+            .createBrowser($('.hic-content-container'), config)
             .then(function (browser) {
-                browser.contactMatrixView.update();
+                var chromosome_index_x,
+                    chromosome_index_y,
+                    zoom_index,
+                    x_bin,
+                    y_bin,
+                    pixel_size;
+
+                chromosome_index_x = 1;
+                chromosome_index_y = 1;
+
+                zoom_index = 4;
+
+                x_bin = y_bin = 0;
+
+                pixel_size = 1;
+
+                browser.setState(chromosome_index_x, chromosome_index_y, zoom_index, x_bin, y_bin, pixel_size);
             })
             .catch(function (error) {
                 console.error(error);
