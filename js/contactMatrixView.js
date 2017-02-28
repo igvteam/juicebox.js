@@ -34,30 +34,26 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser) {
 
-        var $viewport, $spinner;
+        var $spinner;
 
         this.browser = browser;
 
-        $viewport = $('<div class="hic-viewport">');
-        this.viewport = $viewport[0];
+        this.$viewport = $('<div class="hic-viewport">');
 
         //content canvas
-        this.canvas = $('<canvas class = "hic-viewport-canvas">')[0];
-        $viewport.append(this.canvas);
+        this.$canvas = $('<canvas class = "hic-viewport-canvas">');
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
+        this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
         $spinner = $('<div class="hic-viewport-spinner">');
-        $spinner.css({'font-size': '32px'});
-
-        // $spinner.append($('<i class="fa fa-cog fa-spin fa-fw">'));
         $spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
-        $viewport.append($spinner[0]);
 
-        addMouseHandlers.call(this, $viewport);
+        this.$viewport.append(this.$canvas);
+        this.$viewport.append($spinner);
 
-        this.canvas.setAttribute('width', this.viewport.clientWidth);
-        this.canvas.setAttribute('height', this.viewport.clientHeight);
-        this.ctx = this.canvas.getContext("2d");
+        addMouseHandlers.call(this, this.$viewport);
 
         this.matrixCache = {};
         this.blockImageCache = {};
@@ -75,8 +71,7 @@ var hic = (function (hic) {
             }
         );
 
-    }
-
+    };
 
     hic.ContactMatrixView.prototype.update = function () {
 
@@ -87,11 +82,10 @@ var hic = (function (hic) {
         self.updating = true;
 
         this.getMatrix(state.chr1, state.chr2)
-
             .then(function (matrix) {
 
-                var widthInBins = self.viewport.clientWidth / state.pixelSize,
-                    heightInBins = self.viewport.clientHeight / state.pixelSize,
+                var widthInBins = self.$viewport.width() / state.pixelSize,
+                    heightInBins = self.$viewport.height() / state.pixelSize,
                     zd = matrix.bpZoomData[state.zoom],
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
@@ -120,12 +114,13 @@ var hic = (function (hic) {
                     self.updating = false;
                     console.error(error);
                 })
-            }).catch(function (error) {
-            self.stopSpinner(self);
-            self.updating = false;
-            console.error(error);
-        })
-    }
+            })
+            .catch(function (error) {
+                self.stopSpinner(self);
+                self.updating = false;
+                console.error(error);
+            })
+    };
 
     hic.ContactMatrixView.prototype.draw = function (blocks, zd) {
 
@@ -134,8 +129,8 @@ var hic = (function (hic) {
             blockBinCount = zd.blockBinCount,
             blockColumnCount = zd.blockColumnCount;
 
-        self.canvas.setAttribute('width', self.viewport.clientWidth);
-        self.canvas.setAttribute('height', self.viewport.clientHeight);
+        self.$canvas.attr('width', self.$viewport.width());
+        self.$canvas.attr('height', self.$viewport.height());
         blocks.forEach(function (blockImage) {
 
             var block = blockImage.block,
@@ -154,7 +149,7 @@ var hic = (function (hic) {
             }
         })
 
-    }
+    };
 
     hic.ContactMatrixView.prototype.getMatrix = function (chr1, chr2) {
 
@@ -163,18 +158,20 @@ var hic = (function (hic) {
             key = "" + chr1 + "_" + chr2;
         if (this.matrixCache.hasOwnProperty(key)) {
             return Promise.resolve(self.matrixCache[key]);
-        }
-        else {
+        }  else {
             return new Promise(function (fulfill, reject) {
                 self.startSpinner();
-                reader.readMatrix(key).then(function (matrix) {
-                    self.matrixCache[key] = matrix;
-                    fulfill(matrix);
-                }).catch(reject);
+                reader
+                    .readMatrix(key)
+                    .then(function (matrix) {
+                        self.matrixCache[key] = matrix;
+                        fulfill(matrix);
+                    })
+                    .catch(reject);
             })
 
         }
-    }
+    };
 
     hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
 
@@ -183,8 +180,7 @@ var hic = (function (hic) {
 
         if (this.blockImageCache.hasOwnProperty(key)) {
             return Promise.resolve(this.blockImageCache[key]);
-        }
-        else {
+        } else {
             return new Promise(function (fulfill, reject) {
 
                 var reader = self.browser.hicReader,
@@ -248,16 +244,16 @@ var hic = (function (hic) {
                     .catch(reject)
             })
         }
-    }
+    };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        var $spinner = $(this.viewport).find('.fa-spinner');
+        var $spinner = $(this.$viewport).find('.fa-spinner');
         $spinner.addClass("fa-spin");
         $spinner.show();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        var $spinner = $(this.viewport).find('.fa-spinner');
+        var $spinner = $(this.$viewport).find('.fa-spinner');
         $spinner.hide();
         $spinner.removeClass("fa-spin");
     };
@@ -266,9 +262,6 @@ var hic = (function (hic) {
 
         var self = this,
             viewport = $viewport[0],
-            viewports,
-            referenceFrame,
-            isRulerTrack = false,
             isMouseDown = false,
             isDragging = false,
             lastMouseX,
@@ -276,12 +269,12 @@ var hic = (function (hic) {
             mouseDownX,
             mouseDownY;
 
-        $viewport.mousedown(function (e) {
+        $viewport.on('mousedown', function (e) {
 
             var coords;
 
             isMouseDown = true;
-            coords = translateMouseCoordinates(e, viewport);
+            coords = translateMouseCoordinates(e, $viewport);
             mouseDownX = lastMouseX = coords.x;
             mouseDownY = lastMouseY = coords.y;
 
@@ -298,11 +291,11 @@ var hic = (function (hic) {
         //     xy = igv.translateMouseCoordinates(e, trackContainerDiv);
         //     _left = Math.max(50, xy.x - 5);
         //
-        //     _left = Math.min(igv.browser.trackContainerDiv.clientWidth - 65, _left);
+        //     _left = Math.min(igv.browser.trackContainerDiv.width() - 65, _left);
         //     $element.css({left: _left + 'px'});
         // });
 
-        $viewport.mousemove(throttle(function (e) {
+        $viewport.on('mousemove', throttle(function (e) {
 
             var coords,
                 maxEnd,
@@ -312,7 +305,7 @@ var hic = (function (hic) {
 
             e.preventDefault();
 
-            coords = translateMouseCoordinates(e, viewport);
+            coords = translateMouseCoordinates(e, $viewport);
 
             if (isMouseDown) { // Possibly dragging
 
@@ -335,9 +328,9 @@ var hic = (function (hic) {
 
         }, 10));
 
-        $viewport.mouseup(mouseUpOrOut);
+        $viewport.on('mouseup', mouseUpOrOut);
 
-        $viewport.mouseleave(mouseUpOrOut);
+        $viewport.on('mouseleave', mouseUpOrOut);
 
         function mouseUpOrOut(e) {
 
@@ -360,10 +353,9 @@ var hic = (function (hic) {
 
     }
 
-    function translateMouseCoordinates(e, target) {
+    function translateMouseCoordinates(e, $target) {
 
-        var $target = $(target),
-            eFixed,
+        var eFixed,
             posx,
             posy;
 
@@ -377,7 +369,7 @@ var hic = (function (hic) {
         posy = eFixed.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
-    };
+    }
 
     function throttle(fn, threshhold, scope) {
         threshhold || (threshhold = 200);
@@ -400,7 +392,7 @@ var hic = (function (hic) {
                 fn.apply(context, args);
             }
         }
-    };
+    }
 
     return hic;
 
