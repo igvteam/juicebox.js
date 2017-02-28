@@ -64,11 +64,18 @@ var hic = (function (hic) {
 
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
-        this.contactMatrixView = new hic.ContactMatrixView(this);
 
         $content_container = $('<div class="hic-content-container">');
-        $content_container.append(xAxis());
-        $content_container.append(yAxis());
+
+        this.$xAxis = xAxis();
+        this.xAxisRuler = new igv.RulerTrack(this.$xAxis.find('hic-x-axis-ruler-container'));
+        $content_container.append(this.$xAxis);
+
+        this.$yAxis = yAxis();
+        this.yAxisRuler = new igv.RulerTrack(this.$yAxis.find('hic-y-axis-ruler-container'));
+        $content_container.append(this.$yAxis);
+
+        this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
 
         $root = $('<div class="hic-root">');
@@ -102,6 +109,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.update = function () {
         this.contactMatrixView.update();
+        this.xAxisRuler.updateWithBrowserState(this.state);
+        this.yAxisRuler.updateWithBrowserState(this.state);
     };
 
     /**
@@ -118,7 +127,10 @@ var hic = (function (hic) {
         this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
 
         this.contactMatrixView.update();
-    }
+        this.xAxisRuler.updateWithBrowserState(this.state);
+        this.yAxisRuler.updateWithBrowserState(this.state);
+
+    };
 
     State = function(chr1, chr2, zoom, x, y, pixelSize) {
         this.chr1 = chr1;
@@ -127,15 +139,14 @@ var hic = (function (hic) {
         this.x = x;
         this.y = y;
         this.pixelSize = pixelSize;
-    }
+    };
 
     State.prototype.shiftPixels = function(dx, dy) {
 
         this.x += dx;
         this.y += dy;
 
-    }
-
+    };
 
     return hic;
 
