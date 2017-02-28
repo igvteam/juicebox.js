@@ -26,43 +26,15 @@
 var igv = (function (igv) {
 
     //
-    igv.RulerTrack = function () {
-
-        this.height = 32;
-        this.name = "";
-        this.id = "ruler";
-        this.disableButtons = true;
-        this.ignoreTrackMenu = true;
-        this.order = -Number.MAX_VALUE;
-        this.supportsWholeGenome = false;
-        
+    igv.RulerTrack = function ($container) {
+        this.$canvas = $('<canvas class ="hic-viewport-canvas">');
+        this.$canvas.attr('width', $container.width());
+        this.$canvas.attr('height', $container.height());
+        this.ctx = this.$canvas.get(0).getContext("2d");
     };
 
-    igv.RulerTrack.prototype.locusLabelWithViewport = function (viewport) {
-
-        var locusLabel = $('<div class = "igv-viewport-content-ruler-div">');
-
-        locusLabel.text(viewport.genomicState.locusSearchString);
-
-        locusLabel.click(function (e) {
-
-            var genomicState = viewport.genomicState,
-                initialReferenceFrame = genomicState.initialReferenceFrame;
-
-            genomicState.referenceFrame = new igv.ReferenceFrame(initialReferenceFrame.chrName, initialReferenceFrame.start, initialReferenceFrame.bpPerPixel);
-
-            // igv.browser.updateWithLocusIndex(genomicState.locusIndex);
-            igv.browser.selectMultiLocusPanelWithGenomicState(genomicState);
-        });
-
-        return locusLabel;
-    };
-
-    igv.RulerTrack.prototype.getFeatures = function (chr, bpStart, bpEnd) {
-
-        return new Promise(function (fulfill) {
-            fulfill([]);
-        });
+    igv.RulerTrack.prototype.updateWithBrowserState = function (browserState) {
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(80, 240) });
     };
 
     igv.RulerTrack.prototype.draw = function (options) {
@@ -223,7 +195,6 @@ var igv = (function (igv) {
         }
 
     };
-
 
     function TickSpacing(majorTick, majorUnit, unitMultiplier) {
         this.majorTick = majorTick;
