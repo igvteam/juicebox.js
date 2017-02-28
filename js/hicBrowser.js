@@ -57,14 +57,47 @@ var hic = (function (hic) {
         });
     };
 
-    hic.Browser = function ($hic_container, config) {
+    hic.Browser = function ($app_container, config) {
+
+        var $root,
+            $content_container;
+
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
         this.contactMatrixView = new hic.ContactMatrixView(this);
-        $hic_container.append(this.contactMatrixView.$viewport);
+
+        $content_container = $('<div class="hic-content-container">');
+        $content_container.append(xAxis());
+        $content_container.append(yAxis());
+        $content_container.append(this.contactMatrixView.$viewport);
+
+        $root = $('<div class="hic-root">');
+        $root.append($content_container);
+
+        $app_container.append($root);
 
         this.state = new State(1, 1, 0, 0, 0, 1);
 
+        function xAxis () {
+            var $x_axis,
+                $e;
+
+            $x_axis = $('<div class="hic-x-axis">');
+            $e = $('<div class="hic-x-axis-ruler-container">');
+            $x_axis.append($e);
+            return $x_axis
+        }
+
+        function yAxis () {
+            var $y_axis,
+                $e;
+
+            $y_axis = $('<div class="hic-y-axis">');
+            $e = $('<div class="hic-y-axis-ruler-container">');
+            $y_axis.append($e);
+            return $y_axis
+
+        }
     };
 
     hic.Browser.prototype.update = function () {

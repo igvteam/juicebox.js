@@ -139,28 +139,29 @@
 
 <body>
 
-<div class="hic-root-container">
+<div class="app-container">
 
     <h1>Juicebox JS</h1>
 
-    <div class="hic-root">
+    <!--<div class="hic-root">-->
 
-        <div class="hic-content-container">
-            <div class="hic-x-axis">
-                <!--x-axis-->
-                <div class="hic-x-axis-ruler-container">
+        <!--<div class="hic-content-container">-->
+            <!--<div class="hic-x-axis">-->
+                <!--&lt;!&ndash;x-axis&ndash;&gt;-->
+                <!--<div class="hic-x-axis-ruler-container">-->
 
-                </div>
-            </div>
-            <div class="hic-y-axis">
-                <!--y-axis-->
-                <div class="hic-y-axis-ruler-container">
+                <!--</div>-->
+            <!--</div>-->
+            <!--<div class="hic-y-axis">-->
+                <!--&lt;!&ndash;y-axis&ndash;&gt;-->
+                <!--<div class="hic-y-axis-ruler-container">-->
 
-                </div>
+                <!--</div>-->
 
-            </div>
-        </div>
-    </div>
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+
 </div>
 
 <script type="text/javascript">
@@ -172,7 +173,7 @@
         config.url = 'https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic';
 
         hic
-            .createBrowser($('.hic-content-container'), config)
+            .createBrowser($('.app-container'), config)
             .then(function (browser) {
                 var chromosome_index_x,
                     chromosome_index_y,
