@@ -68,11 +68,11 @@ var hic = (function (hic) {
         $content_container = $('<div class="hic-content-container">');
 
         this.$xAxis = xAxis();
-        this.xAxisRuler = new igv.RulerTrack(this.$xAxis.find('hic-x-axis-ruler-container'));
+        this.xAxisRuler = new igv.RulerTrack(this.$xAxis.find('.hic-x-axis-ruler-container'));
         $content_container.append(this.$xAxis);
 
         this.$yAxis = yAxis();
-        this.yAxisRuler = new igv.RulerTrack(this.$yAxis.find('hic-y-axis-ruler-container'));
+        this.yAxisRuler = new igv.RulerTrack(this.$yAxis.find('.hic-y-axis-ruler-container'));
         $content_container.append(this.$yAxis);
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
