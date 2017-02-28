@@ -65,23 +65,22 @@ var hic = (function (hic) {
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
 
+        $root = $('<div class="hic-root">');
+        $app_container.append($root);
+
         $content_container = $('<div class="hic-content-container">');
+        $root.append($content_container);
 
         this.$xAxis = xAxis();
-        this.xAxisRuler = new igv.RulerTrack(this.$xAxis.find('.hic-x-axis-ruler-container'));
         $content_container.append(this.$xAxis);
+        this.xAxisRuler = new hic.Ruler(this.$xAxis.find('.hic-x-axis-ruler-container'));
 
         this.$yAxis = yAxis();
-        this.yAxisRuler = new igv.RulerTrack(this.$yAxis.find('.hic-y-axis-ruler-container'));
         $content_container.append(this.$yAxis);
+        this.yAxisRuler = new hic.Ruler(this.$yAxis.find('.hic-y-axis-ruler-container'));
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
-
-        $root = $('<div class="hic-root">');
-        $root.append($content_container);
-
-        $app_container.append($root);
 
         this.state = new State(1, 1, 0, 0, 0, 1);
 
