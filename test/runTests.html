@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>igv.js unit tests</title>
+
+    <link rel="stylesheet" href="vendor/qunit.css" type="text/css"/>
+    <script type="text/javascript" src="vendor/qunit.js"></script>
+
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <!-- IGV JS -->
+    <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
+
+    <!-- HiC JS -->
+
+    <script type="text/javascript" src="../js/hicReader.js"></script>
+    <script type="text/javascript" src="testHiC.js"></script>
+
+
+</head>
+<body>
+<div id="qunit"></div>
+<div id="qunit-fixture"></div>
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        runHiCTests();
+    });
+</script>
+</body>
+</html>
