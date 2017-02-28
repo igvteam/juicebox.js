@@ -73,11 +73,12 @@ var hic = (function (hic) {
 
     /**
      * Set the matrix state.  Used ot restore state from a bookmark
-     * @param chr1  The chromosome index (not the name)
-     * @param chr2  The cnormosome index (not the name)
-     * @param zoom  Zoom level index (int)
-     * @param x     Bin position at upper left corner
-     * @param y     Bin position at upper right corner
+     * @param chr1  chromosome index (not the name)
+     * @param chr2  cnormosome index (not the name)
+     * @param zoom  zoom level index (int)
+     * @param x     bin position of left-most cell (horizontal-right axis)
+     * @param y     bin position top-most cell (vertical-down axis)
+     * @param pixelSize   screen-pixel per bin (dimension of n by n screen region occupied by one bin)
      */
     hic.Browser.prototype.setState = function(chr1, chr2, zoom, x, y, pixelSize) {
 
