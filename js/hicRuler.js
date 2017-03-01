@@ -25,25 +25,15 @@
 
 var hic = (function (hic) {
 
-    hic.Ruler = function ($container) {
-        var w,
-            h;
+    hic.Ruler = function ($container, axis) {
 
-        // this.$canvas = $('<canvas class ="hic-viewport-canvas">');
         this.$canvas = $('<canvas>');
-
-        w = $container.width();
-        h = $container.height();
-
-        this.$canvas.attr('width', w);
-        this.$canvas.attr('height', h);
-
+        this.$canvas.attr('width', $container.width());
+        this.$canvas.attr('height', $container.height());
         $container.append(this.$canvas);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
-        // igv.graphics.fillRect(this.ctx, 0, 0, w/2, h/2, { fillStyle: igv.randomRGB(120, 240) });
-
-        this.setAxis('x');
+        this.setAxis( axis );
     };
 
     hic.Ruler.prototype.setAxis = function (axis) {
@@ -250,7 +240,9 @@ var hic = (function (hic) {
     }
 
     function identityTransform (context) {
-        context.setTransform(1, 0, 0, 1, 0, 0); // (sx 0 0 sy tx ty)
+
+        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+        context.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     function yAxisTransform (context) {
