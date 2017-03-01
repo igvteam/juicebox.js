@@ -62,15 +62,17 @@ var hic = (function (hic) {
         this.canvasTransform(this.ctx);
 
         if ('x' === this.axis) {
-            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(120, 240) });
+            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
+            // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(120, 240) });
         } else {
-            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
+            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.rgbColor(255, 255, 255) });
+            // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
         }
 
         config.bpPerPixel = 9.4277;
         config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
         config.bpStart = 124502438;
-        config.pixelWidth = config.viewportWidth;
+        config.pixelWidth = 3 * config.viewportWidth;
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());
         this.draw(config);
     };
@@ -84,8 +86,7 @@ var hic = (function (hic) {
             x,
             l,
             yShim,
-            tickHeight,
-            bpPerPixel;
+            tickHeight;
 
         if (options.chrName === "all") {
             // drawAll.call(this);
@@ -93,13 +94,12 @@ var hic = (function (hic) {
 
             fontStyle = {
                 textAlign: 'center',
-                font: '14px PT Sans',
+                font: '10px PT Sans',
                 fillStyle: "rgba(64, 64, 64, 1)",
                 strokeStyle: "rgba(64, 64, 64, 1)"
             };
 
-            bpPerPixel = options.bpPerPixel;
-            ts = findSpacing( Math.floor(options.viewportWidth * bpPerPixel) );
+            ts = findSpacing( Math.floor(options.viewportWidth * options.bpPerPixel) );
             spacing = ts.majorTick;
 
             // Find starting point closest to the current origin
@@ -114,7 +114,7 @@ var hic = (function (hic) {
                 yShim = 2;
                 tickHeight = 6;
 
-                x = Math.round(((l - 1) - options.bpStart + 0.5) / bpPerPixel);
+                x = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
                 var chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
 
                 if (nTick % 1 == 0) {
@@ -200,7 +200,7 @@ var hic = (function (hic) {
 
                 var chromosome = igv.browser.genome.getChromosome(chrName),
                     bp = igv.browser.genome.getGenomeCoordinate(chrName, chromosome.bpLength),
-                    x = Math.round((bp - options.bpStart ) / bpPerPixel),
+                    x = Math.round((bp - options.bpStart ) / options.bpPerPixel),
                     chrLabel = chrName.startsWith("chr") ? chrName.substr(3) : chrName;
 
                 self.ctx.textAlign = 'center';
