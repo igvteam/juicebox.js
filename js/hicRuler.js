@@ -33,28 +33,46 @@ var hic = (function (hic) {
         $container.append(this.$canvas);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
+
+        this.axis = axis;
+
+        this.yAxisTransformWithContext = function(context) {
+
+            context.translate($container.width(), 0);
+            // context.translate(10, 0);
+            context.rotate(Math.PI/2.0);
+        };
+
         this.setAxis( axis );
     };
 
     hic.Ruler.prototype.setAxis = function (axis) {
-        this.canvasTransform = ('y' === axis) ? yAxisTransform : identityTransform;
+
+        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
+
     };
 
     hic.Ruler.prototype.updateWithBrowserState = function (browserState) {
 
-        var w,
-            h;
+        var config = {};
 
-        identityTransform(this.ctx);
-        w = this.$canvas.width();
-        h = this.$canvas.height();
-        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.rgbColor(255, 255, 255) });
+        identityTransformWithContext(this.ctx);
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
 
         this.canvasTransform(this.ctx);
-        w = Math.max(this.$canvas.width(), this.$canvas.height());
-        h = Math.min(this.$canvas.width(), this.$canvas.height());
-        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.randomRGB(120, 240) });
 
+        if ('x' === this.axis) {
+            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(120, 240) });
+        } else {
+            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
+        }
+
+        config.bpPerPixel = 9.4277;
+        config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
+        config.bpStart = 124502438;
+        config.pixelWidth = config.viewportWidth;
+        config.height = Math.min(this.$canvas.width(), this.$canvas.height());
+        this.draw(config);
     };
 
     hic.Ruler.prototype.draw = function (options) {
@@ -69,18 +87,18 @@ var hic = (function (hic) {
             tickHeight,
             bpPerPixel;
 
-        if (options.referenceFrame.chrName === "all") {
-            drawAll.call(this);
+        if (options.chrName === "all") {
+            // drawAll.call(this);
         } else {
 
             fontStyle = {
                 textAlign: 'center',
-                font: '10px PT Sans',
+                font: '14px PT Sans',
                 fillStyle: "rgba(64, 64, 64, 1)",
                 strokeStyle: "rgba(64, 64, 64, 1)"
             };
 
-            bpPerPixel = options.referenceFrame.bpPerPixel;
+            bpPerPixel = options.bpPerPixel;
             ts = findSpacing( Math.floor(options.viewportWidth * bpPerPixel) );
             spacing = ts.majorTick;
 
@@ -88,8 +106,8 @@ var hic = (function (hic) {
             nTick = Math.floor(options.bpStart / spacing) - 1;
             x = 0;
 
-            //canvas.setProperties({textAlign: 'center'});
-            igv.graphics.setProperties(options.context, fontStyle);
+            igv.graphics.setProperties(this.ctx, fontStyle);
+
             while (x < options.pixelWidth) {
 
                 l = Math.floor(nTick * spacing);
@@ -100,14 +118,14 @@ var hic = (function (hic) {
                 var chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
 
                 if (nTick % 1 == 0) {
-                    igv.graphics.fillText(options.context, chrPosition, x, this.height - (tickHeight / 0.75));
+                    igv.graphics.fillText(this.ctx, chrPosition, x, options.height - (tickHeight / 0.75));
                 }
 
-                igv.graphics.strokeLine(options.context, x, this.height - tickHeight, x, this.height - yShim);
+                igv.graphics.strokeLine(this.ctx, x, options.height - tickHeight, x, options.height - yShim);
 
                 nTick++;
             }
-            igv.graphics.strokeLine(options.context, 0, this.height - yShim, options.pixelWidth, this.height - yShim);
+            igv.graphics.strokeLine(this.ctx, 0, options.height - yShim, options.pixelWidth, options.height - yShim);
 
         }
 
@@ -132,15 +150,15 @@ var hic = (function (hic) {
 
             var workNum = Math.abs((Math.round(anynum * divider) / divider));
 
-            var workStr = "" + workNum
+            var workStr = "" + workNum;
 
             if (workStr.indexOf(".") == -1) {
                 workStr += "."
             }
 
             var dStr = workStr.substr(0, workStr.indexOf("."));
-            var dNum = dStr - 0
-            var pStr = workStr.substr(workStr.indexOf("."))
+            var dNum = dStr - 0;
+            var pStr = workStr.substr(workStr.indexOf("."));
 
             while (pStr.length - 1 < decimal) {
                 pStr += "0"
@@ -150,16 +168,16 @@ var hic = (function (hic) {
 
             //--- Adds a comma in the thousands place.
             if (dNum >= 1000) {
-                var dLen = dStr.length
+                var dLen = dStr.length;
                 dStr = parseInt("" + (dNum / 1000)) + "," + dStr.substring(dLen - 3, dLen)
             }
 
             //-- Adds a comma in the millions place.
             if (dNum >= 1000000) {
-                dLen = dStr.length
+                dLen = dStr.length;
                 dStr = parseInt("" + (dNum / 1000000)) + "," + dStr.substring(dLen - 7, dLen)
             }
-            var retval = dStr + pStr
+            var retval = dStr + pStr;
             //-- Put numbers in parentheses if negative.
             if (anynum < 0) {
                 retval = "(" + retval + ")";
@@ -185,14 +203,14 @@ var hic = (function (hic) {
                     x = Math.round((bp - options.bpStart ) / bpPerPixel),
                     chrLabel = chrName.startsWith("chr") ? chrName.substr(3) : chrName;
 
-                options.context.textAlign = 'center';
-                igv.graphics.strokeLine(options.context, x, self.height - tickHeight, x, self.height - yShim);
-                igv.graphics.fillText(options.context, chrLabel, (lastX + x) / 2, self.height - (tickHeight / 0.75));
+                self.ctx.textAlign = 'center';
+                igv.graphics.strokeLine(self.ctx, x, self.height - tickHeight, x, self.height - yShim);
+                igv.graphics.fillText(self.ctx, chrLabel, (lastX + x) / 2, self.height - (tickHeight / 0.75));
 
                 lastX = x;
 
             });
-            igv.graphics.strokeLine(options.context, 0, self.height - yShim, options.pixelWidth, self.height - yShim);
+            igv.graphics.strokeLine(self.ctx, 0, self.height - yShim, options.pixelWidth, self.height - yShim);
         }
 
     };
@@ -239,15 +257,9 @@ var hic = (function (hic) {
         }
     }
 
-    function identityTransform (context) {
-
+    function identityTransformWithContext(context) {
         // 3x2 matrix. column major. (sx 0 0 sy tx ty).
         context.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
-    function yAxisTransform (context) {
-        context.scale(-1, 1);
-        context.rotate(Math.PI/2.0);
     }
 
     return hic;
