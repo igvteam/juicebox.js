@@ -28,19 +28,43 @@ var hic = (function (hic) {
     hic.Ruler = function ($container) {
         var w,
             h;
+
+        // this.$canvas = $('<canvas class ="hic-viewport-canvas">');
+        this.$canvas = $('<canvas>');
+
         w = $container.width();
         h = $container.height();
-        this.$canvas = $('<canvas class ="hic-viewport-canvas">');
+
         this.$canvas.attr('width', w);
         this.$canvas.attr('height', h);
 
         $container.append(this.$canvas);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
+        // igv.graphics.fillRect(this.ctx, 0, 0, w/2, h/2, { fillStyle: igv.randomRGB(120, 240) });
+
+        this.setAxis('x');
+    };
+
+    hic.Ruler.prototype.setAxis = function (axis) {
+        this.canvasTransform = ('y' === axis) ? yAxisTransform : identityTransform;
     };
 
     hic.Ruler.prototype.updateWithBrowserState = function (browserState) {
-        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(80, 240) });
+
+        var w,
+            h;
+
+        identityTransform(this.ctx);
+        w = this.$canvas.width();
+        h = this.$canvas.height();
+        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.rgbColor(255, 255, 255) });
+
+        this.canvasTransform(this.ctx);
+        w = Math.max(this.$canvas.width(), this.$canvas.height());
+        h = Math.min(this.$canvas.width(), this.$canvas.height());
+        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.randomRGB(120, 240) });
+
     };
 
     hic.Ruler.prototype.draw = function (options) {
@@ -223,6 +247,15 @@ var hic = (function (hic) {
             var dn = Math.log(10);
             return Math.log(x) / dn;
         }
+    }
+
+    function identityTransform (context) {
+        context.setTransform(1, 0, 0, 1, 0, 0); // (sx 0 0 sy tx ty)
+    }
+
+    function yAxisTransform (context) {
+        context.scale(-1, 1);
+        context.rotate(Math.PI/2.0);
     }
 
     return hic;
