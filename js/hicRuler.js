@@ -52,9 +52,10 @@ var hic = (function (hic) {
 
     };
 
-    hic.Ruler.prototype.updateWithBrowserState = function (browserState) {
+    hic.Ruler.prototype.updateWithBrowser = function (browser) {
 
-        var config = {};
+        var bin,
+            config = {};
 
         identityTransformWithContext(this.ctx);
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
@@ -69,11 +70,17 @@ var hic = (function (hic) {
             // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
         }
 
-        config.bpPerPixel = 9.4277;
+        // config.bpPerPixel = 9.4277;
+        config.bpPerPixel = browser.hicReader.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
         config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
-        config.bpStart = 124502438;
-        config.pixelWidth = 3 * config.viewportWidth;
+
+        // config.bpStart = 124502438;
+        bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
+        config.bpStart = bin * browser.hicReader.bpResolutions[ browser.state.zoom ];
+
+        config.pixelWidth = config.viewportWidth;
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());
+
         this.draw(config);
     };
 

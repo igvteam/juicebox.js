@@ -108,8 +108,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.update = function () {
         this.contactMatrixView.update();
-        this.xAxisRuler.updateWithBrowserState(this.state);
-        this.yAxisRuler.updateWithBrowserState(this.state);
+        this.xAxisRuler.updateWithBrowser(this);
+        this.yAxisRuler.updateWithBrowser(this);
     };
 
     /**
@@ -126,8 +126,8 @@ var hic = (function (hic) {
         this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
 
         this.contactMatrixView.update();
-        this.xAxisRuler.updateWithBrowserState(this.state);
-        this.yAxisRuler.updateWithBrowserState(this.state);
+        this.xAxisRuler.updateWithBrowser(this);
+        this.yAxisRuler.updateWithBrowser(this);
 
     };
 
