@@ -73,13 +73,11 @@ var hic = (function (hic) {
 
         this.$xAxis = xAxis();
         $content_container.append(this.$xAxis);
-        this.xAxisRuler = new hic.Ruler(this.$xAxis.find('.hic-x-axis-ruler-container'));
-        this.xAxisRuler.setAxis('x');
+        this.xAxisRuler = new hic.Ruler(this.$xAxis.find('.hic-x-axis-ruler-container'), 'x');
 
         this.$yAxis = yAxis();
         $content_container.append(this.$yAxis);
-        this.yAxisRuler = new hic.Ruler(this.$yAxis.find('.hic-y-axis-ruler-container'));
-        this.yAxisRuler.setAxis('y');
+        this.yAxisRuler = new hic.Ruler(this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
