@@ -39,8 +39,8 @@ var hic = (function (hic) {
 
         this.yAxisTransformWithContext = function(context) {
 
-            context.translate($container.width(), 0);
-            // context.translate(10, 0);
+            // context.translate($container.width(), 0);
+            context.scale(-1, 1);
             context.rotate(Math.PI/2.0);
         };
 
@@ -54,11 +54,13 @@ var hic = (function (hic) {
         // Perhaps in the future we'll do something special based on event type & properties
         this.update();
 
-    }
+    };
 
     hic.Ruler.prototype.setAxis = function (axis) {
 
         this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
+
+        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
 
     };
 
@@ -81,11 +83,9 @@ var hic = (function (hic) {
             // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
         }
 
-        // config.bpPerPixel = 9.4277;
         config.bpPerPixel = browser.hicReader.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
         config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
 
-        // config.bpStart = 124502438;
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.hicReader.bpResolutions[ browser.state.zoom ];
 
@@ -104,7 +104,8 @@ var hic = (function (hic) {
             x,
             l,
             yShim,
-            tickHeight;
+            tickHeight,
+            chrPosition;
 
         if (options.chrName === "all") {
             // drawAll.call(this);
@@ -126,24 +127,32 @@ var hic = (function (hic) {
 
             igv.graphics.setProperties(this.ctx, fontStyle);
 
+            yShim = 2;
+            tickHeight = 8;
+            this.ctx.lineWidth = 2;
             while (x < options.pixelWidth) {
 
                 l = Math.floor(nTick * spacing);
-                yShim = 2;
-                tickHeight = 6;
 
                 x = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
-                var chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
+                chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
 
                 if (nTick % 1 == 0) {
+                    this.ctx.save();
+                    this.labelReflectionTransform(this.ctx, x);
                     igv.graphics.fillText(this.ctx, chrPosition, x, options.height - (tickHeight / 0.75));
+                    this.ctx.restore();
                 }
 
-                igv.graphics.strokeLine(this.ctx, x, options.height - tickHeight, x, options.height - yShim);
+                igv.graphics.strokeLine(this.ctx,
+                    x, options.height - tickHeight,
+                    x, options.height - yShim);
 
                 nTick++;
             }
-            igv.graphics.strokeLine(this.ctx, 0, options.height - yShim, options.pixelWidth, options.height - yShim);
+            igv.graphics.strokeLine(this.ctx,
+                                 0, options.height - yShim,
+                options.pixelWidth, options.height - yShim);
 
         }
 
@@ -273,6 +282,12 @@ var hic = (function (hic) {
             var dn = Math.log(10);
             return Math.log(x) / dn;
         }
+    }
+
+    function reflectionTransformWithContext(context, exe) {
+        context.translate(exe, 0);
+        context.scale(-1, 1);
+        context.translate(-exe, 0);
     }
 
     function identityTransformWithContext(context) {
