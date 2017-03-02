@@ -329,7 +329,8 @@ var hic = (function (hic) {
 
                     if(self.updating) return;
 
-                    self.browser.state.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
+                    // screen pixel units map 1:1 to bin units
+                    self.browser.shiftBins(lastMouseX - coords.x, lastMouseY - coords.y);
 
                     //  igv.browser.fireEvent('trackdrag');
                 }

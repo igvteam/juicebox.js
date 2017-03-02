@@ -127,6 +127,37 @@ var hic = (function (hic) {
 
     };
 
+    hic.Browser.prototype.shiftBins = function (dx, dy) {
+
+        var self = this;
+
+        if (!trivialReject(this.state.x + dx, this.state.y + dy)) {
+            this.state.shiftBins(dx, dy);
+        }
+
+        function trivialReject(binX, binY) {
+
+            if (binX < 0 || binY < 0) {
+                return true;
+            } else if (self.toBP(binX) > self.hicReader.chromosomes[ self.state.chr1 ].size) {
+                return true;
+            } else if (self.toBP(binY) > self.hicReader.chromosomes[ self.state.chr2 ].size) {
+                return true;
+            } else {
+                return false
+            }
+        }
+
+    };
+
+    hic.Browser.prototype.toBP = function (bin) {
+        return bin * this.hicReader.bpResolutions[ this.state.zoom ];
+    };
+
+    hic.Browser.prototype.toBin = function (bp) {
+        return bp / this.hicReader.bpResolutions[ this.state.zoom ];
+    };
+
     State = function(chr1, chr2, zoom, x, y, pixelSize) {
         this.chr1 = chr1;
         this.chr2 = chr2;
@@ -136,11 +167,10 @@ var hic = (function (hic) {
         this.pixelSize = pixelSize;
     };
 
-    State.prototype.shiftPixels = function(dx, dy) {
+    State.prototype.shiftBins = function (dx, dy) {
 
         this.x += dx;
         this.y += dy;
-
         hic.GlobalEventBus.post(new hic.LocusChangeEvent());
 
     };
