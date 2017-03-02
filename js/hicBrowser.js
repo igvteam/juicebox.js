@@ -138,9 +138,14 @@ var hic = (function (hic) {
 
     State.prototype.shiftPixels = function(dx, dy) {
 
+        if (this.x + dx < 0 || this.y + dy < 0) {
+            return;
+        }
+
         this.x += dx;
         this.y += dy;
 
+        console.log('hicRuler.shiftPixels ' + this.x + ' ' + this.y);
         hic.GlobalEventBus.post(new hic.LocusChangeEvent());
 
     };
