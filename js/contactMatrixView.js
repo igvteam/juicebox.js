@@ -58,6 +58,8 @@ var hic = (function (hic) {
         this.$viewport.append($spinner);
 
         addMouseHandlers.call(this, this.$viewport);
+        
+        hic.GlobalEventBus.subscribe("LocusChange", this);
 
         this.matrixCache = {};
         this.blockImageCache = {};
@@ -74,8 +76,16 @@ var hic = (function (hic) {
                 highB: 0
             }
         );
+        
+        
 
     };
+    
+    hic.ContactMatrixView.prototype.receiveEvent = function(event) {
+        // Perhaps in the future we'll do something special based on event type & properties
+        this.update();
+        
+    }
 
     hic.ContactMatrixView.prototype.update = function () {
 
@@ -320,8 +330,6 @@ var hic = (function (hic) {
                     if(self.updating) return;
 
                     self.browser.state.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
-
-                    self.update();
 
                     //  igv.browser.fireEvent('trackdrag');
                 }

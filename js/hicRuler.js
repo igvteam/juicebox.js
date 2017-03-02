@@ -25,8 +25,9 @@
 
 var hic = (function (hic) {
 
-    hic.Ruler = function ($container, axis) {
+    hic.Ruler = function (browser, $container, axis) {
 
+        this.browser = browser;
         this.$canvas = $('<canvas>');
         this.$canvas.attr('width', $container.width());
         this.$canvas.attr('height', $container.height());
@@ -44,7 +45,16 @@ var hic = (function (hic) {
         };
 
         this.setAxis( axis );
+
+        hic.GlobalEventBus.subscribe("LocusChange", this);
+
     };
+
+    hic.Ruler.prototype.receiveEvent = function(event) {
+        // Perhaps in the future we'll do something special based on event type & properties
+        this.update();
+
+    }
 
     hic.Ruler.prototype.setAxis = function (axis) {
 
@@ -52,10 +62,11 @@ var hic = (function (hic) {
 
     };
 
-    hic.Ruler.prototype.updateWithBrowser = function (browser) {
+    hic.Ruler.prototype.update= function () {
 
         var bin,
-            config = {};
+            config = {},
+            browser = this.browser;  
 
         identityTransformWithContext(this.ctx);
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });

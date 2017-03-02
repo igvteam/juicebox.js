@@ -73,11 +73,11 @@ var hic = (function (hic) {
 
         this.$xAxis = xAxis();
         $content_container.append(this.$xAxis);
-        this.xAxisRuler = new hic.Ruler(this.$xAxis.find('.hic-x-axis-ruler-container'), 'x');
+        this.xAxisRuler = new hic.Ruler(this, this.$xAxis.find('.hic-x-axis-ruler-container'), 'x');
 
         this.$yAxis = yAxis();
         $content_container.append(this.$yAxis);
-        this.yAxisRuler = new hic.Ruler(this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
+        this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
@@ -107,9 +107,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.update = function () {
-        this.contactMatrixView.update();
-        this.xAxisRuler.updateWithBrowser(this);
-        this.yAxisRuler.updateWithBrowser(this);
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
     };
 
     /**
@@ -125,9 +123,7 @@ var hic = (function (hic) {
 
         this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
 
-        this.contactMatrixView.update();
-        this.xAxisRuler.updateWithBrowser(this);
-        this.yAxisRuler.updateWithBrowser(this);
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
 
     };
 
@@ -144,6 +140,8 @@ var hic = (function (hic) {
 
         this.x += dx;
         this.y += dy;
+
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
 
     };
 
