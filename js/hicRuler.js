@@ -88,7 +88,7 @@ var hic = (function (hic) {
         // config.bpStart = 124502438;
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.hicReader.bpResolutions[ browser.state.zoom ];
-        console.log('ruler ' + this.axis + ' bin ' + bin);
+        // console.log('ruler ' + this.axis + ' bin ' + bin);
 
         config.pixelWidth = config.viewportWidth;
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());
