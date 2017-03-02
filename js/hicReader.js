@@ -218,7 +218,7 @@ var hic = (function (hic) {
         var self = this;
         var idx = self.masterIndex[key];
         if (idx == null) {
-            fulfill(undefined);
+            Promise.resolve(undefined);
         }
 
         return new Promise(function (fulfill, reject) {

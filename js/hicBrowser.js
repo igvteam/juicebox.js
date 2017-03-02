@@ -84,7 +84,7 @@ var hic = (function (hic) {
 
         this.state = new State(1, 1, 0, 0, 0, 1);
 
-        function xAxis () {
+        function xAxis() {
             var $x_axis,
                 $e;
 
@@ -94,7 +94,7 @@ var hic = (function (hic) {
             return $x_axis
         }
 
-        function yAxis () {
+        function yAxis() {
             var $y_axis,
                 $e;
 
@@ -119,9 +119,28 @@ var hic = (function (hic) {
      * @param y     bin position top-most cell (vertical-down axis)
      * @param pixelSize   screen-pixel per bin (dimension of n by n screen region occupied by one bin)
      */
-    hic.Browser.prototype.setState = function(chr1, chr2, zoom, x, y, pixelSize) {
+    hic.Browser.prototype.setState = function (chr1, chr2, zoom, x, y, pixelSize) {
 
         this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
+
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+
+    };
+
+    hic.Browser.prototype.shiftPixels = function (dx, dy) {
+
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            chr1Length = this.hicReader.chromosomes[this.state.chr1].size,
+            chr2Length = this.hicReader.chromosomes[this.state.chr2].size,
+            binSize = this.hicReader.bpResolutions[this.state.zoom],
+            maxX =  (chr1Length / binSize)  - (viewDimensions.width / this.state.pixelSize),
+            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
+
+        this.state.x += dx;
+        this.state.y += dy;
+
+        this.state.x = Math.min(Math.max(0, this.state.x), maxX);
+        this.state.y = Math.min(Math.max(0, this.state.y), maxY);
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent());
 
@@ -136,14 +155,6 @@ var hic = (function (hic) {
         this.pixelSize = pixelSize;
     };
 
-    State.prototype.shiftPixels = function(dx, dy) {
-
-        this.x += dx;
-        this.y += dy;
-
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
-
-    };
 
     return hic;
 
