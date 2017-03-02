@@ -60,13 +60,40 @@ var hic = (function (hic) {
     hic.Browser = function ($app_container, config) {
 
         var $root,
-            $content_container;
+            $navbar_container,
+            $content_container,
+            $chromosome_goto_container;
 
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
 
         $root = $('<div class="hic-root">');
         $app_container.append($root);
+
+        $navbar_container = $('<div class="hic-navbar-container">');
+
+        // logo
+        $navbar_container.append($('<div class="hic-logo-container">'));
+
+        // x chromosome goto
+        $navbar_container.$x_chromosome_goto = $('<input class="hic-chromosome-goto-x-input" type="text" placeholder="x goto">');
+
+        // y chromosome goto
+        $navbar_container.$y_chromosome_goto = $('<input class="hic-chromosome-goto-y-input" type="text" placeholder="y goto">');
+
+        // chromosome goto container
+        $chromosome_goto_container = $('<div class="hic-chromosome-goto-container">');
+        $chromosome_goto_container.append($navbar_container.$x_chromosome_goto);
+        $chromosome_goto_container.append($navbar_container.$y_chromosome_goto);
+        $navbar_container.append($chromosome_goto_container);
+
+
+
+
+
+
+        $root.append($navbar_container);
+
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
