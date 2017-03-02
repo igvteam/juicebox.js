@@ -26,9 +26,9 @@
 
 var hic = (function (hic) {
 
-    hic.createBrowser = function (parentDiv, config) {
+    hic.createBrowser = function ($hic_container, config) {
 
-        var browser = new hic.Browser(parentDiv, config);
+        var browser = new hic.Browser($hic_container, config);
 
         return new Promise(function (fulfill, reject) {
 
@@ -38,7 +38,6 @@ var hic = (function (hic) {
                 .then(function () {
                     browser.hicReader.readFooter()
                         .then(function () {
-
                             browser.chromosomes = browser.hicReader.chromosomes;
                             browser.bpResolutions = browser.hicReader.bpResolutions;
                             browser.fragResolutions = browser.hicReader.fragResolutions;
@@ -56,61 +55,81 @@ var hic = (function (hic) {
                     reject(error);
                 });
         });
-    }
+    };
 
-    hic.Browser = function (parentDiv, config) {
+    hic.Browser = function ($app_container, config) {
 
-        var $content,
-            $root,
-            $xaxis,
-            $yaxis,
-            browser;
-
-        this.hicReader = new hic.HiCReader(config);
+        var $root,
+            $content_container;
 
         this.config = config;
-        $root = $('<div id="hicRootDiv" class="hic-root-div">');
+        this.hicReader = new hic.HiCReader(config);
 
-        $content = $('<div class="hic-content-div">');
-        $root.append($content[0]);
+        $root = $('<div class="hic-root">');
+        $app_container.append($root);
 
-        $xaxis = $('<div class="hic-x-axis-div">');
-        $content.append($xaxis[0]);
+        $content_container = $('<div class="hic-content-container">');
+        $root.append($content_container);
 
-        $yaxis = $('<div class="hic-y-axis-div">');
-        $content.append($yaxis[0]);
+        this.$xAxis = xAxis();
+        $content_container.append(this.$xAxis);
+        this.xAxisRuler = new hic.Ruler(this.$xAxis.find('.hic-x-axis-ruler-container'), 'x');
+
+        this.$yAxis = yAxis();
+        $content_container.append(this.$yAxis);
+        this.yAxisRuler = new hic.Ruler(this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content.append(this.contactMatrixView.viewport);
-
-
-        // phone home -- counts launches.  Count is anonymous, needed for our continued funding.  Please don't delete
-        // phoneHome();
-
-        $(parentDiv).append($root[0]);
+        $content_container.append(this.contactMatrixView.$viewport);
 
         this.state = new State(1, 1, 0, 0, 0, 1);
 
+        function xAxis () {
+            var $x_axis,
+                $e;
+
+            $x_axis = $('<div class="hic-x-axis">');
+            $e = $('<div class="hic-x-axis-ruler-container">');
+            $x_axis.append($e);
+            return $x_axis
+        }
+
+        function yAxis () {
+            var $y_axis,
+                $e;
+
+            $y_axis = $('<div class="hic-y-axis">');
+            $e = $('<div class="hic-y-axis-ruler-container">');
+            $y_axis.append($e);
+            return $y_axis
+
+        }
     };
 
     hic.Browser.prototype.update = function () {
         this.contactMatrixView.update();
-    }
+        this.xAxisRuler.updateWithBrowser(this);
+        this.yAxisRuler.updateWithBrowser(this);
+    };
 
     /**
      * Set the matrix state.  Used ot restore state from a bookmark
-     * @param chr1  The chromosome index (not the name)
-     * @param chr2  The cnormosome index (not the name)
-     * @param zoom  Zoom level index (int)
-     * @param x     Bin position at upper left corner
-     * @param y     Bin position at upper right corner
+     * @param chr1  chromosome index (not the name)
+     * @param chr2  cnormosome index (not the name)
+     * @param zoom  zoom level index (int)
+     * @param x     bin position of left-most cell (horizontal-right axis)
+     * @param y     bin position top-most cell (vertical-down axis)
+     * @param pixelSize   screen-pixel per bin (dimension of n by n screen region occupied by one bin)
      */
     hic.Browser.prototype.setState = function(chr1, chr2, zoom, x, y, pixelSize) {
 
         this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
 
         this.contactMatrixView.update();
-    }
+        this.xAxisRuler.updateWithBrowser(this);
+        this.yAxisRuler.updateWithBrowser(this);
+
+    };
 
     State = function(chr1, chr2, zoom, x, y, pixelSize) {
         this.chr1 = chr1;
@@ -119,15 +138,14 @@ var hic = (function (hic) {
         this.x = x;
         this.y = y;
         this.pixelSize = pixelSize;
-    }
+    };
 
     State.prototype.shiftPixels = function(dx, dy) {
 
         this.x += dx;
         this.y += dy;
 
-    }
-
+    };
 
     return hic;
 
