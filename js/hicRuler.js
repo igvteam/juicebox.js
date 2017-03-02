@@ -113,7 +113,7 @@ var hic = (function (hic) {
 
             fontStyle = {
                 textAlign: 'center',
-                font: '10px PT Sans',
+                font: '12px PT Sans',
                 fillStyle: "rgba(64, 64, 64, 1)",
                 strokeStyle: "rgba(64, 64, 64, 1)"
             };
