@@ -39,10 +39,7 @@
 
 <body>
 
-<div class="app-container">
-
-    <h1>Juicebox JS</h1>
-
+<div id="app-container">
 </div>
 
 <script type="text/javascript">
@@ -54,7 +51,7 @@
         config.url = 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic';
 
         hic
-            .createBrowser($('.app-container'), config)
+            .createBrowser($('#app-container'), config)
             .then(function (browser) {
                 var chromosome_index_x,
                     chromosome_index_y,
