@@ -4,36 +4,31 @@
 }
 
 .hic-root {
-
     position: relative;
 
     left: 0;
     right: 0;
+    width: 850px;
+    height: 850px;
 
-    width: 500px;
-    height: 500px;
-
-    margin-left: 10px;
-    margin-right: 10px;
-
-    padding-top:4px;
 }
 
 .hic-content-container {
-    position: absolute;
+    position: relative;
     left: 0;
     right: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .hic-x-axis {
     position: absolute;
     top: 0;
-    left: 100px;
+    left: 50px;
     width: 800px;
-    height: 100px;
+    height: 50px;
     overflow-x: hidden;
     overflow-y: hidden;
-    border: 1px solid black;
     background-color: lightblue;
 }
 
@@ -48,13 +43,12 @@
 
 .hic-y-axis {
     position: absolute;
-    top: 100px;
+    top: 50px;
     left: 0;
-    width: 100px;
+    width: 50px;
     height: 800px;
     overflow-x: hidden;
     overflow-y: hidden;
-    border: 1px solid black;
     background-color: lightblue;
 }
 
@@ -69,17 +63,17 @@
 
 .hic-viewport {
     position: absolute;
-    left: 100px;
-    top: 100px;
+    left: 50px;
+    top: 50px;
     width: 800px;
     height: 800px;
     overflow-x: hidden;
     overflow-y: hidden;
-    border: 1px solid black;
+
+    background-color: white;
 }
 
 .hic-viewport-canvas {
-    /*position: absolute;*/
     width: 100%;
     height: 100%;
 }
