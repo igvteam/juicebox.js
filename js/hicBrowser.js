@@ -59,7 +59,8 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var $root,
+        var self = this,
+            $root,
             $navbar_container,
             $content_container,
             $chromosome_goto_container;
@@ -78,7 +79,8 @@ var hic = (function (hic) {
         // chromosome goto
         this.$chromosome_goto = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
         this.$chromosome_goto.on('change', function(e){
-            console.log('got it ' + $(this).val());
+            var value = $(this).val();
+            self.parseGotoInput( value );
         });
 
         // chromosome goto container
@@ -130,6 +132,116 @@ var hic = (function (hic) {
             return $y_axis
 
         }
+    };
+
+    hic.Browser.prototype.parseGotoInput = function(string) {
+
+        var self = this,
+            loci = string.split(' '),
+            validLoci,
+            bpp;
+
+        if (_.size(loci) !== 2) {
+            console.log('ERROR. Must enter locus for x and y axes.');
+        } else {
+
+            validLoci = [];
+            _.each(loci, function(locus) {
+
+                var validLocus = {};
+                if (self.isLocusChrNameStartEnd(locus, validLocus)) {
+                    validLoci.push(validLocus)
+                }
+
+            });
+
+            if (_.first(validLoci).chr !== _.last(validLoci).chr) {
+                console.log('ERROR. Chromosome indices do not match.');
+            } else if (locusExtent(_.first(validLoci)) !== locusExtent(_.last(validLoci))) {
+                console.log('ERROR. Chromosome extents do not match.');
+            } else {
+
+                // this.state.chr1 = _.first(validLoci).chr;
+                // this.state.chr2 =  _.last(validLoci).chr;
+
+                bpp = locusExtent( _.first(validLoci) ) / this.contactMatrixView.$viewport.width();
+
+                // this.state.pixelSize = this.hicReader.bpResolutions[ this.state.zoom ] / bpp;
+                // this.state.x = _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
+                // this.state.y =  _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
+
+                this.setState(
+                    _.first(validLoci).chr,
+                     _.last(validLoci).chr,
+                    this.state.zoom,
+                    _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
+                     _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
+                    this.hicReader.bpResolutions[ this.state.zoom ] / bpp
+                );
+            }
+
+        }
+
+        function locusExtent(obj) {
+            return obj.end - obj.start;
+        }
+
+    };
+
+    hic.Browser.prototype.isLocusChrNameStartEnd = function (locus, locusObject) {
+
+        var self = this,
+            parts,
+            extent,
+            succeeded,
+            mapped,
+            chromosomeNames,
+            flattened;
+
+        parts = locus.split(':');
+
+        mapped = _.map(self.hicReader.chromosomes, function(chr){
+            return ('All' === chr.name) ? [ chr.name, chr.name ] : [ 'chr' + chr.name, chr.name];
+        });
+
+        chromosomeNames = _.uniq(_.flatten(mapped));
+
+        if ( !_.contains(chromosomeNames, _.first(parts)) ) {
+            return false;
+        } else {
+            locusObject.chr = _.indexOf(chromosomeNames, _.first(parts));
+            // locusObject.start = 0;
+            // locusObject.end = this.hicReader.chromosomes[ locusObject.chr ].size;
+        }
+
+        extent = _.last(parts).split('-');
+
+        // must have start and end
+        if (2 !== _.size(extent)) {
+            return false;
+        } else {
+
+            succeeded = true;
+            _.each(extent, function(value, index) {
+
+                var numeric;
+                if (true === succeeded) {
+                    numeric = value.replace(/\,/g,'');
+                    succeeded = !isNaN(numeric);
+                    if (true === succeeded) {
+                        locusObject[ 0 === index ? 'start' : 'end' ] = parseInt(numeric, 10);
+                    }
+                }
+            });
+
+        }
+
+        // if (true === succeeded) {
+        //     igv.Browser.validateLocusExtent(locusObject.chromosome, locusObject);
+        // }
+
+        return succeeded;
+
     };
 
     hic.Browser.prototype.update = function () {
