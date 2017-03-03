@@ -181,28 +181,26 @@ var hic = (function (hic) {
 
         var self = this,
             parts,
+            chrName,
             extent,
             succeeded,
-            mapped,
             chromosomeNames;
 
         parts = locus.split(':');
 
-        mapped = _.map(self.hicReader.chromosomes, function(chr){
-            return ('All' === chr.name) ? [ chr.name, chr.name ] : [ 'chr' + chr.name, chr.name];
+        chromosomeNames = _.map(self.hicReader.chromosomes, function(chr){
+            return chr.name.toLowerCase();
         });
 
-        chromosomeNames = _.uniq(_.flatten(mapped));
+        chrName = _.first(parts).replace(/^chr/, '');
 
-        if ( !_.contains(chromosomeNames, _.first(parts)) ) {
+        if ( !_.contains(chromosomeNames, chrName) ) {
             return false;
         } else {
-            locusObject.chr = _.indexOf(chromosomeNames, _.first(parts));
+            locusObject.chr = _.indexOf(chromosomeNames, chrName);
             // locusObject.start = 0;
             // locusObject.end = this.hicReader.chromosomes[ locusObject.chr ].size;
         }
-
-
 
         // must have start and end
         extent = _.last(parts).split('-');

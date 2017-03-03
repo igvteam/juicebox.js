@@ -29,8 +29,8 @@
 .hic-chromosome-goto-container {
     position: relative;
     float: left;
-    width: 400px;
-    height: 32px;
+    width: 512px;
+    height: 28px;
 
     margin-top: 8px;
     margin-left: 8px;
@@ -47,7 +47,7 @@
     outline: none;
     padding-left: 4px;
     font-family: 'Open Sans', sans-serif;
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 400;
 
     color: #5f5f5f;
