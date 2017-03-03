@@ -110,7 +110,7 @@ var hic = (function (hic) {
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
 
-        this.state = new State(1, 1, 0, 0, 0, 1);
+        this.state = new hic.State(1, 1, 0, 0, 0, 1);
 
         function xAxis() {
             var $x_axis,
@@ -195,8 +195,7 @@ var hic = (function (hic) {
             extent,
             succeeded,
             mapped,
-            chromosomeNames,
-            flattened;
+            chromosomeNames;
 
         parts = locus.split(':');
 
@@ -214,9 +213,10 @@ var hic = (function (hic) {
             // locusObject.end = this.hicReader.chromosomes[ locusObject.chr ].size;
         }
 
-        extent = _.last(parts).split('-');
+
 
         // must have start and end
+        extent = _.last(parts).split('-');
         if (2 !== _.size(extent)) {
             return false;
         } else {
@@ -245,7 +245,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.update = function () {
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
     };
 
     /**
@@ -259,9 +259,9 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.setState = function (chr1, chr2, zoom, x, y, pixelSize) {
 
-        this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
+        this.state = new hic.State(chr1, chr2, zoom, x, y, pixelSize);
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
 
@@ -280,19 +280,9 @@ var hic = (function (hic) {
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
-
-    State = function(chr1, chr2, zoom, x, y, pixelSize) {
-        this.chr1 = chr1;
-        this.chr2 = chr2;
-        this.zoom = zoom;
-        this.x = x;
-        this.y = y;
-        this.pixelSize = pixelSize;
-    };
-
 
     return hic;
 
