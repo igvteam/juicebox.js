@@ -71,26 +71,15 @@ var hic = (function (hic) {
         $root = $('<div class="hic-root">');
         $app_container.append($root);
 
+        // navbar
         $navbar_container = $('<div class="hic-navbar-container">');
 
         // logo
         $navbar_container.append($('<div class="hic-logo-container">'));
 
         // chromosome goto
-        this.$chromosome_goto = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
-        this.$chromosome_goto.on('change', function(e){
-            var value = $(this).val();
-            self.parseGotoInput( value );
-        });
-
-        // chromosome goto container
-        $chromosome_goto_container = $('<div class="hic-chromosome-goto-container">');
-        $chromosome_goto_container.append(this.$chromosome_goto);
-        $navbar_container.append($chromosome_goto_container);
-
-
-
-
+        this.locusGoto = new hic.LocusGoto(this);
+        $navbar_container.append(this.locusGoto.$container);
 
 
         $root.append($navbar_container);

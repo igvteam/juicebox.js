@@ -3,16 +3,58 @@
  */
 var hic = (function (hic) {
 
-    hic.LocusGoto = function($gotoWigit) {
-        this.$gotoWigit = $gotoWigit;
+    hic.LocusGoto = function(browser) {
+
+        this.browser = browser;
+        this.$chromosome_goto = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$chromosome_goto.on('change', function(e){
+            var value = $(this).val();
+            browser.parseGotoInput( value );
+        });
+
+        // chromosome goto container
+        this.$container = $('<div class="hic-chromosome-goto-container">');
+        this.$container.append(this.$chromosome_goto);
+
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };
 
-    hic.Ruler.prototype.receiveEvent = function(event) {
+    hic.LocusGoto.prototype.receiveEvent = function(event) {
+
+        var self = this,
+            bpPerBin,
+            pixelsPerBin,
+            dimensionsPixels,
+            chrs,
+            startsBP,
+            endsBP,
+            xy;
 
         if (event.payload && event.payload instanceof hic.State) {
-            console.log('bin x y = ' + event.payload.x + ' ' + event.payload.y);
+
+            chrs = _.map([ event.payload.chr1, event.payload.chr2 ], function(index) {
+                return self.browser.hicReader.chromosomes[ index ].name;
+            });
+
+            bpPerBin = this.browser.hicReader.bpResolutions[ event.payload.zoom ];
+            dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+            pixelsPerBin = event.payload.pixelSize;
+
+            startsBP = _.map([ event.payload.x, event.payload.y ], function(bin) {
+                return bin * bpPerBin;
+            });
+
+            endsBP = _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
+                return ((pixels / pixelsPerBin) * bpPerBin) + startsBP[ index ];
+            });
+
+            xy = _.map([0, 1], function(index) {
+                return chrs[ index ] + ':' + igv.numberFormatter(startsBP[ index ]) + '-' + igv.numberFormatter(endsBP[ index ]);
+            });
+
+            this.$chromosome_goto.val(xy.join(' '));
         }
+
 
     };
 

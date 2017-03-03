@@ -38,8 +38,6 @@ var hic = (function (hic) {
         this.axis = axis;
 
         this.yAxisTransformWithContext = function(context) {
-
-            // context.translate($container.width(), 0);
             context.scale(-1, 1);
             context.rotate(Math.PI/2.0);
         };
@@ -47,17 +45,6 @@ var hic = (function (hic) {
         this.setAxis( axis );
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
-
-    };
-
-    hic.Ruler.prototype.receiveEvent = function(event) {
-
-        if (event.payload && event.payload instanceof hic.State) {
-            console.log('Stateful');
-        }
-
-        // Perhaps in the future we'll do something special based on event type & properties
-        this.update();
 
     };
 
@@ -69,7 +56,14 @@ var hic = (function (hic) {
 
     };
 
-    hic.Ruler.prototype.update= function () {
+    hic.Ruler.prototype.receiveEvent = function(event) {
+
+        // Perhaps in the future we'll do something special based on event type & properties
+        this.update();
+
+    };
+
+    hic.Ruler.prototype.update = function () {
 
         var bin,
             config = {},

@@ -37,7 +37,6 @@ var hic = (function (hic) {
 
     };
 
-
     hic.HiCReader.prototype.readHeader = function () {
 
         var self = this;
@@ -103,7 +102,7 @@ var hic = (function (hic) {
             });
 
         });
-    }
+    };
 
     hic.HiCReader.prototype.readFooter = function (key) {
 
@@ -210,8 +209,7 @@ var hic = (function (hic) {
             });
 
         });
-    }
-
+    };
 
     hic.HiCReader.prototype.readMatrix = function (key) {
 
@@ -272,7 +270,7 @@ var hic = (function (hic) {
                     }
                 ).catch(reject)
         });
-    }
+    };
 
     hic.HiCReader.prototype.readBlock = function (blockNumber, zd) {
 
@@ -375,14 +373,13 @@ var hic = (function (hic) {
                                 reject("Unknown block type: " + type);
                             }
                         }
-                        console.log("Block " + blockNumber);
+                        // console.log("Block " + blockNumber);
                         fulfill(new Block(blockNumber, zd, records));
                     })
                     .catch(reject);
             });
         }
-    }
-
+    };
 
     function getSites(chrName) {
 
@@ -448,7 +445,6 @@ var hic = (function (hic) {
         return zd;
     }
 
-
     function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
         this.normType = normType;
         this.unit = unit;
@@ -467,7 +463,7 @@ var hic = (function (hic) {
 
     NormalizationVector.getKey = function (type, chrIdx, unit, binSize) {
         return type + "_" + chrIdx + "_" + unit + "_" + binSize;
-    }
+    };
 
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
         this.chr1 = chr1;
@@ -479,10 +475,9 @@ var hic = (function (hic) {
         this.chr2Sites = chr2Sites;
     }
 
-
     MatrixZoomData.prototype.getKey = function () {
         return this.chr1.name + "_" + this.chr2.name + "_" + this.zoom.unit + "_" + this.zoom.binSize;
-    }
+    };
 
     function Matrix(chr1, chr2, zoomDataList) {
 
@@ -515,19 +510,19 @@ var hic = (function (hic) {
         }
 
         return undefined;
-    }
+    };
 
     ContactRecord = function (bin1, bin2, counts) {
         this.bin1 = bin1;
         this.bin2 = bin2;
         this.counts = counts;
-    }
+    };
 
     Block = function (blockNumber, zoomData, records) {
         this.blockNumber = blockNumber;
         this.zoomData = zoomData;
         this.records = records;
-    }
+    };
 
     return hic;
 
