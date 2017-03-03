@@ -62,13 +62,12 @@ var hic = (function (hic) {
         var self = this,
             $root,
             $navbar_container,
-            $content_container,
-            $chromosome_goto_container;
+            $content_container;
 
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
 
-        $root = $('<div class="hic-root">');
+        $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
         // navbar
