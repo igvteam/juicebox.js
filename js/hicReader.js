@@ -375,7 +375,7 @@ var hic = (function (hic) {
                                 reject("Unknown block type: " + type);
                             }
                         }
-                        console.log("Block " + blockNumber);
+                        // console.log("Block " + blockNumber);
                         fulfill(new Block(blockNumber, zd, records));
                     })
                     .catch(reject);

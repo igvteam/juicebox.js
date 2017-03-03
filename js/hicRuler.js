@@ -52,10 +52,6 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.receiveEvent = function(event) {
 
-        if (event.payload && event.payload instanceof hic.State) {
-            console.log('Stateful');
-        }
-
         // Perhaps in the future we'll do something special based on event type & properties
         this.update();
 
