@@ -37,6 +37,19 @@
     background-image: url('../img/juicebox-logo-translucent.png');
 }
 
+.hic-resolution-selector-container {
+
+    position: relative;
+    float: left;
+    width: 128px;
+    height: 28px;
+
+    /*margin-top: 8px;*/
+    /*margin-left: 8px;*/
+
+    background-color: red;
+}
+
 .hic-chromosome-goto-container {
     position: relative;
     float: left;

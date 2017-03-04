@@ -14,12 +14,12 @@ var hic = (function (hic) {
         });
 
         elements = _.map(browser.hicReader.bpResolutions, function(resolution){
-            return '<option' + 'value=' + resolution + '>' + igv.numberFormatter(resolution) + '</option>';
+            return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(resolution) + '</option>';
         });
 
-        this.$resolution_widget.append(elements);
+        this.$resolution_widget.append(elements.join(''));
 
-        this.$container = $('<div class="hic-chromosome-goto-container">');
+        this.$container = $('<div class="hic-resolution-selector-container">');
         this.$container.append(this.$resolution_widget);
 
     };
