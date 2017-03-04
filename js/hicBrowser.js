@@ -43,8 +43,8 @@ var hic = (function (hic) {
                             browser.fragResolutions = browser.hicReader.fragResolutions;
 
 
-                            // These elements are dependent of full instantiation of HICReader
-                            // Thus must me instantiated here.
+                            // These elements dependent on full instantiation of HICReader state
+                            // Thus they must me created here.
 
                             // chromosome goto
                             browser.locusGoto = new hic.LocusGoto(browser);

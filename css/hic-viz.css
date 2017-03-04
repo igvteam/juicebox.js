@@ -42,12 +42,29 @@
     position: relative;
     float: left;
     width: 128px;
-    height: 28px;
+    height: 30px;
 
-    /*margin-top: 8px;*/
-    /*margin-left: 8px;*/
+    margin-top: 8px;
+    margin-left: 8px;
 
-    background-color: red;
+    /*background-color: red;*/
+}
+
+.hic-resolution-selector-container select {
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    font-family: 'Open Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    color: #5f5f5f;
+
+    background-color: white;
+
+    direction: rtl;
+
 }
 
 .hic-chromosome-goto-container {
