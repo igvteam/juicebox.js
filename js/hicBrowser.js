@@ -80,6 +80,10 @@ var hic = (function (hic) {
         this.locusGoto = new hic.LocusGoto(this);
         $navbar_container.append(this.locusGoto.$container);
 
+        // resolution widget
+        this.resolutionSelector = new hic.ResolutionSelector(this);
+        $navbar_container.append(this.resolutionSelector.$container);
+
 
         $root.append($navbar_container);
 
