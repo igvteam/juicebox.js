@@ -362,6 +362,49 @@ var hic = (function (hic) {
         }
     };
 
+    hic.Browser.prototype.binToBP = function (bin) {
+
+        // bin * bp/bin
+        return bin * this.hicReader.bpResolutions[ this.state.zoom ];
+    };
+
+    hic.Browser.prototype.xyStartBP = function () {
+        var self = this;
+        return _.map([this.state.x, this.state.y], function(bin){
+            return self.binToBP(bin);
+        });
+    };
+
+    hic.Browser.prototype.xyEndBP = function () {
+        var self = this,
+            bpPerBin,
+            dimensionsPixels,
+            pixelsPerBin,
+            startBP;
+
+        bpPerBin = this.hicReader.bpResolutions[ this.state.zoom ];
+        dimensionsPixels = this.contactMatrixView.getViewDimensions();
+        pixelsPerBin = this.state.pixelSize;
+
+        startBP = this.xyStartBP();
+
+        return _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
+            return ((pixels / pixelsPerBin) * bpPerBin) + startBP[ index ];
+        });
+
+    };
+
+    hic.Browser.prototype.xyCentroidBP = function () {
+        var s,
+            e;
+
+        s = this.xyStartBP();
+        e = this.xyEndBP();
+        return _.map([0, 1], function(index){
+            return Math.floor( (s[index] + e[index])/2 );
+        });
+    };
+
     return hic;
 
 
