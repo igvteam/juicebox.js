@@ -6,15 +6,15 @@ var hic = (function (hic) {
     hic.LocusGoto = function(browser) {
 
         this.browser = browser;
-        this.$chromosome_goto = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
-        this.$chromosome_goto.on('change', function(e){
+        this.$resolution_widget = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$resolution_widget.on('change', function(e){
             var value = $(this).val();
             browser.parseGotoInput( value );
         });
 
         // chromosome goto container
         this.$container = $('<div class="hic-chromosome-goto-container">');
-        this.$container.append(this.$chromosome_goto);
+        this.$container.append(this.$resolution_widget);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };
@@ -52,7 +52,7 @@ var hic = (function (hic) {
                 return chrs[ index ] + ':' + igv.numberFormatter(startsBP[ index ]) + '-' + igv.numberFormatter(endsBP[ index ]);
             });
 
-            this.$chromosome_goto.val(xy.join(' '));
+            this.$resolution_widget.val(xy.join(' '));
         }
 
 

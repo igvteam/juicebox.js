@@ -41,6 +41,19 @@ var hic = (function (hic) {
                             browser.chromosomes = browser.hicReader.chromosomes;
                             browser.bpResolutions = browser.hicReader.bpResolutions;
                             browser.fragResolutions = browser.hicReader.fragResolutions;
+
+
+                            // These elements dependent on full instantiation of HICReader state
+                            // Thus they must me created here.
+
+                            // chromosome goto
+                            browser.locusGoto = new hic.LocusGoto(browser);
+                            browser.$navbar_container.append(browser.locusGoto.$container);
+
+                            // resolution widget
+                            browser.resolutionSelector = new hic.ResolutionSelector(browser);
+                            browser.$navbar_container.append(browser.resolutionSelector.$container);
+
                             browser.update();
                             browser.contactMatrixView.stopSpinner();
                             fulfill(browser);
@@ -59,9 +72,7 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var self = this,
-            $root,
-            $navbar_container,
+        var $root,
             $content_container;
 
         this.config = config;
@@ -71,18 +82,11 @@ var hic = (function (hic) {
         $app_container.append($root);
 
         // navbar
-        $navbar_container = $('<div class="hic-navbar-container">');
+        this.$navbar_container = $('<div class="hic-navbar-container">');
+        $root.append(this.$navbar_container);
 
         // logo
-        $navbar_container.append($('<div class="hic-logo-container">'));
-
-        // chromosome goto
-        this.locusGoto = new hic.LocusGoto(this);
-        $navbar_container.append(this.locusGoto.$container);
-
-
-        $root.append($navbar_container);
-
+        this.$navbar_container.append($('<div class="hic-logo-container">'));
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
