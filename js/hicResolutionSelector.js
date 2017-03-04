@@ -29,19 +29,16 @@ var hic = (function (hic) {
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function(event) {
-        var $option;
 
         if (event.payload && event.payload instanceof hic.State) {
 
-            // this.$resolution_widget.find('option:selected').each(function (index) {
-            //     console.log('option ' + index + ' ' + $(this).attr('value'));
-            // });
+            this.$resolution_widget
+                .find('option')
+                .filter(function(index) {
+                    return index === event.payload.zoom;
+                })
+                .prop('selected', true);
 
-
-
-            this.$resolution_widget.find('option').filter(function(index) {
-                return index === event.payload.zoom;
-            }).prop('selected', true);
         }
 
     };
