@@ -5,12 +5,13 @@ var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser) {
         var self = this,
-            elements;
+            elements,
+            $label;
 
         this.browser = browser;
 
-        this.$resolution_widget = $('<select name="select">');
-        this.$resolution_widget.on('change', function(e){
+        this.$resolution_selector = $('<select name="select">');
+        this.$resolution_selector.on('change', function(e){
             var number = parseInt($(this).val());
             self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, number);
             self.browser.update();
@@ -20,10 +21,16 @@ var hic = (function (hic) {
             return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(resolution) + '</option>';
         });
 
-        this.$resolution_widget.append(elements.join(''));
+        this.$resolution_selector.append(elements.join(''));
+        this.$resolution_selector.attr('name', 'resolution_selector');
+
+        $label = $('<label for="resolution_selector">');
+        $label.text('RESOLUTION');
 
         this.$container = $('<div class="hic-resolution-selector-container">');
-        this.$container.append(this.$resolution_widget);
+
+        this.$container.append($label);
+        this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };
@@ -32,7 +39,7 @@ var hic = (function (hic) {
 
         if (event.payload && event.payload instanceof hic.State) {
 
-            this.$resolution_widget
+            this.$resolution_selector
                 .find('option')
                 .filter(function(index) {
                     return index === event.payload.zoom;

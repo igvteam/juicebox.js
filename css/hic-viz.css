@@ -4,8 +4,8 @@
 
     left: 0;
     right: 0;
-    width: 825px;
-    height: 874px;
+    width: 826px;
+    height: 875px;
     background-color: #ffffff;
 
     border-style: solid;
@@ -40,10 +40,21 @@
 .hic-resolution-selector-container {
     position: relative;
     float: left;
-    width: 128px;
-    height: 28px;
+    width: 100px;
+    /*height: 28px;*/
+
     margin-left: 32px;
-    margin-top: 9px;
+    margin-top: 3px;
+
+}
+
+.hic-resolution-selector-container label {
+    position: relative;
+    padding-left: 10px;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: #5f5f5f;
 }
 
 .hic-resolution-selector-container select {
@@ -52,21 +63,18 @@
     height: 100%;
 
     font-family: 'Open Sans', sans-serif;
-    font-size: 18px;
+    font-size: 12px;
     font-weight: 400;
     color: #5f5f5f;
 
     direction: rtl;
 
 }
-/*.hic-resolution-selector-container select option {*/
-    /*color: red;*/
-/*}*/
 
 .hic-chromosome-goto-container {
     position: relative;
     float: left;
-    width: 480px;
+    width: 460px;
     height: 28px;
     margin-left: 8px;
     margin-top: 8px;
@@ -83,7 +91,7 @@
 
     color: #5f5f5f;
     font-family: 'Open Sans', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 400;
 
     outline: none;
