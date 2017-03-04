@@ -59,14 +59,30 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var $root,
+        var self = this,
+            $root,
+            $navbar_container,
             $content_container;
 
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
 
-        $root = $('<div class="hic-root">');
+        $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
+
+        // navbar
+        $navbar_container = $('<div class="hic-navbar-container">');
+
+        // logo
+        $navbar_container.append($('<div class="hic-logo-container">'));
+
+        // chromosome goto
+        this.locusGoto = new hic.LocusGoto(this);
+        $navbar_container.append(this.locusGoto.$container);
+
+
+        $root.append($navbar_container);
+
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
@@ -82,7 +98,7 @@ var hic = (function (hic) {
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
 
-        this.state = new State(1, 1, 0, 0, 0, 1);
+        this.state = new hic.State(1, 1, 0, 0, 0, 1);
 
         function xAxis() {
             var $x_axis,
@@ -106,8 +122,116 @@ var hic = (function (hic) {
         }
     };
 
+    hic.Browser.prototype.parseGotoInput = function(string) {
+
+        var self = this,
+            loci = string.split(' '),
+            validLoci,
+            bpp;
+
+        if (_.size(loci) !== 2) {
+            console.log('ERROR. Must enter locus for x and y axes.');
+        } else {
+
+            validLoci = [];
+            _.each(loci, function(locus) {
+
+                var validLocus = {};
+                if (self.isLocusChrNameStartEnd(locus, validLocus)) {
+                    validLoci.push(validLocus)
+                }
+
+            });
+
+            if (_.first(validLoci).chr !== _.last(validLoci).chr) {
+                console.log('ERROR. Chromosome indices do not match.');
+            } else if (locusExtent(_.first(validLoci)) !== locusExtent(_.last(validLoci))) {
+                console.log('ERROR. Chromosome extents do not match.');
+            } else {
+
+                // this.state.chr1 = _.first(validLoci).chr;
+                // this.state.chr2 =  _.last(validLoci).chr;
+
+                bpp = locusExtent( _.first(validLoci) ) / this.contactMatrixView.$viewport.width();
+
+                // this.state.pixelSize = this.hicReader.bpResolutions[ this.state.zoom ] / bpp;
+                // this.state.x = _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
+                // this.state.y =  _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
+
+                this.setState(
+                    _.first(validLoci).chr,
+                     _.last(validLoci).chr,
+                    this.state.zoom,
+                    _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
+                     _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
+                    this.hicReader.bpResolutions[ this.state.zoom ] / bpp
+                );
+            }
+
+        }
+
+        function locusExtent(obj) {
+            return obj.end - obj.start;
+        }
+
+    };
+
+    hic.Browser.prototype.isLocusChrNameStartEnd = function (locus, locusObject) {
+
+        var self = this,
+            parts,
+            chrName,
+            extent,
+            succeeded,
+            chromosomeNames;
+
+        parts = locus.split(':');
+
+        chromosomeNames = _.map(self.hicReader.chromosomes, function(chr){
+            return chr.name.toLowerCase();
+        });
+
+        chrName = _.first(parts).replace(/^chr/, '');
+
+        if ( !_.contains(chromosomeNames, chrName) ) {
+            return false;
+        } else {
+            locusObject.chr = _.indexOf(chromosomeNames, chrName);
+            // locusObject.start = 0;
+            // locusObject.end = this.hicReader.chromosomes[ locusObject.chr ].size;
+        }
+
+        // must have start and end
+        extent = _.last(parts).split('-');
+        if (2 !== _.size(extent)) {
+            return false;
+        } else {
+
+            succeeded = true;
+            _.each(extent, function(value, index) {
+
+                var numeric;
+                if (true === succeeded) {
+                    numeric = value.replace(/\,/g,'');
+                    succeeded = !isNaN(numeric);
+                    if (true === succeeded) {
+                        locusObject[ 0 === index ? 'start' : 'end' ] = parseInt(numeric, 10);
+                    }
+                }
+            });
+
+        }
+
+        // if (true === succeeded) {
+        //     igv.Browser.validateLocusExtent(locusObject.chromosome, locusObject);
+        // }
+
+        return succeeded;
+
+    };
+
     hic.Browser.prototype.update = function () {
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
     };
 
     /**
@@ -121,9 +245,9 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.setState = function (chr1, chr2, zoom, x, y, pixelSize) {
 
-        this.state = new State(chr1, chr2, zoom, x, y, pixelSize);
+        this.state = new hic.State(chr1, chr2, zoom, x, y, pixelSize);
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
 
@@ -142,19 +266,9 @@ var hic = (function (hic) {
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent());
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
-
-    State = function(chr1, chr2, zoom, x, y, pixelSize) {
-        this.chr1 = chr1;
-        this.chr2 = chr2;
-        this.zoom = zoom;
-        this.x = x;
-        this.y = y;
-        this.pixelSize = pixelSize;
-    };
-
 
     return hic;
 

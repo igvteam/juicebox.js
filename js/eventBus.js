@@ -35,7 +35,7 @@ var hic = (function (hic) {
 
         // Map eventType -> list of subscribers
         this.subscribers = {};
-    }
+    };
 
     hic.EventBus.prototype.subscribe = function(eventType, object) {
 
@@ -46,7 +46,7 @@ var hic = (function (hic) {
         }
         subscriberList.push(object);
 
-    }
+    };
 
     hic.EventBus.prototype.post = function(event) {
 
@@ -61,12 +61,15 @@ var hic = (function (hic) {
 
         });
 
-    }
+    };
 
 
-    hic.LocusChangeEvent = function () {
+    hic.LocusChangeEvent = function (objectOrUndefined) {
         this.type = "LocusChange";
-    }
+        if (objectOrUndefined) {
+            this.payload = objectOrUndefined;
+        }
+    };
 
 
 
