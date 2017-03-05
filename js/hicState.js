@@ -12,6 +12,10 @@ var hic = (function (hic) {
         this.pixelSize = pixelSize;
     };
 
+    hic.State.prototype.toString = function () {
+        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize;
+    }
+
     return hic;
 
 })

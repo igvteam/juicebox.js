@@ -13,8 +13,7 @@ var hic = (function (hic) {
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.on('change', function(e){
             var number = parseInt($(this).val());
-            self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, number);
-            self.browser.update();
+            self.browser.setZoom(_.indexOf(self.browser.hicReader.bpResolutions, number));
         });
 
         elements = _.map(browser.hicReader.bpResolutions, function(resolution){

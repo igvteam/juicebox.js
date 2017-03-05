@@ -124,53 +124,48 @@ var hic = (function (hic) {
             return $y_axis
 
         }
+
+        hic.GlobalEventBus.subscribe("LocusChange", this);
     };
 
-    hic.Browser.prototype.parseGotoInput = function(string) {
+    hic.Browser.prototype.parseGotoInput = function (string) {
 
         var self = this,
             loci = string.split(' '),
             validLoci,
-            bpp;
+            bpp,
+            xLocus,
+            yLocus,
+            maxExtent,
+            targetResolution,
+            newZoom,
+            newPixelSize;
 
-        if (_.size(loci) !== 2) {
+        if (loci.length !== 2) {
             console.log('ERROR. Must enter locus for x and y axes.');
         } else {
 
-            validLoci = [];
-            _.each(loci, function(locus) {
+            xLocus = self.parseLocusString(loci[0]);
+            yLocus = self.parseLocusString(loci[1]);
 
-                var validLocus = {};
-                if (self.isLocusChrNameStartEnd(locus, validLocus)) {
-                    validLoci.push(validLocus)
-                }
-
-            });
-
-            if (_.first(validLoci).chr !== _.last(validLoci).chr) {
-                console.log('ERROR. Chromosome indices do not match.');
-            } else if (locusExtent(_.first(validLoci)) !== locusExtent(_.last(validLoci))) {
-                console.log('ERROR. Chromosome extents do not match.');
-            } else {
-
-                // this.state.chr1 = _.first(validLoci).chr;
-                // this.state.chr2 =  _.last(validLoci).chr;
-
-                bpp = locusExtent( _.first(validLoci) ) / this.contactMatrixView.$viewport.width();
-
-                // this.state.pixelSize = this.hicReader.bpResolutions[ this.state.zoom ] / bpp;
-                // this.state.x = _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
-                // this.state.y =  _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ];
-
-                this.setState(
-                    _.first(validLoci).chr,
-                     _.last(validLoci).chr,
-                    this.state.zoom,
-                    _.first(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
-                     _.last(validLoci).start / this.hicReader.bpResolutions[ this.state.zoom ],
-                    this.hicReader.bpResolutions[ this.state.zoom ] / bpp
-                );
+            if (xLocus === undefined || yLocus === undefined) {
+                console.log('ERROR. Must enter valid loci for X and Y axes');
             }
+
+            maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
+            targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
+            newZoom = findMatchingResolution(targetResolution, this.hicReader.bpResolutions);
+            newPixelSize = this.state.pixelSize;   // Adjusting this is complex
+
+            this.setState(
+                xLocus.chr,
+                yLocus.chr,
+                newZoom,
+                xLocus.start / this.hicReader.bpResolutions[this.state.zoom],
+                yLocus.start / this.hicReader.bpResolutions[this.state.zoom],
+                newPixelSize
+            );
+
 
         }
 
@@ -178,61 +173,81 @@ var hic = (function (hic) {
             return obj.end - obj.start;
         }
 
+        function findMatchingResolution(target, resolutionArray) {
+            var z;
+            for (z = 0; z < resolutionArray.length; z++) {
+                if (resolutionArray[z] <= target) {
+                    return z;
+                }
+            }
+            return 0;
+        }
+
     };
 
-    hic.Browser.prototype.isLocusChrNameStartEnd = function (locus, locusObject) {
+    hic.Browser.prototype.parseLocusString = function (locus) {
 
         var self = this,
             parts,
             chrName,
             extent,
             succeeded,
-            chromosomeNames;
+            chromosomeNames,
+            locusObject = {},
+            numeric;
 
-        parts = locus.split(':');
+        parts = locus.trim().split(':');
 
-        chromosomeNames = _.map(self.hicReader.chromosomes, function(chr){
-            return chr.name.toLowerCase();
+        chromosomeNames = _.map(self.hicReader.chromosomes, function (chr) {
+            return chr.name;
         });
 
-        chrName = _.first(parts).replace(/^chr/, '');
+        chrName = parts[0];
 
-        if ( !_.contains(chromosomeNames, chrName) ) {
-            return false;
+        if (!_.contains(chromosomeNames, chrName)) {
+            return undefined;
         } else {
             locusObject.chr = _.indexOf(chromosomeNames, chrName);
-            // locusObject.start = 0;
-            // locusObject.end = this.hicReader.chromosomes[ locusObject.chr ].size;
         }
 
-        // must have start and end
-        extent = _.last(parts).split('-');
-        if (2 !== _.size(extent)) {
-            return false;
+
+        if (parts.length === 1) {
+            // Chromosome name only
+            locusObject.start = 0;
+            locusObject.end = this.hicReader.chromosomes[locusObject.chr].size;
         } else {
-
-            succeeded = true;
-            _.each(extent, function(value, index) {
-
-                var numeric;
-                if (true === succeeded) {
-                    numeric = value.replace(/\,/g,'');
-                    succeeded = !isNaN(numeric);
-                    if (true === succeeded) {
-                        locusObject[ 0 === index ? 'start' : 'end' ] = parseInt(numeric, 10);
+            extent = parts[1].split("-");
+            if (extent.length !== 2) {
+                return undefined;
+            }
+            else {
+                _.each(extent, function (value, index) {
+                    var numeric = value.replace(/\,/g, '');
+                    if (isNaN(numeric)) {
+                        return undefined;
                     }
-                }
-            });
-
+                    locusObject[0 === index ? 'start' : 'end'] = parseInt(numeric, 10);
+                });
+            }
         }
-
-        // if (true === succeeded) {
-        //     igv.Browser.validateLocusExtent(locusObject.chromosome, locusObject);
-        // }
-
-        return succeeded;
-
+        return locusObject;
     };
+
+    hic.Browser.prototype.setZoom = function (zoom) {
+
+        // Shift x,y to maintain center, if possible
+        var bpResolutions = this.hicReader.bpResolutions,
+            viewDimensions = this.contactMatrixView.getViewDimensions(),
+            n = viewDimensions.width / (2 * this.state.pixelSize),
+            resRatio = bpResolutions[this.state.zoom] / bpResolutions[zoom];
+
+        this.state.zoom = zoom;
+        this.state.x = (this.state.x + n) * resRatio - n;
+        this.state.y = (this.state.y + n) * resRatio - n;
+        this.clamp();
+
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+    }
 
     hic.Browser.prototype.update = function () {
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
@@ -257,24 +272,98 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
+        this.state.x += dx;
+        this.state.y += dy;
+        this.clamp();
+
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+    };
+
+    hic.Browser.prototype.clamp = function () {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.hicReader.chromosomes[this.state.chr1].size,
             chr2Length = this.hicReader.chromosomes[this.state.chr2].size,
             binSize = this.hicReader.bpResolutions[this.state.zoom],
-            maxX =  (chr1Length / binSize)  - (viewDimensions.width / this.state.pixelSize),
+            maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
             maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
 
-        this.state.x += dx;
-        this.state.y += dy;
+        // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
+        maxX = Math.max(0, maxX);
+        maxY = Math.max(0, maxY);
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
+    }
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+    hic.Browser.prototype.receiveEvent = function (event) {
 
+        if (event.payload && event.payload instanceof hic.State) {
+
+            var location = window.location,
+                href = location.href,
+                queryString = location.search;
+
+            var state = gup(href, 'state');
+            if (state) {
+                href = href.replace("state=" + state, "state=" + this.state.toString());
+            }
+            else {
+                var delim = href.includes("?") ? "&" : "?";
+                href += delim + "state=" + this.state.toString();
+            }
+
+            // Replace state parameter
+            window.history.replaceState(this.state, "juicebox", href);
+        }
+    }
+
+
+    function gup(href, name) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(href);
+        if (results == null)
+            return undefined;
+        else
+            return results[1];
+    }
+
+// parseUri 1.2.2
+// (c) Steven Levithan <stevenlevithan.com>
+// MIT License
+
+    function parseUri(str) {
+        var o = parseUri.options,
+            m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        return uri;
+    };
+
+    parseUri.options = {
+        strictMode: false,
+        key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+        q: {
+            name: "queryKey",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
     };
 
     return hic;
+
 
 })
 (hic || {});
