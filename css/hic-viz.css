@@ -157,6 +157,9 @@
     overflow-x: hidden;
     overflow-y: hidden;
 
+    /* diagnostic color */
+    /*background-color: #a6df4c;*/
+
     background-color: white;
 }
 

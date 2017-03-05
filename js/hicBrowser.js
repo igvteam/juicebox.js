@@ -362,6 +362,75 @@ var hic = (function (hic) {
         }
     };
 
+    hic.Browser.prototype.bpPerBinWithZoom = function (zoom) {
+        return this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.toBPWithZoom = function (bin, zoom) {
+
+        // bin * bp/bin
+        return bin * this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.toBinWithZoom = function (bp, zoom) {
+
+        // bp / (bp/bin)
+        return bp / this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.xyStartBin = function () {
+        return [this.state.x, this.state.y];
+    };
+
+    hic.Browser.prototype.xyEndBin = function () {
+        var self = this,
+            dimensionsPixels,
+            pixels;
+
+        dimensionsPixels = this.contactMatrixView.getViewDimensions();
+        pixels = [ dimensionsPixels.width, dimensionsPixels.height ];
+        return _.map(this.xyStartBin(), function(bin, index) {
+            return bin + pixels[ index ] / self.state.pixelSize;
+        });
+    };
+
+    hic.Browser.prototype.xyStartBP = function () {
+        var self = this;
+        return _.map([this.state.x, this.state.y], function(bin){
+            return self.toBPWithZoom(bin, self.state.zoom);
+        });
+    };
+
+    hic.Browser.prototype.xyEndBP = function () {
+        var self = this,
+            dimensionsPixels,
+            pixelsPerBin,
+            startBP;
+
+        dimensionsPixels = this.contactMatrixView.getViewDimensions();
+        pixelsPerBin = this.state.pixelSize;
+
+        startBP = this.xyStartBP();
+
+        return _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
+            return ((pixels / pixelsPerBin) * self.bpPerBinWithZoom(self.state.zoom)) + startBP[ index ];
+        });
+
+    };
+
+    hic.Browser.centroidBin = function (ss, ee) {
+
+        return _.map([0, 1], function(index) {
+            return Math.floor((ss[ index ] + ee[ index ])/2);
+        });
+    };
+
+    hic.Browser.extentBin = function (ss, ee) {
+        return _.map([0, 1], function(index){
+            return ee[ index ] - ss[ index ];
+        });
+    };
+
     return hic;
 
 
