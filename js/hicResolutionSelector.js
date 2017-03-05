@@ -40,8 +40,9 @@ var hic = (function (hic) {
             centroidBin,
             ss,
             ee,
-            chrXLength,
-            chrYLength,
+            chrXLengthBin,
+            chrYLengthBin,
+            newExtent,
             pixels,
             bins;
 
@@ -60,22 +61,20 @@ var hic = (function (hic) {
             return Math.floor(((bin - centroidBin[ index ]) * scaleFactor) + centroidBin[ index ]);
         });
 
-        if (Math.min(_.first(ss), _.first(ee)) < 0) {
-            console.log('doZoomBpB ERROR: minify limit exceeded x ' + igv.numberFormatter(_.first(ss)) + ' y ' + igv.numberFormatter(_.first(ee)));
-            // self.browser.update();
-            return;
-        }
+        newExtent = hic.Browser.extentBin(ss, ee);
+        chrXLengthBin = Math.floor(this.browser.hicReader.chromosomes[ this.browser.state.chr1 ].size / zoomBpB);
+        chrYLengthBin = Math.floor(this.browser.hicReader.chromosomes[ this.browser.state.chr2 ].size / zoomBpB);
 
-        chrXLength = this.browser.hicReader.chromosomes[ this.browser.state.chr1 ].size;
-        chrYLength = this.browser.hicReader.chromosomes[ this.browser.state.chr2 ].size;
-
-        if (_.last(ss) > chrXLength || _.last(ee) > chrYLength) {
-            console.log('doZoomBpB ERROR: magnify limit exceeded x ' + igv.numberFormatter(_.last(ss)) + ' y ' + igv.numberFormatter(_.last(ee)));
-            // self.browser.update();
+        if (_.first(newExtent) > chrXLengthBin || _.last(newExtent) > chrYLengthBin) {
+            console.log('doZoomBpB. Error: Attempted minify exceeds either x-axis or y-axis chr extent');
             return;
         }
 
         pixels = this.browser.contactMatrixView.getViewDimensions();
+
+        // clamp
+        ss = [Math.max(            0, _.first(ss)), Math.max(0,             _.last(ss))];
+        ee = [Math.min(chrXLengthBin, _.first(ee)), Math.min(chrYLengthBin, _.last(ee))];
         bins = hic.Browser.extentBin(ss, ee);
 
         self.browser.state.pixelSize = _.first(_.map([ pixels.width, pixels.height ], function(pixel, index){
