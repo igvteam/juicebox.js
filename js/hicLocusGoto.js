@@ -36,16 +36,16 @@ var hic = (function (hic) {
                 return self.browser.hicReader.chromosomes[ index ].name;
             });
 
-            bpPerBin = this.browser.hicReader.bpResolutions[ event.payload.zoom ];
+            bpPerBinWithZoom = this.browser.hicReader.bpResolutions[ event.payload.zoom ];
             dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
             pixelsPerBin = event.payload.pixelSize;
 
             startsBP = _.map([ event.payload.x, event.payload.y ], function(bin) {
-                return bin * bpPerBin;
+                return bin * bpPerBinWithZoom;
             });
 
             endsBP = _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
-                return ((pixels / pixelsPerBin) * bpPerBin) + startsBP[ index ];
+                return ((pixels / pixelsPerBin) * bpPerBinWithZoom) + startsBP[ index ];
             });
 
             xy = _.map([0, 1], function(index) {
