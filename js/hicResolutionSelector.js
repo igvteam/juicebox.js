@@ -17,14 +17,14 @@ var hic = (function (hic) {
         });
 
         elements = _.map(browser.hicReader.bpResolutions, function(resolution){
-            return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(resolution) + '</option>';
+            return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution/1e3)) + '</option>';
         });
 
         this.$resolution_selector.append(elements.join(''));
         this.$resolution_selector.attr('name', 'resolution_selector');
 
         $label = $('<label for="resolution_selector">');
-        $label.text('RESOLUTION');
+        $label.text('Resolution (kb)');
 
         this.$container = $('<div class="hic-resolution-selector-container">');
 
