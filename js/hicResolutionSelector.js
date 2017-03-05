@@ -12,9 +12,7 @@ var hic = (function (hic) {
 
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.on('change', function(e){
-            var number = parseInt($(this).val());
-            self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, number);
-            self.browser.update();
+            self.zoomHandler( parseInt($(this).val()) )
         });
 
         elements = _.map(browser.hicReader.bpResolutions, function(resolution){
@@ -33,6 +31,41 @@ var hic = (function (hic) {
         this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
+    };
+
+    hic.ResolutionSelector.prototype.zoomHandler = function  (zoom) {
+        var self = this,
+            scaleFactor,
+            centroid,
+            ss,
+            ee,
+            dimensionsPixels;
+
+        scaleFactor = self.browser.bpPerBinWithZoom(zoom) / self.browser.bpPerBinWithZoom(self.browser.state.zoom);
+
+        centroid = this.browser.xyCentroidBin();
+
+        // magnify/minify bin coordinates
+        ss = _.map(this.browser.xyStartBin(), function(bin, index){
+            return ((bin - centroid[ index ]) * scaleFactor) + (centroid[ index ] * scaleFactor);
+        });
+
+        ee = _.map(this.browser.xyEndBin(), function(bin, index){
+            return ((bin - centroid[ index ]) * scaleFactor) + (centroid[ index ] * scaleFactor);
+        });
+
+        dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+
+
+
+
+
+
+
+
+        self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, zoom);
+        self.browser.update();
+
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function(event) {
