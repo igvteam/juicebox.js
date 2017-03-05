@@ -111,7 +111,7 @@ var hic = (function (hic) {
         } else {
 
             fontStyle = {
-                textAlign: 'center',
+                 textAlign: 'center',
                 font: '9px PT Sans',
                 fillStyle: "rgba(64, 64, 64, 1)",
                 strokeStyle: "rgba(64, 64, 64, 1)"
@@ -125,10 +125,10 @@ var hic = (function (hic) {
             x = 0;
 
             igv.graphics.setProperties(this.ctx, fontStyle);
+            this.ctx.lineWidth = 1.0;
 
             yShim = 2;
             tickHeight = 8;
-            this.ctx.lineWidth = 2;
             while (x < options.pixelWidth) {
 
                 l = Math.floor(nTick * spacing);
