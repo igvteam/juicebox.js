@@ -366,13 +366,13 @@ var hic = (function (hic) {
         return this.hicReader.bpResolutions[ zoom ];
     };
 
-    hic.Browser.prototype.binToBP = function (bin, zoom) {
+    hic.Browser.prototype.toBPWithZoom = function (bin, zoom) {
 
         // bin * bp/bin
         return bin * this.hicReader.bpResolutions[ zoom ];
     };
 
-    hic.Browser.prototype.bpToBin = function (bp, zoom) {
+    hic.Browser.prototype.toBinWithZoom = function (bp, zoom) {
 
         // bp / (bp/bin)
         return bp / this.hicReader.bpResolutions[ zoom ];
@@ -394,28 +394,10 @@ var hic = (function (hic) {
         });
     };
 
-    hic.Browser.prototype.xyExtentBin = function (ss, ee) {
-        return _.map([0, 1], function(index){
-            return ee[ index ] - ss[ index ];
-        });
-    };
-
-    hic.Browser.prototype.xyCentroidBin = function () {
-
-        var s,
-            e;
-
-        s = this.xyStartBin();
-        e = this.xyEndBin();
-        return _.map([0, 1], function(index) {
-            return Math.floor((s[ index ] + e[ index ])/2);
-        });
-    };
-
     hic.Browser.prototype.xyStartBP = function () {
         var self = this;
         return _.map([this.state.x, this.state.y], function(bin){
-            return self.binToBP(bin, self.state.zoom);
+            return self.toBPWithZoom(bin, self.state.zoom);
         });
     };
 
@@ -436,14 +418,16 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.xyCentroidBP = function () {
-        var s,
-            e;
+    hic.Browser.centroidBin = function (ss, ee) {
 
-        s = this.xyStartBP();
-        e = this.xyEndBP();
+        return _.map([0, 1], function(index) {
+            return Math.floor((ss[ index ] + ee[ index ])/2);
+        });
+    };
+
+    hic.Browser.extentBin = function (ss, ee) {
         return _.map([0, 1], function(index){
-            return Math.floor( (s[index] + e[index])/2 );
+            return ee[ index ] - ss[ index ];
         });
     };
 

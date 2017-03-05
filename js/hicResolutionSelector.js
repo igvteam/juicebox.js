@@ -12,7 +12,8 @@ var hic = (function (hic) {
 
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.on('change', function(e){
-            self.zoomHandler( parseInt($(this).val()) )
+            var n = $(this).val();
+            self.doZoomBpB(parseInt(n, 10));
         });
 
         elements = _.map(browser.hicReader.bpResolutions, function(resolution){
@@ -33,37 +34,43 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };
 
-    hic.ResolutionSelector.prototype.zoomHandler = function  (zoom) {
+    hic.ResolutionSelector.prototype.doZoomBpB = function (zoomBpB) {
         var self = this,
             scaleFactor,
+            _xyStart,
+            _xyEnd,
             centroid,
             ss,
             ee,
-            dimensionsPixels;
+            pixels,
+            bins;
 
-        scaleFactor = self.browser.bpPerBinWithZoom(zoom) / self.browser.bpPerBinWithZoom(self.browser.state.zoom);
+        scaleFactor = zoomBpB / self.browser.bpPerBinWithZoom(self.browser.state.zoom);
 
-        centroid = this.browser.xyCentroidBin();
+        _xyStart = this.browser.xyStartBin();
+        _xyEnd = this.browser.xyEndBin();
 
-        // magnify/minify bin coordinates
-        ss = _.map(this.browser.xyStartBin(), function(bin, index){
-            return ((bin - centroid[ index ]) * scaleFactor) + (centroid[ index ] * scaleFactor);
+        centroid = hic.Browser.centroidBin(_xyStart, _xyEnd);
+
+        // magnify/minify bin coordinates in-place by first translating
+        // the scale center to the origin - via the centroid translation
+        // then performing the inverse translation scaled by the scale factor
+        ss = _.map(_xyStart, function(bin, index){
+            return ((bin - centroid[ index ]) * scaleFactor) + centroid[ index ];
         });
 
-        ee = _.map(this.browser.xyEndBin(), function(bin, index){
-            return ((bin - centroid[ index ]) * scaleFactor) + (centroid[ index ] * scaleFactor);
+        ee = _.map(_xyEnd, function(bin, index){
+            return ((bin - centroid[ index ]) * scaleFactor) + centroid[ index ];
         });
 
-        dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+        pixels = this.browser.contactMatrixView.getViewDimensions();
+        bins = hic.Browser.extentBin(ss, ee);
 
+        self.browser.state.pixelSize = _.first(_.map([ pixels.width, pixels.height ], function(pixel, index){ return pixel / bins[ index ]; }));
+        self.browser.state.x = _.first(ss);
+        self.browser.state.y = _.last(ss);
+        self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, zoomBpB);
 
-
-
-
-
-
-
-        self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, zoom);
         self.browser.update();
 
     };
