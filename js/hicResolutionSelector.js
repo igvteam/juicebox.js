@@ -37,9 +37,7 @@ var hic = (function (hic) {
     hic.ResolutionSelector.prototype.doZoomBpB = function (zoomBpB) {
         var self = this,
             scaleFactor,
-            _xyStart,
-            _xyEnd,
-            centroid,
+            centroidBin,
             ss,
             ee,
             chrXLength,
@@ -49,24 +47,22 @@ var hic = (function (hic) {
 
         scaleFactor = zoomBpB / self.browser.bpPerBinWithZoom(self.browser.state.zoom);
 
-        _xyStart = this.browser.xyStartBin();
-        _xyEnd = this.browser.xyEndBin();
-
-        centroid = hic.Browser.centroidBin(_xyStart, _xyEnd);
+        centroidBin = hic.Browser.centroidBin(this.browser.xyStartBin(), this.browser.xyEndBin());
 
         // magnify/minify bin coordinates in-place by 1) translating
         // the centroid to the origin 2) perform scale
         // 3) translate the centroid to the original location
-        ss = _.map(_xyStart, function(bin, index){
-            return Math.floor(((bin - centroid[ index ]) * scaleFactor) + centroid[ index ]);
+        ss = _.map(this.browser.xyStartBin(), function(bin, index){
+            return Math.floor(((bin - centroidBin[ index ]) * scaleFactor) + centroidBin[ index ]);
         });
 
-        ee = _.map(_xyEnd, function(bin, index){
-            return Math.floor(((bin - centroid[ index ]) * scaleFactor) + centroid[ index ]);
+        ee = _.map(this.browser.xyEndBin(), function(bin, index){
+            return Math.floor(((bin - centroidBin[ index ]) * scaleFactor) + centroidBin[ index ]);
         });
 
         if (Math.min(_.first(ss), _.first(ee)) < 0) {
-            console.log('doZoomBpB ERROR: minify limit exceeded x ' + _.first(ss) + ' y ' + _.first(ee));
+            console.log('doZoomBpB ERROR: minify limit exceeded x ' + igv.numberFormatter(_.first(ss)) + ' y ' + igv.numberFormatter(_.first(ee)));
+            self.browser.update();
             return;
         }
 
@@ -74,7 +70,8 @@ var hic = (function (hic) {
         chrYLength = this.browser.hicReader.chromosomes[ this.browser.state.chr2 ].size;
 
         if (_.last(ss) > chrXLength || _.last(ee) > chrYLength) {
-            console.log('doZoomBpB ERROR: magnify limit exceeded x ' + _.last(ss) + ' y ' + _.last(ee));
+            console.log('doZoomBpB ERROR: magnify limit exceeded x ' + igv.numberFormatter(_.last(ss)) + ' y ' + igv.numberFormatter(_.last(ee)));
+            self.browser.update();
             return;
         }
 
