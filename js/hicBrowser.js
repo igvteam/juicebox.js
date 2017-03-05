@@ -362,34 +362,76 @@ var hic = (function (hic) {
         }
     };
 
-    hic.Browser.prototype.binToBP = function (bin) {
+    hic.Browser.prototype.bpPerBinWithZoom = function (zoom) {
+        return this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.binToBP = function (bin, zoom) {
 
         // bin * bp/bin
-        return bin * this.hicReader.bpResolutions[ this.state.zoom ];
+        return bin * this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.bpToBin = function (bp, zoom) {
+
+        // bp / (bp/bin)
+        return bp / this.hicReader.bpResolutions[ zoom ];
+    };
+
+    hic.Browser.prototype.xyStartBin = function () {
+        return [this.state.x, this.state.y];
+    };
+
+    hic.Browser.prototype.xyEndBin = function () {
+        var self = this,
+            dimensionsPixels,
+            pixels;
+
+        dimensionsPixels = this.contactMatrixView.getViewDimensions();
+        pixels = [ dimensionsPixels.width, dimensionsPixels.height ];
+        return _.map(this.xyStartBin(), function(bin, index) {
+            return bin + pixels[ index ] / self.state.pixelSize;
+        });
+    };
+
+    hic.Browser.prototype.xyExtentBin = function (ss, ee) {
+        return _.map([0, 1], function(index){
+            return ee[ index ] - ss[ index ];
+        });
+    };
+
+    hic.Browser.prototype.xyCentroidBin = function () {
+
+        var s,
+            e;
+
+        s = this.xyStartBin();
+        e = this.xyEndBin();
+        return _.map([0, 1], function(index) {
+            return Math.floor((s[ index ] + e[ index ])/2);
+        });
     };
 
     hic.Browser.prototype.xyStartBP = function () {
         var self = this;
         return _.map([this.state.x, this.state.y], function(bin){
-            return self.binToBP(bin);
+            return self.binToBP(bin, self.state.zoom);
         });
     };
 
     hic.Browser.prototype.xyEndBP = function () {
         var self = this,
-            bpPerBin,
             dimensionsPixels,
             pixelsPerBin,
             startBP;
 
-        bpPerBin = this.hicReader.bpResolutions[ this.state.zoom ];
         dimensionsPixels = this.contactMatrixView.getViewDimensions();
         pixelsPerBin = this.state.pixelSize;
 
         startBP = this.xyStartBP();
 
         return _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
-            return ((pixels / pixelsPerBin) * bpPerBin) + startBP[ index ];
+            return ((pixels / pixelsPerBin) * self.bpPerBinWithZoom(self.state.zoom)) + startBP[ index ];
         });
 
     };
