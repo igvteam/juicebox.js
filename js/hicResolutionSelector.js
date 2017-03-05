@@ -62,7 +62,7 @@ var hic = (function (hic) {
 
         if (Math.min(_.first(ss), _.first(ee)) < 0) {
             console.log('doZoomBpB ERROR: minify limit exceeded x ' + igv.numberFormatter(_.first(ss)) + ' y ' + igv.numberFormatter(_.first(ee)));
-            self.browser.update();
+            // self.browser.update();
             return;
         }
 
@@ -71,7 +71,7 @@ var hic = (function (hic) {
 
         if (_.last(ss) > chrXLength || _.last(ee) > chrYLength) {
             console.log('doZoomBpB ERROR: magnify limit exceeded x ' + igv.numberFormatter(_.last(ss)) + ' y ' + igv.numberFormatter(_.last(ee)));
-            self.browser.update();
+            // self.browser.update();
             return;
         }
 
