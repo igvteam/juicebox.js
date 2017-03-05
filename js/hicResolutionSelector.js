@@ -42,6 +42,8 @@ var hic = (function (hic) {
             centroid,
             ss,
             ee,
+            chrXLength,
+            chrYLength,
             pixels,
             bins;
 
@@ -52,23 +54,40 @@ var hic = (function (hic) {
 
         centroid = hic.Browser.centroidBin(_xyStart, _xyEnd);
 
-        // magnify/minify bin coordinates in-place by first translating
-        // the scale center to the origin - via the centroid translation
-        // then performing the inverse translation scaled by the scale factor
+        // magnify/minify bin coordinates in-place by 1) translating
+        // the centroid to the origin 2) perform scale
+        // 3) translate the centroid to the original location
         ss = _.map(_xyStart, function(bin, index){
-            return ((bin - centroid[ index ]) * scaleFactor) + centroid[ index ];
+            return Math.floor(((bin - centroid[ index ]) * scaleFactor) + centroid[ index ]);
         });
 
         ee = _.map(_xyEnd, function(bin, index){
-            return ((bin - centroid[ index ]) * scaleFactor) + centroid[ index ];
+            return Math.floor(((bin - centroid[ index ]) * scaleFactor) + centroid[ index ]);
         });
+
+        if (Math.min(_.first(ss), _.first(ee)) < 0) {
+            console.log('doZoomBpB ERROR: minify limit exceeded x ' + _.first(ss) + ' y ' + _.first(ee));
+            return;
+        }
+
+        chrXLength = this.browser.hicReader.chromosomes[ this.browser.state.chr1 ].size;
+        chrYLength = this.browser.hicReader.chromosomes[ this.browser.state.chr2 ].size;
+
+        if (_.last(ss) > chrXLength || _.last(ee) > chrYLength) {
+            console.log('doZoomBpB ERROR: magnify limit exceeded x ' + _.last(ss) + ' y ' + _.last(ee));
+            return;
+        }
 
         pixels = this.browser.contactMatrixView.getViewDimensions();
         bins = hic.Browser.extentBin(ss, ee);
 
-        self.browser.state.pixelSize = _.first(_.map([ pixels.width, pixels.height ], function(pixel, index){ return pixel / bins[ index ]; }));
+        self.browser.state.pixelSize = _.first(_.map([ pixels.width, pixels.height ], function(pixel, index){
+            return Math.floor(pixel/bins[index]);
+        }));
+
         self.browser.state.x = _.first(ss);
         self.browser.state.y = _.last(ss);
+
         self.browser.state.zoom = _.indexOf(self.browser.hicReader.bpResolutions, zoomBpB);
 
         self.browser.update();
