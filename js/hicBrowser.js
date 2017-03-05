@@ -126,6 +126,7 @@ var hic = (function (hic) {
         }
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("DragStopped", this);
     };
 
     hic.Browser.prototype.parseGotoInput = function (string) {
@@ -276,7 +277,9 @@ var hic = (function (hic) {
         this.state.y += dy;
         this.clamp();
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+        var locusChangeEvent = new hic.LocusChangeEvent(this.state);
+        locusChangeEvent.dragging = true;
+        hic.GlobalEventBus.post(locusChangeEvent);
     };
 
     hic.Browser.prototype.clamp = function () {
@@ -297,24 +300,24 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.receiveEvent = function (event) {
 
-        if (event.payload && event.payload instanceof hic.State) {
+        if (event.dragging) return;
 
-            var location = window.location,
-                href = location.href,
-                queryString = location.search;
 
-            var state = gup(href, 'state');
-            if (state) {
-                href = href.replace("state=" + state, "state=" + this.state.toString());
-            }
-            else {
-                var delim = href.includes("?") ? "&" : "?";
-                href += delim + "state=" + this.state.toString();
-            }
+        var location = window.location,
+            href = location.href;
 
-            // Replace state parameter
-            window.history.replaceState(this.state, "juicebox", href);
+        var state = gup(href, 'state');
+        if (state) {
+            href = href.replace("state=" + state, "state=" + this.state.toString());
         }
+        else {
+            var delim = href.includes("?") ? "&" : "?";
+            href += delim + "state=" + this.state.toString();
+        }
+
+        // Replace state parameter
+        window.history.replaceState(this.state, "juicebox", href);
+
     }
 
 

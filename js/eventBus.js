@@ -71,6 +71,9 @@ var hic = (function (hic) {
         }
     };
 
+    hic.DragStoppedEvent = function () {
+        this.type = "DragStopped";
+    };
 
 
     hic.GlobalEventBus = new hic.EventBus();

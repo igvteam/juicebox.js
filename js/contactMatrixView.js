@@ -359,8 +359,8 @@ var hic = (function (hic) {
             // }
 
             if (isDragging) {
-                //   igv.browser.fireEvent('trackdragend');
                 isDragging = false;
+                hic.GlobalEventBus.post(new hic.DragStoppedEvent());
             }
 
             isMouseDown = false;
