@@ -26,6 +26,8 @@
 
 var hic = (function (hic) {
 
+    var defaultPixelSize = 2;
+
     hic.createBrowser = function ($hic_container, config) {
 
         var browser = new hic.Browser($hic_container, config);
@@ -245,6 +247,8 @@ var hic = (function (hic) {
         this.state.zoom = zoom;
         this.state.x = (this.state.x + n) * resRatio - n;
         this.state.y = (this.state.y + n) * resRatio - n;
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+
         this.clamp();
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
@@ -265,11 +269,22 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.setState = function (chr1, chr2, zoom, x, y, pixelSize) {
 
+        // Possibly adjust pixel size
+        var pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, chr1, chr2, zoom));
+
         this.state = new hic.State(chr1, chr2, zoom, x, y, pixelSize);
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
+
+    function minPixelSize(chr1, chr2, zoom) {
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            chr1Length = this.hicReader.chromosomes[chr1].size,
+            chr2Length = this.hicReader.chromosomes[chr2].size,
+            binSize = this.hicReader.bpResolutions[zoom];
+        return Math.max(viewDimensions.width * binSize / chr1Length, viewDimensions.width * binSize / chr2Length);
+    }
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
@@ -332,38 +347,6 @@ var hic = (function (hic) {
             return results[1];
     }
 
-// parseUri 1.2.2
-// (c) Steven Levithan <stevenlevithan.com>
-// MIT License
-
-    function parseUri(str) {
-        var o = parseUri.options,
-            m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-            uri = {},
-            i = 14;
-
-        while (i--) uri[o.key[i]] = m[i] || "";
-
-        uri[o.q.name] = {};
-        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-            if ($1) uri[o.q.name][$1] = $2;
-        });
-
-        return uri;
-    };
-
-    parseUri.options = {
-        strictMode: false,
-        key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
-        q: {
-            name: "queryKey",
-            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-        },
-        parser: {
-            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-            loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-        }
-    };
 
     return hic;
 
