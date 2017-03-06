@@ -80,6 +80,9 @@ var hic = (function (hic) {
         this.config = config;
         this.hicReader = new hic.HiCReader(config);
 
+        // flush contents of container
+        $app_container.empty();
+
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 

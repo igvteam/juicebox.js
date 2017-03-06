@@ -12,18 +12,24 @@
     <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
 
     <!-- Font Awesome CSS -->
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <!-- site CSS -->
+    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
 
     <!-- juicebox CSS -->
     <link rel="stylesheet" type="text/css" href="../css/hic-viz.css">
 
     <!-- jQuery JS -->
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
 
     <!-- jQuery UI JS -->
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <!-- IGV JS -->
+    <!-- site JS -->
+    <script src="../site/js/site.js"></script>
+
+    <!-- juicebox JS -->
     <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
 
     <script src="../js/hicReader.js"></script>
@@ -39,43 +45,31 @@
 
 <body>
 
+<div class="site-container">
+
+    <label for="dataset_selector">Data Set</label>
+
+    <select id="dataset_selector" name="dataset_selector">
+        <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
+        <option selected="selected" value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
+    </select>
+
+</div>
+
 <div id="app-container">
+
 </div>
 
 <script type="text/javascript">
 
     $(document).ready(function () {
 
-        var config = {};
-//        config.url = 'https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic';
-        config.url = 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic';
+        $('#dataset_selector').on('change', function(e){
+            site.launch({ url: $(this).val() });
+        });
 
-        hic
-            .createBrowser($('#app-container'), config)
-            .then(function (browser) {
-                var chromosome_index_x,
-                    chromosome_index_y,
-                    zoom_index,
-                    x_bin,
-                    y_bin,
-                    pixel_size;
-
-                chromosome_index_x = 4;
-                chromosome_index_y = 4;
-
-                zoom_index = 6;
-
-                x_bin = 128;
-                y_bin = 0;
-
-                pixel_size = 1;
-
-                browser.setState(chromosome_index_x, chromosome_index_y, zoom_index, x_bin, y_bin, pixel_size);
-            })
-            .catch(function (error) {
-                console.error(error);
-            })
-
+        site.init(hic, $('#app-container'));
+        site.launch({ url: 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic' });
     });
 
 </script>
