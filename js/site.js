@@ -5,16 +5,8 @@
 var site = (function (site) {
 
     site.init = function (app, $app_container) {
-
-        var self = this;
-
         this.app = app;
         this.$app_container = $app_container;
-
-        $('#dataset_selector').on('change', function(e){
-            self.launch({ url: $(this).val() });
-        });
-
     };
 
     site.launch = function (config) {

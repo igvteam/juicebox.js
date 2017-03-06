@@ -49,7 +49,7 @@
 
     <select id="dataset_selector" name="dataset_selector">
         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
-        <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
+        <option selected="selected" value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
     </select>
 
 </div>
@@ -61,6 +61,11 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
+
+        $('#dataset_selector').on('change', function(e){
+            site.launch({ url: $(this).val() });
+        });
+
         site.init(hic, $('#app-container'));
         site.launch({ url: 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic' });
     });
