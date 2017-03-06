@@ -44,17 +44,20 @@ var hic = (function (hic) {
                             browser.bpResolutions = browser.hicReader.bpResolutions;
                             browser.fragResolutions = browser.hicReader.fragResolutions;
 
-
-                            // These elements dependent on full instantiation of HICReader state
-                            // Thus they must me created here.
-
                             // chromosome goto
                             browser.locusGoto = new hic.LocusGoto(browser);
                             browser.$navbar_container.append(browser.locusGoto.$container);
 
+                            // colorscale widget
+                            browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
+                            browser.$navbar_container.append(browser.colorscaleWidget.$container);
+
                             // resolution widget
                             browser.resolutionSelector = new hic.ResolutionSelector(browser);
                             browser.$navbar_container.append(browser.resolutionSelector.$container);
+
+                            hic.GlobalEventBus.post(new hic.DidLoadDatasetEvent(browser));
+
                             browser.contactMatrixView.stopSpinner();
                             fulfill(browser);
                         })
@@ -253,7 +256,7 @@ var hic = (function (hic) {
         this.clamp();
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
-    }
+    };
 
     hic.Browser.prototype.update = function () {
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
@@ -312,7 +315,7 @@ var hic = (function (hic) {
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-    }
+    };
 
     hic.Browser.prototype.receiveEvent = function (event) {
 
@@ -334,7 +337,7 @@ var hic = (function (hic) {
         // Replace state parameter
         window.history.replaceState(this.state, "juicebox", href);
 
-    }
+    };
 
 
     function gup(href, name) {
