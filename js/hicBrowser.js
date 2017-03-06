@@ -55,8 +55,6 @@ var hic = (function (hic) {
                             // resolution widget
                             browser.resolutionSelector = new hic.ResolutionSelector(browser);
                             browser.$navbar_container.append(browser.resolutionSelector.$container);
-
-                            browser.update();
                             browser.contactMatrixView.stopSpinner();
                             fulfill(browser);
                         })

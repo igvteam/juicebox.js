@@ -14,24 +14,8 @@ var site = (function (site) {
         this.app
             .createBrowser(this.$app_container, config)
             .then(function (browser) {
-                var chromosome_index_x,
-                    chromosome_index_y,
-                    zoom_index,
-                    x_bin,
-                    y_bin,
-                    pixel_size;
+                browser.setState(4, 4, 0, 0, 0, 2);
 
-                chromosome_index_x = 4;
-                chromosome_index_y = 4;
-
-                zoom_index = 6;
-
-                x_bin = 128;
-                y_bin = 0;
-
-                pixel_size = 1;
-
-                browser.setState(chromosome_index_x, chromosome_index_y, zoom_index, x_bin, y_bin, pixel_size);
             })
             .catch(function (error) {
                 console.error(error);
