@@ -1,0 +1,20 @@
+.site-container {
+
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
+    color: #5f5f5f;
+
+    margin-left: 64px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+
+.site-container label {
+    display: block;
+    font-size: 24px;
+}
+
+.site-container select {
+    display: block;
+    font-size: 16px;
+}
