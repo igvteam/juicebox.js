@@ -41,11 +41,11 @@ var hic = (function (hic) {
             pixelsPerBin = event.payload.pixelSize;
 
             startsBP = _.map([ event.payload.x, event.payload.y ], function(bin) {
-                return bin * bpPerBin;
+                return 1 + Math.round(bin * bpPerBin);
             });
 
             endsBP = _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
-                return ((pixels / pixelsPerBin) * bpPerBin) + startsBP[ index ];
+                return Math.round(((pixels / pixelsPerBin) * bpPerBin)) + startsBP[ index ];
             });
 
             xy = _.map([0, 1], function(index) {
