@@ -64,7 +64,11 @@ var hic = (function (hic) {
         // chromosome goto
         this.locusGoto = new hic.LocusGoto(this);
         this.$navbar_container.append(this.locusGoto.$container);
-
+      
+      // colorscale widget
+      this.colorscaleWidget = new hic.ColorScaleWidget(this);
+      this.$navbar_container.append(this.colorscaleWidget.$container);
+      
         // resolution widget
         this.resolutionSelector = new hic.ResolutionSelector(this);
         this.$navbar_container.append(this.resolutionSelector.$container);
@@ -258,7 +262,7 @@ var hic = (function (hic) {
         this.clamp();
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
-    }
+    };
 
     hic.Browser.prototype.update = function () {
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
@@ -317,7 +321,7 @@ var hic = (function (hic) {
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-    }
+    };
 
     hic.Browser.prototype.receiveEvent = function (event) {
 
@@ -339,7 +343,7 @@ var hic = (function (hic) {
         // Replace state parameter
         window.history.replaceState(this.state, "juicebox", href);
 
-    }
+    };
 
 
     function gup(href, name) {
