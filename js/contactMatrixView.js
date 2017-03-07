@@ -34,8 +34,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser) {
 
-        var $spinner,
-            w,
+        var w,
             h;
 
         this.browser = browser;
@@ -51,15 +50,17 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
-        $spinner = $('<div class="hic-viewport-spinner">');
-        $spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
+        this.$spinner = $('<div class="hic-viewport-spinner">');
+        this.$spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
+        this.stopSpinner();
 
         this.$viewport.append(this.$canvas);
-        this.$viewport.append($spinner);
+        this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("DataLoad", this);
 
         this.matrixCache = {};
         this.blockImageCache = {};
@@ -78,23 +79,29 @@ var hic = (function (hic) {
         );
 
 
-
     };
 
-    hic.ContactMatrixView.prototype.getViewDimensions = function() {
+    hic.ContactMatrixView.prototype.clearCaches = function() {
+        this.matrixCache = {};
+        this.blockImageCache = {};
+    }
+
+    hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
             width: this.$viewport.width(),
             height: this.$viewport.height()
         }
     }
 
-    hic.ContactMatrixView.prototype.receiveEvent = function(event) {
+    hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
         this.update();
 
     }
 
     hic.ContactMatrixView.prototype.update = function () {
+
+        if (!this.browser.hicReader) return;
 
         var self = this,
             state = this.browser.state;
@@ -179,7 +186,7 @@ var hic = (function (hic) {
             key = "" + chr1 + "_" + chr2;
         if (this.matrixCache.hasOwnProperty(key)) {
             return Promise.resolve(self.matrixCache[key]);
-        }  else {
+        } else {
             return new Promise(function (fulfill, reject) {
                 self.startSpinner();
                 reader
@@ -268,13 +275,13 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        var $spinner = $(this.$viewport).find('.fa-spinner');
+        var $spinner = this.$spinner;
         $spinner.addClass("fa-spin");
         $spinner.show();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        var $spinner = $(this.$viewport).find('.fa-spinner');
+        var $spinner = this.$spinner;
         $spinner.hide();
         $spinner.removeClass("fa-spin");
     };
@@ -334,7 +341,7 @@ var hic = (function (hic) {
 
                     isDragging = true;
 
-                    if(self.updating) return;   // Freeze frame during updates
+                    if (self.updating) return;   // Freeze frame during updates
 
                     self.browser.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
 

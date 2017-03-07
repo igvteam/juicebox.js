@@ -30,16 +30,16 @@
 
 var hic = (function (hic) {
 
-    hic.EventBus = function() {
+    hic.EventBus = function () {
 
         // Map eventType -> list of subscribers
         this.subscribers = {};
     };
 
-    hic.EventBus.prototype.subscribe = function(eventType, object) {
+    hic.EventBus.prototype.subscribe = function (eventType, object) {
 
         var subscriberList = this.subscribers[eventType];
-        if(subscriberList == undefined) {
+        if (subscriberList == undefined) {
             subscriberList = [];
             this.subscribers[eventType] = subscriberList;
         }
@@ -47,33 +47,25 @@ var hic = (function (hic) {
 
     };
 
-    hic.EventBus.prototype.post = function(event) {
+    hic.EventBus.prototype.post = function (event) {
 
         var eventType = event.type,
             subscriberList = this.subscribers[eventType];
 
-        subscriberList.forEach(function (subscriber) {
+        if(subscriberList) {
+            subscriberList.forEach(function (subscriber) {
 
-            if("function" === typeof subscriber.receiveEvent) {
-                subscriber.receiveEvent(event);
-            }
-
-        });
-
-    };
-
-    hic.DidLoadDatasetEvent = function (objectOrUndefined) {
-        this.type = 'DidLoadDataset';
-        if (objectOrUndefined) {
-            this.payload = objectOrUndefined;
+                if ("function" === typeof subscriber.receiveEvent) {
+                    subscriber.receiveEvent(event);
+                }
+            });
         }
+
     };
 
-    hic.LocusChangeEvent = function (objectOrUndefined) {
+    hic.LocusChangeEvent = function (state) {
         this.type = "LocusChange";
-        if (objectOrUndefined) {
-            this.payload = objectOrUndefined;
-        }
+        this.state = state;
     };
 
     hic.DragStoppedEvent = function () {

@@ -26,51 +26,11 @@
 
 var hic = (function (hic) {
 
-    var defaultPixelSize = 2;
+    var defaultPixelSize = 2,
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize);
 
     hic.createBrowser = function ($hic_container, config) {
-
-        var browser = new hic.Browser($hic_container, config);
-
-        return new Promise(function (fulfill, reject) {
-
-            browser.contactMatrixView.startSpinner();
-
-            browser.hicReader.readHeader()
-                .then(function () {
-                    browser.hicReader.readFooter()
-                        .then(function () {
-                            browser.chromosomes = browser.hicReader.chromosomes;
-                            browser.bpResolutions = browser.hicReader.bpResolutions;
-                            browser.fragResolutions = browser.hicReader.fragResolutions;
-
-                            // chromosome goto
-                            browser.locusGoto = new hic.LocusGoto(browser);
-                            browser.$navbar_container.append(browser.locusGoto.$container);
-
-                            // colorscale widget
-                            browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
-                            browser.$navbar_container.append(browser.colorscaleWidget.$container);
-
-                            // resolution widget
-                            browser.resolutionSelector = new hic.ResolutionSelector(browser);
-                            browser.$navbar_container.append(browser.resolutionSelector.$container);
-
-                            hic.GlobalEventBus.post(new hic.DidLoadDatasetEvent(browser));
-
-                            browser.contactMatrixView.stopSpinner();
-                            fulfill(browser);
-                        })
-                        .catch(function (error) {
-                            browser.contactMatrixView.stopSpinner();
-                            reject(error);
-                        });
-                })
-                .catch(function (error) {
-                    browser.contactMatrixView.stopSpinner();
-                    reject(error);
-                });
-        });
+        return new hic.Browser($hic_container, config);
     };
 
     hic.Browser = function ($app_container, config) {
@@ -79,10 +39,6 @@ var hic = (function (hic) {
             $content_container;
 
         this.config = config;
-        this.hicReader = new hic.HiCReader(config);
-
-        // flush contents of container
-        $app_container.empty();
 
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
@@ -104,6 +60,19 @@ var hic = (function (hic) {
         this.$yAxis = yAxis();
         $content_container.append(this.$yAxis);
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
+
+        // chromosome goto
+        this.locusGoto = new hic.LocusGoto(this);
+        this.$navbar_container.append(this.locusGoto.$container);
+      
+      // colorscale widget
+      this.colorscaleWidget = new hic.ColorScaleWidget(this);
+      this.$navbar_container.append(this.colorscaleWidget.$container);
+      
+        // resolution widget
+        this.resolutionSelector = new hic.ResolutionSelector(this);
+        this.$navbar_container.append(this.resolutionSelector.$container);
+
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport);
@@ -135,6 +104,43 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DragStopped", this);
     };
 
+    hic.Browser.prototype.loadHicFile = function (config) {
+
+        var self = this;
+
+        this.hicReader = new hic.HiCReader(config);
+
+        self.contactMatrixView.clearCaches();
+
+        self.contactMatrixView.startSpinner();
+
+        self.hicReader.readHeader()
+            .then(function () {
+                self.hicReader.readFooter()
+                    .then(function () {
+                        self.chromosomes = self.hicReader.chromosomes;
+                        self.bpResolutions = self.hicReader.bpResolutions;
+                        self.fragResolutions = self.hicReader.fragResolutions;
+                        if (config.state) {
+                            self.setState(config.state);
+                        }
+                        else {
+                            self.setState(defaultState);
+                        }
+
+                        self.contactMatrixView.stopSpinner();
+
+                        hic.GlobalEventBus.post(new hic.DataLoadEvent());
+
+                    })
+                    .catch(function (error) {
+                        self.contactMatrixView.stopSpinner();
+                        console.log(error);
+                    });
+            })
+
+    }
+
     hic.Browser.prototype.parseGotoInput = function (string) {
 
         var self = this,
@@ -164,14 +170,14 @@ var hic = (function (hic) {
             newZoom = findMatchingResolution(targetResolution, this.hicReader.bpResolutions);
             newPixelSize = this.state.pixelSize;   // Adjusting this is complex
 
-            this.setState(
+            this.setState(new hic.State(
                 xLocus.chr,
                 yLocus.chr,
                 newZoom,
                 xLocus.start / this.hicReader.bpResolutions[this.state.zoom],
                 yLocus.start / this.hicReader.bpResolutions[this.state.zoom],
                 newPixelSize
-            );
+            ));
 
 
         }
@@ -271,12 +277,12 @@ var hic = (function (hic) {
      * @param y     bin position top-most cell (vertical-down axis)
      * @param pixelSize   screen-pixel per bin (dimension of n by n screen region occupied by one bin)
      */
-    hic.Browser.prototype.setState = function (chr1, chr2, zoom, x, y, pixelSize) {
+    hic.Browser.prototype.setState = function (state) {
 
         // Possibly adjust pixel size
-        var pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, chr1, chr2, zoom));
+        state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, state.chr1, state.chr2, state.zoom));
 
-        this.state = new hic.State(chr1, chr2, zoom, x, y, pixelSize);
+        this.state = state;
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 

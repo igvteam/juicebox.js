@@ -30,17 +30,17 @@ var hic = (function (hic) {
             endsBP,
             xy;
 
-        if (event.payload && event.payload instanceof hic.State) {
+        if (event.type === "LocusChange") {
 
-            chrs = _.map([ event.payload.chr1, event.payload.chr2 ], function(index) {
+            chrs = _.map([ event.state.chr1, event.state.chr2 ], function(index) {
                 return self.browser.hicReader.chromosomes[ index ].name;
             });
 
-            bpPerBin = this.browser.hicReader.bpResolutions[ event.payload.zoom ];
+            bpPerBin = this.browser.hicReader.bpResolutions[ event.state.zoom ];
             dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-            pixelsPerBin = event.payload.pixelSize;
+            pixelsPerBin = event.state.pixelSize;
 
-            startsBP = _.map([ event.payload.x, event.payload.y ], function(bin) {
+            startsBP = _.map([ event.state.x, event.state.y ], function(bin) {
                 return 1 + Math.round(bin * bpPerBin);
             });
 
@@ -53,7 +53,7 @@ var hic = (function (hic) {
             });
 
             this.$resolution_selector.val(xy.join(' '));
-        }
+        } 
 
 
     };
