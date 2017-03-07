@@ -57,12 +57,13 @@
 
     $(document).ready(function () {
 
-        $('#dataset_selector').on('change', function(e){
-            site.launch({ url: $(this).val() });
-        });
+        var browser = hic.createBrowser($('#app-container'), {});
 
-        site.init(hic, $('#app-container'));
-        site.launch({ url: 'https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic' });
+        browser.loadHicFile({url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"});
+
+        $('#dataset_selector').on('change', function(e){
+            browser.loadHicFile({ url: $(this).val() });
+        });
     });
 
 </script>
