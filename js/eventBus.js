@@ -30,6 +30,7 @@
 
 var hic = (function (hic) {
 
+
     hic.EventBus = function () {
 
         // Map eventType -> list of subscribers
@@ -63,6 +64,7 @@ var hic = (function (hic) {
 
     };
 
+
     hic.LocusChangeEvent = function (state) {
         this.type = "LocusChange";
         this.state = state;
@@ -72,7 +74,13 @@ var hic = (function (hic) {
         this.type = "DragStopped";
     };
 
+    hic.DataLoadEvent = function () {
+        this.type = "DataLoad";
+    }
+
+
     hic.GlobalEventBus = new hic.EventBus();
+
 
     return hic;
 

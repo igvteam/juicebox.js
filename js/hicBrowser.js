@@ -64,11 +64,11 @@ var hic = (function (hic) {
         // chromosome goto
         this.locusGoto = new hic.LocusGoto(this);
         this.$navbar_container.append(this.locusGoto.$container);
-      
-      // colorscale widget
-      this.colorscaleWidget = new hic.ColorScaleWidget(this);
-      this.$navbar_container.append(this.colorscaleWidget.$container);
-      
+
+        // colorscale widget
+        this.colorscaleWidget = new hic.ColorScaleWidget(this);
+        this.$navbar_container.append(this.colorscaleWidget.$container);
+
         // resolution widget
         this.resolutionSelector = new hic.ResolutionSelector(this);
         this.$navbar_container.append(this.resolutionSelector.$container);
@@ -103,6 +103,16 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
     };
+
+    hic.Browser.prototype.getColorScale = function() {
+        return this.contactMatrixView.colorScale;
+    }
+
+    hic.Browser.prototype.updateColorScale = function(high) {
+        this.contactMatrixView.colorScale.scale.high = high;
+        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.update();
+    }
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
