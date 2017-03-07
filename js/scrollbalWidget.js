@@ -26,10 +26,13 @@ var hic = (function (hic) {
                 console.log('drag - begin');
             },
             drag: function() {
-                var bin;
+                var bin,
+                    st = self.browser.state;
+
                 bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
-                console.log('x drag - ging ' + bin);
-                self.browser.shiftPixels(self.browser.state.x - bin, 0);
+                self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
+
+                // self.browser.shiftPixels(self.browser.state.x - bin, 0);
             },
             stop: function() {
                 self.isDragging = false;
@@ -38,16 +41,20 @@ var hic = (function (hic) {
         });
 
         this.$y_axis_scrollbar.draggable({
+
             containment: 'parent',
             start: function() {
                 self.isDragging = true;
                 console.log('drag - begin');
             },
             drag: function() {
-                var bin;
+                var bin,
+                    st = self.browser.state;
+
                 bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
-                console.log('y drag - ging ' + bin);
-                self.browser.shiftPixels(0, self.browser.state.y - bin);
+                self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
+
+                // self.browser.shiftPixels(0, self.browser.state.y - bin);
             },
             stop: function() {
                 self.isDragging = false;
@@ -66,10 +73,9 @@ var hic = (function (hic) {
 
         numer = $element.css(attribute).slice(0, -2);
         denom = $element.parent().css('left' === attribute ? 'width' : 'height').slice(0, -2);
+        percentage = parseInt(numer, 10)/parseInt(denom, 10);
 
-        percentage = numer/denom;
-
-        return Math.round(percentage * chromosome.size / this.browser.hicReader.bpResolutions[ this.browser.state.zoom ]);
+        return percentage * chromosome.size / this.browser.hicReader.bpResolutions[ this.browser.state.zoom ];
     };
 
     hic.ScrollbarWidget.prototype.receiveEvent = function(event) {
