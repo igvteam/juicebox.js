@@ -11,16 +11,16 @@ var hic = (function (hic) {
         this.browser = browser;
 
         this.$resolution_selector = $('<select name="select">');
-        this.$resolution_selector.on('change', function(e){
+        this.$resolution_selector.on('change', function (e) {
             var number = parseInt($(this).val());
             self.browser.setZoom(_.indexOf(self.browser.hicReader.bpResolutions, number));
         });
 
-        elements = _.map(browser.hicReader.bpResolutions, function(resolution){
-            return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution/1e3)) + '</option>';
-        });
+        // elements = _.map(browser.hicReader.bpResolutions, function (resolution) {
+        //     return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
+        // });
+        //this.$resolution_selector.append(elements.join(''));
 
-        this.$resolution_selector.append(elements.join(''));
         this.$resolution_selector.attr('name', 'resolution_selector');
 
         $label = $('<label for="resolution_selector">');
@@ -32,18 +32,26 @@ var hic = (function (hic) {
         this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("DataLoad", this);
     };
 
-    hic.ResolutionSelector.prototype.receiveEvent = function(event) {
+    hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
-        if (event.payload && event.payload instanceof hic.State) {
-
+        if (event.type === "LocusChange") {
             this.$resolution_selector
                 .find('option')
-                .filter(function(index) {
-                    return index === event.payload.zoom;
+                .filter(function (index) {
+                    return index === event.state.zoom;
                 })
                 .prop('selected', true);
+        } else if (event.type === "DataLoad") {
+
+            var elements = _.map(this.browser.hicReader.bpResolutions, function (resolution) {
+                return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
+            });
+
+            this.$resolution_selector.empty();
+            this.$resolution_selector.append(elements.join(''));
 
         }
 
