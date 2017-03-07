@@ -75,7 +75,7 @@ var hic = (function (hic) {
 
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content_container.append(this.contactMatrixView.$viewport);
+        $content_container.append(this.contactMatrixView.$viewport_container);
 
         this.state = new hic.State(1, 1, 0, 0, 0, 1);
 

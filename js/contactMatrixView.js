@@ -35,14 +35,16 @@ var hic = (function (hic) {
     hic.ContactMatrixView = function (browser) {
 
         var w,
-            h;
+            h,
+            $x_axis_scrollbar_container,
+            $y_axis_scrollbar_container;
 
         this.browser = browser;
 
         this.$viewport = $('<div class="hic-viewport">');
 
         //content canvas
-        this.$canvas = $('<canvas class = "hic-viewport-canvas">');
+        this.$canvas = $('<canvas>');
         w = this.$viewport.width();
         h = this.$viewport.height();
         this.$canvas.attr('width', w);
@@ -59,8 +61,24 @@ var hic = (function (hic) {
 
         addMouseHandlers.call(this, this.$viewport);
 
+        $x_axis_scrollbar_container = $('<div class="hic-viewport-x-axis-scrollbar-container">');
+        this.$x_axis_scrollbar = $('<div class="hic-viewport-x-axis-scrollbar">');
+
+        $y_axis_scrollbar_container = $('<div class="hic-viewport-y-axis-scrollbar-container">');
+        this.$y_axis_scrollbar = $('<div class="hic-viewport-y-axis-scrollbar">');
+
+        $x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
+        $y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
+
+        this.$viewport_container = $('<div class="hic-viewport-container">');
+
+        this.$viewport_container.append(this.$viewport);
+        this.$viewport_container.append($x_axis_scrollbar_container);
+        this.$viewport_container.append($y_axis_scrollbar_container);
+
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
+
 
         this.matrixCache = {};
         this.blockImageCache = {};
