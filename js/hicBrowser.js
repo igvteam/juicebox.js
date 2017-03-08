@@ -75,7 +75,7 @@ var hic = (function (hic) {
 
 
         this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content_container.append(this.contactMatrixView.$viewport);
+        $content_container.append(this.contactMatrixView.$viewport_container);
 
         this.state = new hic.State(1, 1, 0, 0, 0, 1);
 
@@ -130,6 +130,8 @@ var hic = (function (hic) {
             .then(function () {
                 self.hicReader.readFooter()
                     .then(function () {
+                        var z;
+
                         self.chromosomes = self.hicReader.chromosomes;
                         self.bpResolutions = self.hicReader.bpResolutions;
                         self.fragResolutions = self.hicReader.fragResolutions;
@@ -137,12 +139,15 @@ var hic = (function (hic) {
                             self.setState(config.state);
                         }
                         else {
-                            var z = findDefaultZoom.call(
+
+                            z = findDefaultZoom.call(
                                 self,
                                 self.bpResolutions,
                                 defaultPixelSize,
                                 self.chromosomes[defaultState.chr1].size);
+
                             defaultState.zoom = z;
+
                             self.setState(defaultState);
                         }
 
@@ -303,19 +308,15 @@ var hic = (function (hic) {
 
     /**
      * Set the matrix state.  Used ot restore state from a bookmark
-     * @param chr1  chromosome index (not the name)
-     * @param chr2  cnormosome index (not the name)
-     * @param zoom  zoom level index (int)
-     * @param x     bin position of left-most cell (horizontal-right axis)
-     * @param y     bin position top-most cell (vertical-down axis)
-     * @param pixelSize   screen-pixel per bin (dimension of n by n screen region occupied by one bin)
+     * @param state  browser state
      */
     hic.Browser.prototype.setState = function (state) {
 
-        // Possibly adjust pixel size
-        state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, state.chr1, state.chr2, state.zoom));
+        // pass state by value NOT reference
+        this.state = (JSON.parse(JSON.stringify(state)));
 
-        this.state = state;
+        // Possibly adjust pixel size
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
@@ -390,9 +391,7 @@ var hic = (function (hic) {
             return results[1];
     }
 
-
     return hic;
-
 
 })
 (hic || {});

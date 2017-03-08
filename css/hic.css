@@ -4,9 +4,11 @@
 
     left: 0;
     right: 0;
-    width: 826px;
-    height: 875px;
-    background-color: #ffffff;
+    /*width: 826px;*/
+    /*height: 875px;*/
+    width: 858px;
+    height: 907px;
+    /*background-color: #ffffff;*/
 
     border-style: solid;
     border-width: thin;
@@ -190,39 +192,108 @@
     background-color: white;
 }
 
-.hic-viewport {
+.hic-viewport-container {
     position: absolute;
     left: 25px;
     top: 25px;
+    width: 832px;
+    height: 832px;
+    /*background-color: springgreen;*/
+}
+
+.hic-viewport {
+    /*cursor: pointer;*/
+    position: relative;
+    left: 0;
+    top: 0;
     width: 800px;
     height: 800px;
     overflow-x: hidden;
     overflow-y: hidden;
-
     background-color: white;
 }
 
-.hic-viewport-canvas {
-    width: 100%;
+.hic-viewport-x-axis-scrollbar-container {
+    position: absolute;
+    left: 0;
+    top: 800px;
+    height: 32px;
+    width: 800px;
+    background-color: #efefef;
+}
+
+.hic-viewport-y-axis-scrollbar-container {
+    position: absolute;
+    top: 0;
+    left: 800px;
+    width: 32px;
+    height: 800px;
+    background-color: #efefef;
+}
+
+.hic-viewport-x-axis-scrollbar {
+
+    display: table;
+    cursor: pointer;
+    position: absolute;
+
+    /* dynamic x and width */
+    left: 25%;
+    width: 50%;
+
+    top: 0;
     height: 100%;
+    background-color: #92c0ad;
+}
+
+.hic-viewport-y-axis-scrollbar {
+
+    display: table;
+    cursor: pointer;
+    position: absolute;
+
+    /* dynamic y and height */
+    top: 25%;
+    height: 50%;
+
+    left: 0;
+    width: 100%;
+    background-color: #92c0ad;
+}
+
+.hic-viewport-x-axis-scrollbar span {
+    display: table-cell;
+    vertical-align: middle;
+    text-align:center;
+
+    color: #315543;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 90%;
+    font-weight: 400;
+
+}
+
+.hic-viewport-y-axis-scrollbar span {
+    display: table-cell;
+    vertical-align: middle;
+    text-align:center;
+
+    color: #315543;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 90%;
+    font-weight: 400;
+
 }
 
 .hic-viewport-spinner {
-
     pointer-events:none;
-
     position: absolute;
-
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-
     z-index: 1024;
-
     font-size: 32px;
-
     color: #7f7f7f;
-
 }
 
 .unselect {

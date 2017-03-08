@@ -35,14 +35,16 @@ var hic = (function (hic) {
     hic.ContactMatrixView = function (browser) {
 
         var w,
-            h;
+            h,
+            $x_axis_scrollbar_container,
+            $y_axis_scrollbar_container;
 
         this.browser = browser;
 
         this.$viewport = $('<div class="hic-viewport">');
 
         //content canvas
-        this.$canvas = $('<canvas class = "hic-viewport-canvas">');
+        this.$canvas = $('<canvas>');
         w = this.$viewport.width();
         h = this.$viewport.height();
         this.$canvas.attr('width', w);
@@ -58,6 +60,13 @@ var hic = (function (hic) {
         this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
+
+        this.$viewport_container = $('<div class="hic-viewport-container">');
+        this.$viewport_container.append(this.$viewport);
+
+        this.scrollbarWidget = new hic.ScrollbarWidget(browser);
+        this.$viewport_container.append(this.scrollbarWidget.$x_axis_scrollbar_container);
+        this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
@@ -348,7 +357,7 @@ var hic = (function (hic) {
         //     $element.css({left: _left + 'px'});
         // });
 
-        $viewport.on('mousemove', throttle(function (e) {
+        $viewport.on('mousemove', hic.throttle(function (e) {
 
             var coords,
                 maxEnd,
@@ -419,29 +428,6 @@ var hic = (function (hic) {
         posy = eFixed.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
-    }
-
-    function throttle(fn, threshhold, scope) {
-        threshhold || (threshhold = 200);
-        var last, deferTimer;
-
-        return function () {
-            var context = scope || this;
-
-            var now = +new Date,
-                args = arguments;
-            if (last && now < last + threshhold) {
-                // hold on to it
-                clearTimeout(deferTimer);
-                deferTimer = setTimeout(function () {
-                    last = now;
-                    fn.apply(context, args);
-                }, threshhold);
-            } else {
-                last = now;
-                fn.apply(context, args);
-            }
-        }
     }
 
     return hic;
