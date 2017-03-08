@@ -63,7 +63,8 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DataLoad", this);
 
         this.matrixCache = {};
-        this.blockImageCache = {};
+        this.blockCache = {};
+        this.imageTileCache = {};
 
         this.colorScale = new igv.GradientColorScale(
             {
@@ -83,7 +84,8 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.clearCaches = function() {
         this.matrixCache = {};
-        this.blockImageCache = {};
+        this.blockCache = {};
+        this.imageTileCache = {};
     }
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
@@ -128,14 +130,14 @@ var hic = (function (hic) {
                     for (c = col1; c <= col2; c++) {
                         b = r * blockColumnCount + c;
                         if (b >= 0) {
-                            promises.push(self.getBlock(zd, b));
+                            promises.push(self.getImageTile(zd, b));
                         }
                     }
                 }
 
-                Promise.all(promises).then(function (blocks) {
+                Promise.all(promises).then(function (imageTiles) {
                     self.stopSpinner();
-                    self.draw(blocks, zd);
+                    self.draw(imageTiles, zd);
                     self.updating = false;
                 }).catch(function (error) {
                     self.stopSpinner(self);
@@ -150,7 +152,7 @@ var hic = (function (hic) {
             })
     };
 
-    hic.ContactMatrixView.prototype.draw = function (blocks, zd) {
+    hic.ContactMatrixView.prototype.draw = function (imageTiles, zd) {
 
         var self = this,
             state = this.browser.state,
@@ -159,14 +161,13 @@ var hic = (function (hic) {
 
         self.$canvas.attr('width', self.$viewport.width());
         self.$canvas.attr('height', self.$viewport.height());
-        blocks.forEach(function (blockImage) {
+        imageTiles.forEach(function (imageTile) {
 
-            var block = blockImage.block,
-                image = blockImage.image;
+            var blockNumber = imageTile.blockNumber,
+                image = imageTile.image;
 
-            if (block != null) {
-                var blockNumber = block.blockNumber,
-                    row = Math.floor(blockNumber / blockColumnCount),
+            if (image != null) {
+                var row = Math.floor(blockNumber / blockColumnCount),
                     col = blockNumber - row * blockColumnCount,
                     x0 = blockBinCount * col,
                     y0 = blockBinCount * row;
@@ -201,24 +202,22 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, blockNumber) {
 
         var self = this,
             key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
 
-        if (this.blockImageCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.blockImageCache[key]);
+        if (this.imageTileCache.hasOwnProperty(key)) {
+            return Promise.resolve(this.imageTileCache[key]);
         } else {
             return new Promise(function (fulfill, reject) {
 
-                var reader = self.browser.hicReader,
-                    state = self.browser.state,
+                var state = self.browser.state,
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
                     imageSize = widthInBins * state.pixelSize;
 
-                self.startSpinner();
 
                 function drawBlock(block) {
                     var blockNumber, row, col, x0, y0, image, ctx;
@@ -248,25 +247,51 @@ var hic = (function (hic) {
                     return image;
                 }
 
-                reader.readBlock(blockNumber, zd)
+                self.getBlock(zd, blockNumber)
+
                     .then(function (block) {
 
                         var image;
-
-                        if (block != null) {
+                        if (block) {
                             image = drawBlock(block);
                         }
 
-                        blockImage = {
-                            block: block,
-                            image: image
-                        };
+                        var imageTile = {blockNumber: blockNumber, image: image};
+                        self.imageTileCache[key] = imageTile;
+                        fulfill(imageTile);
 
-                        self.blockImageCache[key] = blockImage;
+                    })
+                    .catch(reject)
+            })
+        }
+    };
+    hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
+
+        var self = this,
+            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
+
+        if (this.blockCache.hasOwnProperty(key)) {
+            return Promise.resolve(this.blockCache[key]);
+        } else {
+            return new Promise(function (fulfill, reject) {
+
+                var reader = self.browser.hicReader,
+                    state = self.browser.state,
+                    blockBinCount = zd.blockBinCount,
+                    blockColumnCount = zd.blockColumnCount,
+                    widthInBins = zd.blockBinCount,
+                    imageSize = widthInBins * state.pixelSize;
+
+                self.startSpinner();
+
+                reader.readBlock(blockNumber, zd)
+                    .then(function (block) {
+
+                        self.blockCache[key] = block
 
                         self.stopSpinner();
 
-                        fulfill(blockImage);
+                        fulfill(block);
 
                     })
                     .catch(reject)

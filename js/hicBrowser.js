@@ -110,7 +110,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.updateColorScale = function(high) {
         this.contactMatrixView.colorScale.scale.high = high;
-        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
     }
 
