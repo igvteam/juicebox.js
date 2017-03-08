@@ -23,6 +23,9 @@ var hic = (function (hic) {
         this.$x_axis_scrollbar.append(this.$x_axis_label);
         this.$y_axis_scrollbar.append(this.$y_axis_label);
 
+        this.$x_axis_label.hide();
+        this.$y_axis_label.hide();
+
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
@@ -99,12 +102,12 @@ var hic = (function (hic) {
             heightBin = this.browser.contactMatrixView.getViewDimensions().height / event.state.pixelSize;
 
             // bin / bin -> percentage
-            percentage = Math.round(100 * widthBin / _.first(chromosomeLengthsBin));
+            percentage = Math.max(1, Math.round(100 * widthBin / _.first(chromosomeLengthsBin)));
             percentage = percentage.toString() + '%';
             this.$x_axis_scrollbar.css('width', percentage);
 
             // bin / bin -> percentage
-            percentage = Math.round(100 * heightBin / _.last(chromosomeLengthsBin));
+            percentage = Math.max(1, Math.round(100 * heightBin / _.last(chromosomeLengthsBin)));
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('height', percentage);
 
