@@ -118,9 +118,9 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     col1 = Math.floor(state.x / blockBinCount),
-                    col2 = Math.floor((state.x + widthInBins) / blockBinCount),
+                    col2 = Math.ceil((state.x + widthInBins) / blockBinCount),
                     row1 = Math.floor(state.y / blockBinCount),
-                    row2 = Math.floor((state.y + heightInBins) / blockBinCount),
+                    row2 = Math.ceil((state.y + heightInBins) / blockBinCount),
                     r, c, i, b,
                     promises = [];
 
