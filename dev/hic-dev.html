@@ -48,8 +48,9 @@
     <label for="dataset_selector">Data Set</label>
 
     <select id="dataset_selector" name="dataset_selector">
+        <option value="">Select...</option>
         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
-        <option selected="selected" value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
+        <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
     </select>
 
 </div>
@@ -64,7 +65,7 @@
 
         var browser = hic.createBrowser($('#app-container'), {});
 
-        browser.loadHicFile({url: "https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic"});
+        //browser.loadHicFile({url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic"});
 
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });

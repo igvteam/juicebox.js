@@ -27,7 +27,7 @@
 var hic = (function (hic) {
 
     var defaultPixelSize = 2,
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize);
+        defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
 
     hic.createBrowser = function ($hic_container, config) {
         return new hic.Browser($hic_container, config);
@@ -104,11 +104,11 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DragStopped", this);
     };
 
-    hic.Browser.prototype.getColorScale = function() {
+    hic.Browser.prototype.getColorScale = function () {
         return this.contactMatrixView.colorScale;
     }
 
-    hic.Browser.prototype.updateColorScale = function(high) {
+    hic.Browser.prototype.updateColorScale = function (high) {
         this.contactMatrixView.colorScale.scale.high = high;
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
@@ -121,6 +121,8 @@ var hic = (function (hic) {
         this.hicReader = new hic.HiCReader(config);
 
         self.contactMatrixView.clearCaches();
+
+        if (!config.url) return;
 
         self.contactMatrixView.startSpinner();
 
@@ -135,6 +137,12 @@ var hic = (function (hic) {
                             self.setState(config.state);
                         }
                         else {
+                            var z = findDefaultZoom.call(
+                                self,
+                                self.bpResolutions,
+                                defaultPixelSize,
+                                self.chromosomes[defaultState.chr1].size);
+                            defaultState.zoom = z;
                             self.setState(defaultState);
                         }
 
@@ -148,6 +156,21 @@ var hic = (function (hic) {
                         console.log(error);
                     });
             })
+    }
+
+    function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
+
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            d = Math.max(viewDimensions.width, viewDimensions.height),
+            nBins = d / defaultPixelSize,
+            z;
+
+        for (z = bpResolutions.length - 1; z >= 0; z--) {
+            if (chrLength / bpResolutions[z] <= nBins) {
+                return z;
+            }
+        }
+        return 0;
 
     }
 
