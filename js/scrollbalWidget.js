@@ -23,20 +23,10 @@ var hic = (function (hic) {
             containment: 'parent',
             start: function() {
                 self.isDragging = true;
-                console.log('drag - begin');
             },
-            drag: function() {
-                var bin,
-                    st = self.browser.state;
-
-                bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
-                self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
-
-                // self.browser.shiftPixels(self.browser.state.x - bin, 0);
-            },
+            drag: hic.throttle(xAxisDragger, 250),
             stop: function() {
                 self.isDragging = false;
-                console.log('drag - end');
             }
         });
 
@@ -45,25 +35,30 @@ var hic = (function (hic) {
             containment: 'parent',
             start: function() {
                 self.isDragging = true;
-                console.log('drag - begin');
             },
-            drag: function() {
-                var bin,
-                    st = self.browser.state;
-
-                bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
-                self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
-
-                // self.browser.shiftPixels(0, self.browser.state.y - bin);
-            },
+            drag: hic.throttle(yAxisDragger, 250),
             stop: function() {
                 self.isDragging = false;
-                console.log('drag - end');
             }
         });
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
 
+        function xAxisDragger () {
+            var bin,
+                st = self.browser.state;
+
+            bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
+            self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
+        }
+
+        function yAxisDragger () {
+            var bin,
+                st = self.browser.state;
+
+            bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
+            self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
+        }
     };
 
     hic.ScrollbarWidget.prototype.css2Bin = function(chromosome, $element, attribute) {

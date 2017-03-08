@@ -357,7 +357,7 @@ var hic = (function (hic) {
         //     $element.css({left: _left + 'px'});
         // });
 
-        $viewport.on('mousemove', throttle(function (e) {
+        $viewport.on('mousemove', hic.throttle(function (e) {
 
             var coords,
                 maxEnd,
@@ -428,29 +428,6 @@ var hic = (function (hic) {
         posy = eFixed.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
-    }
-
-    function throttle(fn, threshhold, scope) {
-        threshhold || (threshhold = 200);
-        var last, deferTimer;
-
-        return function () {
-            var context = scope || this;
-
-            var now = +new Date,
-                args = arguments;
-            if (last && now < last + threshhold) {
-                // hold on to it
-                clearTimeout(deferTimer);
-                deferTimer = setTimeout(function () {
-                    last = now;
-                    fn.apply(context, args);
-                }, threshhold);
-            } else {
-                last = now;
-                fn.apply(context, args);
-            }
-        }
     }
 
     return hic;
