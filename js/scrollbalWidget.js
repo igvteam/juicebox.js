@@ -12,9 +12,16 @@ var hic = (function (hic) {
 
         this.$x_axis_scrollbar_container = $('<div class="hic-viewport-x-axis-scrollbar-container">');
         this.$x_axis_scrollbar = $('<div class="hic-viewport-x-axis-scrollbar">');
+        this.$x_axis_label = $('<span>');
+        this.$x_axis_label.text('-');
 
         this.$y_axis_scrollbar_container = $('<div class="hic-viewport-y-axis-scrollbar-container">');
         this.$y_axis_scrollbar = $('<div class="hic-viewport-y-axis-scrollbar">');
+        this.$y_axis_label = $('<span>');
+        this.$y_axis_label.text('-');
+
+        this.$x_axis_scrollbar.append(this.$x_axis_label);
+        this.$y_axis_scrollbar.append(this.$y_axis_label);
 
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
@@ -110,6 +117,9 @@ var hic = (function (hic) {
             percentage = Math.round(100 * event.state.y / _.last(chromosomeLengthsBin));
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('top', percentage);
+
+            this.$x_axis_label.text( this.browser.hicReader.chromosomes[ event.state.chr1 ].name );
+            this.$y_axis_label.text( this.browser.hicReader.chromosomes[ event.state.chr2 ].name );
 
         }
     };

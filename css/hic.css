@@ -222,19 +222,6 @@
     background-color: #efefef;
 }
 
-.hic-viewport-x-axis-scrollbar {
-    cursor: pointer;
-    position: absolute;
-
-    /* dynamic x and width */
-    left: 25%;
-    width: 50%;
-
-    top: 0;
-    height: 100%;
-    background-color: #bfbfbf;
-}
-
 .hic-viewport-y-axis-scrollbar-container {
     position: absolute;
     top: 0;
@@ -244,7 +231,24 @@
     background-color: #efefef;
 }
 
+.hic-viewport-x-axis-scrollbar {
+
+    display: table;
+    cursor: pointer;
+    position: absolute;
+
+    /* dynamic x and width */
+    left: 25%;
+    width: 50%;
+
+    top: 0;
+    height: 100%;
+    background-color: #92c0ad;
+}
+
 .hic-viewport-y-axis-scrollbar {
+
+    display: table;
     cursor: pointer;
     position: absolute;
 
@@ -254,7 +258,31 @@
 
     left: 0;
     width: 100%;
-    background-color: #bfbfbf;
+    background-color: #92c0ad;
+}
+
+.hic-viewport-x-axis-scrollbar span {
+    display: table-cell;
+    vertical-align: middle;
+    text-align:center;
+
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    font-size: medium;
+    font-weight: 400;
+
+}
+
+.hic-viewport-y-axis-scrollbar span {
+    display: table-cell;
+    vertical-align: middle;
+    text-align:center;
+
+    color: white;
+    font-family: 'Open Sans', sans-serif;
+    font-size: medium;
+    font-weight: 400;
+
 }
 
 .hic-viewport-spinner {
