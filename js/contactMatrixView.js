@@ -122,36 +122,25 @@ var hic = (function (hic) {
         self.updating = true;
 
         this.getMatrix(state.chr1, state.chr2)
+
             .then(function (matrix) {
 
                 var widthInBins = self.$viewport.width() / state.pixelSize,
                     heightInBins = self.$viewport.height() / state.pixelSize,
                     zd = matrix.bpZoomData[state.zoom],
                     blockBinCount = zd.blockBinCount,
-                    blockColumnCount = zd.blockColumnCount,
                     col1 = Math.floor(state.x / blockBinCount),
                     col2 = Math.floor((state.x + widthInBins) / blockBinCount),
                     row1 = Math.floor(state.y / blockBinCount),
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                    r, c, i, b,
-                    tmp = [],
-                    promises = [];
+                    r, c, promises = [];
 
                     for (r = row1; r <= row2; r++) {
                         for (c = col1; c <= col2; c++) {
-                            if(sameChr) {
-                                b = Math.max(r,c) * blockColumnCount + Math.min(r,c);
-                            }
-                            else {
-                                b = r * blockColumnCount + c;
-                            }
-                            console.log("B = " + b);
-                            if (b >= 0 && !tmp.includes(b)) {
-                                tmp.push(b);
-                                promises.push(self.getImageTile(zd, b));
+                                promises.push(self.getImageTile(zd, r, c));
                             }
                         }
-                    }
+
 
                 Promise.all(promises).then(function (imageTiles) {
                     self.stopSpinner();
@@ -183,12 +172,11 @@ var hic = (function (hic) {
         self.$canvas.attr('height', viewportHeight);
         imageTiles.forEach(function (imageTile) {
 
-            var blockNumber = imageTile.blockNumber,
-                image = imageTile.image;
+            var image = imageTile.image;
 
             if (image != null) {
-                var row = Math.floor(blockNumber / blockColumnCount),
-                    col = blockNumber - row * blockColumnCount,
+                var row = imageTile.row,
+                    col = imageTile.column,
                     x0 = blockBinCount * col,
                     y0 = blockBinCount * row;
 
@@ -199,17 +187,6 @@ var hic = (function (hic) {
                     self.ctx.drawImage(image, offsetX, offsetY);
                 }
 
-                // if (state.chr1 == state.chr2) {
-                //     // Data is transposable
-                //     var offsetX = y0 - state.x;
-                //     var offsetY = x0 - state.y;
-                //     if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
-                //         offsetY <= viewportHeight && offsetY + image.height >= 0) {
-                //         self.ctx.drawImage(image, offsetX, offsetY);
-                //     }
-                //     self.ctx.strokeRect(offsetX, offsetY, image.width, image.height);
-                //
-                // }
             }
         })
 
@@ -237,11 +214,11 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, blockNumber) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
 
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
+            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + row + "_" + column;
 
         if (this.imageTileCache.hasOwnProperty(key)) {
             return Promise.resolve(this.imageTileCache[key]);
@@ -252,10 +229,14 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
-                    imageSize = widthInBins * state.pixelSize;
+                    imageSize = widthInBins * state.pixelSize,
+                    transpose = sameChr && row < column,
+                    blockNumber,
+                    t;
 
 
-                function drawBlock(block) {
+                function drawBlock(block, transpose) {
+
                     var blockNumber, row, col, x0, y0, image, ctx;
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
@@ -274,6 +255,13 @@ var hic = (function (hic) {
                         rec = block.records[i];
                         x = (rec.bin1 - x0) * state.pixelSize;
                         y = (rec.bin2 - y0) * state.pixelSize;
+
+                        if(transpose) {
+                            t = y;
+                            y = x;
+                            x = t;
+                        }
+
                         rgb = self.colorScale.getColor(rec.counts);
 
                         ctx.fillStyle = rgb;
@@ -285,19 +273,26 @@ var hic = (function (hic) {
                     return image;
                 }
 
+                if(sameChr && row < column) {
+                    blockNumber = column * blockColumnCount + row;
+                }
+                else {
+                    blockNumber = row * blockColumnCount + column;
+                }
+
                 self.getBlock(zd, blockNumber)
 
                     .then(function (block) {
 
                         var image;
                         if (block) {
-                            image = drawBlock(block);
+                            image = drawBlock(block, transpose);
                         }
                         else {
                             console.log("No block for " + blockNumber);
                         }
 
-                        var imageTile = {blockNumber: blockNumber, image: image};
+                        var imageTile = {row: row, column: column, image: image};
                         self.imageTileCache[key] = imageTile;
                         fulfill(imageTile);
 
