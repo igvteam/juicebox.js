@@ -12,8 +12,8 @@ var hic = (function (hic) {
 
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.on('change', function (e) {
-            var number = parseInt($(this).val());
-            self.browser.setZoom(_.indexOf(self.browser.hicReader.bpResolutions, number));
+            var zoomIndex = parseInt($(this).val());
+            self.browser.setZoom(zoomIndex);
         });
 
         // elements = _.map(browser.hicReader.bpResolutions, function (resolution) {
@@ -46,8 +46,8 @@ var hic = (function (hic) {
                 .prop('selected', true);
         } else if (event.type === "DataLoad") {
 
-            var elements = _.map(this.browser.hicReader.bpResolutions, function (resolution) {
-                return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
+            var elements = _.map(this.browser.hicReader.bpResolutions, function (resolution, index) {
+                return '<option' + ' value=' + index + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
             });
 
             this.$resolution_selector.empty();
