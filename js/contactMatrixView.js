@@ -115,7 +115,8 @@ var hic = (function (hic) {
         if (!this.browser.hicReader) return;
 
         var self = this,
-            state = this.browser.state;
+            state = this.browser.state,
+            sameChr = state.chr1 === state.chr2;
 
 
         self.updating = true;
@@ -129,20 +130,28 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     col1 = Math.floor(state.x / blockBinCount),
-                    col2 = Math.ceil((state.x + widthInBins) / blockBinCount),
+                    col2 = Math.floor((state.x + widthInBins) / blockBinCount),
                     row1 = Math.floor(state.y / blockBinCount),
-                    row2 = Math.ceil((state.y + heightInBins) / blockBinCount),
+                    row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, i, b,
+                    tmp = [],
                     promises = [];
 
-                for (r = row1; r <= row2; r++) {
-                    for (c = col1; c <= col2; c++) {
-                        b = r * blockColumnCount + c;
-                        if (b >= 0) {
-                            promises.push(self.getImageTile(zd, b));
+                    for (r = row1; r <= row2; r++) {
+                        for (c = col1; c <= col2; c++) {
+                            if(sameChr) {
+                                b = Math.max(r,c) * blockColumnCount + Math.min(r,c);
+                            }
+                            else {
+                                b = r * blockColumnCount + c;
+                            }
+                            console.log("B = " + b);
+                            if (b >= 0 && !tmp.includes(b)) {
+                                tmp.push(b);
+                                promises.push(self.getImageTile(zd, b));
+                            }
                         }
                     }
-                }
 
                 Promise.all(promises).then(function (imageTiles) {
                     self.stopSpinner();
@@ -166,10 +175,12 @@ var hic = (function (hic) {
         var self = this,
             state = this.browser.state,
             blockBinCount = zd.blockBinCount,
-            blockColumnCount = zd.blockColumnCount;
+            blockColumnCount = zd.blockColumnCount,
+            viewportWidth = self.$viewport.width(),
+            viewportHeight = self.$viewport.height();
 
-        self.$canvas.attr('width', self.$viewport.width());
-        self.$canvas.attr('height', self.$viewport.height());
+        self.$canvas.attr('width', viewportWidth);
+        self.$canvas.attr('height', viewportHeight);
         imageTiles.forEach(function (imageTile) {
 
             var blockNumber = imageTile.blockNumber,
@@ -183,7 +194,22 @@ var hic = (function (hic) {
 
                 var offsetX = x0 - state.x;
                 var offsetY = y0 - state.y;
-                self.ctx.drawImage(image, offsetX, offsetY);
+                if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
+                    offsetY <= viewportHeight && offsetY + image.height >= 0) {
+                    self.ctx.drawImage(image, offsetX, offsetY);
+                }
+
+                // if (state.chr1 == state.chr2) {
+                //     // Data is transposable
+                //     var offsetX = y0 - state.x;
+                //     var offsetY = x0 - state.y;
+                //     if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
+                //         offsetY <= viewportHeight && offsetY + image.height >= 0) {
+                //         self.ctx.drawImage(image, offsetX, offsetY);
+                //     }
+                //     self.ctx.strokeRect(offsetX, offsetY, image.width, image.height);
+                //
+                // }
             }
         })
 
@@ -214,6 +240,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.getImageTile = function (zd, blockNumber) {
 
         var self = this,
+            sameChr = zd.chr1 === zd.chr2,
             key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
 
         if (this.imageTileCache.hasOwnProperty(key)) {
@@ -233,8 +260,8 @@ var hic = (function (hic) {
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
                     col = blockNumber - row * blockColumnCount;
-                    x0 = blockBinCount * row;
-                    y0 = blockBinCount * col;
+                    x0 = blockBinCount * col;
+                    y0 = blockBinCount * row;
 
                     image = document.createElement('canvas');
                     image.width = imageSize;
@@ -251,7 +278,9 @@ var hic = (function (hic) {
 
                         ctx.fillStyle = rgb;
                         ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
-                        ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                        if(row === col) {
+                            ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                        }
                     }
                     return image;
                 }
@@ -263,6 +292,9 @@ var hic = (function (hic) {
                         var image;
                         if (block) {
                             image = drawBlock(block);
+                        }
+                        else {
+                            console.log("No block for " + blockNumber);
                         }
 
                         var imageTile = {blockNumber: blockNumber, image: image};

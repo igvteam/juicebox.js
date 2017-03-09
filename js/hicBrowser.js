@@ -26,7 +26,7 @@
 
 var hic = (function (hic) {
 
-    var defaultPixelSize = 2,
+    var defaultPixelSize = 1,
         defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
 
     hic.createBrowser = function ($hic_container, config) {
@@ -286,6 +286,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setZoom = function (zoom) {
 
+        this.contactMatrixView.clearCaches();
+
         // Shift x,y to maintain center, if possible
         var bpResolutions = this.hicReader.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
@@ -295,7 +297,7 @@ var hic = (function (hic) {
         this.state.zoom = zoom;
         this.state.x = (this.state.x + n) * resRatio - n;
         this.state.y = (this.state.y + n) * resRatio - n;
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+        this.state.pixelSize = Math.max(defaultPixelSize); //, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
 
         this.clamp();
 
