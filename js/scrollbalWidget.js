@@ -29,28 +29,31 @@ var hic = (function (hic) {
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
-        this.$x_axis_scrollbar.draggable({
-            containment: 'parent',
-            start: function() {
-                self.isDragging = true;
-            },
-            drag: hic.throttle(xAxisDragger, 250),
-            stop: function() {
-                self.isDragging = false;
-            }
-        });
+        this.$x_axis_scrollbar_container.hide();
+        this.$y_axis_scrollbar_container.hide();
 
-        this.$y_axis_scrollbar.draggable({
+        // this.$x_axis_scrollbar.draggable({
+        //     containment: 'parent',
+        //     start: function() {
+        //         self.isDragging = true;
+        //     },
+        //     drag: hic.throttle(xAxisDragger, 250),
+        //     stop: function() {
+        //         self.isDragging = false;
+        //     }
+        // });
 
-            containment: 'parent',
-            start: function() {
-                self.isDragging = true;
-            },
-            drag: hic.throttle(yAxisDragger, 250),
-            stop: function() {
-                self.isDragging = false;
-            }
-        });
+        // this.$y_axis_scrollbar.draggable({
+        //
+        //     containment: 'parent',
+        //     start: function() {
+        //         self.isDragging = true;
+        //     },
+        //     drag: hic.throttle(yAxisDragger, 250),
+        //     stop: function() {
+        //         self.isDragging = false;
+        //     }
+        // });
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
 
@@ -91,6 +94,9 @@ var hic = (function (hic) {
             percentage;
 
         if (false === this.isDragging && event.type === "LocusChange") {
+
+            this.$x_axis_scrollbar_container.show();
+            this.$y_axis_scrollbar_container.show();
 
             chromosomeLengthsBin = _.map([event.state.chr1, event.state.chr2], function (index) {
                 // bp / bp-per-bin -> bin
