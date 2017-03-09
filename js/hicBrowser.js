@@ -26,10 +26,13 @@
 
 var hic = (function (hic) {
 
-    var defaultPixelSize = 1,
-        defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
+    var defaultPixelSize, defaultState;
 
     hic.createBrowser = function ($hic_container, config) {
+
+        defaultPixelSize = 1;
+        defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
+
         return new hic.Browser($hic_container, config);
     };
 
