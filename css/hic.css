@@ -242,7 +242,7 @@
 
     top: 0;
     height: 100%;
-    background-color: #92c0ad;
+    background-color: #B4B4B4;
 }
 
 .hic-viewport-y-axis-scrollbar {
@@ -257,7 +257,7 @@
 
     left: 0;
     width: 100%;
-    background-color: #92c0ad;
+    background-color: #B4B4B4;
 }
 
 .hic-viewport-x-axis-scrollbar span {
@@ -265,7 +265,7 @@
     vertical-align: middle;
     text-align:center;
 
-    color: #315543;
+    color: #C8C8C8;
     font-family: 'Open Sans', sans-serif;
     font-size: 90%;
     font-weight: 400;
@@ -277,7 +277,7 @@
     vertical-align: middle;
     text-align:center;
 
-    color: #315543;
+    color: #C8C8C8;
     font-family: 'Open Sans', sans-serif;
     font-size: 90%;
     font-weight: 400;
