@@ -30,7 +30,7 @@ var hic = (function (hic) {
 
     hic.createBrowser = function ($hic_container, config) {
 
-        defaultPixelSize = 1;
+        defaultPixelSize = 2;
         defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
 
         return new hic.Browser($hic_container, config);
@@ -300,12 +300,20 @@ var hic = (function (hic) {
         this.state.zoom = zoom;
         this.state.x = (this.state.x + n) * resRatio - n;
         this.state.y = (this.state.y + n) * resRatio - n;
-        this.state.pixelSize = Math.max(defaultPixelSize); //, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+        this.state.pixelSize = Math.max(defaultPixelSize , minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
 
         this.clamp();
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
     };
+
+    function minPixelSize(chr1, chr2, zoom) {
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            chr1Length = this.hicReader.chromosomes[chr1].size,
+            chr2Length = this.hicReader.chromosomes[chr2].size,
+            binSize = this.hicReader.bpResolutions[zoom];
+        return Math.max(viewDimensions.width * binSize / chr1Length, viewDimensions.width * binSize / chr2Length);
+    }
 
     hic.Browser.prototype.update = function () {
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
@@ -327,13 +335,7 @@ var hic = (function (hic) {
 
     };
 
-    function minPixelSize(chr1, chr2, zoom) {
-        var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            chr1Length = this.hicReader.chromosomes[chr1].size,
-            chr2Length = this.hicReader.chromosomes[chr2].size,
-            binSize = this.hicReader.bpResolutions[zoom];
-        return Math.max(viewDimensions.width * binSize / chr1Length, viewDimensions.width * binSize / chr2Length);
-    }
+
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
