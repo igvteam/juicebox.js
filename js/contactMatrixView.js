@@ -91,7 +91,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ContactMatrixView.prototype.clearCaches = function() {
+    hic.ContactMatrixView.prototype.clearCaches = function () {
         this.matrixCache = {};
         this.blockCache = {};
         this.imageTileCache = {};
@@ -135,11 +135,11 @@ var hic = (function (hic) {
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
-                    for (r = row1; r <= row2; r++) {
-                        for (c = col1; c <= col2; c++) {
-                                promises.push(self.getImageTile(zd, r, c));
-                            }
-                        }
+                for (r = row1; r <= row2; r++) {
+                    for (c = col1; c <= col2; c++) {
+                        promises.push(self.getImageTile(zd, r, c));
+                    }
+                }
 
 
                 Promise.all(promises).then(function (imageTiles) {
@@ -201,7 +201,6 @@ var hic = (function (hic) {
             return Promise.resolve(self.matrixCache[key]);
         } else {
             return new Promise(function (fulfill, reject) {
-                self.startSpinner();
                 reader
                     .readMatrix(key)
                     .then(function (matrix) {
@@ -256,7 +255,7 @@ var hic = (function (hic) {
                         x = (rec.bin1 - x0) * state.pixelSize;
                         y = (rec.bin2 - y0) * state.pixelSize;
 
-                        if(transpose) {
+                        if (transpose) {
                             t = y;
                             y = x;
                             x = t;
@@ -266,14 +265,14 @@ var hic = (function (hic) {
 
                         ctx.fillStyle = rgb;
                         ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
-                        if(row === col) {
+                        if (row === col) {
                             ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
                         }
                     }
                     return image;
                 }
 
-                if(sameChr && row < column) {
+                if (sameChr && row < column) {
                     blockNumber = column * blockColumnCount + row;
                 }
                 else {
@@ -311,21 +310,12 @@ var hic = (function (hic) {
         } else {
             return new Promise(function (fulfill, reject) {
 
-                var reader = self.browser.hicReader,
-                    state = self.browser.state,
-                    blockBinCount = zd.blockBinCount,
-                    blockColumnCount = zd.blockColumnCount,
-                    widthInBins = zd.blockBinCount,
-                    imageSize = widthInBins * state.pixelSize;
-
+                var reader = self.browser.hicReader;
                 self.startSpinner();
-
                 reader.readBlock(blockNumber, zd)
                     .then(function (block) {
 
                         self.blockCache[key] = block
-
-                        self.stopSpinner();
 
                         fulfill(block);
 
