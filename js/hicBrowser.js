@@ -30,7 +30,7 @@ var hic = (function (hic) {
 
     hic.createBrowser = function ($hic_container, config) {
 
-        defaultPixelSize = 2;
+        defaultPixelSize = 1;
         defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
 
         return new hic.Browser($hic_container, config);
@@ -377,29 +377,15 @@ var hic = (function (hic) {
         var location = window.location,
             href = location.href;
 
-        if(this.hicUrl) {
-            var hicUrl = gup(href, "hicUrl");
-            if(hicUrl) {
-                href = href.replace("hicUrl=" + hicUrl, "hicUrl=" + encodeURIComponent(his.hicUrl));
-            }
-            else {
-                var delim = href.includes("?") ? "&" : "?";
-                href += delim + "hicUrl=" + encodeURIComponent(this.hicUrl);
-            }
+        var href = window.location.href;
+
+        if (event.type === "DataLoad") {
+            href = replaceURIParameter("hicUrl", this.hicUrl, href);
         }
 
-        var state = gup(href, 'state');
-        if (state) {
-            href = href.replace("state=" + state, "state=" + stringifyState(this.state));
-        }
-        else {
-            var delim = href.includes("?") ? "&" : "?";
-            href += delim + "state=" + stringifyState(this.state);
-        }
+        href = replaceURIParameter("state", stringifyState(this.state), href);
 
-        // Replace state parameter
-        window.history.replaceState(this.state, "juicebox", href);
-
+        window.history.replaceState("", "juicebox", href);
     };
 
 
@@ -412,6 +398,22 @@ var hic = (function (hic) {
             return undefined;
         else
             return results[1];
+    }
+
+    function replaceURIParameter(key, newValue, href) {
+
+
+        var oldValue = gup(href, key);
+        if (oldValue) {
+            href = href.replace(key + "=" + oldValue, key + "=" + encodeURIComponent(newValue));
+        }
+        else {
+            var delim = href.includes("?") ? "&" : "?";
+            href += delim + key + "=" + encodeURIComponent(newValue);
+        }
+
+        return href;
+
     }
 
     hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
