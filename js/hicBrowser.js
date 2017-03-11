@@ -105,6 +105,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
+        hic.GlobalEventBus.subscribe("DataLoad", this);
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -119,13 +120,19 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
+        if (!config.url) {
+            console.log("No .hic url specified");
+            return;
+        }
+
         var self = this;
+
+        self.hicUrl = config.url;
 
         this.hicReader = new hic.HiCReader(config);
 
         self.contactMatrixView.clearCaches();
 
-        if (!config.url) return;
 
         self.contactMatrixView.startSpinner();
 
@@ -300,7 +307,7 @@ var hic = (function (hic) {
         this.state.zoom = zoom;
         this.state.x = (this.state.x + n) * resRatio - n;
         this.state.y = (this.state.y + n) * resRatio - n;
-        this.state.pixelSize = Math.max(defaultPixelSize , minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
 
         this.clamp();
 
@@ -325,8 +332,7 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.setState = function (state) {
 
-        // pass state by value NOT reference
-        this.state = (JSON.parse(JSON.stringify(state)));
+        this.state = state;
 
         // Possibly adjust pixel size
         this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
@@ -334,7 +340,6 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
     };
-
 
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
@@ -372,13 +377,24 @@ var hic = (function (hic) {
         var location = window.location,
             href = location.href;
 
+        if(this.hicUrl) {
+            var hicUrl = gup(href, "hicUrl");
+            if(hicUrl) {
+                href = href.replace("hicUrl=" + hicUrl, "hicUrl=" + encodeURIComponent(his.hicUrl));
+            }
+            else {
+                var delim = href.includes("?") ? "&" : "?";
+                href += delim + "hicUrl=" + encodeURIComponent(this.hicUrl);
+            }
+        }
+
         var state = gup(href, 'state');
         if (state) {
-            href = href.replace("state=" + state, "state=" + this.state.toString());
+            href = href.replace("state=" + state, "state=" + stringifyState(this.state));
         }
         else {
             var delim = href.includes("?") ? "&" : "?";
-            href += delim + "state=" + this.state.toString();
+            href += delim + "state=" + stringifyState(this.state);
         }
 
         // Replace state parameter
@@ -398,7 +414,8 @@ var hic = (function (hic) {
             return results[1];
     }
 
-    hic.State = function(chr1, chr2, zoom, x, y, pixelSize) {
+    hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
+
         this.chr1 = chr1;
         this.chr2 = chr2;
         this.zoom = zoom;
@@ -407,9 +424,23 @@ var hic = (function (hic) {
         this.pixelSize = pixelSize;
     };
 
-    hic.State.prototype.toString = function () {
-        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize;
-    };
+    function stringifyState(state) {
+        return "" + state.chr1 + "," + state.chr2 + "," + state.zoom + "," + state.x + "," + state.y + "," + state.pixelSize;
+    }
+
+    function deStringifyState(string) {
+
+        var tokens = string.split(",");
+        return {
+            chr1: tokens[0],
+            chr2: tokens[1],
+            zoom: parseFloat(tokens[2]),
+            x: parseFloat(tokens[3]),
+            y: parseFloat(tokens[4]),
+            pixelSize: parseFloat(tokens[5]),
+        }
+
+    }
 
     return hic;
 

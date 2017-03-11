@@ -57,21 +57,21 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
 
-        function xAxisDragger () {
-            var bin,
-                st = self.browser.state;
+        // function xAxisDragger () {
+        //     var bin,
+        //         st = self.browser.state;
+        //
+        //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
+        //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
+        // }
 
-            bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
-            self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
-        }
-
-        function yAxisDragger () {
-            var bin,
-                st = self.browser.state;
-
-            bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
-            self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
-        }
+        // function yAxisDragger () {
+        //     var bin,
+        //         st = self.browser.state;
+        //
+        //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
+        //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
+        // }
     };
 
     hic.ScrollbarWidget.prototype.css2Bin = function(chromosome, $element, attribute) {
