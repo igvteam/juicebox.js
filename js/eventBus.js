@@ -74,8 +74,9 @@ var hic = (function (hic) {
         this.type = "DragStopped";
     };
 
-    hic.DataLoadEvent = function () {
+    hic.DataLoadEvent = function (config) {
         this.type = "DataLoad";
+        this.config = config;
     }
 
 

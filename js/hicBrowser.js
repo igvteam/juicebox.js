@@ -31,7 +31,20 @@ var hic = (function (hic) {
     hic.createBrowser = function ($hic_container, config) {
 
         defaultPixelSize = 1;
+
         defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
+
+        var href = window.location.href,
+            hicUrl = gup(href, "hicUrl"),
+            stateString = gup(href, "state");
+
+        if(hicUrl) {
+            config.url = decodeURIComponent(hicUrl);
+        }
+        if(stateString) {
+            config.state = deStringifyState(decodeURIComponent(stateString));
+        }
+
 
         return new hic.Browser($hic_container, config);
     };
@@ -80,7 +93,12 @@ var hic = (function (hic) {
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport_container);
 
-        this.state = new hic.State(1, 1, 0, 0, 0, 1);
+        this.state = config.state? config.state : defaultState;
+
+        if(config.url) {
+            this.loadHicFile(config);
+        }
+
 
         function xAxis() {
             var $x_axis,
@@ -120,14 +138,19 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
+        var self = this;
+
         if (!config.url) {
             console.log("No .hic url specified");
             return;
         }
 
-        var self = this;
+        if(config.url === this.url) {
+            console.log(this.url + " already loaded");
+            return;
+        }
 
-        self.hicUrl = config.url;
+        self.url = config.url;
 
         this.hicReader = new hic.HiCReader(config);
 
@@ -163,7 +186,7 @@ var hic = (function (hic) {
 
                         self.contactMatrixView.stopSpinner();
 
-                        hic.GlobalEventBus.post(new hic.DataLoadEvent());
+                        hic.GlobalEventBus.post(new hic.DataLoadEvent(config));
 
                     })
                     .catch(function (error) {
@@ -380,7 +403,7 @@ var hic = (function (hic) {
         var href = window.location.href;
 
         if (event.type === "DataLoad") {
-            href = replaceURIParameter("hicUrl", this.hicUrl, href);
+            href = replaceURIParameter("hicUrl", this.url, href);
         }
 
         href = replaceURIParameter("state", stringifyState(this.state), href);
