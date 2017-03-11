@@ -64,6 +64,8 @@
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
         });
+
+        hic.initSite();
     });
 
 </script>
