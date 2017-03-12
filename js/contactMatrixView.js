@@ -247,13 +247,17 @@ var hic = (function (hic) {
                     image.width = imageSize;
                     image.height = imageSize;
                     ctx = image.getContext('2d');
+                    ctx.mozImageSmoothingEnabled = false;
+                    ctx.webkitImageSmoothingEnabled = false;
+                    ctx.msImageSmoothingEnabled = false;
+                    ctx.imageSmoothingEnabled = false;
 
                     // Draw the image
                     var i, rec, x, y, rgb;
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
-                        x = (rec.bin1 - x0) * state.pixelSize;
-                        y = (rec.bin2 - y0) * state.pixelSize;
+                        x = Math.floor((rec.bin1 - x0) * state.pixelSize);
+                        y = Math.floor((rec.bin2 - y0) * state.pixelSize);
 
                         if (transpose) {
                             t = y;

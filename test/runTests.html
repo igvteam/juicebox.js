@@ -15,9 +15,19 @@
 
     <!-- HiC JS -->
 
-    <script type="text/javascript" src="../js/hicReader.js"></script>
-    <script type="text/javascript" src="testHiC.js"></script>
+    <script src="../js/hicUtils.js"></script>
+    <script src="../js/hicReader.js"></script>
+    <script src="../js/hicColorScaleWidget.js"></script>
+    <script src="../js/hicLocusGoto.js"></script>
+    <script src="../js/hicResolutionSelector.js"></script>
+    <script src="../js/hicBrowser.js"></script>
+    <script src="../js/contactMatrixView.js"></script>
+    <script src="../js/hicRuler.js"></script>
+    <script src="../js/eventBus.js"></script>
+    <script src="../js/scrollbalWidget.js"></script>
 
+    <script src="testHiC.js"></script>
+    <script src="testColorScale.js"></script>
 
 </head>
 <body>
@@ -25,6 +35,7 @@
 <div id="qunit-fixture"></div>
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
+        runColorTests();
         runHiCTests();
     });
 </script>

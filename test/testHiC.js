@@ -29,7 +29,6 @@ function runHiCTests() {
                 hicReader.readFooter()
                     .then(function () {
                         ok(hicReader.masterIndex);
-                        ok(hicReader.expectedValueVectors);
 
                         readMatrix(hicReader, 1, 1).then(function (matrix) {
                             equal(1, matrix.chr1);
@@ -84,7 +83,6 @@ function runHiCTests() {
                 hicReader.readFooter()
                     .then(function () {
                         ok(hicReader.masterIndex);
-                        ok(hicReader.expectedValueVectors);
 
                         readMatrix(hicReader, 1, 1).then(function (matrix) {
                             equal(1, matrix.chr1);
