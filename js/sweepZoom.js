@@ -22,19 +22,13 @@ var hic = (function (hic) {
         self.$rulerSweeper = $('<div class="hic-sweep-zoom">');
         $viewport.append(self.$rulerSweeper);
 
-        this.$viewport.on({
+        $viewport.on({
 
             mousedown: function (e) {
 
                 e.preventDefault();
 
-                $viewport.off();
-
-                $viewport.on({
-                    mousedown: function (e) {
-                        isMouseDown = true;
-                    }
-                });
+                isMouseDown = true;
 
                 mouseDownXY = igv.translateMouseCoordinates(e, $viewport.get(0));
 
