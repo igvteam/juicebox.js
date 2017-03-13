@@ -24,6 +24,7 @@
  */
 
 
+
 var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
@@ -32,7 +33,7 @@ var hic = (function (hic) {
 
         defaultPixelSize = 1;
 
-        defaultState = new hic.State(1, 1, 1, 0, 0, defaultPixelSize);
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize);
 
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
@@ -42,7 +43,12 @@ var hic = (function (hic) {
             config.url = decodeURIComponent(hicUrl);
         }
         if(stateString) {
-            config.state = deStringifyState(decodeURIComponent(stateString));
+            stateString = decodeURIComponent(stateString)
+            config.state = hic.destringifyState(stateString);
+            var tokens = stateString.split(",");
+            if(tokens.length > 6) {
+                config.colorScale = parseFloat(tokens[6]);
+            }
         }
 
 
@@ -93,7 +99,12 @@ var hic = (function (hic) {
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport_container);
 
-        this.state = config.state? config.state : defaultState;
+        this.state = config.state? config.state : defaultState.clone();
+
+        if(config.colorScale && !isNaN(config.colorScale)){
+            this.contactMatrixView.colorScale.high = config.colorScale;
+            this.contactMatrixView.computeColorScale = false;
+        }
 
         if(config.url) {
             this.loadHicFile(config);
@@ -127,13 +138,15 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.getColorScale = function () {
-        return this.contactMatrixView.colorScale;
+        var cs = this.contactMatrixView.colorScale;
+        return cs;
     }
 
     hic.Browser.prototype.updateColorScale = function (high) {
-        this.contactMatrixView.colorScale.scale.high = high;
+        this.contactMatrixView.colorScale.high = high;
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
+        this.updateHref();
     }
 
     hic.Browser.prototype.loadHicFile = function (config) {
@@ -173,20 +186,24 @@ var hic = (function (hic) {
                         }
                         else {
 
-                            z = findDefaultZoom.call(
-                                self,
-                                self.bpResolutions,
-                                defaultPixelSize,
-                                self.chromosomes[defaultState.chr1].size);
+                            // Don't be clever for now
 
-                            defaultState.zoom = z;
+                            // z = findDefaultZoom.call(
+                            //     self,
+                            //     self.bpResolutions,
+                            //     defaultPixelSize,
+                            //     self.chromosomes[defaultState.chr1].size);
+                            //
+                            // defaultState.zoom = z;
 
-                            self.setState(defaultState);
+                            self.setState(defaultState.clone());
                         }
 
                         self.contactMatrixView.stopSpinner();
 
                         hic.GlobalEventBus.post(new hic.DataLoadEvent(config));
+
+                        if(config.colorScale) self.getColorScale().high = config.colorScale;
 
                     })
                     .catch(function (error) {
@@ -319,7 +336,10 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setZoom = function (zoom) {
 
+        if(zoom === this.state.zoom) return;
+
         this.contactMatrixView.clearCaches();
+        this.contactMatrixView.computeColorScale = true;
 
         // Shift x,y to maintain center, if possible
         var bpResolutions = this.hicReader.bpResolutions,
@@ -396,20 +416,23 @@ var hic = (function (hic) {
 
         if (event.dragging) return;
 
-
-        var location = window.location,
-            href = location.href;
-
-        var href = window.location.href;
-
-        if (event.type === "DataLoad") {
-            href = replaceURIParameter("hicUrl", this.url, href);
-        }
-
-        href = replaceURIParameter("state", stringifyState(this.state), href);
-
-        window.history.replaceState("", "juicebox", href);
+        this.updateHref(event);
     };
+
+    hic.Browser.prototype.updateHref = function (event) {
+            var location = window.location,
+                href = location.href;
+
+            var href = window.location.href;
+
+            if (event && event.type === "DataLoad") {
+                href = replaceURIParameter("hicUrl", this.url, href);
+            }
+
+            href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
+
+            window.history.replaceState("", "juicebox", href);
+        }
 
 
     function gup(href, name) {
@@ -449,23 +472,6 @@ var hic = (function (hic) {
         this.pixelSize = pixelSize;
     };
 
-    function stringifyState(state) {
-        return "" + state.chr1 + "," + state.chr2 + "," + state.zoom + "," + state.x + "," + state.y + "," + state.pixelSize;
-    }
-
-    function deStringifyState(string) {
-
-        var tokens = string.split(",");
-        return {
-            chr1: tokens[0],
-            chr2: tokens[1],
-            zoom: parseFloat(tokens[2]),
-            x: parseFloat(tokens[3]),
-            y: parseFloat(tokens[4]),
-            pixelSize: parseFloat(tokens[5]),
-        }
-
-    }
 
     return hic;
 

@@ -39,14 +39,15 @@ var hic = (function (hic) {
         this.$container.append(this.$high_colorscale_input);
 
         hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("ColorScale", this);
     };
 
     hic.ColorScaleWidget.prototype.receiveEvent = function(event) {
 
-        if (event.type === "DataLoad") {
+        if (event.type === "DataLoad" || event.type === "ColorScale") {
             // do stuff
      //       this.$low_colorscale_input.val(igv.numberFormatter(this.browser.contactMatrixView.colorScale.scale.low));
-            this.$high_colorscale_input.val(igv.numberFormatter(this.browser.getColorScale().scale.high));
+            this.$high_colorscale_input.val(igv.numberFormatter(this.browser.getColorScale().high));
         }
 
     };

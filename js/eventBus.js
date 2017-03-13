@@ -79,6 +79,11 @@ var hic = (function (hic) {
         this.config = config;
     }
 
+    hic.ColorScaleEvent = function (scale) {
+        this.type = "ColorScale";
+        this.scale = scale;
+    }
+
 
     hic.GlobalEventBus = new hic.EventBus();
 

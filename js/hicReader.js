@@ -444,6 +444,10 @@ var hic = (function (hic) {
         var nBins2 = (chr2.size / binSize);
         var avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
         zd.averageCount = avgCount;
+        zd.sumCounts = sumCounts;
+        zd.stdDev = stdDev;
+        zd.occupiedCellCount = occupiedCellCount;
+        zd.percent95 = percent95;
 
         return zd;
     }

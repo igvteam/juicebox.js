@@ -75,7 +75,7 @@ var hic = (function (hic) {
         this.blockCache = {};
         this.imageTileCache = {};
 
-        this.colorScale = new igv.GradientColorScale(
+        this.colorScale = new hic.ColorScale(
             {
                 low: 0,
                 lowR: 255,
@@ -87,6 +87,7 @@ var hic = (function (hic) {
                 highB: 0
             }
         );
+        this.computeColorScale = true;
 
 
     };
@@ -135,6 +136,14 @@ var hic = (function (hic) {
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
+                if(self.computeColorScale) {
+                    if(zd.averageCount) {
+                        self.colorScale.high = 2*zd.averageCount;
+                        self.computeColorScale = false;
+                        hic.GlobalEventBus.post(new hic.ColorScaleEvent(self.colorScale))
+                    }
+                }
+                
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {
                         promises.push(self.getImageTile(zd, r, c));
@@ -234,6 +243,14 @@ var hic = (function (hic) {
                     t;
 
 
+                function setPixel(imageData, x, y, r, g, b, a) {
+                    index = (x + y * imageData.width) * 4;
+                    imageData.data[index+0] = r;
+                    imageData.data[index+1] = g;
+                    imageData.data[index+2] = b;
+                    imageData.data[index+3] = a;
+                }
+
                 function drawBlock(block, transpose) {
 
                     var blockNumber, row, col, x0, y0, image, ctx;
@@ -247,16 +264,15 @@ var hic = (function (hic) {
                     image.width = imageSize;
                     image.height = imageSize;
                     ctx = image.getContext('2d');
-                    ctx.mozImageSmoothingEnabled = false;
-                    ctx.webkitImageSmoothingEnabled = false;
-                    ctx.msImageSmoothingEnabled = false;
-                    ctx.imageSmoothingEnabled = false;
+                    ctx.clearRect(0, 0, image.width, image.height);
+
+                    var id = ctx.getImageData(0, 0, image.width, image.height);
 
                     // Draw the image
                     var i, rec, x, y, rgb;
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
-                        x = Math.floor((rec.bin1 - x0) * state.pixelSize);
+                        x = Math.floor((rec.bin1 - x0) * state.pixelSize) ;
                         y = Math.floor((rec.bin2 - y0) * state.pixelSize);
 
                         if (transpose) {
@@ -265,14 +281,24 @@ var hic = (function (hic) {
                             x = t;
                         }
 
-                        rgb = self.colorScale.getColor(rec.counts);
+                        var color = self.colorScale.getColor(rec.counts);
 
-                        ctx.fillStyle = rgb;
-                        ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
-                        if (row === col) {
-                            ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                        if(state.pixelSize === 1) {
+                            // TODO -- verify that this bitblting is faster than fillRect
+                            setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                            if (row === col) {
+                                setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                            }
+                        }
+                        else {
+                            ctx.fillStyle = color.rgb;
+                            ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
+                            if (row === col) {
+                                ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                            }
                         }
                     }
+                    if(state.pixelSize == 1) ctx.putImageData(id, 0, 0);
                     return image;
                 }
 
@@ -449,6 +475,42 @@ var hic = (function (hic) {
         posy = eFixed.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
+    }
+
+
+    hic.ColorScale = function(scale) {
+
+        this.low = scale.low;
+        this.lowR = scale.lowR;
+        this.lowG = scale.lowG;
+        this.lowB = scale.lowB;
+        this.high = scale.high;
+        this.highR = scale.highR;
+        this.highG = scale.highG;
+        this.highB = scale.highB;
+
+
+    }
+
+    hic.ColorScale.prototype.getColor = function(value) {
+        var scale = this, r, g, b, frac, diff;
+
+        if (value <= scale.low) value = scale.low;
+        else if (value >= scale.high) value = scale.high;
+
+        diff = scale.high - scale.low;
+
+        frac = (value - scale.low) / diff;
+        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
+        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
+        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+
+        return {
+            red: r,
+            green: g,
+            blue: b,
+            rgb: "rgb(" + r + "," + g + "," + b + ")"
+        };
     }
 
     return hic;
