@@ -99,7 +99,7 @@ var hic = (function (hic) {
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport_container);
 
-        this.sweepZoom = new hic.SweepZoom(this.contactMatrixView.$viewport);
+        // this.sweepZoom = new hic.SweepZoom(this.contactMatrixView.$viewport);
 
         this.state = config.state? config.state : defaultState.clone();
 

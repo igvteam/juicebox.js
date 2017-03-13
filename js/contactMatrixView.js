@@ -35,9 +35,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView = function (browser) {
 
         var w,
-            h,
-            $x_axis_scrollbar_container,
-            $y_axis_scrollbar_container;
+            h;
 
         this.browser = browser;
 
@@ -51,12 +49,16 @@ var hic = (function (hic) {
         this.$canvas.attr('height', h);
         this.ctx = this.$canvas.get(0).getContext("2d");
 
+        // ruler sweeper widget surface
+        this.$rulerSweeper = $('<div class="hic-sweep-zoom">');
+
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
         this.$spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
 
         this.$viewport.append(this.$canvas);
+        this.$viewport.append(this.$rulerSweeper);
         this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
@@ -345,7 +347,7 @@ var hic = (function (hic) {
                 reader.readBlock(blockNumber, zd)
                     .then(function (block) {
 
-                        self.blockCache[key] = block
+                        self.blockCache[key] = block;
 
                         fulfill(block);
 
@@ -370,22 +372,35 @@ var hic = (function (hic) {
     function addMouseHandlers($viewport) {
 
         var self = this,
-            viewport = $viewport[0],
             isMouseDown = false,
             isDragging = false,
-            lastMouseX,
-            lastMouseY,
-            mouseDownX,
-            mouseDownY;
+            mouseLast = undefined,
+            mouseDown = undefined,
+            isSweepZooming,
+            top,
+            left,
+            rulerSweepWidth,
+            rulerSweepHeight,
+            dx,
+            dy;
 
         $viewport.on('mousedown', function (e) {
 
             var coords;
 
+            isSweepZooming = !(undefined === e.altKey);
             isMouseDown = true;
+
             coords = translateMouseCoordinates(e, $viewport);
-            mouseDownX = lastMouseX = coords.x;
-            mouseDownY = lastMouseY = coords.y;
+            mouseLast = _.clone(coords);
+            mouseDown = _.clone(coords);
+
+            if (isSweepZooming) {
+                top = coords.y;
+                left = coords.x;
+                rulerSweepWidth = 0;
+                self.$rulerSweeper.css({ "display": "inline", "left": left + "px", "top": top + "px", "width": rulerSweepWidth + "px" , "height": rulerSweepHeight + "px" });
+            }
 
         });
 
@@ -406,11 +421,11 @@ var hic = (function (hic) {
 
         $viewport.on('mousemove', hic.throttle(function (e) {
 
-            var coords,
-                maxEnd,
-                maxStart;
+            var coords;
 
-            if (self.updating) return;
+            if (self.updating) {
+                return;
+            }
 
             e.preventDefault();
 
@@ -418,18 +433,38 @@ var hic = (function (hic) {
 
             if (isMouseDown) { // Possibly dragging
 
-                if (mouseDownX && Math.abs(coords.x - mouseDownX) > dragThreshold) {
+                if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
 
                     isDragging = true;
 
-                    if (self.updating) return;   // Freeze frame during updates
+                    if (self.updating) {
+                        // Freeze frame during updates
+                        return;
+                    }
 
-                    self.browser.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
+                    dx = coords.x - mouseDown.x;
+                    dy = coords.y - mouseDown.y;
+
+                    rulerSweepWidth = Math.abs(dx);
+                    rulerSweepHeight = Math.abs(dy);
+
+                    self.$rulerSweeper.css( { "width": Math.abs(dx) + "px", "height": Math.abs(dy) + "px" } );
+
+                    if (dx < 0) {
+                        left = mouseDown.x + dx;
+                        self.$rulerSweeper.css({"left": left + "px"});
+                    }
+
+                    if (dy < 0) {
+                        top = mouseDown.y + dy;
+                        self.$rulerSweeper.css({"top": top + "px"});
+                    }
+
+                    self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
 
                 }
 
-                lastMouseX = coords.x;
-                lastMouseY = coords.y;
+                mouseLast = _.clone(coords);
             }
 
         }, 10));
@@ -451,10 +486,8 @@ var hic = (function (hic) {
                 hic.GlobalEventBus.post(new hic.DragStoppedEvent());
             }
 
-            isMouseDown = false;
-            mouseDownX = lastMouseX = undefined;
-            mouseDownY = lastMouseY = undefined;
-
+            isMouseDown = isSweepZooming = false;
+            mouseDown = mouseLast = undefined;
         }
 
     }
