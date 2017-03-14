@@ -3,12 +3,14 @@
  */
 var hic = (function (hic) {
 
-    hic.SweepZoom = function ($rulerSweeper) {
+    hic.SweepZoom = function (browser, $rulerSweeper) {
+        this.browser = browser;
         this.$rulerSweeper = $rulerSweeper;
         this.$rulerSweeper.hide();
     };
 
     hic.SweepZoom.prototype.reset = function(xy) {
+
         this.$rulerSweeper.css({ left: xy.x + "px", top: xy.y + "px", width: 1 + "px" , height: 1 + "px" });
         this.$rulerSweeper.show();
 
@@ -16,11 +18,15 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.update = function(mouseDown, coords) {
-        var dx, dy;
+        var dx,
+            dy,
+            dimen;
         dx = coords.x - mouseDown.x;
         dy = coords.y - mouseDown.y;
 
-        this.$rulerSweeper.css({ width: Math.abs(dx) + "px", height: Math.abs(dy) + "px" });
+        this.dimensionPixel = Math.max(Math.abs(dx), Math.abs(dy));
+
+        this.$rulerSweeper.css({ width: this.dimensionPixel + "px", height: this.dimensionPixel + "px" });
 
         if (dx < 0) {
             this.$rulerSweeper.css({ left: (mouseDown.x + dx) + "px" });
@@ -30,12 +36,19 @@ var hic = (function (hic) {
             this.$rulerSweeper.css({ top: (mouseDown.y + dy) + "px" });
         }
 
-        // console.log('sweep zoom - update ' + this.$rulerSweeper.css('width') + ' ' + this.$rulerSweeper.css('height'));
-
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
+        var scaleFactor,
+            resolution,
+            newZoomIndex;
+
         this.$rulerSweeper.hide();
+        scaleFactor = this.dimensionPixel / this.browser.contactMatrixView.getViewDimensions().width;
+
+        resolution = this.browser.hicReader.indexOfNearestZoom(scaleFactor * this.browser.resolution());
+        newZoomIndex = this.browser.hicReade.indexOfNearestZoom(resolution);
+
     };
 
 

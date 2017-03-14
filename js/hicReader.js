@@ -105,6 +105,24 @@ var hic = (function (hic) {
         });
     };
 
+    hic.HiCReader.prototype.indexOfNearestZoom = function (candidate) {
+
+        var tuples,
+            result,
+            initialMemo;
+
+        tuples = _.map(this.bpResolutions, function(resolution) {
+            return [resolution, Math.abs(resolution - candidate)];
+        });
+
+        initialMemo = [-1, 999999999];
+        result =  _.reduce(tuples, function(memo, tuple) {
+            return (_.last(memo) < _.last(tuple)) ? memo : tuple;
+        }, initialMemo);
+
+        return _.first(result);
+    };
+
     hic.HiCReader.prototype.readFooter = function (key) {
 
         var self = this,

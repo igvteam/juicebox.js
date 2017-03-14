@@ -142,14 +142,14 @@ var hic = (function (hic) {
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
         return cs;
-    }
+    };
 
     hic.Browser.prototype.updateColorScale = function (high) {
         this.contactMatrixView.colorScale.high = high;
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
         this.updateHref();
-    }
+    };
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
@@ -213,7 +213,7 @@ var hic = (function (hic) {
                         console.log(error);
                     });
             })
-    }
+    };
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
@@ -386,7 +386,6 @@ var hic = (function (hic) {
 
     };
 
-
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
         this.state.x += dx;
@@ -434,8 +433,27 @@ var hic = (function (hic) {
             href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
 
             window.history.replaceState("", "juicebox", href);
-        }
+        };
 
+    hic.Browser.prototype.toBin = function (xPixel, yPixel) {
+        var self = this;
+        return _.map([xPixel, yPixel], function(pixel){
+            // bin = pixel / pixel-per-bin
+            return pixel / self.state.pixelSize;
+        });
+    };
+
+    hic.Browser.prototype.resolution = function () {
+      return this.hicReader.bpResolutions[ this.state.zoom ];
+    };
+
+    hic.Browser.prototype.toPixel = function (xBin, yBin) {
+        var self = this;
+        return _.map([xBin, yBin], function(bin){
+            // pixel = bin * pixel-per-bin
+            return bin * self.state.pixelSize;
+        });
+    };
 
     function gup(href, name) {
         name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
