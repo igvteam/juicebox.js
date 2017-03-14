@@ -48,8 +48,7 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         // ruler sweeper widget surface
-        this.$rulerSweeper = $('<div class="hic-sweep-zoom">');
-        this.$rulerSweeper.hide();
+        this.sweepZoom = new hic.SweepZoom($('<div class="hic-sweep-zoom">'));
 
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
@@ -57,7 +56,7 @@ var hic = (function (hic) {
         this.stopSpinner();
 
         this.$viewport.append(this.$canvas);
-        this.$viewport.append(this.$rulerSweeper);
+        this.$viewport.append(this.sweepZoom.$rulerSweeper);
         this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
@@ -376,10 +375,7 @@ var hic = (function (hic) {
             isDragging = false,
             isSweepZooming = false,
             mouseDown = undefined,
-            mouseLast = undefined,
-            rulerSweepSize,
-            dx,
-            dy;
+            mouseLast = undefined;
 
         $viewport.on('mousedown', function (e) {
 
@@ -393,9 +389,7 @@ var hic = (function (hic) {
             mouseDown = _.clone(coords);
 
             if (isSweepZooming) {
-                rulerSweepSize = { width: 0, height: 0 };
-                self.$rulerSweeper.css({ "left": mouseDown.x + "px", "top": mouseDown.y + "px", "width": rulerSweepSize.width + "px" , "height": rulerSweepSize.height + "px" });
-                self.$rulerSweeper.show();
+                self.sweepZoom.reset(mouseDown);
             }
 
         });
@@ -438,23 +432,8 @@ var hic = (function (hic) {
                         return;
                     }
 
-                    dx = coords.x - mouseDown.x;
-                    dy = coords.y - mouseDown.y;
-
                     if (isSweepZooming) {
-
-                        rulerSweepSize = { width: Math.abs(dx), height: Math.abs(dy) };
-
-                        self.$rulerSweeper.css({ "width": rulerSweepSize.width + "px", "height": rulerSweepSize.height + "px" });
-
-                        if (dx < 0) {
-                            self.$rulerSweeper.css({ "left": (mouseDown.x + dx) + "px" });
-                        }
-
-                        if (dy < 0) {
-                            self.$rulerSweeper.css({ "top": (mouseDown.y + dy) + "px" });
-                        }
-
+                        self.sweepZoom.update(mouseDown, coords);
                     } else {
                         self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
                     }
@@ -473,7 +452,7 @@ var hic = (function (hic) {
         function zoomMouseUp(e) {
 
             if (isSweepZooming) {
-                self.$rulerSweeper.hide();
+                self.sweepZoom.dismiss();
                 isSweepZooming = false;
             }
 
