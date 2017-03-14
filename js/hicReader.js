@@ -116,7 +116,7 @@ var hic = (function (hic) {
             return [resolution, Math.abs(resolution - candidate)];
         });
 
-        initialMemo = [-1, 999999999];
+        initialMemo = [-1, _.first(this.bpResolutions)];
         result =  _.reduce(tuples, function(memo, tuple) {
             return (_.last(memo) < _.last(tuple)) ? memo : tuple;
         }, initialMemo);

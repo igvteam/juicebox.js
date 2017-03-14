@@ -336,6 +336,13 @@ var hic = (function (hic) {
         return locusObject;
     };
 
+    hic.Browser.prototype.sweepZoom = function (x, y, zoom) {
+
+        this.state.x = x;
+        this.state.y = y;
+        this.setZoom(zoom);
+    };
+
     hic.Browser.prototype.setZoom = function (zoom) {
 
         if(zoom === this.state.zoom) return;

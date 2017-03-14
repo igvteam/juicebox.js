@@ -14,13 +14,13 @@ var hic = (function (hic) {
         this.$rulerSweeper.css({ left: xy.x + "px", top: xy.y + "px", width: 1 + "px" , height: 1 + "px" });
         this.$rulerSweeper.show();
 
-        // console.log('sweep zoom - reset ' + this.$rulerSweeper.css('left') + ' ' + this.$rulerSweeper.css('top'));
+        this.originBin = this.browser.toBin(xy.x, xy.y);
+
     };
 
     hic.SweepZoom.prototype.update = function(mouseDown, coords) {
         var dx,
-            dy,
-            dimen;
+            dy;
         dx = coords.x - mouseDown.x;
         dy = coords.y - mouseDown.y;
 
@@ -39,14 +39,12 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
-        var scaleFactor,
-            resolution,
-            newZoomIndex;
+        var scaleFactor;
 
         this.$rulerSweeper.hide();
         scaleFactor = this.dimensionPixel / this.browser.contactMatrixView.getViewDimensions().width;
 
-        this.browser.setZoom( this.browser.hicReader.indexOfNearestZoom( scaleFactor * this.browser.resolution() ) );
+        this.browser.sweepZoom( _.first(this.originBin), _.last(this.originBin), this.browser.hicReader.indexOfNearestZoom(scaleFactor * this.browser.resolution()) );
 
     };
 
