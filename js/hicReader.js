@@ -105,26 +105,6 @@ var hic = (function (hic) {
         });
     };
 
-    hic.HiCReader.prototype.indexOfNearestZoom = function (candidate) {
-
-        var tuples,
-            result,
-            initialMemo,
-            index;
-
-        tuples = _.map(this.bpResolutions, function(resolution) {
-            return [resolution, Math.abs(resolution - candidate)];
-        });
-
-        initialMemo = [-1, _.first(this.bpResolutions)];
-        result =  _.reduce(tuples, function(memo, tuple) {
-            return (_.last(memo) < _.last(tuple)) ? memo : tuple;
-        }, initialMemo);
-
-        index = _.indexOf(this.bpResolutions, _.first(result));
-        return index;
-    };
-
     hic.HiCReader.prototype.readFooter = function (key) {
 
         var self = this,

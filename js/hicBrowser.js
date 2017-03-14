@@ -257,7 +257,7 @@ var hic = (function (hic) {
 
             maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
             targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
-            newZoom = findMatchingResolution(targetResolution, this.hicReader.bpResolutions);
+            newZoom = this.findMatchingZoomIndex(targetResolution, this.hicReader.bpResolutions);
             newPixelSize = this.state.pixelSize;   // Adjusting this is complex
 
             this.setState(new hic.State(
@@ -269,23 +269,32 @@ var hic = (function (hic) {
                 newPixelSize
             ));
 
-
         }
 
         function locusExtent(obj) {
             return obj.end - obj.start;
         }
 
-        function findMatchingResolution(target, resolutionArray) {
-            var z;
-            for (z = 0; z < resolutionArray.length; z++) {
-                if (resolutionArray[z] <= target) {
-                    return z;
-                }
-            }
-            return 0;
-        }
+        // function findMatchingResolution(target, resolutionArray) {
+        //     var z;
+        //     for (z = 0; z < resolutionArray.length; z++) {
+        //         if (resolutionArray[z] <= target) {
+        //             return z;
+        //         }
+        //     }
+        //     return 0;
+        // }
 
+    };
+
+    hic.Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
+        var z;
+        for (z = 0; z < resolutionArray.length; z++) {
+            if (resolutionArray[z] <= targetResolution) {
+                return z;
+            }
+        }
+        return 0;
     };
 
     hic.Browser.prototype.parseLocusString = function (locus) {
@@ -334,13 +343,6 @@ var hic = (function (hic) {
             }
         }
         return locusObject;
-    };
-
-    hic.Browser.prototype.sweepZoom = function (x, y, zoom) {
-
-        this.state.x = x;
-        this.state.y = y;
-        this.setZoom(zoom);
     };
 
     hic.Browser.prototype.setZoom = function (zoom) {

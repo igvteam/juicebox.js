@@ -15,18 +15,25 @@ var hic = (function (hic) {
         this.$rulerSweeper.show();
 
         this.originBin = this.browser.toBin(xy.x, xy.y);
-
+        this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
     };
 
     hic.SweepZoom.prototype.update = function(mouseDown, coords) {
         var dx,
-            dy;
+            dy,
+            displacement;
         dx = coords.x - mouseDown.x;
         dy = coords.y - mouseDown.y;
 
-        this.dimensionPixel = Math.max(Math.abs(dx), Math.abs(dy));
+        displacement = Math.max(Math.abs(dx), Math.abs(dy));
 
-        this.$rulerSweeper.css({ width: this.dimensionPixel + "px", height: this.dimensionPixel + "px" });
+        if (Math.abs(dx) > Math.abs(dy)) {
+            this.sweepSizePixel = { width: displacement, height: Math.round(displacement / this.aspectRatio) };
+        } else {
+            this.sweepSizePixel = { width: Math.round(displacement * this.aspectRatio), height: displacement };
+        }
+
+        this.$rulerSweeper.css({ width: this.sweepSizePixel.width + "px", height: this.sweepSizePixel.height + "px" });
 
         if (dx < 0) {
             this.$rulerSweeper.css({ left: (mouseDown.x + dx) + "px" });
@@ -39,12 +46,23 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
-        var scaleFactor;
+        var scaleFactor,
+            zoomIndex,
+            s;
 
         this.$rulerSweeper.hide();
-        scaleFactor = this.dimensionPixel / this.browser.contactMatrixView.getViewDimensions().width;
+        scaleFactor = this.sweepSizePixel.width / this.browser.contactMatrixView.getViewDimensions().width;
+        zoomIndex = this.browser.findMatchingZoomIndex(scaleFactor * this.browser.resolution(), this.browser.hicReader.bpResolutions);
 
-        this.browser.sweepZoom( _.first(this.originBin), _.last(this.originBin), this.browser.hicReader.indexOfNearestZoom(scaleFactor * this.browser.resolution()) );
+        s = this.browser.state;
+        this.browser.setState(new hic.State(
+            s.chr1,
+            s.chr2,
+            zoomIndex,
+            s.x,
+            s.y,
+            s.pixelSize
+        ));
 
     };
 
