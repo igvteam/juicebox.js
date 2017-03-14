@@ -10,9 +10,7 @@
 
 .hic-sweep-zoom {
 
-    display: none;
-
-    pointer-events: none;
+    /*pointer-events: none;*/
 
     position: absolute;
     top: 0;

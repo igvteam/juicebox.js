@@ -26,9 +26,7 @@
  * THE SOFTWARE.
  */
 
-
 var hic = (function (hic) {
-
 
     dragThreshold = 2;
 
@@ -51,6 +49,7 @@ var hic = (function (hic) {
 
         // ruler sweeper widget surface
         this.$rulerSweeper = $('<div class="hic-sweep-zoom">');
+        this.$rulerSweeper.hide();
 
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
@@ -98,20 +97,20 @@ var hic = (function (hic) {
         this.matrixCache = {};
         this.blockCache = {};
         this.imageTileCache = {};
-    }
+    };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
             width: this.$viewport.width(),
             height: this.$viewport.height()
         }
-    }
+    };
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
         this.update();
 
-    }
+    };
 
     hic.ContactMatrixView.prototype.update = function () {
 
@@ -332,6 +331,7 @@ var hic = (function (hic) {
             })
         }
     };
+
     hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
 
         var self = this,
@@ -385,7 +385,7 @@ var hic = (function (hic) {
 
             var coords;
 
-            isSweepZooming = !(undefined === e.altKey);
+            isSweepZooming = (true === e.altKey);
             isMouseDown = true;
 
             coords = translateMouseCoordinates(e, $viewport);
@@ -394,7 +394,8 @@ var hic = (function (hic) {
 
             if (isSweepZooming) {
                 rulerSweepSize = { width: 0, height: 0 };
-                self.$rulerSweeper.css({ "display": "inline", "left": mouseDown.x + "px", "top": mouseDown.y + "px", "width": rulerSweepSize.width + "px" , "height": rulerSweepSize.height + "px" });
+                self.$rulerSweeper.css({ "left": mouseDown.x + "px", "top": mouseDown.y + "px", "width": rulerSweepSize.width + "px" , "height": rulerSweepSize.height + "px" });
+                self.$rulerSweeper.show();
             }
 
         });
@@ -440,19 +441,23 @@ var hic = (function (hic) {
                     dx = coords.x - mouseDown.x;
                     dy = coords.y - mouseDown.y;
 
-                    rulerSweepSize = { width: Math.abs(dx), height: Math.abs(dy) };
+                    if (isSweepZooming) {
 
-                    self.$rulerSweeper.css({ "width": rulerSweepSize.width + "px", "height": rulerSweepSize.height + "px" });
+                        rulerSweepSize = { width: Math.abs(dx), height: Math.abs(dy) };
 
-                    if (dx < 0) {
-                        self.$rulerSweeper.css({ "left": (mouseDown.x + dx) + "px" });
+                        self.$rulerSweeper.css({ "width": rulerSweepSize.width + "px", "height": rulerSweepSize.height + "px" });
+
+                        if (dx < 0) {
+                            self.$rulerSweeper.css({ "left": (mouseDown.x + dx) + "px" });
+                        }
+
+                        if (dy < 0) {
+                            self.$rulerSweeper.css({ "top": (mouseDown.y + dy) + "px" });
+                        }
+
+                    } else {
+                        self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
                     }
-
-                    if (dy < 0) {
-                        self.$rulerSweeper.css({ "top": (mouseDown.y + dy) + "px" });
-                    }
-
-                    self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
 
                 }
 
@@ -461,11 +466,21 @@ var hic = (function (hic) {
 
         }, 10));
 
-        $viewport.on('mouseup', mouseUpOrOut);
+        $viewport.on('mouseup', zoomMouseUp);
 
-        $viewport.on('mouseleave', mouseUpOrOut);
+        $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
-        function mouseUpOrOut(e) {
+        function zoomMouseUp(e) {
+
+            if (isSweepZooming) {
+                self.$rulerSweeper.hide();
+                isSweepZooming = false;
+            }
+
+            panMouseUpOrMouseOut(e);
+        }
+
+        function panMouseUpOrMouseOut(e) {
 
             //
             // // Don't let vertical line interfere with dragging
@@ -478,7 +493,7 @@ var hic = (function (hic) {
                 hic.GlobalEventBus.post(new hic.DragStoppedEvent());
             }
 
-            isMouseDown = isDragging = isSweepZooming = false;
+            isMouseDown = isDragging = false;
             mouseDown = mouseLast = undefined;
         }
 
@@ -502,7 +517,6 @@ var hic = (function (hic) {
         return {x: posx, y: posy}
     }
 
-
     hic.ColorScale = function(scale) {
 
         this.low = scale.low;
@@ -515,7 +529,7 @@ var hic = (function (hic) {
         this.highB = scale.highB;
 
 
-    }
+    };
 
     hic.ColorScale.prototype.getColor = function(value) {
         var scale = this, r, g, b, frac, diff;
@@ -536,7 +550,7 @@ var hic = (function (hic) {
             blue: b,
             rgb: "rgb(" + r + "," + g + "," + b + ")"
         };
-    }
+    };
 
     return hic;
 
