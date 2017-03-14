@@ -109,7 +109,8 @@ var hic = (function (hic) {
 
         var tuples,
             result,
-            initialMemo;
+            initialMemo,
+            index;
 
         tuples = _.map(this.bpResolutions, function(resolution) {
             return [resolution, Math.abs(resolution - candidate)];
@@ -120,7 +121,8 @@ var hic = (function (hic) {
             return (_.last(memo) < _.last(tuple)) ? memo : tuple;
         }, initialMemo);
 
-        return _.first(result);
+        index = _.indexOf(this.bpResolutions, _.first(result));
+        return index;
     };
 
     hic.HiCReader.prototype.readFooter = function (key) {

@@ -46,8 +46,7 @@ var hic = (function (hic) {
         this.$rulerSweeper.hide();
         scaleFactor = this.dimensionPixel / this.browser.contactMatrixView.getViewDimensions().width;
 
-        resolution = this.browser.hicReader.indexOfNearestZoom(scaleFactor * this.browser.resolution());
-        newZoomIndex = this.browser.hicReade.indexOfNearestZoom(resolution);
+        this.browser.setZoom( this.browser.hicReader.indexOfNearestZoom( scaleFactor * this.browser.resolution() ) );
 
     };
 
