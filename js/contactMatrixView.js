@@ -445,19 +445,19 @@ var hic = (function (hic) {
 
         }, 10));
 
-        $viewport.on('mouseup', zoomMouseUp);
+        $viewport.on('mouseup', panMouseUpOrMouseOut);
 
         $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
-        function zoomMouseUp(e) {
-
-            if (isSweepZooming) {
-                self.sweepZoom.dismiss();
-                isSweepZooming = false;
-            }
-
-            panMouseUpOrMouseOut(e);
-        }
+        // function zoomMouseUp(e) {
+        //
+        //     if (isSweepZooming) {
+        //         self.sweepZoom.dismiss();
+        //         isSweepZooming = false;
+        //     }
+        //
+        //     panMouseUpOrMouseOut(e);
+        // }
 
         function panMouseUpOrMouseOut(e) {
 
@@ -470,6 +470,11 @@ var hic = (function (hic) {
             if (isDragging) {
                 isDragging = false;
                 hic.GlobalEventBus.post(new hic.DragStoppedEvent());
+            }
+
+            if (isSweepZooming) {
+                self.sweepZoom.dismiss();
+                isSweepZooming = false;
             }
 
             isMouseDown = isDragging = false;
