@@ -1,3 +1,13 @@
+.hic-sweep-zoom {
+  /*pointer-events: none;*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  z-index: 99999;
+  background-color: rgba(68, 134, 247, 0.25); }
+
 .hic-root {
   position: relative;
   left: 0;

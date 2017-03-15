@@ -11,7 +11,23 @@ $hic-x-axis-width: $hic-viewport-width;
 $hic-y-axis-width: $hic-viewport-height;
 
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width + $nav-bar-height;
+$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
+
+.hic-sweep-zoom {
+
+    /*pointer-events: none;*/
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 200px;
+    height:200px;
+
+    z-index:99999;
+
+    background-color: rgba(68, 134, 247, 0.25);
+}
 
 .hic-root {
     position: relative;
