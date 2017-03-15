@@ -7,41 +7,53 @@ var hic = (function (hic) {
         this.browser = browser;
         this.$rulerSweeper = $rulerSweeper;
         this.$rulerSweeper.hide();
+        this.sweepRect = {};
     };
 
-    hic.SweepZoom.prototype.reset = function(xy) {
-
-        this.$rulerSweeper.css({ left: xy.x + "px", top: xy.y + "px", width: 1 + "px" , height: 1 + "px" });
-        this.$rulerSweeper.show();
-
-        this.originBin = this.browser.toBin(xy.x, xy.y);
+    hic.SweepZoom.prototype.reset = function () {
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
+        this.sweepRect.origin = { x:0, y:0 };
+        this.sweepRect.size = { width:1, height:1 };
     };
 
-    hic.SweepZoom.prototype.update = function(mouseDown, coords) {
-        var dx,
-            dy,
-            displacement;
-        dx = coords.x - mouseDown.x;
-        dy = coords.y - mouseDown.y;
+    hic.SweepZoom.prototype.update = function (mouseDown, coords, viewportBBox) {
+        var displacement,
+            delta,
+            dominantAxis,
+            aspectRatioScale,
+            xMax,
+            yMax;
 
-        displacement = Math.max(Math.abs(dx), Math.abs(dy));
 
-        if (Math.abs(dx) > Math.abs(dy)) {
-            this.sweepSizePixel = { width: displacement, height: Math.round(displacement / this.aspectRatio) };
+        delta = { x:(coords.x - mouseDown.x), y:(coords.y - mouseDown.y) };
+
+        this.sweepRect.origin.x = (delta.x < 0 ? mouseDown.x + delta.x : mouseDown.x);
+        this.sweepRect.origin.y = (delta.y < 0 ? mouseDown.y + delta.y : mouseDown.y);
+
+        dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
+
+        if ('x' === dominantAxis) {
+            displacement = Math.abs(delta.x);
+            aspectRatioScale = { x: 1.0, y: 1.0/this.aspectRatio };
         } else {
-            this.sweepSizePixel = { width: Math.round(displacement * this.aspectRatio), height: displacement };
+            displacement = Math.abs(delta.y);
+            aspectRatioScale = { x: this.aspectRatio, y: 1.0 };
         }
 
-        this.$rulerSweeper.css({ width: this.sweepSizePixel.width + "px", height: this.sweepSizePixel.height + "px" });
+        this.sweepRect.size = { width: aspectRatioScale.x * displacement, height: aspectRatioScale.y * displacement };
 
-        if (dx < 0) {
-            this.$rulerSweeper.css({ left: (mouseDown.x + dx) + "px" });
+        xMax = (mouseDown.x + this.sweepRect.size.width ) - viewportBBox.size.width;
+        yMax = (mouseDown.y + this.sweepRect.size.height) - viewportBBox.size.height;
+        if ('y' === dominantAxis && xMax > 0) {
+            this.sweepRect.size.width -= xMax;
+            this.sweepRect.size.height = this.sweepRect.size.width / this.aspectRatio;
+        } else if (yMax > 0) {
+            this.sweepRect.size.height -= yMax;
+            this.sweepRect.size.width = this.sweepRect.size.height * this.aspectRatio;
         }
 
-        if (dy < 0) {
-            this.$rulerSweeper.css({ top: (mouseDown.y + dy) + "px" });
-        }
+        this.$rulerSweeper.css(rectToCSS(this.sweepRect));
+        this.$rulerSweeper.show();
 
     };
 
@@ -51,7 +63,7 @@ var hic = (function (hic) {
             s;
 
         this.$rulerSweeper.hide();
-        scaleFactor = this.sweepSizePixel.width / this.browser.contactMatrixView.getViewDimensions().width;
+        scaleFactor = this.sweepRect.size.width / this.browser.contactMatrixView.getViewDimensions().width;
         zoomIndex = this.browser.findMatchingZoomIndex(scaleFactor * this.browser.resolution(), this.browser.hicReader.bpResolutions);
 
         s = this.browser.state;
@@ -66,6 +78,17 @@ var hic = (function (hic) {
 
     };
 
+    function rectToCSS (rect) {
 
+        var css = {};
+
+        _.extend(css, { 'left' : rect.origin.x + 'px' });
+        _.extend(css, {  'top' : rect.origin.y + 'px' });
+
+        _.extend(css, {  'width' : rect.size.width  + 'px' });
+        _.extend(css, { 'height' : rect.size.height + 'px' });
+
+        return css;
+    }
     return hic;
 })(hic || {});
