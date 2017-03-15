@@ -32,7 +32,8 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser) {
 
-        var w,
+        var self = this,
+            w,
             h;
 
         this.browser = browser;
@@ -88,7 +89,6 @@ var hic = (function (hic) {
             }
         );
         this.computeColorScale = true;
-
 
     };
 
@@ -377,6 +377,26 @@ var hic = (function (hic) {
             mouseDown = undefined,
             mouseLast = undefined;
 
+        $(document).on({
+            mousedown: function (e) {
+                // do stuff
+            },
+
+            mousemove: function (e) {
+                // do stuff
+            },
+
+            // for sweep-zoom allow user to sweep beyond viewport extent
+            // sweep area clamps since viewport mouse handlers stop firing
+            // when the viewport boundary is crossed.
+            mouseup: function (e) {
+                if (isSweepZooming) {
+                    isSweepZooming = false;
+                    self.sweepZoom.dismiss();
+                }
+            }
+        });
+
         $viewport.on('mousedown', function (e) {
 
             var coords;
@@ -393,21 +413,6 @@ var hic = (function (hic) {
             }
 
         });
-
-        // Guide line is bound within track area, and offset by 5 pixels so as not to interfere mouse clicks.
-        // $(trackContainerDiv).mousemove(function (e) {
-        //     var xy,
-        //         _left,
-        //         $element = igv.browser.$cursorTrackingGuide;
-        //
-        //     e.preventDefault();
-        //
-        //     xy = igv.translateMouseCoordinates(e, trackContainerDiv);
-        //     _left = Math.max(50, xy.x - 5);
-        //
-        //     _left = Math.min(igv.browser.trackContainerDiv.width() - 65, _left);
-        //     $element.css({left: _left + 'px'});
-        // });
 
         $viewport.on('mousemove', hic.throttle(function (e) {
 
@@ -443,41 +448,21 @@ var hic = (function (hic) {
                 mouseLast = _.clone(coords);
             }
 
+
         }, 10));
 
         $viewport.on('mouseup', panMouseUpOrMouseOut);
 
         $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
-        // function zoomMouseUp(e) {
-        //
-        //     if (isSweepZooming) {
-        //         self.sweepZoom.dismiss();
-        //         isSweepZooming = false;
-        //     }
-        //
-        //     panMouseUpOrMouseOut(e);
-        // }
-
         function panMouseUpOrMouseOut(e) {
-
-            //
-            // // Don't let vertical line interfere with dragging
-            // if (igv.browser.$cursorTrackingGuide && e.toElement === igv.browser.$cursorTrackingGuide.get(0) && e.type === 'mouseleave') {
-            //     return;
-            // }
 
             if (isDragging) {
                 isDragging = false;
                 hic.GlobalEventBus.post(new hic.DragStoppedEvent());
             }
 
-            if (isSweepZooming) {
-                self.sweepZoom.dismiss();
-                isSweepZooming = false;
-            }
-
-            isMouseDown = isDragging = false;
+            isMouseDown = false;
             mouseDown = mouseLast = undefined;
         }
 
