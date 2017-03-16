@@ -1,1 +1,250 @@
-../sass/hic.css
+.hic-sweep-zoom {
+  /*pointer-events: none;*/
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  z-index: 99999;
+  background-color: rgba(68, 134, 247, 0.25); }
+
+.hic-root {
+  position: relative;
+  left: 0;
+  right: 0;
+  width: 841px;
+  height: 889px;
+  background-color: white;
+  border-style: solid;
+  border-width: thin;
+  border-color: #5f5f5f; }
+
+.hic-navbar-container {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 48px;
+  /*background-color: #efefef;*/
+  background-color: #ffffff;
+  border-bottom-style: solid;
+  border-bottom-width: thin;
+  border-bottom-color: #5f5f5f; }
+
+.hic-logo-container {
+  position: relative;
+  float: left;
+  width: 48px;
+  height: 48px;
+  background-image: url("../img/juicebox-logo-translucent.png"); }
+
+.hic-chromosome-goto-container {
+  position: relative;
+  float: left;
+  width: 420px;
+  height: 28px;
+  padding-left: 8px;
+  padding-top: 8px; }
+
+.hic-chromosome-goto-input {
+  position: relative;
+  float: left;
+  width: 100%;
+  height: 100%;
+  padding-left: 6px;
+  color: #5f5f5f;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  outline: none;
+  border-style: solid;
+  border-width: thin;
+  border-color: #bfbfbf;
+  background-color: white; }
+
+.hic-colorscale-widget-container {
+  position: relative;
+  float: left;
+  width: 120px;
+  height: 28px;
+  padding-left: 32px;
+  padding-top: 4px; }
+
+.hic-colorscale-widget-label {
+  display: block;
+  color: #5f5f5f;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 400; }
+
+.hic-colorscale-widget-input {
+  display: block;
+  float: left;
+  position: relative;
+  width: 48px;
+  height: 16px;
+  color: #5f5f5f;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  outline: none;
+  border-style: solid;
+  border-width: thin;
+  border-color: #bfbfbf;
+  background-color: white; }
+
+.hic-resolution-selector-container {
+  position: relative;
+  float: left;
+  width: 120px;
+  /*height: 28px;*/
+  padding-left: 16px;
+  padding-top: 3px; }
+
+.hic-resolution-selector-container label {
+  position: relative;
+  padding-left: 10px;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #5f5f5f; }
+
+.hic-resolution-selector-container select {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #5f5f5f;
+  direction: rtl; }
+
+.hic-content-container {
+  position: relative;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%; }
+
+.hic-x-axis {
+  position: absolute;
+  top: 0;
+  left: 25px;
+  width: 800px;
+  height: 25px; }
+
+.hic-y-axis {
+  position: absolute;
+  top: 25px;
+  left: 0;
+  width: 25px;
+  height: 800px; }
+
+.hic-x-axis-ruler-container {
+  position: relative;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white; }
+
+.hic-y-axis-ruler-container {
+  position: relative;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white; }
+
+.hic-viewport-container {
+  position: absolute;
+  left: 25px;
+  top: 25px;
+  width: 816px;
+  height: 816px; }
+
+.hic-viewport {
+  /*cursor: pointer;*/
+  position: relative;
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 800px;
+  overflow-x: hidden;
+  overflow-y: hidden;
+  background-color: white; }
+
+.hic-viewport-x-axis-scrollbar-container {
+  position: absolute;
+  left: 0;
+  top: 800px;
+  height: 16px;
+  width: 800px;
+  background-color: #efefef; }
+
+.hic-viewport-y-axis-scrollbar-container {
+  position: absolute;
+  top: 0;
+  left: 800px;
+  width: 16px;
+  height: 800px;
+  background-color: #efefef; }
+
+.hic-viewport-x-axis-scrollbar {
+  display: table;
+  cursor: pointer;
+  position: absolute;
+  /* dynamic x and width */
+  left: 25%;
+  width: 50%;
+  top: 0;
+  height: 100%;
+  background-color: #B4B4B4; }
+
+.hic-viewport-y-axis-scrollbar {
+  display: table;
+  cursor: pointer;
+  position: absolute;
+  /* dynamic y and height */
+  top: 25%;
+  height: 50%;
+  left: 0;
+  width: 100%;
+  background-color: #B4B4B4; }
+
+.hic-viewport-x-axis-scrollbar span {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  color: #C8C8C8;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 90%;
+  font-weight: 400; }
+
+.hic-viewport-y-axis-scrollbar span {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  color: #C8C8C8;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 90%;
+  font-weight: 400; }
+
+.hic-viewport-spinner {
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1024;
+  font-size: 32px;
+  color: #7f7f7f; }
+
+.unselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none; }
+
+/*# sourceMappingURL=hic.css.map */
