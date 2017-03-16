@@ -143,7 +143,7 @@ var hic = (function (hic) {
                         hic.GlobalEventBus.post(new hic.ColorScaleEvent(self.colorScale))
                     }
                 }
-                
+
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {
                         promises.push(self.getImageTile(zd, r, c));
@@ -253,7 +253,21 @@ var hic = (function (hic) {
 
                 function drawBlock(block, transpose) {
 
-                    var blockNumber, row, col, x0, y0, image, ctx;
+                    var blockNumber,
+                        row,
+                        col,
+                        x0,
+                        y0,
+                        image,
+                        ctx,
+                        id,
+                        i,
+                        rec,
+                        x,
+                        y,
+                        color,
+                        fudge;
+
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
                     col = blockNumber - row * blockColumnCount;
@@ -266,10 +280,11 @@ var hic = (function (hic) {
                     ctx = image.getContext('2d');
                     ctx.clearRect(0, 0, image.width, image.height);
 
-                    var id = ctx.getImageData(0, 0, image.width, image.height);
+                    id = ctx.getImageData(0, 0, image.width, image.height);
+                    fudge = 0.5;
 
-                    // Draw the image
-                    var i, rec, x, y, rgb;
+                    // console.log('block records ' + _.size(block.records) + ' pixel size ' + state.pixelSize);
+
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
                         x = Math.floor((rec.bin1 - x0) * state.pixelSize) ;
@@ -281,7 +296,8 @@ var hic = (function (hic) {
                             x = t;
                         }
 
-                        var color = self.colorScale.getColor(rec.counts);
+                        color = self.colorScale.getColor(rec.counts);
+                        ctx.fillStyle = color.rgb;
 
                         if(state.pixelSize === 1) {
                             // TODO -- verify that this bitblting is faster than fillRect
@@ -291,16 +307,16 @@ var hic = (function (hic) {
                             }
                         }
                         else {
-                            ctx.fillStyle = color.rgb;
-                            ctx.fillRect(x, y, state.pixelSize, state.pixelSize);
+                            ctx.fillRect(x, y, fudge + state.pixelSize, fudge + state.pixelSize);
                             if (row === col) {
-                                ctx.fillRect(y, x, state.pixelSize, state.pixelSize);
+                                ctx.fillRect(y, x, fudge + state.pixelSize, fudge + state.pixelSize);
                             }
                         }
                     }
                     if(state.pixelSize == 1) ctx.putImageData(id, 0, 0);
                     return image;
                 }
+
 
                 if (sameChr && row < column) {
                     blockNumber = column * blockColumnCount + row;
