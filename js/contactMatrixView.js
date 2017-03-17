@@ -26,18 +26,14 @@
  * THE SOFTWARE.
  */
 
-
 var hic = (function (hic) {
-
 
     dragThreshold = 2;
 
     hic.ContactMatrixView = function (browser) {
 
         var w,
-            h,
-            $x_axis_scrollbar_container,
-            $y_axis_scrollbar_container;
+            h;
 
         this.browser = browser;
 
@@ -51,12 +47,16 @@ var hic = (function (hic) {
         this.$canvas.attr('height', h);
         this.ctx = this.$canvas.get(0).getContext("2d");
 
+        // ruler sweeper widget surface
+        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
         this.$spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
 
         this.$viewport.append(this.$canvas);
+        this.$viewport.append(this.sweepZoom.$rulerSweeper);
         this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
@@ -89,27 +89,26 @@ var hic = (function (hic) {
         );
         this.computeColorScale = true;
 
-
     };
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.matrixCache = {};
         this.blockCache = {};
         this.imageTileCache = {};
-    }
+    };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
             width: this.$viewport.width(),
             height: this.$viewport.height()
         }
-    }
+    };
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
         this.update();
 
-    }
+    };
 
     hic.ContactMatrixView.prototype.update = function () {
 
@@ -346,6 +345,7 @@ var hic = (function (hic) {
             })
         }
     };
+
     hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
 
         var self = this,
@@ -361,7 +361,7 @@ var hic = (function (hic) {
                 reader.readBlock(blockNumber, zd)
                     .then(function (block) {
 
-                        self.blockCache[key] = block
+                        self.blockCache[key] = block;
 
                         fulfill(block);
 
@@ -386,47 +386,56 @@ var hic = (function (hic) {
     function addMouseHandlers($viewport) {
 
         var self = this,
-            viewport = $viewport[0],
             isMouseDown = false,
             isDragging = false,
-            lastMouseX,
-            lastMouseY,
-            mouseDownX,
-            mouseDownY;
+            isSweepZooming = false,
+            mouseDown = undefined,
+            mouseLast = undefined;
+
+        $(document).on({
+            mousedown: function (e) {
+                // do stuff
+            },
+
+            mousemove: function (e) {
+                // do stuff
+            },
+
+            // for sweep-zoom allow user to sweep beyond viewport extent
+            // sweep area clamps since viewport mouse handlers stop firing
+            // when the viewport boundary is crossed.
+            mouseup: function (e) {
+                if (isSweepZooming) {
+                    isSweepZooming = false;
+                    // self.sweepZoom.dismiss();
+                }
+            }
+        });
 
         $viewport.on('mousedown', function (e) {
 
             var coords;
 
+            isSweepZooming = (true === e.altKey);
             isMouseDown = true;
+
             coords = translateMouseCoordinates(e, $viewport);
-            mouseDownX = lastMouseX = coords.x;
-            mouseDownY = lastMouseY = coords.y;
+            mouseLast = _.clone(coords);
+            mouseDown = _.clone(coords);
+
+            if (isSweepZooming) {
+                // self.sweepZoom.reset();
+            }
 
         });
 
-        // Guide line is bound within track area, and offset by 5 pixels so as not to interfere mouse clicks.
-        // $(trackContainerDiv).mousemove(function (e) {
-        //     var xy,
-        //         _left,
-        //         $element = igv.browser.$cursorTrackingGuide;
-        //
-        //     e.preventDefault();
-        //
-        //     xy = igv.translateMouseCoordinates(e, trackContainerDiv);
-        //     _left = Math.max(50, xy.x - 5);
-        //
-        //     _left = Math.min(igv.browser.trackContainerDiv.width() - 65, _left);
-        //     $element.css({left: _left + 'px'});
-        // });
-
         $viewport.on('mousemove', hic.throttle(function (e) {
 
-            var coords,
-                maxEnd,
-                maxStart;
+            var coords;
 
-            if (self.updating) return;
+            if (self.updating) {
+                return;
+            }
 
             e.preventDefault();
 
@@ -434,33 +443,34 @@ var hic = (function (hic) {
 
             if (isMouseDown) { // Possibly dragging
 
-                if (mouseDownX && Math.abs(coords.x - mouseDownX) > dragThreshold) {
+                if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
 
                     isDragging = true;
 
-                    if (self.updating) return;   // Freeze frame during updates
+                    if (self.updating) {
+                        // Freeze frame during updates
+                        return;
+                    }
 
-                    self.browser.shiftPixels(lastMouseX - coords.x, lastMouseY - coords.y);
+                    if (isSweepZooming) {
+                        // self.sweepZoom.update(mouseDown, coords, { origin: { x:0, y:0 }, size: { width: $viewport.width(), height: $viewport.height() } });
+                    } else {
+                        self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                    }
 
                 }
 
-                lastMouseX = coords.x;
-                lastMouseY = coords.y;
+                mouseLast = _.clone(coords);
             }
+
 
         }, 10));
 
-        $viewport.on('mouseup', mouseUpOrOut);
+        $viewport.on('mouseup', panMouseUpOrMouseOut);
 
-        $viewport.on('mouseleave', mouseUpOrOut);
+        $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
-        function mouseUpOrOut(e) {
-
-            //
-            // // Don't let vertical line interfere with dragging
-            // if (igv.browser.$cursorTrackingGuide && e.toElement === igv.browser.$cursorTrackingGuide.get(0) && e.type === 'mouseleave') {
-            //     return;
-            // }
+        function panMouseUpOrMouseOut(e) {
 
             if (isDragging) {
                 isDragging = false;
@@ -468,9 +478,7 @@ var hic = (function (hic) {
             }
 
             isMouseDown = false;
-            mouseDownX = lastMouseX = undefined;
-            mouseDownY = lastMouseY = undefined;
-
+            mouseDown = mouseLast = undefined;
         }
 
     }
@@ -493,7 +501,6 @@ var hic = (function (hic) {
         return {x: posx, y: posy}
     }
 
-
     hic.ColorScale = function(scale) {
 
         this.low = scale.low;
@@ -506,7 +513,7 @@ var hic = (function (hic) {
         this.highB = scale.highB;
 
 
-    }
+    };
 
     hic.ColorScale.prototype.getColor = function(value) {
         var scale = this, r, g, b, frac, diff;
@@ -527,7 +534,7 @@ var hic = (function (hic) {
             blue: b,
             rgb: "rgb(" + r + "," + g + "," + b + ")"
         };
-    }
+    };
 
     return hic;
 
