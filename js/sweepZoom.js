@@ -58,21 +58,39 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
-        var scaleFactor,
+        var self = this,
+            rawScaleFactor,
             zoomIndex,
-            s;
+            s,
+            bin,
+            bp,
+            zoomedBin;
 
         this.$rulerSweeper.hide();
-        scaleFactor = this.sweepRect.size.width / this.browser.contactMatrixView.getViewDimensions().width;
-        zoomIndex = this.browser.findMatchingZoomIndex(scaleFactor * this.browser.resolution(), this.browser.hicReader.bpResolutions);
+
+        rawScaleFactor = this.sweepRect.size.width / this.browser.contactMatrixView.getViewDimensions().width;
+        zoomIndex = this.browser.findMatchingZoomIndex(rawScaleFactor * this.browser.resolution(), this.browser.hicReader.bpResolutions);
+
+        // origin - bin units
+        bin = this.browser.toBin(this.sweepRect.origin.x, this.sweepRect.origin.y);
+
+        // origin - bp units
+        bp = _.map(bin, function (input) {
+            return input * self.browser.resolution();
+        });
+
+        // origin at new pyramid level - bin units
+        zoomedBin = _.map(bp, function (input){
+            return input / self.browser.hicReader.bpResolutions[ zoomIndex ];
+        });
 
         s = this.browser.state;
         this.browser.setState(new hic.State(
             s.chr1,
             s.chr2,
             zoomIndex,
-            s.x,
-            s.y,
+            _.first(zoomedBin),
+            _.last(zoomedBin),
             s.pixelSize
         ));
 
