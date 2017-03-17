@@ -407,7 +407,7 @@ var hic = (function (hic) {
             mouseup: function (e) {
                 if (isSweepZooming) {
                     isSweepZooming = false;
-                    // self.sweepZoom.dismiss();
+                    self.sweepZoom.dismiss();
                 }
             }
         });
@@ -424,7 +424,7 @@ var hic = (function (hic) {
             mouseDown = _.clone(coords);
 
             if (isSweepZooming) {
-                // self.sweepZoom.reset();
+                self.sweepZoom.reset();
             }
 
         });
@@ -453,7 +453,7 @@ var hic = (function (hic) {
                     }
 
                     if (isSweepZooming) {
-                        // self.sweepZoom.update(mouseDown, coords, { origin: { x:0, y:0 }, size: { width: $viewport.width(), height: $viewport.height() } });
+                        self.sweepZoom.update(mouseDown, coords, { origin: { x:0, y:0 }, size: { width: $viewport.width(), height: $viewport.height() } });
                     } else {
                         self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
                     }
