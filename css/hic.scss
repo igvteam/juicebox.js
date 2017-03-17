@@ -22,6 +22,18 @@ $scrollbar-handle-color: #B4B4B4;
 
 $default-font-family: 'Open Sans', sans-serif;
 
+@mixin scrollbar-span {
+  span {
+    display: table-cell;
+    vertical-align: middle;
+    text-align:center;
+    color: $scrollbar-color;
+    font-family: $default-font-family;
+    font-size: 90%;
+    font-weight: 400;
+  }
+}
+
 .hic-sweep-zoom {
 
   /*pointer-events: none;*/
@@ -154,33 +166,33 @@ $default-font-family: 'Open Sans', sans-serif;
   position: relative;
   float: left;
   width: 120px;
-  /*height: 28px;*/
 
   padding-left: 16px;
   padding-top: 3px;
 
 }
 
-.hic-resolution-selector-container label {
-  position: relative;
-  padding-left: 10px;
-  font-family: $default-font-family;
-  font-size: 14px;
-  font-weight: 400;
-  color: $default-dark-color;
-}
+.hic-resolution-selector-container {
 
-.hic-resolution-selector-container select {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  label {
+    position: relative;
+    padding-left: 10px;
+    font-family: $default-font-family;
+    font-size: 14px;
+    font-weight: 400;
+    color: $default-dark-color;
+  }
 
-  font-family: $default-font-family;
-  font-size: 14px;
-  font-weight: 400;
-  color: $default-dark-color;
-
-  direction: rtl;
+  select {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-family: $default-font-family;
+    font-size: 14px;
+    font-weight: 400;
+    color: $default-dark-color;
+    direction: rtl;
+  }
 
 }
 
@@ -294,28 +306,12 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: $scrollbar-handle-color;
 }
 
-.hic-viewport-x-axis-scrollbar span {
-  display: table-cell;
-  vertical-align: middle;
-  text-align:center;
-
-  color: $scrollbar-color;
-  font-family: $default-font-family;
-  font-size: 90%;
-  font-weight: 400;
-
+.hic-viewport-x-axis-scrollbar {
+  @include scrollbar-span
 }
 
-.hic-viewport-y-axis-scrollbar span {
-  display: table-cell;
-  vertical-align: middle;
-  text-align:center;
-
-  color: $scrollbar-color;
-  font-family: $default-font-family;
-  font-size: 90%;
-  font-weight: 400;
-
+.hic-viewport-y-axis-scrollbar {
+  @include scrollbar-span
 }
 
 .hic-viewport-spinner {
