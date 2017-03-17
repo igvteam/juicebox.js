@@ -12,7 +12,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $label = $('<label class="hic-colorscale-widget-label">');
+        $label = $('<label>');
         $label.text('Color Scale');
 
         // this.$low_colorscale_input = $('<input class="hic-colorscale-widget-input" type="text" placeholder="low">');
@@ -21,7 +21,7 @@ var hic = (function (hic) {
         //     console.log('$low_colorscale_input.onChange ' + value);
         // });
 
-        this.$high_colorscale_input = $('<input class="hic-colorscale-widget-input" type="text" placeholder="high">');
+        this.$high_colorscale_input = $('<input type="text" placeholder="high">');
         this.$high_colorscale_input.on('change', function(e){
             var value = $(this).val(),
                 numeric = value.replace(/\,/g, '');

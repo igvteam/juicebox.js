@@ -6,7 +6,7 @@ var hic = (function (hic) {
     hic.LocusGoto = function(browser) {
 
         this.browser = browser;
-        this.$resolution_selector = $('<input class="hic-chromosome-goto-input" type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
         this.$resolution_selector.on('change', function(e){
             var value = $(this).val();
             browser.parseGotoInput( value );
