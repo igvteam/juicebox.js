@@ -43,7 +43,7 @@ var hic = (function (hic) {
             config.url = decodeURIComponent(hicUrl);
         }
         if(stateString) {
-            stateString = decodeURIComponent(stateString)
+            stateString = decodeURIComponent(stateString);
             config.state = hic.destringifyState(stateString);
             var tokens = stateString.split(",");
             if(tokens.length > 6) {
@@ -77,11 +77,11 @@ var hic = (function (hic) {
 
         this.$xAxis = xAxis();
         $content_container.append(this.$xAxis);
-        this.xAxisRuler = new hic.Ruler(this, this.$xAxis.find('.hic-x-axis-ruler-container'), 'x');
+        this.xAxisRuler = new hic.Ruler(this, this.$xAxis.find('div'), 'x');
 
         this.$yAxis = yAxis();
         $content_container.append(this.$yAxis);
-        this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('.hic-y-axis-ruler-container'), 'y');
+        this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
 
         // chromosome goto
         this.locusGoto = new hic.LocusGoto(this);
@@ -118,7 +118,7 @@ var hic = (function (hic) {
                 $e;
 
             $x_axis = $('<div class="hic-x-axis">');
-            $e = $('<div class="hic-x-axis-ruler-container">');
+            $e = $('<div>');
             $x_axis.append($e);
             return $x_axis
         }
@@ -128,7 +128,7 @@ var hic = (function (hic) {
                 $e;
 
             $y_axis = $('<div class="hic-y-axis">');
-            $e = $('<div class="hic-y-axis-ruler-container">');
+            $e = $('<div>');
             $y_axis.append($e);
             return $y_axis
 

@@ -88,15 +88,14 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-chromosome-goto-container {
+
   position: relative;
   float: left;
   width: 420px;
   height: 28px;
   padding-left: 8px;
   padding-top: 8px;
-}
 
-.hic-chromosome-goto-container {
   input {
 
     position: relative;
@@ -128,10 +127,6 @@ $default-font-family: 'Open Sans', sans-serif;
   height: 28px;
   padding-left: 32px;
   padding-top: 4px;
-
-}
-
-.hic-colorscale-widget-container {
 
   label {
     display: block;
@@ -165,19 +160,17 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
+
 }
 
 .hic-resolution-selector-container {
+
   position: relative;
   float: left;
   width: 120px;
 
   padding-left: 16px;
   padding-top: 3px;
-
-}
-
-.hic-resolution-selector-container {
 
   label {
     position: relative;
@@ -215,6 +208,15 @@ $default-font-family: 'Open Sans', sans-serif;
   left: $hic-axis-height;
   width: $hic-x-axis-width;
   height: $hic-axis-height;
+
+  div {
+    position: relative;
+    bottom:0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: $default-white-color;
+  }
 }
 
 .hic-y-axis {
@@ -223,24 +225,15 @@ $default-font-family: 'Open Sans', sans-serif;
   left: 0;
   width: $hic-axis-height;
   height: $hic-y-axis-width;
-}
 
-.hic-x-axis-ruler-container {
-  position: relative;
-  bottom:0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: $default-white-color;
-}
-
-.hic-y-axis-ruler-container {
-  position: relative;
-  top: 0;
-  right:0;
-  width: 100%;
-  height: 100%;
-  background-color: $default-white-color;
+  div {
+    position: relative;
+    top: 0;
+    right:0;
+    width: 100%;
+    height: 100%;
+    background-color: $default-white-color;
+  }
 }
 
 .hic-viewport-container {
@@ -264,59 +257,60 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-viewport-x-axis-scrollbar-container {
+
   position: absolute;
   left: 0;
   top: $hic-viewport-height;
   height: $hic-scrollbar-height;
   width: $hic-viewport-width;
   background-color: #efefef;
+
+  div {
+
+    display: table;
+    cursor: pointer;
+    position: absolute;
+
+    /* dynamic x and width */
+    left: 25%;
+    width: 50%;
+
+    top: 0;
+    height: 100%;
+    background-color: $scrollbar-handle-color;
+
+    @include scrollbar-span;
+  }
+
 }
 
 .hic-viewport-y-axis-scrollbar-container {
+
   position: absolute;
   top: 0;
   left: $hic-viewport-width;
   width: $hic-scrollbar-height;
   height: $hic-viewport-height;
   background-color: #efefef;
-}
 
-.hic-viewport-x-axis-scrollbar {
+  div {
 
-  display: table;
-  cursor: pointer;
-  position: absolute;
+    display: table;
+    cursor: pointer;
+    position: absolute;
 
-  /* dynamic x and width */
-  left: 25%;
-  width: 50%;
+    /* dynamic y and height */
+    top: 25%;
+    height: 50%;
 
-  top: 0;
-  height: 100%;
-  background-color: $scrollbar-handle-color;
-}
+    left: 0;
+    width: 100%;
+    background-color: $scrollbar-handle-color;
 
-.hic-viewport-y-axis-scrollbar {
+    @include scrollbar-span;
 
-  display: table;
-  cursor: pointer;
-  position: absolute;
+  }
 
-  /* dynamic y and height */
-  top: 25%;
-  height: 50%;
-
-  left: 0;
-  width: 100%;
-  background-color: $scrollbar-handle-color;
-}
-
-.hic-viewport-x-axis-scrollbar {
-  @include scrollbar-span
-}
-
-.hic-viewport-y-axis-scrollbar {
-  @include scrollbar-span
 }
 
 .hic-viewport-spinner {

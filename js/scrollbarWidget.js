@@ -11,12 +11,12 @@ var hic = (function (hic) {
         this.isDragging = false;
 
         this.$x_axis_scrollbar_container = $('<div class="hic-viewport-x-axis-scrollbar-container">');
-        this.$x_axis_scrollbar = $('<div class="hic-viewport-x-axis-scrollbar">');
+        this.$x_axis_scrollbar = $('<div>');
         this.$x_axis_label = $('<span>');
         this.$x_axis_label.text('-');
 
         this.$y_axis_scrollbar_container = $('<div class="hic-viewport-y-axis-scrollbar-container">');
-        this.$y_axis_scrollbar = $('<div class="hic-viewport-y-axis-scrollbar">');
+        this.$y_axis_scrollbar = $('<div>');
         this.$y_axis_label = $('<span>');
         this.$y_axis_label.text('-');
 
