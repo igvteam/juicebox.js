@@ -185,8 +185,8 @@ var hic = (function (hic) {
             if (image != null) {
                 var row = imageTile.row,
                     col = imageTile.column,
-                    x0 = blockBinCount * col,
-                    y0 = blockBinCount * row;
+                    x0 = blockBinCount * col * state.pixelSize,
+                    y0 = blockBinCount * row * state.pixelSize;
 
                 var offsetX = x0 - state.x;
                 var offsetY = y0 - state.y;
@@ -420,8 +420,8 @@ var hic = (function (hic) {
             isMouseDown = true;
 
             coords = translateMouseCoordinates(e, $viewport);
-            mouseLast = _.clone(coords);
-            mouseDown = _.clone(coords);
+            mouseLast = coords;
+            mouseDown = coords;
 
             if (isSweepZooming) {
                 self.sweepZoom.reset();
@@ -460,7 +460,7 @@ var hic = (function (hic) {
 
                 }
 
-                mouseLast = _.clone(coords);
+                mouseLast = coords;
             }
 
 
