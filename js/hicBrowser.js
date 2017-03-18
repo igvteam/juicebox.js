@@ -24,7 +24,6 @@
  */
 
 
-
 var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
@@ -39,14 +38,14 @@ var hic = (function (hic) {
             hicUrl = gup(href, "hicUrl"),
             stateString = gup(href, "state");
 
-        if(hicUrl) {
+        if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
         }
-        if(stateString) {
+        if (stateString) {
             stateString = decodeURIComponent(stateString);
             config.state = hic.destringifyState(stateString);
             var tokens = stateString.split(",");
-            if(tokens.length > 6) {
+            if (tokens.length > 6) {
                 config.colorScale = parseFloat(tokens[6]);
             }
         }
@@ -101,14 +100,14 @@ var hic = (function (hic) {
 
         // this.sweepZoom = new hic.SweepZoom(this.contactMatrixView.$viewport);
 
-        this.state = config.state? config.state : defaultState.clone();
+        this.state = config.state ? config.state : defaultState.clone();
 
-        if(config.colorScale && !isNaN(config.colorScale)){
+        if (config.colorScale && !isNaN(config.colorScale)) {
             this.contactMatrixView.colorScale.high = config.colorScale;
             this.contactMatrixView.computeColorScale = false;
         }
 
-        if(config.url) {
+        if (config.url) {
             this.loadHicFile(config);
         }
 
@@ -160,7 +159,7 @@ var hic = (function (hic) {
             return;
         }
 
-        if(config.url === this.url) {
+        if (config.url === this.url) {
             console.log(this.url + " already loaded");
             return;
         }
@@ -205,7 +204,7 @@ var hic = (function (hic) {
 
                         hic.GlobalEventBus.post(new hic.DataLoadEvent(config));
 
-                        if(config.colorScale) self.getColorScale().high = config.colorScale;
+                        if (config.colorScale) self.getColorScale().high = config.colorScale;
 
                     })
                     .catch(function (error) {
@@ -347,7 +346,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setZoom = function (zoom) {
 
-        if(zoom === this.state.zoom) return;
+        if (zoom === this.state.zoom) return;
 
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
@@ -406,6 +405,23 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(locusChangeEvent);
     };
 
+    hic.Browser.prototype.goto = function(bpX, bpXMax, bpY, bpYMax) {
+
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            targetResolution = (bpXMax - bpX) / (viewDimensions.width * this.state.pixelSize),
+            newZoom = this.findMatchingZoomIndex(targetResolution, this.bpResolutions),
+            actualResolution = this.bpResolutions[newZoom],
+            pixelSize = targetResolution / actualResolution,
+            binX = bpX / actualResolution,
+            binY = bpY / actualResolution,
+            currentState = this.state,
+            newState =  new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
+        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.computeColorScale = true;
+
+        this.setState(newState);
+    }
+
     hic.Browser.prototype.clamp = function () {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.hicReader.chromosomes[this.state.chr1].size,
@@ -430,22 +446,22 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateHref = function (event) {
-            var location = window.location,
-                href = location.href;
+        var location = window.location,
+            href = location.href;
 
-            var href = window.location.href;
+        var href = window.location.href;
 
-            if (event && event.type === "DataLoad") {
-                href = replaceURIParameter("hicUrl", this.url, href);
-            }
+        if (event && event.type === "DataLoad") {
+            href = replaceURIParameter("hicUrl", this.url, href);
+        }
 
-            href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
+        href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
 
-            window.history.replaceState("", "juicebox", href);
-        };
+        window.history.replaceState("", "juicebox", href);
+    };
 
     hic.Browser.prototype.resolution = function () {
-      return this.hicReader.bpResolutions[ this.state.zoom ];
+        return this.hicReader.bpResolutions[this.state.zoom];
     };
 
     function gup(href, name) {
