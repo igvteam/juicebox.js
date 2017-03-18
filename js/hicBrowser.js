@@ -410,6 +410,7 @@ var hic = (function (hic) {
         newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
 
         this.state = newState;
+        this.contactMatrixView.clearImageCache();
         this.contactMatrixView.computeColorScale = true;
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
     }

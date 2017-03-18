@@ -139,18 +139,13 @@ var hic = (function (hic) {
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
-                if(self.computeColorScale) {
-                    if(zd.averageCount) {
-                        self.colorScale.high = 2*zd.averageCount;
+                if (self.computeColorScale) {
+                    if (zd.averageCount) {
+                        self.colorScale.high = 2 * zd.averageCount;
                         self.computeColorScale = false;
                         hic.GlobalEventBus.post(new hic.ColorScaleEvent(self.colorScale))
                     }
                 }
-
-
-                if(row1 > 0) row1--;
-                if(col1 > 0) col1--;
-
 
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {
@@ -194,11 +189,11 @@ var hic = (function (hic) {
             if (image != null) {
                 var row = imageTile.row,
                     col = imageTile.column,
-                    x0 = blockBinCount * col * state.pixelSize,
-                    y0 = blockBinCount * row * state.pixelSize;
+                    x0 = blockBinCount * col,
+                    y0 = blockBinCount * row;
 
-                var offsetX = x0 - state.x;
-                var offsetY = y0 - state.y;
+                var offsetX = (x0 - state.x) * state.pixelSize;
+                var offsetY = (y0 - state.y) * state.pixelSize;
                 if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
                     offsetY <= viewportHeight && offsetY + image.height >= 0) {
                     self.ctx.drawImage(image, offsetX, offsetY);
@@ -253,10 +248,10 @@ var hic = (function (hic) {
 
                 function setPixel(imageData, x, y, r, g, b, a) {
                     index = (x + y * imageData.width) * 4;
-                    imageData.data[index+0] = r;
-                    imageData.data[index+1] = g;
-                    imageData.data[index+2] = b;
-                    imageData.data[index+3] = a;
+                    imageData.data[index + 0] = r;
+                    imageData.data[index + 1] = g;
+                    imageData.data[index + 2] = b;
+                    imageData.data[index + 3] = a;
                 }
 
                 function drawBlock(block, transpose) {
@@ -295,7 +290,7 @@ var hic = (function (hic) {
 
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
-                        x = Math.floor((rec.bin1 - x0) * state.pixelSize) ;
+                        x = Math.floor((rec.bin1 - x0) * state.pixelSize);
                         y = Math.floor((rec.bin2 - y0) * state.pixelSize);
 
                         if (transpose) {
@@ -307,7 +302,7 @@ var hic = (function (hic) {
                         color = self.colorScale.getColor(rec.counts);
                         ctx.fillStyle = color.rgb;
 
-                        if(state.pixelSize === 1) {
+                        if (state.pixelSize === 1) {
                             // TODO -- verify that this bitblting is faster than fillRect
                             setPixel(id, x, y, color.red, color.green, color.blue, 255);
                             if (row === col) {
@@ -321,7 +316,7 @@ var hic = (function (hic) {
                             }
                         }
                     }
-                    if(state.pixelSize == 1) ctx.putImageData(id, 0, 0);
+                    if (state.pixelSize == 1) ctx.putImageData(id, 0, 0);
                     return image;
                 }
 
@@ -462,7 +457,10 @@ var hic = (function (hic) {
                     }
 
                     if (isSweepZooming) {
-                        self.sweepZoom.update(mouseDown, coords, { origin: { x:0, y:0 }, size: { width: $viewport.width(), height: $viewport.height() } });
+                        self.sweepZoom.update(mouseDown, coords, {
+                            origin: {x: 0, y: 0},
+                            size: {width: $viewport.width(), height: $viewport.height()}
+                        });
                     } else {
                         self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
                     }
@@ -510,7 +508,7 @@ var hic = (function (hic) {
         return {x: posx, y: posy}
     }
 
-    hic.ColorScale = function(scale) {
+    hic.ColorScale = function (scale) {
 
         this.low = scale.low;
         this.lowR = scale.lowR;
@@ -524,7 +522,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ColorScale.prototype.getColor = function(value) {
+    hic.ColorScale.prototype.getColor = function (value) {
         var scale = this, r, g, b, frac, diff;
 
         if (value <= scale.low) value = scale.low;
