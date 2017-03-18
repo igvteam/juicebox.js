@@ -444,24 +444,8 @@ var hic = (function (hic) {
             window.history.replaceState("", "juicebox", href);
         };
 
-    hic.Browser.prototype.toBin = function (xPixel, yPixel) {
-        var self = this;
-        return _.map([xPixel, yPixel], function(pixel){
-            // bin = pixel / pixel-per-bin
-            return pixel / self.state.pixelSize;
-        });
-    };
-
     hic.Browser.prototype.resolution = function () {
       return this.hicReader.bpResolutions[ this.state.zoom ];
-    };
-
-    hic.Browser.prototype.toPixel = function (xBin, yBin) {
-        var self = this;
-        return _.map([xBin, yBin], function(bin){
-            // pixel = bin * pixel-per-bin
-            return bin * self.state.pixelSize;
-        });
     };
 
     function gup(href, name) {

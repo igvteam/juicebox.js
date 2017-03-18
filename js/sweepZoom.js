@@ -58,39 +58,30 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
-        var self = this,
-            rawScaleFactor,
+        var rawScaleFactor,
             zoomIndex,
-            s,
-            bin,
-            bp,
-            zoomedBin;
+            s = this.browser.state,
+            newBinX,
+            newBinY,
+            resRatio;
 
         this.$rulerSweeper.hide();
 
         rawScaleFactor = this.sweepRect.size.width / this.browser.contactMatrixView.getViewDimensions().width;
-        zoomIndex = this.browser.findMatchingZoomIndex(rawScaleFactor * this.browser.resolution(), this.browser.hicReader.bpResolutions);
+        var bpResolutions = this.browser.hicReader.bpResolutions;
+        zoomIndex = this.browser.findMatchingZoomIndex(rawScaleFactor * this.browser.resolution(), bpResolutions);
 
-        // origin - bin units
-        bin = this.browser.toBin(this.sweepRect.origin.x, this.sweepRect.origin.y);
+        resRatio = bpResolutions[s.zoom] / bpResolutions[ zoomIndex ];
 
-        // origin - bp units
-        bp = _.map(bin, function (input) {
-            return input * self.browser.resolution();
-        });
+        newBinX =  (s.x + (this.sweepRect.origin.x / s.pixelSize)) * resRatio;
+        newBinY =  (s.y + (this.sweepRect.origin.y / s.pixelSize)) * resRatio;
 
-        // origin at new pyramid level - bin units
-        zoomedBin = _.map(bp, function (input){
-            return input / self.browser.hicReader.bpResolutions[ zoomIndex ];
-        });
-
-        s = this.browser.state;
         this.browser.setState(new hic.State(
             s.chr1,
             s.chr2,
             zoomIndex,
-            _.first(zoomedBin),
-            _.last(zoomedBin),
+            newBinX,
+            newBinY,
             s.pixelSize
         ));
 
