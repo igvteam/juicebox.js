@@ -62,7 +62,7 @@ var hic = (function (hic) {
             bpResolution = this.browser.resolution(),
             bpX = (s.x + this.sweepRect.origin.x / s.pixelSize) * bpResolution,
             bpY = (s.y + this.sweepRect.origin.y / s.pixelSize) * bpResolution,
-            bpXMax = bpY + (this.sweepRect.size.width / s.pixelSize) * bpResolution,
+            bpXMax = bpX + (this.sweepRect.size.width / s.pixelSize) * bpResolution,
             bpYMax = bpY + (this.sweepRect.size.height / s.pixelSize) * bpResolution;
 
         this.$rulerSweeper.hide();

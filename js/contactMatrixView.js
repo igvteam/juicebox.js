@@ -97,6 +97,10 @@ var hic = (function (hic) {
         this.imageTileCache = {};
     };
 
+    hic.ContactMatrixView.prototype.clearImageCache = function () {
+        this.imageTileCache = {};
+    }
+
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
             width: this.$viewport.width(),
@@ -142,6 +146,11 @@ var hic = (function (hic) {
                         hic.GlobalEventBus.post(new hic.ColorScaleEvent(self.colorScale))
                     }
                 }
+
+
+                if(row1 > 0) row1--;
+                if(col1 > 0) col1--;
+
 
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {

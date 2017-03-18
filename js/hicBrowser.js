@@ -274,22 +274,12 @@ var hic = (function (hic) {
             return obj.end - obj.start;
         }
 
-        // function findMatchingResolution(target, resolutionArray) {
-        //     var z;
-        //     for (z = 0; z < resolutionArray.length; z++) {
-        //         if (resolutionArray[z] <= target) {
-        //             return z;
-        //         }
-        //     }
-        //     return 0;
-        // }
-
     };
 
     hic.Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
         var z;
-        for (z = 0; z < resolutionArray.length; z++) {
-            if (resolutionArray[z] <= targetResolution) {
+        for (z = resolutionArray.length - 1; z > 0; z--) {
+            if (resolutionArray[z] >= targetResolution) {
                 return z;
             }
         }
@@ -348,7 +338,7 @@ var hic = (function (hic) {
 
         if (zoom === this.state.zoom) return;
 
-        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.clearImageCache();
         this.contactMatrixView.computeColorScale = true;
 
         // Shift x,y to maintain center, if possible
@@ -388,7 +378,7 @@ var hic = (function (hic) {
         this.state = state;
 
         // Possibly adjust pixel size
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        this.state.pixelSize = Math.max(state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
         hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
 
@@ -405,21 +395,23 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(locusChangeEvent);
     };
 
-    hic.Browser.prototype.goto = function(bpX, bpXMax, bpY, bpYMax) {
+    hic.Browser.prototype.goto = function (bpX, bpXMax, bpY, bpYMax) {
 
-        var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            targetResolution = (bpXMax - bpX) / (viewDimensions.width * this.state.pixelSize),
-            newZoom = this.findMatchingZoomIndex(targetResolution, this.bpResolutions),
-            actualResolution = this.bpResolutions[newZoom],
-            pixelSize = targetResolution / actualResolution,
-            binX = bpX / actualResolution,
-            binY = bpY / actualResolution,
-            currentState = this.state,
-            newState =  new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
-        this.contactMatrixView.clearCaches();
+        var viewDimensions, targetResolution, newZoom, actualResolution, pixelSize, binX, binY, currentState, newState;
+
+        viewDimensions = this.contactMatrixView.getViewDimensions();
+        targetResolution = (bpXMax - bpX) / viewDimensions.width;
+        newZoom = this.findMatchingZoomIndex(targetResolution, this.bpResolutions);
+        actualResolution = this.bpResolutions[newZoom];
+        pixelSize = actualResolution / targetResolution;
+        binX = bpX / actualResolution;
+        binY = bpY / actualResolution;
+        currentState = this.state;
+        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
+
+        this.state = newState;
         this.contactMatrixView.computeColorScale = true;
-
-        this.setState(newState);
+        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
     }
 
     hic.Browser.prototype.clamp = function () {
