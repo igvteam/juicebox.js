@@ -38,10 +38,12 @@ var hic = (function (hic) {
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
         if (event.type === "LocusChange") {
+            var state = event.data;
+
             this.$resolution_selector
                 .find('option')
                 .filter(function (index) {
-                    return index === event.state.zoom;
+                    return index === state.zoom;
                 })
                 .prop('selected', true);
         } else if (event.type === "DataLoad") {

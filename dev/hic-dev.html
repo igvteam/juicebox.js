@@ -44,6 +44,7 @@
     <script src="../js/scrollbarWidget.js"></script>
     <script src="../js/sweepZoom.js"></script>
     <script src="../js/hicState.js"></script>
+    <script src="../js/normalizationSelector.js"></script>
 
 </head>
 
@@ -57,6 +58,12 @@
         <option value="">Select...</option>
         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
         <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
+    </select>
+
+
+    <label for="dataset_selector">Normalization</label>
+    <select id="normalization_selector" name="dataset_selector">
+        <option value="">None</option>
     </select>
 
 </div>

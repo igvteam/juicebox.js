@@ -8,17 +8,45 @@ var hic = (function (hic) {
         {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
-                    var config = event.config,
-                        selector = '#dataset_selector option[value="' + config.url + '"]',
-                        $option = $(selector);
 
-                    if ($option) $option.prop('selected', true);
+                    updateDatasetPulldown(event);
 
+                    updateNormalizationPulldown(event);
                 }
             }
         }
 
         hic.GlobalEventBus.subscribe("DataLoad", site);
+    }
+
+    function updateDatasetPulldown(event) {
+
+        var hicReader = event.data,
+            config = hicReader.config,
+            selector = '#dataset_selector option[value="' + config.url + '"]',
+            $option = $(selector);
+
+        if ($option) $option.prop('selected', true);
+
+
+    }
+
+    function updateNormalizationPulldown(event) {
+
+        var hicReader = event.data,
+            $normalization_pulldown = $('#normalization_selector'),
+            selected = false,
+            normalizationTypes = hicReader.normalizationTypes,
+            elements;
+
+
+        elements = _.map(normalizationTypes, function (normalization, index) {
+            return '<option' + ' value=' + index + (selected ? ' selected' : '') + '>' + normalization + '</option>';
+        });
+
+        $normalization_pulldown.empty();
+        $normalization_pulldown.append(elements.join(''));
+
     }
 
 

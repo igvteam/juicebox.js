@@ -143,7 +143,7 @@ var hic = (function (hic) {
                     if (zd.averageCount) {
                         self.colorScale.high = 2 * zd.averageCount;
                         self.computeColorScale = false;
-                        hic.GlobalEventBus.post(new hic.ColorScaleEvent(self.colorScale))
+                        hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
                     }
                 }
 
@@ -481,7 +481,7 @@ var hic = (function (hic) {
 
             if (isDragging) {
                 isDragging = false;
-                hic.GlobalEventBus.post(new hic.DragStoppedEvent());
+                hic.GlobalEventBus.post(hic.Event("DragStopped"));
             }
 
             isMouseDown = false;

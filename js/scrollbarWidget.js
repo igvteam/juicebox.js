@@ -95,17 +95,19 @@ var hic = (function (hic) {
 
         if (false === this.isDragging && event.type === "LocusChange") {
 
+            var state = event.data;
+
             this.$x_axis_scrollbar_container.show();
             this.$y_axis_scrollbar_container.show();
 
-            chromosomeLengthsBin = _.map([event.state.chr1, event.state.chr2], function (index) {
+            chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
                 // bp / bp-per-bin -> bin
-                return self.browser.hicReader.chromosomes[index].size / self.browser.hicReader.bpResolutions[event.state.zoom];
+                return self.browser.hicReader.chromosomes[index].size / self.browser.hicReader.bpResolutions[state.zoom];
             });
 
             // pixel / pixel-per-bin -> bin
-            widthBin = this.browser.contactMatrixView.getViewDimensions().width  / event.state.pixelSize;
-            heightBin = this.browser.contactMatrixView.getViewDimensions().height / event.state.pixelSize;
+            widthBin = this.browser.contactMatrixView.getViewDimensions().width  / state.pixelSize;
+            heightBin = this.browser.contactMatrixView.getViewDimensions().height / state.pixelSize;
 
             // bin / bin -> percentage
             percentage = Math.max(1, Math.round(100 * widthBin / _.first(chromosomeLengthsBin)));
@@ -118,17 +120,17 @@ var hic = (function (hic) {
             this.$y_axis_scrollbar.css('height', percentage);
 
             // bin / bin -> percentage
-            percentage = Math.round(100 * event.state.x / _.first(chromosomeLengthsBin));
+            percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
             percentage = percentage.toString() + '%';
             this.$x_axis_scrollbar.css('left', percentage);
 
             // bin / bin -> percentage
-            percentage = Math.round(100 * event.state.y / _.last(chromosomeLengthsBin));
+            percentage = Math.round(100 * state.y / _.last(chromosomeLengthsBin));
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('top', percentage);
 
-            this.$x_axis_label.text( this.browser.hicReader.chromosomes[ event.state.chr1 ].name );
-            this.$y_axis_label.text( this.browser.hicReader.chromosomes[ event.state.chr2 ].name );
+            this.$x_axis_label.text( this.browser.hicReader.chromosomes[ state.chr1 ].name );
+            this.$y_axis_label.text( this.browser.hicReader.chromosomes[ state.chr2 ].name );
 
         }
     };

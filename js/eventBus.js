@@ -64,26 +64,12 @@ var hic = (function (hic) {
 
     };
 
-
-    hic.LocusChangeEvent = function (state) {
-        this.type = "LocusChange";
-        this.state = state;
-    };
-
-    hic.DragStoppedEvent = function () {
-        this.type = "DragStopped";
-    };
-
-    hic.DataLoadEvent = function (config) {
-        this.type = "DataLoad";
-        this.config = config;
+    hic.Event = function(type, data) {
+        return {
+            type: type,
+            data: data
+        }
     }
-
-    hic.ColorScaleEvent = function (scale) {
-        this.type = "ColorScale";
-        this.scale = scale;
-    }
-
 
     hic.GlobalEventBus = new hic.EventBus();
 

@@ -82,7 +82,7 @@ var hic = (function (hic) {
         $content_container.append(this.$yAxis);
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
 
-        // chromosome goto
+        // location box / goto
         this.locusGoto = new hic.LocusGoto(this);
         this.$navbar_container.append(this.locusGoto.$container);
 
@@ -202,7 +202,7 @@ var hic = (function (hic) {
 
                         self.contactMatrixView.stopSpinner();
 
-                        hic.GlobalEventBus.post(new hic.DataLoadEvent(config));
+                        hic.GlobalEventBus.post(hic.Event("DataLoad", self.hicReader));
 
                         if (config.colorScale) self.getColorScale().high = config.colorScale;
 
@@ -354,7 +354,7 @@ var hic = (function (hic) {
 
         this.clamp();
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
     function minPixelSize(chr1, chr2, zoom) {
@@ -366,7 +366,7 @@ var hic = (function (hic) {
     }
 
     hic.Browser.prototype.update = function () {
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
     /**
@@ -380,7 +380,7 @@ var hic = (function (hic) {
         // Possibly adjust pixel size
         this.state.pixelSize = Math.max(state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
     };
 
@@ -390,7 +390,7 @@ var hic = (function (hic) {
         this.state.y += dy;
         this.clamp();
 
-        var locusChangeEvent = new hic.LocusChangeEvent(this.state);
+        var locusChangeEvent = hic.Event("LocusChange", this.state);
         locusChangeEvent.dragging = true;
         hic.GlobalEventBus.post(locusChangeEvent);
     };
@@ -412,7 +412,7 @@ var hic = (function (hic) {
         this.state = newState;
         this.contactMatrixView.clearImageCache();
         this.contactMatrixView.computeColorScale = true;
-        hic.GlobalEventBus.post(new hic.LocusChangeEvent(this.state));
+        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     }
 
     hic.Browser.prototype.clamp = function () {

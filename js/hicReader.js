@@ -105,10 +105,10 @@ var hic = (function (hic) {
         });
     };
 
-    hic.HiCReader.prototype.readFooter = function (key) {
+    hic.HiCReader.prototype.readFooter = function () {
 
         var self = this,
-            range = {start: this.masterIndexPos, size: 10000};   // 10kb,  probably enough for most indexes and we aren't using the rest of the file.
+            range = {start: this.masterIndexPos, size: 60000000};   // 60 mb,  hopefully enough but we can't really know for sure
 
         return new Promise(function (fulfill, reject) {
 
@@ -140,71 +140,124 @@ var hic = (function (hic) {
                     self.masterIndex[key] = {start: pos, size: size};
                 }
 
-                // We don't need any of the below yet, so don't load it
 
-                // self.expectedValueVectors = {};
-                // nEntries = binaryParser.getInt();
-                // while (nEntries-- > 0) {
-                //     var type = "NONE";
-                //     var unit = binaryParser.getString();
-                //     var binSize = binaryParser.getInt();
-                //     var nValues = binaryParser.getInt();
-                //     var values = [];
-                //     while (nValues-- > 0) {
-                //         values.push(binaryParser.getDouble());
-                //     }
-                //     var nChrScaleFactors = binaryParser.getInt();
-                //     var normFactors = {};
-                //     while (nChrScaleFactors-- > 0) {
-                //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                //     }
-                //     var key = unit + "_" + binSize + "_" + type;
-                //     self.expectedValueVectors[key] =
-                //         new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                // }
-                //
-                // if (self.version >= 6) {
-                //     self.normalizedExpectedValueVectors = {};
-                //     nEntries = binaryParser.getInt();
-                //     while (nEntries-- > 0) {
-                //         var type = binaryParser.getString();
-                //         var unit = binaryParser.getString();
-                //         var binSize = binaryParser.getInt();
-                //         var nValues = binaryParser.getInt();
-                //         var values = [];
-                //         while (nValues-- > 0) {
-                //             values.push(binaryParser.getDouble());
-                //         }
-                //         var nChrScaleFactors = binaryParser.getInt();
-                //         var normFactors = {};
-                //         while (nChrScaleFactors-- > 0) {
-                //             normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                //         }
-                //         var key = unit + "_" + binSize + "_" + type;
-                //         self.normalizedExpectedValueVectors[key] =
-                //             new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                //     }
-                //
-                //     // Normalization vector index
-                //     self.normVectorIndex = {};
-                //     self.normalizationTypes = [];
-                //     nEntries = binaryParser.getInt();
-                //     while (nEntries-- > 0) {
-                //         type = binaryParser.getString();
-                //         var chrIdx = binaryParser.getInt();
-                //         unit = binaryParser.getString();
-                //         binSize = binaryParser.getInt();
-                //         var filePosition = binaryParser.getLong();
-                //         var sizeInBytes = binaryParser.getInt();
-                //         key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
-                //
-                //         if (_.contains(self.normalizationTypes, type) === false) {
-                //             self.normalizationTypes.push(type);
-                //         }
-                //         self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
-                //     }
-                //
-                // }
+                self.expectedValueVectorsPosition = self.masterIndexPos + binaryParser.position;
+
+                self.expectedValueVectors = {};
+                nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    var type = "NONE";
+                    var unit = binaryParser.getString();
+                    var binSize = binaryParser.getInt();
+                    var nValues = binaryParser.getInt();
+                    var values = [];
+                    while (nValues-- > 0) {
+                        values.push(binaryParser.getDouble());
+                    }
+                    var nChrScaleFactors = binaryParser.getInt();
+                    var normFactors = {};
+                    while (nChrScaleFactors-- > 0) {
+                        normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                    }
+                    var key = unit + "_" + binSize + "_" + type;
+                    self.expectedValueVectors[key] =
+                        new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                }
+
+                if (self.version >= 6) { //binaryParser.position = 11025066
+                    self.normalizedExpectedValueVectors = {};
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        var type = binaryParser.getString();
+                        var unit = binaryParser.getString();
+                        var binSize = binaryParser.getInt();
+                        var nValues = binaryParser.getInt();
+                        var values = [];
+                        while (nValues-- > 0) {
+                            values.push(binaryParser.getDouble());
+                        }
+                        var nChrScaleFactors = binaryParser.getInt();
+                        var normFactors = {};
+                        while (nChrScaleFactors-- > 0) {
+                            normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                        }
+                        var key = unit + "_" + binSize + "_" + type;
+                        self.normalizedExpectedValueVectors[key] =
+                            new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                    }
+
+                    // Normalization vector index
+
+                    self.normVectorIndex = {};
+                    self.normalizationTypes = ['None'];
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        type = binaryParser.getString();
+                        var chrIdx = binaryParser.getInt();
+                        unit = binaryParser.getString();
+                        binSize = binaryParser.getInt();
+                        var filePosition = binaryParser.getLong();
+                        var sizeInBytes = binaryParser.getInt();
+                        key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
+
+                        if (_.contains(self.normalizationTypes, type) === false) {
+                            self.normalizationTypes.push(type);
+                        }
+                        self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
+                    }
+                }
+
+                fulfill(self); //binaryParser.position = 42473140   masterIndexPos = 54343629146
+
+            }).catch(function (error) {
+                reject(error);
+            });
+
+        });
+    };
+
+    hic.HiCReader.prototype.readNormVectorIndex = function (normVectorIndexPosition) {
+
+        var self = this,
+            range = {start: normVectorIndexPosition};
+
+        return new Promise(function (fulfill, reject) {
+
+            igvxhr.loadArrayBuffer(self.path,
+                {
+                    headers: self.config.headers,
+                    range: range,
+                    withCredentials: self.config.withCredentials
+                }).then(function (data) {
+
+                var key, pos, size;
+
+                if (!data) {
+                    fulfill(null);
+                    return;
+                }
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
+
+                self.normVectorIndex = {};
+                self.normalizationTypes = [];
+                nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    type = binaryParser.getString();
+                    var chrIdx = binaryParser.getInt();
+                    unit = binaryParser.getString();
+                    binSize = binaryParser.getInt();
+                    var filePosition = binaryParser.getLong();
+                    var sizeInBytes = binaryParser.getInt();
+                    key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
+
+                    if (_.contains(self.normalizationTypes, type) === false) {
+                        self.normalizationTypes.push(type);
+                    }
+                    self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
+                }
+
+
                 fulfill(self);
 
             }).catch(function (error) {
@@ -213,6 +266,7 @@ var hic = (function (hic) {
 
         });
     };
+
 
     hic.HiCReader.prototype.readMatrix = function (key) {
 
