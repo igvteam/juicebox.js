@@ -27,39 +27,20 @@
 var hic = (function (hic) {
 
 
-    hic.State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
-
-        this.chr1 = chr1;
-        this.chr2 = chr2;
-        this.zoom = zoom;
-        this.x = x;
-        this.y = y;
-        this.pixelSize = pixelSize;
-        this.normalization = normalization;
-    };
-
-    hic.State.prototype.stringify = function () {
-        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
+    hic.NormalizationVector = function (type, chrIdx, unit, resolution, data) {
+        this.type = type;
+        this.chrIdx = chrIdx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.data = data;
     }
 
-    hic.State.prototype.clone = function () {
-        return new hic.State(this.chr1, this.chr2, this.zoom, this.x, this.y, this.pixelSize, this.normalization)
+    hic.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {
+        return type + "_" + chrIdx + "_" + unit + "_" + resolution;
     }
 
-
-    hic.destringifyState = function (string) {
-
-        var tokens = string.split(",");
-        return new hic.State(
-            tokens[0],
-            tokens[1],
-            parseFloat(tokens[2]),
-            parseFloat(tokens[3]),
-            parseFloat(tokens[4]),
-            parseFloat(tokens[5]),
-            tokens[6]
-        )
-
+    hic.NormalizationVector.prototype.getKey = function () {
+        return NormalizationVector.getKey(this.type, this.chrIdx, this.unit, this.resolution);
     }
 
     return hic;

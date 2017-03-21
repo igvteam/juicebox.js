@@ -37,11 +37,31 @@ function runHiCTests() {
                         ok(zd);
                         equal(zd.zoom.binSize, 10000);
 
-                        hicReader.readBlock(100, zd).then(function (block) {
-                            equal(100, block.blockNumber);
-                            equal(59500, block.records.length);
-                            start();
-                        });
+                        dataset.getNormalizedBlock(zd, 100, "KR")
+                            .then(function (block) {
+                                equal(100, block.blockNumber);
+                                equal(59500, block.records.length);
+
+                                dataset.getNormalizationVector("KR", 1, "BP", 50000)
+                                    .then(function (normalizationVector) {
+                                        ok(normalizationVector);
+                                        equal(4990, normalizationVector.data.length);
+                                        start();
+                                    })
+
+                                    .catch(function (error) {
+                                        console.log(error);
+                                        ok(false);
+                                        start();
+                                    });
+
+
+                            })
+                            .catch(function (error) {
+                                console.log(error);
+                                ok(false);
+                                start();
+                            });
                     });
             })
             .catch(function (error) {
@@ -82,7 +102,7 @@ function runHiCTests() {
                         ok(zd);
                         equal(zd.zoom.binSize, 10000);
 
-                        hicReader.readBlock(100, zd).then(function (block) {
+                        dataset.getBlock(zd, 100).then(function (block) {
                             equal(100, block.blockNumber);
                             equal(block.records.length, 358397);
                             start();

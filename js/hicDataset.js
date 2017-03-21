@@ -35,11 +35,14 @@ var hic = (function (hic) {
         this.url = hicReader.path;
         this.matrixCache = {};
         this.blockCache = {};
+        this.normVectorCache = {};
     };
 
     hic.Dataset.prototype.clearCaches = function () {
         this.matrixCache = {};
         this.blockCache = {};
+        this.normVectorCache = {};
+
     };
 
 
@@ -64,6 +67,63 @@ var hic = (function (hic) {
         }
     };
 
+
+    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization) {
+
+        var self = this;
+
+        return new Promise(function (fulfill, reject) {
+
+            self.getBlock(zd, blockNumber)
+
+                .then(function (block) {
+
+                    if (normalization === undefined || "NONE" === normalization) {
+                        fulfill(block);
+                    }
+                    else {
+
+                        var promises = [
+                            self.getNormalizationVector(normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize),
+                            self.getNormalizationVector(normalization, zd.chr2.name, zd.zoom.unit, zd.zoom.binSize)];
+
+                        Promise.all(promises)
+                            .then(function (vectors) {
+
+                                var nv1 = vectors[0].data,
+                                    nv2 = vectors[1].data,
+                                    normRecords = [],
+                                    normBlock;
+
+                                block.records.forEach(function (record) {
+
+                                    var x = record.bin1,
+                                        y = record.bin2,
+                                        counts,
+                                        nvnv = nv1[x] * nv2[y];
+
+                                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                                        counts = record.counts / nvnv;
+                                    } else {
+                                        counts = NaN;
+                                    }
+                                    normRecords.push(new hic.ContactRecord(x, y, counts));
+
+                                })
+
+                                normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+                                fulfill(normBlock);
+                            })
+                            .catch(reject);
+
+
+                    }
+                })
+                .catch(reject);
+        })
+    }
+
     hic.Dataset.prototype.getBlock = function (zd, blockNumber) {
 
         var self = this,
@@ -87,6 +147,46 @@ var hic = (function (hic) {
                     .catch(reject)
             })
         }
+    };
+
+    hic.Dataset.prototype.getNormalizationVector = function (type, chrIdx, unit, binSize) {
+
+        var self = this,
+            key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+
+        if (this.normVectorCache.hasOwnProperty(key)) {
+            return Promise.resolve(this.normVectorCache[key]);
+        } else {
+            return new Promise(function (fulfill, reject) {
+
+                var reader = self.hicReader;
+
+                reader.readNormalizationVector(type, chrIdx, unit, binSize)
+
+                    .then(function (nv) {
+
+                        self.normVectorCache[key] = nv;
+
+                        fulfill(nv);
+
+                    })
+                    .catch(reject)
+            })
+        }
+    };
+
+    hic.Block = function (blockNumber, zoomData, records) {
+        this.blockNumber = blockNumber;
+        this.zoomData = zoomData;
+        this.records = records;
+    };
+
+
+    hic.ContactRecord = function (bin1, bin2, counts) {
+        this.bin1 = bin1;
+        this.bin2 = bin2;
+        this.counts = counts;
     };
 
 

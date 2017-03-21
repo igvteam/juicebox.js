@@ -69,6 +69,7 @@ var hic = (function (hic) {
         this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("NormalizationChange", this);
 
         this.imageTileCache = {};
 
@@ -109,6 +110,11 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
+
+        if("NormalizationChange" === event.type) {
+            this.clearCaches();
+        }
+
         this.update();
 
     };
@@ -202,7 +208,7 @@ var hic = (function (hic) {
         })
 
     };
-    
+
 
     hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
 
@@ -308,12 +314,12 @@ var hic = (function (hic) {
                 }
 
                 self.startSpinner();
-                self.dataset.getBlock(zd, blockNumber)
+                self.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
 
                     .then(function (block) {
 
                         self.stopSpinner();
-                        
+
                         var image;
                         if (block) {
                             image = drawBlock(block, transpose);

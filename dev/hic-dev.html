@@ -45,7 +45,7 @@
     <script src="../js/sweepZoom.js"></script>
     <script src="../js/hicState.js"></script>
     <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationSelector.js"></script>
+    <script src="../js/normalizationVector.js"></script>
 
 </head>
 
@@ -62,7 +62,7 @@
     </select>
 
 
-    <label for="dataset_selector">Normalization</label>
+    <label for="normalization_selector">Normalization</label>
     <select id="normalization_selector" name="dataset_selector">
         <option value="">None</option>
     </select>
@@ -84,6 +84,10 @@
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
         });
+
+        $('#normalization_selector').on('change', function(e) {
+            browser.setNormalization($(this).val() );
+        })
 
         hic.initSite();
     });

@@ -490,7 +490,7 @@
 </div>
 
 
-<label for="dataset_selector">Normalization  (NOT OPERATIONAL)</label>
+<label for="normalization_selector">Normalization</label>
 <select id="normalization_selector" name="dataset_selector">
     <option value="">None</option>
 </select>
@@ -507,6 +507,12 @@
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
         });
+
+
+        $('#normalization_selector').on('change', function(e) {
+            browser.setNormalization($(this).val() );
+        })
+
 
         hic.initSite();
         $(".chosen-select").chosen();

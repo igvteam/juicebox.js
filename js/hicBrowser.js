@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         defaultPixelSize = 1;
 
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize);
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
@@ -385,6 +385,14 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
     };
+    
+    hic.Browser.prototype.setNormalization = function (normalization) {
+        
+        this.state.normalization = normalization;
+        
+        hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
+        
+    }
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 

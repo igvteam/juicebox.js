@@ -38,7 +38,7 @@ var hic = (function (hic) {
 
 
         elements = _.map(normalizationTypes, function (normalization, index) {
-            return '<option' + ' value=' + index + (selected ? ' selected' : '') + '>' + normalization + '</option>';
+            return '<option' + ' value=' + normalization + (selected ? ' selected' : '') + '>' + normalization + '</option>';
         });
 
         $normalization_pulldown.empty();
