@@ -53,6 +53,7 @@
       text-align: center;
       font-size: 20px;
       }
+
       .radio-toolbar input[type="radio"] {
       display: none;
       }
@@ -61,6 +62,7 @@
       display: inline-block;
       background-color: #add8e6;
       padding: 4px 11px;
+      width: 100px;
       font-family: Arial;
       font-size: 16px;
       color: white;
@@ -70,60 +72,48 @@
       .radio-toolbar input[type="radio"]:checked+label {
       background-color: #6495ed;
       }
-#container4 {
+
+      #container3 {
       clear:left;
       float:left;
       width:100%;
       overflow:hidden;
-}
-#container3 {
+      }
+
+      #container2 {
       clear:left;
       float:left;
       width:100%;
       position:relative;
-      right:25%;
-}
-#container2 {
-      clear:left;
+      right:33.333%;
+      }
+      #container1 {
       float:left;
       width:100%;
       position:relative;
-      right:25%;
-}
-#container1 {
+      right:33.33%;
+      }
+      #col1 {
       float:left;
-      width:100%;
+      width:29.33%;
       position:relative;
-      right:25%;
-}
-#col1 {
-      float:left;
-      width:21%;
-      position:relative;
-      left:77%;
+      left:68.67%;
       overflow:hidden;
-}
-#col2 {
+      }
+      #col2 {
       float:left;
-      width:21%;
+      width:29.33%;
       position:relative;
-      left:81%;
+      left:72.67%;
       overflow:hidden;
-}
-#col3 {
+      }
+      #col3 {
       float:left;
-      width:21%;
+      width:29.33%;
       position:relative;
-      left:85%;
+      left:76.67%;
       overflow:hidden;
-}
-#col4 {
-      float:left;
-      width:21%;
-      position:relative;
-      left:89%;
-      overflow:hidden;
-}
+      }
     </style>
 
 </head>
@@ -133,7 +123,7 @@
 <div class="site-container">
   <select id="dataset_selector"  data-placeholder="Choose a Hi-C map to view..." class="chosen-select" name="dataset_selector">
     <option value=""></option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic ">GM12878 combined in situ from Cell 2014</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 combined in situ from Cell 2014</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic">IMR90 combined in situ from Cell 2014</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary (2.6B)</option>
@@ -173,10 +163,10 @@
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/agar/HIC031.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) agar HIC031 (81M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/pellet/HIC032.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) pellet HIC032 (69M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/supernatant/HIC033.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) supernatant HIC033 (31M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC034.hic ">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC034 (1.4B)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC035.hic ">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC035 (531M)</option>
-<option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC036.hic ">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC036 (475M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC037.hic ">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC037 (855M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC034.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC034 (1.4B)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC035.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC035 (531M)</option>
+<option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC036.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC036 (475M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC037.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution HIC037 (855M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) dilution combined (3.3B)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_DpnII.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ DpnII combined (436M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC038.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ DpnII HIC038 (81M)</option>
@@ -200,7 +190,7 @@
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/HIC054.hic">Rao and Huntley et al. | Cell 2014 IMR90 (human) in situ  HIC054 (191M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/HIC055.hic">Rao and Huntley et al. | Cell 2014 IMR90 (human) in situ  HIC055 (213M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/HIC056.hic">Rao and Huntley et al. | Cell 2014 IMR90 (human) in situ  HIC056 (238M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/dilution/HIC057.hic ">Rao and Huntley et al. | Cell 2014 IMR90 (human) dilution HIC057 (116M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/dilution/HIC057.hic">Rao and Huntley et al. | Cell 2014 IMR90 (human) dilution HIC057 (116M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  combined (395M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/HIC058.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  HIC058 (330M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/HIC059.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  HIC059 (7M)</option>
@@ -208,25 +198,25 @@
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/HIC061.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  HIC061 (16M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/HIC062.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  HIC062 (16M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/in-situ/HIC063.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) in situ  HIC063 (14M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/dilution/HIC064.hic ">Rao and Huntley et al. | Cell 2014 HMEC (human) dilution HIC064 (403M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/hmec/dilution/HIC064.hic">Rao and Huntley et al. | Cell 2014 HMEC (human) dilution HIC064 (403M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 NHEK (human) in situ  combined (665M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/HIC065.hic">Rao and Huntley et al. | Cell 2014 NHEK (human) in situ  HIC065 (172M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/HIC066.hic">Rao and Huntley et al. | Cell 2014 NHEK (human) in situ  HIC066 (197M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/in-situ/HIC067.hic">Rao and Huntley et al. | Cell 2014 NHEK (human) in situ  HIC067 (297M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/dilution/HIC068.hic ">Rao and Huntley et al. | Cell 2014 NHEK (human) dilution HIC068 (205M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  combined (932M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC069.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC069 (310M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC070.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC070 (389M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC071.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC071 (64M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC072.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC072 (53M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC073.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC073 (51M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC074.hic   ">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC074 (65M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/combined.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  combined</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC075.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC075 (108M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC076.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC076 (240M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC077.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC077 (63M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC078.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC078 (203M)</option>
-    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC079.hic   ">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC079 (273M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/nhek/dilution/HIC068.hic">Rao and Huntley et al. | Cell 2014 NHEK (human) dilution HIC068 (205M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  combined (932M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC069.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC069 (310M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC070.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC070 (389M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC071.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC071 (64M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC072.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC072 (53M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC073.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC073 (51M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/k562/in-situ/HIC074.hic">Rao and Huntley et al. | Cell 2014 K562 (human) in situ  HIC074 (65M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  combined</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC075.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC075 (108M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC076.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC076 (240M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC077.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC077 (63M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC078.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC078 (203M)</option>
+    <option value="https://hicfiles.s3.amazonaws.com/hiseq/kbm7/in-situ/HIC079.hic">Rao and Huntley et al. | Cell 2014 KBM7 (human) in situ  HIC079 (273M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 HUVEC (human) in situ  combined</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/HIC080.hic">Rao and Huntley et al. | Cell 2014 HUVEC (human) in situ  HIC080 (178M)</option>
     <option value="https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/HIC081.hic">Rao and Huntley et al. | Cell 2014 HUVEC (human) in situ  HIC081 (109M)</option>
@@ -383,7 +373,7 @@
     <option value="http://hicfiles.s3.amazonaws.com/external/lieberman_aiden_van_berkum/GM06990_HindIII.hic">Lieberman-Aiden and van Berkum et al. | Science 2009 GM06990 HindIII rep 1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/lieberman_aiden_van_berkum/GM06990_rep_HindIII.hic">Lieberman-Aiden and van Berkum et al. | Science 2009 GM06990 HindIII rep2</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/lieberman_aiden_van_berkum/302NH.hic">Lieberman-Aiden and van Berkum et al. | Science 2009 GM06990 302NH</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/kalhor/tcc-hindiii.hic ">Kalhor et al. | Nature Biotechnology 2011 TCC HindIII</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/kalhor/tcc-hindiii.hic">Kalhor et al. | Nature Biotechnology 2011 TCC HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/kalhor/tcc-mboi.hic">Kalhor et al. | Nature Biotechnology 2011 TCC MboI</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/kalhor/non-tcc-hindiii.hic">Kalhor et al. | Nature Biotechnology 2011 non-TCC HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/kalhor/tcc-combined.hic">Kalhor et al. | Nature Biotechnology 2011 TCC combined</option>
@@ -413,10 +403,10 @@
     <option value="http://hicfiles.s3.amazonaws.com/external/rickman/rwpe1-erg2.hic">Rickman et al. | PNAS 2012 RWPE1-ERG library 2 HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/rickman/rwpe1-gfp.hic">Rickman et al. | PNAS 2012 RWPE1-GFP library 1 HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/rickman/rwpe1-gfp2.hic">Rickman et al. | PNAS 2012 RWPE1-GFP library 2 HindIII</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-erg.hic ">Rickman et al. | PNAS 2012 short read RWPE1-ERG library 1 HindIII</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-erg2.hic ">Rickman et al. | PNAS 2012 short read RWPE1-ERG library 2 HindIII</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-erg.hic">Rickman et al. | PNAS 2012 short read RWPE1-ERG library 1 HindIII</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-erg2.hic">Rickman et al. | PNAS 2012 short read RWPE1-ERG library 2 HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-gfp.hic">Rickman et al. | PNAS 2012 short read RWPE1-GFP library 1 HindIII</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-gfp2.hic ">Rickman et al. | PNAS 2012 short read RWPE1-GFP library 2 HindIII</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/rickman/shortread-rwpe1-gfp2.hic">Rickman et al. | PNAS 2012 short read RWPE1-GFP library 2 HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/dekker-5c/gm12878/raw.hic">Sanyal (5C) et al. | Nature 2012 GM12878 raw</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/dekker-5c/gm12878/raw-rep1.hic">Sanyal (5C) et al. | Nature 2012 GM12878 raw rep1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/dekker-5c/gm12878/raw-rep2.hic">Sanyal (5C) et al. | Nature 2012 GM12878 raw rep2</option>
@@ -442,7 +432,7 @@
     <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep1.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep2.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 2</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep3.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 3</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep4.hic ">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 4</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep4.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 4</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep5.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 5</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/jin/imr90-tnf-alpha/rep6.hic">Jin et al. | Nature 2013 IMR90 TNF alpha Rep 6</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/le/BglII_rep1.hic">Le et al. | Science 2013 BglII rep1</option>
@@ -480,18 +470,18 @@
     <option value="http://hicfiles.s3.amazonaws.com/external/seitan/Tcell-Rad21KO-R3.hic">Seitan et al. | Genome Research 2013 Tcell Rad21KO R3</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/seitan/Tcell-Rad21WT-R1.hic">Seitan et al. | Genome Research 2013 Tcell Rad21WT R1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/seitan/Tcell-Rad21WT-R3.hic">Seitan et al. | Genome Research 2013 Tcell Rad21WT R3</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-WT-adv-cre.hic ">Sofueva et al. | EMBO Journal 2013 mAST WT adv cre rep1</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-floxed-rep1.hic  ">Sofueva et al. | EMBO Journal 2013 mAST floxed rep1</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-floxed-rep2.hic ">Sofueva et al. | EMBO Journal 2013 mAST floxed rep2</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-deleted-rep1.hic  ">Sofueva et al. | EMBO Journal 2013 mAST deleted rep1</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-deleted-rep2.hic   ">Sofueva et al. | EMBO Journal 2013 mAST deleted rep2</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-WT-adv-cre.hic">Sofueva et al. | EMBO Journal 2013 mAST WT adv cre rep1</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-floxed-rep1.hic">Sofueva et al. | EMBO Journal 2013 mAST floxed rep1</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-floxed-rep2.hic">Sofueva et al. | EMBO Journal 2013 mAST floxed rep2</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-deleted-rep1.hic">Sofueva et al. | EMBO Journal 2013 mAST deleted rep1</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-deleted-rep2.hic">Sofueva et al. | EMBO Journal 2013 mAST deleted rep2</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-floxed-rep1.hic">Sofueva et al. | EMBO Journal 2013 mNSC floxed rep1</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-floxed-rep2.hic  ">Sofueva et al. | EMBO Journal 2013 mNSC floxed rep2</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-floxed-rep2.hic">Sofueva et al. | EMBO Journal 2013 mNSC floxed rep2</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-deleted-rep1.hic">Sofueva et al. | EMBO Journal 2013 mNSC deleted rep1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-deleted-rep2.hic">Sofueva et al. | EMBO Journal 2013 mNSC deleted rep2</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-WT.hic">Sofueva et al. | EMBO Journal 2013 mNSC WT rep1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mNSC-WT-OHT.hic">Sofueva et al. | EMBO Journal 2013 mNSC WT OHT rep1</option>
-    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-WT.hic ">Sofueva et al. | EMBO Journal 2013 mAST WT rep1</option>
+    <option value="http://hicfiles.s3.amazonaws.com/external/sofueva/mAST-WT.hic">Sofueva et al. | EMBO Journal 2013 mAST WT rep1</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/cheng/mhh-call-4-cell-line.hic">Wang et al. | PLoS One 2013 MHH-CALL-4 B-cell acute lymphoblastic leukemia HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/cheng/primary-b-all.hic">Wang et al. | PLoS One 2013 Primary tumor B-cells acute lymphoblastic leukemia HindIII</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/cheng/normal-b-cell-line.hic">Wang et al. | PLoS One 2013 Normal B-cells HindIII</option>
@@ -570,208 +560,203 @@
     <option value="http://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined.hic">Eagen et al. | bioRxiv 2017 Kc167 combined</option>
     <option value="http://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_randomized.hic">Eagen et al. | bioRxiv 2017 Kc167 combined randomized</option>
   </select>
-
+  <br>
   <!-- Trigger the modal with a button -->
-  <button type="button" class="btn btn-default btn-lg" id="myBtn">Location</button>
+  <button type="button" id="myBtn">Choose chromosomes...</button>
 
   <!-- Modal -->
   <div class="modal fade" id="myModal" role="dialog">
-    <div class="modal-dialog">
+    <div class="modal-dialog" style="width: 330px;">
       <!-- Modal content-->
       <div class="modal-content">
-	<div class="modal-header" style="padding:35px 50px;">
+	<div class="modal-header">
           <button type="button" class="close" data-dismiss="modal">&times;</button>
-          <h4>Select Chromosomes + Normalization</h4>
+          <h4>Select Chromosomes</h4>
 	</div>
 	<!-- We need to grab these values from the loaded map... -->
 	<div class="modal-body" style="display: inline-block; width: 100%">
-	  <div class="radio-toolbar">
-	    <div id="container4">
-	      <div id="container3">
-		<div id="container2">
-		  <div id="container1">
-		    <div id="col1">
-		      <input type="radio" id="grp1-radio1" name="chr-group1" value="chr1" checked>
-		      <label for="grp1-radio1">chr1</label>
-		      <br>
-		      <input type="radio" id="grp1-radio2" name="chr-group1" value="chr2">
-		      <label for="grp1-radio2">chr2</label>
-		      <br>
-		      <input type="radio" id="grp1-radio3" name="chr-group1" value="chr3">
-		      <label for="grp1-radio3">chr3</label>
-		      <br>
-		      <input type="radio" id="grp1-radio4" name="chr-group1" value="chr4">
-		      <label for="grp1-radio4">chr4</label>
-		      <br>
-		      <input type="radio" id="grp1-radio5" name="chr-group1" value="chr5">
-		      <label for="grp1-radio5">chr5</label>
-		      <br>
-		      <input type="radio" id="grp1-radio6" name="chr-group1" value="chr6">
-		      <label for="grp1-radio6">chr6</label>
-		      <br>
-		      <input type="radio" id="grp1-radio7" name="chr-group1" value="chr7">
-		      <label for="grp1-radio7">chr7</label>
-		      <br>
-		      <input type="radio" id="grp1-radio8" name="chr-group1" value="chr8">
-		      <label for="grp1-radio8">chr8</label>
-		      <br>
-		      <input type="radio" id="grp1-radio9" name="chr-group1" value="chr9">
-		      <label for="grp1-radio9">chr9</label>
-		      <br>
-		      <input type="radio" id="grp1-radio10" name="chr-group1" value="chr10">
-		      <label for="grp1-radio10">chr10</label>
-		      <br>
-		      <input type="radio" id="grp1-radio11" name="chr-group1" value="chr11">
-		      <label for="grp1-radio11">chr11</label>
-		      <br>
-		      <input type="radio" id="grp1-radio12" name="chr-group1" value="chr12">
-		      <label for="grp1-radio12">chr12</label>
-		      <br>
-		      <input type="radio" id="grp1-radio13" name="chr-group1" value="chr13">
-		      <label for="grp1-radio13">chr13</label>
-		      <br>
-		      <input type="radio" id="grp1-radio14" name="chr-group1" value="chr14">
-		      <label for="grp1-radio14">chr14</label>
-		      <br>
-		      <input type="radio" id="grp1-radio15" name="chr-group1" value="chr15">
-		      <label for="grp1-radio15">chr15</label>
-		      <br>
-		      <input type="radio" id="grp1-radio16" name="chr-group1" value="chr16">
-		      <label for="grp1-radio16">chr16</label>
-		      <br>
-		      <input type="radio" id="grp1-radio17" name="chr-group1" value="chr17">
-		      <label for="grp1-radio17">chr17</label>
-		      <br>
-		      <input type="radio" id="grp1-radio18" name="chr-group1" value="chr18">
-		      <label for="grp1-radio18">chr18</label>
-		      <br>
-		      <input type="radio" id="grp1-radio19" name="chr-group1" value="chr19">
-		      <label for="grp1-radio19">chr19</label>
-		      <br>
-		      <input type="radio" id="grp1-radio20" name="chr-group1" value="chr20">
-		      <label for="grp1-radio20">chr20</label>
-		      <br>
-		      <input type="radio" id="grp1-radio21" name="chr-group1" value="chr21">
-		      <label for="grp1-radio21">chr21</label>
-		      <br>
-		      <input type="radio" id="grp1-radio22" name="chr-group1" value="chr22">
-		      <label for="grp1-radio22">chr22</label>
-		      <br>
-		      <input type="radio" id="grp1-radioX" name="chr-group1" value="chrX">
-		      <label for="grp1-radioX">chrX</label>
-		      <br>
-		      <input type="radio" id="grp1-radioY" name="chr-group1" value="chrY">
-		      <label for="grp1-radioY">chrY</label>
-		      <br>
-		      <input type="radio" id="grp1-radioM" name="chr-group1" value="chrM">
-		      <label for="grp1-radioM">chrM</label>
-		      <br>
-		    </div>
-		    <div id="col2">
-		      <input type="radio" id="grp2-radio1" name="chr-group2" value="chr1" checked>
-		      <label for="grp2-radio1">chr1</label>
-		      <br>
-		      <input type="radio" id="grp2-radio2" name="chr-group2" value="chr2">
-		      <label for="grp2-radio2">chr2</label>
-		      <br>
-		      <input type="radio" id="grp2-radio3" name="chr-group2" value="chr3">
-		      <label for="grp2-radio3">chr3</label>
-		      <br>
-		      <input type="radio" id="grp2-radio4" name="chr-group2" value="chr4">
-		      <label for="grp2-radio4">chr4</label>
-		      <br>
-		      <input type="radio" id="grp2-radio5" name="chr-group2" value="chr5">
-		      <label for="grp2-radio5">chr5</label>
-		      <br>
-		      <input type="radio" id="grp2-radio6" name="chr-group2" value="chr6">
-		      <label for="grp2-radio6">chr6</label>
-		      <br>
-		      <input type="radio" id="grp2-radio7" name="chr-group2" value="chr7">
-		      <label for="grp2-radio7">chr7</label>
-		      <br>
-		      <input type="radio" id="grp2-radio8" name="chr-group2" value="chr8">
-		      <label for="grp2-radio8">chr8</label>
-		      <br>
-		      <input type="radio" id="grp2-radio9" name="chr-group2" value="chr9">
-		      <label for="grp2-radio9">chr9</label>
-		      <br>
-		      <input type="radio" id="grp2-radio10" name="chr-group2" value="chr10">
-		      <label for="grp2-radio10">chr10</label>
-		      <br>
-		      <input type="radio" id="grp2-radio11" name="chr-group2" value="chr11">
-		      <label for="grp2-radio11">chr11</label>
-		      <br>
-		      <input type="radio" id="grp2-radio12" name="chr-group2" value="chr12">
-		      <label for="grp2-radio12">chr12</label>
-		      <br>
-		      <input type="radio" id="grp2-radio13" name="chr-group2" value="chr13">
-		      <label for="grp2-radio13">chr13</label>
-		      <br>
-		      <input type="radio" id="grp2-radio14" name="chr-group2" value="chr14">
-		      <label for="grp2-radio14">chr14</label>
-		      <br>
-		      <input type="radio" id="grp2-radio15" name="chr-group2" value="chr15">
-		      <label for="grp2-radio15">chr15</label>
-		      <br>
-		      <input type="radio" id="grp2-radio16" name="chr-group2" value="chr16">
-		      <label for="grp2-radio16">chr16</label>
-		      <br>
-		      <input type="radio" id="grp2-radio17" name="chr-group2" value="chr17">
-		      <label for="grp2-radio17">chr17</label>
-		      <br>
-		      <input type="radio" id="grp2-radio18" name="chr-group2" value="chr18">
-		      <label for="grp2-radio18">chr18</label>
-		      <br>
-		      <input type="radio" id="grp2-radio19" name="chr-group2" value="chr19">
-		      <label for="grp2-radio19">chr19</label>
-		      <br>
-		      <input type="radio" id="grp2-radio20" name="chr-group2" value="chr20">
-		      <label for="grp2-radio20">chr20</label>
-		      <br>
-		      <input type="radio" id="grp2-radio21" name="chr-group2" value="chr21">
-		      <label for="grp2-radio21">chr21</label>
-		      <br>
-		      <input type="radio" id="grp2-radio22" name="chr-group2" value="chr22">
-		      <label for="grp2-radio22">chr22</label>
-		      <br>
-		      <input type="radio" id="grp2-radioX" name="chr-group2" value="chrX">
-		      <label for="grp2-radioX">chrX</label>
-		      <br>
-		      <input type="radio" id="grp2-radioY" name="chr-group2" value="chrY">
-		      <label for="grp2-radioY">chrY</label>
-		      <br>
-		      <input type="radio" id="grp2-radioM" name="chr-group2" value="chrM">
-		      <label for="grp2-radioM">chrM</label>
-		      <br>
-		    </div>
-		    <div id="col3">
-		      <input type="radio" id="norm-radio1" name="norm" value="NONE" checked>
-		      <label for="norm-radio1">None</label>
-		      <br>
-		      <input type="radio" id="norm-radio2" name="norm" value="KR">
-		      <label for="norm-radio2">Balanced</label>
-		      <br>
-		      <input type="radio" id="norm-radio3" name="norm" value="VC">
-		      <label for="norm-radio3">Coverage</label>
-		      <br>
-		      <input type="radio" id="norm-radio4" name="norm" value="VC_SQRT">
-		      <label for="norm-radio4">Sqrt Coverage</label>
-		      <br>
-		    </div>
-		    <div id="col4">
-		      <button type="submit" class="btn btn-success btn-default pull-left"><span class="glyphicon glyphicon-ok"></span> Select</button>
-		      <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
-		    </div>
+	  <div id="container3">
+	    <div id="container2">
+	      <div id="container1">
+		<div id="col1">
+		  <label style="font-size: 12pt; text-align: center;">X axis</label>
+		  <div class="radio-toolbar">
+		    <input type="radio" id="grp1-radio1" name="chr-group1" value="chr1" checked>
+		    <label for="grp1-radio1">chr1</label>
+		    <br>
+		    <input type="radio" id="grp1-radio2" name="chr-group1" value="chr2">
+		    <label for="grp1-radio2">chr2</label>
+		    <br>
+		    <input type="radio" id="grp1-radio3" name="chr-group1" value="chr3">
+		    <label for="grp1-radio3">chr3</label>
+		    <br>
+		    <input type="radio" id="grp1-radio4" name="chr-group1" value="chr4">
+		    <label for="grp1-radio4">chr4</label>
+		    <br>
+		    <input type="radio" id="grp1-radio5" name="chr-group1" value="chr5">
+		    <label for="grp1-radio5">chr5</label>
+		    <br>
+		    <input type="radio" id="grp1-radio6" name="chr-group1" value="chr6">
+		    <label for="grp1-radio6">chr6</label>
+		    <br>
+		    <input type="radio" id="grp1-radio7" name="chr-group1" value="chr7">
+		    <label for="grp1-radio7">chr7</label>
+		    <br>
+		    <input type="radio" id="grp1-radio8" name="chr-group1" value="chr8">
+		    <label for="grp1-radio8">chr8</label>
+		    <br>
+		    <input type="radio" id="grp1-radio9" name="chr-group1" value="chr9">
+		    <label for="grp1-radio9">chr9</label>
+		    <br>
+		    <input type="radio" id="grp1-radio10" name="chr-group1" value="chr10">
+		    <label for="grp1-radio10">chr10</label>
+		    <br>
+		    <input type="radio" id="grp1-radio11" name="chr-group1" value="chr11">
+		    <label for="grp1-radio11">chr11</label>
+		    <br>
+		    <input type="radio" id="grp1-radio12" name="chr-group1" value="chr12">
+		    <label for="grp1-radio12">chr12</label>
+		    <br>
+		    <input type="radio" id="grp1-radio13" name="chr-group1" value="chr13">
+		    <label for="grp1-radio13">chr13</label>
+		    <br>
+		    <input type="radio" id="grp1-radio14" name="chr-group1" value="chr14">
+		    <label for="grp1-radio14">chr14</label>
+		    <br>
+		    <input type="radio" id="grp1-radio15" name="chr-group1" value="chr15">
+		    <label for="grp1-radio15">chr15</label>
+		    <br>
+		    <input type="radio" id="grp1-radio16" name="chr-group1" value="chr16">
+		    <label for="grp1-radio16">chr16</label>
+		    <br>
+		    <input type="radio" id="grp1-radio17" name="chr-group1" value="chr17">
+		    <label for="grp1-radio17">chr17</label>
+		    <br>
+		    <input type="radio" id="grp1-radio18" name="chr-group1" value="chr18">
+		    <label for="grp1-radio18">chr18</label>
+		    <br>
+		    <input type="radio" id="grp1-radio19" name="chr-group1" value="chr19">
+		    <label for="grp1-radio19">chr19</label>
+		    <br>
+		    <input type="radio" id="grp1-radio20" name="chr-group1" value="chr20">
+		    <label for="grp1-radio20">chr20</label>
+		    <br>
+		    <input type="radio" id="grp1-radio21" name="chr-group1" value="chr21">
+		    <label for="grp1-radio21">chr21</label>
+		    <br>
+		    <input type="radio" id="grp1-radio22" name="chr-group1" value="chr22">
+		    <label for="grp1-radio22">chr22</label>
+		    <br>
+		    <input type="radio" id="grp1-radioX" name="chr-group1" value="chrX">
+		    <label for="grp1-radioX">chrX</label>
+		    <br>
+		    <input type="radio" id="grp1-radioY" name="chr-group1" value="chrY">
+		    <label for="grp1-radioY">chrY</label>
+		    <br>
+		    <input type="radio" id="grp1-radioM" name="chr-group1" value="chrM">
+		    <label for="grp1-radioM">chrM</label>
+		    <br>
 		  </div>
+		</div>
+		<div id="col2">
+		  <label style="font-size: 12pt; text-align: center;">Y axis</label>
+		  <div class="radio-toolbar">
+		    
+		    <input type="radio" id="grp2-radio1" name="chr-group2" value="chr1" checked>
+		    <label for="grp2-radio1">chr1</label>
+		    <br>
+		    <input type="radio" id="grp2-radio2" name="chr-group2" value="chr2">
+		    <label for="grp2-radio2">chr2</label>
+		    <br>
+		    <input type="radio" id="grp2-radio3" name="chr-group2" value="chr3">
+		    <label for="grp2-radio3">chr3</label>
+		    <br>
+		    <input type="radio" id="grp2-radio4" name="chr-group2" value="chr4">
+		    <label for="grp2-radio4">chr4</label>
+		    <br>
+		    <input type="radio" id="grp2-radio5" name="chr-group2" value="chr5">
+		    <label for="grp2-radio5">chr5</label>
+		    <br>
+		    <input type="radio" id="grp2-radio6" name="chr-group2" value="chr6">
+		    <label for="grp2-radio6">chr6</label>
+		    <br>
+		    <input type="radio" id="grp2-radio7" name="chr-group2" value="chr7">
+		    <label for="grp2-radio7">chr7</label>
+		    <br>
+		    <input type="radio" id="grp2-radio8" name="chr-group2" value="chr8">
+		    <label for="grp2-radio8">chr8</label>
+		    <br>
+		    <input type="radio" id="grp2-radio9" name="chr-group2" value="chr9">
+		    <label for="grp2-radio9">chr9</label>
+		    <br>
+		    <input type="radio" id="grp2-radio10" name="chr-group2" value="chr10">
+		    <label for="grp2-radio10">chr10</label>
+		    <br>
+		    <input type="radio" id="grp2-radio11" name="chr-group2" value="chr11">
+		    <label for="grp2-radio11">chr11</label>
+		    <br>
+		    <input type="radio" id="grp2-radio12" name="chr-group2" value="chr12">
+		    <label for="grp2-radio12">chr12</label>
+		    <br>
+		    <input type="radio" id="grp2-radio13" name="chr-group2" value="chr13">
+		    <label for="grp2-radio13">chr13</label>
+		    <br>
+		    <input type="radio" id="grp2-radio14" name="chr-group2" value="chr14">
+		    <label for="grp2-radio14">chr14</label>
+		    <br>
+		    <input type="radio" id="grp2-radio15" name="chr-group2" value="chr15">
+		    <label for="grp2-radio15">chr15</label>
+		    <br>
+		    <input type="radio" id="grp2-radio16" name="chr-group2" value="chr16">
+		    <label for="grp2-radio16">chr16</label>
+		    <br>
+		    <input type="radio" id="grp2-radio17" name="chr-group2" value="chr17">
+		    <label for="grp2-radio17">chr17</label>
+		    <br>
+		    <input type="radio" id="grp2-radio18" name="chr-group2" value="chr18">
+		    <label for="grp2-radio18">chr18</label>
+		    <br>
+		    <input type="radio" id="grp2-radio19" name="chr-group2" value="chr19">
+		    <label for="grp2-radio19">chr19</label>
+		    <br>
+		    <input type="radio" id="grp2-radio20" name="chr-group2" value="chr20">
+		    <label for="grp2-radio20">chr20</label>
+		    <br>
+		    <input type="radio" id="grp2-radio21" name="chr-group2" value="chr21">
+		    <label for="grp2-radio21">chr21</label>
+		    <br>
+		    <input type="radio" id="grp2-radio22" name="chr-group2" value="chr22">
+		    <label for="grp2-radio22">chr22</label>
+		    <br>
+		    <input type="radio" id="grp2-radioX" name="chr-group2" value="chrX">
+		    <label for="grp2-radioX">chrX</label>
+		    <br>
+		    <input type="radio" id="grp2-radioY" name="chr-group2" value="chrY">
+		    <label for="grp2-radioY">chrY</label>
+		    <br>
+		    <input type="radio" id="grp2-radioM" name="chr-group2" value="chrM">
+		    <label for="grp2-radioM">chrM</label>
+		    <br>
+		  </div>
+		</div>
+		<div id="col3">
+		  <label style="font-size: 12pt;">&nbsp;</label>
+		  <button type="submit" class="btn btn-success btn-default pull-left"><span class="glyphicon glyphicon-ok"></span> Select&nbsp;    </button>
+		  <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
 		</div>
 	      </div>
 	    </div>
 	  </div>
 	</div>
       </div>
-    </div> 
+    </div>
   </div>
 </div>
+
+<label for="dataset_selector">Normalization  (NOT OPERATIONAL)</label>
+<select id="normalization_selector" name="dataset_selector">
+    <option value="">None</option>
+</select>
 
 
 <div id="app-container">
