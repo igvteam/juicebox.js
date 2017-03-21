@@ -51,7 +51,7 @@ var hic = (function (hic) {
             var config = event.config,
                 zoom =  (config === undefined || config.state === undefined ? -1 : config.state.zoom);
 
-            var elements = _.map(this.browser.hicReader.bpResolutions, function (resolution, index) {
+            var elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
                 var selected = zoom === index;
 
                 return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';

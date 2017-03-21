@@ -16,49 +16,42 @@ function runHiCTests() {
         hicReader = new hic.HiCReader({url: url});
         ok(hicReader);
 
-        hicReader.readHeader()
-            .then(function () {
 
+        hicReader.loadDataset()
+            .then(function (dataset) {
                 equal("HIC", hicReader.magic);
                 equal(hicReader.version, 8);
-                equal(9, hicReader.bpResolutions.length);
-                equal(2500000, hicReader.bpResolutions[0]);
-                equal(5000, hicReader.bpResolutions[8]);
+                ok(hicReader.masterIndex);
 
+                equal(9, dataset.bpResolutions.length);
+                equal(2500000, dataset.bpResolutions[0]);
+                equal(5000, dataset.bpResolutions[8]);
 
-                hicReader.readFooter()
-                    .then(function () {
-                        ok(hicReader.masterIndex);
+                readMatrix(hicReader, 1, 1)
+                    .then(function (matrix) {
+                        equal(1, matrix.chr1);
+                        equal(1, matrix.chr2);
+                        equal(9, matrix.bpZoomData.length);
 
-                        readMatrix(hicReader, 1, 1).then(function (matrix) {
-                            equal(1, matrix.chr1);
-                            equal(1, matrix.chr2);
-                            equal(9, matrix.bpZoomData.length);
+                        var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
+                        ok(zd);
+                        equal(zd.zoom.binSize, 10000);
 
-                            var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
-                            ok(zd);
-                            equal(zd.zoom.binSize, 10000);
-
-                            hicReader.readBlock(100, zd).then(function (block) {
-                                equal(100, block.blockNumber);
-                                equal(59500, block.records.length);
-                                start();
-                            });
+                        hicReader.readBlock(100, zd).then(function (block) {
+                            equal(100, block.blockNumber);
+                            equal(59500, block.records.length);
+                            start();
                         });
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                        ok(false);
-                        start();
                     });
-
             })
             .catch(function (error) {
                 console.log(error);
                 ok(false);
                 start();
             });
-    });
+
+    })
+
 
     asyncTest("Version 7 file", function () {
 
@@ -70,46 +63,36 @@ function runHiCTests() {
         hicReader = new hic.HiCReader({url: url});
         ok(hicReader);
 
-        hicReader.readHeader()
-            .then(function () {
+        hicReader.loadDataset()
+            .then(function (dataset) {
 
                 equal(hicReader.magic, "HIC");
 
-                equal(hicReader.bpResolutions.length, 10);
-                equal(2500000, hicReader.bpResolutions[0]);
-                equal(5000, hicReader.bpResolutions[8]);
+                equal(dataset.bpResolutions.length, 10);
+                equal(2500000, dataset.bpResolutions[0]);
+                equal(5000, dataset.bpResolutions[8]);
 
+                readMatrix(hicReader, 1, 1)
+                    .then(function (matrix) {
+                        equal(1, matrix.chr1);
+                        equal(1, matrix.chr2);
+                        equal(matrix.bpZoomData.length, 10);
 
-                hicReader.readFooter()
-                    .then(function () {
-                        ok(hicReader.masterIndex);
+                        var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
+                        ok(zd);
+                        equal(zd.zoom.binSize, 10000);
 
-                        readMatrix(hicReader, 1, 1).then(function (matrix) {
-                            equal(1, matrix.chr1);
-                            equal(1, matrix.chr2);
-                            equal(matrix.bpZoomData.length, 10);
-
-                            var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
-                            ok(zd);
-                            equal(zd.zoom.binSize, 10000);
-
-                            hicReader.readBlock(100, zd).then(function (block) {
-                                equal(100, block.blockNumber);
-                                equal(block.records.length, 358397);
-                                start();
-                            });
+                        hicReader.readBlock(100, zd).then(function (block) {
+                            equal(100, block.blockNumber);
+                            equal(block.records.length, 358397);
+                            start();
                         });
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                        ok(false);
-                        start();
                     });
             })
             .catch(function (error) {
                 console.log(error);
-                start();
                 ok(false);
+                start();
             });
     });
 

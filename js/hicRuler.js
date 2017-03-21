@@ -82,11 +82,11 @@ var hic = (function (hic) {
             // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
         }
 
-        config.bpPerPixel = browser.hicReader.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
+        config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
         config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
-        config.bpStart = bin * browser.hicReader.bpResolutions[ browser.state.zoom ];
+        config.bpStart = bin * browser.dataset.bpResolutions[ browser.state.zoom ];
 
         config.pixelWidth = config.viewportWidth;
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());

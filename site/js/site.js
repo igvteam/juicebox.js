@@ -9,9 +9,9 @@ var hic = (function (hic) {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
 
-                    updateDatasetPulldown(event);
+                    updateDatasetPulldown(event.data);
 
-                    updateNormalizationPulldown(event);
+                    updateNormalizationPulldown(event.data);
                 }
             }
         }
@@ -19,11 +19,9 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DataLoad", site);
     }
 
-    function updateDatasetPulldown(event) {
+    function updateDatasetPulldown(dataset) {
 
-        var hicReader = event.data,
-            config = hicReader.config,
-            selector = '#dataset_selector option[value="' + config.url + '"]',
+        var selector = '#dataset_selector option[value="' + dataset.url + '"]',
             $option = $(selector);
 
         if ($option) $option.prop('selected', true);
@@ -31,12 +29,11 @@ var hic = (function (hic) {
 
     }
 
-    function updateNormalizationPulldown(event) {
+    function updateNormalizationPulldown(dataset) {
 
-        var hicReader = event.data,
-            $normalization_pulldown = $('#normalization_selector'),
+        var $normalization_pulldown = $('#normalization_selector'),
             selected = false,
-            normalizationTypes = hicReader.normalizationTypes,
+            normalizationTypes = dataset.normalizationTypes,
             elements;
 
 

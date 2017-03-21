@@ -29,15 +29,34 @@ var hic = (function (hic) {
     var Short_MIN_VALUE = -32768;
 
     hic.HiCReader = function (config) {
+
         this.path = config.url;
         this.headPath = config.headURL || this.path;
         this.config = config;
-
         this.fragmentSitesCache = {};
 
     };
 
-    hic.HiCReader.prototype.readHeader = function () {
+    hic.HiCReader.prototype.loadDataset = function () {
+
+        var self = this,
+            dataset = new hic.Dataset(this);
+
+        return new Promise(function (fulfill, reject) {
+
+            self.readHeader(dataset)
+                .then(function () {
+                    self.readFooter(dataset)
+                        .then(function () {
+                            fulfill(dataset);
+                        })
+                        .catch(reject)
+                })
+                .catch(reject)
+        });
+    }
+
+    hic.HiCReader.prototype.readHeader = function (dataset) {
 
         var self = this;
 
@@ -60,24 +79,25 @@ var hic = (function (hic) {
                 self.magic = binaryParser.getString();
                 self.version = binaryParser.getInt();
                 self.masterIndexPos = binaryParser.getLong();
-                self.genomeId = binaryParser.getString();
 
-                self.attributes = {};
+                dataset.genomeId = binaryParser.getString();
+                dataset.attributes = {};
                 var nAttributes = binaryParser.getInt();
                 while (nAttributes-- > 0) {
-                    self.attributes[binaryParser.getString()] = binaryParser.getString();
+                    dataset.attributes[binaryParser.getString()] = binaryParser.getString();
                 }
 
-                self.chromosomes = [];
+                dataset.chromosomes = [];
                 var nChrs = binaryParser.getInt();
                 while (nChrs-- > 0) {
-                    self.chromosomes.push({name: binaryParser.getString(), size: binaryParser.getInt()});
+                    dataset.chromosomes.push({name: binaryParser.getString(), size: binaryParser.getInt()});
                 }
+                self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
 
-                self.bpResolutions = [];
+                dataset.bpResolutions = [];
                 var nBpResolutions = binaryParser.getInt();
                 while (nBpResolutions-- > 0) {
-                    self.bpResolutions.push(binaryParser.getInt());
+                    dataset.bpResolutions.push(binaryParser.getInt());
                 }
 
                 // We don't need frag level data yet, so don't load it
@@ -105,7 +125,7 @@ var hic = (function (hic) {
         });
     };
 
-    hic.HiCReader.prototype.readFooter = function () {
+    hic.HiCReader.prototype.readFooter = function (dataset) {
 
         var self = this,
             range = {start: this.masterIndexPos, size: 60000000};   // 60 mb,  hopefully enough but we can't really know for sure
@@ -143,7 +163,7 @@ var hic = (function (hic) {
 
                 self.expectedValueVectorsPosition = self.masterIndexPos + binaryParser.position;
 
-                self.expectedValueVectors = {};
+                dataset.expectedValueVectors = {};
                 nEntries = binaryParser.getInt();
                 while (nEntries-- > 0) {
                     var type = "NONE";
@@ -160,12 +180,12 @@ var hic = (function (hic) {
                         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
                     }
                     var key = unit + "_" + binSize + "_" + type;
-                    self.expectedValueVectors[key] =
-                        new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                  //  dataset.expectedValueVectors[key] =
+                  //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
                 }
 
                 if (self.version >= 6) { //binaryParser.position = 11025066
-                    self.normalizedExpectedValueVectors = {};
+                    dataset.normalizedExpectedValueVectors = {};
                     nEntries = binaryParser.getInt();
                     while (nEntries-- > 0) {
                         var type = binaryParser.getString();
@@ -182,14 +202,14 @@ var hic = (function (hic) {
                             normFactors[binaryParser.getInt()] = binaryParser.getDouble();
                         }
                         var key = unit + "_" + binSize + "_" + type;
-                        self.normalizedExpectedValueVectors[key] =
-                            new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                     //   dataset.normalizedExpectedValueVectors[key] =
+                     //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
                     }
 
                     // Normalization vector index
 
                     self.normVectorIndex = {};
-                    self.normalizationTypes = ['None'];
+                    dataset.normalizationTypes = ['NONE'];
                     nEntries = binaryParser.getInt();
                     while (nEntries-- > 0) {
                         type = binaryParser.getString();
@@ -200,8 +220,8 @@ var hic = (function (hic) {
                         var sizeInBytes = binaryParser.getInt();
                         key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
 
-                        if (_.contains(self.normalizationTypes, type) === false) {
-                            self.normalizationTypes.push(type);
+                        if (_.contains(dataset.normalizationTypes, type) === false) {
+                            dataset.normalizationTypes.push(type);
                         }
                         self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
                     }
@@ -215,58 +235,6 @@ var hic = (function (hic) {
 
         });
     };
-
-    hic.HiCReader.prototype.readNormVectorIndex = function (normVectorIndexPosition) {
-
-        var self = this,
-            range = {start: normVectorIndexPosition};
-
-        return new Promise(function (fulfill, reject) {
-
-            igvxhr.loadArrayBuffer(self.path,
-                {
-                    headers: self.config.headers,
-                    range: range,
-                    withCredentials: self.config.withCredentials
-                }).then(function (data) {
-
-                var key, pos, size;
-
-                if (!data) {
-                    fulfill(null);
-                    return;
-                }
-
-                var binaryParser = new igv.BinaryParser(new DataView(data));
-
-                self.normVectorIndex = {};
-                self.normalizationTypes = [];
-                nEntries = binaryParser.getInt();
-                while (nEntries-- > 0) {
-                    type = binaryParser.getString();
-                    var chrIdx = binaryParser.getInt();
-                    unit = binaryParser.getString();
-                    binSize = binaryParser.getInt();
-                    var filePosition = binaryParser.getLong();
-                    var sizeInBytes = binaryParser.getInt();
-                    key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
-
-                    if (_.contains(self.normalizationTypes, type) === false) {
-                        self.normalizationTypes.push(type);
-                    }
-                    self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
-                }
-
-
-                fulfill(self);
-
-            }).catch(function (error) {
-                reject(error);
-            });
-
-        });
-    };
-
 
     hic.HiCReader.prototype.readMatrix = function (key) {
 

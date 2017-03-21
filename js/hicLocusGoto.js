@@ -35,10 +35,10 @@ var hic = (function (hic) {
             var state = event.data;
 
             chrs = _.map([ state.chr1, state.chr2 ], function(index) {
-                return self.browser.hicReader.chromosomes[ index ].name;
+                return self.browser.dataset.chromosomes[ index ].name;
             });
 
-            bpPerBin = this.browser.hicReader.bpResolutions[ state.zoom ];
+            bpPerBin = this.browser.dataset.bpResolutions[ state.zoom ];
             dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
             pixelsPerBin = state.pixelSize;
 

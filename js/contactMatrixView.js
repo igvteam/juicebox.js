@@ -69,10 +69,7 @@ var hic = (function (hic) {
         this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("DataLoad", this);
 
-        this.matrixCache = {};
-        this.blockCache = {};
         this.imageTileCache = {};
 
         this.colorScale = new hic.ColorScale(
@@ -91,13 +88,15 @@ var hic = (function (hic) {
 
     };
 
-    hic.ContactMatrixView.prototype.clearCaches = function () {
-        this.matrixCache = {};
-        this.blockCache = {};
-        this.imageTileCache = {};
-    };
+    hic.ContactMatrixView.prototype.setDataset = function(dataset) {
 
-    hic.ContactMatrixView.prototype.clearImageCache = function () {
+        this.dataset = dataset;
+        this.clearCaches();
+        this.update();
+    }
+
+
+    hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
     }
 
@@ -116,7 +115,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.update = function () {
 
-        if (!this.browser.hicReader) return;
+        if (!this.dataset) return;
 
         var self = this,
             state = this.browser.state,
@@ -125,7 +124,7 @@ var hic = (function (hic) {
 
         self.updating = true;
 
-        this.getMatrix(state.chr1, state.chr2)
+        this.dataset.getMatrix(state.chr1, state.chr2)
 
             .then(function (matrix) {
 
@@ -203,27 +202,7 @@ var hic = (function (hic) {
         })
 
     };
-
-    hic.ContactMatrixView.prototype.getMatrix = function (chr1, chr2) {
-
-        var self = this,
-            reader = this.browser.hicReader,
-            key = "" + chr1 + "_" + chr2;
-        if (this.matrixCache.hasOwnProperty(key)) {
-            return Promise.resolve(self.matrixCache[key]);
-        } else {
-            return new Promise(function (fulfill, reject) {
-                reader
-                    .readMatrix(key)
-                    .then(function (matrix) {
-                        self.matrixCache[key] = matrix;
-                        fulfill(matrix);
-                    })
-                    .catch(reject);
-            })
-
-        }
-    };
+    
 
     hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
 
@@ -328,10 +307,13 @@ var hic = (function (hic) {
                     blockNumber = row * blockColumnCount + column;
                 }
 
-                self.getBlock(zd, blockNumber)
+                self.startSpinner();
+                self.dataset.getBlock(zd, blockNumber)
 
                     .then(function (block) {
 
+                        self.stopSpinner();
+                        
                         var image;
                         if (block) {
                             image = drawBlock(block, transpose);
@@ -350,30 +332,6 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.getBlock = function (zd, blockNumber) {
-
-        var self = this,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
-        if (this.blockCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.blockCache[key]);
-        } else {
-            return new Promise(function (fulfill, reject) {
-
-                var reader = self.browser.hicReader;
-                self.startSpinner();
-                reader.readBlock(blockNumber, zd)
-                    .then(function (block) {
-
-                        self.blockCache[key] = block;
-
-                        fulfill(block);
-
-                    })
-                    .catch(reject)
-            })
-        }
-    };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
         var $spinner = this.$spinner;

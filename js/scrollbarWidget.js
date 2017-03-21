@@ -83,7 +83,7 @@ var hic = (function (hic) {
         denom = $element.parent().css('left' === attribute ? 'width' : 'height').slice(0, -2);
         percentage = parseInt(numer, 10)/parseInt(denom, 10);
 
-        return percentage * chromosome.size / this.browser.hicReader.bpResolutions[ this.browser.state.zoom ];
+        return percentage * chromosome.size / this.browser.dataset.bpResolutions[ this.browser.state.zoom ];
     };
 
     hic.ScrollbarWidget.prototype.receiveEvent = function(event) {
@@ -95,14 +95,15 @@ var hic = (function (hic) {
 
         if (false === this.isDragging && event.type === "LocusChange") {
 
-            var state = event.data;
+            var state = event.data,
+                dataset = self.browser.dataset;
 
             this.$x_axis_scrollbar_container.show();
             this.$y_axis_scrollbar_container.show();
 
             chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
                 // bp / bp-per-bin -> bin
-                return self.browser.hicReader.chromosomes[index].size / self.browser.hicReader.bpResolutions[state.zoom];
+                return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
             });
 
             // pixel / pixel-per-bin -> bin
@@ -129,8 +130,8 @@ var hic = (function (hic) {
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('top', percentage);
 
-            this.$x_axis_label.text( this.browser.hicReader.chromosomes[ state.chr1 ].name );
-            this.$y_axis_label.text( this.browser.hicReader.chromosomes[ state.chr2 ].name );
+            this.$x_axis_label.text( dataset.chromosomes[ state.chr1 ].name );
+            this.$y_axis_label.text( dataset.chromosomes[ state.chr2 ].name );
 
         }
     };

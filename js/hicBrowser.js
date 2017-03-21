@@ -173,45 +173,45 @@ var hic = (function (hic) {
 
         self.contactMatrixView.startSpinner();
 
-        self.hicReader.readHeader()
-            .then(function () {
-                self.hicReader.readFooter()
-                    .then(function () {
-                        var z;
+        self.hicReader.loadDataset()
 
-                        self.chromosomes = self.hicReader.chromosomes;
-                        self.bpResolutions = self.hicReader.bpResolutions;
-                        self.fragResolutions = self.hicReader.fragResolutions;
-                        if (config.state) {
-                            self.setState(config.state);
-                        }
-                        else {
+            .then(function (dataset) {
 
-                            // Don't be clever for now
+                self.contactMatrixView.stopSpinner();
 
-                            // z = findDefaultZoom.call(
-                            //     self,
-                            //     self.bpResolutions,
-                            //     defaultPixelSize,
-                            //     self.chromosomes[defaultState.chr1].size);
-                            //
-                            // defaultState.zoom = z;
+                self.dataset = dataset;
 
-                            self.setState(defaultState.clone());
-                        }
+                if (config.state) {
+                    self.setState(config.state);
+                }
+                else {
 
-                        self.contactMatrixView.stopSpinner();
+                    // Don't be clever for now
 
-                        hic.GlobalEventBus.post(hic.Event("DataLoad", self.hicReader));
+                    // z = findDefaultZoom.call(
+                    //     self,
+                    //     self.bpResolutions,
+                    //     defaultPixelSize,
+                    //     self.chromosomes[defaultState.chr1].size);
+                    //
+                    // defaultState.zoom = z;
 
-                        if (config.colorScale) self.getColorScale().high = config.colorScale;
+                    self.setState(defaultState.clone());
+                }
 
-                    })
-                    .catch(function (error) {
-                        self.contactMatrixView.stopSpinner();
-                        console.log(error);
-                    });
+                self.contactMatrixView.setDataset(dataset);
+
+                hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
+
+                if (config.colorScale) {
+                    self.getColorScale().high = config.colorScale;
+                }
+
             })
+            .catch(function (error) {
+                self.contactMatrixView.stopSpinner();
+                console.log(error);
+            });
     };
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
@@ -256,15 +256,17 @@ var hic = (function (hic) {
 
             maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
             targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
-            newZoom = this.findMatchingZoomIndex(targetResolution, this.hicReader.bpResolutions);
+
+            var bpResolutions = this.dataset.bpResolutions;
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
             newPixelSize = this.state.pixelSize;   // Adjusting this is complex
 
             this.setState(new hic.State(
                 xLocus.chr,
                 yLocus.chr,
                 newZoom,
-                xLocus.start / this.hicReader.bpResolutions[this.state.zoom],
-                yLocus.start / this.hicReader.bpResolutions[this.state.zoom],
+                xLocus.start / bpResolutions[this.state.zoom],
+                yLocus.start / bpResolutions[this.state.zoom],
                 newPixelSize
             ));
 
@@ -299,7 +301,7 @@ var hic = (function (hic) {
 
         parts = locus.trim().split(':');
 
-        chromosomeNames = _.map(self.hicReader.chromosomes, function (chr) {
+        chromosomeNames = _.map(self.dataset.chromosomes, function (chr) {
             return chr.name;
         });
 
@@ -315,7 +317,7 @@ var hic = (function (hic) {
         if (parts.length === 1) {
             // Chromosome name only
             locusObject.start = 0;
-            locusObject.end = this.hicReader.chromosomes[locusObject.chr].size;
+            locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
         } else {
             extent = parts[1].split("-");
             if (extent.length !== 2) {
@@ -338,11 +340,11 @@ var hic = (function (hic) {
 
         if (zoom === this.state.zoom) return;
 
-        this.contactMatrixView.clearImageCache();
+        this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
 
         // Shift x,y to maintain center, if possible
-        var bpResolutions = this.hicReader.bpResolutions,
+        var bpResolutions = this.dataset.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
             n = viewDimensions.width / (2 * this.state.pixelSize),
             resRatio = bpResolutions[this.state.zoom] / bpResolutions[zoom];
@@ -359,9 +361,9 @@ var hic = (function (hic) {
 
     function minPixelSize(chr1, chr2, zoom) {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            chr1Length = this.hicReader.chromosomes[chr1].size,
-            chr2Length = this.hicReader.chromosomes[chr2].size,
-            binSize = this.hicReader.bpResolutions[zoom];
+            chr1Length = this.dataset.chromosomes[chr1].size,
+            chr2Length = this.dataset.chromosomes[chr2].size,
+            binSize = this.dataset.bpResolutions[zoom];
         return Math.max(viewDimensions.width * binSize / chr1Length, viewDimensions.width * binSize / chr2Length);
     }
 
@@ -401,8 +403,8 @@ var hic = (function (hic) {
 
         viewDimensions = this.contactMatrixView.getViewDimensions();
         targetResolution = (bpXMax - bpX) / viewDimensions.width;
-        newZoom = this.findMatchingZoomIndex(targetResolution, this.bpResolutions);
-        actualResolution = this.bpResolutions[newZoom];
+        newZoom = this.findMatchingZoomIndex(targetResolution, this.dataset.bpResolutions);
+        actualResolution = this.dataset.bpResolutions[newZoom];
         pixelSize = actualResolution / targetResolution;
         binX = bpX / actualResolution;
         binY = bpY / actualResolution;
@@ -410,16 +412,16 @@ var hic = (function (hic) {
         newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
 
         this.state = newState;
-        this.contactMatrixView.clearImageCache();
+        this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     }
 
     hic.Browser.prototype.clamp = function () {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            chr1Length = this.hicReader.chromosomes[this.state.chr1].size,
-            chr2Length = this.hicReader.chromosomes[this.state.chr2].size,
-            binSize = this.hicReader.bpResolutions[this.state.zoom],
+            chr1Length = this.dataset.chromosomes[this.state.chr1].size,
+            chr2Length = this.dataset.chromosomes[this.state.chr2].size,
+            binSize = this.dataset.bpResolutions[this.state.zoom],
             maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
             maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
 
@@ -454,7 +456,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.resolution = function () {
-        return this.hicReader.bpResolutions[this.state.zoom];
+        return this.dataset.bpResolutions[this.state.zoom];
     };
 
     function gup(href, name) {
