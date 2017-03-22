@@ -47,13 +47,17 @@ var hic = (function (hic) {
 
         this.$container.append($selector_container);
 
-        $doit = $('<i class="fa fa-arrow-circle-right" aria-hidden="true">');
+        // $doit = $('<i class="fa fa-arrow-circle-right" aria-hidden="true">');
+        $doit = $('<div class="hic-chromosome-selector-widget-button">');
+
         $doit.on('click', function (e) {
             var state = self.browser.state.clone();
             state.chr1 = self.$x_axis_selector.find('option:selected').val();
             state.chr2 = self.$y_axis_selector.find('option:selected').val();
 
-            self.browser.setState(state);
+            self.browser.state = state;
+            self.browser.setZoom(state.zoom);
+            // self.browser.setState(state);
 
         });
 

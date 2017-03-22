@@ -84,6 +84,20 @@
     cursor: pointer;
     color: #6bbdeb; }
 
+.hic-chromosome-selector-widget-button {
+  position: relative;
+  float: right;
+  margin-right: 4px;
+  width: 24px;
+  height: 24px;
+  background-image: url("../img/circular-arrows-24-grey.png"); }
+
+.hic-chromosome-selector-widget-button:hover,
+.hic-chromosome-selector-widget-button:focus,
+.hic-chromosome-selector-widget-button:active {
+  cursor: pointer;
+  background-image: url("../img/circular-arrows-24-blue.png"); }
+
 .hic-chromosome-goto-container {
   position: relative;
   float: left;
