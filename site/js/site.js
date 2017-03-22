@@ -22,6 +22,7 @@ var hic = (function (hic) {
             $option = $(selector);
 
         if ($option) $option.prop('selected', true);
+        $("#dataset_selector").trigger("chosen:updated");
 
     }
 
