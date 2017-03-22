@@ -12,8 +12,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 841px;
-  height: 889px;
+  width: 861px;
+  height: 909px;
   background-color: #fff;
   border-style: solid;
   border-width: thin;
@@ -40,9 +40,10 @@
 .hic-chromosome-selector-widget-container {
   position: relative;
   float: left;
-  width: 124px;
+  width: 164px;
   margin-left: 8px;
   margin-top: 4px;
+  padding-bottom: 2px;
   border-style: solid;
   border-width: thin;
   border-color: #5f5f5f;
@@ -51,15 +52,17 @@
     display: block;
     position: relative;
     width: 100%;
-    text-align: center;
+    text-align: left;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     font-weight: 400;
+    margin-left: 4px;
     color: #5f5f5f; }
   .hic-chromosome-selector-widget-container select {
+    cursor: pointer;
     float: left;
     position: relative;
-    width: 56px;
+    width: 60px;
     height: 20px;
     margin-left: 4px;
     font-family: "Open Sans", sans-serif;
@@ -67,6 +70,19 @@
     font-weight: 400;
     color: #5f5f5f;
     direction: rtl; }
+  .hic-chromosome-selector-widget-container i {
+    display: block;
+    position: relative;
+    top: 0;
+    float: right;
+    margin-right: 4px;
+    font-size: 20px;
+    color: #5f5f5f; }
+  .hic-chromosome-selector-widget-container i:hover,
+  .hic-chromosome-selector-widget-container i:focus,
+  .hic-chromosome-selector-widget-container i:active {
+    cursor: pointer;
+    color: #6bbdeb; }
 
 .hic-chromosome-goto-container {
   position: relative;
@@ -94,9 +110,9 @@
 .hic-colorscale-widget-container {
   position: relative;
   float: left;
-  width: 96px;
+  width: 80px;
   height: 28px;
-  margin-left: 20px;
+  margin-left: 24px;
   margin-top: 4px; }
   .hic-colorscale-widget-container label {
     display: block;
@@ -176,7 +192,7 @@
   position: absolute;
   top: 0;
   left: 25px;
-  width: 800px;
+  width: 820px;
   height: 25px; }
   .hic-x-axis div {
     position: relative;
@@ -191,7 +207,7 @@
   top: 25px;
   left: 0;
   width: 25px;
-  height: 800px; }
+  height: 820px; }
   .hic-y-axis div {
     position: relative;
     top: 0;
@@ -204,16 +220,16 @@
   position: absolute;
   left: 25px;
   top: 25px;
-  width: 816px;
-  height: 816px; }
+  width: 836px;
+  height: 836px; }
 
 .hic-viewport {
   /*cursor: pointer;*/
   position: relative;
   left: 0;
   top: 0;
-  width: 800px;
-  height: 800px;
+  width: 820px;
+  height: 820px;
   overflow-x: hidden;
   overflow-y: hidden;
   background-color: #fff; }
@@ -221,9 +237,9 @@
 .hic-viewport-x-axis-scrollbar-container {
   position: absolute;
   left: 0;
-  top: 800px;
+  top: 820px;
   height: 16px;
-  width: 800px;
+  width: 820px;
   background-color: #efefef; }
   .hic-viewport-x-axis-scrollbar-container div {
     display: table;
@@ -247,9 +263,9 @@
 .hic-viewport-y-axis-scrollbar-container {
   position: absolute;
   top: 0;
-  left: 800px;
+  left: 820px;
   width: 16px;
-  height: 800px;
+  height: 820px;
   background-color: #efefef; }
   .hic-viewport-y-axis-scrollbar-container div {
     display: table;

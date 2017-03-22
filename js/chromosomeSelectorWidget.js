@@ -9,6 +9,7 @@ var hic = (function (hic) {
             $label,
             $option,
             $selector_container,
+            $doit,
             config;
 
         this.browser = browser;
@@ -19,13 +20,13 @@ var hic = (function (hic) {
         // x-axis
         this.$x_axis_selector = $('<select name="x-axis-selector">');
         this.$x_axis_selector.on('change', function (e) {
-            console.log('x-axis chr is', $(this).val());
+            // console.log('x-axis chr is', $(this).val());
         });
 
         // y-axis
         this.$y_axis_selector = $('<select name="y-axis-selector">');
         this.$y_axis_selector.on('change', function (e) {
-            console.log('y-axis chr is', $(this).val());
+            // console.log('y-axis chr is', $(this).val());
         });
 
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
@@ -45,6 +46,19 @@ var hic = (function (hic) {
         $selector_container.append(this.$y_axis_selector);
 
         this.$container.append($selector_container);
+
+        $doit = $('<i class="fa fa-arrow-circle-right" aria-hidden="true">');
+        $doit.on('click', function (e) {
+            var state = self.browser.state.clone();
+            state.chr1 = self.$x_axis_selector.find('option:selected').val();
+            state.chr2 = self.$y_axis_selector.find('option:selected').val();
+
+            self.browser.setState(state);
+
+        });
+
+
+        this.$container.append($doit);
 
         config = {
             receiveEvent: function (event) {

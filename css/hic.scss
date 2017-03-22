@@ -3,11 +3,11 @@ $nav-bar-height: 48px;
 $nav-bar-margin-top: 4px;
 $nav-bar-widget-height: 20px;
 
-$chromosome-selector-widget-container-width: 120px;
+$chromosome-selector-widget-container-width: 160px;
 $chromosome-selector-widget-container-margin: 4px;
 
-$hic-viewport-width: 800px;
-$hic-viewport-height: 800px;
+$hic-viewport-width: 820px;
+$hic-viewport-height: 820px;
 
 $hic-scrollbar-height: 16px;
 
@@ -101,6 +101,8 @@ $default-font-family: 'Open Sans', sans-serif;
   margin-left: 8px;
   margin-top: $nav-bar-margin-top;
 
+  padding-bottom: 2px;
+
   border-style: solid;
   border-width: thin;
   border-color: $default-dark-color;
@@ -111,17 +113,19 @@ $default-font-family: 'Open Sans', sans-serif;
     display: block;
     position: relative;
     width: 100%;
-    text-align: center;
+    text-align: left;
     font-family: $default-font-family;
     font-size: 14px;
     font-weight: 400;
+    margin-left: $chromosome-selector-widget-container-margin;
     color: $default-dark-color;
   }
 
   select {
+    cursor: pointer;
     float: left;
     position: relative;
-    width: ($chromosome-selector-widget-container-width/2) - $chromosome-selector-widget-container-margin;
+    width: .80 * ($chromosome-selector-widget-container-width/2) - $chromosome-selector-widget-container-margin;
     height: $nav-bar-widget-height;
 
     margin-left: $chromosome-selector-widget-container-margin;
@@ -131,6 +135,24 @@ $default-font-family: 'Open Sans', sans-serif;
     font-weight: 400;
     color: $default-dark-color;
     direction: rtl;
+  }
+
+  i {
+    display: block;
+    position: relative;
+    top: 0;
+    float: right;
+    margin-right: 4px;
+    font-size: 20px;
+    color: $default-dark-color;
+  }
+
+
+  i:hover,
+  i:focus,
+  i:active  {
+    cursor: pointer;
+    color: #6bbdeb;
   }
 
 }
@@ -170,9 +192,9 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-colorscale-widget-container {
   position: relative;
   float: left;
-  width: 96px;
+  width: 80px;
   height: 28px;
-  margin-left: 20px;
+  margin-left: 24px;
   margin-top: $nav-bar-margin-top;
 
   label {
