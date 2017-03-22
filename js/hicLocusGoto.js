@@ -28,11 +28,12 @@ var hic = (function (hic) {
             chrs,
             startsBP,
             endsBP,
-            xy;
+            xy,
+            state;
 
         if (event.type === "LocusChange") {
 
-            var state = event.data;
+            state = event.data;
 
             chrs = _.map([ state.chr1, state.chr2 ], function(index) {
                 return self.browser.dataset.chromosomes[ index ].name;
