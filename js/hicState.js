@@ -29,11 +29,20 @@ var hic = (function (hic) {
 
     hic.State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
 
-        this.chr1 = chr1;
-        this.chr2 = chr2;
+        if(chr1 < chr2) {
+            this.chr1 = chr1;
+            this.chr2 = chr2;
+            this.x = x;
+            this.y = y;
+        }
+        else {
+            // Transpose
+            this.chr1 = chr2;
+            this.chr2 = chr1;
+            this.x = y;
+            this.y = x;
+        }
         this.zoom = zoom;
-        this.x = x;
-        this.y = y;
         this.pixelSize = pixelSize;
         this.normalization = normalization;
     };

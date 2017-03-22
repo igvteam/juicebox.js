@@ -50,7 +50,7 @@ var hic = (function (hic) {
 
         var self = this,
             reader = this.hicReader,
-            key = "" + chr1 + "_" + chr2;
+            key = "" + Math.min(chr1, chr2) + "_" + Math.max(chr1, chr2);
         if (this.matrixCache.hasOwnProperty(key)) {
             return Promise.resolve(self.matrixCache[key]);
         } else {
