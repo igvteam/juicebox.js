@@ -36,7 +36,8 @@ var hic = (function (hic) {
 
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
-            stateString = gup(href, "state");
+            stateString = gup(href, "state"),
+            colorScale = gup(href, "colorScale");
 
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
@@ -45,9 +46,9 @@ var hic = (function (hic) {
             stateString = decodeURIComponent(stateString);
             config.state = hic.destringifyState(stateString);
             var tokens = stateString.split(",");
-            if (tokens.length > 6) {
-                config.colorScale = parseFloat(tokens[6]);
-            }
+        }
+        if(colorScale) {
+            config.colorScale = parseFloat(colorScale);
         }
 
 
@@ -140,6 +141,7 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("ColorScale", this);
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -390,13 +392,13 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
     };
-    
+
     hic.Browser.prototype.setNormalization = function (normalization) {
-        
+
         this.state.normalization = normalization;
-        
+
         hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
-        
+
     }
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
@@ -427,7 +429,10 @@ var hic = (function (hic) {
         this.state = newState;
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
+
+
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+
     }
 
     hic.Browser.prototype.clamp = function () {
@@ -463,7 +468,7 @@ var hic = (function (hic) {
             href = replaceURIParameter("hicUrl", this.url, href);
         }
 
-        href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
+        href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
 
         window.history.replaceState("", "juicebox", href);
     };

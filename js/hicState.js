@@ -57,7 +57,7 @@ var hic = (function (hic) {
             parseFloat(tokens[3]),
             parseFloat(tokens[4]),
             parseFloat(tokens[5]),
-            tokens[6]
+            tokens.length > 6 ? tokens[6] : undefined
         )
 
     }
