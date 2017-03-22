@@ -7,7 +7,6 @@ var hic = (function (hic) {
 
         var self = this,
             $label,
-            $option,
             $selector_container,
             $doit,
             config;
@@ -17,32 +16,15 @@ var hic = (function (hic) {
         $label = $('<label>');
         $label.text('Chromosomes');
 
-        // x-axis
-        this.$x_axis_selector = $('<select name="x-axis-selector">');
-        this.$x_axis_selector.on('change', function (e) {
-            // console.log('x-axis chr is', $(this).val());
-        });
-
-        // y-axis
-        this.$y_axis_selector = $('<select name="y-axis-selector">');
-        this.$y_axis_selector.on('change', function (e) {
-            // console.log('y-axis chr is', $(this).val());
-        });
-
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
 
         this.$container.append($label);
 
+        this.$x_axis_selector = $('<select name="x-axis-selector">');
+        this.$y_axis_selector = $('<select name="y-axis-selector">');
+
         $selector_container = $('<div>');
-
-        $option = $('<option value="">');
-        $option.text('---');
-        this.$x_axis_selector.append($option);
         $selector_container.append(this.$x_axis_selector);
-
-        $option = $('<option value="">');
-        $option.text('---');
-        this.$y_axis_selector.append($option);
         $selector_container.append(this.$y_axis_selector);
 
         this.$container.append($selector_container);
@@ -52,11 +34,12 @@ var hic = (function (hic) {
         $doit.on('click', function (e) {
             var chr1,
                 chr2;
+
             chr1 = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
             chr2 = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
+
             self.browser.setChromosomes(chr1, chr2);
         });
-
 
         this.$container.append($doit);
 
@@ -73,15 +56,26 @@ var hic = (function (hic) {
         config = {
             receiveEvent: function (event) {
                 var str,
-                    state;
+                    state,
+                    chr1,
+                    chr2;
+
                 if (event.type === "LocusChange") {
                     state = event.data;
 
-                    str = 'option[value=' + state.chr1.toString() + ']';
-                    self.$x_axis_selector.find(str).attr('selected', 'selected');
+                    chr1 = parseInt(self.$x_axis_selector.find("option:selected").val(), 10);
+                    chr2 = parseInt(self.$y_axis_selector.find("option:selected").val(), 10);
 
-                    str = 'option[value=' + state.chr2.toString() + ']';
-                    self.$y_axis_selector.find(str).attr('selected', 'selected');
+                    if (chr1 !== state.chr1 || chr2 !== state.chr2) {
+
+                        str = 'option[value=' + state.chr1.toString() + ']';
+                        self.$x_axis_selector.find(str).attr('selected', 'selected');
+
+                        str = 'option[value=' + state.chr2.toString() + ']';
+                        self.$y_axis_selector.find(str).attr('selected', 'selected');
+
+                    }
+
                 }
             }
         };

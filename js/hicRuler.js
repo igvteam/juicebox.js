@@ -100,11 +100,17 @@ var hic = (function (hic) {
             ts,
             spacing,
             nTick,
-            x,
+            pixel,
             l,
             yShim,
             tickHeight,
-            chrPosition;
+            chrPosition,
+            chrSize,
+            chrName,
+            chromosomes = this.browser.hicReader.chromosomes;
+
+        chrName = ('x' === this.axis) ? chromosomes[ this.browser.state.chr1 ].name : chromosomes[ this.browser.state.chr2 ].name;
+        chrSize = ('x' === this.axis) ? chromosomes[ this.browser.state.chr1 ].size : chromosomes[ this.browser.state.chr2 ].size;
 
         if (options.chrName === "all") {
             // drawAll.call(this);
@@ -122,33 +128,41 @@ var hic = (function (hic) {
 
             // Find starting point closest to the current origin
             nTick = Math.floor(options.bpStart / spacing) - 1;
-            x = 0;
+            pixel = 0;
 
             igv.graphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
 
             yShim = 2;
             tickHeight = 8;
-            while (x < options.pixelWidth) {
+            while (pixel < options.pixelWidth) {
 
                 l = Math.floor(nTick * spacing);
 
-                x = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
-                chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
+                pixel = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
 
-                if (nTick % 1 == 0) {
-                    this.ctx.save();
-                    this.labelReflectionTransform(this.ctx, x);
-                    igv.graphics.fillText(this.ctx, chrPosition, x, options.height - (tickHeight / 0.75));
-                    this.ctx.restore();
+                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
+
+                    chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
+
+                    // console.log(this.axis + ' chr ' + chrName + ' bp ' + igv.numberFormatter(Math.floor((pixel * options.bpPerPixel) + options.bpStart)) + ' size-bp ' + igv.numberFormatter(chrSize));
+
+                    if (nTick % 1 == 0) {
+                        this.ctx.save();
+                        this.labelReflectionTransform(this.ctx, pixel);
+                        igv.graphics.fillText(this.ctx, chrPosition, pixel, options.height - (tickHeight / 0.75));
+                        this.ctx.restore();
+                    }
+
+                    igv.graphics.strokeLine(this.ctx,
+                        pixel, options.height - tickHeight,
+                        pixel, options.height - yShim);
+
+                    nTick++;
                 }
 
-                igv.graphics.strokeLine(this.ctx,
-                    x, options.height - tickHeight,
-                    x, options.height - yShim);
+            } // while (pixel < options.pixelWidth)
 
-                nTick++;
-            }
             igv.graphics.strokeLine(this.ctx,
                                  0, options.height - yShim,
                 options.pixelWidth, options.height - yShim);
@@ -213,7 +227,6 @@ var hic = (function (hic) {
             //retval =  "$"+retval
             return retval;
         }
-
 
         function drawAll() {
 
