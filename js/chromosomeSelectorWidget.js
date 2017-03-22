@@ -51,9 +51,17 @@ var hic = (function (hic) {
 
         $doit.on('click', function (e) {
             var chr1,
-                chr2;
+                chr2,
+                chromosomes = self.browser.hicReader.chromosomes,
+                strx,
+                stry;
+
             chr1 = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
             chr2 = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
+
+            strx = 'chr x (' + chromosomes[ chr1 ].name + ', ' + igv.numberFormatter(chromosomes[ chr1 ].size) + ')';
+            stry = 'chr y (' + chromosomes[ chr2 ].name + ', ' + igv.numberFormatter(chromosomes[ chr2 ].size) + ')';
+            console.log(strx + ' ' + stry);
             self.browser.setChromosomes(chr1, chr2);
         });
 
