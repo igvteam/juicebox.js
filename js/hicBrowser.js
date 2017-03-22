@@ -424,7 +424,7 @@ var hic = (function (hic) {
         binX = bpX / actualResolution;
         binY = bpY / actualResolution;
         currentState = this.state;
-        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
+        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize, currentState.normalization);
 
         this.state = newState;
         this.contactMatrixView.clearCaches();
