@@ -46,6 +46,7 @@
     <script src="../js/hicState.js"></script>
     <script src="../js/hicDataset.js"></script>
     <script src="../js/normalizationVector.js"></script>
+    <script src="../js/normalizationWidget.js"></script>
 
 </head>
 
@@ -59,12 +60,6 @@
         <option value="">Select...</option>
         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
         <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
-    </select>
-
-
-    <label for="normalization_selector">Normalization</label>
-    <select id="normalization_selector" name="dataset_selector">
-        <option value="">None</option>
     </select>
 
 </div>
@@ -84,10 +79,6 @@
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
         });
-
-        $('#normalization_selector').on('change', function(e) {
-            browser.setNormalization($(this).val() );
-        })
 
         hic.initSite();
     });
