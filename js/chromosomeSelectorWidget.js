@@ -74,9 +74,9 @@ var hic = (function (hic) {
 
     hic.ChromosomeSelectorWidget.prototype.updateWithDataset = function(dataset) {
 
-        var selected,
-            elements,
-            names;
+        var elements,
+            names,
+            str;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
@@ -86,13 +86,18 @@ var hic = (function (hic) {
             return chr.name;
         });
 
-        selected = false;
         elements = _.map(names, function (name) {
-            return '<option' + ' value=' + name + (selected ? ' selected' : '') + '>' + name + '</option>';
+            return '<option value=' + name.toString() + '>' + name.toString() + '</option>';
         });
 
         this.$x_axis_selector.append(elements.join(''));
         this.$y_axis_selector.append(elements.join(''));
+
+        str = 'option[value=' + this.browser.state.chr1.toString() + ']';
+        this.$x_axis_selector.find(str).attr('selected', 'selected');
+
+        str = 'option[value=' + this.browser.state.chr2.toString() + ']';
+        this.$y_axis_selector.find(str).attr('selected', 'selected');
 
     };
 
