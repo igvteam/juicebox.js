@@ -32,11 +32,12 @@ var hic = (function (hic) {
 
         defaultPixelSize = 1;
 
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize);
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
-            stateString = gup(href, "state");
+            stateString = gup(href, "state"),
+            colorScale = gup(href, "colorScale");
 
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
@@ -45,9 +46,9 @@ var hic = (function (hic) {
             stateString = decodeURIComponent(stateString);
             config.state = hic.destringifyState(stateString);
             var tokens = stateString.split(",");
-            if (tokens.length > 6) {
-                config.colorScale = parseFloat(tokens[6]);
-            }
+        }
+        if(colorScale) {
+            config.colorScale = parseFloat(colorScale);
         }
 
 
@@ -89,6 +90,10 @@ var hic = (function (hic) {
         // colorscale widget
         this.colorscaleWidget = new hic.ColorScaleWidget(this);
         this.$navbar_container.append(this.colorscaleWidget.$container);
+
+        // resolution widget
+        this.normalizationSelector = new hic.NormalizationWidget(this);
+        this.$navbar_container.append(this.normalizationSelector.$container);
 
         // resolution widget
         this.resolutionSelector = new hic.ResolutionSelector(this);
@@ -136,6 +141,7 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("ColorScale", this);
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -197,6 +203,7 @@ var hic = (function (hic) {
                     // defaultState.zoom = z;
 
                     self.setState(defaultState.clone());
+                    self.contactMatrixView.computeColorScale = true;
                 }
 
                 self.contactMatrixView.setDataset(dataset);
@@ -386,6 +393,14 @@ var hic = (function (hic) {
 
     };
 
+    hic.Browser.prototype.setNormalization = function (normalization) {
+
+        this.state.normalization = normalization;
+
+        hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
+
+    }
+
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
         this.state.x += dx;
@@ -409,12 +424,15 @@ var hic = (function (hic) {
         binX = bpX / actualResolution;
         binY = bpY / actualResolution;
         currentState = this.state;
-        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize);
+        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize, currentState.normalization);
 
         this.state = newState;
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
+
+
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+
     }
 
     hic.Browser.prototype.clamp = function () {
@@ -450,7 +468,7 @@ var hic = (function (hic) {
             href = replaceURIParameter("hicUrl", this.url, href);
         }
 
-        href = replaceURIParameter("state", (this.state.stringify()) + "," + this.contactMatrixView.colorScale.high, href);
+        href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
 
         window.history.replaceState("", "juicebox", href);
     };

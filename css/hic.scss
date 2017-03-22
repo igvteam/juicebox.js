@@ -1,5 +1,6 @@
 
 $nav-bar-height: 48px;
+$nav-bar-margin-top: 8px;
 
 $hic-viewport-width: 800px;
 $hic-viewport-height: 800px;
@@ -91,13 +92,12 @@ $default-font-family: 'Open Sans', sans-serif;
 
   position: relative;
   float: left;
-  width: 420px;
+  width: 360px;
   height: 28px;
-  padding-left: 8px;
-  padding-top: 8px;
+  margin-left: 4px;
+  margin-top: $nav-bar-margin-top;
 
   input {
-
     position: relative;
     float: left;
     width: 100%;
@@ -107,7 +107,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
     color: $default-dark-color;
     font-family: $default-font-family;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 400;
 
     outline: none;
@@ -123,10 +123,10 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-colorscale-widget-container {
   position: relative;
   float: left;
-  width: 120px;
+  width: 96px;
   height: 28px;
-  padding-left: 32px;
-  padding-top: 4px;
+  margin-left: 20px;
+  margin-top: $nav-bar-margin-top;
 
   label {
     display: block;
@@ -142,7 +142,7 @@ $default-font-family: 'Open Sans', sans-serif;
     float: left;
 
     position: relative;
-    width: 48px;
+    width: 64px;
     height: 16px;
 
     color: #5f5f5f;
@@ -160,6 +160,35 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
+}
+
+.hic-normalization-selector-container {
+
+  position: relative;
+  float: left;
+  width: 80px;
+
+  margin-left: 8px;
+  margin-top: $nav-bar-margin-top;
+
+  label {
+    position: relative;
+    font-family: $default-font-family;
+    font-size: 14px;
+    font-weight: 400;
+    color: $default-dark-color;
+  }
+
+  select {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-family: $default-font-family;
+    font-size: 12px;
+    font-weight: 400;
+    color: $default-dark-color;
+    direction: rtl;
+  }
 
 }
 
@@ -169,12 +198,11 @@ $default-font-family: 'Open Sans', sans-serif;
   float: left;
   width: 120px;
 
-  padding-left: 16px;
-  padding-top: 3px;
+  margin-left: 16px;
+  margin-top: $nav-bar-margin-top;
 
   label {
     position: relative;
-    padding-left: 10px;
     font-family: $default-font-family;
     font-size: 14px;
     font-weight: 400;

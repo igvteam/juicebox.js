@@ -180,8 +180,8 @@ var hic = (function (hic) {
                         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
                     }
                     var key = unit + "_" + binSize + "_" + type;
-                  //  dataset.expectedValueVectors[key] =
-                  //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                    //  dataset.expectedValueVectors[key] =
+                    //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
                 }
 
                 if (self.version >= 6) { //binaryParser.position = 11025066
@@ -202,8 +202,8 @@ var hic = (function (hic) {
                             normFactors[binaryParser.getInt()] = binaryParser.getDouble();
                         }
                         var key = unit + "_" + binSize + "_" + type;
-                     //   dataset.normalizedExpectedValueVectors[key] =
-                     //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                        //   dataset.normalizedExpectedValueVectors[key] =
+                        //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
                     }
 
                     // Normalization vector index
@@ -218,12 +218,12 @@ var hic = (function (hic) {
                         binSize = binaryParser.getInt();
                         var filePosition = binaryParser.getLong();
                         var sizeInBytes = binaryParser.getInt();
-                        key = NormalizationVector.getKey(type, chrIdx, unit.binSize);
+                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
                         if (_.contains(dataset.normalizationTypes, type) === false) {
                             dataset.normalizationTypes.push(type);
                         }
-                        self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
+                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
                     }
                 }
 
@@ -341,7 +341,7 @@ var hic = (function (hic) {
                                 var binX = parser.getInt();
                                 var binY = parser.getInt();
                                 var counts = parser.getFloat();
-                                records.add(new ContactRecord(binX, binY, counts));
+                                records.push(new hic.ContactRecord(binX, binY, counts));
                             }
                         } else {
 
@@ -364,7 +364,7 @@ var hic = (function (hic) {
 
                                         binX = binXOffset + parser.getShort();
                                         counts = useShort ? parser.getShort() : parser.getFloat();
-                                        records.push(new ContactRecord(binX, binY, counts));
+                                        records.push(new hic.ContactRecord(binX, binY, counts));
                                     }
                                 }
                             } else if (type == 2) {
@@ -382,12 +382,12 @@ var hic = (function (hic) {
                                     if (useShort) {
                                         counts = parser.getShort();
                                         if (counts != Short_MIN_VALUE) {
-                                            records.push(new ContactRecord(bin1, bin2, counts));
+                                            records.push(new hic.ContactRecord(bin1, bin2, counts));
                                         }
                                     } else {
                                         counts = parser.getFloat();
                                         if (!isNaN(counts)) {
-                                            records.push(new ContactRecord(bin1, bin2, counts));
+                                            records.push(new hic.hic.ContactRecord(bin1, bin2, counts));
                                         }
                                     }
 
@@ -399,7 +399,7 @@ var hic = (function (hic) {
                             }
                         }
                         // console.log("Block " + blockNumber);
-                        fulfill(new Block(blockNumber, zd, records));
+                        fulfill(new hic.Block(blockNumber, zd, records));
                     })
                     .catch(reject);
             });
@@ -474,6 +474,59 @@ var hic = (function (hic) {
         return zd;
     }
 
+    hic.HiCReader.prototype.readNormalizationVector = function (type, chrIdx, unit, binSize) {
+
+        var self = this,
+            key = hic.getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
+
+
+        if (this.normVectorIndex == null) {
+            Promise.resolve(null);
+        };
+
+        var idx = this.normVectorIndex[key];
+        if (idx == null) {
+            Promise.resolve(null);
+        }
+
+        return new Promise(function (fulfill, reject) {
+
+            igvxhr.loadArrayBuffer(self.path,
+                {
+                    headers: self.config.headers,
+                    range: {start: idx.filePosition, size: idx.size},
+                    withCredentials: self.config.withCredentials
+                })
+                .then(function (data) {
+
+                    if (!data) {
+                        fulfill(null);
+                        return;
+                    }
+
+                    // var inflate = new Zlib.Inflate(new Uint8Array(data));
+                    // var plain = inflate.decompress();
+                    // data = plain.buffer;
+
+                    var parser = new igv.BinaryParser(new DataView(data));
+                    var nValues = parser.getInt();
+                    var values = [];
+                    var allNaN = true;
+                    for (var i = 0; i < nValues; i++) {
+                        values[i] = parser.getDouble();
+                        if (!isNaN(values[i])) {
+                            allNaN = false;
+                        }
+                    }
+                    if (allNaN) fulfill(null);
+                    fulfill(new hic.NormalizationVector(type, chrIdx, unit, binSize, values));
+
+
+                })
+        })
+    }
+
+
     function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
         this.normType = normType;
         this.unit = unit;
@@ -481,18 +534,6 @@ var hic = (function (hic) {
         this.values = values;
         this.normFactors = normFactors;
     }
-
-    function NormalizationVector(type, chrIdx, unit, binSize, data) {
-        this.type = type;
-        this.chrIdx = chrIdx;
-        this.unit = unit;
-        this.binSize = binSize;
-        this.data = data;
-    }
-
-    NormalizationVector.getKey = function (type, chrIdx, unit, binSize) {
-        return type + "_" + chrIdx + "_" + unit + "_" + binSize;
-    };
 
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
         this.chr1 = chr1;
@@ -541,17 +582,6 @@ var hic = (function (hic) {
         return undefined;
     };
 
-    ContactRecord = function (bin1, bin2, counts) {
-        this.bin1 = bin1;
-        this.bin2 = bin2;
-        this.counts = counts;
-    };
-
-    Block = function (blockNumber, zoomData, records) {
-        this.blockNumber = blockNumber;
-        this.zoomData = zoomData;
-        this.records = records;
-    };
 
     return hic;
 
