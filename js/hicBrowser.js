@@ -349,9 +349,9 @@ var hic = (function (hic) {
         return locusObject;
     };
 
-    hic.Browser.prototype.setZoom = function (zoom) {
+    hic.Browser.prototype.setZoom = function (zoom, force) {
 
-        if (zoom === this.state.zoom) return;
+        if (!force && zoom === this.state.zoom) return;
 
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.computeColorScale = true;
@@ -376,7 +376,7 @@ var hic = (function (hic) {
 
         this.state.chr1 = chr1;
         this.state.chr2 = chr2;
-        this.setZoom(0);
+        this.setZoom(0, true);
     };
 
     function minPixelSize(chr1, chr2, zoom) {
