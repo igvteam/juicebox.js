@@ -70,7 +70,7 @@ var hic = (function (hic) {
         $root.append(this.$navbar_container);
 
         // logo
-        this.$navbar_container.append($('<div class="hic-logo-container">'));
+        // this.$navbar_container.append($('<div class="hic-logo-container">'));
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);

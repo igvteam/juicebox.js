@@ -1,6 +1,7 @@
 
 $nav-bar-height: 48px;
-$nav-bar-margin-top: 8px;
+$nav-bar-margin-top: 4px;
+$nav-bar-widget-height: 20px;
 
 $hic-viewport-width: 800px;
 $hic-viewport-height: 800px;
@@ -93,9 +94,9 @@ $default-font-family: 'Open Sans', sans-serif;
   position: relative;
   float: left;
   width: 360px;
-  height: 28px;
+  height: $nav-bar-widget-height;
   margin-left: 4px;
-  margin-top: $nav-bar-margin-top;
+  margin-top: 20px;
 
   input {
     position: relative;
@@ -141,9 +142,10 @@ $default-font-family: 'Open Sans', sans-serif;
     display: block;
     float: left;
 
+    padding-left: 2px;
     position: relative;
     width: 64px;
-    height: 16px;
+    height: $nav-bar-widget-height;
 
     color: #5f5f5f;
     font-family: $default-font-family;
@@ -182,7 +184,7 @@ $default-font-family: 'Open Sans', sans-serif;
   select {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: $nav-bar-widget-height;
     font-family: $default-font-family;
     font-size: 12px;
     font-weight: 400;
@@ -212,7 +214,7 @@ $default-font-family: 'Open Sans', sans-serif;
   select {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: $nav-bar-widget-height;
     font-family: $default-font-family;
     font-size: 14px;
     font-weight: 400;
