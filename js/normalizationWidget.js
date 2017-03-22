@@ -33,7 +33,7 @@ var hic = (function (hic) {
         config = {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
-                    self.updateWithDataset(event.data);
+                    self.respondToDataLoadWithDataset(event.data);
                 }
             }
         };
@@ -42,7 +42,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.NormalizationWidget.prototype.updateWithDataset = function(dataset) {
+    hic.NormalizationWidget.prototype.respondToDataLoadWithDataset = function(dataset) {
 
         var selected,
             normalizationTypes,
