@@ -341,7 +341,7 @@ var hic = (function (hic) {
                                 var binX = parser.getInt();
                                 var binY = parser.getInt();
                                 var counts = parser.getFloat();
-                                records.add(new hic.ContactRecord(binX, binY, counts));
+                                records.push(new hic.ContactRecord(binX, binY, counts));
                             }
                         } else {
 
