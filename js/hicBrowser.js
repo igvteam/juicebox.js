@@ -83,6 +83,12 @@ var hic = (function (hic) {
         $content_container.append(this.$yAxis);
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
 
+
+
+        // chromosome selector
+        // this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
+        // this.$navbar_container.append(this.chromosomeSelector.$container);
+
         // location box / goto
         this.locusGoto = new hic.LocusGoto(this);
         this.$navbar_container.append(this.locusGoto.$container);
