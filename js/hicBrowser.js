@@ -372,6 +372,13 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
+    hic.Browser.prototype.setChromosomes = function (chr1, chr2) {
+
+        this.state.chr1 = chr1;
+        this.state.chr2 = chr2;
+        this.setZoom(0);
+    };
+
     function minPixelSize(chr1, chr2, zoom) {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.dataset.chromosomes[chr1].size,
