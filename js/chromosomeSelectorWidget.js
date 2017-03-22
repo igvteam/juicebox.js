@@ -93,7 +93,9 @@ var hic = (function (hic) {
         var self = this,
             str,
             findX,
-            findY;
+            findY,
+            chr1,
+            chr2;
 
 
         findX = this.$x_axis_selector.find('option');
@@ -104,30 +106,18 @@ var hic = (function (hic) {
             return;
         }
 
-        // rebuildChromosomeSelect();
+        findX = this.$x_axis_selector.find('option:selected');
+        chr1 = parseInt(findX.val(), 10);
+        if (chr1 !== state.chr1) {
+            str = 'option[value=' + state.chr1.toString() + ']';
+            this.$x_axis_selector.find(str).attr('selected', 'selected');
+        }
 
-        str = 'option[value=' + state.chr1.toString() + ']';
-        this.$x_axis_selector.find(str).attr('selected', 'selected');
-
-        str = 'option[value=' + state.chr2.toString() + ']';
-        this.$y_axis_selector.find(str).attr('selected', 'selected');
-
-
-        function rebuildChromosomeSelect() {
-
-            var elements,
-                chromosomes = self.browser.hicReader.chromosomes;
-
-            self.$x_axis_selector.empty();
-            self.$y_axis_selector.empty();
-
-            elements = _.map(chromosomes, function (chr, index){
-                return '<option value=' + index.toString() + '>' + chr.name + '</option>';
-            });
-
-            self.$x_axis_selector.append(elements.join(''));
-            self.$y_axis_selector.append(elements.join(''));
-
+        findY = this.$y_axis_selector.find('option:selected');
+        chr2 = parseInt(findY.val(), 10);
+        if (chr2 !== state.chr2) {
+            str = 'option[value=' + state.chr2.toString() + ']';
+            this.$y_axis_selector.find(str).attr('selected', 'selected');
         }
 
     };
