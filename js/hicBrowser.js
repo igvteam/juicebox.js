@@ -70,7 +70,7 @@ var hic = (function (hic) {
         $root.append(this.$navbar_container);
 
         // logo
-        this.$navbar_container.append($('<div class="hic-logo-container">'));
+        // this.$navbar_container.append($('<div class="hic-logo-container">'));
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
@@ -82,6 +82,12 @@ var hic = (function (hic) {
         this.$yAxis = yAxis();
         $content_container.append(this.$yAxis);
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
+
+
+
+        // chromosome selector
+        this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
+        this.$navbar_container.append(this.chromosomeSelector.$container);
 
         // location box / goto
         this.locusGoto = new hic.LocusGoto(this);

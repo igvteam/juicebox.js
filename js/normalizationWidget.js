@@ -59,7 +59,6 @@ var hic = (function (hic) {
 
     };
 
-
     return hic;
 
 })
