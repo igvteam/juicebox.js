@@ -201,6 +201,7 @@ var hic = (function (hic) {
                     // defaultState.zoom = z;
 
                     self.setState(defaultState.clone());
+                    self.contactMatrixView.computeColorScale = true;
                 }
 
                 self.contactMatrixView.setDataset(dataset);

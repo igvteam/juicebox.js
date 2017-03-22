@@ -223,7 +223,7 @@ var hic = (function (hic) {
                         if (_.contains(dataset.normalizationTypes, type) === false) {
                             dataset.normalizationTypes.push(type);
                         }
-                        self.normVectorIndex[key] = {filePosition: filePosition, sizeInByes: sizeInBytes};
+                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
                     }
                 }
 
