@@ -74,6 +74,24 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.subscribe("DataLoad", config);
 
+        config = {
+            receiveEvent: function (event) {
+                var str,
+                    state;
+                if (event.type === "LocusChange") {
+                    state = event.data;
+
+                    str = 'option[value=' + state.chr1.toString() + ']';
+                    self.$x_axis_selector.find(str).attr('selected', 'selected');
+
+                    str = 'option[value=' + state.chr2.toString() + ']';
+                    self.$y_axis_selector.find(str).attr('selected', 'selected');
+                }
+            }
+        };
+
+        hic.GlobalEventBus.subscribe("LocusChange", config);
+
     };
 
     hic.ChromosomeSelectorWidget.prototype.updateWithDataset = function(dataset) {

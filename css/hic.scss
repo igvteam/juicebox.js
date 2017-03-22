@@ -139,23 +139,23 @@ $default-font-family: 'Open Sans', sans-serif;
     direction: rtl;
   }
 
-  i {
-    display: block;
-    position: relative;
-    top: 0;
-    float: right;
-    margin-right: 4px;
-    font-size: 20px;
-    color: $default-dark-color;
-  }
+  //i {
+  //  display: block;
+  //  position: relative;
+  //  top: 0;
+  //  float: right;
+  //  margin-right: 4px;
+  //  font-size: 20px;
+  //  color: $default-dark-color;
+  //}
 
 
-  i:hover,
-  i:focus,
-  i:active  {
-    cursor: pointer;
-    color: #6bbdeb;
-  }
+  //i:hover,
+  //i:focus,
+  //i:active  {
+  //  cursor: pointer;
+  //  color: #6bbdeb;
+  //}
 
 }
 .hic-chromosome-selector-widget-button {
