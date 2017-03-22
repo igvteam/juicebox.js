@@ -32,6 +32,11 @@
     <!-- IGV JS -->
     <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
 
+    <!-- Chosen CSS -->
+  <link rel="stylesheet" href="https://harvesthq.github.io/chosen/chosen.css" />
+
+    <!-- Chosen for combo box -->
+    <script src="https://harvesthq.github.io/chosen/chosen.jquery.js" type="text/javascript"></script>
 
     <!-- juicebox JS -->
     <script src="dist/hic.js"></script>
@@ -42,8 +47,8 @@
 <body>
 
 <div class="site-container">
-    <select id="dataset_selector" name="dataset_selector">
-        <option value="">Choose a Hi-C map to view...</option>
+    <select id="dataset_selector" data-placeholder="Choose a Hi-C map to view..." class="chosen-select"  name="dataset_selector">
+        <option value=""></option>
 <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 combined in situ from Cell 2014</option>
 <option value="https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic">IMR90 combined in situ from Cell 2014</option>
 <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
@@ -480,7 +485,9 @@
 <option value="http://hicfiles.s3.amazonaws.com/external/mumbach/GSE80820_HiChIP_mES_Oct4.hic">Mumbach Rubin and Flynn et al. | Nature Methods 2016 mESC oct4 combined</option>
 <option value="http://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined.hic">Eagen et al. | bioRxiv 2017 Kc167 combined</option>
 <option value="http://hicfiles.s3.amazonaws.com/external/eagen/GSE89112_Kc167combined_randomized.hic">Eagen et al. | bioRxiv 2017 Kc167 combined randomized</option>
-<option value="http://hicfiles.s3.amazonaws.com/hiseq/aedes/aedes.hic">zz1</option>
+<option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">zz1</option>
+        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">zz2</option>
+        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic">zz3</option>
     </select>
 </div>
 
