@@ -4,32 +4,51 @@
 var hic = (function (hic) {
 
     hic.ChromosomeSelectorWidget = function (browser) {
+
         var self = this,
             $label,
-            $option;
+            $option,
+            $selector_container;
 
         this.browser = browser;
 
-        $label = $('<label for="chromosome_selector">');
-        $label.text('Select Chromosomes');
+        $label = $('<label>');
+        $label.text('Chr X Y');
 
-        this.$chromosome_selector = $('<select name="select">');
-        this.$chromosome_selector.on('change', function (e) {
-            console.log('chr selected');
+        // x-axis
+        this.$x_axis_selector = $('<select name="x-axis-selector">');
+        this.$x_axis_selector.on('change', function (e) {
+            console.log('x-axis chr selected');
         });
 
-        this.$chromosome_selector.attr('name', 'chromosome_selector');
-
-        $option = $('<option value="">');
-        $option.text('---');
+        // y-axis
+        this.$y_axis_selector = $('<select name="y-axis-selector">');
+        this.$y_axis_selector.on('change', function (e) {
+            console.log('y-axis chr selected');
+        });
 
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
 
         this.$container.append($label);
-        this.$chromosome_selector.append($option);
-        this.$container.append(this.$chromosome_selector);
+
+        $selector_container = $('<div>');
+
+        $option = $('<option value="">');
+        $option.text('---');
+        this.$x_axis_selector.append($option);
+        $selector_container.append(this.$x_axis_selector);
+
+        $option = $('<option value="">');
+        $option.text('---');
+        this.$y_axis_selector.append($option);
+        $selector_container.append(this.$y_axis_selector);
+
+        this.$container.append($selector_container);
+
 
     };
+
+    return hic;
 
 }) (hic || {});
 

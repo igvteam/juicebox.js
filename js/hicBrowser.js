@@ -86,8 +86,8 @@ var hic = (function (hic) {
 
 
         // chromosome selector
-        // this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
-        // this.$navbar_container.append(this.chromosomeSelector.$container);
+        this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
+        this.$navbar_container.append(this.chromosomeSelector.$container);
 
         // location box / goto
         this.locusGoto = new hic.LocusGoto(this);
