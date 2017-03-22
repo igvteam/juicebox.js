@@ -290,13 +290,13 @@ var hic = (function (hic) {
                         if (state.pixelSize === 1) {
                             // TODO -- verify that this bitblting is faster than fillRect
                             setPixel(id, x, y, color.red, color.green, color.blue, 255);
-                            if (row === col) {
+                            if (sameChr && row === col) {
                                 setPixel(id, y, x, color.red, color.green, color.blue, 255);
                             }
                         }
                         else {
                             ctx.fillRect(x, y, fudge + state.pixelSize, fudge + state.pixelSize);
-                            if (row === col) {
+                            if (sameChr && row === col) {
                                 ctx.fillRect(y, x, fudge + state.pixelSize, fudge + state.pixelSize);
                             }
                         }
