@@ -8,7 +8,8 @@ var hic = (function (hic) {
         var self = this,
             $label,
             $option,
-            $selector_container;
+            $selector_container,
+            config;
 
         this.browser = browser;
 
@@ -18,13 +19,13 @@ var hic = (function (hic) {
         // x-axis
         this.$x_axis_selector = $('<select name="x-axis-selector">');
         this.$x_axis_selector.on('change', function (e) {
-            console.log('x-axis chr selected');
+            console.log('x-axis chr is', $(this).val());
         });
 
         // y-axis
         this.$y_axis_selector = $('<select name="y-axis-selector">');
         this.$y_axis_selector.on('change', function (e) {
-            console.log('y-axis chr selected');
+            console.log('y-axis chr is', $(this).val());
         });
 
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
@@ -45,6 +46,39 @@ var hic = (function (hic) {
 
         this.$container.append($selector_container);
 
+        config = {
+            receiveEvent: function (event) {
+                if (event.type === "DataLoad") {
+                    self.updateWithDataset(event.data);
+                }
+            }
+        };
+
+        hic.GlobalEventBus.subscribe("DataLoad", config);
+
+    };
+
+    hic.ChromosomeSelectorWidget.prototype.updateWithDataset = function(dataset) {
+
+        var selected,
+            elements,
+            names;
+
+        this.$x_axis_selector.empty();
+        this.$y_axis_selector.empty();
+
+
+        names = _.map(dataset.chromosomes, function (chr){
+            return chr.name;
+        });
+
+        selected = false;
+        elements = _.map(names, function (name) {
+            return '<option' + ' value=' + name + (selected ? ' selected' : '') + '>' + name + '</option>';
+        });
+
+        this.$x_axis_selector.append(elements.join(''));
+        this.$y_axis_selector.append(elements.join(''));
 
     };
 
