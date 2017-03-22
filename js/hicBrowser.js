@@ -60,6 +60,8 @@ var hic = (function (hic) {
         var $root,
             $content_container;
 
+        setDefaults(config);
+
         this.config = config;
 
         $root = $('<div class="hic-root unselect">');
@@ -86,8 +88,10 @@ var hic = (function (hic) {
 
 
         // chromosome selector
-        this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
-        this.$navbar_container.append(this.chromosomeSelector.$container);
+        if(config.showChromosomeSelector) {
+            this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
+            this.$navbar_container.append(this.chromosomeSelector.$container);
+        }
 
         // location box / goto
         this.locusGoto = new hic.LocusGoto(this);
@@ -524,6 +528,13 @@ var hic = (function (hic) {
         this.y = y;
         this.pixelSize = pixelSize;
     };
+
+    // Set default values for config properties
+    function setDefaults(config) {
+        if(config.showChromosomeSelector === undefined) {
+            config.showChromosomeSelector = true;
+        }
+    }
 
 
     return hic;
