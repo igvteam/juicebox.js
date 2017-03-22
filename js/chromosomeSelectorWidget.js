@@ -43,23 +43,23 @@ var hic = (function (hic) {
 
         this.$container.append($doit);
 
-        config = {
+        this.dataLoadConfig = {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
                     self.respondToDataLoadWithDataset(event.data);
                 }
             }
         };
-        hic.GlobalEventBus.subscribe("DataLoad", config);
+        hic.GlobalEventBus.subscribe("DataLoad", this.dataLoadConfig);
 
-        config = {
+        this.locusChangeConfig = {
             receiveEvent: function (event) {
                 if (event.type === "LocusChange") {
                     self.respondToLocusChangeWithState(event.data);
                 }
             }
         };
-        hic.GlobalEventBus.subscribe("LocusChange", config);
+        hic.GlobalEventBus.subscribe("LocusChange", this.locusChangeConfig);
 
     };
 
@@ -67,11 +67,11 @@ var hic = (function (hic) {
 
         var elements,
             str,
-            index;
+            foundX,
+            foundY;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
-
 
         elements = _.map(dataset.chromosomes, function (chr, index){
             return '<option value=' + index.toString() + '>' + chr.name + '</option>';
@@ -80,27 +80,55 @@ var hic = (function (hic) {
         this.$x_axis_selector.append(elements.join(''));
         this.$y_axis_selector.append(elements.join(''));
 
-        str = 'option[value=' + dataset.state.chr1.toString() + ']';
-        this.$x_axis_selector.find(str).attr('selected', 'selected');
+        str = 'option[value=' + this.browser.state.chr1.toString() + ']';
+        foundX = this.$x_axis_selector.find(str);
+        foundX.attr('selected', 'selected');
 
-        str = 'option[value=' + dataset.state.chr2.toString() + ']';
-        this.$y_axis_selector.find(str).attr('selected', 'selected');
-
+        str = 'option[value=' + this.browser.state.chr2.toString() + ']';
+        foundY = this.$y_axis_selector.find(str);
+        foundY.attr('selected', 'selected');
     };
 
     hic.ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function(state) {
-        var str,
-            chr1,
-            chr2;
+        var self = this,
+            str,
+            findX,
+            findY;
 
-        // chr1 = parseInt(this.$x_axis_selector.find("option:selected").val(), 10);
-        // chr2 = parseInt(this.$y_axis_selector.find("option:selected").val(), 10);
+
+        findX = this.$x_axis_selector.find('option');
+        findY = this.$y_axis_selector.find('option');
+
+        // this happens when the first dataset is loaded.
+        if (0 === _.size(findX) || 0 === _.size(findY)) {
+            return;
+        }
+
+        // rebuildChromosomeSelect();
 
         str = 'option[value=' + state.chr1.toString() + ']';
         this.$x_axis_selector.find(str).attr('selected', 'selected');
 
         str = 'option[value=' + state.chr2.toString() + ']';
         this.$y_axis_selector.find(str).attr('selected', 'selected');
+
+
+        function rebuildChromosomeSelect() {
+
+            var elements,
+                chromosomes = self.browser.hicReader.chromosomes;
+
+            self.$x_axis_selector.empty();
+            self.$y_axis_selector.empty();
+
+            elements = _.map(chromosomes, function (chr, index){
+                return '<option value=' + index.toString() + '>' + chr.name + '</option>';
+            });
+
+            self.$x_axis_selector.append(elements.join(''));
+            self.$y_axis_selector.append(elements.join(''));
+
+        }
 
     };
 

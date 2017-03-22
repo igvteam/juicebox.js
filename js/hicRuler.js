@@ -67,7 +67,7 @@ var hic = (function (hic) {
 
         var bin,
             config = {},
-            browser = this.browser;  
+            browser = this.browser;
 
         identityTransformWithContext(this.ctx);
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
@@ -117,7 +117,7 @@ var hic = (function (hic) {
         } else {
 
             fontStyle = {
-                 textAlign: 'center',
+                textAlign: 'center',
                 font: '9px PT Sans',
                 fillStyle: "rgba(64, 64, 64, 1)",
                 strokeStyle: "rgba(64, 64, 64, 1)"
@@ -141,30 +141,34 @@ var hic = (function (hic) {
 
                 pixel = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
 
-                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
 
-                    chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
+                chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
 
-                    // console.log(this.axis + ' chr ' + chrName + ' bp ' + igv.numberFormatter(Math.floor((pixel * options.bpPerPixel) + options.bpStart)) + ' size-bp ' + igv.numberFormatter(chrSize));
+                // console.log(this.axis + ' chr ' + chrName + ' bp ' + igv.numberFormatter(Math.floor((pixel * options.bpPerPixel) + options.bpStart)) + ' size-bp ' + igv.numberFormatter(chrSize));
 
-                    if (nTick % 1 == 0) {
-                        this.ctx.save();
-                        this.labelReflectionTransform(this.ctx, pixel);
+                if (nTick % 1 == 0) {
+                    this.ctx.save();
+                    this.labelReflectionTransform(this.ctx, pixel);
+
+                    if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
                         igv.graphics.fillText(this.ctx, chrPosition, pixel, options.height - (tickHeight / 0.75));
-                        this.ctx.restore();
                     }
 
+                    this.ctx.restore();
+                }
+
+                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
                     igv.graphics.strokeLine(this.ctx,
                         pixel, options.height - tickHeight,
                         pixel, options.height - yShim);
-
-                    nTick++;
                 }
+
+                nTick++;
 
             } // while (pixel < options.pixelWidth)
 
             igv.graphics.strokeLine(this.ctx,
-                                 0, options.height - yShim,
+                0, options.height - yShim,
                 options.pixelWidth, options.height - yShim);
 
         }
