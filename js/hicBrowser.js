@@ -378,7 +378,12 @@ var hic = (function (hic) {
 
         this.state.chr1 = Math.min(chr1, chr2);
         this.state.chr2 = Math.max(chr1, chr2);
-        this.setZoom(0);
+        this.state.zoom = 0;
+        this.state.x = 0;
+        this.state.y = 0;
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+
     };
 
     function minPixelSize(chr1, chr2, zoom) {
@@ -386,7 +391,7 @@ var hic = (function (hic) {
             chr1Length = this.dataset.chromosomes[chr1].size,
             chr2Length = this.dataset.chromosomes[chr2].size,
             binSize = this.dataset.bpResolutions[zoom];
-        return Math.max(viewDimensions.width * binSize / chr1Length, viewDimensions.width * binSize / chr2Length);
+        return Math.min(viewDimensions.width * binSize / chr1Length, viewDimensions.height * binSize / chr2Length);
     }
 
     hic.Browser.prototype.update = function () {
