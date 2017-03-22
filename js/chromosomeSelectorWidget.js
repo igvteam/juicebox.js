@@ -14,7 +14,7 @@ var hic = (function (hic) {
         this.browser = browser;
 
         $label = $('<label>');
-        $label.text('Chr X Y');
+        $label.text('Chromosomes');
 
         // x-axis
         this.$x_axis_selector = $('<select name="x-axis-selector">');
