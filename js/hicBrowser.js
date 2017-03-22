@@ -91,6 +91,10 @@ var hic = (function (hic) {
         this.$navbar_container.append(this.colorscaleWidget.$container);
 
         // resolution widget
+        this.normalizationSelector = new hic.NormalizationWidget(this);
+        this.$navbar_container.append(this.normalizationSelector.$container);
+
+        // resolution widget
         this.resolutionSelector = new hic.ResolutionSelector(this);
         this.$navbar_container.append(this.resolutionSelector.$container);
 
