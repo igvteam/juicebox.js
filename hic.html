@@ -42,6 +42,79 @@
     <script src="dist/hic.js"></script>
     <script src="site/js/site.js"></script>
 
+    <!-- modal style, should be moved into CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <style>
+        .modal-header, h4, .close {
+        background-color: #191970;
+        color:white !important;
+        text-align: center;
+        font-size: 20px;
+        }
+
+        .radio-toolbar input[type="radio"] {
+        display: none;
+        }
+
+        .radio-toolbar label {
+        display: inline-block;
+        background-color: #add8e6;
+        padding: 4px 11px;
+        width: 100px;
+        font-family: Arial;
+        font-size: 16px;
+        color: white;
+        cursor: pointer;
+        }
+
+        .radio-toolbar input[type="radio"]:checked+label {
+        background-color: #6495ed;
+        }
+
+        #container3 {
+        clear:left;
+        float:left;
+        width:100%;
+        overflow:hidden;
+        }
+
+        #container2 {
+        clear:left;
+        float:left;
+        width:100%;
+        position:relative;
+        right:33.333%;
+        }
+        #container1 {
+        float:left;
+        width:100%;
+        position:relative;
+        right:33.33%;
+        }
+        #col1 {
+        float:left;
+        width:29.33%;
+        position:relative;
+        left:68.67%;
+        overflow:hidden;
+        }
+        #col2 {
+        float:left;
+        width:29.33%;
+        position:relative;
+        left:72.67%;
+        overflow:hidden;
+        }
+        #col3 {
+        float:left;
+        width:29.33%;
+        position:relative;
+        left:76.67%;
+        overflow:hidden;
+        }
+    </style>
+
 </head>
 
 <body>
@@ -489,6 +562,47 @@
         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">zz2</option>
         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic">zz3</option>
     </select>
+
+    <br>
+    <!-- Trigger the modal with a button -->
+    <button type="button" id="myBtn" disabled>Choose chromosomes...</button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog" style="width: 330px;">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4>Select Chromosomes</h4>
+                </div>
+                <!-- We need to grab these values from the loaded map... -->
+                <div class="modal-body" style="display: inline-block; width: 100%">
+                    <div id="container3">
+                        <div id="container2">
+                            <div id="container1">
+                                <div id="col1">
+                                    <label style="font-size: 12pt; text-align: center;">X axis</label>
+                                    <div class="radio-toolbar" id="xaxis">
+                                    </div>
+                                </div>
+                                <div id="col2">
+                                    <label style="font-size: 12pt; text-align: center;">Y axis</label>
+                                    <div class="radio-toolbar" id="yaxis">
+                                    </div>
+                                </div>
+                                <div id="col3">
+                                    <label style="font-size: 12pt;">&nbsp;</label>
+                                    <button type="submit" class="btn btn-success btn-default pull-left" id="selectChr" data-dismiss="modal"><span class="glyphicon glyphicon-ok"></span> Select&nbsp;    </button>
+                                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span> Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -512,6 +626,17 @@
 
         hic.initSite();
         $(".chosen-select").chosen();
+        $("#myBtn").click(function(){
+           $("#myModal").modal();
+        });
+         $('#selectChr').click(function(e) {
+           var chr1 = $("input[name='chr-group1']:checked").val();
+           var chr2 = $("input[name='chr-group2']:checked").val();
+           alert('set state to '+chr1+ ' and ' +chr2);
+           $("#myModal").close();
+
+        });
+
   });
 
 </script>

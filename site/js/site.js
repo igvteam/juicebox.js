@@ -9,6 +9,7 @@ var hic = (function (hic) {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
                     updateDatasetPulldown(event.data);
+                    updateModalChromosome(event.data);
                 }
             }
         };
@@ -23,6 +24,34 @@ var hic = (function (hic) {
 
         if ($option) $option.prop('selected', true);
         $("#dataset_selector").trigger("chosen:updated");
+        $("#myBtn").removeAttr('disabled');
+
+    }
+
+    function updateModalChromosome(dataset) {
+
+        chromosomes = dataset.chromosomes;
+        elements = _.map(chromosomes, function (chr, index) {
+        if (index == 0) {
+           return '<input type="radio" id="grp1-radio' + index + '" name="chr-group1" value="' + chr.name + '" checked><label for="grp1-radio' + index + '">' + chr.name + '</label><br>';
+
+        }
+        else {
+           return '<input type="radio" id="grp1-radio' + index + '" name="chr-group1" value="' + chr.name + '"><label for="grp1-radio' + index + '">' + chr.name + '</label><br>';
+              }
+        });
+        $('#xaxis').append(elements.join(''));
+
+         elements = _.map(chromosomes, function (chr, index) {
+         if (index == 0) {
+            return '<input type="radio" id="grp2-radio' + index + '" name="chr-group2" value="' + chr.name + '" checked><label for="grp2-radio' + index + '">' + chr.name + '</label><br>';
+
+         }
+         else {
+            return '<input type="radio" id="grp2-radio' + index + '" name="chr-group2" value="' + chr.name + '"><label for="grp2-radio' + index + '">' + chr.name + '</label><br>';
+         }
+        });
+        $('#yaxis').append(elements.join(''));
 
     }
 
