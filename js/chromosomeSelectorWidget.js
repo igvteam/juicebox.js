@@ -43,56 +43,35 @@ var hic = (function (hic) {
 
         this.$container.append($doit);
 
-        config = {
+        this.dataLoadConfig = {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
-                    self.updateWithDataset(event.data);
+                    self.respondToDataLoadWithDataset(event.data);
                 }
             }
         };
+        hic.GlobalEventBus.subscribe("DataLoad", this.dataLoadConfig);
 
-        hic.GlobalEventBus.subscribe("DataLoad", config);
-
-        config = {
+        this.locusChangeConfig = {
             receiveEvent: function (event) {
-                var str,
-                    state,
-                    chr1,
-                    chr2;
-
                 if (event.type === "LocusChange") {
-                    state = event.data;
-
-                    chr1 = parseInt(self.$x_axis_selector.find("option:selected").val(), 10);
-                    chr2 = parseInt(self.$y_axis_selector.find("option:selected").val(), 10);
-
-                    if (chr1 !== state.chr1 || chr2 !== state.chr2) {
-
-                        str = 'option[value=' + state.chr1.toString() + ']';
-                        self.$x_axis_selector.find(str).attr('selected', 'selected');
-
-                        str = 'option[value=' + state.chr2.toString() + ']';
-                        self.$y_axis_selector.find(str).attr('selected', 'selected');
-
-                    }
-
+                    self.respondToLocusChangeWithState(event.data);
                 }
             }
         };
-
-        hic.GlobalEventBus.subscribe("LocusChange", config);
+        hic.GlobalEventBus.subscribe("LocusChange", this.locusChangeConfig);
 
     };
 
-    hic.ChromosomeSelectorWidget.prototype.updateWithDataset = function(dataset) {
+    hic.ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function(dataset) {
 
         var elements,
             str,
-            index;
+            foundX,
+            foundY;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
-
 
         elements = _.map(dataset.chromosomes, function (chr, index){
             return '<option value=' + index.toString() + '>' + chr.name + '</option>';
@@ -102,10 +81,44 @@ var hic = (function (hic) {
         this.$y_axis_selector.append(elements.join(''));
 
         str = 'option[value=' + this.browser.state.chr1.toString() + ']';
-        this.$x_axis_selector.find(str).attr('selected', 'selected');
+        foundX = this.$x_axis_selector.find(str);
+        foundX.attr('selected', 'selected');
 
         str = 'option[value=' + this.browser.state.chr2.toString() + ']';
-        this.$y_axis_selector.find(str).attr('selected', 'selected');
+        foundY = this.$y_axis_selector.find(str);
+        foundY.attr('selected', 'selected');
+    };
+
+    hic.ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function(state) {
+        var self = this,
+            str,
+            findX,
+            findY,
+            chr1,
+            chr2;
+
+
+        findX = this.$x_axis_selector.find('option');
+        findY = this.$y_axis_selector.find('option');
+
+        // this happens when the first dataset is loaded.
+        if (0 === _.size(findX) || 0 === _.size(findY)) {
+            return;
+        }
+
+        findX = this.$x_axis_selector.find('option:selected');
+        chr1 = parseInt(findX.val(), 10);
+        if (chr1 !== state.chr1) {
+            str = 'option[value=' + state.chr1.toString() + ']';
+            this.$x_axis_selector.find(str).attr('selected', 'selected');
+        }
+
+        findY = this.$y_axis_selector.find('option:selected');
+        chr2 = parseInt(findY.val(), 10);
+        if (chr2 !== state.chr2) {
+            str = 'option[value=' + state.chr2.toString() + ']';
+            this.$y_axis_selector.find(str).attr('selected', 'selected');
+        }
 
     };
 
