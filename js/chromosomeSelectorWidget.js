@@ -47,18 +47,14 @@ var hic = (function (hic) {
 
         this.$container.append($selector_container);
 
-        // $doit = $('<i class="fa fa-arrow-circle-right" aria-hidden="true">');
         $doit = $('<div class="hic-chromosome-selector-widget-button">');
 
         $doit.on('click', function (e) {
-            var state = self.browser.state.clone();
-            state.chr1 = self.$x_axis_selector.find('option:selected').val();
-            state.chr2 = self.$y_axis_selector.find('option:selected').val();
-
-            self.browser.state = state;
-            self.browser.setZoom(state.zoom);
-            // self.browser.setState(state);
-
+            var chr1,
+                chr2;
+            chr1 = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
+            chr2 = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
+            self.browser.setChromosomes(chr1, chr2);
         });
 
 
@@ -97,19 +93,15 @@ var hic = (function (hic) {
     hic.ChromosomeSelectorWidget.prototype.updateWithDataset = function(dataset) {
 
         var elements,
-            names,
-            str;
+            str,
+            index;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
 
 
-        names = _.map(dataset.chromosomes, function (chr){
-            return chr.name;
-        });
-
-        elements = _.map(names, function (name) {
-            return '<option value=' + name.toString() + '>' + name.toString() + '</option>';
+        elements = _.map(dataset.chromosomes, function (chr, index){
+            return '<option value=' + index.toString() + '>' + chr.name + '</option>';
         });
 
         this.$x_axis_selector.append(elements.join(''));
