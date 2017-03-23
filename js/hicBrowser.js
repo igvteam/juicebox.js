@@ -27,7 +27,7 @@
 var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
-    var maxPixelSize = 10;
+    var maxPixelSize = 100;
 
     hic.createBrowser = function ($hic_container, config) {
 
@@ -197,7 +197,7 @@ var hic = (function (hic) {
 
                 self.dataset = dataset;
                 self.contactMatrixView.setDataset(dataset);
-                
+
                 if (config.state) {
                     self.setState(config.state);
                 }

@@ -3,13 +3,13 @@
  */
 var hic = (function (hic) {
 
-    hic.LocusGoto = function(browser) {
+    hic.LocusGoto = function (browser) {
 
         this.browser = browser;
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
-        this.$resolution_selector.on('change', function(e){
+        this.$resolution_selector.on('change', function (e) {
             var value = $(this).val();
-            browser.parseGotoInput( value );
+            browser.parseGotoInput(value);
         });
 
         // chromosome goto container
@@ -19,43 +19,48 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };
 
-    hic.LocusGoto.prototype.receiveEvent = function(event) {
+    hic.LocusGoto.prototype.receiveEvent = function (event) {
 
         var self = this,
             bpPerBin,
             pixelsPerBin,
             dimensionsPixels,
             chrs,
-            startsBP,
-            endsBP,
+            startBP1,
+            startBP2,
+            endBP1,
+            endBP2,
             xy,
-            state;
+            state,
+            chr1,
+            chr2;
 
         if (event.type === "LocusChange") {
 
-            state = event.data;
+            state = event.data,
 
-            chrs = _.map([ state.chr1, state.chr2 ], function(index) {
-                return self.browser.dataset.chromosomes[ index ].name;
-            });
+                chrs = _.map([state.chr1, state.chr2], function (index) {
+                    return self.browser.dataset.chromosomes[index];
+                });
 
-            bpPerBin = this.browser.dataset.bpResolutions[ state.zoom ];
+            chr1 = self.browser.dataset.chromosomes[state.chr1];
+            chr2 = self.browser.dataset.chromosomes[state.chr2];
+
+            bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
             dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
             pixelsPerBin = state.pixelSize;
 
-            startsBP = _.map([ state.x, state.y ], function(bin) {
-                return 1 + Math.round(bin * bpPerBin);
-            });
+            startBP1 = 1 + Math.round(state.x * bpPerBin);
+            startBP2 = 1 + Math.round(state.y * bpPerBin);
 
-            endsBP = _.map([ dimensionsPixels.width, dimensionsPixels.height ], function(pixels, index) {
-                return Math.round(((pixels / pixelsPerBin) * bpPerBin)) + startsBP[ index ];
-            });
+            endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1);
+            endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2);
 
-            xy = _.map([0, 1], function(index) {
-                return chrs[ index ] + ':' + igv.numberFormatter(startsBP[ index ]) + '-' + igv.numberFormatter(endsBP[ index ]);
-            });
+            xy = chr1.name + ":" + igv.numberFormatter(startBP1) + "-" + igv.numberFormatter(endBP1) + " " +
+                chr2.name + ":" + igv.numberFormatter(startBP2) + "-" + igv.numberFormatter(endBP2);
 
-            this.$resolution_selector.val(xy.join(' '));
+
+            this.$resolution_selector.val(xy);
         }
 
 
