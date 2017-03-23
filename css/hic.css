@@ -290,12 +290,12 @@
 .hic-viewport-spinner {
   pointer-events: none;
   position: absolute;
-  top: 50%;
+  top: 25%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 1024;
   font-size: 32px;
-  color: #7f7f7f; }
+  color: #080808; }
 
 .unselect {
   -webkit-touch-callout: none;

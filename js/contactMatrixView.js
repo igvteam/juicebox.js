@@ -52,7 +52,7 @@ var hic = (function (hic) {
 
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
-        this.$spinner.append($('<i class="fa fa-spinner fa-spin fa-fw">'));
+        this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
 
         this.$viewport.append(this.$canvas);
