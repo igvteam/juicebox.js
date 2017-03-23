@@ -479,7 +479,7 @@ var hic = (function (hic) {
 
                                 for (i = 0; i < nPts; i++) {
                                     //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                                    var row = i / w;
+                                    var row = Math.floor(i / w);
                                     var col = i - row * w;
                                     var bin1 = binXOffset + col;
                                     var bin2 = binYOffset + row;
