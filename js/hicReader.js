@@ -88,9 +88,10 @@ var hic = (function (hic) {
                 }
 
                 dataset.chromosomes = [];
-                var nChrs = binaryParser.getInt();
+                var nChrs = binaryParser.getInt(), i = 0;
                 while (nChrs-- > 0) {
-                    dataset.chromosomes.push({name: binaryParser.getString(), size: binaryParser.getInt()});
+                    dataset.chromosomes.push({index: i, name: binaryParser.getString(), size: binaryParser.getInt()});
+                    i++;
                 }
                 self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
 
@@ -162,6 +163,110 @@ var hic = (function (hic) {
 
 
                 self.expectedValueVectorsPosition = self.masterIndexPos + binaryParser.position;
+
+                dataset.expectedValueVectors = {};
+                nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    var type = "NONE";
+                    var unit = binaryParser.getString();
+                    var binSize = binaryParser.getInt();
+                    var nValues = binaryParser.getInt();
+                    var values = [];
+                    while (nValues-- > 0) {
+                        values.push(binaryParser.getDouble());
+                    }
+                    var nChrScaleFactors = binaryParser.getInt();
+                    var normFactors = {};
+                    while (nChrScaleFactors-- > 0) {
+                        normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                    }
+                    var key = unit + "_" + binSize + "_" + type;
+                    //  dataset.expectedValueVectors[key] =
+                    //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                }
+
+                if (self.version >= 6) { //binaryParser.position = 11025066
+                    dataset.normalizedExpectedValueVectors = {};
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        var type = binaryParser.getString();
+                        var unit = binaryParser.getString();
+                        var binSize = binaryParser.getInt();
+                        var nValues = binaryParser.getInt();
+                        var values = [];
+                        while (nValues-- > 0) {
+                            values.push(binaryParser.getDouble());
+                        }
+                        var nChrScaleFactors = binaryParser.getInt();
+                        var normFactors = {};
+                        while (nChrScaleFactors-- > 0) {
+                            normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                        }
+                        var key = unit + "_" + binSize + "_" + type;
+                        //   dataset.normalizedExpectedValueVectors[key] =
+                        //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                    }
+
+                    // Normalization vector index
+
+                    self.normVectorIndex = {};
+                    dataset.normalizationTypes = ['NONE'];
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        type = binaryParser.getString();
+                        var chrIdx = binaryParser.getInt();
+                        unit = binaryParser.getString();
+                        binSize = binaryParser.getInt();
+                        var filePosition = binaryParser.getLong();
+                        var sizeInBytes = binaryParser.getInt();
+                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                        if (_.contains(dataset.normalizationTypes, type) === false) {
+                            dataset.normalizationTypes.push(type);
+                        }
+                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+                    }
+                }
+
+                fulfill(self); //binaryParser.position = 42473140   masterIndexPos = 54343629146
+
+            }).catch(function (error) {
+                reject(error);
+            });
+
+        });
+    };
+
+    hic.HiCReader.prototype.readNormVectorIndex = function (dataset) {
+
+        if (this.expectedValueVectorsPosition === undefined) {
+            Promise.resolve();
+        }
+
+        if (this.normVectorIndex) {
+            Promise.resolve(normVectorIndex);
+        }
+
+        var self = this,
+            range = {start: this.expectedValueVectorsPosition, size: 60000000};   // 60 mb,  hopefully enough but we can't really know for sure
+
+        return new Promise(function (fulfill, reject) {
+
+            igvxhr.loadArrayBuffer(self.path,
+                {
+                    headers: self.config.headers,
+                    range: range,
+                    withCredentials: self.config.withCredentials
+                }).then(function (data) {
+
+                var key, pos, size;
+
+                if (!data) {
+                    fulfill(null);
+                    return;
+                }
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
 
                 dataset.expectedValueVectors = {};
                 nEntries = binaryParser.getInt();
@@ -482,10 +587,11 @@ var hic = (function (hic) {
 
         if (this.normVectorIndex == null) {
             Promise.resolve(null);
-        };
+        }
 
         var idx = this.normVectorIndex[key];
-        if (idx == null) {
+        if (!idx) {
+            alert("Normalization option " + type + " not available at this resolution");
             Promise.resolve(null);
         }
 
@@ -523,6 +629,7 @@ var hic = (function (hic) {
 
 
                 })
+                .catch(reject);
         })
     }
 

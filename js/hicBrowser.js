@@ -27,6 +27,7 @@
 var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
+    var maxPixelSize = 10;
 
     hic.createBrowser = function ($hic_container, config) {
 
@@ -47,7 +48,7 @@ var hic = (function (hic) {
             config.state = hic.destringifyState(stateString);
             var tokens = stateString.split(",");
         }
-        if(colorScale) {
+        if (colorScale) {
             config.colorScale = parseFloat(colorScale);
         }
 
@@ -86,9 +87,8 @@ var hic = (function (hic) {
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
 
 
-
         // chromosome selector
-        if(config.showChromosomeSelector) {
+        if (config.showChromosomeSelector) {
             this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
             this.$navbar_container.append(this.chromosomeSelector.$container);
         }
@@ -196,7 +196,8 @@ var hic = (function (hic) {
                 self.contactMatrixView.stopSpinner();
 
                 self.dataset = dataset;
-
+                self.contactMatrixView.setDataset(dataset);
+                
                 if (config.state) {
                     self.setState(config.state);
                 }
@@ -216,7 +217,7 @@ var hic = (function (hic) {
                     self.contactMatrixView.computeColorScale = true;
                 }
 
-                self.contactMatrixView.setDataset(dataset);
+
 
                 hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
 
@@ -251,8 +252,7 @@ var hic = (function (hic) {
 
         var self = this,
             loci = string.split(' '),
-            validLoci,
-            bpp,
+            newZoom,
             xLocus,
             yLocus,
             maxExtent,
@@ -271,21 +271,26 @@ var hic = (function (hic) {
                 console.log('ERROR. Must enter valid loci for X and Y axes');
             }
 
-            maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-            targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
+            if (xLocus.wholeChr && yLocus.wholeChr) {
+                this.setChromosomes(xLocus.chr, yLocus.chr);
+            }
+            else {
+                maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
+                targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
 
-            var bpResolutions = this.dataset.bpResolutions;
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-            newPixelSize = this.state.pixelSize;   // Adjusting this is complex
+                var bpResolutions = this.dataset.bpResolutions;
+                newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+                newPixelSize = this.state.pixelSize;   // Adjusting this is complex
 
-            this.setState(new hic.State(
-                xLocus.chr,
-                yLocus.chr,
-                newZoom,
-                xLocus.start / bpResolutions[this.state.zoom],
-                yLocus.start / bpResolutions[this.state.zoom],
-                newPixelSize
-            ));
+                this.setState(new hic.State(
+                    xLocus.chr,
+                    yLocus.chr,
+                    newZoom,
+                    xLocus.start / bpResolutions[this.state.zoom],
+                    yLocus.start / bpResolutions[this.state.zoom],
+                    newPixelSize
+                ));
+            }
 
         }
 
@@ -335,6 +340,7 @@ var hic = (function (hic) {
             // Chromosome name only
             locusObject.start = 0;
             locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
+            locusObject.wholeChr = true;
         } else {
             extent = parts[1].split("-");
             if (extent.length !== 2) {
@@ -381,7 +387,8 @@ var hic = (function (hic) {
         this.state.zoom = 0;
         this.state.x = 0;
         this.state.y = 0;
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+
+        this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
     };
@@ -390,8 +397,19 @@ var hic = (function (hic) {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.dataset.chromosomes[chr1].size,
             chr2Length = this.dataset.chromosomes[chr2].size,
-            binSize = this.dataset.bpResolutions[zoom];
-        return Math.min(viewDimensions.width * binSize / chr1Length, viewDimensions.height * binSize / chr2Length);
+            binSize = this.dataset.bpResolutions[zoom],
+            nBins1 = chr1Length / binSize,
+            nBins2 = chr2Length / binSize;
+
+        // Crude test for "whole genome"
+        var isWholeGenome = this.dataset.chromosomes[chr1].name === "All";
+        if(isWholeGenome) {
+            nBins1 *= 1000;
+            nBins2 *= 1000;
+        }
+
+        return Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2);
+//        return Math.min(viewDimensions.width * (binSize / chr1Length), viewDimensions.height * (binSize / chr2Length));
     }
 
     hic.Browser.prototype.update = function () {
@@ -536,7 +554,7 @@ var hic = (function (hic) {
 
     // Set default values for config properties
     function setDefaults(config) {
-        if(config.showChromosomeSelector === undefined) {
+        if (config.showChromosomeSelector === undefined) {
             config.showChromosomeSelector = true;
         }
     }
