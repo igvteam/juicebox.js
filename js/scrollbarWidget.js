@@ -112,11 +112,13 @@ var hic = (function (hic) {
 
             // bin / bin -> percentage
             percentage = Math.max(1, Math.round(100 * widthBin / _.first(chromosomeLengthsBin)));
+            percentage = Math.min(100, percentage);
             percentage = percentage.toString() + '%';
             this.$x_axis_scrollbar.css('width', percentage);
 
             // bin / bin -> percentage
             percentage = Math.max(1, Math.round(100 * heightBin / _.last(chromosomeLengthsBin)));
+            percentage = Math.min(100, percentage);
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('height', percentage);
 
