@@ -431,12 +431,12 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-viewport-spinner {
   pointer-events:none;
   position: absolute;
-  top: 25%;
-  left: 50%;
+  top: 20%;
+  left: 45%;
   transform: translate(-50%, -50%);
   z-index: 1024;
   font-size: 32px;
-  color: #080808;
+  color: #7f7f7f;
 }
 
 .unselect {
