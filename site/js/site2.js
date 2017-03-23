@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         chromosomes = dataset.chromosomes;
         elements = _.map(chromosomes, function (chr, index) {
-        if (index == 0) {
+        if (index == 1) {
            return '<input type="radio" id="grp1-radio' + index + '" name="chr-group1" value="' + chr.name + '" checked><label for="grp1-radio' + index + '">' + chr.name + '</label><br>';
 
         }
@@ -43,7 +43,7 @@ var hic = (function (hic) {
         $('#xaxis').append(elements.join(''));
 
          elements = _.map(chromosomes, function (chr, index) {
-         if (index == 0) {
+         if (index == 1) {
             return '<input type="radio" id="grp2-radio' + index + '" name="chr-group2" value="' + chr.name + '" checked><label for="grp2-radio' + index + '">' + chr.name + '</label><br>';
 
          }

@@ -632,7 +632,7 @@
          $('#selectChr').click(function(e) {
            var chr1 = $("input[name='chr-group1']:checked").val();
            var chr2 = $("input[name='chr-group2']:checked").val();
-
+           browser.setChromosomes(chr1, chr2);
            $("#myModal").close();
 
         });
