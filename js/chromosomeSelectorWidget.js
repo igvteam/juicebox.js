@@ -63,7 +63,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function(dataset) {
+    hic.ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function (dataset) {
 
         var elements,
             str,
@@ -73,7 +73,7 @@ var hic = (function (hic) {
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
 
-        elements = _.map(dataset.chromosomes, function (chr, index){
+        elements = _.map(dataset.chromosomes, function (chr, index) {
             return '<option value=' + index.toString() + '>' + chr.name + '</option>';
         });
 
@@ -89,7 +89,7 @@ var hic = (function (hic) {
         foundY.attr('selected', 'selected');
     };
 
-    hic.ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function(state) {
+    hic.ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function (state) {
         var self = this,
             str,
             findX,
@@ -107,22 +107,26 @@ var hic = (function (hic) {
         }
 
         findX = this.$x_axis_selector.find('option:selected');
+        findY = this.$y_axis_selector.find('option:selected');
+
         chr1 = parseInt(findX.val(), 10);
-        if (chr1 !== state.chr1) {
+        chr2 = parseInt(findY.val(), 10);
+
+        // It is the pair of chromosomes that is important,  1-2 == 2-1,  so update only if the pair does not match
+
+        if (!((chr1 === state.chr1 && chr2 === state.chr2) || (chr1 === state.chr2 && chr2 === state.chr1))) {
+
             str = 'option[value=' + state.chr1.toString() + ']';
             this.$x_axis_selector.find(str).attr('selected', 'selected');
-        }
 
-        findY = this.$y_axis_selector.find('option:selected');
-        chr2 = parseInt(findY.val(), 10);
-        if (chr2 !== state.chr2) {
             str = 'option[value=' + state.chr2.toString() + ']';
             this.$y_axis_selector.find(str).attr('selected', 'selected');
+
         }
 
     };
 
     return hic;
 
-}) (hic || {});
+})(hic || {});
 
