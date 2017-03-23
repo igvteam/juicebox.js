@@ -409,10 +409,10 @@ var hic = (function (hic) {
             i, j;
 
         var blockIndex = zd.blockIndexMap;
-        if (blockIndex != null) {
+        if (blockIndex) {
             var idx = blockIndex[blockNumber];
         }
-        if (idx == null) {
+        if (!idx) {
             return Promise.resolve(null);
         }
         else {

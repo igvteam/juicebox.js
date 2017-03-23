@@ -78,7 +78,7 @@ var hic = (function (hic) {
 
                 .then(function (block) {
 
-                    if (normalization === undefined || "NONE" === normalization) {
+                    if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
                         fulfill(block);
                     }
                     else {
