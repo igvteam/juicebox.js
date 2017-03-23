@@ -112,9 +112,16 @@ var hic = (function (hic) {
     hic.ScrollbarWidget.prototype.receiveEvent = function(event) {
         var self = this,
             chromosomeLengthsBin,
+            chromosomeLengthsPixel,
+            width,
+            height,
+            pixels,
             widthBin,
             heightBin,
-            percentage;
+            bins,
+
+            percentage,
+            percentages;
 
         if (false === this.isDragging && event.type === "LocusChange") {
 
@@ -129,21 +136,36 @@ var hic = (function (hic) {
                 return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
             });
 
+            chromosomeLengthsPixel = _.map(chromosomeLengthsBin, function (bin) {
+                // bin * pixel-per-bin -> pixel
+                return bin * state.pixelSize;
+            });
+
+            pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
+
             // pixel / pixel-per-bin -> bin
-            widthBin = this.browser.contactMatrixView.getViewDimensions().width  / state.pixelSize;
-            heightBin = this.browser.contactMatrixView.getViewDimensions().height / state.pixelSize;
+            bins = [ _.first(pixels)/state.pixelSize, _.last(pixels)/state.pixelSize ];
 
             // bin / bin -> percentage
-            percentage = Math.max(1, Math.round(100 * widthBin / _.first(chromosomeLengthsBin)));
-            percentage = Math.min(100, percentage);
-            percentage = percentage.toString() + '%';
-            this.$x_axis_scrollbar.css('width', percentage);
+            percentages = _.map(bins, function(bin, i){
+                var binPercentage,
+                    pixelPercentage;
 
-            // bin / bin -> percentage
-            percentage = Math.max(1, Math.round(100 * heightBin / _.last(chromosomeLengthsBin)));
-            percentage = Math.min(100, percentage);
-            percentage = percentage.toString() + '%';
-            this.$y_axis_scrollbar.css('height', percentage);
+                binPercentage = Math.min(bin, chromosomeLengthsBin[ i ]) / chromosomeLengthsBin[ i ];
+                pixelPercentage = Math.min(chromosomeLengthsPixel[ i ], pixels[ i ])/pixels[ i ];
+                return Math.max(1, Math.round(100 * binPercentage * pixelPercentage));
+            });
+            this.$x_axis_scrollbar.css('width', (_.first(percentages).toString() + '%'));
+            this.$y_axis_scrollbar.css('height', (_.last(percentages).toString() + '%'));
+
+
+
+
+
+
+
+
+
 
             // bin / bin -> percentage
             percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
