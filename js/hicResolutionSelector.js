@@ -71,7 +71,7 @@ var hic = (function (hic) {
                 .prop('selected', true);
         } else if (event.type === "DataLoad") {
 
-            var config = event.config,
+            var config = event.data,
                 zoom =  (config === undefined || config.state === undefined ? -1 : config.state.zoom);
 
             var elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {

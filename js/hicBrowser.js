@@ -217,7 +217,7 @@ var hic = (function (hic) {
 
 
 
-                hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
+                hic.GlobalEventBus.post(hic.Event("DataLoad", config));
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
