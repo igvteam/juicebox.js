@@ -198,6 +198,7 @@ var hic = (function (hic) {
 
                 if (config.state) {
                     self.setState(config.state);
+                    dataset.zoom = config.state.zoom;    // A hack, need ths in the event
                 }
                 else {
 
@@ -217,7 +218,8 @@ var hic = (function (hic) {
 
 
 
-                hic.GlobalEventBus.post(hic.Event("DataLoad", config));
+
+                hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;

@@ -28,7 +28,6 @@
 
 var hic = (function (hic) {
 
-    dragThreshold = 2;
 
     hic.Dataset = function (hicReader) {
         this.hicReader = hicReader;
@@ -44,8 +43,7 @@ var hic = (function (hic) {
         this.normVectorCache = {};
 
     };
-
-
+    
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
 
         var self = this,
