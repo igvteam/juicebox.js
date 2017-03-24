@@ -72,7 +72,7 @@ var hic = (function (hic) {
         } else if (event.type === "DataLoad") {
 
             var dataset = event.data,
-                zoom =  (dataset.zoom === undefined ? -1 : dataset.zoom);
+                zoom =  this.browser.state.zoom;
 
             var elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
                 var selected = zoom === index;

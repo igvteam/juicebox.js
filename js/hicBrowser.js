@@ -150,6 +150,7 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
+        hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -198,8 +199,7 @@ var hic = (function (hic) {
 
                 if (config.state) {
                     self.setState(config.state);
-                    dataset.zoom = config.state.zoom;    // A hack, need ths in the event
-                }
+                 }
                 else {
 
                     // Don't be clever for now
