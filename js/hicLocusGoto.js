@@ -27,8 +27,13 @@
 var hic = (function (hic) {
 
     hic.LocusGoto = function (browser) {
+        var $label;
 
         this.browser = browser;
+
+        $label = $('<label>');
+        $label.text('Goto');
+
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
         this.$resolution_selector.on('change', function (e) {
             var value = $(this).val();
@@ -37,6 +42,7 @@ var hic = (function (hic) {
 
         // chromosome goto container
         this.$container = $('<div class="hic-chromosome-goto-container">');
+        this.$container.append($label);
         this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
