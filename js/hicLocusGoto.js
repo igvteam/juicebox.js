@@ -31,8 +31,9 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
+        // shim for nav alignment purposes
         $label = $('<label>');
-        $label.text('Goto');
+        $label.text('shim');
 
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
         this.$resolution_selector.on('change', function (e) {
