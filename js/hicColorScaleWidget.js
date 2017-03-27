@@ -38,12 +38,6 @@ var hic = (function (hic) {
         $label = $('<label>');
         $label.text('Color Scale');
 
-        // this.$low_colorscale_input = $('<input class="hic-colorscale-widget-input" type="text" placeholder="low">');
-        // this.$low_colorscale_input.on('change', function(e){
-        //     var value = $(this).val();
-        //     console.log('$low_colorscale_input.onChange ' + value);
-        // });
-
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
         this.$high_colorscale_input.on('change', function(e){
             var value = $(this).val(),
@@ -58,7 +52,6 @@ var hic = (function (hic) {
 
         this.$container = $('<div class="hic-colorscale-widget-container">');
         this.$container.append($label);
-        this.$container.append(this.$low_colorscale_input);
         this.$container.append(this.$high_colorscale_input);
 
         hic.GlobalEventBus.subscribe("DataLoad", this);
