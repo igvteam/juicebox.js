@@ -46,8 +46,8 @@ var hic = (function (hic) {
         this.$x_axis_scrollbar.append(this.$x_axis_label);
         this.$y_axis_scrollbar.append(this.$y_axis_label);
 
-        this.$x_axis_label.hide();
-        this.$y_axis_label.hide();
+        // this.$x_axis_label.hide();
+        // this.$y_axis_label.hide();
 
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);

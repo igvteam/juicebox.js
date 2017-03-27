@@ -12,8 +12,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 861px;
-  height: 921px;
+  width: 865px;
+  height: 925px;
   background-color: #fff;
   border-style: solid;
   border-width: thin;
@@ -233,8 +233,8 @@
   position: absolute;
   left: 25px;
   top: 25px;
-  width: 836px;
-  height: 836px; }
+  width: 840px;
+  height: 840px; }
 
 .hic-viewport {
   /*cursor: pointer;*/
@@ -251,7 +251,7 @@
   position: absolute;
   left: 0;
   top: 820px;
-  height: 16px;
+  height: 20px;
   width: 820px;
   background-color: #efefef; }
   .hic-viewport-x-axis-scrollbar-container div {
@@ -263,12 +263,12 @@
     width: 50%;
     top: 0;
     height: 100%;
-    background-color: #B4B4B4; }
+    background-color: #a5a5a5; }
     .hic-viewport-x-axis-scrollbar-container div span {
       display: table-cell;
       vertical-align: middle;
       text-align: center;
-      color: #C8C8C8;
+      color: white;
       font-family: "Open Sans", sans-serif;
       font-size: 90%;
       font-weight: 400; }
@@ -277,7 +277,7 @@
   position: absolute;
   top: 0;
   left: 820px;
-  width: 16px;
+  width: 20px;
   height: 820px;
   background-color: #efefef; }
   .hic-viewport-y-axis-scrollbar-container div {
@@ -289,12 +289,12 @@
     height: 50%;
     left: 0;
     width: 100%;
-    background-color: #B4B4B4; }
+    background-color: #a5a5a5; }
     .hic-viewport-y-axis-scrollbar-container div span {
       display: table-cell;
       vertical-align: middle;
       text-align: center;
-      color: #C8C8C8;
+      color: white;
       font-family: "Open Sans", sans-serif;
       font-size: 90%;
       font-weight: 400; }

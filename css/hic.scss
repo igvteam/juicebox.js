@@ -12,7 +12,7 @@ $hic-chromosome-selector-widget-button-dimension: 24px;
 $hic-viewport-width: 820px;
 $hic-viewport-height: 820px;
 
-$hic-scrollbar-height: 16px;
+$hic-scrollbar-height: 20px;
 
 // Axis dimensions are specified assuming both axes run horizontally
 // even though the y-axis is rendered vertically
@@ -25,8 +25,7 @@ $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-heigh
 
 $default-dark-color: #5f5f5f;
 $default-white-color: #fff;
-$scrollbar-color: #C8C8C8;
-$scrollbar-handle-color: #B4B4B4;
+$scrollbar-handle-color: #a5a5a5;
 
 $default-font-family: 'Open Sans', sans-serif;
 
@@ -35,7 +34,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display: table-cell;
     vertical-align: middle;
     text-align:center;
-    color: $scrollbar-color;
+    color: white;
     font-family: $default-font-family;
     font-size: 90%;
     font-weight: 400;
