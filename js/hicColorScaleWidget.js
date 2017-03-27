@@ -22,9 +22,6 @@
  */
 
 /**
- * Created by dat on 3/6/17.
- */
-/**
  * Created by dat on 3/3/17.
  */
 var hic = (function (hic) {

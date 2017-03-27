@@ -37,7 +37,7 @@ var hic = (function (hic) {
         GW_VC_SQRT: "Genome-wide Coverage (Sqrt)",
         GW_KR: "Genome-wide Balanced",
 
-    }
+    };
 
     hic.NormalizationWidget = function (browser) {
         var self = this,
@@ -58,7 +58,6 @@ var hic = (function (hic) {
         this.$normalization_selector.attr('name', 'dataset_selector');
 
         $option = $('<option value="">');
-        $option.text('None');
 
         this.$container = $('<div class="hic-normalization-selector-container">');
 
