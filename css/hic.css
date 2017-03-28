@@ -258,8 +258,24 @@
   height: 20px;
   width: 830px;
   background-color: #efefef; }
-  .hic-viewport-x-axis-scrollbar-container div {
-    display: table;
+  .hic-viewport-x-axis-scrollbar-container div:first-child {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    z-index: 1024;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 20px;
+    color: #373737;
+    font-family: "Open Sans", sans-serif;
+    font-size: medium;
+    font-weight: 400; }
+  .hic-viewport-x-axis-scrollbar-container div:last-child {
     cursor: pointer;
     position: absolute;
     /* dynamic x and width */
@@ -268,14 +284,6 @@
     top: 0;
     height: 100%;
     background-color: #a5a5a5; }
-    .hic-viewport-x-axis-scrollbar-container div span {
-      display: table-cell;
-      vertical-align: middle;
-      text-align: center;
-      color: white;
-      font-family: "Open Sans", sans-serif;
-      font-size: 90%;
-      font-weight: 400; }
 
 .hic-viewport-y-axis-scrollbar-container {
   position: absolute;
@@ -284,8 +292,24 @@
   width: 20px;
   height: 830px;
   background-color: #efefef; }
-  .hic-viewport-y-axis-scrollbar-container div {
-    display: table;
+  .hic-viewport-y-axis-scrollbar-container div:first-child {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    z-index: 1024;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 20px;
+    color: #373737;
+    font-family: "Open Sans", sans-serif;
+    font-size: medium;
+    font-weight: 400; }
+  .hic-viewport-y-axis-scrollbar-container div:last-child {
     cursor: pointer;
     position: absolute;
     /* dynamic y and height */
@@ -294,14 +318,6 @@
     left: 0;
     width: 100%;
     background-color: #a5a5a5; }
-    .hic-viewport-y-axis-scrollbar-container div span {
-      display: table-cell;
-      vertical-align: middle;
-      text-align: center;
-      color: white;
-      font-family: "Open Sans", sans-serif;
-      font-size: 90%;
-      font-weight: 400; }
 
 .hic-viewport-spinner {
   pointer-events: none;

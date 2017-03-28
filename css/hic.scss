@@ -28,14 +28,28 @@ $scrollbar-handle-color: #a5a5a5;
 
 $default-font-family: 'Open Sans', sans-serif;
 
-@mixin scrollbar-span {
-  span {
-    display: table-cell;
+@mixin scrollbar-label {
+  div:first-child {
+
+    // center vertically/horizontally
+    position: absolute;
+    margin: auto;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    height: $hic-scrollbar-height;
+    width: $hic-scrollbar-height;
+
+    z-index: 1024;
+    //background-color: red;
     vertical-align: middle;
     text-align:center;
-    color: white;
+    line-height: $hic-scrollbar-height;
+
+    color: #373737;
     font-family: $default-font-family;
-    font-size: 90%;
+    font-size: medium;
     font-weight: 400;
   }
 }
@@ -361,9 +375,9 @@ $default-font-family: 'Open Sans', sans-serif;
   width: $hic-viewport-width;
   background-color: #efefef;
 
-  div {
+  @include scrollbar-label;
 
-    display: table;
+  div:last-child {
     cursor: pointer;
     position: absolute;
 
@@ -374,8 +388,6 @@ $default-font-family: 'Open Sans', sans-serif;
     top: 0;
     height: 100%;
     background-color: $scrollbar-handle-color;
-
-    @include scrollbar-span;
   }
 
 }
@@ -389,9 +401,9 @@ $default-font-family: 'Open Sans', sans-serif;
   height: $hic-viewport-height;
   background-color: #efefef;
 
-  div {
+  @include scrollbar-label;
 
-    display: table;
+  div:last-child {
     cursor: pointer;
     position: absolute;
 
@@ -402,9 +414,6 @@ $default-font-family: 'Open Sans', sans-serif;
     left: 0;
     width: 100%;
     background-color: $scrollbar-handle-color;
-
-    @include scrollbar-span;
-
   }
 
 }
