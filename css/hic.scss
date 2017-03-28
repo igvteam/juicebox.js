@@ -1,13 +1,9 @@
 
 $nav-bar-height: 60px;
-$nav-bar-margin-top: 4px;
+$nav-bar-padding-bottom: 8px;
 $nav-bar-widget-height: 24px;
-$nav-bar-label-margin-bottom: 2px;
 
 $chromosome-selector-widget-container-width: 160px;
-$chromosome-selector-widget-container-margin: 4px;
-
-$hic-chromosome-selector-widget-button-dimension: 24px;
 
 $hic-viewport-width: 830px;
 $hic-viewport-height: 830px;
@@ -21,7 +17,7 @@ $hic-x-axis-width: $hic-viewport-width;
 $hic-y-axis-width: $hic-viewport-height;
 
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
+$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
 
 $default-dark-color: #5f5f5f;
 $scrollbar-handle-color: #a5a5a5;
@@ -48,36 +44,28 @@ $default-font-family: 'Open Sans', sans-serif;
     line-height: $hic-scrollbar-height;
 
     color: #373737;
+
     font-family: $default-font-family;
     font-size: medium;
     font-weight: 400;
+
   }
-}
-
-@mixin navbar-label {
-
-  label {
-    display: block;
-    width: 100%;
-    color: $default-dark-color;
-    font-family: $default-font-family;
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: $nav-bar-label-margin-bottom;
-  }
-
 }
 
 @mixin navbar-select {
 
   select {
     display: block;
-    height: $nav-bar-widget-height;
 
-    color: $default-dark-color;
+    margin-top:4px;
+    height: 24px;
+    width:100%;
+
     font-family: $default-font-family;
     font-size: 14px;
     font-weight: 400;
+    color: $default-dark-color;
+
     direction: rtl;
   }
 
@@ -88,11 +76,16 @@ $default-font-family: 'Open Sans', sans-serif;
   input {
     display: block;
 
-    color: #5f5f5f;
-    font-family: $default-font-family;
-    font-size: 16px;
-    font-weight: 400;
+    margin-top:4px;
+    height: 20px;
+    width: 100%;
 
+    font-family: $default-font-family;
+    font-size: 14px;
+    font-weight: 400;
+    color: $default-dark-color;
+
+    padding-left: 4px;
     outline: none;
 
     border-style: solid;
@@ -140,11 +133,18 @@ $default-font-family: 'Open Sans', sans-serif;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: space-around;
-  align-items: flex-start;
+  align-items: flex-end;
 
   width: 100%;
   height: $nav-bar-height;
+  padding-bottom: $nav-bar-padding-bottom;
+
   background-color: white;
+
+  font-family: $default-font-family;
+  font-size: 14px;
+  font-weight: 400;
+  color: $default-dark-color;
 
   border-bottom-style: solid;
   border-bottom-width: thin;
@@ -169,7 +169,9 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
-  width: $chromosome-selector-widget-container-width + $chromosome-selector-widget-container-margin;
+  width: $chromosome-selector-widget-container-width;
+  padding-left: 4px;
+  padding-bottom: 4px;
 
   border-style: solid;
   border-width: thin;
@@ -179,10 +181,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   div:first-child {
     order:1;
-    font-family: $default-font-family;
-    font-size: 14px;
-    font-weight: 400;
-    color: $default-dark-color;
+    padding-top:2px;
+    padding-bottom:2px;
   }
 
   div:last-child {
@@ -191,19 +191,16 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: flex-start;
 
     select {
       display:block;
       cursor: pointer;
-      width: .80 * ($chromosome-selector-widget-container-width/2) - $chromosome-selector-widget-container-margin;
+      width: .70 * ($chromosome-selector-widget-container-width/2);
       height: $nav-bar-widget-height;
 
-      font-family: $default-font-family;
-      font-size: 12px;
-      font-weight: 400;
-      color: $default-dark-color;
+      margin-right: 4px;
       direction: rtl;
     }
 
@@ -213,8 +210,9 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-chromosome-selector-widget-button {
-  width: $hic-chromosome-selector-widget-button-dimension;
-  height: $hic-chromosome-selector-widget-button-dimension;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
   background-image: url('../img/circular-arrows-24-grey.png');
 }
 
@@ -234,6 +232,8 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
+  width: 360px;
+
   div:first-child {
     color: white;
   }
@@ -251,6 +251,8 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
+  width: 80px;
+
   @include navbar-input;
 
 }
@@ -264,6 +266,8 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
+  width: 100px;
+
   @include navbar-select;
 
 }
@@ -276,6 +280,8 @@ $default-font-family: 'Open Sans', sans-serif;
   flex-wrap: nowrap;
   justify-content: space-around;
   align-items: flex-start;
+
+  width: 100px;
 
   @include navbar-select;
 
