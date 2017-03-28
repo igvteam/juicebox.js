@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $label = $('<label>');
+        $label = $('<div>');
         $label.text('Color Scale');
 
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');

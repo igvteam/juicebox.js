@@ -239,8 +239,6 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
-  width: 360px;
-
   div:first-child {
     color: white;
   }
@@ -250,12 +248,13 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-colorscale-widget-container {
-  position: relative;
-  float: left;
-  width: 80px;
-  margin-left: 18px;
-  margin-top: $nav-bar-margin-top;
-  //background-color: red;
+  order:3;
+
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
 
   @include navbar-input;
 
