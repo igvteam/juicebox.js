@@ -35,7 +35,7 @@ var hic = (function (hic) {
         INTER_KR: "Interchromosomal Balanced",
         GW_VC: "Genome-wide Coverage",
         GW_VC_SQRT: "Genome-wide Coverage (Sqrt)",
-        GW_KR: "Genome-wide Balanced",
+        GW_KR: "Genome-wide Balanced"
 
     };
 
@@ -47,22 +47,17 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $label = $('<label for="normalization_selector">');
+        $label = $('<div>');
         $label.text('Normalization');
 
         this.$normalization_selector = $('<select name="select">');
+        this.$normalization_selector.attr('name', 'dataset_selector');
         this.$normalization_selector.on('change', function (e) {
             self.browser.setNormalization($(this).val());
         });
 
-        this.$normalization_selector.attr('name', 'dataset_selector');
-
-        $option = $('<option value="">');
-
         this.$container = $('<div class="hic-normalization-selector-container">');
-
         this.$container.append($label);
-        this.$normalization_selector.append($option);
         this.$container.append(this.$normalization_selector);
 
         hic.GlobalEventBus.subscribe("DataLoad", this);

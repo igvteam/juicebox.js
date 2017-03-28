@@ -33,24 +33,18 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
+        $label = $('<div>');
+        $label.text('Resolution (kb)');
+
         this.$resolution_selector = $('<select name="select">');
+        this.$resolution_selector.attr('name', 'resolution_selector');
+
         this.$resolution_selector.on('change', function (e) {
             var zoomIndex = parseInt($(this).val());
             self.browser.setZoom(zoomIndex);
         });
 
-        // elements = _.map(browser.hicReader.bpResolutions, function (resolution) {
-        //     return '<option' + ' value=' + resolution + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
-        // });
-        //this.$resolution_selector.append(elements.join(''));
-
-        this.$resolution_selector.attr('name', 'resolution_selector');
-
-        $label = $('<label for="resolution_selector">');
-        $label.text('Resolution (kb)');
-
         this.$container = $('<div class="hic-resolution-selector-container">');
-
         this.$container.append($label);
         this.$container.append(this.$resolution_selector);
 

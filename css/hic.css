@@ -120,23 +120,14 @@
     background-color: white; }
 
 .hic-normalization-selector-container {
-  position: relative;
-  float: left;
-  width: 90px;
-  margin-left: 14px;
-  margin-top: 4px; }
-  .hic-normalization-selector-container label {
-    display: block;
-    width: 100%;
-    color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 2px; }
+  order: 4;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start; }
   .hic-normalization-selector-container select {
     display: block;
-    position: relative;
-    width: 100%;
     height: 24px;
     color: #5f5f5f;
     font-family: "Open Sans", sans-serif;
@@ -145,23 +136,14 @@
     direction: rtl; }
 
 .hic-resolution-selector-container {
-  position: relative;
-  float: left;
-  width: 100px;
-  margin-left: 10px;
-  margin-top: 4px; }
-  .hic-resolution-selector-container label {
-    display: block;
-    width: 100%;
-    color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 2px; }
+  order: 5;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start; }
   .hic-resolution-selector-container select {
     display: block;
-    position: relative;
-    width: 100%;
     height: 24px;
     color: #5f5f5f;
     font-family: "Open Sans", sans-serif;

@@ -70,13 +70,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
 @mixin navbar-select {
 
-  @include navbar-label;
-
-  select
-  {
+  select {
     display: block;
-    position: relative;
-    width: 100%;
     height: $nav-bar-widget-height;
 
     color: $default-dark-color;
@@ -261,27 +256,29 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-normalization-selector-container {
-  position: relative;
-  float: left;
-  width: 90px;
-  margin-left: 14px;
-  margin-top: $nav-bar-margin-top;
-  //background-color: red;
+  order:4;
 
-  @include navbar-select
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+
+  @include navbar-select;
+
 }
 
 .hic-resolution-selector-container {
+  order:5;
 
-  position: relative;
-  float: left;
-  width: 100px;
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
 
-  margin-left: 10px;
-  margin-top: $nav-bar-margin-top;
-  //background-color: red;
+  @include navbar-select;
 
-  @include navbar-select
 }
 
 .hic-content-container {
