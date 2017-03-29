@@ -13,70 +13,67 @@
   left: 0;
   right: 0;
   width: 875px;
-  height: 935px;
+  height: 943px;
   background-color: white;
   border-style: solid;
   border-width: thin;
   border-color: #5f5f5f; }
 
 .hic-navbar-container {
-  position: relative;
-  top: 0;
-  left: 0;
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-end;
   width: 100%;
   height: 60px;
+  padding-bottom: 8px;
   background-color: white;
+  font-family: "Open Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #5f5f5f;
   border-bottom-style: solid;
   border-bottom-width: thin;
   border-bottom-color: #5f5f5f; }
 
-.hic-logo-container {
-  position: relative;
-  float: left;
-  width: 60px;
-  height: 60px;
-  background-image: url("../img/juicebox-logo-translucent.png"); }
-
 .hic-chromosome-selector-widget-container {
-  position: relative;
-  float: left;
-  width: 164px;
-  margin-left: 8px;
-  margin-top: 4px;
-  padding-bottom: 2px;
+  order: 1;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 160px;
+  padding-left: 4px;
+  padding-bottom: 4px;
   border-style: solid;
   border-width: thin;
   border-color: #5f5f5f;
   background-color: #efefef; }
-  .hic-chromosome-selector-widget-container label {
-    display: block;
-    position: relative;
-    width: 100%;
-    text-align: left;
-    font-family: "Open Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    margin-left: 4px;
-    color: #5f5f5f; }
-  .hic-chromosome-selector-widget-container select {
-    cursor: pointer;
-    float: left;
-    position: relative;
-    width: 60px;
-    height: 24px;
-    margin-left: 4px;
-    font-family: "Open Sans", sans-serif;
-    font-size: 12px;
-    font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
+  .hic-chromosome-selector-widget-container div:first-child {
+    order: 1;
+    padding-top: 2px;
+    padding-bottom: 2px; }
+  .hic-chromosome-selector-widget-container div:last-child {
+    order: 2;
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start; }
+    .hic-chromosome-selector-widget-container div:last-child select {
+      display: block;
+      cursor: pointer;
+      width: 56px;
+      height: 24px;
+      margin-right: 4px;
+      direction: rtl; }
 
 .hic-chromosome-selector-widget-button {
-  position: relative;
-  float: right;
-  margin-right: 4px;
   width: 24px;
   height: 24px;
+  margin-left: 4px;
   background-image: url("../img/circular-arrows-24-grey.png"); }
 
 .hic-chromosome-selector-widget-button:hover,
@@ -86,62 +83,49 @@
   background-image: url("../img/circular-arrows-24-blue.png"); }
 
 .hic-chromosome-goto-container {
-  position: relative;
-  float: left;
-  width: 360px;
-  height: 24px;
-  margin-left: 8px;
-  margin-top: 4px; }
-  .hic-chromosome-goto-container label {
+  order: 2;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 360px; }
+  .hic-chromosome-goto-container div:first-child {
+    color: white; }
+  .hic-chromosome-goto-container input {
     display: block;
+    margin-top: 4px;
+    height: 20px;
     width: 100%;
-    color: #5f5f5f;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     font-weight: 400;
-    margin-bottom: 2px; }
-  .hic-chromosome-goto-container input {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 21px;
-    padding-left: 4px;
     color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
+    padding-left: 4px;
     outline: none;
     border-style: solid;
     border-width: thin;
     border-color: #5f5f5f;
     background-color: white; }
-  .hic-chromosome-goto-container label {
-    color: white; }
 
 .hic-colorscale-widget-container {
-  position: relative;
-  float: left;
-  width: 80px;
-  margin-left: 18px;
-  margin-top: 4px; }
-  .hic-colorscale-widget-container label {
+  order: 3;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 80px; }
+  .hic-colorscale-widget-container input {
     display: block;
+    margin-top: 4px;
+    height: 20px;
     width: 100%;
-    color: #5f5f5f;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     font-weight: 400;
-    margin-bottom: 2px; }
-  .hic-colorscale-widget-container input {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 21px;
-    padding-left: 4px;
     color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 16px;
-    font-weight: 400;
+    padding-left: 4px;
     outline: none;
     border-style: solid;
     border-width: thin;
@@ -149,53 +133,41 @@
     background-color: white; }
 
 .hic-normalization-selector-container {
-  position: relative;
-  float: left;
-  width: 90px;
-  margin-left: 14px;
-  margin-top: 4px; }
-  .hic-normalization-selector-container label {
-    display: block;
-    width: 100%;
-    color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 2px; }
+  order: 4;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 100px; }
   .hic-normalization-selector-container select {
     display: block;
-    position: relative;
-    width: 100%;
+    margin-top: 4px;
     height: 24px;
-    color: #5f5f5f;
+    width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     font-weight: 400;
+    color: #5f5f5f;
     direction: rtl; }
 
 .hic-resolution-selector-container {
-  position: relative;
-  float: left;
-  width: 100px;
-  margin-left: 10px;
-  margin-top: 4px; }
-  .hic-resolution-selector-container label {
-    display: block;
-    width: 100%;
-    color: #5f5f5f;
-    font-family: "Open Sans", sans-serif;
-    font-size: 14px;
-    font-weight: 400;
-    margin-bottom: 2px; }
+  order: 5;
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 100px; }
   .hic-resolution-selector-container select {
     display: block;
-    position: relative;
-    width: 100%;
+    margin-top: 4px;
     height: 24px;
-    color: #5f5f5f;
+    width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
     font-weight: 400;
+    color: #5f5f5f;
     direction: rtl; }
 
 .hic-content-container {
