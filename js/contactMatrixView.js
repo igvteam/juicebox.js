@@ -30,17 +30,27 @@ var hic = (function (hic) {
 
     dragThreshold = 2;
 
-    hic.ContactMatrixView = function (browser) {
+    hic.ContactMatrixView = function (browser, $container) {
 
         var w,
             h;
 
         this.browser = browser;
 
+        this.$viewport_container = $('<div class="hic-viewport-container">');
+        $container.append(this.$viewport_container);
+
+        this.scrollbarWidget = new hic.ScrollbarWidget(browser);
+        this.$viewport_container.append(this.scrollbarWidget.$x_axis_scrollbar_container);
+        this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
+
         this.$viewport = $('<div class="hic-viewport">');
+        this.$viewport_container.append(this.$viewport);
 
         //content canvas
         this.$canvas = $('<canvas>');
+        this.$viewport.append(this.$canvas);
+
         w = this.$viewport.width();
         h = this.$viewport.height();
         this.$canvas.attr('width', w);
@@ -49,27 +59,15 @@ var hic = (function (hic) {
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+        this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
         this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
-
-        this.$viewport.append(this.$canvas);
-        this.$viewport.append(this.sweepZoom.$rulerSweeper);
         this.$viewport.append(this.$spinner);
 
         addMouseHandlers.call(this, this.$viewport);
-
-        this.$viewport_container = $('<div class="hic-viewport-container">');
-        this.$viewport_container.append(this.$viewport);
-
-        this.scrollbarWidget = new hic.ScrollbarWidget(browser);
-        this.$viewport_container.append(this.scrollbarWidget.$x_axis_scrollbar_container);
-        this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
-
-        hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("NormalizationChange", this);
 
         this.imageTileCache = {};
 
@@ -86,6 +84,9 @@ var hic = (function (hic) {
             }
         );
         this.computeColorScale = true;
+
+        hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("NormalizationChange", this);
 
     };
 

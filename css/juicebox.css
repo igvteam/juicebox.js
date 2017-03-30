@@ -12,8 +12,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 1145px;
-  height: 813px;
+  width: 845px;
+  height: 713px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -181,7 +181,7 @@
   position: absolute;
   top: 0;
   left: 25px;
-  width: 1100px;
+  width: 800px;
   height: 25px; }
   .hic-x-axis div {
     position: relative;
@@ -196,7 +196,7 @@
   top: 25px;
   left: 0;
   width: 25px;
-  height: 700px; }
+  height: 600px; }
   .hic-y-axis div {
     position: relative;
     top: 0;
@@ -209,16 +209,16 @@
   position: absolute;
   left: 25px;
   top: 25px;
-  width: 1120px;
-  height: 720px; }
+  width: 820px;
+  height: 620px; }
 
 .hic-viewport {
   /*cursor: pointer;*/
   position: relative;
   left: 0;
   top: 0;
-  width: 1100px;
-  height: 700px;
+  width: 800px;
+  height: 600px;
   overflow-x: hidden;
   overflow-y: hidden;
   background-color: white; }
@@ -226,9 +226,9 @@
 .hic-viewport-x-axis-scrollbar-container {
   position: absolute;
   left: 0;
-  top: 700px;
+  top: 600px;
   height: 20px;
-  width: 1100px;
+  width: 800px;
   background-color: #efefef; }
   .hic-viewport-x-axis-scrollbar-container div:first-child {
     position: absolute;
@@ -260,9 +260,9 @@
 .hic-viewport-y-axis-scrollbar-container {
   position: absolute;
   top: 0;
-  left: 1100px;
+  left: 800px;
   width: 20px;
-  height: 700px;
+  height: 600px;
   background-color: #efefef; }
   .hic-viewport-y-axis-scrollbar-container div:first-child {
     position: absolute;

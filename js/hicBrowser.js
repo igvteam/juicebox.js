@@ -68,19 +68,7 @@ var hic = (function (hic) {
 
         createNavBar(this, $root);
 
-        $content_container = $('<div class="hic-content-container">');
-        $root.append($content_container);
-
-        this.$xAxis = xAxis();
-        $content_container.append(this.$xAxis);
-        this.xAxisRuler = new hic.Ruler(this, this.$xAxis.find('div'), 'x');
-
-        this.$yAxis = yAxis();
-        $content_container.append(this.$yAxis);
-        this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
-
-        this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content_container.append(this.contactMatrixView.$viewport_container);
+        createContentContainer(this, $root);
 
         this.state = config.state ? config.state : defaultState.clone();
 
@@ -93,33 +81,45 @@ var hic = (function (hic) {
             this.loadHicFile(config);
         }
 
-        function xAxis() {
-            var $x_axis,
-                $e;
-
-            $x_axis = $('<div class="hic-x-axis">');
-            $e = $('<div>');
-            $x_axis.append($e);
-            return $x_axis
-        }
-
-        function yAxis() {
-            var $y_axis,
-                $e;
-
-            $y_axis = $('<div class="hic-y-axis">');
-            $e = $('<div>');
-            $y_axis.append($e);
-            return $y_axis
-
-        }
-
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
+
+    function createContentContainer(browser, $root) {
+
+        var $content_container;
+
+        $content_container = $('<div class="hic-content-container">');
+        $root.append($content_container);
+
+        xAxis(browser, $content_container);
+
+        yAxis(browser, $content_container);
+
+        browser.contactMatrixView = new hic.ContactMatrixView(browser, $content_container);
+
+        function xAxis(browser, $container) {
+
+            browser.$xAxis = $('<div class="hic-x-axis">');
+            $container.append(browser.$xAxis);
+
+            browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
+
+        }
+
+        function yAxis(browser, $container) {
+
+            browser.$yAxis = $('<div class="hic-y-axis">');
+            $container.append(browser.$yAxis);
+
+            browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
+
+        }
+
+    }
 
     function createNavBar(browser, $root) {
 
@@ -437,7 +437,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
 
-    }
+    };
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
@@ -471,7 +471,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
-    }
+    };
 
     hic.Browser.prototype.clamp = function () {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
