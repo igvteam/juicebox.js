@@ -66,12 +66,7 @@ var hic = (function (hic) {
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
-        // navbar
-        this.$navbar_container = $('<div class="hic-navbar-container">');
-        $root.append(this.$navbar_container);
-
-        // logo
-        // this.$navbar_container.append($('<div class="hic-logo-container">'));
+        createNavBar(this, $root);
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
@@ -84,34 +79,8 @@ var hic = (function (hic) {
         $content_container.append(this.$yAxis);
         this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
 
-
-        // chromosome selector
-        if (config.showChromosomeSelector) {
-            this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
-            this.$navbar_container.append(this.chromosomeSelector.$container);
-        }
-
-        // location box / goto
-        this.locusGoto = new hic.LocusGoto(this);
-        this.$navbar_container.append(this.locusGoto.$container);
-
-        // colorscale widget
-        this.colorscaleWidget = new hic.ColorScaleWidget(this);
-        this.$navbar_container.append(this.colorscaleWidget.$container);
-
-        // resolution widget
-        this.normalizationSelector = new hic.NormalizationWidget(this);
-        this.$navbar_container.append(this.normalizationSelector.$container);
-
-        // resolution widget
-        this.resolutionSelector = new hic.ResolutionSelector(this);
-        this.$navbar_container.append(this.resolutionSelector.$container);
-
-
         this.contactMatrixView = new hic.ContactMatrixView(this);
         $content_container.append(this.contactMatrixView.$viewport_container);
-
-        // this.sweepZoom = new hic.SweepZoom(this.contactMatrixView.$viewport);
 
         this.state = config.state ? config.state : defaultState.clone();
 
@@ -123,7 +92,6 @@ var hic = (function (hic) {
         if (config.url) {
             this.loadHicFile(config);
         }
-
 
         function xAxis() {
             var $x_axis,
@@ -152,6 +120,38 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
+
+    function createNavBar(browser, $root) {
+
+        var $navbar_container = $('<div class="hic-navbar-container">');
+        $root.append($navbar_container);
+
+        // logo
+        // $navbar_container.append($('<div class="hic-logo-container">'));
+
+        // chromosome selector
+        if (browser.config.showChromosomeSelector) {
+            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser);
+            $navbar_container.append(browser.chromosomeSelector.$container);
+        }
+
+        // location box / goto
+        browser.locusGoto = new hic.LocusGoto(browser);
+        $navbar_container.append(browser.locusGoto.$container);
+
+        // colorscale widget
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
+        $navbar_container.append(browser.colorscaleWidget.$container);
+
+        // resolution widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser);
+        $navbar_container.append(browser.normalizationSelector.$container);
+
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser);
+        $navbar_container.append(browser.resolutionSelector.$container);
+
+    }
 
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
