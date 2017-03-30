@@ -37,15 +37,10 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$viewport_container = $('<div class="hic-viewport-container">');
-        $container.append(this.$viewport_container);
-
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
-        this.$viewport_container.append(this.scrollbarWidget.$x_axis_scrollbar_container);
-        this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
-        this.$viewport = $('<div class="hic-viewport">');
-        this.$viewport_container.append(this.$viewport);
+        this.$viewport = $('<div>');
+        $container.append(this.$viewport);
 
         //content canvas
         this.$canvas = $('<canvas>');
@@ -66,6 +61,8 @@ var hic = (function (hic) {
         this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
         this.$viewport.append(this.$spinner);
+
+        $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
         addMouseHandlers.call(this, this.$viewport);
 

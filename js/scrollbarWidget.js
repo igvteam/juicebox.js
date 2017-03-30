@@ -34,7 +34,7 @@ var hic = (function (hic) {
         this.isDragging = false;
 
         // x-axis
-        this.$x_axis_scrollbar_container = $('<div class="hic-viewport-x-axis-scrollbar-container">');
+        this.$x_axis_scrollbar_container = $('<div>');
 
         this.$x_axis_label_container = $('<div>');
         this.$x_axis_label_container.text('-');
@@ -45,7 +45,7 @@ var hic = (function (hic) {
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
 
         // y-axis
-        this.$y_axis_scrollbar_container = $('<div class="hic-viewport-y-axis-scrollbar-container">');
+        this.$y_axis_scrollbar_container = $('<div>');
 
         this.$y_axis_label_container = $('<div>');
         this.$y_axis_label_container.text('-');
@@ -55,8 +55,8 @@ var hic = (function (hic) {
         this.$y_axis_scrollbar_container.append(this.$y_axis_label_container);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
-        this.$x_axis_scrollbar_container.hide();
-        this.$y_axis_scrollbar_container.hide();
+        // this.$x_axis_scrollbar_container.hide();
+        // this.$y_axis_scrollbar_container.hide();
 
         // this.$x_axis_scrollbar.draggable({
         //     containment: 'parent',
