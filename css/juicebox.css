@@ -3,7 +3,7 @@
   left: 0;
   right: 0;
   width: 845px;
-  height: 913px;
+  height: 923px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -16,7 +16,7 @@
   justify-content: space-around;
   align-items: flex-end;
   width: 100%;
-  height: 60px;
+  height: 70px;
   padding-bottom: 8px;
   background-color: white;
   font-family: "Open Sans", sans-serif;
@@ -300,4 +300,4 @@
   -ms-user-select: none;
   user-select: none; }
 
-/*# sourceMappingURL=hic.css.map */
+/*# sourceMappingURL=juicebox.css.map */
