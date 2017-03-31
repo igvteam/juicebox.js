@@ -48,7 +48,7 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         // ruler sweeper widget surface
-        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+        this.sweepZoom = new hic.SweepZoom(this.browser);
 
         //spinner
         this.$spinner = $('<div class="hic-viewport-spinner">');
