@@ -37,7 +37,7 @@ module.exports = function (grunt) {
             css: {
                 expand: true,
                 flatten: true,
-                src: 'css/hic.css',
+                src: 'css/juicebox.css',
                 dest: 'dist'
             },
             img: {
