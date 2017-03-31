@@ -190,6 +190,8 @@
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       display: block;
       position: relative;
+      left: 0;
+      top: 0;
       width: 800px;
       height: 800px;
       overflow-x: hidden;
