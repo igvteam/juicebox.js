@@ -27,18 +27,25 @@ $default-font-family: 'Open Sans', sans-serif;
 @mixin scrollbar-label {
   div:first-child {
 
+    display: table-cell;
+
     // center vertically/horizontally
-    position: relative;
+    position: absolute;
     margin: auto;
+
+    left:0;
     top:0;
+
     right:0;
     bottom:0;
-    left:0;
+
     height: $hic-scrollbar-height;
     width: $hic-scrollbar-height;
 
     z-index: 1024;
-    //background-color: red;
+
+    background-color: rgba(255, 255, 255, 0.51);
+
     vertical-align: middle;
     text-align:center;
     line-height: $hic-scrollbar-height;
@@ -343,6 +350,8 @@ $default-font-family: 'Open Sans', sans-serif;
     // y-scrollbar
     div:nth-child(3) {
       display:block;
+      position: relative;
+
       width: $hic-scrollbar-height;
       height: $hic-viewport-height;
 
@@ -382,6 +391,8 @@ $default-font-family: 'Open Sans', sans-serif;
     // x-scrollbar
     div:nth-child(2) {
       display:block;
+      position: relative;
+
       width: $hic-viewport-width;
       height: $hic-scrollbar-height;
 
