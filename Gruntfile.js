@@ -17,7 +17,7 @@ module.exports = function (grunt) {
                 src: [
                     'js/**/*.js',
                 ],
-                dest: 'dist/hic.js'
+                dest: 'dist/juicebox.js'
             }
         },
 
@@ -28,8 +28,8 @@ module.exports = function (grunt) {
             },
 
             hic: {
-                src: 'dist/hic.js',
-                dest: 'dist/hic.min.js'
+                src: 'dist/juicebox.js',
+                dest: 'dist/juicebox.min.js'
             }
         },
 
@@ -37,7 +37,7 @@ module.exports = function (grunt) {
             css: {
                 expand: true,
                 src: 'css/hic.css',
-                dest: 'dist'
+                dest: 'dist/juicebox.css'
             },
             img: {
                 expand: true,
