@@ -13,7 +13,7 @@
   left: 0;
   right: 0;
   width: 875px;
-  height: 943px;
+  height: 953px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -26,7 +26,7 @@
   justify-content: space-around;
   align-items: flex-end;
   width: 100%;
-  height: 60px;
+  height: 70px;
   padding-bottom: 8px;
   background-color: white;
   font-family: "Open Sans", sans-serif;
