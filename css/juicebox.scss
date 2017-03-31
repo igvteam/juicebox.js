@@ -104,22 +104,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.hic-sweep-zoom {
-
-  /*pointer-events: none;*/
-
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  width: 200px;
-  height:200px;
-
-  z-index:99999;
-
-  background-color: rgba(68, 134, 247, 0.25);
-}
-
 .hic-root {
   position: relative;
 
@@ -343,13 +327,13 @@ $default-font-family: 'Open Sans', sans-serif;
       display:block;
 
       position: relative;
-
       width: $hic-viewport-width;
       height: $hic-viewport-height;
 
       overflow-x: hidden;
       overflow-y: hidden;
 
+      // spinner
       div {
         display: table-cell;
 
@@ -445,6 +429,22 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 }
 
+.hic-sweep-zoom {
+
+  /*pointer-events: none;*/
+  display: block;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 200px;
+  height:200px;
+
+  z-index:99999;
+
+  background-color: rgba(68, 134, 247, 0.25);
+}
 
 .unselect {
   -webkit-touch-callout: none;

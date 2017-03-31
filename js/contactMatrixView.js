@@ -54,8 +54,8 @@ var hic = (function (hic) {
         this.$viewport.append(this.$spinner);
 
         // ruler sweeper widget surface
-        // this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
-        // this.$viewport.append(this.sweepZoom.$rulerSweeper);
+        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+        this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
@@ -87,12 +87,11 @@ var hic = (function (hic) {
         this.dataset = dataset;
         this.clearCaches();
         this.update();
-    }
-
+    };
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
-    }
+    };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
@@ -201,7 +200,6 @@ var hic = (function (hic) {
         })
 
     };
-
 
     hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
 
@@ -330,7 +328,6 @@ var hic = (function (hic) {
             })
         }
     };
-
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
         var $spinner = this.$spinner;
