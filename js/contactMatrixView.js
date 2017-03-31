@@ -54,7 +54,7 @@ var hic = (function (hic) {
         this.$viewport.append(this.$spinner);
 
         // ruler sweeper widget surface
-        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+        this.sweepZoom = new hic.SweepZoom(this.browser);
         this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
@@ -348,7 +348,9 @@ var hic = (function (hic) {
             isDragging = false,
             isSweepZooming = false,
             mouseDown = undefined,
-            mouseLast = undefined;
+            mouseLast = undefined,
+            exe,
+            wye;
 
         $(document).on({
             mousedown: function (e) {
@@ -378,6 +380,7 @@ var hic = (function (hic) {
             isMouseDown = true;
 
             coords = translateMouseCoordinates(e, $viewport);
+
             mouseLast = coords;
             mouseDown = coords;
 
@@ -411,6 +414,7 @@ var hic = (function (hic) {
                     }
 
                     if (isSweepZooming) {
+
                         self.sweepZoom.update(mouseDown, coords, {
                             origin: {x: 0, y: 0},
                             size: {width: $viewport.width(), height: $viewport.height()}
