@@ -41,7 +41,6 @@ var hic = (function (hic) {
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
         this.sweepRect.origin = {x: 0, y: 0};
         this.sweepRect.size = {width: 1, height: 1};
-        this.oneTime = false;
     };
 
     hic.SweepZoom.prototype.update = function (mouseDown, coords, viewportBBox) {
@@ -54,12 +53,9 @@ var hic = (function (hic) {
 
         delta = { x: (coords.x - mouseDown.x), y: (coords.y - mouseDown.y) };
 
-        if (false === this.oneTime) {
-            this.sweepRect.origin.x = (delta.x < 0 ? mouseDown.x + delta.x : mouseDown.x);
-            this.sweepRect.origin.y = (delta.y < 0 ? mouseDown.y + delta.y : mouseDown.y);
-            this.dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
-            this.oneTime = true;
-        }
+        this.sweepRect.origin.x = (delta.x < 0 ? mouseDown.x + delta.x : mouseDown.x);
+        this.sweepRect.origin.y = (delta.y < 0 ? mouseDown.y + delta.y : mouseDown.y);
+        this.dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
 
         if ('x' === this.dominantAxis) {
             displacement = Math.abs(delta.x);
