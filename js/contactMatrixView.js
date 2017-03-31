@@ -32,9 +32,6 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView = function (browser, $container) {
 
-        var w,
-            h;
-
         this.browser = browser;
 
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
@@ -46,21 +43,19 @@ var hic = (function (hic) {
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
 
-        w = this.$viewport.width();
-        h = this.$viewport.height();
-        this.$canvas.attr('width', w);
-        this.$canvas.attr('height', h);
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        // ruler sweeper widget surface
-        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
-        this.$viewport.append(this.sweepZoom.$rulerSweeper);
-
         //spinner
-        this.$spinner = $('<div class="hic-viewport-spinner">');
+        this.$spinner = $('<div>');
         this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
         this.$viewport.append(this.$spinner);
+
+        // ruler sweeper widget surface
+        // this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
+        // this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 

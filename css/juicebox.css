@@ -199,10 +199,25 @@
       height: 800px; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       display: block;
+      position: relative;
       width: 800px;
       height: 800px;
       overflow-x: hidden;
       overflow-y: hidden; }
+      .hic-content-container div:nth-child(2) div:nth-child(2) div {
+        display: table-cell;
+        margin: auto;
+        position: absolute;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        height: 120px;
+        width: 120px;
+        z-index: 1024;
+        font-size: 32px;
+        color: #7f7f7f;
+        pointer-events: none; }
     .hic-content-container div:nth-child(2) div:nth-child(3) {
       display: block;
       position: relative;
@@ -276,120 +291,6 @@
         top: 0;
         height: 100%;
         background-color: #a5a5a5; }
-
-.hic-x-axis {
-  position: absolute;
-  top: 0;
-  left: 25px;
-  width: 800px;
-  height: 25px; }
-
-.hic-y-axis {
-  position: absolute;
-  top: 25px;
-  left: 0;
-  width: 25px;
-  height: 800px; }
-
-.hic-viewport-container {
-  position: absolute;
-  left: 25px;
-  top: 25px;
-  width: 820px;
-  height: 820px; }
-
-.hic-viewport {
-  /*cursor: pointer;*/
-  position: relative;
-  left: 0;
-  top: 0;
-  width: 800px;
-  height: 800px;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  background-color: white; }
-
-.hic-viewport-x-axis-scrollbar-container {
-  position: absolute;
-  left: 0;
-  top: 800px;
-  height: 20px;
-  width: 800px;
-  background-color: #efefef; }
-  .hic-viewport-x-axis-scrollbar-container div:first-child {
-    display: table-cell;
-    position: absolute;
-    margin: auto;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    height: 20px;
-    width: 20px;
-    z-index: 1024;
-    background-color: rgba(255, 255, 255, 0.51);
-    vertical-align: middle;
-    text-align: center;
-    line-height: 20px;
-    color: #373737;
-    font-family: "Open Sans", sans-serif;
-    font-size: medium;
-    font-weight: 400; }
-  .hic-viewport-x-axis-scrollbar-container div:last-child {
-    cursor: pointer;
-    position: absolute;
-    /* dynamic x and width */
-    left: 25%;
-    width: 50%;
-    top: 0;
-    height: 100%;
-    background-color: #a5a5a5; }
-
-.hic-viewport-y-axis-scrollbar-container {
-  position: absolute;
-  top: 0;
-  left: 800px;
-  width: 20px;
-  height: 800px;
-  background-color: #efefef; }
-  .hic-viewport-y-axis-scrollbar-container div:first-child {
-    display: table-cell;
-    position: absolute;
-    margin: auto;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    height: 20px;
-    width: 20px;
-    z-index: 1024;
-    background-color: rgba(255, 255, 255, 0.51);
-    vertical-align: middle;
-    text-align: center;
-    line-height: 20px;
-    color: #373737;
-    font-family: "Open Sans", sans-serif;
-    font-size: medium;
-    font-weight: 400; }
-  .hic-viewport-y-axis-scrollbar-container div:last-child {
-    cursor: pointer;
-    position: absolute;
-    /* dynamic y and height */
-    top: 25%;
-    height: 50%;
-    left: 0;
-    width: 100%;
-    background-color: #a5a5a5; }
-
-.hic-viewport-spinner {
-  pointer-events: none;
-  position: absolute;
-  top: 20%;
-  left: 45%;
-  transform: translate(-50%, -50%);
-  z-index: 1024;
-  font-size: 32px;
-  color: #7f7f7f; }
 
 .unselect {
   -webkit-touch-callout: none;
