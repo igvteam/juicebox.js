@@ -210,6 +210,10 @@
         font-size: 32px;
         color: #7f7f7f;
         pointer-events: none; }
+      .hic-content-container div:nth-child(2) div:nth-child(2) .hic-sweep-zoom {
+        position: absolute;
+        z-index: 99999;
+        background-color: rgba(68, 134, 247, 0.25); }
     .hic-content-container div:nth-child(2) div:nth-child(3) {
       display: block;
       position: relative;
@@ -283,17 +287,6 @@
         top: 0;
         height: 100%;
         background-color: #a5a5a5; }
-
-.hic-sweep-zoom {
-  /*pointer-events: none;*/
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 200px;
-  height: 200px;
-  z-index: 99999;
-  background-color: rgba(68, 134, 247, 0.25); }
 
 .unselect {
   -webkit-touch-callout: none;

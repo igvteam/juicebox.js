@@ -38,6 +38,7 @@ var hic = (function (hic) {
     };
 
     hic.SweepZoom.prototype.reset = function () {
+        this.coordinateFrame = this.$rulerSweeper.parent().offset();
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
         this.sweepRect.origin = {x: 0, y: 0};
         this.sweepRect.size = {width: 1, height: 1};
@@ -78,15 +79,10 @@ var hic = (function (hic) {
             this.sweepRect.size.width = this.sweepRect.size.height * this.aspectRatio;
         }
 
-        str = 'left+' + Math.floor(this.sweepRect.origin.x) + ' top+' + Math.floor(this.sweepRect.origin.y);
-        this.$rulerSweeper.position({
-            my: "left top",
-            at: str,
-            of: this.browser.contactMatrixView.$viewport
-        });
-
         this.$rulerSweeper.width(Math.floor(this.sweepRect.size.width));
         this.$rulerSweeper.height(Math.floor(this.sweepRect.size.height));
+
+        this.$rulerSweeper.offset({ left: this.coordinateFrame.left + this.sweepRect.origin.x, top: this.coordinateFrame.top + this.sweepRect.origin.y });
 
         this.$rulerSweeper.show();
 
@@ -104,21 +100,6 @@ var hic = (function (hic) {
         this.browser.goto(bpX, bpXMax, bpY, bpYMax);
 
     };
-
-    function rectToCSS(rect) {
-
-        var css = {};
-
-        // console.log('sweep ' + rect.origin.x + ' ' + rect.origin.y);
-
-        _.extend(css, { 'left': Math.round(rect.origin.x) + 'px' });
-        _.extend(css, {  'top': Math.round(rect.origin.y) + 'px' });
-
-        _.extend(css, {  'width': Math.round(rect.size.width ) + 'px' });
-        _.extend(css, { 'height': Math.round(rect.size.height) + 'px' });
-
-        return css;
-    }
 
     return hic;
 })(hic || {});

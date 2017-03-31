@@ -361,6 +361,12 @@ $default-font-family: 'Open Sans', sans-serif;
 
       }
 
+      .hic-sweep-zoom {
+        position: absolute;
+        z-index:99999;
+        background-color: rgba(68, 134, 247, 0.25);
+      }
+
     }
 
     // y-scrollbar
@@ -431,22 +437,6 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 }
 
-.hic-sweep-zoom {
-
-  /*pointer-events: none;*/
-  display: block;
-
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  width: 200px;
-  height:200px;
-
-  z-index:99999;
-
-  background-color: rgba(68, 134, 247, 0.25);
-}
 
 .unselect {
   -webkit-touch-callout: none;
