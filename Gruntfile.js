@@ -36,8 +36,9 @@ module.exports = function (grunt) {
         copy: {
             css: {
                 expand: true,
+                flatten: true,
                 src: 'css/hic.css',
-                dest: 'dist/juicebox.css'
+                dest: 'dist'
             },
             img: {
                 expand: true,
