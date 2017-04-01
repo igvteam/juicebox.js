@@ -26,14 +26,19 @@
  */
 var hic = (function (hic) {
 
-    hic.SweepZoom = function (browser, $rulerSweeper) {
+    hic.SweepZoom = function (browser) {
+
         this.browser = browser;
-        this.$rulerSweeper = $rulerSweeper;
+
+        this.$rulerSweeper = $('<div class="hic-sweep-zoom">');
         this.$rulerSweeper.hide();
+
         this.sweepRect = {};
+
     };
 
     hic.SweepZoom.prototype.reset = function () {
+        this.coordinateFrame = this.$rulerSweeper.parent().offset();
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
         this.sweepRect.origin = {x: 0, y: 0};
         this.sweepRect.size = {width: 1, height: 1};
@@ -42,20 +47,18 @@ var hic = (function (hic) {
     hic.SweepZoom.prototype.update = function (mouseDown, coords, viewportBBox) {
         var displacement,
             delta,
-            dominantAxis,
             aspectRatioScale,
             xMax,
-            yMax;
+            yMax,
+            str;
 
-
-        delta = {x: (coords.x - mouseDown.x), y: (coords.y - mouseDown.y)};
+        delta = { x: (coords.x - mouseDown.x), y: (coords.y - mouseDown.y) };
 
         this.sweepRect.origin.x = (delta.x < 0 ? mouseDown.x + delta.x : mouseDown.x);
         this.sweepRect.origin.y = (delta.y < 0 ? mouseDown.y + delta.y : mouseDown.y);
+        this.dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
 
-        dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
-
-        if ('x' === dominantAxis) {
+        if ('x' === this.dominantAxis) {
             displacement = Math.abs(delta.x);
             aspectRatioScale = {x: 1.0, y: 1.0 / this.aspectRatio};
         } else {
@@ -63,11 +66,12 @@ var hic = (function (hic) {
             aspectRatioScale = {x: this.aspectRatio, y: 1.0};
         }
 
-        this.sweepRect.size = {width: aspectRatioScale.x * displacement, height: aspectRatioScale.y * displacement};
+        this.sweepRect.size = { width: aspectRatioScale.x * displacement, height: aspectRatioScale.y * displacement };
 
         xMax = (mouseDown.x + this.sweepRect.size.width ) - viewportBBox.size.width;
         yMax = (mouseDown.y + this.sweepRect.size.height) - viewportBBox.size.height;
-        if ('y' === dominantAxis && xMax > 0) {
+
+        if ('y' === this.dominantAxis && xMax > 0) {
             this.sweepRect.size.width -= xMax;
             this.sweepRect.size.height = this.sweepRect.size.width / this.aspectRatio;
         } else if (yMax > 0) {
@@ -75,7 +79,11 @@ var hic = (function (hic) {
             this.sweepRect.size.width = this.sweepRect.size.height * this.aspectRatio;
         }
 
-        this.$rulerSweeper.css(rectToCSS(this.sweepRect));
+        this.$rulerSweeper.width(Math.floor(this.sweepRect.size.width));
+        this.$rulerSweeper.height(Math.floor(this.sweepRect.size.height));
+
+        this.$rulerSweeper.offset({ left: this.coordinateFrame.left + this.sweepRect.origin.x, top: this.coordinateFrame.top + this.sweepRect.origin.y });
+
         this.$rulerSweeper.show();
 
     };
@@ -91,37 +99,7 @@ var hic = (function (hic) {
         this.$rulerSweeper.hide();
         this.browser.goto(bpX, bpXMax, bpY, bpYMax);
 
-        // rawScaleFactor = this.sweepRect.size.width / this.browser.contactMatrixView.getViewDimensions().width;
-        // zoomIndex = this.browser.findMatchingZoomIndex(rawScaleFactor * this.browser.resolution(), bpResolutions);
-        //
-        // resRatio = bpResolution / bpResolutions[zoomIndex];
-        //
-        // newBinX = (s.x + (this.sweepRect.origin.x / s.pixelSize)) * resRatio;
-        // newBinY = (s.y + (this.sweepRect.origin.y / s.pixelSize)) * resRatio;
-        //
-        // this.browser.setState(new hic.State(
-        //     s.chr1,
-        //     s.chr2,
-        //     zoomIndex,
-        //     newBinX,
-        //     newBinY,
-        //     s.pixelSize
-        // ));
-
     };
-
-    function rectToCSS(rect) {
-
-        var css = {};
-
-        _.extend(css, {'left': rect.origin.x + 'px'});
-        _.extend(css, {'top': rect.origin.y + 'px'});
-
-        _.extend(css, {'width': rect.size.width + 'px'});
-        _.extend(css, {'height': rect.size.height + 'px'});
-
-        return css;
-    }
 
     return hic;
 })(hic || {});

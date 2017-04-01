@@ -1,21 +1,19 @@
 
+//
 $nav-bar-height: 70px;
 $nav-bar-padding-bottom: 8px;
 $nav-bar-widget-height: 24px;
-
 $chromosome-selector-widget-container-width: 160px;
 
-$hic-viewport-width: 830px;
-$hic-viewport-height: 830px;
+//
+$hic-viewport-width: 800px;
+$hic-viewport-height:800px;
 
+//
 $hic-scrollbar-height: 20px;
-
-// Axis dimensions are specified assuming both axes run horizontally
-// even though the y-axis is rendered vertically
 $hic-axis-height: 25px;
-$hic-x-axis-width: $hic-viewport-width;
-$hic-y-axis-width: $hic-viewport-height;
 
+//
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
 
@@ -27,18 +25,25 @@ $default-font-family: 'Open Sans', sans-serif;
 @mixin scrollbar-label {
   div:first-child {
 
+    display: table-cell;
+
     // center vertically/horizontally
     position: absolute;
     margin: auto;
+
+    left:0;
     top:0;
+
     right:0;
     bottom:0;
-    left:0;
+
     height: $hic-scrollbar-height;
     width: $hic-scrollbar-height;
 
     z-index: 1024;
-    //background-color: red;
+
+    background-color: rgba(255, 255, 255, 0.51);
+
     vertical-align: middle;
     text-align:center;
     line-height: $hic-scrollbar-height;
@@ -95,22 +100,6 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: white;
   }
 
-}
-
-.hic-sweep-zoom {
-
-  /*pointer-events: none;*/
-
-  position: absolute;
-  top: 0;
-  left: 0;
-
-  width: 200px;
-  height:200px;
-
-  z-index:99999;
-
-  background-color: rgba(68, 134, 247, 0.25);
 }
 
 .hic-root {
@@ -288,128 +277,163 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-content-container {
-  position: relative;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-}
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
 
-.hic-x-axis {
-  position: absolute;
-  top: 0;
-  left: $hic-axis-height;
-  width: $hic-x-axis-width;
-  height: $hic-axis-height;
+  width:  100%;
+  height: calc(100% - #{$nav-bar-height} - #{$nav-bar-padding-bottom});
 
-  div {
-    position: relative;
-    bottom:0;
-    left: 0;
+  // container: shim | x-axis
+  div:nth-child(1) {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+
     width: 100%;
-    height: 100%;
-    background-color: white;
+    height: $hic-axis-height;
+
+    // shim
+    div:nth-child(1) {
+      width: $hic-axis-height;
+      height: $hic-axis-height;
+    }
+
+    div:nth-child(2) {
+      width: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+      height: $hic-axis-height;
+    }
+
   }
-}
 
-.hic-y-axis {
-  position: absolute;
-  top: $hic-axis-height;
-  left: 0;
-  width: $hic-axis-height;
-  height: $hic-y-axis-width;
+  // container: y-axis | viewport | y-scrollbar
+  div:nth-child(2) {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
 
-  div {
-    position: relative;
-    top: 0;
-    right:0;
     width: 100%;
-    height: 100%;
-    background-color: white;
+    height: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+
+    // y-axis
+    div:nth-child(1) {
+      width: $hic-axis-height;
+      height: 100%;
+    }
+
+    // viewport
+    div:nth-child(2) {
+      display:block;
+
+      position: relative;
+      left:0;
+      top: 0;
+      width:  calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+      height: 100%;
+
+      overflow-x: hidden;
+      overflow-y: hidden;
+
+      // spinner
+      div {
+        display: table-cell;
+
+        margin: auto;
+
+        position: absolute;
+        left:0;
+        top:0;
+
+        right:0;
+        bottom:0;
+
+        height: 120px;
+        width: 120px;
+
+        z-index: 1024;
+
+        font-size: 32px;
+        color: #7f7f7f;
+
+        pointer-events:none;
+        //background-color: red;
+
+      }
+
+      .hic-sweep-zoom {
+        position: absolute;
+        z-index:99999;
+        background-color: rgba(68, 134, 247, 0.25);
+      }
+
+    }
+
+    // y-scrollbar
+    div:nth-child(3) {
+      display:block;
+      position: relative;
+
+      width: $hic-scrollbar-height;
+      height: 100%;;
+
+      @include scrollbar-label;
+
+      div:last-child {
+        position: relative;
+
+        /* dynamic y and height */
+        top: 25%;
+        height: 50%;
+
+        left: 0;
+        width: 100%;
+        background-color: $scrollbar-handle-color;
+      }
+
+    }
+
   }
-}
 
-.hic-viewport-container {
-  position: absolute;
-  left: $hic-axis-height;
-  top: $hic-axis-height;
-  width: $hic-viewport-width + $hic-scrollbar-height;
-  height: $hic-viewport-height + $hic-scrollbar-height;
-}
+  // container: shim | x-scrollbar
+  div:nth-child(3) {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
 
-.hic-viewport {
-  /*cursor: pointer;*/
-  position: relative;
-  left: 0;
-  top: 0;
-  width: $hic-viewport-width;
-  height: $hic-viewport-height;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  background-color: white;
-}
-
-.hic-viewport-x-axis-scrollbar-container {
-
-  position: absolute;
-  left: 0;
-  top: $hic-viewport-height;
-  height: $hic-scrollbar-height;
-  width: $hic-viewport-width;
-  background-color: #efefef;
-
-  @include scrollbar-label;
-
-  div:last-child {
-    cursor: pointer;
-    position: absolute;
-
-    /* dynamic x and width */
-    left: 25%;
-    width: 50%;
-
-    top: 0;
-    height: 100%;
-    background-color: $scrollbar-handle-color;
-  }
-
-}
-
-.hic-viewport-y-axis-scrollbar-container {
-
-  position: absolute;
-  top: 0;
-  left: $hic-viewport-width;
-  width: $hic-scrollbar-height;
-  height: $hic-viewport-height;
-  background-color: #efefef;
-
-  @include scrollbar-label;
-
-  div:last-child {
-    cursor: pointer;
-    position: absolute;
-
-    /* dynamic y and height */
-    top: 25%;
-    height: 50%;
-
-    left: 0;
     width: 100%;
-    background-color: $scrollbar-handle-color;
+    height: $hic-scrollbar-height;
+
+    // shim
+    div:nth-child(1) {
+      width: $hic-axis-height;
+      height: $hic-scrollbar-height;
+    }
+
+    // x-scrollbar
+    div:nth-child(2) {
+      display:block;
+      position: relative;
+
+      width: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+      height: $hic-scrollbar-height;
+
+      @include scrollbar-label;
+
+      div:last-child {
+        position: relative;
+
+        /* dynamic x and width */
+        left: 25%;
+        width: 50%;
+
+        top: 0;
+        height: 100%;
+        background-color: $scrollbar-handle-color;
+      }
+
+    }
+
   }
-
-}
-
-.hic-viewport-spinner {
-  pointer-events:none;
-  position: absolute;
-  top: 20%;
-  left: 45%;
-  transform: translate(-50%, -50%);
-  z-index: 1024;
-  font-size: 32px;
-  color: #7f7f7f;
 }
 
 .unselect {

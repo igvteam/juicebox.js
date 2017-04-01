@@ -66,52 +66,9 @@ var hic = (function (hic) {
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
-        // navbar
-        this.$navbar_container = $('<div class="hic-navbar-container">');
-        $root.append(this.$navbar_container);
+        createNavBar(this, $root);
 
-        // logo
-        // this.$navbar_container.append($('<div class="hic-logo-container">'));
-
-        $content_container = $('<div class="hic-content-container">');
-        $root.append($content_container);
-
-        this.$xAxis = xAxis();
-        $content_container.append(this.$xAxis);
-        this.xAxisRuler = new hic.Ruler(this, this.$xAxis.find('div'), 'x');
-
-        this.$yAxis = yAxis();
-        $content_container.append(this.$yAxis);
-        this.yAxisRuler = new hic.Ruler(this, this.$yAxis.find('div'), 'y');
-
-
-        // chromosome selector
-        if (config.showChromosomeSelector) {
-            this.chromosomeSelector = new hic.ChromosomeSelectorWidget(this);
-            this.$navbar_container.append(this.chromosomeSelector.$container);
-        }
-
-        // location box / goto
-        this.locusGoto = new hic.LocusGoto(this);
-        this.$navbar_container.append(this.locusGoto.$container);
-
-        // colorscale widget
-        this.colorscaleWidget = new hic.ColorScaleWidget(this);
-        this.$navbar_container.append(this.colorscaleWidget.$container);
-
-        // resolution widget
-        this.normalizationSelector = new hic.NormalizationWidget(this);
-        this.$navbar_container.append(this.normalizationSelector.$container);
-
-        // resolution widget
-        this.resolutionSelector = new hic.ResolutionSelector(this);
-        this.$navbar_container.append(this.resolutionSelector.$container);
-
-
-        this.contactMatrixView = new hic.ContactMatrixView(this);
-        $content_container.append(this.contactMatrixView.$viewport_container);
-
-        // this.sweepZoom = new hic.SweepZoom(this.contactMatrixView.$viewport);
+        createContentContainer(this, $root);
 
         this.state = config.state ? config.state : defaultState.clone();
 
@@ -124,34 +81,100 @@ var hic = (function (hic) {
             this.loadHicFile(config);
         }
 
-
-        function xAxis() {
-            var $x_axis,
-                $e;
-
-            $x_axis = $('<div class="hic-x-axis">');
-            $e = $('<div>');
-            $x_axis.append($e);
-            return $x_axis
-        }
-
-        function yAxis() {
-            var $y_axis,
-                $e;
-
-            $y_axis = $('<div class="hic-y-axis">');
-            $e = $('<div>');
-            $y_axis.append($e);
-            return $y_axis
-
-        }
-
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
+
+    function createContentContainer(browser, $root) {
+
+        var $content_container,
+            $container,
+            $shim;
+
+        $content_container = $('<div class="hic-content-container">');
+        $root.append($content_container);
+
+        // container: shim | x-axis
+        $container = $('<div>');
+        $content_container.append($container);
+        xAxis(browser, $container);
+
+        // container: y-axis | viewport | y-scrollbar
+        $container = $('<div>');
+        $content_container.append($container);
+        yAxis(browser, $container);
+
+        browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
+
+        // container: shim | x-scrollbar
+        $container = $('<div>');
+        $content_container.append($container);
+
+        // shim
+        $shim = $('<div>');
+        $container.append($shim);
+
+        // x-scrollbar
+        $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+        function xAxis(browser, $container) {
+
+            // shim
+            $container.append($('<div>'));
+
+            // x-axis
+            browser.$xAxis = $('<div>');
+            $container.append(browser.$xAxis);
+
+            browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
+
+        }
+
+        function yAxis(browser, $container) {
+
+            browser.$yAxis = $('<div>');
+            $container.append(browser.$yAxis);
+
+            browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
+
+        }
+
+    }
+
+    function createNavBar(browser, $root) {
+
+        var $navbar_container = $('<div class="hic-navbar-container">');
+        $root.append($navbar_container);
+
+        // logo
+        // $navbar_container.append($('<div class="hic-logo-container">'));
+
+        // chromosome selector
+        if (browser.config.showChromosomeSelector) {
+            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser);
+            $navbar_container.append(browser.chromosomeSelector.$container);
+        }
+
+        // location box / goto
+        browser.locusGoto = new hic.LocusGoto(browser);
+        $navbar_container.append(browser.locusGoto.$container);
+
+        // colorscale widget
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
+        $navbar_container.append(browser.colorscaleWidget.$container);
+
+        // resolution widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser);
+        $navbar_container.append(browser.normalizationSelector.$container);
+
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser);
+        $navbar_container.append(browser.resolutionSelector.$container);
+
+    }
 
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
@@ -437,7 +460,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
 
-    }
+    };
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
@@ -471,7 +494,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
 
-    }
+    };
 
     hic.Browser.prototype.clamp = function () {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),

@@ -30,46 +30,36 @@ var hic = (function (hic) {
 
     dragThreshold = 2;
 
-    hic.ContactMatrixView = function (browser) {
-
-        var w,
-            h;
+    hic.ContactMatrixView = function (browser, $container) {
 
         this.browser = browser;
 
-        this.$viewport = $('<div class="hic-viewport">');
+        this.scrollbarWidget = new hic.ScrollbarWidget(browser);
+
+        this.$viewport = $('<div>');
+        $container.append(this.$viewport);
 
         //content canvas
         this.$canvas = $('<canvas>');
-        w = this.$viewport.width();
-        h = this.$viewport.height();
-        this.$canvas.attr('width', w);
-        this.$canvas.attr('height', h);
+        this.$viewport.append(this.$canvas);
+
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        // ruler sweeper widget surface
-        this.sweepZoom = new hic.SweepZoom(this.browser, $('<div class="hic-sweep-zoom">'));
-
         //spinner
-        this.$spinner = $('<div class="hic-viewport-spinner">');
+        this.$spinner = $('<div>');
         this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
-
-        this.$viewport.append(this.$canvas);
-        this.$viewport.append(this.sweepZoom.$rulerSweeper);
         this.$viewport.append(this.$spinner);
 
+        // ruler sweeper widget surface
+        this.sweepZoom = new hic.SweepZoom(this.browser);
+        this.$viewport.append(this.sweepZoom.$rulerSweeper);
+
+        $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
+
         addMouseHandlers.call(this, this.$viewport);
-
-        this.$viewport_container = $('<div class="hic-viewport-container">');
-        this.$viewport_container.append(this.$viewport);
-
-        this.scrollbarWidget = new hic.ScrollbarWidget(browser);
-        this.$viewport_container.append(this.scrollbarWidget.$x_axis_scrollbar_container);
-        this.$viewport_container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
-
-        hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("NormalizationChange", this);
 
         this.imageTileCache = {};
 
@@ -87,6 +77,9 @@ var hic = (function (hic) {
         );
         this.computeColorScale = true;
 
+        hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe("NormalizationChange", this);
+
     };
 
     hic.ContactMatrixView.prototype.setDataset = function(dataset) {
@@ -94,12 +87,11 @@ var hic = (function (hic) {
         this.dataset = dataset;
         this.clearCaches();
         this.update();
-    }
-
+    };
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
-    }
+    };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
         return {
@@ -208,7 +200,6 @@ var hic = (function (hic) {
         })
 
     };
-
 
     hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
 
@@ -338,7 +329,6 @@ var hic = (function (hic) {
         }
     };
 
-
     hic.ContactMatrixView.prototype.startSpinner = function () {
         var $spinner = this.$spinner;
         $spinner.addClass("fa-spin");
@@ -358,7 +348,9 @@ var hic = (function (hic) {
             isDragging = false,
             isSweepZooming = false,
             mouseDown = undefined,
-            mouseLast = undefined;
+            mouseLast = undefined,
+            exe,
+            wye;
 
         $(document).on({
             mousedown: function (e) {
@@ -388,6 +380,7 @@ var hic = (function (hic) {
             isMouseDown = true;
 
             coords = translateMouseCoordinates(e, $viewport);
+
             mouseLast = coords;
             mouseDown = coords;
 
@@ -421,6 +414,7 @@ var hic = (function (hic) {
                     }
 
                     if (isSweepZooming) {
+
                         self.sweepZoom.update(mouseDown, coords, {
                             origin: {x: 0, y: 0},
                             size: {width: $viewport.width(), height: $viewport.height()}
