@@ -3,7 +3,7 @@
   left: 0;
   right: 0;
   width: 845px;
-  height: 915px;
+  height: 923px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -165,7 +165,7 @@
   flex-flow: column;
   flex-wrap: nowrap;
   width: 100%;
-  height: calc(100% - 70px); }
+  height: calc(100% - 70px - 8px); }
   .hic-content-container div:nth-child(1) {
     display: flex;
     flex-flow: row;

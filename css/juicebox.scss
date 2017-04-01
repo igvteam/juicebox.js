@@ -15,7 +15,7 @@ $hic-axis-height: 25px;
 
 //
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
+$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
 
 $default-dark-color: #5f5f5f;
 $scrollbar-handle-color: #a5a5a5;
@@ -282,7 +282,7 @@ $default-font-family: 'Open Sans', sans-serif;
   flex-wrap: nowrap;
 
   width:  100%;
-  height: calc(100% - #{$nav-bar-height});
+  height: calc(100% - #{$nav-bar-height} - #{$nav-bar-padding-bottom});
 
   // container: shim | x-axis
   div:nth-child(1) {
