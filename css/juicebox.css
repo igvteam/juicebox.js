@@ -164,6 +164,7 @@
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
+  justify-content: space-between;
   width: 100%;
   height: calc(100% - 70px - 8px); }
   .hic-content-container div:nth-child(1) {
@@ -182,8 +183,9 @@
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
+    justify-content: space-between;
     width: 100%;
-    height: calc(100% - 25px - 20px); }
+    height: 100%; }
     .hic-content-container div:nth-child(2) div:nth-child(1) {
       width: 25px;
       height: 100%; }
@@ -192,7 +194,6 @@
       position: relative;
       left: 0;
       top: 0;
-      width: calc(100% - 25px - 20px);
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }

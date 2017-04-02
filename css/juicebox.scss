@@ -280,6 +280,7 @@ $default-font-family: 'Open Sans', sans-serif;
   display:flex;
   flex-flow: column;
   flex-wrap: nowrap;
+  justify-content: space-between;
 
   width:  100%;
   height: calc(100% - #{$nav-bar-height} - #{$nav-bar-padding-bottom});
@@ -311,9 +312,10 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
+    justify-content: space-between;
 
     width: 100%;
-    height: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+    height: 100%;
 
     // y-axis
     div:nth-child(1) {
@@ -328,7 +330,7 @@ $default-font-family: 'Open Sans', sans-serif;
       position: relative;
       left:0;
       top: 0;
-      width:  calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
+      //width:  calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
       height: 100%;
 
       overflow-x: hidden;
@@ -374,7 +376,7 @@ $default-font-family: 'Open Sans', sans-serif;
       position: relative;
 
       width: $hic-scrollbar-height;
-      height: 100%;;
+      height: 100%;
 
       @include scrollbar-label;
 
