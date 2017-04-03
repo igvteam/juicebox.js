@@ -2,8 +2,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 845px;
-  height: 923px;
+  width: 900px;
+  height: 700px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -64,7 +64,8 @@
   width: 24px;
   height: 24px;
   margin-left: 4px;
-  background-image: url("../img/circular-arrows-24-grey.png"); }
+  background-image: url("../img/circular-arrows-24-grey.png");
+  background-repeat: no-repeat; }
 
 .hic-chromosome-selector-widget-button:hover,
 .hic-chromosome-selector-widget-button:focus,

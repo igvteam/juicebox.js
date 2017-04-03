@@ -88,6 +88,37 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
 
+    function createNavBar(browser, $root) {
+
+        var $navbar_container = $('<div class="hic-navbar-container">');
+        $root.append($navbar_container);
+
+        // logo
+        // $navbar_container.append($('<div class="hic-logo-container">'));
+
+        // chromosome selector
+        if (browser.config.showChromosomeSelector) {
+            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $navbar_container);
+        }
+
+        // location box / goto
+        browser.locusGoto = new hic.LocusGoto(browser, $navbar_container);
+        $navbar_container.append(browser.locusGoto.$container);
+
+        // colorscale widget
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
+        $navbar_container.append(browser.colorscaleWidget.$container);
+
+        // resolution widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser);
+        $navbar_container.append(browser.normalizationSelector.$container);
+
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser);
+        $navbar_container.append(browser.resolutionSelector.$container);
+
+    }
+
     function createContentContainer(browser, $root) {
 
         var $content_container,
@@ -128,38 +159,6 @@ var hic = (function (hic) {
             $container.append(browser.$yAxis);
             browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
         }
-
-    }
-
-    function createNavBar(browser, $root) {
-
-        var $navbar_container = $('<div class="hic-navbar-container">');
-        $root.append($navbar_container);
-
-        // logo
-        // $navbar_container.append($('<div class="hic-logo-container">'));
-
-        // chromosome selector
-        if (browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser);
-            $navbar_container.append(browser.chromosomeSelector.$container);
-        }
-
-        // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser);
-        $navbar_container.append(browser.locusGoto.$container);
-
-        // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
-        $navbar_container.append(browser.colorscaleWidget.$container);
-
-        // resolution widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $navbar_container.append(browser.normalizationSelector.$container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $navbar_container.append(browser.resolutionSelector.$container);
 
     }
 
