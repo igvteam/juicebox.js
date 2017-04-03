@@ -103,11 +103,9 @@ var hic = (function (hic) {
 
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $navbar_container);
-        $navbar_container.append(browser.locusGoto.$container);
 
         // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
-        $navbar_container.append(browser.colorscaleWidget.$container);
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $navbar_container);
 
         // resolution widget
         browser.normalizationSelector = new hic.NormalizationWidget(browser);

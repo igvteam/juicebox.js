@@ -26,16 +26,21 @@
  */
 var hic = (function (hic) {
 
-    hic.ColorScaleWidget = function(browser) {
+    hic.ColorScaleWidget = function (browser, $container) {
 
         var $label;
 
         this.browser = browser;
 
+        this.$container = $('<div class="hic-colorscale-widget-container">');
+        $container.append(this.$container);
+
         $label = $('<div>');
+        this.$container.append($label);
         $label.text('Color Scale');
 
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
+        this.$container.append(this.$high_colorscale_input);
         this.$high_colorscale_input.on('change', function(e){
             var value = $(this).val(),
                 numeric = value.replace(/\,/g, '');
@@ -46,10 +51,6 @@ var hic = (function (hic) {
                 browser.updateColorScale(parseInt(numeric, 10))
             }
         });
-
-        this.$container = $('<div class="hic-colorscale-widget-container">');
-        this.$container.append($label);
-        this.$container.append(this.$high_colorscale_input);
 
         hic.GlobalEventBus.subscribe("DataLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);

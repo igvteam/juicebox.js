@@ -131,7 +131,7 @@ var hic = (function (hic) {
             igv.graphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
 
-            yShim = 2;
+            yShim = 1;
             tickHeight = 8;
             while (pixel < options.pixelWidth) {
 
