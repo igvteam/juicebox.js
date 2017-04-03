@@ -285,24 +285,20 @@ $default-font-family: 'Open Sans', sans-serif;
   width:  100%;
   height: calc(100% - #{$nav-bar-height} - #{$nav-bar-padding-bottom});
 
-  // container: shim | x-axis
+  // container: x-axis
   div:nth-child(1) {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
+    justify-content: flex-end;
 
     width: 100%;
     height: $hic-axis-height;
 
-    // shim
-    div:nth-child(1) {
-      width: $hic-axis-height;
-      height: $hic-axis-height;
-    }
-
-    div:nth-child(2) {
+    div {
       width: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
       height: $hic-axis-height;
+      margin-right: $hic-axis-height;
     }
 
   }
@@ -396,28 +392,24 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
-  // container: shim | x-scrollbar
+  // container: x-scrollbar
   div:nth-child(3) {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
+    justify-content: flex-end;
 
     width: 100%;
     height: $hic-scrollbar-height;
 
-    // shim
-    div:nth-child(1) {
-      width: $hic-axis-height;
-      height: $hic-scrollbar-height;
-    }
-
     // x-scrollbar
-    div:nth-child(2) {
+    div {
       display:block;
       position: relative;
 
       width: calc(100% - #{$hic-axis-height} - #{$hic-scrollbar-height});
       height: $hic-scrollbar-height;
+      margin-right: $hic-scrollbar-height;
 
       @include scrollbar-label;
 

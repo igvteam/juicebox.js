@@ -97,10 +97,12 @@ var hic = (function (hic) {
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
 
-        // container: shim | x-axis
+
+        // container: x-axis
         $container = $('<div>');
         $content_container.append($container);
         xAxis(browser, $container);
+
 
         // container: y-axis | viewport | y-scrollbar
         $container = $('<div>');
@@ -109,37 +111,22 @@ var hic = (function (hic) {
 
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
-        // container: shim | x-scrollbar
+
+        // container: x-scrollbar
         $container = $('<div>');
         $content_container.append($container);
-
-        // shim
-        $shim = $('<div>');
-        $container.append($shim);
-
-        // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
 
         function xAxis(browser, $container) {
-
-            // shim
-            $container.append($('<div>'));
-
-            // x-axis
             browser.$xAxis = $('<div>');
             $container.append(browser.$xAxis);
-
             browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
-
         }
 
         function yAxis(browser, $container) {
-
             browser.$yAxis = $('<div>');
             $container.append(browser.$yAxis);
-
             browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
-
         }
 
     }
