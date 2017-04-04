@@ -176,29 +176,34 @@
     width: 100%;
     height: 32px; }
     .hic-content-container div:nth-child(1) div {
-      width: calc(100% - 32px - 20px);
+      width: calc(100% - (128px + 32px + 20px));
       height: 100%;
-      margin-right: 20px; }
+      margin-right: 20px;
+      background-color: skyblue; }
   .hic-content-container div:nth-child(2) {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: flex-end;
     width: 100%;
     height: 100%; }
     .hic-content-container div:nth-child(2) div:nth-child(1) {
+      width: 128px;
+      height: 100%;
+      background-color: coral; }
+    .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }
-    .hic-content-container div:nth-child(2) div:nth-child(2) {
+    .hic-content-container div:nth-child(2) div:nth-child(3) {
       display: block;
       position: relative;
       left: 0;
       top: 0;
-      width: calc(100% - 32px - 20px);
+      width: calc(100% - (128px + 32px + 20px));
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
-      .hic-content-container div:nth-child(2) div:nth-child(2) div {
+      .hic-content-container div:nth-child(2) div:nth-child(3) div {
         display: table-cell;
         margin: auto;
         position: absolute;
@@ -212,16 +217,16 @@
         font-size: 32px;
         color: #7f7f7f;
         pointer-events: none; }
-      .hic-content-container div:nth-child(2) div:nth-child(2) .hic-sweep-zoom {
+      .hic-content-container div:nth-child(2) div:nth-child(3) .hic-sweep-zoom {
         position: absolute;
         z-index: 99999;
         background-color: rgba(68, 134, 247, 0.25); }
-    .hic-content-container div:nth-child(2) div:nth-child(3) {
+    .hic-content-container div:nth-child(2) div:nth-child(4) {
       display: block;
       position: relative;
       width: 20px;
       height: 100%; }
-      .hic-content-container div:nth-child(2) div:nth-child(3) div:first-child {
+      .hic-content-container div:nth-child(2) div:nth-child(4) div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -240,7 +245,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      .hic-content-container div:nth-child(2) div:nth-child(3) div:last-child {
+      .hic-content-container div:nth-child(2) div:nth-child(4) div:last-child {
         position: relative;
         /* dynamic y and height */
         top: 25%;
@@ -258,7 +263,7 @@
     .hic-content-container div:nth-child(3) div {
       display: block;
       position: relative;
-      width: calc(100% - 32px - 20px);
+      width: calc(100% - (128px + 32px + 20px));
       height: 100%;
       margin-right: 20px; }
       .hic-content-container div:nth-child(3) div div:first-child {

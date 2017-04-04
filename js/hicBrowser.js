@@ -121,11 +121,10 @@ var hic = (function (hic) {
 
         var $content_container,
             $container,
-            $shim;
+            $e;
 
         $content_container = $('<div class="hic-content-container">');
         $root.append($content_container);
-
 
         // container: x-axis
         $container = $('<div>');
@@ -136,8 +135,15 @@ var hic = (function (hic) {
         // container: y-axis | viewport | y-scrollbar
         $container = $('<div>');
         $content_container.append($container);
+
+        // y-tracks
+        $e = $('<div>');
+        $container.append($e);
+
+        // y-axis
         yAxis(browser, $container);
 
+        // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
 
