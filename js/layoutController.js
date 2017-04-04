@@ -5,13 +5,13 @@ var hic = (function (hic) {
 
     hic.LayoutController = function (browser, $root) {
 
-        createNavBar(browser, $root);
+        createNavBar.call(this, browser, $root);
 
-        createXTrackContainer(browser, $root);
+        createXTrackContainer.call(this, browser, $root);
 
-        createContentContainer(browser, $root);
+        createContentContainer.call(this, browser, $root);
 
-        hic.GlobalEventBus.subscribe("DidAddTrack", browser);
+        hic.GlobalEventBus.subscribe("DidAddTrack", this);
 
     };
 
@@ -42,7 +42,7 @@ var hic = (function (hic) {
             
             $('#your-element-id').css('width', '100%').css('width', '-=100px');
 
-            $('#element').css("width","calc(100% - 100px)");
+            $('#another-element-id').css( "width", "calc(100% - 100px)" );
         }
     };
 
@@ -77,69 +77,71 @@ var hic = (function (hic) {
 
     function createXTrackContainer(browser, $root) {
 
-        var $container,
-            $track_labels,
-            x_tracks;
+        var $container;
 
         // container: track-labels | x-tracks
         $container = $('<div class="hic-x-track-container">');
         $root.append($container);
 
         // track labels
-        $track_labels = $('<div>');
-        $container.append($track_labels);
+        this.$track_labels = $('<div>');
+        $container.append(this.$track_labels);
 
         // x tracks
-        x_tracks = $('<div>');
-        $container.append(x_tracks);
+        this.$x_tracks = $('<div>');
+        $container.append(this.$x_tracks);
 
     }
 
     function createContentContainer(browser, $root) {
 
-        var $content_container,
-            $container,
-            $e;
+        var $container;
 
-        $content_container = $('<div class="hic-content-container">');
-        $root.append($content_container);
+        this.$content_container = $('<div class="hic-content-container">');
+        $root.append(this.$content_container);
 
         // container: x-axis
         $container = $('<div>');
-        $content_container.append($container);
-        xAxis(browser, $container);
+        this.$content_container.append($container);
+        xAxis.call(this, browser, $container);
 
 
-        // container: y-axis | viewport | y-scrollbar
+        // container: y-tracks | y-axis | viewport | y-scrollbar
         $container = $('<div>');
-        $content_container.append($container);
+        this.$content_container.append($container);
 
         // y-tracks
-        $e = $('<div>');
-        $container.append($e);
+        this.$y_tracks = $('<div>');
+        $container.append(this.$y_tracks);
 
         // y-axis
-        yAxis(browser, $container);
+        yAxis.call(this, browser, $container);
 
         // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
+        this.$viewport = browser.contactMatrixView.$viewport;
 
 
         // container: x-scrollbar
         $container = $('<div>');
-        $content_container.append($container);
+        this.$content_container.append($container);
+
+        // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+        this.$x_scrollbar = browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container;
 
         function xAxis(browser, $container) {
-            browser.$xAxis = $('<div>');
-            $container.append(browser.$xAxis);
-            browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
+            var $xAxis = $('<div>');
+            $container.append($xAxis);
+
+            this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
         }
 
         function yAxis(browser, $container) {
-            browser.$yAxis = $('<div>');
-            $container.append(browser.$yAxis);
-            browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
+            var $yAxis = $('<div>');
+            $container.append($yAxis);
+
+            this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
         }
 
     }

@@ -322,7 +322,6 @@ var hic = (function (hic) {
 
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
-
     };
 
     function minPixelSize(chr1, chr2, zoom) {

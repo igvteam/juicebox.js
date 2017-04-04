@@ -23,24 +23,26 @@
 
 var hic = (function (hic) {
 
-    hic.Ruler = function (browser, $container, axis) {
+    hic.Ruler = function (browser, $axis, whichAxis) {
 
         this.browser = browser;
+        this.$axis = $axis;
+
         this.$canvas = $('<canvas>');
-        this.$canvas.attr('width', $container.width());
-        this.$canvas.attr('height', $container.height());
-        $container.append(this.$canvas);
+        this.$canvas.attr('width', $axis.width());
+        this.$canvas.attr('height', $axis.height());
+        $axis.append(this.$canvas);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        this.axis = axis;
+        this.axis = whichAxis;
 
         this.yAxisTransformWithContext = function(context) {
             context.scale(-1, 1);
             context.rotate(Math.PI/2.0);
         };
 
-        this.setAxis( axis );
+        this.setAxis( whichAxis );
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
 
