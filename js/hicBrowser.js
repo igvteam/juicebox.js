@@ -65,11 +65,7 @@ var hic = (function (hic) {
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
-        createNavBar(this, $root);
-
-        createXTrackContainer(this, $root);
-
-        createContentContainer(this, $root);
+        this.layoutController = new hic.LayoutController(this, $root);
 
         this.state = config.state ? config.state : defaultState.clone();
 
@@ -88,104 +84,6 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
-
-    function createNavBar(browser, $root) {
-
-        var $navbar_container = $('<div class="hic-navbar-container">');
-        $root.append($navbar_container);
-
-        // logo
-        // $navbar_container.append($('<div class="hic-logo-container">'));
-
-        // chromosome selector
-        if (browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $navbar_container);
-        }
-
-        // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser, $navbar_container);
-
-        // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $navbar_container);
-
-        // resolution widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $navbar_container.append(browser.normalizationSelector.$container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $navbar_container.append(browser.resolutionSelector.$container);
-
-    }
-
-    function createXTrackContainer(browser, $root) {
-
-        var $container,
-            $track_labels,
-            x_tracks;
-
-        // container: track-labels | x-tracks
-        $container = $('<div class="hic-x-track-container">');
-        $root.append($container);
-
-        // track labels
-        $track_labels = $('<div>');
-        $container.append($track_labels);
-
-        // x tracks
-        x_tracks = $('<div>');
-        $container.append(x_tracks);
-
-    }
-
-    function createContentContainer(browser, $root) {
-
-        var $content_container,
-            $container,
-            $e;
-
-        $content_container = $('<div class="hic-content-container">');
-        $root.append($content_container);
-
-        // container: x-axis
-        $container = $('<div>');
-        $content_container.append($container);
-        xAxis(browser, $container);
-
-
-        // container: y-axis | viewport | y-scrollbar
-        $container = $('<div>');
-        $content_container.append($container);
-
-        // y-tracks
-        $e = $('<div>');
-        $container.append($e);
-
-        // y-axis
-        yAxis(browser, $container);
-
-        // viewport | y-scrollbar
-        browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
-
-
-        // container: x-scrollbar
-        $container = $('<div>');
-        $content_container.append($container);
-        $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
-
-        function xAxis(browser, $container) {
-            browser.$xAxis = $('<div>');
-            $container.append(browser.$xAxis);
-            browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
-        }
-
-        function yAxis(browser, $container) {
-            browser.$yAxis = $('<div>');
-            $container.append(browser.$yAxis);
-            browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
-        }
-
-    }
 
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
