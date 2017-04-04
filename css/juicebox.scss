@@ -14,7 +14,7 @@ $hic-scrollbar-height: 20px;
 $hic-axis-height: 32px;
 
 //
-$track-count: 5;
+$track-count: 0;
 $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
 
@@ -22,7 +22,7 @@ $track-aggregate-height: $track-count * $track-height;
 //$hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 //$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
 $hic-root-width:  1000px;
-$hic-root-height: 700px;
+$hic-root-height: 600px;
 
 //
 $default-dark-color: #5f5f5f;
@@ -300,15 +300,24 @@ $default-font-family: 'Open Sans', sans-serif;
     width: $track-aggregate-height;
     height: 100%;
     margin-right: $hic-axis-height;
-    background-color: powderblue;
+    background-color: lightslategrey;
   }
 
   // x-tracks
   div:nth-child(2) {
+    display:flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+
     width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
     height: 100%;
     margin-right: $hic-scrollbar-height;
-    background-color: greenyellow;
+
+    div {
+      width:100%;
+      margin-right:0;
+    }
   }
 
 }
@@ -354,9 +363,19 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // y-tracks
     div:nth-child(1) {
+      display:flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+
       width: $track-aggregate-height;
       height: 100%;
-      background-color: coral;
+
+      div {
+        height: 100%;
+        margin-right: 0;
+      }
+
     }
 
     // y-axis

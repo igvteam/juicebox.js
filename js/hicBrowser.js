@@ -60,6 +60,8 @@ var hic = (function (hic) {
 
         setDefaults(config);
 
+        this.track_count = 0;
+
         this.config = config;
 
         $root = $('<div class="hic-root unselect">');
@@ -97,6 +99,11 @@ var hic = (function (hic) {
         this.updateHref();
     };
 
+    hic.Browser.prototype.loadTrack = function () {
+        ++(this.track_count);
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count }));
+    };
+
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this;
@@ -131,7 +138,7 @@ var hic = (function (hic) {
 
                 if (config.state) {
                     self.setState(config.state);
-                 }
+                }
                 else {
 
                     // Don't be clever for now

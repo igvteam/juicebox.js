@@ -3,7 +3,7 @@
   left: 0;
   right: 0;
   width: 1000px;
-  height: 700px;
+  height: 600px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -167,17 +167,23 @@
   flex-wrap: nowrap;
   justify-content: flex-start;
   width: 100%;
-  height: 160px; }
+  height: 0px; }
   .hic-x-track-container div:nth-child(1) {
-    width: 160px;
+    width: 0px;
     height: 100%;
     margin-right: 32px;
-    background-color: powderblue; }
+    background-color: lightslategrey; }
   .hic-x-track-container div:nth-child(2) {
-    width: calc(100% - (160px + 32px + 20px));
+    display: flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    width: calc(100% - (0px + 32px + 20px));
     height: 100%;
-    margin-right: 20px;
-    background-color: greenyellow; }
+    margin-right: 20px; }
+    .hic-x-track-container div:nth-child(2) div {
+      width: 100%;
+      margin-right: 0; }
 
 .hic-content-container {
   display: flex;
@@ -185,7 +191,7 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 8px + 160px)); }
+  height: calc(100% - (70px + 8px + 0px)); }
   .hic-content-container div:nth-child(1) {
     display: flex;
     flex-flow: row;
@@ -194,7 +200,7 @@
     width: 100%;
     height: 32px; }
     .hic-content-container div:nth-child(1) div {
-      width: calc(100% - (160px + 32px + 20px));
+      width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px; }
   .hic-content-container div:nth-child(2) {
@@ -205,9 +211,15 @@
     width: 100%;
     height: 100%; }
     .hic-content-container div:nth-child(2) div:nth-child(1) {
-      width: 160px;
-      height: 100%;
-      background-color: coral; }
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      width: 0px;
+      height: 100%; }
+      .hic-content-container div:nth-child(2) div:nth-child(1) div {
+        height: 100%;
+        margin-right: 0; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }
@@ -216,7 +228,7 @@
       position: relative;
       left: 0;
       top: 0;
-      width: calc(100% - (160px + 32px + 20px));
+      width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
@@ -282,7 +294,7 @@
     .hic-content-container div:nth-child(3) div {
       display: block;
       position: relative;
-      width: calc(100% - (160px + 32px + 20px));
+      width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: #efefef; }

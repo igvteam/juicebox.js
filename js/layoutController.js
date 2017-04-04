@@ -7,43 +7,20 @@ var hic = (function (hic) {
 
         createNavBar.call(this, browser, $root);
 
-        createXTrackContainer.call(this, browser, $root);
+        createAllContainers.call(this, browser, $root);
 
-        createContentContainer.call(this, browser, $root);
+        // Dupes of corresponding juicebox.scss variables
+        // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
+        this.nav_bar_height = 70;
+        this.nav_bar_padding_bottom = 8;
+
+        this.axis_height = 32;
+        this.scrollbar_height = 20;
+
+        this.track_height = 32;
 
         hic.GlobalEventBus.subscribe("DidAddTrack", this);
 
-    };
-
-    hic.LayoutController.prototype.receiveEvent = function(event) {
-        var self = this;
-
-        if (event.type === "DidAddTrack") {
-            console.log('did load track - yo from layout controller.');
-
-            // examples of jquery calcs
-            
-            // $hic-scrollbar-height: 20px;
-            // $hic-axis-height: 32px;
-
-            // $track-count: 2;
-            // $track-height: 32px;
-            // $track-aggregate-height: $track-count * $track-height;
-            
-            // x-tracks:  width = calc(100% - ($track-aggregate-height + $hic-axis-height + $hic-scrollbar-height));
-
-            // content-container: height = calc(100% - ($nav-bar-height + $nav-bar-padding-bottom + $track-aggregate-height));
-
-            // x-axis: width = calc(100% - ($track-aggregate-height + $hic-axis-height + $hic-scrollbar-height));
-
-            // viewport: width = calc(100% - ($track-aggregate-height + $hic-axis-height + $hic-scrollbar-height));
-
-            // x-scrollbar: width = calc(100% - ($track-aggregate-height + $hic-axis-height + $hic-scrollbar-height));
-            
-            $('#your-element-id').css('width', '100%').css('width', '-=100px');
-
-            $('#another-element-id').css( "width", "calc(100% - 100px)" );
-        }
     };
 
     function createNavBar(browser, $root) {
@@ -75,28 +52,24 @@ var hic = (function (hic) {
 
     }
 
-    function createXTrackContainer(browser, $root) {
+    function createAllContainers(browser, $root) {
 
         var $container;
 
-        // container: track-labels | x-tracks
-        $container = $('<div class="hic-x-track-container">');
-        $root.append($container);
+        // .hic-x-track-container
+        this.$x_track_container = $('<div class="hic-x-track-container">');
+        $root.append(this.$x_track_container);
 
         // track labels
         this.$track_labels = $('<div>');
-        $container.append(this.$track_labels);
+        this.$x_track_container.append(this.$track_labels);
 
-        // x tracks
+        // x-tracks
         this.$x_tracks = $('<div>');
-        $container.append(this.$x_tracks);
+        this.$x_track_container.append(this.$x_tracks);
 
-    }
 
-    function createContentContainer(browser, $root) {
-
-        var $container;
-
+        // content container
         this.$content_container = $('<div class="hic-content-container">');
         $root.append(this.$content_container);
 
@@ -145,6 +118,62 @@ var hic = (function (hic) {
         }
 
     }
+
+    hic.LayoutController.prototype.receiveEvent = function(event) {
+        var track_aggregate_height,
+            track_aggregate_height_px,
+            tokens,
+            width_calc,
+            height_calc,
+            $e;
+
+        if (event.type === "DidAddTrack") {
+
+            track_aggregate_height = event.data.count * this.track_height;
+            track_aggregate_height_px = track_aggregate_height + 'px';
+
+            tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
+            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+            tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });
+            width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+            // x-track container
+            this.$x_track_container.css('height', track_aggregate_height_px);
+            // track labels
+            this.$track_labels.css('width', track_aggregate_height_px);
+            // x-tracks
+            this.$x_tracks.css( 'width', width_calc );
+            // append new track
+            $e = $('<div>');
+            $e.height(this.track_height);
+            $e.css('background-color', igv.randomRGB('64', '192'));
+            this.$x_tracks.append($e);
+
+            console.log('x-tracks container: ' + this.$x_tracks.width() + ' x ' + this.$x_tracks.height() + ' added track: ' + $e.width() + ' x ' + $e.height());
+
+            // content container
+            this.$content_container.css( 'height', height_calc );
+            // x-axis
+            this.xAxisRuler.$axis.css( 'width', width_calc );
+            // y-tracks
+            this.$y_tracks.css('width', track_aggregate_height_px);
+            // append new track
+            $e = $('<div>');
+            $e.width(this.track_height);
+            $e.css('background-color', igv.randomRGB('64', '192'));
+            this.$y_tracks.append($e);
+
+            console.log('y-tracks container: ' + this.$y_tracks.width() + ' x ' + this.$y_tracks.height() + ' added track: ' + $e.width() + ' x ' + $e.height());
+
+            // viewport
+            this.$viewport.css( 'width', width_calc );
+
+            // x-scrollbar
+            this.$x_scrollbar.css( 'width', width_calc );
+
+        }
+    };
 
     return hic;
 })(hic || {});

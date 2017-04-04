@@ -72,6 +72,10 @@
         <option value="http://hicfiles.s3.amazonaws.com/external/nagano/cell-1.hic">Nagano et al. | Nature 2013 cell 1</option>
     </select>
 
+    <div id="load-track" class="load-track-button">
+        load track
+    </div>
+
 </div>
 
 <div id="app-container">
@@ -88,6 +92,10 @@
 
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
+        });
+
+        $('#load-track').on('click', function(e){
+            browser.loadTrack();
         });
 
         hic.initSite();
