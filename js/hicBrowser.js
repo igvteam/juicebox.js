@@ -56,8 +56,7 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var $root,
-            $content_container;
+        var $root;
 
         setDefaults(config);
 
@@ -67,6 +66,8 @@ var hic = (function (hic) {
         $app_container.append($root);
 
         createNavBar(this, $root);
+
+        createXTrackContainer(this, $root);
 
         createContentContainer(this, $root);
 
@@ -114,6 +115,26 @@ var hic = (function (hic) {
         // resolution widget
         browser.resolutionSelector = new hic.ResolutionSelector(browser);
         $navbar_container.append(browser.resolutionSelector.$container);
+
+    }
+
+    function createXTrackContainer(browser, $root) {
+
+        var $container,
+            $track_labels,
+            x_tracks;
+
+        // container: track-labels | x-tracks
+        $container = $('<div class="hic-x-track-container">');
+        $root.append($container);
+
+        // track labels
+        $track_labels = $('<div>');
+        $container.append($track_labels);
+
+        // x tracks
+        x_tracks = $('<div>');
+        $container.append(x_tracks);
 
     }
 
