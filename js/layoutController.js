@@ -5,6 +5,8 @@ var hic = (function (hic) {
 
     hic.LayoutController = function (browser, $root) {
 
+        this.browser = browser;
+
         createNavBar.call(this, browser, $root);
 
         createAllContainers.call(this, browser, $root);
@@ -92,8 +94,6 @@ var hic = (function (hic) {
 
         // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
-        this.$viewport = browser.contactMatrixView.$viewport;
-
 
         // container: x-scrollbar
         $container = $('<div>');
@@ -101,7 +101,6 @@ var hic = (function (hic) {
 
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
-        this.$x_scrollbar = browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container;
 
         function xAxis(browser, $container) {
             var $xAxis = $('<div>');
@@ -150,12 +149,12 @@ var hic = (function (hic) {
             $e.css('background-color', igv.randomRGB('64', '192'));
             this.$x_tracks.append($e);
 
-            console.log('x-tracks container: ' + this.$x_tracks.width() + ' x ' + this.$x_tracks.height() + ' added track: ' + $e.width() + ' x ' + $e.height());
-
             // content container
             this.$content_container.css( 'height', height_calc );
-            // x-axis
-            this.xAxisRuler.$axis.css( 'width', width_calc );
+
+            // x-axis - repaint canvas
+            this.xAxisRuler.updateWidthWithCalculation(width_calc);
+
             // y-tracks
             this.$y_tracks.css('width', track_aggregate_height_px);
             // append new track
@@ -164,13 +163,14 @@ var hic = (function (hic) {
             $e.css('background-color', igv.randomRGB('64', '192'));
             this.$y_tracks.append($e);
 
-            console.log('y-tracks container: ' + this.$y_tracks.width() + ' x ' + this.$y_tracks.height() + ' added track: ' + $e.width() + ' x ' + $e.height());
+            // y-axis - repaint canvas
+            this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
 
             // viewport
-            this.$viewport.css( 'width', width_calc );
+            this.browser.contactMatrixView.$viewport.css( 'width', width_calc );
 
             // x-scrollbar
-            this.$x_scrollbar.css( 'width', width_calc );
+            this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
 
         }
     };

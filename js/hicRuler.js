@@ -44,7 +44,7 @@ var hic = (function (hic) {
 
         this.setAxis( whichAxis );
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe('LocusChange', this);
 
     };
 
@@ -58,9 +58,23 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.receiveEvent = function(event) {
 
-        // Perhaps in the future we'll do something special based on event type & properties
-        this.update();
+        if (event.type === 'LocusChange') {
+            this.update();
+        }
 
+    };
+
+    hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
+
+        this.$axis.css( 'width', calc );
+        this.$canvas.attr('width', this.$axis.width());
+        this.update();
+    };
+
+    hic.Ruler.prototype.updateHeight = function (height) {
+
+        this.$canvas.attr('height', height);
+        this.update();
     };
 
     hic.Ruler.prototype.update = function () {
