@@ -6,10 +6,6 @@ $nav-bar-widget-height: 24px;
 $chromosome-selector-widget-container-width: 160px;
 
 //
-$hic-viewport-width: 800px;
-$hic-viewport-height:800px;
-
-//
 $hic-scrollbar-height: 20px;
 $hic-axis-height: 32px;
 
@@ -19,8 +15,6 @@ $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
 
 //
-//$hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-//$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
 $hic-root-width:  1000px;
 $hic-root-height: 600px;
 
