@@ -124,7 +124,8 @@ var hic = (function (hic) {
             tokens,
             width_calc,
             height_calc,
-            $e;
+            $e,
+            xytrack;
 
         if (event.type === "DidAddTrack") {
 
@@ -144,10 +145,17 @@ var hic = (function (hic) {
             // x-tracks
             this.$x_tracks.css( 'width', width_calc );
             // append new track
-            $e = $('<div>');
-            $e.height(this.track_height);
-            $e.css('background-color', igv.randomRGB('64', '192'));
-            this.$x_tracks.append($e);
+            if (undefined === this.browser.tracks) {
+                this.browser.tracks = [];
+            }
+            xytrack = {};
+            xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.track, 'x');
+            this.browser.tracks.push(xytrack);
+
+            // $e = $('<div>');
+            // $e.height(this.track_height);
+            // $e.css('background-color', igv.randomRGB('64', '192'));
+            // this.$x_tracks.append($e);
 
             // content container
             this.$content_container.css( 'height', height_calc );
@@ -172,6 +180,7 @@ var hic = (function (hic) {
             // x-scrollbar
             this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
 
+            xytrack.x.update();
         }
     };
 

@@ -87,6 +87,16 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
 
+    hic.Browser.prototype.genomicState = function () {
+        var gs = {},
+            bpResolution = this.dataset.bpResolutions[ this.state.zoom ];
+
+        gs.bpp = bpResolution / this.state.pixelSize;
+        gs.chromosome = { x: this.dataset.chromosomes[ this.state.chr1 ],  y: this.dataset.chromosomes[ this.state.chr2 ] };
+        gs.startBP = { x: this.state.x * bpResolution,  y: this.state.y * bpResolution };
+        return gs;
+    };
+
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
         return cs;
@@ -99,9 +109,237 @@ var hic = (function (hic) {
         this.updateHref();
     };
 
-    hic.Browser.prototype.loadTrack = function () {
+    hic.Browser.prototype.loadTrack = function (config) {
+
+        var self = this,
+            settings,
+            property,
+            newTrack,
+            featureSource,
+            nm;
+
+        inferTypes(config);
+
+        // Set defaults if specified
+        // if (this.trackDefaults && config.type) {
+        //     settings = this.trackDefaults[config.type];
+        //     if (settings) {
+        //         for (property in settings) {
+        //             if (settings.hasOwnProperty(property) && config[property] === undefined) {
+        //                 config[property] = settings[property];
+        //             }
+        //         }
+        //     }
+        // }
+        //
+        newTrack = createTrackWithConfiguration(config);
+
+        // if (undefined === newTrack) {
+        //     igv.presentAlert("Unknown file type: " + config.url);
+        //     return newTrack;
+        // }
+
+        // Set order field of track here.  Otherwise track order might get shuffled during asynchronous load
+        // if (undefined === newTrack.order) {
+        //     newTrack.order = this.trackViews.length;
+        // }
+
+        // If defined, attempt to load the file header before adding the track.  This will catch some errors early
+        // if (typeof newTrack.getFileHeader === "function") {
+        //     newTrack.getFileHeader().then(function (header) {
+        //         self.addTrack(newTrack);
+        //     }).catch(function (error) {
+        //         igv.presentAlert(error);
+        //     });
+        // } else {
+        //     self.addTrack(newTrack);
+        // }
+
+        self.addTrack(newTrack);
+
+        function createTrackWithConfiguration(conf) {
+
+            var type = (undefined === conf.type) ? 'unknown_type' : conf.type.toLowerCase();
+
+            switch (type) {
+                case "gwas":
+                    return new igv.GWASTrack(conf);
+                    break;
+
+                case "annotation":
+                case "genes":
+                case "fusionjuncspan":
+                    return new igv.FeatureTrack(conf);
+                    break;
+
+                case "variant":
+                    return new igv.VariantTrack(conf);
+                    break;
+
+                case "alignment":
+                    return new igv.BAMTrack(conf, featureSource);
+                    break;
+
+                case "data":  // deprecated
+                case "wig":
+                    return new igv.WIGTrack(conf);
+                    break;
+
+                case "sequence":
+                    return new igv.SequenceTrack(conf);
+                    break;
+
+                case "eqtl":
+                    return new igv.EqtlTrack(conf);
+                    break;
+
+                case "seg":
+                    return new igv.SegTrack(conf);
+                    break;
+
+                case "aneu":
+                    return new igv.AneuTrack(conf);
+                    break;
+
+                default:
+                    return undefined;
+            }
+
+        }
+
+        function inferTypes(config) {
+
+            function translateDeprecatedTypes(config) {
+
+                if (config.featureType) {  // Translate deprecated "feature" type
+                    config.type = config.type || config.featureType;
+                    config.featureType = undefined;
+                }
+
+                if ("bed" === config.type) {
+                    config.type = "annotation";
+                    config.format = config.format || "bed";
+
+                }
+
+                else if ("bam" === config.type) {
+                    config.type = "alignment";
+                    config.format = "bam"
+                }
+
+                else if ("vcf" === config.type) {
+                    config.type = "variant";
+                    config.format = "vcf"
+                }
+
+                else if ("t2d" === config.type) {
+                    config.type = "gwas";
+                }
+
+                else if ("FusionJuncSpan" === config.type) {
+                    config.format = "fusionjuncspan";
+                }
+            }
+
+            function inferFileFormat(config) {
+
+                var path,
+                    fn,
+                    idx,
+                    ext;
+
+                if (config.format) {
+                    config.format = config.format.toLowerCase();
+                    return;
+                }
+
+                path = igv.isFilePath(config.url) ? config.url.name : config.url;
+                fn = path.toLowerCase();
+
+                //Strip parameters -- handle local files later
+                idx = fn.indexOf("?");
+                if (idx > 0) {
+                    fn = fn.substr(0, idx);
+                }
+
+                //Strip aux extensions .gz, .tab, and .txt
+                if (fn.endsWith(".gz")) {
+                    fn = fn.substr(0, fn.length - 3);
+                } else if (fn.endsWith(".txt") || fn.endsWith(".tab")) {
+                    fn = fn.substr(0, fn.length - 4);
+                }
+
+
+                idx = fn.lastIndexOf(".");
+                ext = idx < 0 ? fn : fn.substr(idx + 1);
+
+                switch (ext.toLowerCase()) {
+
+                    case "bw":
+                        config.format = "bigwig";
+                        break;
+                    case "bb":
+                        config.format = "bigbed";
+
+                    default:
+                        if (knownFileExtensions.has(ext)) {
+                            config.format = ext;
+                        }
+                }
+            }
+
+            function inferTrackType(config) {
+
+                if (config.type) return;
+
+                if (config.format !== undefined) {
+                    switch (config.format.toLowerCase()) {
+                        case "bw":
+                        case "bigwig":
+                        case "wig":
+                        case "bedgraph":
+                        case "tdf":
+                            config.type = "wig";
+                            break;
+                        case "vcf":
+                            config.type = "variant";
+                            break;
+                        case "seg":
+                            config.type = "seg";
+                            break;
+                        case "bam":
+                            config.type = "alignment";
+                            break;
+                        default:
+                            config.type = "annotation";
+                    }
+                }
+            }
+
+            translateDeprecatedTypes(config);
+
+            if (undefined === config.sourceType && config.url) {
+                config.sourceType = "file";
+            }
+
+            if ("file" === config.sourceType) {
+                if (undefined === config.format) {
+                    inferFileFormat(config);
+                }
+            }
+
+            if (undefined === config.type) {
+                inferTrackType(config);
+            }
+
+
+        }
+
+    };
+
+    hic.Browser.prototype.addTrack = function (track) {
         ++(this.track_count);
-        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count }));
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, track: track }));
     };
 
     hic.Browser.prototype.loadHicFile = function (config) {

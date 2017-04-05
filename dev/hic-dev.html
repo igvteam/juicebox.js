@@ -55,6 +55,7 @@
     <script src="../js/normalizationWidget.js"></script>
     <script src="../js/chromosomeSelectorWidget.js"></script>
     <script src="../js/layoutController.js"></script>
+    <script src="../js/trackRenderer.js"></script>
 </head>
 
 <body>
@@ -95,7 +96,15 @@
         });
 
         $('#load-track').on('click', function(e){
-            browser.loadTrack();
+            var config =
+                {
+                    url:  '../test/data/wig/random_10000.wig',
+                    name: 'Random - 10000 Samples',
+                    format: 'wig',
+                    height: 32
+                };
+
+            browser.loadTrack(config);
         });
 
         hic.initSite();
