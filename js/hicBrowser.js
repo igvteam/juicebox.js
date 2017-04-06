@@ -98,6 +98,7 @@ var hic = (function (hic) {
         gs.bpp = bpResolution / this.state.pixelSize;
         gs.chromosome = { x: this.dataset.chromosomes[ this.state.chr1 ],  y: this.dataset.chromosomes[ this.state.chr2 ] };
         gs.startBP = { x: this.state.x * bpResolution,  y: this.state.y * bpResolution };
+        gs.endBP = { x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width, y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height * gs.bpp };
         return gs;
     };
 

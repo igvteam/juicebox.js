@@ -3,19 +3,10 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, track, whichAxis) {
+    hic.TrackRenderer = function (browser, size, $container, track) {
 
         this.browser = browser;
         this.track = track;
-        this.axis = whichAxis;
-
-        this.yAxisTransformWithContext = function(context) {
-            context.scale(-1, 1);
-            context.rotate(Math.PI/2.0);
-        };
-
-        this.setAxis( whichAxis );
-
         this.initializationHelper($container, size);
     };
 
@@ -36,21 +27,15 @@ var hic = (function (hic) {
         }
         $container.append(this.$viewport);
 
-        // TODO diagnostic coloring
-        // this.$viewport.css("background-color", igv.randomRGB(100, 255));
-
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
     };
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
-
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
-
-        // fillRect(ctx, x, y, w, h, properties)
-        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.get(0).width, this.$canvas.get(0).height, { fillStyle: igv.randomRGB(100, 255) });
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
     };
 
     hic.TrackRenderer.prototype.update = function () {
@@ -85,17 +70,22 @@ var hic = (function (hic) {
         //     }
         // }
 
-        chr = genomicState.chromosome[ this.axis ].name;
-        refFrameEnd = genomicState.startBP[ this.axis ] + genomicState.bpp * this.$canvas.width();
+        chr = genomicState.chromosome[ this.track.config.axis ].name;
+        refFrameEnd = genomicState.startBP[ this.track.config.axis ] + genomicState.bpp * this.$canvas.width();
 
-        if (false/*this.tile && this.tile.containsRange(chr, genomicState.startBP[ this.axis ], refFrameEnd, genomicState.bpp)*/) {
+        if (false/*this.tile && this.tile.containsRange(chr, genomicState.startBP[ this.track.config.axis ], refFrameEnd, genomicState.bpp)*/) {
             this.paintImageWithGenomicState(genomicState);
         } else {
 
             // Expand the requested range so we can pan a bit without reloading
-            pixelWidth = 3 * this.$canvas.width();
+            // pixelWidth = 3 * this.$canvas.width();
+            pixelWidth = this.$canvas.width();
+
             bpWidth = Math.round(genomicState.bpp * pixelWidth);
-            bpStart = Math.max(0, Math.round(genomicState.startBP[ this.axis ] - bpWidth/3));
+            // bpStart = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - bpWidth/3));
+
+            // bpStart = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - bpWidth/1));
+            bpStart = Math.round(genomicState.startBP[ this.track.config.axis ]);
             bpEnd = bpStart + bpWidth;
 
             if (self.loading && self.loading.start === bpStart && self.loading.end === bpEnd) {
@@ -107,7 +97,7 @@ var hic = (function (hic) {
             // self.startSpinner();
 
             this.track
-                .getFeatures(genomicState.chromosome[ this.axis ].name, bpStart, bpEnd, genomicState.bpp)
+                .getFeatures(genomicState.chromosome[ this.track.config.axis ].name, bpStart, bpEnd, genomicState.bpp)
                 .then(function (features) {
 
                     var buffer;
@@ -127,10 +117,14 @@ var hic = (function (hic) {
                             {
 
                                 features: features,
-                                context: buffer.getContext('2d'),
 
-                                pixelWidth: buffer.width,
-                                pixelHeight: buffer.height,
+                                // context: buffer.getContext('2d'),
+                                context: self.ctx,
+
+                                // pixelWidth: buffer.width,
+                                // pixelHeight: buffer.height,
+                                pixelWidth: self.$canvas.width(),
+                                pixelHeight: self.$canvas.height(),
 
                                 bpStart: bpStart,
                                 bpEnd: bpEnd,
@@ -187,25 +181,6 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.isLoading = function () {
         return !(undefined === this.loading);
     };
-
-    hic.TrackRenderer.prototype.setAxis = function (axis) {
-
-        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
-
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
-
-    };
-
-    function reflectionTransformWithContext(context, exe) {
-        context.translate(exe, 0);
-        context.scale(-1, 1);
-        context.translate(-exe, 0);
-    }
-
-    function identityTransformWithContext(context) {
-        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-        context.setTransform(1, 0, 0, 1, 0, 0);
-    }
 
     Tile = function (chr, tileStart, tileEnd, scale, image) {
         this.chr = chr;

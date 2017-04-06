@@ -304,28 +304,12 @@ var igv = (function (igv) {
             var wg;
 
             wg = (JSON.parse(JSON.stringify(f)));
-            wg.start = igv.browser.genome.getGenomeCoordinate(f.chr, f.start);
-            wg.end = igv.browser.genome.getGenomeCoordinate(f.chr, f.end);
+            wg.start = hic.browser.genome.getGenomeCoordinate(f.chr, f.start);
+            wg.end = hic.browser.genome.getGenomeCoordinate(f.chr, f.end);
 
             return wg;
 
         });
-
-        // features.forEach(function (f) {
-        //     var wgStart,
-        //         wgEnd,
-        //         wgFeature;
-        //
-        //     wgStart = igv.browser.genome.getGenomeCoordinate(f.chr, f.start);
-        //     wgEnd = igv.browser.genome.getGenomeCoordinate(f.chr, f.end);
-        //
-        //     wgFeature = (JSON.parse(JSON.stringify(f)));
-        //
-        //     wgFeature.start = wgStart;
-        //     wgFeature.end = wgEnd;
-        //
-        //     wgFeatures.push(wgFeature);
-        // });
 
         return wgFeatures;
     }

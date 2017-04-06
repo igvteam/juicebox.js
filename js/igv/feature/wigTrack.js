@@ -54,6 +54,17 @@ var igv = (function (igv) {
 
         this.paintAxis = igv.paintAxis;
 
+
+
+
+
+        this.yAxisTransformWithContext = function(context) {
+            context.scale(-1, 1);
+            context.rotate(Math.PI/2.0);
+        };
+
+        this.setAxis( config.axis );
+
     };
 
     igv.WIGTrack.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
@@ -138,25 +149,42 @@ var igv = (function (igv) {
     igv.WIGTrack.prototype.draw = function (options) {
 
         var self = this,
-            features = options.features,
-            ctx = options.context,
-            bpPerPixel = options.bpPerPixel,
-            bpStart = options.bpStart,
-            pixelWidth = options.pixelWidth,
-            pixelHeight = options.pixelHeight,
-            bpEnd = bpStart + pixelWidth * bpPerPixel + 1,
+            bpEnd = options.bpStart + options.pixelWidth * options.bpPerPixel + 1,
             featureValueMinimum,
             featureValueMaximum,
             featureValueRange,
             $dataRangeTrackLabel,
             str,
             min,
-            max;
+            max,
+            w,
+            h,
+            survivors,
+            sorted,
+            mapped;
 
+        identityTransformWithContext(options.context);
+        igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
 
-        if (features && features.length > 0) {
+        this.canvasTransform(options.context);
+
+        if ('x' === this.config.axis) {
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
+            // igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.randomRGB(120, 240) });
+        } else {
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
+            // igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.randomRGB(120, 240) });
+        }
+
+        w = Math.max(options.pixelWidth, options.pixelHeight);
+        h = Math.min(options.pixelWidth, options.pixelHeight);
+
+        // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
+        // return;
+
+        if (options.features && _.size(options.features) > 0) {
             if (self.autoScale || self.dataRange.max === undefined) {
-                var s = autoscale(features);
+                var s = autoscale(options.features);
                 featureValueMinimum = s.min;
                 featureValueMaximum = s.max;
             }
@@ -169,58 +197,148 @@ var igv = (function (igv) {
 
             featureValueRange = featureValueMaximum - featureValueMinimum;
 
-            features.forEach(renderFeature);
+
+            // options.features.forEach(renderFeature);
+
+            survivors = _.filter(options.features, function(f){
+                return !(f.end < options.bpStart) || !(f.start > options.bpEnd);
+            });
+
+            sorted = _.sortBy(survivors, 'start');
+
+            mapped = _.map(sorted, function(s) {
+                var rectEnd,
+                    obj = {};
+
+                obj.x = Math.floor((s.start - options.bpStart) / options.bpPerPixel);
+
+                rectEnd = Math.ceil((s.end - options.bpStart) / options.bpPerPixel);
+                obj.width = Math.max(1, rectEnd - obj.x);
+                obj.value = s.value;
+                return obj;
+            });
+
+            _.each(mapped, function(m) {
+                hackedRender(m);
+            });
         }
 
+        function hackedRender(feature) {
 
-        function renderFeature(feature, index, featureList) {
-
-            var yUnitless,
-                heightUnitLess,
-                x,
-                y,
-                width,
-                height,
-                rectEnd,
-                rectBaseline;
-
-            if (feature.end < bpStart) return;
-            if (feature.start > bpEnd) return;
-
-            x = Math.floor((feature.start - bpStart) / bpPerPixel);
-            rectEnd = Math.ceil((feature.end - bpStart) / bpPerPixel);
-            width = Math.max(1, rectEnd - x);
-
-            //height = ((feature.value - featureValueMinimum) / featureValueRange) * pixelHeight;
-            //rectBaseline = pixelHeight - height;
-            //canvas.fillRect(rectOrigin, rectBaseline, rectWidth, rectHeight, {fillStyle: track.color});
+            var yPercentage,
+                heightPercentage;
 
             if (signsDiffer(featureValueMinimum, featureValueMaximum)) {
 
                 if (feature.value < 0) {
-                    yUnitless = featureValueMaximum / featureValueRange;
-                    heightUnitLess = -feature.value / featureValueRange;
+                    yPercentage = featureValueMaximum / featureValueRange;
+                    heightPercentage = -feature.value / featureValueRange;
                 } else {
-                    yUnitless = ((featureValueMaximum - feature.value) / featureValueRange);
-                    heightUnitLess = feature.value / featureValueRange;
+                    yPercentage = ((featureValueMaximum - feature.value) / featureValueRange);
+                    heightPercentage = feature.value / featureValueRange;
                 }
 
             }
             else if (featureValueMinimum < 0) {
-                yUnitless = 0;
-                heightUnitLess = -feature.value / featureValueRange;
+                yPercentage = 0;
+                heightPercentage = -feature.value / featureValueRange;
             }
             else {
-                yUnitless = 1.0 - feature.value / featureValueRange;
-                heightUnitLess = feature.value / featureValueRange;
+                yPercentage = 1.0 - feature.value / featureValueRange;
+                heightPercentage = feature.value / featureValueRange;
             }
 
-            //canvas.fillRect(x, yUnitless * pixelHeight, width, heightUnitLess * pixelHeight, { fillStyle: igv.randomRGB(64, 255) });
-            igv.graphics.fillRect(ctx, x, yUnitless * pixelHeight, width, heightUnitLess * pixelHeight, {fillStyle: self.color});
+            igv.graphics.fillRect(options.context, feature.x, yPercentage * h, feature.width, heightPercentage * h, { fillStyle: igv.randomRGB(100, 255) });
+
+            // igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
+
+        }
+
+        function renderFeature(feature) {
+
+            var yPercentage,
+                heightPercentage,
+                x,
+                width,
+                rectEnd,
+                rgb;
+
+            if (feature.end < options.bpStart) {
+                return;
+            }
+
+            if (feature.start > bpEnd) {
+                return;
+            }
+
+            x = Math.floor((feature.start - options.bpStart) / options.bpPerPixel);
+            rectEnd = Math.ceil((feature.end - options.bpStart) / options.bpPerPixel);
+            width = Math.max(1, rectEnd - x);
+
+            if (signsDiffer(featureValueMinimum, featureValueMaximum)) {
+
+                if (feature.value < 0) {
+                    yPercentage = featureValueMaximum / featureValueRange;
+                    heightPercentage = -feature.value / featureValueRange;
+                } else {
+                    yPercentage = ((featureValueMaximum - feature.value) / featureValueRange);
+                    heightPercentage = feature.value / featureValueRange;
+                }
+
+            }
+            else if (featureValueMinimum < 0) {
+                yPercentage = 0;
+                heightPercentage = -feature.value / featureValueRange;
+            }
+            else {
+                yPercentage = 1.0 - feature.value / featureValueRange;
+                heightPercentage = feature.value / featureValueRange;
+            }
+
+            // igv.graphics.fillRect(options.context, x, yPercentage * options.pixelHeight, width, heightPercentage * options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
+
+            igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
+
+            // rgb = igv.randomRGB(100, 255);
+            // console.log('rgb ' + rgb);
+            // igv.graphics.fillRect(options.context, 0, 0, options.width, options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
+
+        }
+
+        function renderRamp(ctx, width, height, fillStyle) {
+            _.each(_.range(width), function(x){
+                var percent = x/width,
+                    a,
+                    b;
+                // igv.graphics.fillRect(ctx, x, 0, 1, Math.round(percent * height), { fillStyle: igv.randomRGB(100, 255) });
+
+                a = (1.0 - percent) * height;
+                b = percent * height;
+                igv.graphics.fillRect(ctx, x, a, 1, b, { fillStyle: fillStyle });
+            });
 
         }
 
     };
+
+    igv.WIGTrack.prototype.setAxis = function (axis) {
+
+        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
+
+        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
+
+    };
+
+    function reflectionTransformWithContext(context, exe) {
+        context.translate(exe, 0);
+        context.scale(-1, 1);
+        context.translate(-exe, 0);
+    }
+
+    function identityTransformWithContext(context) {
+        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+        context.setTransform(1, 0, 0, 1, 0, 0);
+    }
 
     function autoscale(features) {
         var min = 0,
