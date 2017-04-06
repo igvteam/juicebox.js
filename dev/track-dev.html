@@ -55,6 +55,7 @@
     <script src="../js/normalizationWidget.js"></script>
     <script src="../js/chromosomeSelectorWidget.js"></script>
     <script src="../js/layoutController.js"></script>
+    <script src="../js/trackRenderer.js"></script>
 </head>
 
 <body>
@@ -72,6 +73,10 @@
         <option value="http://hicfiles.s3.amazonaws.com/external/nagano/cell-1.hic">Nagano et al. | Nature 2013 cell 1</option>
     </select>
 
+    <div id="load-track" class="load-track-button">
+        load track
+    </div>
+
 </div>
 
 <div id="app-container">
@@ -88,6 +93,18 @@
 
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
+        });
+
+        $('#load-track').on('click', function(e){
+            var config =
+                {
+                    url:  '../test/data/wig/random_10000.wig',
+                    name: 'Random - 10000 Samples',
+                    format: 'wig',
+                    height: 32
+                };
+
+            browser.loadTrack(config);
         });
 
         hic.initSite();
