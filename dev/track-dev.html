@@ -30,14 +30,114 @@
     <!-- jQuery UI JS -->
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <!-- Bootstrap JS -->
-    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>-->
+    <!-- Vendor JS -->
+    <script type="text/javascript" src="../vendor/inflate.js"></script>
+    <script type="text/javascript" src="../vendor/zlib_and_gzip.min.js"></script>
+    <script type="text/javascript" src="../vendor/jquery.mousewheel.js"></script>
+    <script type="text/javascript" src="../vendor/promise-7.0.4.js"></script>
+    <script type="text/javascript" src="../vendor/jquery.kinetic.min.js"></script>
+    <script type="text/javascript" src="../vendor/underscore-min.js"></script>
 
     <!-- IGV JS -->
-    <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
+    <script type="text/javascript" src="../js/igv/igv-create.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/userFeedback.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/alertDialog.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/popover.js"></script>
+    <script type="text/javascript" src="../js/igv/browser.js"></script>
+    <script type="text/javascript" src="../js/igv/ideogram.js"></script>
+    <script type="text/javascript" src="../js/igv/windowSizePanel.js"></script>
+    <script type="text/javascript" src="../js/igv/referenceFrame.js"></script>
+    <script type="text/javascript" src="../js/igv/igv-canvas.js"></script>
+    <script type="text/javascript" src="../js/igv/genome.js"></script>
+    <script type="text/javascript" src="../js/igv/trackView.js"></script>
+    <script type="text/javascript" src="../js/igv/viewport.js"></script>
 
+    <script type="text/javascript" src="../js/igv/rulerTrack.js"></script>
+
+    <script type="text/javascript" src="../js/igv/feature/featureTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/variant/variantTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/igv-color.js"></script>
+    <script type="text/javascript" src="../js/igv/igv-utils.js"></script>
+    <script type="text/javascript" src="../js/igv/parseUtils.js"></script>
+    <script type="text/javascript" src="../js/igv/fasta.js"></script>
+    <script type="text/javascript" src="../js/igv/sequenceTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/wigTrack.js"></script>
+
+    <script type="text/javascript" src="../js/igv/igv-exts.js"></script>
+    <script type="text/javascript" src="../js/igv/igvxhr.js"></script>
+    <script type="text/javascript" src="../js/igv/binary.js"></script>
+
+    <script type="text/javascript" src="../js/igv/gtex/eqtlTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/gtex/gtexFileReader.js"></script>
+    <script type="text/javascript" src="../js/igv/gtex/gtexReader.js"></script>
+    <script type="text/javascript" src="../js/igv/gtex/gtex.js"></script>
+    <script type="text/javascript" src="../js/igv/gtex/immvarReader.js"></script>
+
+    <script type="text/javascript" src="../js/igv/bam/coverageMap.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamReader.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bgzf.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamSource.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamAlignment.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamAlignmentRow.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/bamIndex.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/alignmentContainer.js"></script>
+    <script type="text/javascript" src="../js/igv/bam/pairedAlignment.js"></script>
+
+    <script type="text/javascript" src="../js/igv/ga4gh/ga4ghAlignmentReader.js"></script>
+    <script type="text/javascript" src="../js/igv/ga4gh/ga4ghVariantReader.js"></script>
+    <script type="text/javascript" src="../js/igv/ga4gh/ga4ghHelper.js"></script>
+    <script type="text/javascript" src="../js/igv/ga4gh/googleUtils.js"></script>
+
+    <script type="text/javascript" src="../js/igv/intervalTree.js"></script>
+
+    <script type="text/javascript" src="../js/igv/feature/featureCache.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/gffHelper.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/featureSource.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/featureParsers.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/tribble.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/featureFileReader.js"></script>
+
+    <script type="text/javascript" src="../js/igv/feature/aneuSource.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/aneuTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/encode/encode.js"></script>
+
+
+    <script type="text/javascript" src="../js/igv/karyo/karyo.js"></script>
+    <script type="text/javascript" src="../js/igv/gwas/t2dVariantSource.js"></script>
+    <script type="text/javascript" src="../js/igv/gwas/gwasTrack.js"></script>
+
+    <script type="text/javascript" src="../js/igv/feature/segParser.js"></script>
+    <script type="text/javascript" src="../js/igv/feature/segTrack.js"></script>
+    <script type="text/javascript" src="../js/igv/variant/vcfParser.js"></script>
+    <script type="text/javascript" src="../js/igv/variant/variant.js"></script>
+
+    <script type="text/javascript" src="../js/igv/bigwig/bufferedReader.js"></script>
+    <script type="text/javascript" src="../js/igv/bigwig/bwBPTree.js"></script>
+    <script type="text/javascript" src="../js/igv/bigwig/bwReader.js"></script>
+    <script type="text/javascript" src="../js/igv/bigwig/bwRPTree.js"></script>
+    <script type="text/javascript" src="../js/igv/bigwig/bwSource.js"></script>
+    <script type="text/javascript" src="../js/igv/bigwig/bwTotalSummary.js"></script>
+
+    <script type="text/javascript" src="../js/igv/tdf/tdfReader.js"></script>
+    <script type="text/javascript" src="../js/igv/tdf/tdfSource.js"></script>
+
+    <script type="text/javascript" src="../js/igv/trackCore.js"></script>
+
+    <script type="text/javascript" src="../js/igv/ui/trackMenuPopupDialog.js"></script>
+
+    <script type="text/javascript" src="../js/igv/ui/colorpicker.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/dataRangeDialog.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/dialog.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/alertDialog.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/centerGuide.js"></script>
+    <script type="text/javascript" src="../js/igv/ui/dragAndDrop.js"></script>
+    <script type="text/javascript" src="../js/igv/set.js"></script>
+
+    <!-- site JS -->
     <script src="../site/js/site.js"></script>
 
+    <!-- juicebox JS -->
     <script src="../js/hicUtils.js"></script>
     <script src="../js/hicReader.js"></script>
     <script src="../js/hicColorScaleWidget.js"></script>
