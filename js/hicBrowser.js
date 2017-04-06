@@ -64,6 +64,8 @@ var hic = (function (hic) {
 
         this.config = config;
 
+        hic.browser = this;
+
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
@@ -109,6 +111,22 @@ var hic = (function (hic) {
         this.updateHref();
     };
 
+    hic.Browser.prototype.loadTrackXY = function (config) {
+        var trackXY = {},
+            configX,
+            configY;
+
+        configX = _.clone(config);
+        configX.axis = 'x';
+        trackXY.x = this.loadTrack(configX);
+
+        configY = _.clone(config);
+        configY.axis = 'y';
+        trackXY.y = this.loadTrack(configY);
+
+        this.addTrackXY(trackXY);
+    };
+
     hic.Browser.prototype.loadTrack = function (config) {
 
         var self = this,
@@ -134,10 +152,12 @@ var hic = (function (hic) {
         //
         newTrack = createTrackWithConfiguration(config);
 
-        // if (undefined === newTrack) {
-        //     igv.presentAlert("Unknown file type: " + config.url);
-        //     return newTrack;
-        // }
+        if (undefined === newTrack) {
+            // igv.presentAlert("Unknown file type: " + config.url);
+            console.log('ERROR: could not create track');
+        }
+
+        return newTrack;
 
         // Set order field of track here.  Otherwise track order might get shuffled during asynchronous load
         // if (undefined === newTrack.order) {
@@ -155,7 +175,7 @@ var hic = (function (hic) {
         //     self.addTrack(newTrack);
         // }
 
-        self.addTrack(newTrack);
+        // self.addTrack(newTrack);
 
         function createTrackWithConfiguration(conf) {
 
@@ -337,9 +357,9 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.addTrack = function (track) {
+    hic.Browser.prototype.addTrackXY = function (trackXY) {
         ++(this.track_count);
-        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, track: track }));
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, trackXY: trackXY }));
     };
 
     hic.Browser.prototype.loadHicFile = function (config) {

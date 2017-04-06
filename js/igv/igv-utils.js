@@ -68,10 +68,11 @@ var igv = (function (igv) {
 
     igv.presentAlert = function (string) {
 
-        igv.alert.$dialogLabel.text(string);
-        igv.alert.show(undefined);
-
-        igv.popover.hide();
+        console.log('ERROR ' + string);
+        // igv.alert.$dialogLabel.text(string);
+        // igv.alert.show(undefined);
+        //
+        // igv.popover.hide();
 
     };
 

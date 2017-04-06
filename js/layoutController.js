@@ -149,7 +149,7 @@ var hic = (function (hic) {
                 this.browser.tracks = [];
             }
             xytrack = {};
-            xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.track, 'x');
+            xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ], 'x');
             this.browser.tracks.push(xytrack);
 
             // $e = $('<div>');

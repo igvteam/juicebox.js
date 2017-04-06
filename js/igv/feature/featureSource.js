@@ -139,10 +139,13 @@ var igv = (function (igv) {
 
     igv.FeatureSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
-        var self = this;
+        var self = this,
+            genomicState = hic.browser.genomicState();
+
         return new Promise(function (fulfill, reject) {
 
             var genomicInterval,
+                chromosome,
                 featureCache,
                 maxRows,
                 str;
@@ -161,38 +164,38 @@ var igv = (function (igv) {
                         self.reader
                             .readFeatures(chr)
                             .then(function (featureList) {
-                            if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
-                                if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
-                                    featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
-                                }
-                                self.featureCache = new igv.FeatureCache(featureList);   // Note - replacing previous cache with new one
+                                if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
+                                    if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
+                                        featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
+                                    }
+                                    self.featureCache = new igv.FeatureCache(featureList);   // Note - replacing previous cache with new one
 
-                                // Assign overlapping features to rows
-                                packFeatures(featureList, maxRows);
-                            }
-                            fulfill(getWGFeatures(self.featureCache.allFeatures()));
-                        });
+                                    // Assign overlapping features to rows
+                                    packFeatures(featureList, maxRows);
+                                }
+                                fulfill(getWGFeatures(self.featureCache.allFeatures()));
+                            });
                     }
                 } else {
                     fulfill(null);
                 }
-            }
-
-            else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
+            } else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
                 fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
-            }
-            else {
+            } else {
                 // TODO -- reuse cached features that overelap new region
 
                 if (self.sourceType === 'file' && (self.visibilityWindow === undefined || self.visibilityWindow <= 0)) {
                     // Expand genomic interval to grab entire chromosome
                     genomicInterval.start = 0;
-                    var chromosome = igv.browser.genome.getChromosome(chr);
-                    genomicInterval.end = (chromosome === undefined ? Number.MAX_VALUE : chromosome.bpLength);
+                    // chromosome = igv.browser.genome.getChromosome(chr);
+                    chromosome = genomicState.chromosome[ self.config.axis ];
+
+                    genomicInterval.end = (chromosome === undefined ? Number.MAX_VALUE : chromosome.size);
                 }
 
-                self.reader.readFeatures(chr, genomicInterval.start, genomicInterval.end).then(
-                    function (featureList) {
+                self.reader
+                    .readFeatures(chr, genomicInterval.start, genomicInterval.end)
+                    .then(function (featureList) {
 
                         if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
 
@@ -217,12 +220,12 @@ var igv = (function (igv) {
 
                             // Finally pass features for query interval to continuation
                             fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
-                        }
-                        else {
+                        } else {
                             fulfill(null);
                         }
 
-                    }).catch(reject);
+                    })
+                    .catch(reject);
             }
         });
     };
