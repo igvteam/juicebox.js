@@ -144,18 +144,19 @@ var hic = (function (hic) {
             this.$track_labels.css('width', track_aggregate_height_px);
             // x-tracks
             this.$x_tracks.css( 'width', width_calc );
-            // append new track
-            if (undefined === this.browser.tracks) {
-                this.browser.tracks = [];
-            }
-            xytrack = {};
-            xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ], 'x');
-            this.browser.tracks.push(xytrack);
 
-            // $e = $('<div>');
-            // $e.height(this.track_height);
-            // $e.css('background-color', igv.randomRGB('64', '192'));
-            // this.$x_tracks.append($e);
+            // append new track
+            // if (undefined === this.browser.tracks) {
+            //     this.browser.tracks = [];
+            // }
+            // xytrack = {};
+            // xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ], 'x');
+            // this.browser.tracks.push(xytrack);
+
+            $e = $('<div>');
+            $e.height(this.track_height);
+            $e.css('background-color', igv.randomRGB('64', '192'));
+            this.$x_tracks.append($e);
 
             // content container
             this.$content_container.css( 'height', height_calc );
@@ -168,7 +169,7 @@ var hic = (function (hic) {
             // append new track
             $e = $('<div>');
             $e.width(this.track_height);
-            $e.css('background-color', igv.randomRGB('64', '192'));
+            $e.css('background-color', igv.randomRGB('128', '255'));
             this.$y_tracks.append($e);
 
             // y-axis - repaint canvas
@@ -180,7 +181,7 @@ var hic = (function (hic) {
             // x-scrollbar
             this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
 
-            xytrack.x.update();
+            // xytrack.x.update();
         }
     };
 

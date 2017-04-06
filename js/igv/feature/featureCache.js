@@ -99,7 +99,7 @@ var igv = (function (igv) {
         var featureCache = {},
             chromosomes = [],
             treeMap = {},
-            genome = igv.browser ? igv.browser.genome : null;
+            genome = hic.browser ? hic.browser.genome : null;
 
         if (featureList) {
 
@@ -109,7 +109,9 @@ var igv = (function (igv) {
                     geneList;
 
                 // Translate to "official" name
-                if(genome) chr = genome.getChromosomeName(chr);
+                if(genome) {
+                    chr = genome.getChromosomeName(chr);
+                }
 
                 geneList = featureCache[chr];
 

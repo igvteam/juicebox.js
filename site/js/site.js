@@ -37,6 +37,13 @@ var hic = (function (hic) {
         };
 
         hic.GlobalEventBus.subscribe("DataLoad", site);
+
+        hic.browser.sequence
+            .init()
+            .then(function () {
+                hic.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+            });
+
     };
 
     function updateDatasetPulldown(dataset) {

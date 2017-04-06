@@ -50,7 +50,6 @@ var hic = (function (hic) {
             config.colorScale = parseFloat(colorScale);
         }
 
-
         return new hic.Browser($hic_container, config);
     };
 
@@ -81,6 +80,8 @@ var hic = (function (hic) {
         if (config.url) {
             this.loadHicFile(config);
         }
+
+        this.sequence = new igv.FastaSequence(config.reference);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);

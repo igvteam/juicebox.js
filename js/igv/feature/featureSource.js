@@ -110,7 +110,7 @@ var igv = (function (igv) {
                 }
             }
         });
-    }
+    };
 
     function addFeaturesToDB(featureList) {
         var echo = [];
@@ -124,7 +124,6 @@ var igv = (function (igv) {
         // });
         // console.log('yo');
     }
-
 
     /**
      * Required function fo all data source objects.  Fetches features for the
@@ -196,10 +195,11 @@ var igv = (function (igv) {
                 self.reader
                     .readFeatures(chr, genomicInterval.start, genomicInterval.end)
                     .then(function (featureList) {
+                        var isQueryable;
 
                         if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
 
-                            var isQueryable = self.reader.indexed || self.config.sourceType !== "file";
+                            isQueryable = self.reader.indexed || self.config.sourceType !== "file";
 
                             if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
                                 featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
@@ -229,7 +229,6 @@ var igv = (function (igv) {
             }
         });
     };
-
 
     function packFeatures(features, maxRows) {
 
