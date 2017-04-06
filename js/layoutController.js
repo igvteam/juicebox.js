@@ -124,8 +124,7 @@ var hic = (function (hic) {
             tokens,
             width_calc,
             height_calc,
-            $e,
-            xytrack;
+            trackXY;
 
         if (event.type === "DidAddTrack") {
 
@@ -145,18 +144,6 @@ var hic = (function (hic) {
             // x-tracks
             this.$x_tracks.css( 'width', width_calc );
 
-            // append new track
-            // if (undefined === this.browser.tracks) {
-            //     this.browser.tracks = [];
-            // }
-            // xytrack = {};
-            // xytrack.x = new hic.TrackRenderer(this.browser, { width:this.$x_tracks.width(), height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ], 'x');
-            // this.browser.tracks.push(xytrack);
-
-            $e = $('<div>');
-            $e.height(this.track_height);
-            $e.css('background-color', igv.randomRGB('64', '192'));
-            this.$x_tracks.append($e);
 
             // content container
             this.$content_container.css( 'height', height_calc );
@@ -166,11 +153,6 @@ var hic = (function (hic) {
 
             // y-tracks
             this.$y_tracks.css('width', track_aggregate_height_px);
-            // append new track
-            $e = $('<div>');
-            $e.width(this.track_height);
-            $e.css('background-color', igv.randomRGB('128', '255'));
-            this.$y_tracks.append($e);
 
             // y-axis - repaint canvas
             this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
@@ -181,7 +163,18 @@ var hic = (function (hic) {
             // x-scrollbar
             this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
 
-            // xytrack.x.update();
+            // append tracks
+            trackXY = {};
+            trackXY.x = new hic.TrackRenderer(this.browser, { width: undefined,         height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ], 'x');
+            trackXY.y = new hic.TrackRenderer(this.browser, { width: this.track_height, height: undefined         }, this.$y_tracks, event.data.trackXY[ 'y' ], 'y');
+            this.browser.trackRenderers.push(trackXY);
+
+            _.each(this.browser.trackRenderers, function(pair){
+                _.each(pair, function(trackRenderer){
+                    trackRenderer.syncCanvas();
+                });
+            });
+
         }
     };
 

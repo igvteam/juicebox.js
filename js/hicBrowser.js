@@ -60,6 +60,7 @@ var hic = (function (hic) {
         setDefaults(config);
 
         this.track_count = 0;
+        this.trackRenderers = [];
 
         this.config = config;
 

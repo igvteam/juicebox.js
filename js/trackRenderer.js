@@ -19,25 +19,6 @@ var hic = (function (hic) {
         this.initializationHelper($container, size);
     };
 
-    hic.TrackRenderer.prototype.setAxis = function (axis) {
-
-        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
-
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
-
-    };
-
-    function reflectionTransformWithContext(context, exe) {
-        context.translate(exe, 0);
-        context.scale(-1, 1);
-        context.translate(-exe, 0);
-    }
-
-    function identityTransformWithContext(context) {
-        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-        context.setTransform(1, 0, 0, 1, 0, 0);
-    }
-
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
         var self = this,
@@ -47,18 +28,29 @@ var hic = (function (hic) {
             dimen;
 
         this.$viewport = $('<div>');
-        this.$viewport.width(size.width);
-        this.$viewport.height(size.height);
+        if (size.width) {
+            this.$viewport.width(size.width);
+        }
+        if (size.height) {
+            this.$viewport.height(size.height);
+        }
         $container.append(this.$viewport);
 
         // TODO diagnostic coloring
-        // this.$viewport.css("background-color", igv.randomRGBConstantAlpha(200, 255, 0.75));
+        // this.$viewport.css("background-color", igv.randomRGB(100, 255));
 
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
+        this.ctx = this.$canvas.get(0).getContext("2d");
+    };
+
+    hic.TrackRenderer.prototype.syncCanvas = function () {
+
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
-        this.ctx = this.$canvas.get(0).getContext("2d");
+
+        // fillRect(ctx, x, y, w, h, properties)
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.get(0).width, this.$canvas.get(0).height, { fillStyle: igv.randomRGB(100, 255) });
     };
 
     hic.TrackRenderer.prototype.update = function () {
@@ -195,6 +187,25 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.isLoading = function () {
         return !(undefined === this.loading);
     };
+
+    hic.TrackRenderer.prototype.setAxis = function (axis) {
+
+        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
+
+        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
+
+    };
+
+    function reflectionTransformWithContext(context, exe) {
+        context.translate(exe, 0);
+        context.scale(-1, 1);
+        context.translate(-exe, 0);
+    }
+
+    function identityTransformWithContext(context) {
+        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+        context.setTransform(1, 0, 0, 1, 0, 0);
+    }
 
     Tile = function (chr, tileStart, tileEnd, scale, image) {
         this.chr = chr;
