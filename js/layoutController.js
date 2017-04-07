@@ -169,12 +169,7 @@ var hic = (function (hic) {
             trackXY.y = new hic.TrackRenderer(this.browser, { width: this.track_height, height: undefined         }, this.$y_tracks, event.data.trackXY[ 'y' ]);
             this.browser.trackRenderers.push(trackXY);
 
-            _.each(this.browser.trackRenderers, function(pair){
-                _.each(pair, function(trackRenderer){
-                    trackRenderer.syncCanvas();
-                    trackRenderer.update();
-                });
-            });
+            this.browser.renderTracks();
 
         }
     };

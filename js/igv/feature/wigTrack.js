@@ -197,7 +197,6 @@ var igv = (function (igv) {
 
             featureValueRange = featureValueMaximum - featureValueMinimum;
 
-
             // options.features.forEach(renderFeature);
 
             survivors = _.filter(options.features, function(f){
@@ -219,11 +218,11 @@ var igv = (function (igv) {
             });
 
             _.each(mapped, function(m) {
-                hackedRender(m);
+                render(options.context, m, self.color);
             });
         }
 
-        function hackedRender(feature) {
+        function render(ctx, feature, fillStyle) {
 
             var yPercentage,
                 heightPercentage;
@@ -238,72 +237,70 @@ var igv = (function (igv) {
                     heightPercentage = feature.value / featureValueRange;
                 }
 
-            }
-            else if (featureValueMinimum < 0) {
+            } else if (featureValueMinimum < 0) {
                 yPercentage = 0;
                 heightPercentage = -feature.value / featureValueRange;
-            }
-            else {
+            } else {
                 yPercentage = 1.0 - feature.value / featureValueRange;
                 heightPercentage = feature.value / featureValueRange;
             }
 
-            igv.graphics.fillRect(options.context, feature.x, yPercentage * h, feature.width, heightPercentage * h, { fillStyle: igv.randomRGB(100, 255) });
+            igv.graphics.fillRect(ctx, feature.x, yPercentage * h, feature.width, heightPercentage * h, { fillStyle: fillStyle });
 
             // igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
 
         }
 
-        function renderFeature(feature) {
-
-            var yPercentage,
-                heightPercentage,
-                x,
-                width,
-                rectEnd,
-                rgb;
-
-            if (feature.end < options.bpStart) {
-                return;
-            }
-
-            if (feature.start > bpEnd) {
-                return;
-            }
-
-            x = Math.floor((feature.start - options.bpStart) / options.bpPerPixel);
-            rectEnd = Math.ceil((feature.end - options.bpStart) / options.bpPerPixel);
-            width = Math.max(1, rectEnd - x);
-
-            if (signsDiffer(featureValueMinimum, featureValueMaximum)) {
-
-                if (feature.value < 0) {
-                    yPercentage = featureValueMaximum / featureValueRange;
-                    heightPercentage = -feature.value / featureValueRange;
-                } else {
-                    yPercentage = ((featureValueMaximum - feature.value) / featureValueRange);
-                    heightPercentage = feature.value / featureValueRange;
-                }
-
-            }
-            else if (featureValueMinimum < 0) {
-                yPercentage = 0;
-                heightPercentage = -feature.value / featureValueRange;
-            }
-            else {
-                yPercentage = 1.0 - feature.value / featureValueRange;
-                heightPercentage = feature.value / featureValueRange;
-            }
-
-            // igv.graphics.fillRect(options.context, x, yPercentage * options.pixelHeight, width, heightPercentage * options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
-
-            igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
-
-            // rgb = igv.randomRGB(100, 255);
-            // console.log('rgb ' + rgb);
-            // igv.graphics.fillRect(options.context, 0, 0, options.width, options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
-
-        }
+        // function renderFeature(feature) {
+        //
+        //     var yPercentage,
+        //         heightPercentage,
+        //         x,
+        //         width,
+        //         rectEnd,
+        //         rgb;
+        //
+        //     if (feature.end < options.bpStart) {
+        //         return;
+        //     }
+        //
+        //     if (feature.start > bpEnd) {
+        //         return;
+        //     }
+        //
+        //     x = Math.floor((feature.start - options.bpStart) / options.bpPerPixel);
+        //     rectEnd = Math.ceil((feature.end - options.bpStart) / options.bpPerPixel);
+        //     width = Math.max(1, rectEnd - x);
+        //
+        //     if (signsDiffer(featureValueMinimum, featureValueMaximum)) {
+        //
+        //         if (feature.value < 0) {
+        //             yPercentage = featureValueMaximum / featureValueRange;
+        //             heightPercentage = -feature.value / featureValueRange;
+        //         } else {
+        //             yPercentage = ((featureValueMaximum - feature.value) / featureValueRange);
+        //             heightPercentage = feature.value / featureValueRange;
+        //         }
+        //
+        //     }
+        //     else if (featureValueMinimum < 0) {
+        //         yPercentage = 0;
+        //         heightPercentage = -feature.value / featureValueRange;
+        //     }
+        //     else {
+        //         yPercentage = 1.0 - feature.value / featureValueRange;
+        //         heightPercentage = feature.value / featureValueRange;
+        //     }
+        //
+        //     igv.graphics.fillRect(options.context, x, yPercentage * options.pixelHeight, width, heightPercentage * options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
+        //
+        //     // igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
+        //
+        //     // rgb = igv.randomRGB(100, 255);
+        //     // console.log('rgb ' + rgb);
+        //     // igv.graphics.fillRect(options.context, 0, 0, options.width, options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
+        //
+        // }
 
         function renderRamp(ctx, width, height, fillStyle) {
             _.each(_.range(width), function(x){

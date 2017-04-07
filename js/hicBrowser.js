@@ -365,6 +365,17 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, trackXY: trackXY }));
     };
 
+    hic.Browser.prototype.renderTracks = function () {
+
+        _.each(this.trackRenderers, function(pair){
+            _.each(pair, function(trackRenderer){
+                trackRenderer.syncCanvas();
+                trackRenderer.update();
+            });
+        });
+
+    };
+
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this;

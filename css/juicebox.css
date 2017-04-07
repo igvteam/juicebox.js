@@ -171,8 +171,7 @@
   .hic-x-track-container div:nth-child(1) {
     width: 0px;
     height: 100%;
-    margin-right: 32px;
-    background-color: lightslategrey; }
+    margin-right: 32px; }
   .hic-x-track-container div:nth-child(2) {
     display: flex;
     flex-flow: column;
