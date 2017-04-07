@@ -86,7 +86,7 @@ var hic = (function (hic) {
 
             // bpStart = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - bpWidth/1));
             bpStart = Math.round(genomicState.startBP[ this.track.config.axis ]);
-            bpEnd = bpStart + bpWidth;
+            bpEnd   = Math.round(  genomicState.endBP[ this.track.config.axis ]);
 
             if (self.loading && self.loading.start === bpStart && self.loading.end === bpEnd) {
                 return;
@@ -110,34 +110,23 @@ var hic = (function (hic) {
                     if (features) {
 
                         buffer = document.createElement('canvas');
-                        buffer.width = pixelWidth;
+                        buffer.width = self.$canvas.width();
                         buffer.height = self.$canvas.height();
 
                         self.drawConfiguration =
                             {
-
                                 features: features,
 
                                 // context: buffer.getContext('2d'),
                                 context: self.ctx,
 
-                                // pixelWidth: buffer.width,
-                                // pixelHeight: buffer.height,
                                 pixelWidth: self.$canvas.width(),
                                 pixelHeight: self.$canvas.height(),
 
-                                bpStart: bpStart,
-                                bpEnd: bpEnd,
+                                bpStart: Math.round(bpStart),
+                                bpEnd:   Math.round(  bpEnd),
 
-                                bpPerPixel: genomicState.bpp,
-
-                                referenceFrame: undefined,
-
-                                genomicState: genomicState,
-
-                                viewport: self,
-
-                                viewportWidth: self.$viewport.width()
+                                bpPerPixel: genomicState.bpp
                             };
 
                         self.track.draw(self.drawConfiguration);
