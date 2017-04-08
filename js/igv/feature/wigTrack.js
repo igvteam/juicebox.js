@@ -149,35 +149,29 @@ var igv = (function (igv) {
     igv.WIGTrack.prototype.draw = function (options) {
 
         var self = this,
-            bpEnd = options.bpStart + options.pixelWidth * options.bpPerPixel + 1,
             featureValueMinimum,
             featureValueMaximum,
             featureValueRange,
-            $dataRangeTrackLabel,
-            str,
-            min,
-            max,
-            w,
-            h,
+            canvasHeight,
             survivors,
-            sorted,
             mapped;
 
         identityTransformWithContext(options.context);
+
         igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
 
         this.canvasTransform(options.context);
 
         if ('x' === this.config.axis) {
+            canvasHeight = options.pixelHeight;
             igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
             // igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.randomRGB(120, 240) });
         } else {
+            canvasHeight = options.pixelWidth;
             igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
             // igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.randomRGB(120, 240) });
         }
 
-        w = Math.max(options.pixelWidth, options.pixelHeight);
-        h = Math.min(options.pixelWidth, options.pixelHeight);
 
         // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
         // return;
@@ -197,15 +191,11 @@ var igv = (function (igv) {
 
             featureValueRange = featureValueMaximum - featureValueMinimum;
 
-            // options.features.forEach(renderFeature);
-
             survivors = _.filter(options.features, function(f){
                 return !(f.end < options.bpStart) || !(f.start > options.bpEnd);
             });
 
-            sorted = _.sortBy(survivors, 'start');
-
-            mapped = _.map(sorted, function(s) {
+            mapped = _.map(survivors, function(s) {
                 var rectEnd,
                     obj = {};
 
@@ -218,11 +208,13 @@ var igv = (function (igv) {
             });
 
             _.each(mapped, function(m) {
-                render(options.context, m, self.color);
+                render(options.context, m, self.color, canvasHeight);
             });
         }
 
-        function render(ctx, feature, fillStyle) {
+        identityTransformWithContext(options.context);
+
+        function render(ctx, feature, fillStyle, height) {
 
             var yPercentage,
                 heightPercentage;
@@ -245,62 +237,11 @@ var igv = (function (igv) {
                 heightPercentage = feature.value / featureValueRange;
             }
 
-            igv.graphics.fillRect(ctx, feature.x, yPercentage * h, feature.width, heightPercentage * h, { fillStyle: fillStyle });
+            igv.graphics.fillRect(ctx, feature.x, yPercentage * height, feature.width, heightPercentage * height, { fillStyle: fillStyle });
 
             // igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
 
         }
-
-        // function renderFeature(feature) {
-        //
-        //     var yPercentage,
-        //         heightPercentage,
-        //         x,
-        //         width,
-        //         rectEnd,
-        //         rgb;
-        //
-        //     if (feature.end < options.bpStart) {
-        //         return;
-        //     }
-        //
-        //     if (feature.start > bpEnd) {
-        //         return;
-        //     }
-        //
-        //     x = Math.floor((feature.start - options.bpStart) / options.bpPerPixel);
-        //     rectEnd = Math.ceil((feature.end - options.bpStart) / options.bpPerPixel);
-        //     width = Math.max(1, rectEnd - x);
-        //
-        //     if (signsDiffer(featureValueMinimum, featureValueMaximum)) {
-        //
-        //         if (feature.value < 0) {
-        //             yPercentage = featureValueMaximum / featureValueRange;
-        //             heightPercentage = -feature.value / featureValueRange;
-        //         } else {
-        //             yPercentage = ((featureValueMaximum - feature.value) / featureValueRange);
-        //             heightPercentage = feature.value / featureValueRange;
-        //         }
-        //
-        //     }
-        //     else if (featureValueMinimum < 0) {
-        //         yPercentage = 0;
-        //         heightPercentage = -feature.value / featureValueRange;
-        //     }
-        //     else {
-        //         yPercentage = 1.0 - feature.value / featureValueRange;
-        //         heightPercentage = feature.value / featureValueRange;
-        //     }
-        //
-        //     igv.graphics.fillRect(options.context, x, yPercentage * options.pixelHeight, width, heightPercentage * options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
-        //
-        //     // igv.graphics.fillRect(options.context, x, 0, w, h, { fillStyle: igv.randomRGB(100, 255) });
-        //
-        //     // rgb = igv.randomRGB(100, 255);
-        //     // console.log('rgb ' + rgb);
-        //     // igv.graphics.fillRect(options.context, 0, 0, options.width, options.pixelHeight, { fillStyle: igv.randomRGB(100, 255) });
-        //
-        // }
 
         function renderRamp(ctx, width, height, fillStyle) {
             _.each(_.range(width), function(x){

@@ -92,13 +92,19 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.genomicState = function () {
-        var gs = {},
-            bpResolution = this.dataset.bpResolutions[ this.state.zoom ];
+        var gs,
+            bpResolution;
 
+        bpResolution = this.dataset.bpResolutions[ this.state.zoom ];
+
+        gs = {};
         gs.bpp = bpResolution / this.state.pixelSize;
+
         gs.chromosome = { x: this.dataset.chromosomes[ this.state.chr1 ],  y: this.dataset.chromosomes[ this.state.chr2 ] };
+
         gs.startBP = { x: this.state.x * bpResolution,  y: this.state.y * bpResolution };
-        gs.endBP = { x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width, y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height * gs.bpp };
+        gs.endBP = { x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width, y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height };
+
         return gs;
     };
 
