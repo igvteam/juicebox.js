@@ -208,7 +208,7 @@ var igv = (function (igv) {
             });
 
             _.each(mapped, function(m) {
-                render(options.context, m, self.color, canvasHeight);
+                render(options.context, m, igv.randomRGB(120, 240), canvasHeight);
             });
         }
 

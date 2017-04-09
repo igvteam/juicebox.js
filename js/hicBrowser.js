@@ -371,11 +371,13 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, trackXY: trackXY }));
     };
 
-    hic.Browser.prototype.renderTracks = function () {
+    hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
 
         _.each(this.trackRenderers, function(pair){
             _.each(pair, function(trackRenderer){
-                trackRenderer.syncCanvas();
+                if (true === doSyncCanvas) {
+                    trackRenderer.syncCanvas();
+                }
                 trackRenderer.update();
             });
         });

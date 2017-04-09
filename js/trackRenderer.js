@@ -70,13 +70,13 @@ var hic = (function (hic) {
         } else {
 
             // Expand the requested range so we can pan a bit without reloading
-            // lengthPixel = 3 * Math.max(this.$canvas.width(), this.$canvas.height());
-            lengthPixel = Math.max(this.$canvas.width(), this.$canvas.height());
+            lengthPixel = 3 * Math.max(this.$canvas.width(), this.$canvas.height());
+            // lengthPixel = Math.max(this.$canvas.width(), this.$canvas.height());
 
             lengthBP = Math.round(genomicState.bpp * lengthPixel);
 
-            // startBP = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - lengthBP/3));
-            startBP = Math.round(genomicState.startBP[ this.track.config.axis ]);
+            startBP = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - lengthBP/3));
+            // startBP = Math.round(genomicState.startBP[ this.track.config.axis ]);
 
             endBP = startBP + lengthBP;
 
@@ -156,8 +156,14 @@ var hic = (function (hic) {
 
             pixels = (tile.startBP - genomicState.startBP[ this.track.config.axis ]) / genomicState.bpp;
 
-            this.xOffset = Math.round(pixels);
-            this.ctx.drawImage(tile.buffer, this.xOffset, 0);
+            this.offsetPixel = Math.round(pixels);
+            if ('x' === this.track.config.axis) {
+                this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
+            } else {
+                this.ctx.drawImage(tile.buffer, 0, this.offsetPixel);
+            }
+
+
             this.ctx.save();
             this.ctx.restore();
         }

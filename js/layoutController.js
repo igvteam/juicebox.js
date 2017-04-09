@@ -21,7 +21,8 @@ var hic = (function (hic) {
 
         this.track_height = 32;
 
-        hic.GlobalEventBus.subscribe("DidAddTrack", this);
+        hic.GlobalEventBus.subscribe('DidAddTrack', this);
+        hic.GlobalEventBus.subscribe('LocusChange', this);
 
     };
 
@@ -126,7 +127,7 @@ var hic = (function (hic) {
             height_calc,
             trackXY;
 
-        if (event.type === "DidAddTrack") {
+        if ('DidAddTrack' === event.type) {
 
             track_aggregate_height = event.data.count * this.track_height;
             track_aggregate_height_px = track_aggregate_height + 'px';
@@ -169,8 +170,10 @@ var hic = (function (hic) {
             trackXY.y = new hic.TrackRenderer(this.browser, { width: this.track_height, height: undefined         }, this.$y_tracks, event.data.trackXY[ 'y' ]);
             this.browser.trackRenderers.push(trackXY);
 
-            this.browser.renderTracks();
+            this.browser.renderTracks(true);
 
+        } else if ('LocusChange' === event.type) {
+            this.browser.renderTracks(false);
         }
     };
 
