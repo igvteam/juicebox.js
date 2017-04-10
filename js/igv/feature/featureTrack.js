@@ -29,6 +29,8 @@ var igv = (function (igv) {
 
         igv.configTrack(this, config);
 
+        hic.configTrack(this, config);
+
         this.displayMode = config.displayMode || "COLLAPSED";    // COLLAPSED | EXPANDED | SQUISHED
         this.labelDisplayMode = config.labelDisplayMode;
 
@@ -70,7 +72,7 @@ var igv = (function (igv) {
             this.arrowSpacing = 30;
 
             // adjust label positions to make sure they're always visible
-            monitorTrackDrag(this);
+            // monitorTrackDrag(this);
         }
     };
 
@@ -140,25 +142,26 @@ var igv = (function (igv) {
 
     igv.FeatureTrack.prototype.draw = function (options) {
 
-        var track = this,
-            featureList = options.features,
-            ctx = options.context,
-            bpPerPixel = options.bpPerPixel,
-            bpStart = options.bpStart,
-            pixelWidth = options.pixelWidth,
-            pixelHeight = options.pixelHeight,
-            bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
+        var self = this,
+            canvasHeight;
 
-        igv.graphics.fillRect(ctx, 0, 0, pixelWidth, pixelHeight, {'fillStyle': "rgb(255, 255, 255)"});
+        this.config.canvasTransform(options.context);
 
+        if ('x' === this.config.axis) {
+            canvasHeight = options.pixelHeight;
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
+        } else {
+            canvasHeight = options.pixelWidth;
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
+        }
 
-        if (featureList) {
+        if (options.features) {
 
-            for (var gene, i = 0, len = featureList.length; i < len; i++) {
-                gene = featureList[i];
-                if (gene.end < bpStart) continue;
-                if (gene.start > bpEnd) break;
-                track.render.call(this, gene, bpStart, bpPerPixel, pixelHeight, ctx, options.genomicState);
+            for (var gene, i = 0, len = options.features.length; i < len; i++) {
+                gene = options.features[i];
+                if (gene.end < options.bpStart) continue;
+                if (gene.start > options.bpEnd) break;
+                self.render.call(this, gene, options.bpStart, options.bpPerPixel, canvasHeight, options.context, options.genomicState);
             }
         }
         else {
@@ -307,12 +310,12 @@ var igv = (function (igv) {
     /**
      * @param feature
      * @param bpStart  genomic location of the left edge of the current canvas
-     * @param xScale  scale in base-pairs per pixel
+     * @param bpp  scale in base-pairs per pixel
      * @returns {{px: number, px1: number, pw: number, h: number, py: number}}
      */
-    function calculateFeatureCoordinates(feature, bpStart, xScale) {
-        var px = Math.round((feature.start - bpStart) / xScale),
-            px1 = Math.round((feature.end - bpStart) / xScale),
+    function calculateFeatureCoordinates(feature, bpStart, bpp) {
+        var px = Math.round((feature.start - bpStart) / bpp),
+            px1 = Math.round((feature.end - bpStart) / bpp),
             pw = px1 - px;
 
         if (pw < 3) {
@@ -331,16 +334,29 @@ var igv = (function (igv) {
      *
      * @param feature
      * @param bpStart  genomic location of the left edge of the current canvas
-     * @param xScale  scale in base-pairs per pixel
+     * @param bpp  scale in base-pairs per pixel
      * @param pixelHeight  pixel height of the current canvas
      * @param ctx  the canvas 2d context
      * @param genomicState  genomic state
      */
-    function renderFeature(feature, bpStart, xScale, pixelHeight, ctx, genomicState) {
+    function renderFeature(feature, bpStart, bpp, pixelHeight, ctx, genomicState) {
 
-        var x, e, exonCount, cy, direction, exon, ePx, ePx1, ePxU, ePw, py2, h2, py,
-            windowX, windowX1,
-            coord = calculateFeatureCoordinates(feature, bpStart, xScale),
+        var x,
+            e,
+            exonCount,
+            cy,
+            direction,
+            exon,
+            ePx,
+            ePx1,
+            ePxU,
+            ePw,
+            py2,
+            h2,
+            py,
+            windowX,
+            windowX1,
+            pixels,
             h = this.featureHeight,
             step = this.arrowSpacing,
             color = this.color;
@@ -375,17 +391,19 @@ var igv = (function (igv) {
 
         exonCount = feature.exons ? feature.exons.length : 0;
 
+        pixels = calculateFeatureCoordinates(feature, bpStart, bpp);
+
         if (exonCount == 0) {
             // single-exon transcript
-            ctx.fillRect(coord.px, py, coord.pw, h);
+            ctx.fillRect(pixels.px, py, pixels.pw, h);
 
         }
         else {
             // multi-exon transcript
-            igv.graphics.strokeLine(ctx, coord.px + 1, cy, coord.px1 - 1, cy); // center line for introns
+            igv.graphics.strokeLine(ctx, pixels.px + 1, cy, pixels.px1 - 1, cy); // center line for introns
 
             direction = feature.strand == '+' ? 1 : -1;
-            for (x = coord.px + step / 2; x < coord.px1; x += step) {
+            for (x = pixels.px + step / 2; x < pixels.px1; x += step) {
                 // draw arrowheads along central line indicating transcribed orientation
                 igv.graphics.strokeLine(ctx, x - direction * 2, cy - 2, x, cy);
                 igv.graphics.strokeLine(ctx, x - direction * 2, cy + 2, x, cy);
@@ -393,8 +411,8 @@ var igv = (function (igv) {
             for (e = 0; e < exonCount; e++) {
                 // draw the exons
                 exon = feature.exons[e];
-                ePx = Math.round((exon.start - bpStart) / xScale);
-                ePx1 = Math.round((exon.end - bpStart) / xScale);
+                ePx = Math.round((exon.start - bpStart) / bpp);
+                ePx1 = Math.round((exon.end - bpStart) / bpp);
                 ePw = Math.max(1, ePx1 - ePx);
 
                 if (exon.utr) {
@@ -402,14 +420,14 @@ var igv = (function (igv) {
                 }
                 else {
                     if (exon.cdStart) {
-                        ePxU = Math.round((exon.cdStart - bpStart) / xScale);
+                        ePxU = Math.round((exon.cdStart - bpStart) / bpp);
                         ctx.fillRect(ePx, py2, ePxU - ePx, h2); // start is UTR
                         ePw -= (ePxU - ePx);
                         ePx = ePxU;
 
                     }
                     if (exon.cdEnd) {
-                        ePxU = Math.round((exon.cdEnd - bpStart) / xScale);
+                        ePxU = Math.round((exon.cdEnd - bpStart) / bpp);
                         ctx.fillRect(ePxU, py2, ePx1 - ePxU, h2); // start is UTR
                         ePw -= (ePx1 - ePxU);
                         ePx1 = ePxU;
@@ -436,7 +454,7 @@ var igv = (function (igv) {
         windowX = Math.round(genomicState.referenceFrame.toPixels(genomicState.referenceFrame.start - bpStart));
         windowX1 = windowX + igv.browser.viewportContainerWidth()/genomicState.locusCount;
 
-        renderFeatureLabels.call(this, ctx, feature, coord.px, coord.px1, py, windowX, windowX1, genomicState);
+        renderFeatureLabels.call(this, ctx, feature, pixels.px, pixels.px1, py, windowX, windowX1, genomicState);
     }
 
     /**
@@ -565,8 +583,6 @@ var igv = (function (igv) {
 
         var rowHeight = (this.displayMode === "EXPANDED") ? this.squishedCallHeight : this.expandedCallHeight;
 
-        // console.log("row height = " + rowHeight);
-
         if (this.displayMode === "SQUISHED" && feature.row != undefined) {
             py = rowHeight * feature.row;
         }
@@ -577,8 +593,6 @@ var igv = (function (igv) {
         var cy = py + 0.5 * rowHeight;
         var top_y = cy - 0.5 * rowHeight;
         var bottom_y = cy + 0.5 * rowHeight;
-
-        //igv.Canvas.strokeLine.call(ctx, coord.px, cy, coord.px1, cy); // center line for introns
 
         // draw the junction arc
         var junction_left_px = Math.round((feature.junction_left - bpStart) / xScale);

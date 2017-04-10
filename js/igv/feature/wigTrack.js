@@ -151,6 +151,12 @@ var igv = (function (igv) {
 
         hic.clearTrackWithFillColor(this, options, igv.rgbColor(255, 255, 255));
 
+
+        return;
+
+
+
+
         // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
         // return;
 
@@ -255,7 +261,6 @@ var igv = (function (igv) {
     function signsDiffer(a, b) {
         return (a > 0 && b < 0 || a < 0 && b > 0);
     }
-
 
     return igv;
 

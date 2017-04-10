@@ -117,7 +117,9 @@ var hic = (function (hic) {
                                 bpStart: startBP,
                                   bpEnd:   endBP,
 
-                                bpPerPixel: genomicState.bpp
+                                bpPerPixel: genomicState.bpp,
+
+                                genomicState: genomicState
                             };
 
                         self.track.draw(self.drawConfiguration);
