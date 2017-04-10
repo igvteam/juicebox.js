@@ -128,6 +128,7 @@ var hic = (function (hic) {
                         self.drawTileWithGenomicState(self.tile, genomicState);
 
                     } else {
+                        console.log('Hmmm ... no features');
                         self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
                     }
 

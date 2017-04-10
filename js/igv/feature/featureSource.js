@@ -110,7 +110,7 @@ var igv = (function (igv) {
                 }
             }
         });
-    }
+    };
 
     function addFeaturesToDB(featureList) {
         var echo = [];
@@ -124,7 +124,6 @@ var igv = (function (igv) {
         // });
         // console.log('yo');
     }
-
 
     /**
      * Required function fo all data source objects.  Fetches features for the
@@ -161,27 +160,24 @@ var igv = (function (igv) {
                         self.reader
                             .readFeatures(chr)
                             .then(function (featureList) {
-                            if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
-                                if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
-                                    featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
-                                }
-                                self.featureCache = new igv.FeatureCache(featureList);   // Note - replacing previous cache with new one
+                                if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
+                                    if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
+                                        featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
+                                    }
+                                    self.featureCache = new igv.FeatureCache(featureList);   // Note - replacing previous cache with new one
 
-                                // Assign overlapping features to rows
-                                packFeatures(featureList, maxRows);
-                            }
-                            fulfill(getWGFeatures(self.featureCache.allFeatures()));
-                        });
+                                    // Assign overlapping features to rows
+                                    packFeatures(featureList, maxRows);
+                                }
+                                fulfill(getWGFeatures(self.featureCache.allFeatures()));
+                            });
                     }
                 } else {
                     fulfill(null);
                 }
-            }
-
-            else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
+            } else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
                 fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
-            }
-            else {
+            } else {
                 // TODO -- reuse cached features that overelap new region
 
                 if (self.sourceType === 'file' && (self.visibilityWindow === undefined || self.visibilityWindow <= 0)) {
@@ -191,8 +187,9 @@ var igv = (function (igv) {
                     genomicInterval.end = (chromosome === undefined ? Number.MAX_VALUE : chromosome.bpLength);
                 }
 
-                self.reader.readFeatures(chr, genomicInterval.start, genomicInterval.end).then(
-                    function (featureList) {
+                self.reader
+                    .readFeatures(chr, genomicInterval.start, genomicInterval.end)
+                    .then( function (featureList) {
 
                         if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
 
@@ -217,16 +214,15 @@ var igv = (function (igv) {
 
                             // Finally pass features for query interval to continuation
                             fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
-                        }
-                        else {
+                        } else {
                             fulfill(null);
                         }
 
-                    }).catch(reject);
+                    })
+                    .catch(reject);
             }
         });
     };
-
 
     function packFeatures(features, maxRows) {
 
@@ -293,7 +289,6 @@ var igv = (function (igv) {
             });
         }
     }
-
 
     function getWGFeatures(features) {
 

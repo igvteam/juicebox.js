@@ -151,12 +151,6 @@ var igv = (function (igv) {
 
         hic.clearTrackWithFillColor(this, options, igv.rgbColor(255, 255, 255));
 
-
-        return;
-
-
-
-
         // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
         // return;
 
