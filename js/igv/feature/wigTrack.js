@@ -149,13 +149,7 @@ var igv = (function (igv) {
 
         this.config.canvasTransform(options.context);
 
-        if ('x' === this.config.axis) {
-            canvasHeight = options.pixelHeight;
-            igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
-        } else {
-            canvasHeight = options.pixelWidth;
-            igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
-        }
+        hic.clearTrackWithFillColor(this, options, igv.rgbColor(255, 255, 255));
 
         // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
         // return;
@@ -190,6 +184,8 @@ var igv = (function (igv) {
                 obj.value = s.value;
                 return obj;
             });
+
+            canvasHeight = options[ ('x' === this.config.axis ? 'pixelHeight' : 'pixelWidth') ];
 
             _.each(mapped, function(m) {
                 render(options.context, m, igv.randomRGB(120, 240), canvasHeight);

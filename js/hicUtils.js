@@ -55,6 +55,14 @@ var hic = (function (hic) {
         }
     };
 
+    hic.clearTrackWithFillColor = function (track, options, fillColor) {
+        if ('x' === track.config.axis) {
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: fillColor });
+        } else {
+            igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: fillColor });
+        }
+    };
+
     hic.configTrack = function(track, config) {
 
         config.canvasTransform = ('y' === config.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
