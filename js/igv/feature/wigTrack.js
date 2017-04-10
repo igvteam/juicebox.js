@@ -37,6 +37,8 @@ var igv = (function (igv) {
 
         igv.configTrack(this, config);
 
+        hic.configTrack(this, config);
+
         if ("bigwig" === config.format) {
             this.featureSource = new igv.BWSource(config);
         } else if ("tdf" === config.format) {
@@ -53,17 +55,6 @@ var igv = (function (igv) {
         };
 
         this.paintAxis = igv.paintAxis;
-
-
-
-
-
-        this.yAxisTransformWithContext = function(context) {
-            context.scale(-1, 1);
-            context.rotate(Math.PI/2.0);
-        };
-
-        this.setAxis( config.axis );
 
     };
 
@@ -156,22 +147,15 @@ var igv = (function (igv) {
             survivors,
             mapped;
 
-        identityTransformWithContext(options.context);
-
-        igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
-
-        this.canvasTransform(options.context);
+        this.config.canvasTransform(options.context);
 
         if ('x' === this.config.axis) {
             canvasHeight = options.pixelHeight;
             igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
-            // igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.randomRGB(120, 240) });
         } else {
             canvasHeight = options.pixelWidth;
             igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
-            // igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.randomRGB(120, 240) });
         }
-
 
         // renderRamp(options.context, w, h, igv.randomRGB(100, 255));
         // return;
@@ -211,8 +195,6 @@ var igv = (function (igv) {
                 render(options.context, m, igv.randomRGB(120, 240), canvasHeight);
             });
         }
-
-        identityTransformWithContext(options.context);
 
         function render(ctx, feature, fillStyle, height) {
 
@@ -258,25 +240,6 @@ var igv = (function (igv) {
         }
 
     };
-
-    igv.WIGTrack.prototype.setAxis = function (axis) {
-
-        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
-
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
-
-    };
-
-    function reflectionTransformWithContext(context, exe) {
-        context.translate(exe, 0);
-        context.scale(-1, 1);
-        context.translate(-exe, 0);
-    }
-
-    function identityTransformWithContext(context) {
-        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-        context.setTransform(1, 0, 0, 1, 0, 0);
-    }
 
     function autoscale(features) {
         var min = 0,

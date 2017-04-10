@@ -68,7 +68,10 @@ var igv = (function (igv) {
             track.visibilityWindow = config.visibilityWindow;
         }
 
-        if(track.type === undefined) track.type = config.type;
+        if(track.type === undefined) {
+            track.type = config.type;
+        }
+
     };
 
     igv.setTrackLabel = function (track, label) {
