@@ -20,7 +20,7 @@ var igv = (function (igv) {
 
         return new Promise(function (fullfill, reject) {
 
-            var genome = igv.browser ? igv.browser.genome : null;
+            var genome = hic.browser ? hic.browser.genome : null;
 
             igvxhr
                 .loadArrayBuffer(indexURL,
@@ -69,7 +69,9 @@ var igv = (function (igv) {
                                 var seq_name = parser.getString();
 
                                 // Translate to "official" chr name.
-                                if (genome) seq_name = genome.getChromosomeName(seq_name);
+                                if (genome) {
+                                    seq_name = genome.getChromosomeName(seq_name);
+                                }
 
                                 sequenceIndexMap[seq_name] = i;
                             }

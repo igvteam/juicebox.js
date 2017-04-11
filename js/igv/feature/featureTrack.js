@@ -112,7 +112,6 @@ var igv = (function (igv) {
         });
     };
 
-
     /**
      * The required height in pixels required for the track content.   This is not the visible track height, which
      * can be smaller (with a scrollbar) or larger.
@@ -143,28 +142,33 @@ var igv = (function (igv) {
     igv.FeatureTrack.prototype.draw = function (options) {
 
         var self = this,
-            canvasHeight;
+            canvasWidth,
+            canvasHeight,
+            survivors;
 
         this.config.canvasTransform(options.context);
 
-        if ('x' === this.config.axis) {
-            canvasHeight = options.pixelHeight;
-            igv.graphics.fillRect(options.context, 0, 0, options.pixelWidth, options.pixelHeight, { fillStyle: igv.rgbColor(255, 255, 255) });
-        } else {
-            canvasHeight = options.pixelWidth;
-            igv.graphics.fillRect(options.context, 0, 0, options.pixelHeight, options.pixelWidth, { fillStyle: igv.rgbColor(255, 255, 255) });
-        }
+        hic.clearTrackWithFillColor(this, options, igv.rgbColor(255, 255, 255));
 
+        canvasWidth  = options[ ('x' === this.config.axis ? 'pixelWidth' : 'pixelHeight') ];
+        canvasHeight = options[ ('x' === this.config.axis ? 'pixelHeight' : 'pixelWidth') ];
         if (options.features) {
 
-            for (var gene, i = 0, len = options.features.length; i < len; i++) {
-                gene = options.features[i];
-                if (gene.end < options.bpStart) continue;
-                if (gene.start > options.bpEnd) break;
-                self.render.call(this, gene, options.bpStart, options.bpPerPixel, canvasHeight, options.context, options.genomicState);
-            }
-        }
-        else {
+            survivors = _.filter(options.features, function(f){
+                return !(f.end < options.bpStart) || !(f.start > options.bpEnd);
+            });
+
+            _.each(survivors, function(s){
+                self.render.call(self, s, options.bpStart, options.bpPerPixel, canvasWidth, canvasHeight, options.context, options.genomicState);
+            });
+
+            // for (var gene, i = 0, len = options.features.length; i < len; i++) {
+            //     gene = options.features[i];
+            //     if (gene.end < options.bpStart) continue;
+            //     if (gene.start > options.bpEnd) break;
+            //     self.render.call(self, gene, options.bpStart, options.bpPerPixel, canvasWidth, canvasHeight, options.context, options.genomicState);
+            // }
+        } else {
             console.log("No feature list");
         }
 
@@ -332,14 +336,22 @@ var igv = (function (igv) {
 
     /**
      *
+     * @param track
      * @param feature
      * @param bpStart  genomic location of the left edge of the current canvas
      * @param bpp  scale in base-pairs per pixel
+     * @param pixelWidth  pixel width of the current canvas
      * @param pixelHeight  pixel height of the current canvas
      * @param ctx  the canvas 2d context
      * @param genomicState  genomic state
      */
-    function renderFeature(feature, bpStart, bpp, pixelHeight, ctx, genomicState) {
+    // function renderFeature(feature, bpStart, bpp, pixelWidth, pixelHeight, ctx, genomicState) {
+    //     var color = this.color;
+    //
+    //     console.log('render feature');
+    // }
+
+    function renderFeature(feature, bpStart, bpp, pixelWidth, pixelHeight, ctx, genomicState) {
 
         var x,
             e,
@@ -360,7 +372,6 @@ var igv = (function (igv) {
             h = this.featureHeight,
             step = this.arrowSpacing,
             color = this.color;
-
 
         if (this.config.colorBy) {
             var colorByValue = feature[this.config.colorBy.field];
@@ -451,8 +462,9 @@ var igv = (function (igv) {
                 }
             }
         }
-        windowX = Math.round(genomicState.referenceFrame.toPixels(genomicState.referenceFrame.start - bpStart));
-        windowX1 = windowX + igv.browser.viewportContainerWidth()/genomicState.locusCount;
+
+        windowX = Math.round((genomicState.startBP[ this.config.axis ] - bpStart) / bpp);
+        windowX1 = windowX + pixelWidth;
 
         renderFeatureLabels.call(this, ctx, feature, pixels.px, pixels.px1, py, windowX, windowX1, genomicState);
     }
@@ -468,9 +480,13 @@ var igv = (function (igv) {
      * @param genomicState  genomic state
      */
     function renderFeatureLabels(ctx, feature, featureX, featureX1, featureY, windowX, windowX1, genomicState) {
-        var geneColor, geneFontStyle, transform,
-            boxX, boxX1,    // label should be centered between these two x-coordinates
-            labelX, labelY,
+        var geneColor,
+            geneFontStyle,
+            transform,
+            boxX,
+            boxX1,    // label should be centered between these two x-coordinates
+            labelX,
+            labelY,
             textFitsInBox;
 
         // feature outside of viewable window
@@ -506,7 +522,14 @@ var igv = (function (igv) {
             labelX = boxX + ((boxX1 - boxX) / 2);
             labelY = getFeatureLabelY(featureY, transform);
 
-            igv.graphics.fillText(ctx, feature.name, labelX, labelY, geneFontStyle, transform);
+            // flop text
+            ctx.save();
+            this.config.labelReflectionTransform(ctx, labelX);
+
+            igv.graphics.fillText(ctx, feature.name, labelX, labelY, geneFontStyle, /*transform*/undefined);
+
+            ctx.restore();
+
         }
     }
 

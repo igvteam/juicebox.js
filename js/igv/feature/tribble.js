@@ -33,7 +33,7 @@ var igv = (function (igv) {
      */
     igv.loadTribbleIndex = function (indexFile, config) {
 
-        var genome = igv.browser ? igv.browser.genome : null;
+        var genome = hic.browser ? hic.browser.genome : null;
 
         return new Promise(function (fullfill) {
 

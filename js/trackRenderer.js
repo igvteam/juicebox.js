@@ -65,7 +65,7 @@ var hic = (function (hic) {
 
         chr = genomicState.chromosome[ this.track.config.axis ].name;
 
-        if (this.tile && this.tile.containsRange(chr, genomicState.startBP[ this.track.config.axis ], genomicState.endBP[ this.track.config.axis ], genomicState.bpp)) {
+        if (this.tile /*&& this.tile.containsRange(chr, genomicState.startBP[ this.track.config.axis ], genomicState.endBP[ this.track.config.axis ], genomicState.bpp)*/) {
             this.drawTileWithGenomicState(this.tile, genomicState);
         } else {
 

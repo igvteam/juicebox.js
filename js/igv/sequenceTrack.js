@@ -42,7 +42,7 @@ var igv = (function (igv) {
             if (bpPerPixel &&  bpPerPixel > 1) {
                 fulfill(null);
             } else {
-                igv.browser.genome.sequence.getSequence(chr, bpStart, bpEnd).then(fulfill).catch(reject);
+                hic.browser.genome.sequence.getSequence(chr, bpStart, bpEnd).then(fulfill).catch(reject);
             }
         });
     };
