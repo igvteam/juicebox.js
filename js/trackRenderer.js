@@ -37,6 +37,21 @@ var hic = (function (hic) {
         this.repaint();
     };
 
+    hic.TrackRenderer.prototype.promiseToRepaint = function (a, b) {
+
+        return new Promise(function(resolve, reject) {
+            var thang;
+
+            thang = a + b;
+            if (thang) {
+                resolve(thang);
+            } else {
+                reject(new Error('ERROR - Can not promise to repaint'));
+            }
+            
+        });
+    };
+
     hic.TrackRenderer.prototype.repaint = function () {
 
         var self = this,
@@ -62,6 +77,8 @@ var hic = (function (hic) {
         //         this.$zoomInNotice.hide();
         //     }
         // }
+
+        console.log('repaint ' + self.track.config.axis);
 
         chr = genomicState.chromosome[ this.track.config.axis ].name;
 
@@ -121,6 +138,8 @@ var hic = (function (hic) {
 
                                 genomicState: genomicState
                             };
+
+                        console.log('then.draw ' + self.track.config.axis);
 
                         self.track.draw(self.drawConfiguration);
 

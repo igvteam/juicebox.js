@@ -576,14 +576,33 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
 
-        _.each(this.trackRenderers, function(pair){
-            _.each(pair, function(trackRenderer){
-                if (true === doSyncCanvas) {
-                    trackRenderer.syncCanvas();
-                }
-                trackRenderer.update();
+        var list;
+
+        if (_.size(this.trackRenderers) > 0) {
+
+            list = [];
+            _.each(this.trackRenderers, function (xy) {
+
+                _.each(xy, function (r) {
+                    if (true === doSyncCanvas) {
+                        r.syncCanvas();
+                    }
+                });
+
+                list.push(xy.x.promiseToRepaint(3, 5));
+                list.push(xy.y.promiseToRepaint(6, 10));
             });
-        });
+
+            Promise
+                .all(list)
+                .then(function (values) {
+                    console.log('values ' + values);
+                })
+                .catch(function (error) {
+                    console.log(error.message)
+                });
+
+        }
 
     };
 
