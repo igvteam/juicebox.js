@@ -54,7 +54,7 @@ var hic = (function (hic) {
             genomicState = self.browser.genomicState();
             chr = genomicState.chromosome[ self.track.config.axis ].name;
 
-            if (self.tile /*&& self.tile.containsRange(chr, genomicState.startBP[ self.track.config.axis ], genomicState.endBP[ self.track.config.axis ], genomicState.bpp)*/) {
+            if (self.tile && self.tile.containsRange(chr, genomicState.startBP[ self.track.config.axis ], genomicState.endBP[ self.track.config.axis ], genomicState.bpp)) {
                 self.drawTileWithGenomicState(self.tile, genomicState);
                 fulfill(self.id + ' ' + self.track.config.axis + ' drawTileWithGenomicState(...)');
             } else {
@@ -261,24 +261,19 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
 
-        var pixels;
-
-        this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
-
         if (tile) {
 
-            pixels = (tile.startBP - genomicState.startBP[ this.track.config.axis ]) / genomicState.bpp;
+            this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
 
-            this.offsetPixel = Math.round(pixels);
+            this.offsetPixel = Math.round( (tile.startBP - genomicState.startBP[ this.track.config.axis ]) / genomicState.bpp );
             if ('x' === this.track.config.axis) {
                 this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             } else {
                 this.ctx.drawImage(tile.buffer, 0, this.offsetPixel);
             }
 
-
-            this.ctx.save();
-            this.ctx.restore();
+            // this.ctx.save();
+            // this.ctx.restore();
         }
     };
 
