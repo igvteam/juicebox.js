@@ -205,28 +205,29 @@
 
             var config;
 
-//            config =
-//                {
-//                    url:  '../test/data/wig/pos_neg_10_000_000_to_110_005_000.wig',
-//                    name: 'Random - 10,000,000 to 110,005,000',
-//                    format: 'wig',
-//                    height: 32
-//                };
-
             config =
                 {
-                    name: "Genes",
-                    searchable: false,
-                    type: "annotation",
-                    format: "gtf",
-                    sourceType: "file",
-                    url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
-                    indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
-                    visibilityWindow: 10000000,
-                    order: Number.MAX_VALUE,
-                    displayMode: "COLLAPSED",
-                    color: 'rgb(255,0,0)'
+                    url:  '../test/data/wig/pos_neg_10_000_000_to_110_005_000.wig',
+                    name: 'Random - 10,000,000 to 110,005,000',
+                    format: 'wig',
+                    height: 32
                 };
+
+//            config =
+//                {
+//                    name: "Genes",
+//                    searchable: false,
+//                    type: "annotation",
+//                    format: "gtf",
+//                    sourceType: "file",
+//                    url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
+//                    indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
+//                    visibilityWindow: 10000000,
+//                    order: Number.MAX_VALUE,
+//                    displayMode: "COLLAPSED",
+//                    color: 'rgb(255,0,0)',
+//                    height: 32
+//                };
 
             browser.loadTrackXY(config);
         });

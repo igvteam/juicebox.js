@@ -75,37 +75,39 @@ var igv = (function (igv) {
             } else {
                 if (typeof self.reader.readHeader === "function") {
 
-                    self.reader.readHeader().then(function (header) {
-                        // Non-indexed readers will return features as a side effect.  This is an important,
-                        // if unfortunate, performance hack
-                        if (header) {
-                            var features = header.features;
-                            if (features) {
+                    self.reader
+                        .readHeader()
+                        .then(function (header) {
+                            // Non-indexed readers will return features as a side effect.  This is an important,
+                            // if unfortunate, performance hack
+                            if (header) {
+                                var features = header.features;
+                                if (features) {
 
-                                if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
-                                    features = (new igv.GFFHelper(self.config.format)).combineFeatures(features);
-                                }
+                                    if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
+                                        features = (new igv.GFFHelper(self.config.format)).combineFeatures(features);
+                                    }
 
-                                // Assign overlapping features to rows
+                                    // Assign overlapping features to rows
 
-                                packFeatures(features, maxRows);
-                                self.featureCache = new igv.FeatureCache(features);
+                                    packFeatures(features, maxRows);
+                                    self.featureCache = new igv.FeatureCache(features);
 
-                                // If track is marked "searchable"< cache features by name -- use this with caution, memory intensive
-                                if (self.config.searchable) {
-                                    addFeaturesToDB(features);
+                                    // If track is marked "searchable"< cache features by name -- use this with caution, memory intensive
+                                    if (self.config.searchable) {
+                                        addFeaturesToDB(features);
+                                    }
                                 }
                             }
-                        }
 
-                        if (header && header.format) {
-                            self.config.format = header.format;
-                        }
+                            if (header && header.format) {
+                                self.config.format = header.format;
+                            }
 
-                        fulfill(header);
-                    }).catch(reject);
-                }
-                else {
+                            fulfill(header);
+                        })
+                        .catch(reject);
+                } else {
                     fulfill(null);
                 }
             }
