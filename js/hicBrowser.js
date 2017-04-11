@@ -596,7 +596,7 @@ var hic = (function (hic) {
             Promise
                 .all(list)
                 .then(function (strings) {
-                    // console.log(strings.join('\n'));
+                    console.log(strings.join('\n'));
                 })
                 .catch(function (error) {
                     console.log(error.message)

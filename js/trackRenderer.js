@@ -35,7 +35,7 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.update = function () {
         this.tile = null;
-        this.repaint();
+        this.promiseToRepaint();
     };
 
     hic.TrackRenderer.prototype.promiseToRepaint = function () {
