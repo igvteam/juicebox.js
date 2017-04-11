@@ -589,14 +589,14 @@ var hic = (function (hic) {
                     }
                 });
 
-                list.push(xy.x.promiseToRepaint(3, 5));
-                list.push(xy.y.promiseToRepaint(6, 10));
+                list.push(xy.x.promiseToRepaint());
+                list.push(xy.y.promiseToRepaint());
             });
 
             Promise
                 .all(list)
-                .then(function (values) {
-                    console.log('values ' + values);
+                .then(function (strings) {
+                    console.log(strings.join('\n'));
                 })
                 .catch(function (error) {
                     console.log(error.message)
