@@ -463,7 +463,7 @@ var igv = (function (igv) {
             }
         }
 
-        windowX = Math.round((genomicState.startBP[ this.config.axis ] - bpStart) / bpp);
+        windowX = Math.round((genomicState.startBP - bpStart) / bpp);
         windowX1 = windowX + pixelWidth;
 
         renderFeatureLabels.call(this, ctx, feature, pixels.px, pixels.px1, py, windowX, windowX1, genomicState);

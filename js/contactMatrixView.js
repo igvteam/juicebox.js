@@ -429,7 +429,7 @@ var hic = (function (hic) {
             }
 
 
-        }, 10));
+        }, /*10*/50));
 
         $viewport.on('mouseup', panMouseUpOrMouseOut);
 

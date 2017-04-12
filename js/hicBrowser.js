@@ -580,19 +580,25 @@ var hic = (function (hic) {
 
         if (_.size(this.trackRenderers) > 0) {
 
+            // append each x-y track pair into a single list for Promise'ing
             list = [];
             _.each(this.trackRenderers, function (xy) {
 
+                // sync canvas size with container div if needed
                 _.each(xy, function (r) {
                     if (true === doSyncCanvas) {
                         r.syncCanvas();
                     }
                 });
 
+                // concatenate Promises
                 list.push(xy.x.promiseToRepaint());
                 list.push(xy.y.promiseToRepaint());
             });
 
+
+            // Execute list of async Promises serially, waiting for
+            // completion of one before executing the next.
             Promise
                 .all(list)
                 .then(function (strings) {

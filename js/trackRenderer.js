@@ -49,14 +49,17 @@ var hic = (function (hic) {
                 startBP,
                 endBP,
                 genomicState,
-                chr;
+                chrName;
 
-            genomicState = self.browser.genomicState();
-            chr = genomicState.chromosome[ self.track.config.axis ].name;
+            genomicState = _.mapObject(self.browser.genomicState(), function(val) {
+                return _.isObject(val) ? val[ self.track.config.axis ] : val;
+            });
 
-            if (self.tile && self.tile.containsRange(chr, genomicState.startBP[ self.track.config.axis ], genomicState.endBP[ self.track.config.axis ], genomicState.bpp)) {
+            chrName = genomicState.chromosome.name;
+
+            if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
                 self.drawTileWithGenomicState(self.tile, genomicState);
-                fulfill(self.id + ' ' + self.track.config.axis + ' drawTileWithGenomicState(...)');
+                fulfill(self.id + '.' + self.track.config.axis + ' drawTileWithGenomicState(repaint)');
             } else {
 
                 // Expand the requested range so we can pan a bit without reloading
@@ -65,13 +68,13 @@ var hic = (function (hic) {
 
                 lengthBP = Math.round(genomicState.bpp * lengthPixel);
 
-                startBP = Math.max(0, Math.round(genomicState.startBP[ self.track.config.axis ] - lengthBP/3));
-                // startBP = Math.round(genomicState.startBP[ self.track.config.axis ]);
+                startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP/3));
+                // startBP = Math.round(genomicState.startBP);
 
                 endBP = startBP + lengthBP;
 
                 if (self.loading && self.loading.start === startBP && self.loading.end === endBP) {
-                    fulfill(self.id + ' ' + self.track.config.axis + ' loading ...');
+                    fulfill(self.id + '.' + self.track.config.axis + ' loading ...');
                 } else {
 
                     self.loading =
@@ -83,7 +86,7 @@ var hic = (function (hic) {
                     // self.startSpinner();
 
                     self.track
-                        .getFeatures(genomicState.chromosome[ self.track.config.axis ].name, startBP, endBP, genomicState.bpp)
+                        .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
                         .then(function (features) {
 
                             var buffer;
@@ -117,14 +120,14 @@ var hic = (function (hic) {
 
                                 self.track.draw(self.drawConfiguration);
 
-                                self.tile = new Tile(chr, startBP, endBP, genomicState.bpp, buffer);
+                                self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                                 self.drawTileWithGenomicState(self.tile, genomicState);
 
-                                fulfill(self.id + ' ' + self.track.config.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
+                                fulfill(self.id + '.' + self.track.config.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
 
                             } else {
                                 self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
-                                fulfill(self.id + ' ' + self.track.config.axis + ' no features');
+                                fulfill(self.id + '.' + self.track.config.axis + ' no features');
                             }
 
                         })
@@ -143,129 +146,13 @@ var hic = (function (hic) {
         });
     };
 
-    hic.TrackRenderer.prototype.repaint = function () {
-
-        var self = this,
-            lengthPixel,
-            lengthBP,
-            startBP,
-            endBP,
-            genomicState = this.browser.genomicState(),
-            chr;
-
-        // if (this.$zoomInNotice && this.trackView.track.visibilityWindow !== undefined && this.trackView.track.visibilityWindow > 0) {
-        //
-        //     if ((referenceFrame.bpPerPixel * this.$viewport.width() > this.trackView.track.visibilityWindow) ||
-        //         (referenceFrame.chrName === "all" && !this.trackView.track.supportsWholeGenome)) {
-        //         this.tile = null;
-        //         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        //
-        //         self.stopSpinner();
-        //
-        //         this.$zoomInNotice.show();
-        //         return;
-        //     } else {
-        //         this.$zoomInNotice.hide();
-        //     }
-        // }
-
-        console.log('repaint ' + self.track.config.axis);
-
-        chr = genomicState.chromosome[ this.track.config.axis ].name;
-
-        if (this.tile /*&& this.tile.containsRange(chr, genomicState.startBP[ this.track.config.axis ], genomicState.endBP[ this.track.config.axis ], genomicState.bpp)*/) {
-            this.drawTileWithGenomicState(this.tile, genomicState);
-        } else {
-
-            // Expand the requested range so we can pan a bit without reloading
-            lengthPixel = 3 * Math.max(this.$canvas.width(), this.$canvas.height());
-            // lengthPixel = Math.max(this.$canvas.width(), this.$canvas.height());
-
-            lengthBP = Math.round(genomicState.bpp * lengthPixel);
-
-            startBP = Math.max(0, Math.round(genomicState.startBP[ this.track.config.axis ] - lengthBP/3));
-            // startBP = Math.round(genomicState.startBP[ this.track.config.axis ]);
-
-            endBP = startBP + lengthBP;
-
-            if (self.loading && self.loading.start === startBP && self.loading.end === endBP) {
-                return;
-            }
-
-            self.loading = { start: startBP, end: endBP };
-
-            // self.startSpinner();
-
-            this.track
-                .getFeatures(genomicState.chromosome[ this.track.config.axis ].name, startBP, endBP, genomicState.bpp)
-                .then(function (features) {
-
-                    var buffer;
-
-                    self.loading = undefined;
-
-                    // self.stopSpinner();
-
-                    if (features) {
-
-                        buffer = document.createElement('canvas');
-                        buffer.width  = 'x' === self.track.config.axis ? lengthPixel           : self.$canvas.width();
-                        buffer.height = 'x' === self.track.config.axis ? self.$canvas.height() : lengthPixel;
-
-                        self.drawConfiguration =
-                            {
-                                features: features,
-
-                                context: buffer.getContext("2d"),
-                                // context: self.$canvas.get(0).getContext("2d"),
-
-                                pixelWidth:  buffer.width,
-                                pixelHeight: buffer.height,
-
-                                bpStart: startBP,
-                                bpEnd:   endBP,
-
-                                bpPerPixel: genomicState.bpp,
-
-                                genomicState: genomicState
-                            };
-
-                        console.log('then.draw ' + self.track.config.axis);
-
-                        self.track.draw(self.drawConfiguration);
-
-                        self.tile = new Tile(chr, startBP, endBP, genomicState.bpp, buffer);
-                        self.drawTileWithGenomicState(self.tile, genomicState);
-
-                    } else {
-                        console.log('Hmmm ... no features');
-                        self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
-                    }
-
-                })
-                .catch(function (error) {
-
-                    // self.stopSpinner();
-
-                    self.loading = false;
-
-                    if (error instanceof igv.AbortLoad) {
-                        console.log("Aborted ---");
-                    } else {
-                        igv.presentAlert(error);
-                    }
-                });
-        }
-
-    };
-
     hic.TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
 
         if (tile) {
 
             this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
 
-            this.offsetPixel = Math.round( (tile.startBP - genomicState.startBP[ this.track.config.axis ]) / genomicState.bpp );
+            this.offsetPixel = Math.round( (tile.startBP - genomicState.startBP) / genomicState.bpp );
             if ('x' === this.track.config.axis) {
                 this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             } else {
@@ -279,39 +166,6 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.isLoading = function () {
         return !(undefined === this.loading);
-    };
-
-    // TODO: dat - Called from BAMTrack.altClick. Change call to redrawTile(viewPort, features)
-    hic.TrackRenderer.prototype.redrawTile = function (features) {
-
-        var buffer;
-
-        if (undefined === this.tile) {
-            return;
-        }
-
-        buffer = document.createElement('canvas');
-        buffer.width = this.tile.buffer.width;
-        buffer.height = this.tile.buffer.height;
-
-        this.track.draw({
-
-            features: features,
-
-            context: buffer.getContext("2d"),
-
-            pixelWidth: buffer.width,
-            pixelHeight: buffer.height,
-
-            bpStart: this.tile.startBP,
-            bpEnd: this.tile.endBP,
-
-            bpPerPixel: this.tile.bpp
-        });
-
-
-        this.tile = new Tile(this.tile.chr, this.tile.startBP, this.tile.endBP, this.tile.bpp, buffer);
-        this.drawTileWithGenomicState(this.tile, this.browser.genomicState());
     };
 
     Tile = function (chr, startBP, endBP, bpp, buffer) {
