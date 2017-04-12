@@ -28,6 +28,8 @@
 
 var igv = (function (igv) {
 
+    var knownFileExtensions = new Set(["narrowpeak", "broadpeak", "peaks", "bedgraph", "wig", "gff3", "gff",
+        "gtf", "aneu", "fusionjuncspan", "refflat", "seg", "bed", "vcf", "bb", "bigbed", "bw", "bigwig", "bam", "tdf"]);
 
     igv.createTrackWithConfiguration = function(conf) {
 
