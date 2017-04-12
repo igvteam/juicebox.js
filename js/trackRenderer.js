@@ -25,6 +25,10 @@ var hic = (function (hic) {
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
+
+        // spinner
+        // this.$spinner = $('<div>');
+        // this.$viewport.append(this.$spinner);
     };
 
     hic.TrackRenderer.prototype.syncCanvas = function () {

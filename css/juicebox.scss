@@ -315,9 +315,13 @@ $default-font-family: 'Open Sans', sans-serif;
     height: 100%;
     margin-right: $hic-scrollbar-height;
 
+    // canvas container
     div {
       width:100%;
       margin-right:0;
+
+    //  canvas inserted here
+    //  spinner inserted here
     }
   }
 
