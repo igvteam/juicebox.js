@@ -55,6 +55,30 @@ var hic = (function (hic) {
                 return _.isObject(val) ? val[ self.track.config.axis ] : val;
             });
 
+            if (/*this.$zoomInNotice &&*/ self.track.visibilityWindow && self.track.visibilityWindow > 0) {
+
+                if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) /*|| ('all' === genomicState.chromosome.name && !self.track.supportsWholeGenome)*/) {
+
+                    self.tile = undefined;
+                    self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
+
+                    // self.stopSpinner();
+
+                    // self.$zoomInNotice.show();
+
+                    fulfill(self.id + '.' + self.track.config.axis + ' zoom in to see features');
+
+                    // RETURN RETURN RETURN RETURN
+                    return;
+
+                } else {
+                    // self.$zoomInNotice.hide();
+                }
+
+            } // if (/*this.$zoomInNotice &&*/ self.track.visibilityWindow && self.track.visibilityWindow > 0)
+
+
+
             chrName = genomicState.chromosome.name;
 
             if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
