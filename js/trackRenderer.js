@@ -27,8 +27,12 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         // spinner
-        // this.$spinner = $('<div>');
-        // this.$viewport.append(this.$spinner);
+        this.$spinner = $('<div>');
+        this.$viewport.append(this.$spinner);
+
+        this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin fa-fw">'));
+        this.$spinner.hide();
+
     };
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
@@ -66,7 +70,7 @@ var hic = (function (hic) {
                     self.tile = undefined;
                     self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
 
-                    // self.stopSpinner();
+                    self.$spinner.hide();
 
                     // self.$zoomInNotice.show();
 
@@ -111,7 +115,7 @@ var hic = (function (hic) {
                             end: endBP
                         };
 
-                    // self.startSpinner();
+                    self.$spinner.show();
 
                     self.track
                         .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
@@ -121,7 +125,7 @@ var hic = (function (hic) {
 
                             self.loading = undefined;
 
-                            // self.stopSpinner();
+                            self.$spinner.hide();
 
                             if (features) {
 
@@ -161,7 +165,7 @@ var hic = (function (hic) {
                         })
                         .catch(function (error) {
 
-                            // self.stopSpinner();
+                            self.$spinner.hide();
 
                             self.loading = false;
 

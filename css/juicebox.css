@@ -181,8 +181,19 @@
     height: 100%;
     margin-right: 20px; }
     .hic-x-track-container div:nth-child(2) div {
+      display: block;
+      position: relative;
       width: 100%;
       margin-right: 0; }
+      .hic-x-track-container div:nth-child(2) div div {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 32px;
+        height: 32px;
+        margin-left: -16px;
+        z-index: 2048;
+        color: #0D3349; }
 
 .hic-content-container {
   display: flex;
@@ -217,8 +228,19 @@
       width: 0px;
       height: 100%; }
       .hic-content-container div:nth-child(2) div:nth-child(1) div {
+        display: block;
+        position: relative;
         height: 100%;
         margin-right: 0; }
+        .hic-content-container div:nth-child(2) div:nth-child(1) div div {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          width: 32px;
+          height: 32px;
+          margin-top: -16px;
+          z-index: 2048;
+          color: #0D3349; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }
