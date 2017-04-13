@@ -188,7 +188,7 @@ var igv = (function (igv) {
             canvasHeight = options[ ('x' === this.config.axis ? 'pixelHeight' : 'pixelWidth') ];
 
             _.each(mapped, function(m) {
-                render(options.context, m, igv.randomRGB(120, 240), canvasHeight);
+                render(options.context, m, /*igv.randomRGB(120, 240)*/self.color, canvasHeight);
             });
         }
 

@@ -37,7 +37,7 @@ var igv = (function (igv) {
 
     igv.BPTree = function (binaryParser, treeOffset) {
 
-        var genome = igv.browser ? igv.browser.genome : null;
+        var genome = hic.browser ? hic.browser.genome : null;
 
         this.treeOffset = treeOffset; // File offset to beginning of tree
         this.header = {};
