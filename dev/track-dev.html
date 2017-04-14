@@ -213,28 +213,28 @@
 //                    height: 32
 //                };
 
-//            config =
-//                {
-//                    name: "Genes",
-//                    searchable: false,
-//                    type: "annotation",
-//                    format: "gtf",
-//                    sourceType: "file",
-//                    url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
-//                    indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
-//                    visibilityWindow: 10000000,
-//                    order: Number.MAX_VALUE,
-//                    displayMode: "COLLAPSED",
-//                    color: 'rgb(255,0,0)',
-//                    height: 32
-//                };
-
             config =
                 {
-                    height: 32,
-                    url: 'http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig',
-                    name: 'Gm12878H3k4me3'
+                    name: "Genes",
+                    searchable: false,
+                    type: "annotation",
+                    format: "gtf",
+                    sourceType: "file",
+                    url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
+                    indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
+                    visibilityWindow: 10000000,
+                    order: Number.MAX_VALUE,
+                    displayMode: "COLLAPSED",
+                    color: 'rgb(255,0,0)',
+                    height: 32
                 };
+
+//            config =
+//                {
+//                    height: 32,
+//                    url: 'http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig',
+//                    name: 'Gm12878H3k4me3'
+//                };
 
             browser.loadTrackXY(config);
         });
