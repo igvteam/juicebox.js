@@ -24,10 +24,10 @@
 /**
  * Created by Jim Robinson on 3/4/17.
  */
-var hic = (function (hic) {
+var site = (function (site) {
 
-    hic.initSite = function () {
-        var site =
+    site.init = function () {
+        var payload =
         {
             receiveEvent: function (event) {
                 if (event.type === "DataLoad") {
@@ -36,12 +36,12 @@ var hic = (function (hic) {
             }
         };
 
-        hic.GlobalEventBus.subscribe("DataLoad", site);
+        hic.GlobalEventBus.subscribe("DataLoad", payload);
 
         hic.browser.sequence
             .init()
             .then(function () {
-                hic.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+                igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
             });
 
     };
@@ -56,7 +56,7 @@ var hic = (function (hic) {
 
     }
 
-    return hic;
+    return site;
 
-})
-(hic || {});
+}) (site || {});
+

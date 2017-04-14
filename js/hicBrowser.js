@@ -59,6 +59,10 @@ var hic = (function (hic) {
 
         setDefaults(config);
 
+
+        // mock igv browser for igv.js compatibility
+        igv.browser = {};
+
         this.track_count = 0;
         this.trackRenderers = [];
 
@@ -82,7 +86,9 @@ var hic = (function (hic) {
             this.loadHicFile(config);
         }
 
-        this.sequence = new igv.FastaSequence(config.reference);
+        if (config.reference) {
+            this.sequence = new igv.FastaSequence(config.reference);
+        }
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
