@@ -51,6 +51,7 @@ var hic = (function (hic) {
         this.$spinner = $('<div>');
         this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
         this.stopSpinner();
+
         this.$viewport.append(this.$spinner);
 
         // ruler sweeper widget surface
@@ -330,15 +331,15 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        var $spinner = this.$spinner;
-        $spinner.addClass("fa-spin");
-        $spinner.show();
+        // return;
+        this.$spinner.addClass("fa-spin");
+        this.$spinner.show();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        var $spinner = this.$spinner;
-        $spinner.hide();
-        $spinner.removeClass("fa-spin");
+        // return;
+        this.$spinner.hide();
+        this.$spinner.removeClass("fa-spin");
     };
 
     function addMouseHandlers($viewport) {

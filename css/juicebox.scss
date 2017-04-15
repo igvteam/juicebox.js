@@ -19,6 +19,7 @@ $track-aggregate-height: $track-count * $track-height;
 //$hic-viewport-height:800px;
 $hic-viewport-width: 600px;
 $hic-viewport-height:600px;
+$hic-viewport-spinner-size: 50px;
 
 //
 //$hic-root-width:  800px;
@@ -446,7 +447,7 @@ $default-font-family: 'Open Sans', sans-serif;
       overflow-x: hidden;
       overflow-y: hidden;
 
-      // spinner
+      // spinner container
       div {
         display: table-cell;
 
@@ -459,16 +460,29 @@ $default-font-family: 'Open Sans', sans-serif;
         right:0;
         bottom:0;
 
-        height: 120px;
-        width: 120px;
+        height: $hic-viewport-spinner-size;
+        width: $hic-viewport-spinner-size;
 
         z-index: 1024;
 
-        font-size: 32px;
-        color: #7f7f7f;
-
         pointer-events:none;
-        background-color: rgba(0, 0, 0, 0);
+
+        background-color: rgba(255, 255, 255, 0);
+        // spinner - font awesome
+        i {
+          display:inline-block;
+
+          width: $hic-viewport-spinner-size;
+          height: $hic-viewport-spinner-size;
+
+          line-height: $hic-viewport-spinner-size;
+
+          //font-size: 40px;
+          color: #7e7e7e;
+
+          text-align: center;
+          vertical-align: bottom;
+        }
 
       }
 
