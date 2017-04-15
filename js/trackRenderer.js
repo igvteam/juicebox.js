@@ -33,9 +33,20 @@ var hic = (function (hic) {
         this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin fa-fw">'));
         this.$spinner.hide();
 
+        this.configTrackTransforms();
+
+    };
+
+    hic.TrackRenderer.prototype.configTrackTransforms = function() {
+
+        this.canvasTransform = ('y' === this.track.config.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
+
+        this.labelReflectionTransform = ('y' === this.track.config.axis) ? hic.reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */ };
+
     };
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
+
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
@@ -121,7 +132,8 @@ var hic = (function (hic) {
                         .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
                         .then(function (features) {
 
-                            var buffer;
+                            var buffer,
+                                ctx;
 
                             self.loading = undefined;
 
@@ -132,15 +144,18 @@ var hic = (function (hic) {
                                 buffer = document.createElement('canvas');
                                 buffer.width  = 'x' === self.track.config.axis ? lengthPixel           : self.$canvas.width();
                                 buffer.height = 'x' === self.track.config.axis ? self.$canvas.height() : lengthPixel;
+                                ctx = buffer.getContext("2d");
+
+                                self.canvasTransform(ctx);
 
                                 self.drawConfiguration =
                                     {
                                         features: features,
 
-                                        context: buffer.getContext("2d"),
+                                        context: ctx,
 
-                                        pixelWidth:  buffer.width,
-                                        pixelHeight: buffer.height,
+                                        pixelWidth:  lengthPixel,
+                                        pixelHeight: Math.min(buffer.width, buffer.height),
 
                                         bpStart: startBP,
                                         bpEnd:   endBP,
