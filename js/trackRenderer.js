@@ -162,7 +162,11 @@ var hic = (function (hic) {
 
                                         bpPerPixel: genomicState.bpp,
 
-                                        genomicState: genomicState
+                                        genomicState: genomicState,
+
+                                        viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
+
+                                        viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height())
                                     };
 
                                 self.track.draw(self.drawConfiguration);
