@@ -288,7 +288,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
- // container: track-labels | x-tracks
+// container: track-labels | x-tracks
 .hic-x-track-container {
   display:flex;
   flex-flow: row;
@@ -325,10 +325,27 @@ $default-font-family: 'Open Sans', sans-serif;
       width:100%;
       margin-right:0;
 
-    //  canvas inserted here
+      // canvas inserted here
 
-    //  spinner inserted here
-      div {
+      // delete track button container
+      div:first-of-type {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+
+        width: $track-height;
+        height: $track-height;
+
+        z-index: 1024;
+
+        color: white;
+        background-color: red;
+
+      }
+
+      // spinner container
+      div:last-of-type {
         position: absolute;
 
         top: 0;
@@ -406,10 +423,26 @@ $default-font-family: 'Open Sans', sans-serif;
         height: 100%;
         margin-right: 0;
 
-      //  canvas inserted here
+        // canvas inserted here
 
-      //  spinner inserted here
-        div {
+        // delete track button container
+        div:first-of-type {
+          position: absolute;
+
+          top: 0;
+          left: 0;
+
+          width: $track-height;
+          height: $track-height;
+
+          z-index: 1024;
+
+          color: yellow;
+          background-color: green;
+        }
+
+        // spinner container
+        div:last-of-type {
           position: absolute;
 
           top: 50%;

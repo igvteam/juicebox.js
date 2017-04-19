@@ -26,6 +26,11 @@ var hic = (function (hic) {
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
 
+        // delete track
+        this.$deleteTrack = $('<div>');
+        this.$viewport.append(this.$deleteTrack);
+        this.$deleteTrack.text('O');
+
         // spinner
         this.$spinner = $('<div>');
         this.$viewport.append(this.$spinner);
