@@ -3,11 +3,12 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, track) {
+    hic.TrackRenderer = function (browser, size, $container, track, axis) {
 
         this.browser = browser;
         this.track = track;
         this.id = _.uniqueId('trackRenderer_');
+        this.axis = axis;
         this.initializationHelper($container, size);
     };
 
@@ -30,6 +31,7 @@ var hic = (function (hic) {
         this.$deleteTrack = $('<div>');
         this.$viewport.append(this.$deleteTrack);
         this.$deleteTrack.text('O');
+        this.$deleteTrack.hide();
 
         // spinner
         this.$spinner = $('<div>');
@@ -44,9 +46,9 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.configTrackTransforms = function() {
 
-        this.canvasTransform = ('y' === this.track.config.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
+        this.canvasTransform = ('y' === this.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
 
-        this.labelReflectionTransform = ('y' === this.track.config.axis) ? hic.reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */ };
+        this.labelReflectionTransform = ('y' === this.axis) ? hic.reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */ };
 
     };
 
@@ -76,7 +78,7 @@ var hic = (function (hic) {
                 chrName;
 
             genomicState = _.mapObject(self.browser.genomicState(), function(val) {
-                return _.isObject(val) ? val[ self.track.config.axis ] : val;
+                return _.isObject(val) ? val[ self.axis ] : val;
             });
 
             if (/*this.$zoomInNotice &&*/ self.track.visibilityWindow && self.track.visibilityWindow > 0) {
@@ -90,7 +92,7 @@ var hic = (function (hic) {
 
                     // self.$zoomInNotice.show();
 
-                    fulfill(self.id + '.' + self.track.config.axis + ' zoom in to see features');
+                    fulfill(self.id + '.' + self.axis + ' zoom in to see features');
 
                     // RETURN RETURN RETURN RETURN
                     return;
@@ -107,7 +109,7 @@ var hic = (function (hic) {
 
             if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
                 self.drawTileWithGenomicState(self.tile, genomicState);
-                fulfill(self.id + '.' + self.track.config.axis + ' drawTileWithGenomicState(repaint)');
+                fulfill(self.id + '.' + self.axis + ' drawTileWithGenomicState(repaint)');
             } else {
 
                 // Expand the requested range so we can pan a bit without reloading
@@ -122,7 +124,7 @@ var hic = (function (hic) {
                 endBP = startBP + lengthBP;
 
                 if (self.loading && self.loading.start === startBP && self.loading.end === endBP) {
-                    fulfill(self.id + '.' + self.track.config.axis + ' loading ...');
+                    fulfill(self.id + '.' + self.axis + ' loading ...');
                 } else {
 
                     self.loading =
@@ -147,8 +149,8 @@ var hic = (function (hic) {
                             if (features) {
 
                                 buffer = document.createElement('canvas');
-                                buffer.width  = 'x' === self.track.config.axis ? lengthPixel           : self.$canvas.width();
-                                buffer.height = 'x' === self.track.config.axis ? self.$canvas.height() : lengthPixel;
+                                buffer.width  = 'x' === self.axis ? lengthPixel           : self.$canvas.width();
+                                buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
                                 ctx = buffer.getContext("2d");
 
                                 self.canvasTransform(ctx);
@@ -179,11 +181,11 @@ var hic = (function (hic) {
                                 self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                                 self.drawTileWithGenomicState(self.tile, genomicState);
 
-                                fulfill(self.id + '.' + self.track.config.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
+                                fulfill(self.id + '.' + self.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
 
                             } else {
                                 self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
-                                fulfill(self.id + '.' + self.track.config.axis + ' no features');
+                                fulfill(self.id + '.' + self.axis + ' no features');
                             }
 
                         })
@@ -209,7 +211,7 @@ var hic = (function (hic) {
             this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
 
             this.offsetPixel = Math.round( (tile.startBP - genomicState.startBP) / genomicState.bpp );
-            if ('x' === this.track.config.axis) {
+            if ('x' === this.axis) {
                 this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             } else {
                 this.ctx.drawImage(tile.buffer, 0, this.offsetPixel);
