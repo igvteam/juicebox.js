@@ -129,52 +129,70 @@ var hic = (function (hic) {
 
         if ('DidAddTrack' === event.type) {
 
-            track_aggregate_height = event.data.count * this.track_height;
-            track_aggregate_height_px = track_aggregate_height + 'px';
-
-            tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
-            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-            tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });
-            width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-            // x-track container
-            this.$x_track_container.css('height', track_aggregate_height_px);
-            // track labels
-            this.$track_labels.css('width', track_aggregate_height_px);
-            // x-tracks
-            this.$x_tracks.css( 'width', width_calc );
-
-
-            // content container
-            this.$content_container.css( 'height', height_calc );
-
-            // x-axis - repaint canvas
-            this.xAxisRuler.updateWidthWithCalculation(width_calc);
-
-            // y-tracks
-            this.$y_tracks.css('width', track_aggregate_height_px);
-
-            // y-axis - repaint canvas
-            this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
-
-            // viewport
-            this.browser.contactMatrixView.$viewport.css( 'width', width_calc );
-
-            // x-scrollbar
-            this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
+            this.doLayoutWithTrackCount(event.data.count);
 
             // append tracks
             trackXY = {};
             trackXY.x = new hic.TrackRenderer(this.browser, { width: undefined,         height: this.track_height }, this.$x_tracks, event.data.trackXY[ 'x' ]);
             trackXY.y = new hic.TrackRenderer(this.browser, { width: this.track_height, height: undefined         }, this.$y_tracks, event.data.trackXY[ 'y' ]);
+
             this.browser.trackRenderers.push(trackXY);
 
             this.browser.renderTracks(true);
 
+        } else if ('DidDeleteTrack' === event.type) {
+            console.log('layout controller - did delete track');
+            this.browser.renderTracks(true);
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
         }
+
+
+    };
+
+    hic.LayoutController.prototype.doLayoutWithTrackCount = function(trackCount) {
+
+        var track_aggregate_height,
+            track_aggregate_height_px,
+            tokens,
+            width_calc,
+            height_calc;
+
+        track_aggregate_height = trackCount * this.track_height;
+        track_aggregate_height_px = track_aggregate_height + 'px';
+
+        tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
+        height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+        tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });
+        width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+        // x-track container
+        this.$x_track_container.css('height', track_aggregate_height_px);
+        // track labels
+        this.$track_labels.css('width', track_aggregate_height_px);
+        // x-tracks
+        this.$x_tracks.css( 'width', width_calc );
+
+
+        // content container
+        this.$content_container.css( 'height', height_calc );
+
+        // x-axis - repaint canvas
+        this.xAxisRuler.updateWidthWithCalculation(width_calc);
+
+        // y-tracks
+        this.$y_tracks.css('width', track_aggregate_height_px);
+
+        // y-axis - repaint canvas
+        this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
+
+        // viewport
+        this.browser.contactMatrixView.$viewport.css( 'width', width_calc );
+
+        // x-scrollbar
+        this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
+
     };
 
     return hic;
