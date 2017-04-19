@@ -110,16 +110,31 @@
 //                    height:32
 //                };
 
-            config =
-                {
-                    height: 32,
-                    type: 'bed',
-                    url: 'https://www.encodeproject.org/files/ENCFF100GSO/@@download/ENCFF100GSO.bed.gz',
-                    color: 'rgb(3, 116, 178)',
-                    format: 'bed',
-                    name: 'GM12878 CTCF',
-                    indexed: false
-                };
+//            config =
+//                {
+//                    height: 32,
+//                    type: 'bed',
+//                    url: 'https://www.encodeproject.org/files/ENCFF100GSO/@@download/ENCFF100GSO.bed.gz',
+//                    color: 'rgb(3, 116, 178)',
+//                    format: 'bed',
+//                    name: 'GM12878 CTCF',
+//                    indexed: false
+//                };
+
+            config = {
+                url: '../test/data/snp/gwas_test.snp',
+                name: 'test',
+                format: 'gtexGWAS',
+                featureType: 'gwas',
+                colorScale: {
+                    thresholds: [],
+                    colors:['rgb(122,179,23)']
+                },
+
+                maxLogP: 16,
+                height: 150,
+                label: 'Test'
+            };
 
 //            config =
 //                {
