@@ -4848,11 +4848,6 @@ var igv = (function (igv) {
         }
     };
 
-    igv.Browser.prototype.getFormat = function (name) {
-        if (this.formats === undefined) return undefined;
-        return this.formats[name];
-    };
-
     igv.Browser.prototype.loadTracksWithConfigList = function (configList) {
 
         var self = this,
@@ -8547,7 +8542,7 @@ var igv = (function (igv) {
                 break;
             default:
 
-                customFormat = igv.browser.getFormat(format);
+                customFormat = igv.getFormat(format);
                 if (customFormat !== undefined) {
                     this.decode = decodeCustom;
                     this.format = customFormat;
@@ -14093,13 +14088,11 @@ var igv = (function (igv) {
             this.featureSource = new igv.T2DVariantSource(config);
         }
 
-    }
-
+    };
 
     igv.GWASTrack.prototype.getFeatures = function (chr, bpStart, bpEnd) {
        return this.featureSource.getFeatures(chr, bpStart, bpEnd);
-    }
-
+    };
 
     igv.GWASTrack.prototype.draw = function (options) {
 
@@ -14162,7 +14155,6 @@ var igv = (function (igv) {
 
     };
 
-
     igv.GWASTrack.prototype.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
         var track = this,
@@ -14191,7 +14183,6 @@ var igv = (function (igv) {
 
 
     };
-
 
     igv.GWASTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
 
@@ -14246,6 +14237,9 @@ var igv = (function (igv) {
         return data;
     };
 
+    igv.GWASTrack.prototype.popupDataWithConfiguration = function (config) {
+        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame);
+    };
 
     return igv;
 
@@ -20717,6 +20711,16 @@ var igv = (function (igv) {
 
     var knownFileExtensions = new Set(["narrowpeak", "broadpeak", "peaks", "bedgraph", "wig", "gff3", "gff",
         "gtf", "aneu", "fusionjuncspan", "refflat", "seg", "bed", "vcf", "bb", "bigbed", "bw", "bigwig", "bam", "tdf"]);
+
+    igv.getFormat = function (name) {
+
+        if (undefined === igv.browser.formats) {
+            return undefined;
+        } else {
+            return igv.browser.formats[ name ];
+        }
+
+    };
 
     igv.createTrackWithConfiguration = function(conf) {
 
