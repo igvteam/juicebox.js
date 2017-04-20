@@ -44,9 +44,11 @@ var igv = (function (igv) {
         defaultColor ="rgb(3, 116, 178)";
 
 
-    igv.EncodeTable = function ($parent) {
+    igv.EncodeTable = function ($parent, browser) {
 
         var self = this;
+
+        this.browser = browser;
 
         this.initialized = false;
 
@@ -93,11 +95,12 @@ var igv = (function (igv) {
 
             tableRows = self.$dataTables.$('tr.selected');
 
-            raw = [];
+
             if (tableRows) {
 
                 tableRows.removeClass('selected');
 
+                raw = [];
                 tableRows.each(function() {
 
                     data = dataTableAPIInstance.row( this ).data();
@@ -113,50 +116,19 @@ var igv = (function (igv) {
 
                     obj =
                         {
-                              type: r[ 'Format' ],
-                               url: r[ 'url' ],
-                             color: encodeAntibodyColor(r[ 'Target' ]),
+                            type: r[ 'Format' ],
+                            url: r[ 'url' ],
+                            color: encodeAntibodyColor(r[ 'Target' ]),
                             format: r['Format'],
-                              name: r['Name']
+                            name: r['Name']
                         };
 
                     return obj;
                 });
 
-                console.log('load tracks from ENCODE.');
-                // igv.browser.loadTracksWithConfigList(mapped);
+                self.browser.loadTrackXY( _.first(mapped) );
 
             }
-
-            // DEPRICATED Cursor Foo
-            // if (tableRows) {
-            //
-            //     tableRows.removeClass('selected');
-            //
-            //     tableRows.each(function() {
-            //
-            //         data = dataTableAPIInstance.row( this ).data();
-            //         index = data[ 0 ];
-            //
-            //         dataSourceJSONRow = self.dataSource.jSON.rows[ index ];
-            //
-            //         configList.push({
-            //             type: dataSourceJSONRow[ "Format" ],
-            //             url: dataSourceJSONRow[ "url" ],
-            //             color: encodeAntibodyColor(dataSourceJSONRow[ "Target" ]),
-            //             format: dataSourceJSONRow["Format"],
-            //             name: dataSourceJSONRow["Name"]
-            //         });
-            //
-            //     });
-            //
-            //     if (undefined === igv.browser.designatedTrack) {
-            //         configList[ 0 ].designatedTrack = true;
-            //     }
-            //
-            //     igv.browser.loadTracksWithConfigList(configList);
-            //
-            // }
 
         });
 
@@ -176,7 +148,8 @@ var igv = (function (igv) {
             self.$dataTables = self.$modalTable.dataTable({
 
                 data: self.dataSource.dataTablesData(),
-                deferRender: true,
+                // deferRender: true,
+                paging: true, /* must be true if scroller is enable */
                 scrollX: true,
                 scrollY: 400,
                 scrollCollapse: true,
@@ -199,12 +172,6 @@ var igv = (function (igv) {
             });
 
         });
-
-    };
-
-    igv.EncodeTable.prototype.encodeTrackLabel = function (record) {
-
-        return (record.antibody) ? record.antibody + " " + record.cell + " " + record.replicate : record.cell + record.dataType + " " + record.view + " " + record.replicate;
 
     };
 

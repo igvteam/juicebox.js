@@ -30,7 +30,7 @@ var site = (function (site) {
 
         var payload;
 
-        hic.browser.encodeTable = new igv.EncodeTable($('#encodeModalBody'));
+        hic.browser.encodeTable = new igv.EncodeTable($('#encodeModalBody'), hic.browser);
 
         payload =
             {

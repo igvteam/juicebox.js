@@ -131,8 +131,13 @@ var hic = (function (hic) {
             trackXY = {},
             configX;
 
+        // TODO: HACK HACK HACK
+        config.indexed = false;
+        config.height = 32;
+
         configX = _.clone(config);
         configX.axis = 'x';
+
         this
             .promiseToLoadTrack(configX)
             .then(function (track) {
