@@ -127,28 +127,25 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.loadTrackXY = function (config) {
-        var self = this;
+        var self = this,
+            promises;
 
         // TODO: HACK HACK HACK
         config.indexed = false;
         config.height = 32;
 
-        this
-            .promiseToLoadTrack(config, 'x')
-            .then(function (track_x) {
+        promises = [];
+        promises.push(this.promiseToLoadTrack(config, 'x'));
+        promises.push(this.promiseToLoadTrack(config, 'y'));
 
-                self
-                    .promiseToLoadTrack(config, 'y')
-                    .then(function (track_y) {
-
-                        self.addTrackXY({ x:track_x, y:track_y });
-                    })
-                    .catch(function (error) {
-                        console.log(error.message);
-                    });
+        Promise
+            .all(promises)
+            .then(function (tracks) {
+                console.log('whole lotta tracks: ' + _.size(tracks));
+                self.addTrackXY({ x:_.first(tracks), y:_.last(tracks) });
             })
             .catch(function (error) {
-                console.log(error.message);
+                console.log(error.message)
             });
 
     };
