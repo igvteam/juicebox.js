@@ -127,31 +127,21 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.loadTrackXY = function (config) {
-        var self = this,
-            trackXY = {},
-            configX;
+        var self = this;
 
         // TODO: HACK HACK HACK
         config.indexed = false;
         config.height = 32;
 
-        configX = _.clone(config);
-        configX.axis = 'x';
-
         this
-            .promiseToLoadTrack(configX)
-            .then(function (track) {
-                var configY;
+            .promiseToLoadTrack(config, 'x')
+            .then(function (track_x) {
 
-                trackXY.x = track;
-
-                configY = _.clone(config);
-                configY.axis = 'y';
                 self
-                    .promiseToLoadTrack(configY)
-                    .then(function (track) {
-                        trackXY.y = track;
-                        self.addTrackXY(trackXY);
+                    .promiseToLoadTrack(config, 'y')
+                    .then(function (track_y) {
+
+                        self.addTrackXY({ x:track_x, y:track_y });
                     })
                     .catch(function (error) {
                         console.log(error.message);
@@ -163,14 +153,18 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.promiseToLoadTrack = function (config) {
+    hic.Browser.prototype.promiseToLoadTrack = function (config, axis) {
 
         return new Promise(function (fulfill, reject) {
-            var newTrack;
+            var newTrack,
+                configWithAxis;
 
-            igv.inferTrackTypes(config);
+            configWithAxis = _.clone(config);
+            configWithAxis.axis = axis;
 
-            newTrack = igv.createTrackWithConfiguration(config);
+            igv.inferTrackTypes(configWithAxis);
+
+            newTrack = igv.createTrackWithConfiguration(configWithAxis);
 
             if (undefined === newTrack) {
                 reject(new Error('Could not create track'));
