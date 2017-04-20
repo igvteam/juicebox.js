@@ -505,7 +505,7 @@ $default-font-family: 'Open Sans', sans-serif;
       overflow-y: hidden;
 
       // spinner container
-      div {
+      div:first-of-type {
         display: table-cell;
 
         margin: auto;
@@ -543,9 +543,17 @@ $default-font-family: 'Open Sans', sans-serif;
 
       }
 
-      .hic-sweep-zoom {
+      // sweep zoom container
+      div:last-of-type {
+        display: block;
+
         position: absolute;
-        z-index:99999;
+        top: 0;
+        left: 0;
+        width: 1px;
+        height: 1px;
+
+        z-index:4096;
         background-color: rgba(68, 134, 247, 0.25);
       }
 

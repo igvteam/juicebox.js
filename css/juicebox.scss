@@ -18,7 +18,7 @@ $track-aggregate-height: $track-count * $track-height;
 $hic-viewport-width: 800px;
 //$hic-viewport-height:800px;
 //$hic-viewport-width: 600px;
-$hic-viewport-height:600px;
+$hic-viewport-height:500px;
 $hic-viewport-spinner-size: 50px;
 
 //
@@ -27,7 +27,6 @@ $hic-viewport-spinner-size: 50px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
-//$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 //
 $default-dark-color: #5f5f5f;
@@ -483,7 +482,7 @@ $default-font-family: 'Open Sans', sans-serif;
       overflow-y: hidden;
 
       // spinner container
-      div {
+      div:first-of-type {
         display: table-cell;
 
         margin: auto;
@@ -521,9 +520,17 @@ $default-font-family: 'Open Sans', sans-serif;
 
       }
 
-      .hic-sweep-zoom {
+      // sweep zoom container
+      div:last-of-type {
+        display: block;
+
         position: absolute;
-        z-index:99999;
+        top: 0;
+        left: 0;
+        width: 1px;
+        height: 1px;
+
+        z-index:4096;
         background-color: rgba(68, 134, 247, 0.25);
       }
 

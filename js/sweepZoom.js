@@ -30,7 +30,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$rulerSweeper = $('<div class="hic-sweep-zoom">');
+        this.$rulerSweeper = $('<div>');
         this.$rulerSweeper.hide();
 
         this.sweepRect = {};
