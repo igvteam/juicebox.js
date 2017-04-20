@@ -27,22 +27,29 @@
 var site = (function (site) {
 
     site.init = function () {
-        var payload =
-        {
-            receiveEvent: function (event) {
-                if (event.type === "DataLoad") {
-                    updateDatasetPulldown(event.data);
+
+        var payload;
+
+        payload =
+            {
+                receiveEvent: function (event) {
+                    if (event.type === "DataLoad") {
+                        updateDatasetPulldown(event.data);
+                    }
                 }
-            }
-        };
+            };
 
         hic.GlobalEventBus.subscribe("DataLoad", payload);
 
-        hic.browser.sequence
-            .init()
-            .then(function () {
-                igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
-            });
+        if (hic.browser.sequence) {
+
+            hic.browser.sequence
+                .init()
+                .then(function () {
+                    igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+                });
+
+        }
 
     };
 

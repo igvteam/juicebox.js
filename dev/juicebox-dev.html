@@ -23,7 +23,7 @@
     <!-- JQuery UI CSS -->
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
 
-    <!-- Chosem CSS -->
+    <!-- Chosen CSS -->
     <link rel="stylesheet" href="https://harvesthq.github.io/chosen/chosen.css" />
 
     <!-- Juicebox CSS-->
@@ -46,22 +46,24 @@
     <script type="text/javascript" src="../site/js/site.js"></script>
 
     <!-- Juicebox JS -->
-    <script type="text/javascript" src="../js/hicUtils.js"></script>
-    <script type="text/javascript" src="../js/hicReader.js"></script>
-    <script type="text/javascript" src="../js/hicColorScaleWidget.js"></script>
-    <script type="text/javascript" src="../js/hicLocusGoto.js"></script>
-    <script type="text/javascript" src="../js/hicResolutionSelector.js"></script>
-    <script type="text/javascript" src="../js/hicBrowser.js"></script>
-    <script type="text/javascript" src="../js/contactMatrixView.js"></script>
-    <script type="text/javascript" src="../js/hicRuler.js"></script>
-    <script type="text/javascript" src="../js/eventBus.js"></script>
-    <script type="text/javascript" src="../js/scrollbarWidget.js"></script>
-    <script type="text/javascript" src="../js/sweepZoom.js"></script>
-    <script type="text/javascript" src="../js/hicState.js"></script>
-    <script type="text/javascript" src="../js/hicDataset.js"></script>
-    <script type="text/javascript" src="../js/normalizationVector.js"></script>
-    <script type="text/javascript" src="../js/normalizationWidget.js"></script>
-    <script type="text/javascript" src="../js/chromosomeSelectorWidget.js"></script>
+    <script src="../js/hicUtils.js"></script>
+    <script src="../js/hicReader.js"></script>
+    <script src="../js/hicColorScaleWidget.js"></script>
+    <script src="../js/hicLocusGoto.js"></script>
+    <script src="../js/hicResolutionSelector.js"></script>
+    <script src="../js/hicBrowser.js"></script>
+    <script src="../js/contactMatrixView.js"></script>
+    <script src="../js/hicRuler.js"></script>
+    <script src="../js/eventBus.js"></script>
+    <script src="../js/scrollbarWidget.js"></script>
+    <script src="../js/sweepZoom.js"></script>
+    <script src="../js/hicState.js"></script>
+    <script src="../js/hicDataset.js"></script>
+    <script src="../js/normalizationVector.js"></script>
+    <script src="../js/normalizationWidget.js"></script>
+    <script src="../js/chromosomeSelectorWidget.js"></script>
+    <script src="../js/layoutController.js"></script>
+    <script src="../js/trackRenderer.js"></script>
 
     <!--[if lt IE 9]>
     <script type="text/javascript" src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
@@ -552,17 +554,21 @@
 
 
 <script type="text/javascript">
+
     $(document).ready(function () {
-        var browser = hic.createBrowser($('#app-container'), {});
+
+        var browser;
+
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
         });
 
-        $('#normalization_selector').on('change', function(e) {
-            browser.setNormalization($(this).val() );
-        });
+//        $('#normalization_selector').on('change', function(e) {
+//            browser.setNormalization($(this).val() );
+//        });
 
-        hic.init();
+        browser = hic.createBrowser($('#app-container'), {});
+        site.init();
 
         $(".chosen-select").chosen();
     });
