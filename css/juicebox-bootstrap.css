@@ -1,3 +1,18 @@
+.red-box {
+  height: 40px;
+  color: white;
+  background-color: red; }
+
+.green-box {
+  height: 40px;
+  color: white;
+  background-color: green; }
+
+.blue-box {
+  height: 40px;
+  color: white;
+  background-color: blue; }
+
 .hic-root {
   position: relative;
   left: 0;

@@ -53,12 +53,12 @@ var igv = (function (igv) {
         this.$modalTable = $('<table id="encodeModalTable" cellpadding="0" cellspacing="0" border="0" class="display"></table>');
         $parent.append(this.$modalTable);
 
-        this.$spinner = $('<div class="igv-encode-spinner-container"></div>');
+        this.$spinner = $('<div>');
         this.$modalTable.append(this.$spinner);
 
         this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
 
-        $('#igvEncodeModal').on('shown.bs.modal', function (e) {
+        $('#hicEncodeModal').on('shown.bs.modal', function (e) {
 
             if (true !== self.initialized) {
 
@@ -123,7 +123,8 @@ var igv = (function (igv) {
                     return obj;
                 });
 
-                igv.browser.loadTracksWithConfigList(mapped);
+                console.log('load tracks from ENCODE.');
+                // igv.browser.loadTracksWithConfigList(mapped);
 
             }
 
