@@ -1,7 +1,7 @@
-.red-box {
-  height: 40px;
-  color: white;
-  background-color: red; }
+.juicebox-widget-container {
+  padding-top: 4px;
+  padding-bottom: 8px;
+  color: white; }
 
 .green-box {
   height: 40px;

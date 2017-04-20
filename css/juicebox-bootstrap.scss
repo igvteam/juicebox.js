@@ -115,10 +115,12 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.red-box {
-  height: 40px;
+.juicebox-widget-container {
+  //height: 40px;
+  padding-top: 4px;
+  padding-bottom: 8px;
   color: white;
-  background-color: red;
+  //background-color: red;
 }
 
 .green-box {
