@@ -30,6 +30,33 @@ var site = (function (site) {
 
         var payload;
 
+
+        // BED URL upload
+        $('#hic-load-url').on('change', function (e) {
+            var config,
+                path;
+
+            // configureTrackWithLocalFileOrPath( { type: "bed", url: path, name: 'unnamed' } );
+
+            path = $(this).val();
+
+            config =
+                {
+                    // type: 'bed',
+                    url: path,
+                    // color: 'rgb(3, 116, 178)',
+                    // format: 'bed',
+                    name: 'untitled'
+                };
+
+
+            hic.browser.loadTrackXY([ config ]);
+
+            $(this).val("");
+            $('#hicLoadURLModal').modal('hide');
+
+        });
+
         hic.browser.encodeTable = new igv.EncodeTable($('#encodeModalBody'), hic.browser);
 
         payload =

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -127,6 +126,31 @@
 
 </div>
 
+<!-- Load URL Modal -->
+<div id="hicLoadURLModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-url-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="hic-load-url-modal-label" class="modal-title">Load URL</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <input id="hic-load-url" type="text" class="form-control" placeholder="BED URL">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!--<header class="navbar navbar-inverse normal navbar-fixed-top" role="banner">-->
     <!--<div class="container">-->
         <!--<div class="navbar-header">-->
@@ -154,20 +178,26 @@
         <div class="juicebox-widget-container col-md-2">
             <div class="dropdown">
 
-                <button id="igvHeaderFileDropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    File Open/Save
+                <button id="hic-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    File Open
                     <span class="caret"></span>
-                </button><!-- File Open/Save -->
+                </button><!-- File Open -->
 
-                <ul class="dropdown-menu" role="menu" aria-labelledby="igvHeaderFileDropdown">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-dropdown">
 
                     <li role="presentation" class="dropdown-header">Load data from</li>
 
-                    <li role="presentation">
+                    <li role="presentation"><!-- Select ENCODE -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
                             ENCODE
                         </a>
-                    </li>
+                    </li><!-- Select ENCODE -->
+
+                    <li role="presentation"><!-- Load URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicLoadURLModal">
+                            URL
+                        </a>
+                    </li><!-- Load URL -->
 
                 </ul>
 
