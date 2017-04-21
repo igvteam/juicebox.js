@@ -24,19 +24,62 @@
 /**
  * Created by Jim Robinson on 3/4/17.
  */
-var hic = (function (hic) {
+var site = (function (site) {
 
-    hic.initSite = function () {
-        var site =
-        {
-            receiveEvent: function (event) {
-                if (event.type === "DataLoad") {
-                    updateDatasetPulldown(event.data);
+    site.init = function () {
+
+        var payload;
+
+
+        // BED URL upload
+        $('#hic-load-url').on('change', function (e) {
+            var config,
+                path;
+
+            // configureTrackWithLocalFileOrPath( { type: "bed", url: path, name: 'unnamed' } );
+
+            path = $(this).val();
+
+            config =
+                {
+                    // type: 'bed',
+                    url: path,
+                    // color: 'rgb(3, 116, 178)',
+                    // format: 'bed',
+                    name: 'untitled'
+                };
+
+
+            hic.browser.loadTrackXY([ config ]);
+
+            $(this).val("");
+            $('#hicLoadURLModal').modal('hide');
+
+        });
+
+        hic.browser.encodeTable = new igv.EncodeTable($('#encodeModalBody'), hic.browser);
+
+        payload =
+            {
+                receiveEvent: function (event) {
+                    if (event.type === "DataLoad") {
+                        updateDatasetPulldown(event.data);
+                    }
                 }
-            }
-        };
+            };
 
-        hic.GlobalEventBus.subscribe("DataLoad", site);
+        hic.GlobalEventBus.subscribe("DataLoad", payload);
+
+        if (hic.browser.sequence) {
+
+            hic.browser.sequence
+                .init()
+                .then(function () {
+                    igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+                });
+
+        }
+
     };
 
     function updateDatasetPulldown(dataset) {
@@ -49,7 +92,7 @@ var hic = (function (hic) {
 
     }
 
-    return hic;
+    return site;
 
-})
-(hic || {});
+}) (site || {});
+

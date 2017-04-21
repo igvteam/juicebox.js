@@ -15,11 +15,10 @@ $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
 
 //
-//$hic-viewport-width: 500px;
-//$hic-viewport-height:500px;
-$hic-viewport-height:600px;
 $hic-viewport-width: 800px;
-
+//$hic-viewport-height:800px;
+//$hic-viewport-width: 600px;
+$hic-viewport-height:600px;
 $hic-viewport-spinner-size: 50px;
 
 //
@@ -114,6 +113,26 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: white;
   }
 
+}
+
+.juicebox-widget-container {
+  //height: 40px;
+  padding-top: 4px;
+  padding-bottom: 8px;
+  color: white;
+  //background-color: red;
+}
+
+.green-box {
+  height: 40px;
+  color: white;
+  background-color: green;
+}
+
+.blue-box {
+  height: 40px;
+  color: white;
+  background-color: blue;
 }
 
 // root
@@ -377,7 +396,10 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-between;
 
   width:  100%;
-  height: calc(100% - (#{$nav-bar-height} + #{$nav-bar-padding-bottom} + #{$track-aggregate-height}));
+  //height: calc(100% - (#{$nav-bar-height} + #{$nav-bar-padding-bottom} + #{$track-aggregate-height}));
+
+  // Bootstrap compatibility: Remove $nav-bar-padding-bottom from height calc.
+  height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
 
   // container: x-axis
   div:nth-child(1) {

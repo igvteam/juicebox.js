@@ -26,7 +26,7 @@
  */
 var hic = (function (hic) {
 
-    hic.ChromosomeSelectorWidget = function (browser) {
+    hic.ChromosomeSelectorWidget = function (browser, $container) {
 
         var self = this,
             $label,
@@ -36,16 +36,23 @@ var hic = (function (hic) {
         this.browser = browser;
 
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
+        $container.append(this.$container);
 
         $label = $('<div>');
+        this.$container.append($label);
         $label.text('Chromosomes');
 
         $selector_container = $('<div>');
+        this.$container.append($selector_container);
 
         this.$x_axis_selector = $('<select name="x-axis-selector">');
+        $selector_container.append(this.$x_axis_selector);
+
         this.$y_axis_selector = $('<select name="y-axis-selector">');
+        $selector_container.append(this.$y_axis_selector);
 
         $doit = $('<div class="hic-chromosome-selector-widget-button">');
+        $selector_container.append($doit);
 
         $doit.on('click', function (e) {
             var chr1,
@@ -56,13 +63,6 @@ var hic = (function (hic) {
 
             self.browser.setChromosomes(chr1, chr2);
         });
-
-        $selector_container.append(this.$x_axis_selector);
-        $selector_container.append(this.$y_axis_selector);
-        $selector_container.append($doit);
-
-        this.$container.append($label);
-        this.$container.append($selector_container);
 
         this.dataLoadConfig = {
             receiveEvent: function (event) {

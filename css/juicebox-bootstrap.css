@@ -1,3 +1,18 @@
+.juicebox-widget-container {
+  padding-top: 4px;
+  padding-bottom: 8px;
+  color: white; }
+
+.green-box {
+  height: 40px;
+  color: white;
+  background-color: green; }
+
+.blue-box {
+  height: 40px;
+  color: white;
+  background-color: blue; }
+
 .hic-root {
   position: relative;
   left: 0;
@@ -210,7 +225,7 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 8px + 0px)); }
+  height: calc(100% - (70px + 0px)); }
   .hic-content-container div:nth-child(1) {
     display: flex;
     flex-flow: row;
@@ -383,4 +398,4 @@
   -ms-user-select: none;
   user-select: none; }
 
-/*# sourceMappingURL=juicebox.css.map */
+/*# sourceMappingURL=juicebox-bootstrap.css.map */

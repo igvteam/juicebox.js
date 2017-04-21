@@ -67,7 +67,7 @@ var hic = (function (hic) {
             type: type,
             data: data
         }
-    }
+    };
 
     hic.GlobalEventBus = new hic.EventBus();
 

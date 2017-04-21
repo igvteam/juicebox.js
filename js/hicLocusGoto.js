@@ -26,25 +26,26 @@
  */
 var hic = (function (hic) {
 
-    hic.LocusGoto = function (browser) {
+    hic.LocusGoto = function (browser, $container) {
         var $label;
 
         this.browser = browser;
 
+        this.$container = $('<div class="hic-chromosome-goto-container">');
+        $container.append(this.$container);
+
         // shim for nav alignment purposes
         $label = $('<div>');
+        this.$container.append($label);
         $label.text('shim');
 
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$container.append(this.$resolution_selector);
+
         this.$resolution_selector.on('change', function (e) {
             var value = $(this).val();
             browser.parseGotoInput(value);
         });
-
-        // chromosome goto container
-        this.$container = $('<div class="hic-chromosome-goto-container">');
-        this.$container.append($label);
-        this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
     };

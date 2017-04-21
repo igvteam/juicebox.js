@@ -55,6 +55,22 @@ var hic = (function (hic) {
         }
     };
 
+    hic.reflectionRotationWithContext = function(context) {
+        context.scale(-1, 1);
+        context.rotate(Math.PI/2.0);
+    };
+
+    hic.reflectionAboutYAxisAtOffsetWithContext = function(context, exe) {
+        context.translate(exe, 0);
+        context.scale(-1, 1);
+        context.translate(-exe, 0);
+    };
+
+    hic.identityTransformWithContext = function(context) {
+        // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+        context.setTransform(1, 0, 0, 1, 0, 0);
+    };
+
     return hic;
 
 }) (hic || {});

@@ -23,26 +23,28 @@
 
 var hic = (function (hic) {
 
-    hic.Ruler = function (browser, $container, axis) {
+    hic.Ruler = function (browser, $axis, whichAxis) {
 
         this.browser = browser;
+        this.$axis = $axis;
+
         this.$canvas = $('<canvas>');
-        this.$canvas.attr('width', $container.width());
-        this.$canvas.attr('height', $container.height());
-        $container.append(this.$canvas);
+        this.$canvas.attr('width', $axis.width());
+        this.$canvas.attr('height', $axis.height());
+        $axis.append(this.$canvas);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        this.axis = axis;
+        this.axis = whichAxis;
 
         this.yAxisTransformWithContext = function(context) {
             context.scale(-1, 1);
             context.rotate(Math.PI/2.0);
         };
 
-        this.setAxis( axis );
+        this.setAxis( whichAxis );
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
+        hic.GlobalEventBus.subscribe('LocusChange', this);
 
     };
 
@@ -56,9 +58,23 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.receiveEvent = function(event) {
 
-        // Perhaps in the future we'll do something special based on event type & properties
-        this.update();
+        if (event.type === 'LocusChange') {
+            this.update();
+        }
 
+    };
+
+    hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
+
+        this.$axis.css( 'width', calc );
+        this.$canvas.attr('width', this.$axis.width());
+        this.update();
+    };
+
+    hic.Ruler.prototype.updateHeight = function (height) {
+
+        this.$canvas.attr('height', height);
+        this.update();
     };
 
     hic.Ruler.prototype.update = function () {
@@ -131,7 +147,7 @@ var hic = (function (hic) {
             igv.graphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
 
-            yShim = 2;
+            yShim = 1;
             tickHeight = 8;
             while (pixel < options.pixelWidth) {
 

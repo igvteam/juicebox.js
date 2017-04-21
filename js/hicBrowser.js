@@ -50,25 +50,30 @@ var hic = (function (hic) {
             config.colorScale = parseFloat(colorScale);
         }
 
-
         return new hic.Browser($hic_container, config);
     };
 
     hic.Browser = function ($app_container, config) {
 
-        var $root,
-            $content_container;
+        var $root;
 
         setDefaults(config);
 
+
+        // mock igv browser for igv.js compatibility
+        igv.browser = {};
+
+        this.trackXYPairCount = 0;
+        this.trackRenderers = [];
+
         this.config = config;
+
+        hic.browser = this;
 
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
 
-        createNavBar(this, $root);
-
-        createContentContainer(this, $root);
+        this.layoutController = new hic.LayoutController(this, $root);
 
         this.state = config.state ? config.state : defaultState.clone();
 
@@ -81,6 +86,10 @@ var hic = (function (hic) {
             this.loadHicFile(config);
         }
 
+        if (config.reference) {
+            this.sequence = new igv.FastaSequence(config.reference);
+        }
+
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
         hic.GlobalEventBus.subscribe("DataLoad", this);
@@ -88,93 +97,22 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
 
-    function createContentContainer(browser, $root) {
+    hic.Browser.prototype.genomicState = function () {
+        var gs,
+            bpResolution;
 
-        var $content_container,
-            $container,
-            $shim;
+        bpResolution = this.dataset.bpResolutions[ this.state.zoom ];
 
-        $content_container = $('<div class="hic-content-container">');
-        $root.append($content_container);
+        gs = {};
+        gs.bpp = bpResolution / this.state.pixelSize;
 
-        // container: shim | x-axis
-        $container = $('<div>');
-        $content_container.append($container);
-        xAxis(browser, $container);
+        gs.chromosome = { x: this.dataset.chromosomes[ this.state.chr1 ],  y: this.dataset.chromosomes[ this.state.chr2 ] };
 
-        // container: y-axis | viewport | y-scrollbar
-        $container = $('<div>');
-        $content_container.append($container);
-        yAxis(browser, $container);
+        gs.startBP = { x: this.state.x * bpResolution,  y: this.state.y * bpResolution };
+        gs.endBP = { x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width, y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height };
 
-        browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
-
-        // container: shim | x-scrollbar
-        $container = $('<div>');
-        $content_container.append($container);
-
-        // shim
-        $shim = $('<div>');
-        $container.append($shim);
-
-        // x-scrollbar
-        $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
-
-        function xAxis(browser, $container) {
-
-            // shim
-            $container.append($('<div>'));
-
-            // x-axis
-            browser.$xAxis = $('<div>');
-            $container.append(browser.$xAxis);
-
-            browser.xAxisRuler = new hic.Ruler(browser, browser.$xAxis, 'x');
-
-        }
-
-        function yAxis(browser, $container) {
-
-            browser.$yAxis = $('<div>');
-            $container.append(browser.$yAxis);
-
-            browser.yAxisRuler = new hic.Ruler(browser, browser.$yAxis, 'y');
-
-        }
-
-    }
-
-    function createNavBar(browser, $root) {
-
-        var $navbar_container = $('<div class="hic-navbar-container">');
-        $root.append($navbar_container);
-
-        // logo
-        // $navbar_container.append($('<div class="hic-logo-container">'));
-
-        // chromosome selector
-        if (browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser);
-            $navbar_container.append(browser.chromosomeSelector.$container);
-        }
-
-        // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser);
-        $navbar_container.append(browser.locusGoto.$container);
-
-        // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser);
-        $navbar_container.append(browser.colorscaleWidget.$container);
-
-        // resolution widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $navbar_container.append(browser.normalizationSelector.$container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $navbar_container.append(browser.resolutionSelector.$container);
-
-    }
+        return gs;
+    };
 
     hic.Browser.prototype.getColorScale = function () {
         var cs = this.contactMatrixView.colorScale;
@@ -186,6 +124,117 @@ var hic = (function (hic) {
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
         this.updateHref();
+    };
+
+    hic.Browser.prototype.loadTrackXY = function (trackConfigurations) {
+        var self = this,
+            axes,
+            promises;
+
+        axes = [];
+        promises = [];
+        _.each(trackConfigurations, function(config) {
+
+            config.height = 32;
+
+            // TODO: HACK HACK HACK
+            if ('bed' === config.format) {
+                config.indexed = false;
+            }
+
+            axes.push('x');
+            promises.push(self.promiseToLoadTrack(config));
+
+            axes.push('y');
+            promises.push(self.promiseToLoadTrack(config));
+
+        });
+
+        Promise
+            .all(promises)
+            .then(function (tracks) {
+                var trackXYPairs = [];
+                _.each(_.range(_.size(tracks)), function (index){
+                    if (0 === index % 2) {
+                        trackXYPairs.push( { x: tracks[ index ], y: tracks[ 1 + index ] } );
+                    }
+                });
+
+                self.addTrackXYPairs(trackXYPairs);
+            })
+            .catch(function (error) {
+                console.log(error.message)
+            });
+
+    };
+
+    hic.Browser.prototype.promiseToLoadTrack = function (config) {
+
+        return new Promise(function (fulfill, reject) {
+            var newTrack;
+
+            igv.inferTrackTypes(config);
+
+            newTrack = igv.createTrackWithConfiguration(config);
+
+            if (undefined === newTrack) {
+                reject(new Error('Could not create track'));
+            } else if (typeof newTrack.getFileHeader === "function") {
+
+                newTrack
+                    .getFileHeader()
+                    .then(function (header) {
+                        fulfill(newTrack);
+                    })
+                    .catch(reject);
+
+            } else {
+                fulfill(newTrack);
+            }
+        });
+
+    };
+
+    hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { trackXYPairs: trackXYPairs }));
+    };
+
+    hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
+
+        var list;
+
+        if (_.size(this.trackRenderers) > 0) {
+
+            // append each x-y track pair into a single list for Promise'ing
+            list = [];
+            _.each(this.trackRenderers, function (xy) {
+
+                // sync canvas size with container div if needed
+                _.each(xy, function (r) {
+                    if (true === doSyncCanvas) {
+                        r.syncCanvas();
+                    }
+                });
+
+                // concatenate Promises
+                list.push(xy.x.promiseToRepaint());
+                list.push(xy.y.promiseToRepaint());
+            });
+
+
+            // Execute list of async Promises serially, waiting for
+            // completion of one before executing the next.
+            Promise
+                .all(list)
+                .then(function (strings) {
+                    // console.log(strings.join('\n'));
+                })
+                .catch(function (error) {
+                    console.log(error.message)
+                });
+
+        }
+
     };
 
     hic.Browser.prototype.loadHicFile = function (config) {
@@ -222,7 +271,7 @@ var hic = (function (hic) {
 
                 if (config.state) {
                     self.setState(config.state);
-                 }
+                }
                 else {
 
                     // Don't be clever for now
@@ -413,7 +462,6 @@ var hic = (function (hic) {
 
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
-
     };
 
     function minPixelSize(chr1, chr2, zoom) {
