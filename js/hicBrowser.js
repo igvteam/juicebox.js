@@ -63,7 +63,7 @@ var hic = (function (hic) {
         // mock igv browser for igv.js compatibility
         igv.browser = {};
 
-        this.track_count = 0;
+        this.trackXYPairCount = 0;
         this.trackRenderers = [];
 
         this.config = config;
@@ -126,23 +126,40 @@ var hic = (function (hic) {
         this.updateHref();
     };
 
-    hic.Browser.prototype.loadTrackXY = function (config) {
+    hic.Browser.prototype.loadTrackXY = function (trackConfigurations) {
         var self = this,
+            axes,
             promises;
 
-        // TODO: HACK HACK HACK
-        config.indexed = false;
-        config.height = 32;
-
+        axes = [];
         promises = [];
-        promises.push(this.promiseToLoadTrack(config, 'x'));
-        promises.push(this.promiseToLoadTrack(config, 'y'));
+        _.each(trackConfigurations, function(tc) {
+
+            // TODO: HACK HACK HACK
+            // tc.indexed = false;
+
+            // TODO: Meh
+            tc.height = 32;
+
+            axes.push('x');
+            promises.push(self.promiseToLoadTrack(tc));
+
+            axes.push('y');
+            promises.push(self.promiseToLoadTrack(tc));
+
+        });
 
         Promise
             .all(promises)
             .then(function (tracks) {
-                console.log('whole lotta tracks: ' + _.size(tracks));
-                self.addTrackXY({ x:_.first(tracks), y:_.last(tracks) });
+                var trackXYPairs = [];
+                _.each(_.range(_.size(tracks)), function (index){
+                    if (0 === index % 2) {
+                        trackXYPairs.push( { x: tracks[ index ], y: tracks[ 1 + index ] } );
+                    }
+                });
+
+                self.addTrackXYPairs(trackXYPairs);
             })
             .catch(function (error) {
                 console.log(error.message)
@@ -150,18 +167,14 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.promiseToLoadTrack = function (config, axis) {
+    hic.Browser.prototype.promiseToLoadTrack = function (config) {
 
         return new Promise(function (fulfill, reject) {
-            var newTrack,
-                configWithAxis;
+            var newTrack;
 
-            configWithAxis = _.clone(config);
-            configWithAxis.axis = axis;
+            igv.inferTrackTypes(config);
 
-            igv.inferTrackTypes(configWithAxis);
-
-            newTrack = igv.createTrackWithConfiguration(configWithAxis);
+            newTrack = igv.createTrackWithConfiguration(config);
 
             if (undefined === newTrack) {
                 reject(new Error('Could not create track'));
@@ -181,9 +194,8 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.addTrackXY = function (trackXY) {
-        ++(this.track_count);
-        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { count: this.track_count, trackXY: trackXY }));
+    hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { trackXYPairs: trackXYPairs }));
     };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {

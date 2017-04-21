@@ -120,23 +120,24 @@ var hic = (function (hic) {
     }
 
     hic.LayoutController.prototype.receiveEvent = function(event) {
-        var track_aggregate_height,
-            track_aggregate_height_px,
-            tokens,
-            width_calc,
-            height_calc,
+        var self = this,
             trackXY;
 
         if ('DidAddTrack' === event.type) {
 
-            this.doLayoutWithTrackCount(event.data.count);
+            _.each(event.data.trackXYPairs, function (trackXYPair) {
 
-            // append tracks
-            trackXY = {};
-            trackXY.x = new hic.TrackRenderer(this.browser, {width: undefined, height: this.track_height}, this.$x_tracks, event.data.trackXY['x'], 'x');
-            trackXY.y = new hic.TrackRenderer(this.browser, {width: this.track_height, height: undefined}, this.$y_tracks, event.data.trackXY['y'], 'y');
+                self.browser.trackXYPairCount += 1;
+                self.doLayoutTrackXYPairCount(self.browser.trackXYPairCount);
 
-            this.browser.trackRenderers.push(trackXY);
+                // append tracks
+                trackXY = {};
+                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: self.track_height }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
+                trackXY.y = new hic.TrackRenderer(self.browser, { width: self.track_height, height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
+
+                self.browser.trackRenderers.push(trackXY);
+            });
+
 
             this.browser.renderTracks(true);
 
@@ -150,7 +151,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.LayoutController.prototype.doLayoutWithTrackCount = function(trackCount) {
+    hic.LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount) {
 
         var track_aggregate_height,
             track_aggregate_height_px,
@@ -158,7 +159,8 @@ var hic = (function (hic) {
             width_calc,
             height_calc;
 
-        track_aggregate_height = trackCount * this.track_height;
+
+        track_aggregate_height = trackXYPairCount * this.track_height;
         track_aggregate_height_px = track_aggregate_height + 'px';
 
         tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });

@@ -126,7 +126,7 @@ var igv = (function (igv) {
                     return obj;
                 });
 
-                self.browser.loadTrackXY( _.first(mapped) );
+                self.browser.loadTrackXY(_.first(mapped));
 
             }
 
