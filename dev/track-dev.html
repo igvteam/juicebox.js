@@ -28,8 +28,8 @@
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- IGV JS -->
-    <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
-    <!--<script src="../js/igv.js"></script>-->
+    <!--<script src="http://igv.org/web/beta/igv-beta.min.js"></script>-->
+    <script src="../js/igv_hacked_bed_color.js"></script>
 
     <!-- Site JS -->
     <script src="../site/js/site.js"></script>
@@ -107,35 +107,35 @@
 
             config =
                 {
-//                    type: 'bed',
+                    type: 'bed',
                     url: 'https://www.encodeproject.org/files/ENCFF100GSO/@@download/ENCFF100GSO.bed.gz',
-                    color: 'rgb(3, 116, 178)',
-//                    format: 'bed',
-                    name: 'GM12878 CTCF'
+                    format: 'bed',
+                    name: 'GM12878 CTCF',
+                    color: 'rgb(122,0,200)'
                 };
             configurations.push(config);
 
-//            config =
-//                {
-//                    url: 'http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig'
-//                };
-//            configurations.push(config);
+            config =
+                {
+                    url: 'http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig'
+                };
+            configurations.push(config);
 
-//            config =
-//                {
-//                    url: '../test/data/snp/gwas_test.snp',
-//                    name: 'test',
-//                    format: 'gtexGWAS',
-//                    featureType: 'gwas',
-//                    colorScale: {
-//                        thresholds: [],
-//                        colors:['rgb(122,179,23)']
-//                    },
-//
-//                    label: 'Test',
-//                    maxLogP: 16
-//                };
-//            configurations.push(config);
+            config =
+                {
+                    url: '../test/data/snp/gwas_test.snp',
+                    name: 'test',
+                    format: 'gtexGWAS',
+                    featureType: 'gwas',
+                    colorScale: {
+                        thresholds: [],
+                        colors:['rgb(122,179,23)']
+                    },
+
+                    label: 'Test',
+                    maxLogP: 16
+                };
+            configurations.push(config);
 
 //            config =
 //                {
