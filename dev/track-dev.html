@@ -103,7 +103,7 @@
         $('#load-track').on('click', function(e){
 
             var config,
-                list = [];
+                configurations = [];
 
             config =
                 {
@@ -113,13 +113,13 @@
                     format: 'bed',
                     name: 'GM12878 CTCF'
                 };
-            list.push(config);
+            configurations.push(config);
 
             config =
                 {
                     url: 'http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig'
                 };
-            list.push(config);
+            configurations.push(config);
 
             config = {
                 url: '../test/data/snp/gwas_test.snp',
@@ -134,7 +134,7 @@
                 label: 'Test',
                 maxLogP: 16
             };
-            list.push(config);
+            configurations.push(config);
 //            config =
 //                {
 //                    url:  '../test/data/wig/pos_neg_10_000_000_to_110_005_000.wig',
@@ -159,7 +159,7 @@
 //                    height: 32
 //                };
 
-            browser.loadTrackXY(list);
+            browser.loadTrackXY(configurations);
         });
 
         site.init();
