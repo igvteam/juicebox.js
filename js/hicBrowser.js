@@ -133,19 +133,20 @@ var hic = (function (hic) {
 
         axes = [];
         promises = [];
-        _.each(trackConfigurations, function(tc) {
+        _.each(trackConfigurations, function(config) {
+
+            config.height = 32;
 
             // TODO: HACK HACK HACK
-            // tc.indexed = false;
-
-            // TODO: Meh
-            tc.height = 32;
+            if ('bed' === config.format) {
+                config.indexed = false;
+            }
 
             axes.push('x');
-            promises.push(self.promiseToLoadTrack(tc));
+            promises.push(self.promiseToLoadTrack(config));
 
             axes.push('y');
-            promises.push(self.promiseToLoadTrack(tc));
+            promises.push(self.promiseToLoadTrack(config));
 
         });
 
