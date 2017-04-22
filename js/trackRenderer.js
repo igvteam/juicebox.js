@@ -40,10 +40,7 @@ var hic = (function (hic) {
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
         this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 20 , padding: 7 }).appendTo( this.$spinner.get(0) );
-        this.throbber.stop();
-
-        // this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin fa-fw">'));
-        // this.$spinner.hide();
+        this.stopSpinner();
 
         this.configTrackTransforms();
 
@@ -93,9 +90,7 @@ var hic = (function (hic) {
                     self.tile = undefined;
                     self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
 
-                    // self.$spinner.hide();
                     self.stopSpinner();
-
                     // self.$zoomInNotice.show();
 
                     fulfill(self.id + '.' + self.axis + ' zoom in to see features');
@@ -139,7 +134,6 @@ var hic = (function (hic) {
                             end: endBP
                         };
 
-                    // self.$spinner.show();
                     self.startSpinner();
 
                     self.track
@@ -151,7 +145,6 @@ var hic = (function (hic) {
 
                             self.loading = undefined;
 
-                            // self.$spinner.hide();
                             self.stopSpinner();
 
                             if (features) {
@@ -184,10 +177,13 @@ var hic = (function (hic) {
                                         viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height())
                                     };
 
-                                self.track.draw(self.drawConfiguration);
+                                self.startSpinner();
 
+                                self.track.draw(self.drawConfiguration);
                                 self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                                 self.drawTileWithGenomicState(self.tile, genomicState);
+
+                                self.stopSpinner();
 
                                 fulfill(self.id + '.' + self.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
 
@@ -199,7 +195,6 @@ var hic = (function (hic) {
                         })
                         .catch(function (error) {
 
-                            // self.$spinner.hide();
                             self.stopSpinner();
 
                             self.loading = false;
@@ -232,11 +227,13 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.startSpinner = function () {
+        this.$spinner.show();
         this.throbber.start();
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
         this.throbber.stop();
+        this.$spinner.hide();
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {

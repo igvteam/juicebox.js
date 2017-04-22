@@ -17,8 +17,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 852px;
-  height: 730px;
+  width: 752px;
+  height: 830px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -186,7 +186,8 @@
   .hic-x-track-container div:nth-child(1) {
     width: 0px;
     height: 100%;
-    margin-right: 32px; }
+    margin-right: 32px;
+    background-color: lightslategrey; }
   .hic-x-track-container div:nth-child(2) {
     display: flex;
     flex-flow: column;
