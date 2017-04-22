@@ -19,7 +19,7 @@ $hic-viewport-width: 800px;
 //$hic-viewport-height:800px;
 //$hic-viewport-width: 600px;
 $hic-viewport-height:600px;
-$hic-viewport-spinner-size: 50px;
+$hic-viewport-spinner-size: 120px;
 
 //
 //$hic-root-width:  800px;
@@ -511,11 +511,11 @@ $default-font-family: 'Open Sans', sans-serif;
         margin: auto;
 
         position: absolute;
-        left:0;
-        top:0;
+        top:25%;
+        //bottom:0;
 
+        left:0;
         right:0;
-        bottom:0;
 
         height: $hic-viewport-spinner-size;
         width: $hic-viewport-spinner-size;
@@ -525,21 +525,6 @@ $default-font-family: 'Open Sans', sans-serif;
         pointer-events:none;
 
         background-color: rgba(255, 255, 255, 0);
-        // spinner - font awesome
-        i {
-          display:inline-block;
-
-          width: $hic-viewport-spinner-size;
-          height: $hic-viewport-spinner-size;
-
-          line-height: $hic-viewport-spinner-size;
-
-          //font-size: 40px;
-          color: #7e7e7e;
-
-          text-align: center;
-          vertical-align: bottom;
-        }
 
       }
 

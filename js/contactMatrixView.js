@@ -49,10 +49,16 @@ var hic = (function (hic) {
 
         //spinner
         this.$spinner = $('<div>');
-        this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
-        this.stopSpinner();
-
         this.$viewport.append(this.$spinner);
+
+        // throbber
+        // size: see $hic-viewport-spinner-size in .scss files
+        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 120, padding: 40 }).appendTo( this.$spinner.get(0) );
+        this.throbber.stop();
+
+        // this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
+        // this.stopSpinner();
+
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(this.browser);
@@ -331,15 +337,11 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        // return;
-        this.$spinner.addClass("fa-spin");
-        this.$spinner.show();
+        this.throbber.start();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        // return;
-        this.$spinner.hide();
-        this.$spinner.removeClass("fa-spin");
+        this.throbber.stop();
     };
 
     function addMouseHandlers($viewport) {

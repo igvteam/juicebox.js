@@ -275,23 +275,14 @@
         display: table-cell;
         margin: auto;
         position: absolute;
+        top: 25%;
         left: 0;
-        top: 0;
         right: 0;
-        bottom: 0;
-        height: 50px;
-        width: 50px;
+        height: 120px;
+        width: 120px;
         z-index: 1024;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
-        .hic-content-container div:nth-child(2) div:nth-child(3) div:first-of-type i {
-          display: inline-block;
-          width: 50px;
-          height: 50px;
-          line-height: 50px;
-          color: #7e7e7e;
-          text-align: center;
-          vertical-align: bottom; }
       .hic-content-container div:nth-child(2) div:nth-child(3) div:last-of-type {
         display: block;
         position: absolute;
