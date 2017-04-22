@@ -207,9 +207,7 @@
         left: 0;
         width: 32px;
         height: 32px;
-        z-index: 1024;
-        color: white;
-        background-color: red; }
+        z-index: 1024; }
       .hic-x-track-container div:nth-child(2) div div:last-of-type {
         position: absolute;
         top: 0;
@@ -267,9 +265,7 @@
           left: 0;
           width: 32px;
           height: 32px;
-          z-index: 1024;
-          color: yellow;
-          background-color: green; }
+          z-index: 1024; }
         .hic-content-container div:nth-child(2) div:nth-child(1) div div:last-of-type {
           position: absolute;
           top: 50%;
