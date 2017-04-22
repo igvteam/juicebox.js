@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         concat: {
             hic: {
                 src: [
-                    'js/**/*.js',
+                    'js/**/*.js'
                 ],
                 dest: 'dist/juicebox.js'
             }
@@ -37,7 +37,7 @@ module.exports = function (grunt) {
             css: {
                 expand: true,
                 flatten: true,
-                src: 'css/juicebox.css',
+                src: 'css/juicebox-bootstrap.css',
                 dest: 'dist'
             },
             img: {
