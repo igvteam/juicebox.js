@@ -182,7 +182,8 @@
   flex-wrap: nowrap;
   justify-content: flex-start;
   width: 100%;
-  height: 0px; }
+  height: 0px;
+  background-color: white; }
   .hic-x-track-container div:nth-child(1) {
     width: 0px;
     height: 100%;
@@ -217,7 +218,8 @@
         width: 32px;
         height: 32px;
         margin-left: -16px;
-        z-index: 2048; }
+        z-index: 2048;
+        background-color: rgba(255, 255, 255, 0); }
 
 .hic-content-container {
   display: flex;
@@ -225,7 +227,8 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 0px)); }
+  height: calc(100% - (70px + 0px));
+  background-color: white; }
   .hic-content-container div:nth-child(1) {
     display: flex;
     flex-flow: row;
@@ -243,19 +246,22 @@
     flex-wrap: nowrap;
     justify-content: flex-end;
     width: 100%;
-    height: 100%; }
+    height: 100%;
+    background-color: white; }
     .hic-content-container div:nth-child(2) div:nth-child(1) {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-start;
       width: 0px;
-      height: 100%; }
+      height: 100%;
+      background-color: white; }
       .hic-content-container div:nth-child(2) div:nth-child(1) div {
         display: block;
         position: relative;
         height: 100%;
-        margin-right: 0; }
+        margin-right: 0;
+        background-color: white; }
         .hic-content-container div:nth-child(2) div:nth-child(1) div div:first-of-type {
           position: absolute;
           top: 0;
@@ -272,7 +278,8 @@
           width: 32px;
           height: 32px;
           margin-top: -16px;
-          z-index: 2048; }
+          z-index: 2048;
+          background-color: rgba(255, 255, 255, 0); }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }

@@ -54,7 +54,7 @@ var hic = (function (hic) {
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
         this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 120, padding: 40 }).appendTo( this.$spinner.get(0) );
-        this.throbber.stop();
+        this.stopSpinner();
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(this.browser);
@@ -333,11 +333,13 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
+        this.$spinner.show();
         this.throbber.start();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
         this.throbber.stop();
+        this.$spinner.hide();
     };
 
     function addMouseHandlers($viewport) {

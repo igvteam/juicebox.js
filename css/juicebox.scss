@@ -15,11 +15,8 @@ $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
 
 //
-//$hic-viewport-width: 500px;
-//$hic-viewport-height:500px;
-$hic-viewport-height:600px;
-$hic-viewport-width: 600px;
-
+$hic-viewport-width: 700px;
+$hic-viewport-height:700px;
 $hic-viewport-spinner-size: 120px;
 
 //
@@ -114,6 +111,26 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: white;
   }
 
+}
+
+.juicebox-widget-container {
+  //height: 40px;
+  padding-top: 4px;
+  padding-bottom: 8px;
+  color: white;
+  //background-color: red;
+}
+
+.green-box {
+  height: 40px;
+  color: white;
+  background-color: green;
+}
+
+.blue-box {
+  height: 40px;
+  color: white;
+  background-color: blue;
 }
 
 // root
@@ -300,12 +317,14 @@ $default-font-family: 'Open Sans', sans-serif;
   width: 100%;
   height: $track-aggregate-height;
 
+  background-color: white;
+
   // track labels
   div:nth-child(1) {
     width: $track-aggregate-height;
     height: 100%;
     margin-right: $hic-axis-height;
-    //background-color: lightslategrey;
+    background-color: lightslategrey;
   }
 
   // x-tracks
@@ -360,6 +379,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 2048;
 
+        background-color: rgba(255, 255, 255, 0);
       }
     }
   }
@@ -374,7 +394,12 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-between;
 
   width:  100%;
+
+  // Bootstrap compatibility: Remove $nav-bar-padding-bottom from height calc.
   height: calc(100% - (#{$nav-bar-height} + #{$nav-bar-padding-bottom} + #{$track-aggregate-height}));
+  //height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
+
+  background-color: white;
 
   // container: x-axis
   div:nth-child(1) {
@@ -405,6 +430,8 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 100%;
     height: 100%;
 
+    background-color: white;
+
     // y-tracks
     div:nth-child(1) {
       display:flex;
@@ -415,12 +442,16 @@ $default-font-family: 'Open Sans', sans-serif;
       width: $track-aggregate-height;
       height: 100%;
 
+      background-color: white;
+
       // canvas container
       div {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
+
+        background-color: white;
 
         // canvas inserted here
 
@@ -453,6 +484,8 @@ $default-font-family: 'Open Sans', sans-serif;
           margin-top: -($track-height/2);
 
           z-index: 2048;
+
+          background-color: rgba(255, 255, 255, 0);
         }
       }
 
