@@ -27,13 +27,13 @@
 /**
  * Created by dat on 4/18/17.
  */
-var igv = (function (igv) {
+var encode = (function (encode) {
 
-    igv.EncodeDataSource = function (config) {
+    encode.EncodeDataSource = function (config) {
         this.config = config;
     };
 
-    igv.EncodeDataSource.prototype.loadJSON = function (continuation) {
+    encode.EncodeDataSource.prototype.loadJSON = function (continuation) {
 
         this.jSON = {};
         if (this.config.filePath) {
@@ -44,7 +44,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.EncodeDataSource.prototype.ingestJSON = function (json, continuation) {
+    encode.EncodeDataSource.prototype.ingestJSON = function (json, continuation) {
 
         var self = this;
 
@@ -63,7 +63,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.EncodeDataSource.prototype.ingestFile = function (file, continuation) {
+    encode.EncodeDataSource.prototype.ingestFile = function (file, continuation) {
 
         var self = this;
 
@@ -109,7 +109,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.EncodeDataSource.prototype.dataTablesData = function () {
+    encode.EncodeDataSource.prototype.dataTablesData = function () {
 
         var self = this,
             result = [];
@@ -129,7 +129,7 @@ var igv = (function (igv) {
         return result;
     };
 
-    igv.EncodeDataSource.prototype.columnHeadings = function () {
+    encode.EncodeDataSource.prototype.columnHeadings = function () {
 
         var columnWidths = this.jSON.columnWidths,
             columnHeadings = [ ];
@@ -144,6 +144,6 @@ var igv = (function (igv) {
 
     };
 
-    return igv;
+    return encode;
 
-})(igv || {});
+})(encode || {});

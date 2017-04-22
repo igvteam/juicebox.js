@@ -31,7 +31,7 @@
  * Support functions for the Encode rest api  https://www.encodeproject.org/help/rest-api/
  */
 
-var igv = (function (igv) {
+var encode = (function (encode) {
 
     // var query1 = "https://www.encodeproject.org/search/?" +
     //     "type=experiment&" +
@@ -66,7 +66,7 @@ var igv = (function (igv) {
         "field=files.assembly&" +
         "limit=all";
 
-    igv.encodeSearch = function (continuation) {
+    encode.encodeSearch = function (continuation) {
 
         console.log('encode search - load json ...');
         igvxhr
@@ -192,6 +192,6 @@ var igv = (function (igv) {
     };
 
 
-    return igv;
+    return encode;
 })
-(igv || {});
+(encode || {});

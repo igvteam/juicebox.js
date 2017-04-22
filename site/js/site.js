@@ -57,7 +57,7 @@ var site = (function (site) {
 
         });
 
-        hic.browser.encodeTable = new igv.EncodeTable($('#encodeModalBody'), hic.browser);
+        hic.browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'), hic.browser);
 
         payload =
             {

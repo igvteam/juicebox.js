@@ -28,7 +28,7 @@
  * Created by dat on 4/18/17.
  */
 
-var igv = (function (igv) {
+var encode = (function (encode) {
 
     var antibodyColors =
             {
@@ -44,7 +44,7 @@ var igv = (function (igv) {
         defaultColor ="rgb(3, 116, 178)";
 
 
-    igv.EncodeTable = function ($parent, browser) {
+    encode.EncodeTable = function ($parent, browser) {
 
         var self = this;
 
@@ -66,7 +66,7 @@ var igv = (function (igv) {
 
                 self.initialized = true;
 
-                igv.encodeSearch(function (json) {
+                encode.encodeSearch(function (json) {
                     self.loadWithDataSource(json);
                 });
 
@@ -134,13 +134,13 @@ var igv = (function (igv) {
 
     };
 
-    igv.EncodeTable.prototype.loadWithDataSource = function (json) {
+    encode.EncodeTable.prototype.loadWithDataSource = function (json) {
 
         var self = this;
 
         console.log('dataTable - begin');
 
-        this.dataSource = new igv.EncodeDataSource({jSON: json});
+        this.dataSource = new encode.EncodeDataSource({jSON: json});
 
         this.dataSource.loadJSON(function () {
 
@@ -188,6 +188,6 @@ var igv = (function (igv) {
 
     }
 
-    return igv;
+    return encode;
 
-})(igv || {});
+})(encode || {});
