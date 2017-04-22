@@ -201,8 +201,7 @@
         width: 32px;
         height: 32px;
         margin-left: -16px;
-        z-index: 2048;
-        color: #0D3349; }
+        z-index: 2048; }
 
 .hic-content-container {
   display: flex;
@@ -257,8 +256,7 @@
           width: 32px;
           height: 32px;
           margin-top: -16px;
-          z-index: 2048;
-          color: #0D3349; }
+          z-index: 2048; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }

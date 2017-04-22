@@ -37,8 +37,13 @@ var hic = (function (hic) {
         this.$spinner = $('<div>');
         this.$viewport.append(this.$spinner);
 
-        this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin fa-fw">'));
-        this.$spinner.hide();
+        // throbber
+        // size: see $hic-viewport-spinner-size in .scss files
+        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 20 , padding: 7 }).appendTo( this.$spinner.get(0) );
+        this.throbber.stop();
+
+        // this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin fa-fw">'));
+        // this.$spinner.hide();
 
         this.configTrackTransforms();
 
@@ -88,7 +93,8 @@ var hic = (function (hic) {
                     self.tile = undefined;
                     self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
 
-                    self.$spinner.hide();
+                    // self.$spinner.hide();
+                    self.stopSpinner();
 
                     // self.$zoomInNotice.show();
 
@@ -133,7 +139,8 @@ var hic = (function (hic) {
                             end: endBP
                         };
 
-                    self.$spinner.show();
+                    // self.$spinner.show();
+                    self.startSpinner();
 
                     self.track
                         .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
@@ -144,7 +151,8 @@ var hic = (function (hic) {
 
                             self.loading = undefined;
 
-                            self.$spinner.hide();
+                            // self.$spinner.hide();
+                            self.stopSpinner();
 
                             if (features) {
 
@@ -191,7 +199,8 @@ var hic = (function (hic) {
                         })
                         .catch(function (error) {
 
-                            self.$spinner.hide();
+                            // self.$spinner.hide();
+                            self.stopSpinner();
 
                             self.loading = false;
 
@@ -220,6 +229,14 @@ var hic = (function (hic) {
             // this.ctx.save();
             // this.ctx.restore();
         }
+    };
+
+    hic.TrackRenderer.prototype.startSpinner = function () {
+        this.throbber.start();
+    };
+
+    hic.TrackRenderer.prototype.stopSpinner = function () {
+        this.throbber.stop();
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {

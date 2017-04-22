@@ -56,10 +56,6 @@ var hic = (function (hic) {
         this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 120, padding: 40 }).appendTo( this.$spinner.get(0) );
         this.throbber.stop();
 
-        // this.$spinner.append($('<i class="fa fa-3x fa-spinner fa-spin fa-fw">'));
-        // this.stopSpinner();
-
-
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(this.browser);
         this.$viewport.append(this.sweepZoom.$rulerSweeper);
