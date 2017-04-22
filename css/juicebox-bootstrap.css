@@ -224,7 +224,7 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 8px + 0px));
+  height: calc(100% - (70px + 0px));
   background-color: white; }
   .hic-content-container div:nth-child(1) {
     display: flex;
