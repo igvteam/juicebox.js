@@ -4149,6 +4149,18 @@ var igv = (function (igv) {
 
         });
     }
+    
+    
+    igv.BWSource.prototype.getDefaultRange = function () {
+        
+        if(this.reader.totalSummary != undefined) {
+            return this.reader.totalSummary.defaultRange;
+        }
+        else {
+            return undefined;
+        }
+        
+    }
 
 
     function zoomLevelForScale(bpPerPixel, zoomLevelHeaders) {
@@ -4171,8 +4183,7 @@ var igv = (function (igv) {
 
         return (level && level.reductionLevel < 4 * bpPerPixel) ? level : null;
     }
-
-
+    
     function decodeWigData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
 
         var binaryParser = new igv.BinaryParser(data),
@@ -4259,8 +4270,7 @@ var igv = (function (igv) {
         }
 
     }
-
-
+    
     function decodeBedData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
 
         var binaryParser = new igv.BinaryParser(data),
@@ -4397,7 +4407,15 @@ var igv = (function (igv) {
         var n = this.basesCovered;
         if (n > 0) {
             this.mean = this.sumData / n;
-            this.stddev = Math.sqrt((this.sumSquares - (this.sumData / n) * this.sumData) / (n - 1));
+            this.stddev = Math.sqrt(this.sumSquares / (n - 1));
+
+            var min = this.minVal < 0 ? this.mean - 2 * this.stddev : 0,
+                max = this.maxVal > 0 ? this.mean + 2 * this.stddev : 0;
+
+            this.defaultRange = {
+                min: 0,
+                max: this.mean + 2 * this.stddev
+            }
         }
     }
 
@@ -4417,6 +4435,7 @@ var igv = (function (igv) {
     return igv;
 
 })(igv || {});
+
 /*
  * The MIT License (MIT)
  *
@@ -6257,6 +6276,547 @@ var igv = (function (igv) {
 (igv || {});
 
 
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by dat on 4/18/17.
+ */
+var encode = (function (encode) {
+
+    encode.EncodeDataSource = function (config) {
+        this.config = config;
+    };
+
+    encode.EncodeDataSource.prototype.loadJSON = function (continuation) {
+
+        this.jSON = {};
+        if (this.config.filePath) {
+            this.ingestFile(this.config.filePath, continuation);
+        } else if (this.config.jSON) {
+            this.ingestJSON(this.config.jSON, continuation);
+        }
+
+    };
+
+    encode.EncodeDataSource.prototype.ingestJSON = function (json, continuation) {
+
+        var self = this;
+
+        self.jSON = json;
+
+        json.rows.forEach(function(row, i){
+
+            Object.keys(row).forEach(function(key){
+                var item = row[ key ];
+                self.jSON.rows[ i ][ key ] = (undefined === item || "" === item) ? "-" : item;
+            });
+
+        });
+
+        continuation();
+
+    };
+
+    encode.EncodeDataSource.prototype.ingestFile = function (file, continuation) {
+
+        var self = this;
+
+        igvxhr.loadString(file).then(function (data) {
+
+            var lines = data.splitLines(),
+                item;
+
+            // Raw data items order:
+            // path | cell | dataType | antibody | view | replicate | type | lab | hub
+            //
+            // Reorder to match desired order. Discard hub item.
+            //
+            self.jSON.columns = lines[0].split("\t");
+            self.jSON.columns.pop();
+            item = self.jSON.columns.shift();
+            self.jSON.columns.push(item);
+
+            self.jSON.rows = [];
+
+            lines.slice(1, lines.length - 1).forEach(function (line) {
+
+                var tokens,
+                    row;
+
+                tokens = line.split("\t");
+                tokens.pop();
+                item = tokens.shift();
+                tokens.push(item);
+
+                row = {};
+                tokens.forEach(function (t, i, ts) {
+                    var key = self.jSON.columns[ i ];
+                    row[ key ] = (undefined === t || "" === t) ? "-" : t;
+                });
+
+                self.jSON.rows.push(row);
+
+            });
+
+            continuation();
+        });
+
+    };
+
+    encode.EncodeDataSource.prototype.dataTablesData = function () {
+
+        var self = this,
+            result = [];
+
+        this.jSON.rows.forEach(function(row, index){
+
+            var rr = [];
+
+            rr.push( index );
+            self.jSON.columns.forEach(function(key){
+                rr.push( row[ key ] );
+            });
+
+            result.push( rr );
+        });
+
+        return result;
+    };
+
+    encode.EncodeDataSource.prototype.columnHeadings = function () {
+
+        var columnWidths = this.jSON.columnWidths,
+            columnHeadings = [ ];
+
+        columnHeadings.push({ "title": "index" });
+        this.jSON.columns.forEach(function(heading, i){
+            //columnHeadings.push({ "title": heading, width: (columnWidths[ i ].toString() + "%") });
+            columnHeadings.push({ "title": heading });
+        });
+
+        return columnHeadings;
+
+    };
+
+    return encode;
+
+})(encode || {});
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by jrobinso on 5/27/15.
+ */
+
+/**
+ * Support functions for the Encode rest api  https://www.encodeproject.org/help/rest-api/
+ */
+
+var encode = (function (encode) {
+
+    // var query1 = "https://www.encodeproject.org/search/?" +
+    //     "type=experiment&" +
+    //     "files.file_format=bed&" +
+    //     "format=json&" +
+    //     "limit=all&" +
+    //     "field=replicates.library.biosample.donor.organism.name&" +
+    //     "field=lab.title&field=biosample_term_name&" +
+    //     "field=assay_term_name&" +
+    //     "field=target.label&" +
+    //     "field=files.file_format&" +
+    //     "field=files.output_type&" +
+    //     "field=files.href&" +
+    //     "field=files.replicate.technical_replicate_number&" +
+    //     "field=files.replicate.biological_replicate_number";
+
+    var query2 = "https://www.encodeproject.org/search/?" +
+        "type=experiment&" +
+        "assembly=hg19&" +
+        "files.output_type=peaks&" +
+        "files.file_format=bed&" +
+        "format=json&" +
+        "field=lab.title&" +
+        "field=biosample_term_name&" +
+        "field=assay_term_name&" +
+        "field=target.label&" +
+        "field=files.file_format&" +
+        "field=files.output_type&" +
+        "field=files.href&" +
+        "field=files.replicate.technical_replicate_number&" +
+        "field=files.replicate.biological_replicate_number&" +
+        "field=files.assembly&" +
+        "limit=all";
+
+    encode.encodeSearch = function (continuation) {
+
+        console.log('encode search - load json ...');
+        igvxhr
+            .loadJson(query2, {})
+            .then(function (json) {
+
+                var columnFormat,
+                    rows;
+
+                console.log('' +
+                    '... done');
+
+                console.log('parse/sort json ...');
+
+                rows = [];
+                _.each(json["@graph"], function (record) {
+
+                    var cellType,
+                        target,
+                        filtered,
+                        mapped;
+
+                    cellType = record["biosample_term_name"] || '';
+
+                    target = record.target ? record.target.label : '';
+
+                    filtered = _.filter(record.files, function(file) {
+                        return 'bed' === file.file_format;
+                    });
+
+                    mapped = _.map(filtered, function(file) {
+
+                        var bioRep = file.replicate ? file.replicate.bioligcal_replicate_number : undefined,
+                            techRep = file.replicate ? file.replicate.technical_replicate_number : undefined,
+                            name = cellType + " " + target;
+
+                        if (bioRep) {
+                            name += " " + bioRep;
+                        }
+
+                        if (techRep) {
+                            name += (bioRep ? ":" : "0:") + techRep;
+                        }
+
+                        return {
+                            "Assembly": file.assembly,
+                            "ExperimentID": record[ '@id' ],
+                            "Cell Type": cellType,
+                            "Assay Type": record.assay_term_name,
+                            "Target": target,
+                            "Lab": record.lab ? record.lab.title : "",
+                            "Format": file.file_format,
+                            "Type": file.output_type,
+                            "url": "https://www.encodeproject.org" + file.href,
+                            "Bio Rep": bioRep,
+                            "Tech Rep": techRep,
+                            "Name": name
+                        };
+
+                    });
+
+                    Array.prototype.push.apply(rows, mapped);
+                });
+
+                rows.sort(function (a, b) {
+                    var a1 = a["Assembly"],
+                        a2 = b["Assembly"],
+                        ct1 = a["Cell Type"],
+                        ct2 = b["Cell Type"],
+                        t1 = a["Target"],
+                        t2 = b["Target"];
+
+                    if (a1 === a2) {
+                        if (ct1 === ct2) {
+                            if (t1 === t2) {
+                                return 0;
+                            }
+                            else if (t1 < t2) {
+                                return -1;
+                            }
+                            else {
+                                return 1;
+                            }
+                        }
+                        else if (ct1 < ct2) {
+                            return -1;
+                        }
+                        else {
+                            return 1;
+                        }
+                    }
+                    else {
+                        if (a1 < a2) {
+                            return -1;
+                        }
+                        else {
+                            return 1;
+                        }
+                    }
+                });
+
+                console.log('... done');
+
+                columnFormat =
+                    {
+                        'Assembly':8,
+                        'Cell Type':8,
+                        'Target':10,
+                        'Assay Type':10,
+                        'Bio Rep':8,
+                        'Tech Rep':8,
+                        'Lab':16
+                    };
+
+                continuation({
+                    columns: _.keys(columnFormat),
+                    columnWidths: _.values(columnFormat),
+                    rows: rows
+                });
+
+            });
+
+    };
+
+
+    return encode;
+})
+(encode || {});
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by dat on 4/18/17.
+ */
+
+var encode = (function (encode) {
+
+    var antibodyColors =
+            {
+                H3K27AC: "rgb(200, 0, 0)",
+                H3K27ME3: "rgb(130, 0, 4)",
+                H3K36ME3: "rgb(0, 0, 150)",
+                H3K4ME1: "rgb(0, 150, 0)",
+                H3K4ME2: "rgb(0, 150, 0)",
+                H3K4ME3: "rgb(0, 150, 0)",
+                H3K9AC: "rgb(100, 0, 0)",
+                H3K9ME1: "rgb(100, 0, 0)"
+            },
+        defaultColor ="rgb(3, 116, 178)";
+
+
+    encode.EncodeTable = function ($parent, browser) {
+
+        var self = this;
+
+        this.browser = browser;
+
+        this.initialized = false;
+
+        this.$modalTable = $('<table id="encodeModalTable" cellpadding="0" cellspacing="0" border="0" class="display"></table>');
+        $parent.append(this.$modalTable);
+
+        this.$spinner = $('<div>');
+        this.$modalTable.append(this.$spinner);
+
+        this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
+
+        $('#hicEncodeModal').on('shown.bs.modal', function (e) {
+
+            if (true !== self.initialized) {
+
+                self.initialized = true;
+
+                encode.encodeSearch(function (json) {
+                    self.loadWithDataSource(json);
+                });
+
+            }
+
+        });
+
+        $('#encodeModalTopCloseButton').on('click', function () {
+            $('tr.selected').removeClass('selected');
+        });
+
+        $('#encodeModalBottomCloseButton').on('click', function () {
+            $('tr.selected').removeClass('selected');
+        });
+
+        $('#encodeModalGoButton').on('click', function () {
+
+            var tableRows,
+                dataTableAPIInstance,
+                index,
+                data,
+                raw,
+                mapped;
+
+            dataTableAPIInstance = self.$modalTable.DataTable();
+
+            tableRows = self.$dataTables.$('tr.selected');
+
+
+            if (tableRows) {
+
+                tableRows.removeClass('selected');
+
+                raw = [];
+                tableRows.each(function() {
+
+                    data = dataTableAPIInstance.row( this ).data();
+                    index = data[ 0 ];
+
+                    raw.push( self.dataSource.jSON.rows[ index ] );
+
+                });
+
+                mapped = _.map(raw, function(r) {
+
+                    var obj;
+
+                    obj =
+                        {
+                            type: r[ 'Format' ],
+                            url: r[ 'url' ],
+                            color: encodeAntibodyColor(r[ 'Target' ]),
+                            format: r['Format'],
+                            name: r['Name']
+                        };
+
+                    return obj;
+                });
+
+                self.browser.loadTrackXY(mapped);
+
+            }
+
+        });
+
+    };
+
+    encode.EncodeTable.prototype.loadWithDataSource = function (json) {
+
+        var self = this;
+
+        console.log('dataTable - begin');
+
+        this.dataSource = new encode.EncodeDataSource({jSON: json});
+
+        this.dataSource.loadJSON(function () {
+
+            self.$spinner.hide();
+            self.$dataTables = self.$modalTable.dataTable({
+
+                data: self.dataSource.dataTablesData(),
+                // deferRender: true,
+                paging: true, /* must be true if scroller is enable */
+                scrollX: true,
+                scrollY: 400,
+                scrollCollapse: true,
+                scroller: true,
+                autoWidth: true,
+                columnDefs: [ { targets:0, visible: false } ],
+                columns: self.dataSource.columnHeadings()
+            });
+
+            console.log('dataTable - end');
+
+            self.$modalTable.find('tbody').on('click', 'tr', function () {
+
+                if ($(this).hasClass('selected')) {
+                    $(this).removeClass('selected');
+                } else {
+                    $(this).addClass('selected');
+                }
+
+            });
+
+        });
+
+    };
+
+    function encodeAntibodyColor (antibody) {
+
+        var key;
+
+        if (!antibody || "" === antibody) {
+            return defaultColor;
+        }
+
+        key = antibody.toUpperCase();
+        return (antibodyColors[ key ]) ? antibodyColors[ key ] : defaultColor;
+
+    }
+
+    return encode;
+
+})(encode || {});
 
 /*
  * The MIT License (MIT)
@@ -10748,7 +11308,7 @@ var igv = (function (igv) {
         }
 
         // Min and max values.  No defaults for these, if they aren't set track will autoscale.
-        this.autoScale = (config.max === undefined);
+        this.autoscale = (config.max === undefined);
         this.dataRange = {
             min: config.min,
             max: config.max
@@ -10776,15 +11336,15 @@ var igv = (function (igv) {
         menuItems.push(igv.dataRangeMenuItem(popover, this.trackView));
 
         menuItems.push({
-            object: $(htmlStringified(self.autoScale)),
+            object: $(htmlStringified(self.autoscale)),
             click: function () {
                 var $fa = $(this).find('i');
 
                 popover.hide();
 
-                self.autoScale = !self.autoScale;
+                self.autoscale = !self.autoscale;
 
-                if (true === self.autoScale) {
+                if (true === self.autoscale) {
                     $fa.removeClass('fa-check-hidden');
                 } else {
                     $fa.addClass('fa-check-hidden');
@@ -10794,11 +11354,11 @@ var igv = (function (igv) {
             }
         });
 
-        function htmlStringified(autoScale) {
+        function htmlStringified(autoscale) {
             var html = [];
 
             html.push('<div>');
-            html.push(true === autoScale ? '<i class="fa fa-check">' : '<i class="fa fa-check fa-check-hidden">');
+            html.push(true === autoscale ? '<i class="fa fa-check">' : '<i class="fa fa-check fa-check-hidden">');
             html.push('</i>');
             html.push('Autoscale');
             html.push('</div>');
@@ -10857,7 +11417,7 @@ var igv = (function (igv) {
 
 
         if (features && features.length > 0) {
-            if (self.autoScale || self.dataRange.max === undefined) {
+            if (self.autoscale || self.dataRange.max === undefined) {
                 var s = autoscale(features);
                 featureValueMinimum = s.min;
                 featureValueMaximum = s.max;
@@ -21999,7 +22559,7 @@ var igv = (function (igv) {
             } else {
                 trackView.track.dataRange.min = min;
                 trackView.track.dataRange.max = max;
-                trackView.track.autoScale = false;
+                trackView.track.autoscale = false;
                 self.hide();
                 trackView.update();
             }
