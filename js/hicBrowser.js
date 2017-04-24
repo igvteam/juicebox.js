@@ -135,10 +135,11 @@ var hic = (function (hic) {
         promises = [];
         _.each(trackConfigurations, function(config) {
 
-            config.height = 32;
+            config.height = self.layoutController.track_height;
 
             // TODO: HACK HACK HACK
             if ('bed' === config.format) {
+                config.featureHeight = self.layoutController.track_height;
                 config.indexed = false;
             }
 

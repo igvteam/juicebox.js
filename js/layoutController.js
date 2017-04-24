@@ -154,14 +154,12 @@ var hic = (function (hic) {
     hic.LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount) {
 
         var track_aggregate_height,
-            track_aggregate_height_px,
             tokens,
             width_calc,
             height_calc;
 
 
         track_aggregate_height = trackXYPairCount * this.track_height;
-        track_aggregate_height_px = track_aggregate_height + 'px';
 
         tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -170,9 +168,10 @@ var hic = (function (hic) {
         width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
         // x-track container
-        this.$x_track_container.css('height', track_aggregate_height_px);
+        this.$x_track_container.height(track_aggregate_height);
+
         // track labels
-        this.$track_labels.css('width', track_aggregate_height_px);
+        this.$track_labels.width(track_aggregate_height);
         // x-tracks
         this.$x_tracks.css( 'width', width_calc );
 
@@ -184,7 +183,7 @@ var hic = (function (hic) {
         this.xAxisRuler.updateWidthWithCalculation(width_calc);
 
         // y-tracks
-        this.$y_tracks.css('width', track_aggregate_height_px);
+        this.$y_tracks.width(track_aggregate_height);
 
         // y-axis - repaint canvas
         this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
