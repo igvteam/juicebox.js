@@ -41,3 +41,16 @@
     cursor: pointer;
     background-color: #3a8ab4;
 }
+
+.remove-track-button {
+    color: white;
+    font-size: 16px;
+    background-color: red;
+}
+
+.remove-track-button:hover,
+.remove-track-button:focus,
+.remove-track-button:active  {
+    cursor: pointer;
+    background-color: #7f0000;
+}
