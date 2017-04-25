@@ -56,6 +56,7 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
 
+        this.tile = null;
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
