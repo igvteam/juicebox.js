@@ -63,7 +63,6 @@ var hic = (function (hic) {
         // mock igv browser for igv.js compatibility
         igv.browser = {};
 
-        this.trackXYPairCount = 0;
         this.trackRenderers = [];
 
         this.config = config;

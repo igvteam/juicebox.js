@@ -130,8 +130,7 @@ var hic = (function (hic) {
                 var w,
                     h;
 
-                self.browser.trackXYPairCount += 1;
-                self.doLayoutTrackXYPairCount(self.browser.trackXYPairCount);
+                self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
 
                 // append tracks
                 trackXY = {};
@@ -159,22 +158,26 @@ var hic = (function (hic) {
         var index,
             discard;
 
-        // select last track to dicard
-        discard = _.last(this.browser.trackRenderers);
+        if (_.size(this.browser.trackRenderers) > 0) {
 
-        // discard DOM element's
-        discard[ 'x' ].$viewport.remove();
-        discard[ 'y' ].$viewport.remove();
+            // select last track to dicard
+            discard = _.last(this.browser.trackRenderers);
 
-        // remove discard from list
-        index = this.browser.trackRenderers.indexOf(discard);
-        this.browser.trackRenderers.splice(index, 1);
+            // discard DOM element's
+            discard[ 'x' ].$viewport.remove();
+            discard[ 'y' ].$viewport.remove();
 
-        --(this.browser.trackXYPairCount);
+            // remove discard from list
+            index = this.browser.trackRenderers.indexOf(discard);
+            this.browser.trackRenderers.splice(index, 1);
 
-        discard = undefined;
-        this.doLayoutTrackXYPairCount(this.browser.trackXYPairCount);
-        this.browser.renderTracks(true);
+            discard = undefined;
+            this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
+            this.browser.renderTracks(true);
+
+        } else {
+            console.log('No more tracks.');
+        }
 
     };
 
