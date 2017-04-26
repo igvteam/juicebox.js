@@ -127,13 +127,17 @@ var hic = (function (hic) {
 
             _.each(event.data.trackXYPairs, function (trackXYPair) {
 
+                var w,
+                    h;
+
                 self.browser.trackXYPairCount += 1;
                 self.doLayoutTrackXYPairCount(self.browser.trackXYPairCount);
 
                 // append tracks
                 trackXY = {};
-                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: self.track_height }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
-                trackXY.y = new hic.TrackRenderer(self.browser, { width: self.track_height, height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
+                w = h = self.track_height;
+                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: h         }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
+                trackXY.y = new hic.TrackRenderer(self.browser, { width: w,         height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
 
                 self.browser.trackRenderers.push(trackXY);
             });
@@ -148,6 +152,29 @@ var hic = (function (hic) {
             this.browser.renderTracks(false);
         }
 
+
+    };
+
+    hic.LayoutController.prototype.removeTrackXYPair = function () {
+        var index,
+            discard;
+
+        // select last track to dicard
+        discard = _.last(this.browser.trackRenderers);
+
+        // discard DOM element's
+        discard[ 'x' ].$viewport.remove();
+        discard[ 'y' ].$viewport.remove();
+
+        // remove discard from list
+        index = this.browser.trackRenderers.indexOf(discard);
+        this.browser.trackRenderers.splice(index, 1);
+
+        --(this.browser.trackXYPairCount);
+
+        discard = undefined;
+        this.doLayoutTrackXYPairCount(this.browser.trackXYPairCount);
+        this.browser.renderTracks(true);
 
     };
 
