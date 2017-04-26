@@ -30,13 +30,10 @@ var site = (function (site) {
 
         var payload;
 
-
         // BED URL upload
         $('#hic-load-url').on('change', function (e) {
             var config,
                 path;
-
-            // configureTrackWithLocalFileOrPath( { type: "bed", url: path, name: 'unnamed' } );
 
             path = $(this).val();
 
@@ -57,7 +54,7 @@ var site = (function (site) {
 
         });
 
-        hic.browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'), hic.browser);
+        hic.browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'), hic.browser, hic.browser.loadTrackXY);
 
         payload =
             {
