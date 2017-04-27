@@ -6277,6 +6277,2511 @@ var igv = (function (igv) {
 
 
 
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var igv = (function (igv) {
+
+    igv.CursorIdeoPanel = function () {
+
+        this.div = document.createElement('div');
+
+        this.div.style.height = "40px";
+
+        var contentHeight = this.div.clientHeight;
+        var contentWidth = this.div.clientWidth;
+        var canvas = document.createElement('canvas');
+        canvas.style.position = 'absolute';
+        canvas.style.width = "100%";
+        canvas.style.height = contentHeight + "px";
+        canvas.setAttribute('width', contentWidth);    //Must set the width & height of the canvas
+        canvas.setAttribute('height', contentHeight);
+
+        this.canvas = canvas;
+        this.div.appendChild(canvas);
+
+        this.ctx = canvas.getContext("2d");
+
+    }
+
+    igv.CursorIdeoPanel.prototype.resize = function () {
+
+        var contentHeight = this.div.clientHeight,
+            contentWidth = this.div.clientWidth,
+            canvas = this.canvas;
+        canvas.style.width = "100%";
+        canvas.style.height = contentHeight;
+        canvas.setAttribute('width', contentWidth);    //Must set the width & height of the canvas
+        canvas.setAttribute('height', contentHeight);
+        this.ideograms = {};
+        this.repaint();
+    }
+
+    igv.CursorIdeoPanel.prototype.repaint = function () {
+
+       if(true) return;
+
+        var w = this.canvas.width;
+        var h = this.canvas.height;
+        this.ctx.clearRect(0, 0, w, h);
+
+        var image = this.image;
+        if (!image) {
+            image = document.createElement('canvas');
+            image.width = w;
+            image.height = h;
+            var bufferCtx = image.getContext('2d');
+            drawIdeogram(bufferCtx, w, h);
+            //this.image = image;
+        }
+
+        this.ctx.drawImage(image, 0, 1);
+
+        // TODO  Draw red box
+
+        function drawIdeogram(bufferCtx, ideogramWidth, ideogramHeight) {
+            console.log("Draw ideogram " + ideogramHeight);
+
+            if(!igv.cursorModel) return;
+
+            bufferCtx.strokeRect(0, 0, ideogramWidth, ideogramHeight);
+            return;
+
+            var model = igv.cursorModel,
+                trackPanels = igv.trackViews,
+                regionList = model.regions,  // TODO -- use filtered regions
+                sampleInterval, dh, px, regionNumber, base,
+                bh, tracks, len, region, maxFeatureHeight;
+
+            if (!(model && trackPanels && trackPanels.length > 0 && regionList && regionList.length > 0)) return;
+
+            tracks = [];
+            trackPanels.forEach(function (trackPanel) {
+                tracks.push(trackPanel.track);
+            });
+
+
+            // We'll sample frames and give each 1 pixel
+            sampleInterval = regionList.length / ideogramWidth;
+
+            bh = ideogramHeight - 2;
+            dh = bh / tracks.length;
+
+            gatherAllFeatureCaches(tracks, function (trackFeatureMap) {
+
+                var chr, regionStart, regionEnd;
+
+                px = 0;
+                for (regionNumber = 0, len = regionList.length; regionNumber < len; regionNumber += sampleInterval) {
+
+                    region = regionList[Math.round(regionNumber)];
+                    chr = region.chr;
+                    regionStart = region.location - model.regionWidth / 2;
+                    regionEnd = region.location + model.regionWidth / 2;
+                    maxFeatureHeight = dh;
+
+                    // bufferCtx.strokeLine(px, 0, px, ideogramHeight, {fileStyle: "white"};
+
+                    base = 1;
+                    var cbase = 50;
+                    trackFeatureMap.forEach(function (featureCache) {
+
+                        var min = 0,
+                            max = 1000,
+                            regionFeatures,
+                            color,
+                            score,
+                            alpha,
+                            c;
+
+
+                        color = [0,0,255];
+
+
+                        if (featureCache) {
+                            c = igv.randomRGB(cbase, 255);
+                            bufferCtx.strokeLine(px, base, px, base + dh, {strokeStyle: c});
+
+
+                        }
+                        base += dh;
+                        cbase += 50;
+                    });
+
+                    px++;
+                }
+            });
+        }
+    }
+
+    /**
+     * Gather all features for all tracks and return as a hash of track -> feature list.
+     *
+     * @param cursorTrackList
+     * @param continuation
+     */
+    function gatherAllFeatureCaches(cursorTrackList, continuation) {
+
+        var trackCount = cursorTrackList.length,
+            trackFeatureMap = [];
+
+        cursorTrackList.forEach(function (cursorTrack) {
+
+            cursorTrack.featureSource.getFeatureCache(function (featureCache) {
+                trackFeatureMap.push(featureCache);
+                console.log(trackFeatureMap.length);
+                if (trackFeatureMap.length === trackCount) {
+                    continuation(trackFeatureMap);
+                }
+            })
+        });
+
+
+    }
+
+
+    igv.testGatherAllFeatureCacches = function (trackList, continuation) {
+        gatherAllFeatureCaches(trackList, continuation);
+    }
+
+
+    return igv;
+
+}) (igv || {});
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by dat on 4/25/17.
+ */
+
+var cursor = (function (cursor) {
+
+    cursor.spinner = function (size) {
+
+        // spinner
+        var $container,
+            $spinner;
+
+        $spinner = $('<i class="fa fa-spinner fa-spin">');
+        if (size) {
+            $spinner.css("font-size", size);
+        }
+
+        $container = $('<div class="igv-spinner-container">');
+        $container.append($spinner);
+
+        return $container;
+    };
+
+    /**
+     * Find spinner
+     */
+    cursor.getSpinner = function ($parent) {
+        return $parent.find('.igv-spinner-container');
+    };
+
+    /**
+     * Start the spinner for the parent element, if it has one
+     */
+    cursor.startSpinner = function ($parent) {
+
+        var $spinner = cursor.getSpinner($parent);
+
+        if ($spinner) {
+            $spinner.show();
+        }
+
+    };
+
+    /**
+     * Stop the spinner for the parent element, if it has one
+     * @param $parent
+     */
+    cursor.stopSpinner = function ($parent) {
+
+        var $spinner = cursor.getSpinner($parent);
+
+        if ($spinner) {
+            $spinner.hide();
+        }
+
+    };
+
+    return cursor;
+
+}) (cursor || {});
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by turner on 6/19/14.
+ */
+var cursor = (function (cursor) {
+
+    cursor.CursorHistogram = function (cursorHistogramContainer, track) {
+
+        this.track = track;
+        this.canvasFillStyle = igv.greyScale(255);
+        this.minMaxfillStyle = igv.rgbaColor(64, 64, 64, 0.5);
+        this.minMaxEdgefillStyle = igv.rgbaColor(32, 32, 32, 1.0);
+
+        if (cursorHistogramContainer) {
+
+            this.createMarkupAndSetBinLength(cursorHistogramContainer);
+        } else {
+
+            this.bins = [];
+            this.bins.length = 100;
+        }
+
+        this.maxCount = 0;
+        this.initializeBins();
+
+    };
+
+    // Methods
+    cursor.CursorHistogram.prototype.initializeBins = function () {
+
+        var i, len;
+        for (i=0, len=this.bins.length; i < len; i++) {
+            this.bins[i] = 0;
+        }
+
+        this.maxCount = 0;
+    };
+
+    cursor.CursorHistogram.prototype.insertScore = function (score) {
+
+        if (score < 0) {
+            return;
+        }
+
+        var index = this.scoreIndex(score);
+        //console.log("CursorHistogram.insertScore - index " + index);
+
+        this.bins[ index ] += 1;
+        this.maxCount = Math.max(this.maxCount, this.bins[ index ]);
+    };
+
+    cursor.CursorHistogram.prototype.scoreIndex = function (score) {
+
+        var value,
+            maxScore = this.track.max;
+
+        // Handle edge condition
+        if (score >= maxScore) {
+            return (this.bins.length - 1);
+        }
+
+        value = (score / maxScore);
+        value *= this.bins.length;
+
+        return Math.floor(value);
+    };
+
+    // Render
+    cursor.CursorHistogram.prototype.render = function (track) {
+
+        var myself = this;
+        var renderMinimumOverlay = function (minimum) {
+
+            var height = (minimum/track.max) * myself.bins.length;
+            igv.Canvas.fillRect.call(myself.ctx, 0, myself.bins.length - height, myself.canvasWidth, height, { fillStyle: myself.minMaxfillStyle });
+        };
+
+        var renderMaximumOverlay = function (maximum) {
+
+            var height = myself.bins.length - ((maximum/track.max) * myself.bins.length);
+            igv.Canvas.fillRect.call(myself.ctx, 0, 0, myself.canvasWidth, height, { fillStyle: myself.minMaxfillStyle });
+        };
+
+        // Clear canvas
+        this.fillCanvasWithFillStyle(this.canvasFillStyle);
+
+        // render histogram
+        this.bins.forEach(function (count, index, counts) {
+
+            var x,
+                y,
+                width,
+                height,
+                percent,
+                color;
+
+            if (count) {
+
+                percent = (count/this.maxCount);
+
+                // Symmetric centerline histogram. Pretty.
+                x = ((1.0 - percent) / 2.0) * this.canvasWidth;
+
+                // Asymmetric histogram. Meh.
+//            x = (1.0 - percent) * this.canvasWidth;
+
+                width = (percent) * this.canvasWidth;
+
+                y = (counts.length - 1) - index;
+                height = 1;
+
+                color = (track.color) ? track.color : igv.rgbColor(128, 128, 128);
+
+                igv.Canvas.fillRect.call(myself.ctx, x, y, width, height, { fillStyle: color });
+            }
+
+        }, this);
+
+        var renderTrackFilterOverlays = track.trackFilter.makeTrackFilterOverlayRenderer(renderMinimumOverlay, renderMaximumOverlay);
+        renderTrackFilterOverlays();
+
+    };
+
+    cursor.CursorHistogram.prototype.fillCanvasWithFillStyle = function (fillStyle) {
+        igv.Canvas.fillRect.call(this.ctx, this.canvasWidth, this.canvasHeight, { fillStyle:fillStyle } );
+    };
+
+    function showX(count, index, counts) {
+
+        var yPercent = index/(counts.length - 1),
+            color = igv.rgbaColor(Math.floor(yPercent * 255), 0, 0, 0.75);
+
+        igv.Canvas.fillRect.call(this.ctx, index, 0, 1, counts.length, { fillStyle: color });
+
+    }
+
+    function showY(count, index, counts) {
+
+        var yPercent = index/(counts.length - 1),
+            color = igv.rgbaColor(Math.floor(yPercent * 255), 0, 0, 0.75);
+
+        igv.Canvas.fillRect.call(this.ctx, 0, index, counts.length, 1, { fillStyle: color });
+
+    }
+
+    // Markup
+    cursor.CursorHistogram.prototype.createMarkupAndSetBinLength = function (parentDiv) {
+
+        this.canvas = this.createCanvasAndSetBinLength(parentDiv);
+        this.ctx =  this.canvas.getContext("2d");
+
+        // Clear canvas
+        this.fillCanvasWithFillStyle(this.canvasFillStyle);
+
+    };
+
+    cursor.CursorHistogram.prototype.createCanvasAndSetBinLength = function (parentDiv) {
+
+        var cursorHistogramDiv = document.createElement('div');
+        parentDiv.appendChild(cursorHistogramDiv);
+        cursorHistogramDiv.className = "igv-cursor-histogram-div";
+
+        this.cursorHistogramDiv = cursorHistogramDiv;
+        this.bins = [];
+        this.bins.length = cursorHistogramDiv.clientHeight;
+
+        return this.createDOMCanvasWithParent(this.cursorHistogramDiv);
+
+
+    };
+
+    cursor.CursorHistogram.prototype.createDOMCanvasWithParent = function (parentDiv) {
+
+        var DOMCanvas;
+
+        DOMCanvas = document.createElement('canvas');
+        parentDiv.appendChild(DOMCanvas);
+
+        this.canvasWidth = parentDiv.clientWidth;
+        this.canvasHeight = parentDiv.clientHeight;
+
+        DOMCanvas.setAttribute('width', parentDiv.clientWidth);
+        DOMCanvas.setAttribute('height', parentDiv.clientHeight);
+
+        return DOMCanvas;
+    };
+
+    cursor.CursorHistogram.prototype.updateHeightAndInitializeHistogramWithTrack = function (track) {
+
+        this.canvasHeight = this.cursorHistogramDiv.clientHeight;
+        this.canvas.setAttribute('height', this.cursorHistogramDiv.clientHeight);
+
+        this.bins = [];
+        this.bins.length = this.cursorHistogramDiv.clientHeight;
+        track.cursorModel.initializeHistogram(track);
+     };
+
+    return cursor;
+
+})(cursor || {});
+
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var cursor = (function (cursor) {
+
+    const resevoirSampledRegionListLength = 10000;
+
+    cursor.CursorModel = function (browser) {
+
+        this.browser = browser;
+
+        this.regionWidth = 100;
+        $( "input[id='regionSizeInput']" ).val( this.regionWidth );
+
+        this.framePixelWidth = 24;
+        $( "input[id='frameWidthInput']" ).val( this.framePixelWidth );
+
+        this.frameMargin = 6;
+        this.tracks = [];
+
+        this.regions = [];
+        this.filteredRegions = this.regions;
+
+    };
+
+    cursor.CursorModel.prototype.updateRegionDisplay = function()  {
+
+        var igvCursorUIHeaderBlurb = $('.igv-cursor-ui-header-blurb'),
+            trackLabelSpan = igvCursorUIHeaderBlurb.find('span')[1],
+            regionCountSpan = igvCursorUIHeaderBlurb.find('span')[0],
+            filteredRegionCountSpan = igvCursorUIHeaderBlurb.find('span')[2];
+
+        igvCursorUIHeaderBlurb.css({
+            "display" : "block"
+        });
+
+        $(trackLabelSpan).text( this.browser.designatedTrack ? this.browser.designatedTrack.name : "unnamed" );
+
+        $(trackLabelSpan).css({
+            "color" : this.browser.highlightColor
+        });
+
+        $(regionCountSpan).text( igv.numberFormatter(this.regions.length) );
+
+        $(regionCountSpan).css({
+            "color" : this.browser.highlightColor
+        });
+
+        $(filteredRegionCountSpan).text( igv.numberFormatter(this.filteredRegions.length) );
+
+        $(filteredRegionCountSpan).css({
+            "color" : "rgba(3, 116, 178, 1.0)"
+        });
+
+    };
+
+    cursor.CursorModel.prototype.regionsToRender = function () {
+
+        return (undefined === this.subSampledFilteredRegions) ? this.filteredRegions : this.subSampledFilteredRegions;
+    };
+
+    cursor.CursorModel.prototype.setRegions = function (features) {
+
+        var featuresLength,
+            i;
+
+        this.regions = [];
+
+        for (i = 0, featuresLength = features.length; i < featuresLength; i++) {
+            this.regions.push(new cursor.CursorRegion(features[i]));
+        }
+
+        this.filteredRegions = this.regions;
+
+        this.updateRegionDisplay();
+
+        this.filterRegions();
+
+    };
+
+    cursor.CursorModel.prototype.initializeHistogram = function (track, continutation) {
+
+        var myself = this;
+
+        track.cursorHistogram.initializeBins();
+
+        if (undefined === this.regions || 0 === this.regions.length) {
+
+            if (continutation) {
+                continutation();
+            }
+
+        }
+
+        // NOTE -- don't access track's feature source directly!
+        track.getFeatureCache(function (featureCache) {
+
+            myself.regions.forEach(function (region) {
+
+                var score = region.getScore(featureCache, myself.regionWidth);
+                track.cursorHistogram.insertScore(score);
+
+            });
+
+            track.cursorHistogram.render(track);
+
+            if (continutation) {
+                continutation();
+            }
+
+        });
+
+    };
+
+    cursor.CursorModel.prototype.filterRegions = function () {
+
+        var trackPackages = [],
+            filterPackages = [],
+            howmany = 0,
+            trackViewThatIsSorted,
+            myself = this;
+
+
+        // TODO: HACK HACK HACK
+        // TODO: Clean this up during sort reorg is finished
+        // TODO: sorting will be lost during filtering
+        $(this.browser.trackContainerDiv).find("i.fa-signal").each(function() {
+
+            var me = $(this);
+            if (me.hasClass("igv-control-sort-fa-selected")) {
+
+                me.removeClass("igv-control-sort-fa-selected");
+            }
+
+         });
+
+        this.browser.trackViews.forEach(function (trackView, tpIndex, trackViews) {
+
+            trackView.track.getFeatureCache(function (featureCache) {
+
+                trackPackages.push({ track: trackView.track, trackFilter: trackView.track.trackFilter, featureCache: featureCache, cursorHistogram: trackView.track.cursorHistogram });
+
+                if (trackView.track.isSortTrack()) {
+                    trackViewThatIsSorted = trackView;
+                }
+
+                if (trackView.track.trackFilter.isFilterActive) {
+                    filterPackages.push({trackFilter: trackView.track.trackFilter, featureCache: featureCache });
+                }
+
+                if (++howmany === trackViews.length) runFilters();
+            });
+        });
+
+        function runFilters() {
+
+            if (0 === filterPackages.length) {
+                // No filters
+                myself.filteredRegions = myself.regions;
+            }
+            else {
+
+                myself.filteredRegions = [];
+
+                myself.regions.forEach(function (region) {
+
+                    var success,
+                       passFilter = true;
+
+                    trackPackages.forEach(function (trackPackage) {
+
+                        if (true === passFilter) {
+
+                            success = trackPackage.trackFilter.evaluate(trackPackage.featureCache, region, myself.regionWidth);
+                            if (false === success) {
+
+                                passFilter = false;
+                            }
+
+                        }
+
+                    });
+
+                    if (passFilter) {
+                        myself.filteredRegions.push(region);
+                    }
+
+                });
+            }
+
+            if (0 === myself.filteredRegions.length) {
+
+                myself.browser.update();
+
+                myself.browser.fitToScreen();
+
+                return;
+            }
+
+            var thresholdFramePixelWidth = myself.browser.trackViewportWidth() / myself.filteredRegions.length;
+
+            if (undefined !== thresholdFramePixelWidth && trackViewThatIsSorted) {
+
+                myself.browser.presentSortStatus(trackViewThatIsSorted);
+
+                myself.sortRegions(trackViewThatIsSorted.track.featureSource, myself.browser.sortDirection, function () {
+
+                    if (myself.framePixelWidth < thresholdFramePixelWidth) {
+                        myself.browser.setFrameWidth(thresholdFramePixelWidth);
+                    } else {
+                        myself.browser.update();
+                    }
+
+
+                });
+
+            } else {
+
+                if (myself.filteredRegions.length >= Number.MAX_VALUE /*resevoirSampledRegionListLength*/) {
+
+                    myself.subSampledFilteredRegions = resevoirSampledRegionList(myself.filteredRegions, resevoirSampledRegionListLength);
+                } else {
+
+                    myself.subSampledFilteredRegions = myself.filteredRegions;
+                }
+
+                if (myself.framePixelWidth < thresholdFramePixelWidth) {
+                    myself.browser.setFrameWidth(thresholdFramePixelWidth);
+                } else {
+                    myself.browser.update();
+                }
+                
+            }
+
+            myself.updateRegionDisplay();
+
+            myself.browser.fitToScreen();
+
+
+            // better histogram code
+            trackPackages.forEach(function (trackPackage) {
+
+                trackPackage.cursorHistogram.initializeBins();
+
+                myself.regions.forEach(function (region) {
+
+                    var score,
+                        doIncludeRegionForHistogramRender = true;
+
+                    filterPackages.forEach(function (filterPackage) {
+
+                        var success;
+
+                        if (trackPackage.trackFilter === filterPackage.trackFilter) {
+
+                            // do nothing
+
+                        } else if (true === doIncludeRegionForHistogramRender) {
+
+                            success = filterPackage.trackFilter.evaluate(filterPackage.featureCache, region, myself.regionWidth);
+
+                            if (false === success) {
+
+                                doIncludeRegionForHistogramRender = false;
+                            }
+
+                        }
+
+                    });
+
+                    if (doIncludeRegionForHistogramRender) {
+
+                        score = region.getScore(trackPackage.featureCache, myself.regionWidth);
+                        trackPackage.cursorHistogram.insertScore(score);
+                    }
+
+                });
+
+                trackPackage.cursorHistogram.render(trackPackage.track);
+
+            });
+
+        }
+
+    };
+
+    function resevoirSampledRegionList(regions, max) {
+
+        var subsampledRegions = [],
+            len = regions.length,
+            i,
+            j,
+            cnt = 0,
+            elem;
+
+        for (i = 0; i < len; i++) {
+
+            elem = regions[ i ];
+
+            if (subsampledRegions.length < max) {
+                subsampledRegions.push(elem);
+            }
+            else {
+                // Resevoir sampling,  conditionally replace existing feature with new one.
+                j = Math.floor(Math.random() * cnt);
+                if (j < max) {
+                    subsampledRegions[ j ] = elem;
+                }
+            }
+            cnt++;
+
+        }
+        return subsampledRegions;
+    }
+
+    /**
+     * Sort track based on signals from the feature source.   The continuation is called when sorting is complete.
+     *
+     * @param featureSource
+     * @param sortDirection
+     * @param continuation
+     */
+    cursor.CursorModel.prototype.sortRegions = function (featureSource, sortDirection, continuation) {
+
+        "use strict";
+
+        var myself = this,
+            regionWidth = this.regionWidth;
+
+        if (!this.filteredRegions || 0 === this.filteredRegions.length) {
+            continuation();
+        }
+
+        if (myself.filteredRegions.length >= Number.MAX_VALUE /*resevoirSampledRegionListLength*/) {
+
+            myself.subSampledFilteredRegions = resevoirSampledRegionList(myself.filteredRegions, resevoirSampledRegionListLength);
+        } else {
+
+            myself.subSampledFilteredRegions = myself.filteredRegions;
+        }
+
+
+
+
+
+
+
+        featureSource.getFeatureCache(function (featureCache) {
+
+            // Assign score to regions for selected track (feature source)
+            myself.subSampledFilteredRegions.forEach(function (region) {
+                region.sortScore = region.getScore(featureCache, regionWidth);
+            });
+
+            var compFunction = function (cursorRegion1, cursorRegion2) {
+
+                var s1 = cursorRegion1.sortScore;
+                var s2 = cursorRegion2.sortScore;
+                return sortDirection * (s1 === s2 ? 0 : (s1 > s2 ? -1 : 1));
+            };
+
+            // First, randomize the frames to prevent memory from previous sorts.  There are many ties (e.g. zeroes)
+            // so a stable sort carries a lot of memory, which can imply correlations where none exist.
+            myself.subSampledFilteredRegions.shuffle();
+
+            // The built-in sort blows up in Chrome, and possibly other browsers, for large arrays.
+            if (myself.subSampledFilteredRegions.length > 1000) {
+                myself.subSampledFilteredRegions.heapSort(compFunction);
+            }
+            else {
+                myself.subSampledFilteredRegions.sort(compFunction);
+            }
+
+            continuation();
+        });
+
+
+    };
+
+    cursor.CursorRegion = function (feature) {
+
+        this.chr = feature.chr;
+        this.location = (feature.start + feature.end) / 2;
+    };
+
+    /**
+     * Compute a score over the region bounds and pass it on to the continuation.
+     *
+     * @param featureCache
+     * @param regionWidth
+     * @returns {number}
+     */
+    cursor.CursorRegion.prototype.getScore = function (featureCache, regionWidth) {
+
+        var regionStart = this.location - regionWidth / 2,
+            regionEnd   = this.location + regionWidth / 2,
+            score,
+            featureCacheQueryResults,
+            features,
+            signalColumn = featureCache.signalColumn;
+
+        featureCacheQueryResults = featureCache.queryFeatures(this.chr, regionStart, regionEnd);
+
+        // If no features, bail.
+        if (!featureCacheQueryResults || 0 === featureCacheQueryResults.length) {
+            return -1;
+        }
+
+        // Only assess scores for features bounded bu the region
+        features = [];
+        featureCacheQueryResults.forEach(function (f){
+
+            if (f.end >= regionStart && f.start < regionEnd) {
+                features.push(f);
+            }
+
+        });
+
+        // If no features, bail.
+        if (0 === features) {
+            return -1;
+        }
+
+        score = 0;
+        featureCacheQueryResults.forEach(function (feature) {
+
+            if (undefined === feature[signalColumn]) {
+
+                // Have a feature, but no defined score
+                score = 1000;
+            } else {
+
+                // Take max score of all features in region
+                score = Math.max(feature[signalColumn], score);
+            }
+
+        });
+
+        if (-1 === score) {
+            console.log("Features " + featureList.length + ". Should not return score = -1 for filter consideration.");
+        }
+
+        return score;
+    };
+
+    cursor.CursorRegion.prototype.isRegionEmpty = function (featureCache, regionWidth) {
+
+        var halfWidth = regionWidth/2,
+            featureList;
+
+        featureList = featureCache.queryFeatures(this.chr, this.location - halfWidth, this.location + halfWidth);
+
+        return (featureList) ? true : false;
+
+    };
+
+    // BED Format: The first 100 bases of a chromosome are defined as chromStart=0, chromEnd=100,
+    // and span the bases 0 - 99.
+    cursor.CursorRegion.prototype.exportRegion = function (regionWidth) {
+
+        var halfWidth = regionWidth/ 2,
+            ss = Math.floor(    this.location - halfWidth),
+            ee = Math.floor(1 + this.location + halfWidth);
+
+        return this.chr + "\t" + ss + "\t" + ee + "\n";
+
+    };
+
+    function isChrome() {
+        return navigator.userAgent.contains("Chrome");
+    }
+
+    return cursor;
+
+})(cursor || {});
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var cursor = (function (cursor) {
+
+    var MAX_FEATURE_COUNT = 100000000;
+
+    cursor.CursorTrack = function (config, browser) {
+
+        igv.configTrack(this, config);
+
+        this.color = config.color || cursor.defaultColor();
+
+        this.config.indexed = false;  // NEVER use indexes for cursor
+        this.featureSource = new igv.FeatureSource(config);
+        this.featureSource.maxFeatureCount = MAX_FEATURE_COUNT;
+
+
+        this.cursorModel = browser.cursorModel;
+        this.referenceFrame = browser.referenceFrame;
+
+        this.cursorHistogram = undefined;
+
+    };
+
+    cursor.CursorTrack.prototype.jsonRepresentation = function () {
+
+        var json;
+
+        json = {
+            name: this.name,
+            color: this.color,
+            order: this.order,
+            height: this.height,
+            path: this.featureSource.config.url,
+            trackFilter: this.trackFilter.jsonRepresentation()
+        };
+
+        return json;
+    };
+
+    cursor.CursorTrack.prototype.popupMenuItems = function (popover) {
+
+        return [igv.colorPickerMenuItem(popover, this.trackView, "Set color", this.color)];
+
+    };
+
+    cursor.CursorTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset) {
+
+        // TODO - Cloned from featureTrack. Adapt as needed.
+        //if (this.featureSource.featureCache) {
+        //
+        //    var chr = igv.browser.referenceFrame.chr,  // TODO -- this should be passed in
+        //        tolerance = igv.browser.referenceFrame.bpPerPixel,  // We need some tolerance around genomicLocation, start with +/- 1 pixel
+        //        featureList = this.featureSource.featureCache.queryFeatures(chr, genomicLocation - tolerance, genomicLocation + tolerance),
+        //        row,
+        //        popupData;
+        //
+        //    //if (this.displayMode != "COLLAPSED") {
+        //    //    row = (Math.floor)(this.displayMode === "SQUISHED" ? yOffset / this.squishedRowHeight : yOffset / this.expandedRowHeight);
+        //    //}
+        //
+        //    if (featureList && featureList.length > 0) {
+        //
+        //        popupData = [];
+        //        featureList.forEach(function (feature) {
+        //            if (feature.popupData &&
+        //                feature.end >= genomicLocation - tolerance &&
+        //                feature.start <= genomicLocation + tolerance) {
+        //
+        //                if (row === undefined || feature.row === undefined || row === feature.row) {
+        //                    var featureData = feature.popupData(genomicLocation);
+        //                    if (featureData) {
+        //                        if (popupData.length > 0) {
+        //                            popupData.push("<HR>");
+        //                        }
+        //                        Array.prototype.push.apply(popupData, featureData);
+        //                    }
+        //                }
+        //            }
+        //        });
+        //
+        //        return popupData;
+        //    }
+        //
+        //}
+
+        return null;
+    };
+
+    cursor.defaultColor = function () {
+        return "rgb(  3, 116, 178)";
+    };
+
+    cursor.CursorTrack.prototype.isSortTrack = function () {
+
+        var success = (this === this.cursorModel.browser.sortTrack);
+        return success;
+    };
+
+    cursor.CursorTrack.prototype.getFeatureCache = function (continuation) {
+
+        var myself = this;
+
+        if (this.featureSource.featureCache) {
+            var featureCache = this.featureSource.featureCache;
+            if(this.max === undefined) {
+                var allFeatures;
+
+                allFeatures = featureCache.allFeatures();
+
+                featureCache.signalColumn = findSignalColumn(allFeatures);
+
+                myself.max = percentile(allFeatures, 98, featureCache.signalColumn);
+
+            }
+
+            continuation(this.featureSource.featureCache);
+        }
+        else {
+
+            // Check for the header (track line).  If we haven't loaded it yet do that first
+            if (myself.header === undefined && myself.featureSource.getHeader) {
+                myself.featureSource.getHeader(function (header) {
+                    //console.log("Set header: " + header);
+                    setHeader.call(myself, header);
+                    myself.getFeatureCache(continuation);
+                    return;
+                });
+            }
+
+
+            function setHeader(header) {
+
+                if (header) {
+                    myself.header = header;
+                    if (header.name && !myself.config.name) {
+                        myself.name = header.name;
+                        if (myself.trackLabelDiv) {
+                            myself.trackLabelDiv.innerHTML = header.name;
+                            myself.trackLabelDiv.title = header.name;
+                        }
+                    }
+                    if (header.color && !myself.config.color) {
+                        myself.color = "rgb(" + header.color + ")";
+                        if (myself.cursorHistogram) myself.cursorHistogram.render(this);
+                    }
+                    if (header.height && !myself.config.trackHeight) {
+                        myself.height = header.height;
+                    }
+                }
+                else {
+                    this.header = null;   // Insure it has a value other than undefined
+                }
+
+            }
+        }
+    }
+
+
+    /**
+     * Choose between "signal" and "score" columns, prefer signal
+     *
+     * @param allFeatures
+     */
+    function findSignalColumn(allFeatures) {
+
+        allFeatures.forEach(function (feature) {
+            if (feature.signal) return "signal";
+        })
+        return "score";
+
+    }
+
+
+    function percentile(featureList, per, signalColumn) {
+
+        var idx = Math.floor(featureList.length * per / 100);
+
+        featureList.sort(function (a, b) {
+
+            if (a[signalColumn] > b[signalColumn]) return 1;
+            else if (a[signalColumn] < b[signalColumn]) return -1;
+            else return 0;
+        });
+
+        return featureList[idx][signalColumn]
+
+    }
+
+    /**
+     *
+     * @param canvas -- an igv.Canvas  (not a Canvas2D)
+     * @param refFrame -- reference frame for rendering
+     * @param start -- start region (can be fractional)
+     * @param end -- ignored
+     * @param width -- pixel width
+     * @param height -- pixel height
+     * @param continuation -- called when done.  No arguments
+     */
+    cursor.CursorTrack.prototype.draw = function (ctx, refFrame, start, end, width, height, continuation) {
+
+        var myself = this;
+
+        this.getFeatureCache(function (featureCache) {
+            drawFeatures.call(myself, featureCache);
+        });
+
+        function drawFeatures(featureCache) {
+
+            var regionNumber,
+                region,
+                regions,
+                len,
+                cursorModel,
+                framePixelWidth,
+                regionWidth,
+                scale,
+                frameMargin,
+                sampleInterval,
+                chr,
+                pxStart,
+                pxEnd,
+                maxFeatureHeight,
+                regionFeatures,
+                i,
+                flen,
+                feature,
+                score,
+                pStart,
+                pEnd,
+                pw,
+                fh,
+                regionBpStart,
+                regionBpEnd,
+                top,
+                signalColumn = featureCache.signalColumn;
+
+            regions = this.cursorModel.regionsToRender();
+
+            if (!regions /*|| regions.length == 0*/) {
+                continuation();
+            }
+
+            cursorModel = this.cursorModel;
+            framePixelWidth = cursorModel.framePixelWidth; // region width in pixels
+            regionWidth = cursorModel.regionWidth;
+            frameMargin = cursorModel.frameMargin;
+
+            // Adjust the frame margin so it is no more than 1/4 the width of the region (in pixels)
+            frameMargin = Math.floor(Math.min(framePixelWidth / 4), frameMargin);
+
+            sampleInterval = Math.max(1, Math.floor(1.0 / framePixelWidth));
+
+            if (frameMargin > 0) {
+                igv.Canvas.fillRect.call(ctx, 0, 0, width, height, {fillStyle: 'rgb(255, 255, 255)'});
+            }
+
+            igv.Canvas.setProperties.call(ctx, {fillStyle: this.color, strokeStyle: this.color});
+
+            for (regionNumber = Math.floor(start), len = regions.length;
+                 regionNumber < len && regionNumber < end;
+                 regionNumber += sampleInterval) {
+
+                //igv.Canvas.setProperties.call(ctx, {fillStyle: igv.randomRGB(128, 255), strokeStyle: this.color});
+
+                region = regions[regionNumber];
+
+                chr = region.chr;
+                regionBpStart = region.location - regionWidth / 2;
+                regionBpEnd = region.location + regionWidth / 2;
+
+                pxStart = Math.floor((regionNumber - start) * framePixelWidth + frameMargin / 2);
+
+                pxEnd = framePixelWidth > 1 ?
+                    Math.floor((regionNumber + 1 - start) * framePixelWidth - frameMargin / 2) :
+                pxStart + 1;
+
+                maxFeatureHeight = height;
+
+                if (framePixelWidth > 2) {
+
+                    regionFeatures = featureCache.queryFeatures(region.chr, regionBpStart, regionBpEnd);
+
+                    for (i = 0, flen = regionFeatures.length; i < flen; i++) {
+
+                        feature = regionFeatures[i];
+                        if (feature.end >= regionBpStart && feature.start < regionBpEnd) {
+                            score = feature[signalColumn];
+                            scale = regionWidth / (framePixelWidth - frameMargin);    // BP per pixel
+                            pStart = Math.min(pxEnd, Math.max(pxStart, pxStart + (feature.start - regionBpStart) / scale));
+                            pEnd = Math.min(pxEnd, pxStart + (feature.end - regionBpStart) / scale);
+                            pw = Math.max(1, pEnd - pStart);
+                        }
+                    }
+                }
+                else {
+
+                    pw = pxEnd - pxStart;
+                    score = region.getScore(featureCache, regionWidth);
+                }
+                if (score !== undefined && this.max > 0) {
+                    // Height proportional to score
+                    fh = Math.round(((score / this.max) * maxFeatureHeight));
+                    top = height - fh;
+                }
+                else {
+                    top = 0;
+                    fh = height;
+                }
+
+                igv.Canvas.fillRect.call(ctx, pxStart, top, pw, fh);
+
+
+            }
+
+            continuation();
+        }
+    };
+
+    cursor.CursorTrack.prototype.drawLabel = function (ctx) {
+        // draw label stuff
+    };
+
+    return cursor;
+
+})
+(cursor || {});
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by turner on 9/23/14.
+ */
+/**
+ * Created by turner on 9/19/14.
+ */
+var cursor = (function (cursor) {
+
+    var minimumHorizontalScrollBarDraggableWidth = 6;
+
+    cursor.HorizontalScrollbar = function (browser, horizontalScrollBarContainer) {
+
+        this.browser = browser;
+        this.markupWithParentDivObject(horizontalScrollBarContainer);
+
+    };
+
+    cursor.HorizontalScrollbar.prototype.update = function () {
+
+        var scrollBarWidth = $(".igv-horizontal-scrollbar-div").first().width(),
+            scrollBarDraggable = $(".igv-horizontal-scrollbar-draggable-div").first(),
+            framePixelWidth = this.browser.cursorModel.framePixelWidth,
+            regionListLength = this.browser.cursorModel.filteredRegions.length,
+            referenceFrame = this.browser.referenceFrame,
+            regionBoundsWidth,
+            trackLeft,
+            scrollBarDraggableLeft,
+            scrollBarDraggableWidth;
+
+        regionBoundsWidth = framePixelWidth * regionListLength;
+
+        scrollBarDraggableWidth = Math.max(minimumHorizontalScrollBarDraggableWidth, (scrollBarWidth/regionBoundsWidth) * scrollBarWidth);
+
+        trackLeft = referenceFrame.toPixels( referenceFrame.start );
+        scrollBarDraggableLeft = (scrollBarWidth/regionBoundsWidth) * trackLeft;
+
+        // handle minification with draggable near right edge of scroll bar.
+        // must reposition AND scale draggable AND pan track
+        if ((scrollBarDraggableLeft + scrollBarDraggableWidth) > scrollBarWidth) {
+
+            // reposition/rescale draggable
+            scrollBarDraggableLeft -= ((scrollBarDraggableLeft + scrollBarDraggableWidth) - scrollBarWidth);
+            scrollBarDraggableWidth = scrollBarWidth - scrollBarDraggableLeft;
+
+            // pan track
+            referenceFrame.start = referenceFrame.toBP( (regionBoundsWidth/scrollBarWidth) * scrollBarDraggableLeft );
+
+            // update
+            if (this.browser.ideoPanel) this.browser.ideoPanel.repaint();
+            if (this.browser.karyoPanel) this.browser.karyoPanel.repaint();
+            this.browser.trackViews.forEach(function (trackPanel) { trackPanel.update(); });
+        }
+
+        $( scrollBarDraggable).css({
+            "left": Math.floor( scrollBarDraggableLeft ) + "px",
+            "width": Math.floor( scrollBarDraggableWidth ) + "px"
+        });
+
+    };
+
+    cursor.HorizontalScrollbar.prototype.markupWithParentDivObject = function (horizontalScrollBarContainer) {
+
+        var myself = this,
+            horizontalScrollBar,
+            horizontalScrollBarShim,
+            horizontalScrollBarDraggable,
+            anyViewport,
+            isMouseDown = undefined,
+            lastMouseX = undefined;
+
+        horizontalScrollBarShim = $('<div class="igv-horizontal-scrollbar-shim-div">')[0];
+        horizontalScrollBarContainer.append(horizontalScrollBarShim);
+
+        anyViewport = $("div.igv-viewport-div").first();
+        $( horizontalScrollBarShim).css("left",  anyViewport.css("left"));
+        $( horizontalScrollBarShim).css("right", anyViewport.css("right"));
+
+
+        horizontalScrollBar = $('<div class="igv-horizontal-scrollbar-div">')[0];
+        $(horizontalScrollBarShim).append(horizontalScrollBar);
+
+        horizontalScrollBarDraggable = $('<div class="igv-horizontal-scrollbar-draggable-div">')[0];
+        $(horizontalScrollBar).append(horizontalScrollBarDraggable);
+
+        // mouse event handlers
+        $( document ).mousedown(function(e) {
+            //lastMouseX = e.offsetX;
+            lastMouseX = e.screenX;
+            myself.isMouseIn = true;
+        });
+
+        $( horizontalScrollBarDraggable ).mousedown(function(e) {
+            isMouseDown = true;
+        });
+
+        $( document ).mousemove(function (e) {
+
+            var maxRegionPixels,
+                left;
+
+            if (isMouseDown && myself.isMouseIn && undefined !== lastMouseX) {
+
+                left = $(horizontalScrollBarDraggable).position().left;
+                left += (e.screenX - lastMouseX);
+
+                // clamp
+                left = Math.max(0, left);
+                left = Math.min(($(horizontalScrollBar).width() - $(horizontalScrollBarDraggable).outerWidth()), left);
+
+                $( horizontalScrollBarDraggable).css({
+                    "left": left + "px"
+                });
+
+                maxRegionPixels = myself.browser.cursorModel.framePixelWidth * myself.browser.cursorModel.filteredRegions.length;
+                myself.browser.referenceFrame.start = myself.browser.referenceFrame.toBP(left) * (maxRegionPixels/$(horizontalScrollBar).width());
+
+                // update
+                if (myself.browser.ideoPanel) myself.browser.ideoPanel.repaint();
+                if (myself.browser.karyoPanel) myself.browser.karyoPanel.repaint();
+                myself.browser.trackViews.forEach(function (trackPanel) {
+                    trackPanel.update();
+                });
+
+                lastMouseX = e.screenX
+            }
+
+        });
+
+        $( document ).mouseup(function(e) {
+            isMouseDown = false;
+            lastMouseX = undefined;
+            myself.isMouseIn = undefined;
+        });
+
+    };
+
+    return cursor;
+
+})(cursor || {});
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var igv = (function (igv) {
+
+    igv.createCursorBrowser = function (options) {
+
+        var $horizontalScrollBarContainer,
+            $contentHeader,
+            trackContainerDiv,
+            browser,
+            $utilityDiv,
+            dataSource;
+
+        // Append event handlers to Header DIV
+        document.getElementById('zoomOut').onclick = function (e) {
+            browser.zoomOut()
+        };
+        document.getElementById('zoomIn').onclick = function () {
+            browser.zoomIn()
+        };
+        document.getElementById('fitToScreen').onclick = function () {
+            browser.fitToScreen();
+        };
+        document.getElementById('regionSizeInput').onchange = function (e) {
+
+            var value = $("#regionSizeInput").val();
+            if (!igv.isNumber(value)) {
+                console.log("bogus " + value);
+                return;
+            }
+
+            browser.setRegionSize(parseFloat(value, 10));
+        };
+        document.getElementById('frameWidthInput').onchange = function (e) {
+
+            var value = $("input[id='frameWidthInput']").val();
+            if (!igv.isNumber(value)) {
+                console.log("bogus " + value);
+                return;
+            }
+
+            browser.setFrameWidth(parseFloat(value, 10));
+
+        };
+        document.getElementById('trackHeightInput').onchange = function (e) {
+
+            var value = $("#trackHeightInput").val();
+            if (!igv.isNumber(value)) {
+                console.log("bogus " + value);
+                return;
+            }
+
+            browser.setTrackHeight(Math.round(parseFloat(value, 10)));
+        };
+
+        // export regions via modal form
+        $("#igvExportRegionsModalForm").submit(function (event) {
+
+            var exportedRegions = "",
+                downloadInput = $("#igvExportRegionsModalForm").find('input[name="downloadContent"]');
+
+            browser.cursorModel.filteredRegions.forEach(function (region) {
+                exportedRegions += region.exportRegion(browser.cursorModel.regionWidth);
+            });
+
+            downloadInput.val(exportedRegions);
+
+            $('#igvExportRegionsModal').modal('hide');
+
+        });
+
+        // save session via modal form
+        $("#igvSaveSessionModalForm").submit(function (event) {
+
+            var session,
+                downloadInput;
+
+            session = browser.session();
+            downloadInput = $("#igvSaveSessionModalForm").find('input[name="downloadContent"]');
+
+            downloadInput.val(session);
+
+            $('#igvSaveSessionModal').modal('hide');
+
+        });
+
+        // session upload
+        var sessionInput = document.getElementById('igvSessionLoad');
+        sessionInput.addEventListener('change', function (e) {
+
+            var fileReader = new FileReader(),
+                sessionFile;
+
+            sessionFile = sessionInput.files[ 0 ];
+
+            fileReader.onload = function (e) {
+
+                var json = e.target.result,
+                    session = JSON.parse(json);
+
+                $("#igvSessionLoad").val("");
+
+                $('#igvSessionLoadModal').modal('hide');
+
+                browser.initializeWithSession(session);
+
+            };
+
+            fileReader.readAsText(sessionFile);
+
+        });
+
+        // BED file upload
+        document.getElementById('igvFileUpload').onchange = function (e) {
+
+            var localFile = $(this)[ 0 ].files[ 0 ];
+
+            configureTrackWithLocalFileOrPath( { type: "bed", localFile: localFile} );
+
+            $(this).val("");
+            $('#igvFileUploadModal').modal('hide');
+        };
+
+        // BED URL upload
+        document.getElementById('igvLoadURL').onchange = function (e) {
+
+            var path = $(this).val();
+
+            // configureTrackWithLocalFileOrPath( { type: "bed", url: path, name: igv.browser.trackLabelWithPath(path) } );
+            configureTrackWithLocalFileOrPath( { type: "bed", url: path, name: 'unnamed' } );
+
+            $(this).val("");
+            $('#igvLoadURLModal').modal('hide');
+
+        };
+
+        function configureTrackWithLocalFileOrPath(config) {
+
+            config.designatedTrack = (0 === igv.browser.trackViews.length) ? true : undefined;
+            igv.browser.loadTracksWithConfigList([config]);
+        }
+
+        // Construct DOM hierarchy
+        trackContainerDiv = $('<div id="igvTrackContainerDiv" class="igv-track-container-div">')[0];
+        browser = new igv.Browser(options, trackContainerDiv);
+
+        browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'));
+
+        // Attach spinner to root div
+        browser.$root.append( cursor.spinner() );
+        cursor.stopSpinner(browser.$root);
+
+        // document.getElementById('igvContainerDiv').appendChild(browser.$root);
+        $('igvContainerDiv').append(browser.$root);
+
+        $contentHeader = $('<div class="row"></div>');
+        browser.$root.append($contentHeader);
+
+        // horizontal scrollbar container. fill in the guts after track construction
+        $horizontalScrollBarContainer = $('<div class="igv-horizontal-scrollbar-container-div">');
+        browser.$root.append($horizontalScrollBarContainer);
+
+        // utility div
+        $utilityDiv = $('<div class="igv-utility-div">');
+        browser.$root.append($utilityDiv);
+
+        // control panel header
+        $utilityDiv.append($('<div class="igv-control-panel-header-div">Track Summary</div>'));
+
+        // track container
+        browser.$root.append($(trackContainerDiv));
+
+        // Popover object -- singleton shared by all components
+        igv.popover = new igv.Popover(browser.$root);
+
+        // ColorPicker object -- singleton shared by all components
+        igv.colorPicker = new igv.ColorPicker(browser.$root, options.palette);
+        igv.colorPicker.hide();
+
+        // Dialog object -- singleton shared by all components
+        igv.dialog = new igv.Dialog(browser.$root, igv.Dialog.dialogConstructor);
+        igv.dialog.hide();
+
+
+        // extend jquery ui dialog widget to support enter key triggering "ok" button press.
+        $.extend($.ui.dialog.prototype.options, {
+
+            create: function() {
+
+                var $this = $(this);
+
+                // focus first button and bind enter to it
+                $this.parent().find('.ui-dialog-buttonpane button:first').focus();
+
+                $this.keypress(function(e) {
+
+                    if( e.keyCode == $.ui.keyCode.ENTER ) {
+                        $this.parent().find('.ui-dialog-buttonpane button:first').click();
+                        return false;
+                    }
+
+                });
+            }
+
+        });
+
+        igv.addAjaxExtensions();
+
+        // Add cursor specific methods to the browser object,  some new some overrides
+        addCursorBrowserExtensions(browser);
+        addCursorTrackViewExtensions(browser);
+
+        browser.cursorModel = new cursor.CursorModel(browser);
+        browser.referenceFrame = new igv.ReferenceFrame("", 0, 1 / browser.cursorModel.framePixelWidth);
+
+        browser.highlightColor = "rgb(204, 51, 0)";
+
+        // Launch app with session JSON if provided as param
+        var sessionJSONPath = igv.getQueryValue('session');
+
+        if (sessionJSONPath) {
+
+            $.getJSON(sessionJSONPath, function (session) {
+
+
+                console.log("launchSession: " + JSON.stringify(session));
+                browser.initializeWithSession(session);
+
+            });
+
+        }
+        else {
+
+            if (undefined === options.tracks || 0 === options.tracks.length) {
+                return;
+            }
+
+            browser.loadTracksWithConfigList(options.tracks);
+
+        }
+
+        return browser;
+    };
+
+    function addCursorBrowserExtensions(browser) {
+
+        // Augment standard behavior of loadTracksWithConfigList
+        browser.loadTracksWithConfigList = function (configList) {
+
+            var tracks = [],
+                doInitialize;
+
+            configList.forEach(function(config){
+
+                var track = cursorTrackWithConfig(config, browser);
+
+                if (undefined !== track) {
+                    tracks.push(track);
+
+                    if (true === config.designatedTrack) {
+                        browser.designatedTrack = track;
+                    }
+
+                }
+
+            });
+
+            if (0 === tracks.length) {
+                return;
+            }
+
+            if (undefined === browser.designatedTrack) {
+                browser.designatedTrack = tracks[ 0 ];
+            }
+
+            browser.getFeaturesForTracks(tracks, function () {
+
+                doInitialize = (0 === igv.browser.trackViews.length);
+
+                tracks.forEach(function (track) {
+                    browser.addTrack(track);
+                });
+
+                if (doInitialize) {
+                    browser.designatedTrack.featureSource.allFeatures(function (features) {
+
+                        var horizontalScrollBarContainer = $("div.igv-horizontal-scrollbar-container-div");
+                        browser.horizontalScrollbar = new cursor.HorizontalScrollbar(browser, $(horizontalScrollBarContainer));
+
+                        browser.cursorModel.setRegions(features);
+
+                        browser.horizontalScrollbar.update();
+                    });
+                }
+
+
+
+            });
+
+        };
+
+        browser.initializeWithSession = function (session) {
+
+            var tracks;
+
+            browser.sessionTeardown();
+
+            browser.cursorModel.regionWidth = session.regionWidth;
+            $("input[id='regionSizeInput']").val(browser.cursorModel.regionWidth);
+
+            tracks = [];
+            session.tracks.forEach(function(trackSession){
+
+                var track,
+                    config = {
+                        type: "bed",
+                        url: trackSession.path,
+                        color: trackSession.color,
+                        name: trackSession.name || trackSession.label,   // label is (deprecated) synonym for name
+                        order: trackSession.order,
+                        height: trackSession.height,
+                        trackFilter: trackSession.trackFilter,
+                        designatedTrack: trackSession.designatedTrack
+                    };
+
+                track = cursorTrackWithConfig(config, browser);
+                if (undefined !== track) {
+                    tracks.push(track);
+                }
+
+                if (config.designatedTrack && true === config.designatedTrack) {
+                    browser.designatedTrack = track;
+                }
+
+            });
+
+            if (0 === tracks.length) {
+                return;
+            }
+
+            if (undefined === browser.designatedTrack) {
+                browser.designatedTrack = tracks[ 0 ];
+            }
+
+            browser.getFeaturesForTracks(tracks, function () {
+
+                tracks.forEach(function (track) {
+                    browser.addTrack(track);
+                });
+
+                browser.designatedTrack.featureSource.allFeatures(function (features) {
+
+                    var horizontalScrollBarContainer = $("div.igv-horizontal-scrollbar-container-div");
+                    browser.horizontalScrollbar = new cursor.HorizontalScrollbar(browser, $(horizontalScrollBarContainer));
+
+                    browser.cursorModel.setRegions(features);
+
+                    browser.setFrameWidth(browser.trackViewportWidth() * session.framePixelWidthUnitless);
+
+                    browser.referenceFrame.bpPerPixel = 1.0 / browser.cursorModel.framePixelWidth;
+
+                    //browser.goto("", session.start, session.end);
+                    browser.fitToScreen();
+
+                    browser.horizontalScrollbar.update();
+
+                });
+
+            });
+
+        };
+
+        browser.session = function () {
+
+            var dev_null,
+                session =
+                {
+                    start: Math.floor(browser.referenceFrame.start),
+                    end: Math.floor((browser.referenceFrame.bpPerPixel * browser.trackViewportWidth()) + browser.referenceFrame.start),
+                    regionWidth: browser.cursorModel.regionWidth,
+                    framePixelWidthUnitless: (browser.cursorModel.framePixelWidth / browser.trackViewportWidth()),
+                    tracks: []
+                };
+
+            dev_null = browser.trackViewportWidth();
+
+            browser.trackViews.forEach(function (trackView) {
+
+                var jsonRepresentation = trackView.track.jsonRepresentation();
+
+                if (jsonRepresentation) {
+
+                    if (browser.designatedTrack && browser.designatedTrack === trackView.track) {
+                        jsonRepresentation.designatedTrack = true;
+                    }
+
+                    session.tracks.push(jsonRepresentation);
+                }
+                else {
+                    // TODO -- what if there is no json repesentation?
+                }
+            });
+
+            return JSON.stringify(session, undefined, 4);
+
+        };
+
+        browser.sessionTeardown = function () {
+
+            var trackView,
+                horizontalScrollBarContainer;
+
+            while (this.trackViews.length > 0) {
+                trackView = this.trackViews[ this.trackViews.length - 1 ];
+                this.removeTrack(trackView.track);
+            }
+
+            horizontalScrollBarContainer = $("div.igv-horizontal-scrollbar-container-div");
+            $(horizontalScrollBarContainer).empty();
+
+            this.horizontalScrollbar = undefined;
+
+        };
+
+        browser.getFeaturesForTracks = function (tracks, continuation) {
+
+            var trackCount = tracks.length;
+
+            igv.startSpinner(browser.$root);
+
+            tracks.forEach(function (track) {
+
+                track.getFeatureCache(function(ignored){
+
+                    --trackCount;
+                    if (0 === trackCount) {
+
+                        igv.stopSpinner(browser.$root);
+
+                        // do stuff
+                        continuation();
+
+                    }
+
+                });
+
+            });
+
+        };
+
+        browser.presentSortStatus = function (trackView) {
+
+            $(trackView.track.sortButton).addClass("igv-control-sort-fa-selected");
+
+            $(browser.trackContainerDiv).find("i.fa-signal").each(function() {
+
+                var me = $(this);
+
+                if (1 === browser.sortDirection) {
+                    me.addClass("fa-flip-horizontal");
+                } else {
+                    me.removeClass("fa-flip-horizontal");
+                }
+
+            });
+
+        };
+
+        browser.selectDesignatedTrack = function (trackView) {
+
+            var currentDesignatedTrackView,
+                bullseyeInner,
+                bullseyeOuter,
+                trackLabelDiv;
+
+            if (browser.designatedTrack && browser.designatedTrack.trackFilter.trackPanel !== trackView) {
+
+                currentDesignatedTrackView = browser.designatedTrack.trackFilter.trackPanel;
+
+                bullseyeInner = $(currentDesignatedTrackView.trackDiv).find("i.fa-circle");
+                bullseyeInner.removeClass("igv-control-bullseye-fa-selected");
+                bullseyeInner.addClass   ("igv-control-bullseye-fa");
+
+                bullseyeOuter = $(currentDesignatedTrackView.trackDiv).find("i.fa-circle-thin");
+                bullseyeOuter.removeClass("igv-control-bullseye-fa-selected");
+
+                trackLabelDiv = $(currentDesignatedTrackView.trackDiv).find("div.igv-track-label-div");
+                trackLabelDiv.removeClass("igv-track-label-selected-div");
+
+            }
+
+            browser.designatedTrack = trackView.track;
+
+            bullseyeInner = $(trackView.trackDiv).find("i.fa-circle");
+            bullseyeInner.removeClass("igv-control-bullseye-fa");
+            bullseyeInner.addClass   ("igv-control-bullseye-fa-selected");
+
+            bullseyeOuter = $(trackView.trackDiv).find("i.fa-circle-thin");
+            bullseyeOuter.addClass("igv-control-bullseye-fa-selected");
+
+
+            //bullseyeInner.css({
+            //    "color" : browser.highlightColor
+            //});
+
+            trackLabelDiv = $(trackView.trackDiv).find("div.igv-track-label-div");
+            trackLabelDiv.addClass("igv-track-label-selected-div");
+
+        };
+
+        browser.setFrameWidth = function (frameWidthString) {
+
+            if (!igv.isNumber(frameWidthString)) {
+                console.log("bogus " + frameWidthString);
+                return;
+            }
+
+            var frameWidth = parseFloat(frameWidthString);
+            if (frameWidth > 0) {
+
+                browser.cursorModel.framePixelWidth = frameWidth;
+                browser.referenceFrame.bpPerPixel = 1 / frameWidth;
+
+                $("input[id='frameWidthInput']").val(frameWidthNumberFormatter(frameWidth));
+
+                browser.update();
+            }
+
+
+        };
+
+        browser.setRegionSize = function (regionSizeString) {
+
+            var regionSize = parseFloat(regionSizeString);
+            if (regionSize > 0) {
+
+                browser.cursorModel.regionWidth = regionSize;
+                $("input[id='regionSizeInput']").val(browser.cursorModel.regionWidth);
+
+                browser.cursorModel.filterRegions();
+            }
+
+        };
+
+        browser.zoomIn = function () {
+
+            browser.setFrameWidth(2.0 * browser.cursorModel.framePixelWidth);
+            browser.update();
+        };
+
+        browser.zoomOut = function () {
+
+            var thresholdFramePixelWidth = browser.trackViewportWidth() / browser.cursorModel.regionsToRender().length;
+
+            browser.setFrameWidth(Math.max(thresholdFramePixelWidth, 0.5 * browser.cursorModel.framePixelWidth));
+
+            browser.update();
+        };
+
+        browser.fitToScreen = function () {
+
+            var frameWidth;
+
+            if (!(browser.cursorModel && browser.cursorModel.regions)) {
+                return;
+            }
+
+            if (browser.cursorModel.regionsToRender().length > 0) {
+                frameWidth = browser.trackViewportWidth() / browser.cursorModel.regionsToRender().length;
+                browser.referenceFrame.start = 0;
+                browser.setFrameWidth(frameWidth);
+            }
+        };
+
+        browser.trackContentWidth = function () {
+
+            var width;
+
+            if (this.trackViews && this.trackViews.length > 0) {
+                width = this.trackViews[0].contentDiv.clientWidth;
+            }
+            else {
+                width = this.trackContainerDiv.clientWidth;
+            }
+
+            return width;
+
+        };
+
+        // Augment standard behavior of resize
+        browser.resize = function () {
+
+            var ratio;
+
+            if (!browser.horizontalScrollbar) {
+
+                this.__proto__.resize.call(this);
+            }
+            else {
+
+                ratio = browser.cursorModel.framePixelWidth / browser.trackContentWidth();
+
+                this.__proto__.resize.call(this);
+
+                //browser.cursorModel.framePixelWidth = ratio * browser.trackContentWidth();
+                //browser.referenceFrame.bpPerPixel = 1.0 / browser.cursorModel.framePixelWidth;
+                //
+                //$("input[id='frameWidthInput']").val(frameWidthNumberFormatter(browser.cursorModel.framePixelWidth));
+
+                browser.setFrameWidth( ratio * browser.trackContentWidth() );
+                browser.horizontalScrollbar.update();
+            }
+
+        };
+
+        // Augment standard behavior of removeTrack
+        browser.removeTrack = function (track) {
+
+            this.__proto__.removeTrack.call(this, track);
+
+            if (track === this.designatedTrack) {
+                this.designatedTrack = undefined;
+            }
+
+            this.cursorModel.filterRegions();
+
+        };
+
+        function frameWidthNumberFormatter(frameWidth) {
+
+            var divisor;
+
+            if (frameWidth < 1) {
+
+                divisor = 1000;
+            } else if (frameWidth < 100) {
+
+                divisor = 100;
+            } else {
+
+                divisor = 10;
+            }
+
+            return Math.round(frameWidth * divisor) / divisor;
+        }
+
+        function cursorTrackWithConfig(config, browser){
+
+            var path,
+                type,
+                track;
+
+            // if (browser.isDuplicateTrack(config)) {
+            //     return undefined;
+            // }
+
+            path = config.url;
+            type = config.type;
+            if (!type) {
+                type = cursorGetType(path);
+            }
+
+            if (type !== "bed") {
+                window.alert("Bad Track type");
+                return undefined;
+            }
+
+            track = new cursor.CursorTrack(config, browser);
+
+            if (config.designatedTrack && true === config.designatedTrack) {
+                browser.designatedTrack = track;
+            }
+
+            function cursorGetType(path) {
+
+                if (path.endsWith(".bed") || path.endsWith(".bed.gz") || path.endsWith(".broadPeak") || path.endsWith(".broadPeak.gz")) {
+                    return "bed";
+                } else {
+                    return undefined;
+                }
+
+            }
+
+            return track;
+        }
+
+    }
+
+    function addCursorTrackViewExtensions(browser) {
+
+        igv.TrackView.prototype.viewportCreationHelper = function (viewportDiv) {
+            // do nothing;
+            //console.log("nadda");
+        };
+
+        igv.TrackView.prototype.leftHandGutterCreationHelper = function (leftHandGutter) {
+
+            var trackView = this,
+                track = trackView.track,
+                trackFilterButtonDiv,
+                trackLabelDiv,
+                sortButton,
+                bullseyeStackSpan,
+                bullseyeOuterIcon,
+                bullseyeInnerIcon;
+
+            // track label
+            trackLabelDiv = $('<div class="igv-track-label-div">')[0];
+            trackLabelDiv.innerHTML = track.name;
+            trackLabelDiv.title = track.name;
+            $(trackView.leftHandGutter).append(trackLabelDiv);
+            track.trackLabelDiv = trackLabelDiv;  // DON'T REMOVE THIS!
+
+            // track selection
+            bullseyeStackSpan = document.createElement("span");
+            $(trackView.leftHandGutter).append($(bullseyeStackSpan));
+
+            bullseyeStackSpan.className = "fa-stack igv-control-bullseye-stack-fa";
+            track.bullseyeStackSpan = bullseyeStackSpan;
+
+            bullseyeOuterIcon = document.createElement("i");
+            bullseyeStackSpan.appendChild(bullseyeOuterIcon);
+            bullseyeOuterIcon.className = "fa fa-stack-2x fa-circle-thin";
+
+            bullseyeInnerIcon = document.createElement("i");
+            bullseyeStackSpan.appendChild(bullseyeInnerIcon);
+            bullseyeInnerIcon.className = "fa fa-stack-1x fa-circle igv-control-bullseye-fa";
+
+            bullseyeStackSpan.onclick = function () {
+
+                if (browser.designatedTrack && browser.designatedTrack === trackView.track) {
+                    return;
+                } else {
+                    browser.selectDesignatedTrack(trackView);
+                }
+
+                if(browser.cursorModel) {
+                    browser.designatedTrack.featureSource.allFeatures(function (featureList) {
+                        browser.referenceFrame.start = 0;
+                        browser.cursorModel.setRegions(featureList);
+                    });
+                }
+
+            };
+
+            // track filter
+            trackFilterButtonDiv = document.createElement("div");
+            $(trackView.leftHandGutter).append($(trackFilterButtonDiv));
+
+            trackFilterButtonDiv.className = "igv-track-filter-button-div";
+
+            trackView.track.trackFilter = new igv.TrackFilter(trackView);
+            trackView.track.trackFilter.createTrackFilterWidgetWithParentElement(trackFilterButtonDiv);
+
+            // sort
+            browser.sortDirection = undefined;
+            browser.sortTrack = undefined;
+
+            sortButton = document.createElement("i");
+            $(trackView.leftHandGutter).append($(sortButton));
+            sortButton.className = "fa fa-signal igv-control-sort-fa fa-flip-horizontal";
+            track.sortButton = sortButton;
+
+            sortButton.onclick = function () {
+
+                if (browser.sortTrack === track) {
+
+                    browser.sortDirection = (undefined === browser.sortDirection) ? 1 : -1 * browser.sortDirection;
+                } else {
+
+                    browser.sortTrack = track;
+                    if (undefined === browser.sortDirection) {
+                        browser.sortDirection = 1;
+                    }
+                }
+
+                browser.cursorModel.sortRegions(track.featureSource, browser.sortDirection, function (regions) {
+
+                    browser.update();
+
+                    browser.trackViews.forEach(function (tp) {
+
+                        if (1 === browser.sortDirection) {
+
+                            $(tp.track.sortButton).addClass("fa-flip-horizontal");
+                        } else {
+
+                            $(tp.track.sortButton).removeClass("fa-flip-horizontal");
+                        }
+
+                        if (track === tp.track) {
+
+                            $(tp.track.sortButton).addClass("igv-control-sort-fa-selected");
+                        } else {
+
+                            $(tp.track.sortButton).removeClass("igv-control-sort-fa-selected");
+                        }
+                    });
+
+                });
+
+            };
+
+        };
+
+        igv.TrackView.prototype.rightHandGutterCreationHelper = function (trackManipulationIconBox) {
+
+            var myself = this,
+                removeButton,
+                gearButton;
+
+            $(trackManipulationIconBox).append($('<i class="fa fa-chevron-circle-up   igv-track-menu-move-up">')[0]);
+            $(trackManipulationIconBox).append($('<i class="fa fa-chevron-circle-down igv-track-menu-move-down">')[0]);
+
+            $(trackManipulationIconBox).find("i.fa-chevron-circle-up").click(function () {
+                myself.browser.reduceTrackOrder(myself)
+            });
+
+            $(trackManipulationIconBox).find("i.fa-chevron-circle-down").click(function () {
+                myself.browser.increaseTrackOrder(myself)
+            });
+
+
+
+            //removeButton = $('<i class="fa fa-times igv-track-menu-discard">')[0];
+            //$(trackManipulationIconBox).append(removeButton);
+
+            //$(removeButton).click(function () {
+            //    myself.browser.removeTrack(myself.track);
+            //});
+
+
+            gearButton = $('<i class="fa fa-gear fa-20px igv-track-menu-gear igv-app-icon" style="padding-top: 5px">');
+            $(trackManipulationIconBox).append(gearButton[0]);
+
+            $(gearButton).click(function (e) {
+                igv.popover.presentTrackMenu(e.pageX, e.pageY, myself);
+            });
+
+
+        };
+
+        igv.TrackView.prototype.repaint = function () {
+
+            if (!(this.track && this.browser && this.browser.referenceFrame)) {
+                return;
+            }
+
+            var tileWidth,
+                tileStart,
+                tileEnd,
+                buffer,
+                myself = this,
+                ctx,
+                referenceFrame = this.browser.referenceFrame,
+                refFrameStart = referenceFrame.start,
+                refFrameEnd = refFrameStart + referenceFrame.toBP(this.canvas.width);
+
+            if (!this.tile || !this.tile.containsRange(referenceFrame.chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel)) {
+
+                // First see if there is a load in progress that would satisfy the paint request
+
+                if (myself.currentTask && !myself.currentTask.complete && myself.currentTask.end >= refFrameEnd && myself.currentTask.start <= refFrameStart) {
+
+                    // Nothing to do but wait for current load task to complete
+
+                }
+
+                else {
+
+                    if (myself.currentTask) {
+                        if(!myself.currentTask.complete) myself.currentTask.abort();
+                        myself.currentTask = null;
+                    }
+
+                    //igv.startSpinnerAtParentElement(myself.trackDiv);
+
+                    myself.currentTask = {
+                        canceled: false,
+                        chr: referenceFrame.chr,
+                        start: tileStart,
+                        end: tileEnd,
+                        abort: function () {
+                            this.canceled = true;
+                            if (this.xhrRequest) {
+                                this.xhrRequest.abort();
+                            }
+
+                            //igv.stopSpinnerAtParentElement(myself.trackDiv);
+                        }
+
+                    };
+
+                    buffer = document.createElement('canvas');
+                    buffer.width = 3 * this.canvas.width;
+                    buffer.height = this.canvas.height;
+                    ctx =  buffer.getContext('2d');
+
+                    tileWidth = Math.round(referenceFrame.toBP(buffer.width));
+                    tileStart = Math.max(0, Math.round(referenceFrame.start - tileWidth / 3));
+                    tileEnd = tileStart + tileWidth;
+
+                    myself.track.draw(ctx, referenceFrame, tileStart, tileEnd, buffer.width, buffer.height, function (task) {
+
+                            //igv.stopSpinnerAtParentElement(myself.trackDiv);
+
+                            if (!(myself.currentTask && myself.currentTask.canceled)) {
+                                myself.tile = new Tile(referenceFrame.chr, tileStart, tileEnd, referenceFrame.bpPerPixel, buffer);
+                                myself.paintImage();
+
+                            }
+                            myself.currentTask = undefined;
+                        },
+                        myself.currentTask);
+
+                    if (myself.track.paintAxis) {
+
+                        var buffer2 = document.createElement('canvas');
+                        buffer2.width = this.controlCanvas.width;
+                        buffer2.height = this.controlCanvas.height;
+
+                        var ctx2 =  buffer2.getContext('2d');
+
+                        myself.track.paintAxis(ctx2, buffer2.width, buffer2.height);
+
+                        myself.controlCtx.drawImage(buffer2, 0, 0);
+                    }
+                }
+
+            }
+
+            if (this.tile && this.tile.chr === referenceFrame.chr) {
+                this.paintImage();
+            }
+            else {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+
+
+            function Tile (chr, tileStart, tileEnd, scale, image) {
+                this.chr = chr;
+                this.startBP = tileStart;
+                this.endBP = tileEnd;
+                this.scale = scale;
+                this.image = image;
+            }
+
+
+            Tile.prototype.containsRange = function (chr, start, end, scale) {
+                var hit = this.scale == scale && start >= this.startBP && end <= this.endBP && chr === this.chr;
+                return hit;
+            };
+
+
+        };
+
+    }
+
+    return igv;
+
+})(igv || {});
 /*
  * The MIT License (MIT)
  *
@@ -6670,11 +9175,9 @@ var encode = (function (encode) {
         defaultColor ="rgb(3, 116, 178)";
 
 
-    encode.EncodeTable = function ($parent, browser) {
+    encode.EncodeTable = function ($parent, browser, trackLoader) {
 
         var self = this;
-
-        this.browser = browser;
 
         this.initialized = false;
 
@@ -6752,7 +9255,8 @@ var encode = (function (encode) {
                     return obj;
                 });
 
-                self.browser.loadTrackXY(mapped);
+                // console.log('do something cool with ' + _.size(mapped) + ' tracks.');
+                trackLoader.call(browser, mapped);
 
             }
 
@@ -18337,6 +20841,8 @@ var igv = (function (igv) {
 
     igv.KaryoPanel.prototype.repaint = function () {
 
+        if(this.canvasWidth === undefined|| this.canvasHeight === undefined) return;
+
         var genome,
             genomicState,
             referenceFrame,
@@ -18355,13 +20861,13 @@ var igv = (function (igv) {
         // }
 
         genome = igv.browser.genome;
-        
+
         if(!genome.ideograms) {
             console.log('karyo - no ideograms defined')
             return;
         }
-        
-        
+
+
         genomicState = _.first(igv.browser.genomicStateList);
         referenceFrame = genomicState.referenceFrame;
         stainColors = [];
@@ -18397,7 +20903,7 @@ var igv = (function (igv) {
 
         var longestChr = genome.getLongestChromosome();
         var cytobands = genome.getCytobands(longestChr.name);      // Longest chr
-        
+
         if(!cytobands) return;    // Cytobands not defined.
 
         var me = this;
@@ -18486,7 +20992,7 @@ var igv = (function (igv) {
                             nr = 0;
                             for (chr in chromosomes) {
                                 var guichrom = igv.guichromosomes[nr];
-                                //if (nr > 1) break;                       
+                                //if (nr > 1) break;
                                 nr++;
                                 if (guichrom && guichrom.size) {
                                     loadfeatures(source, chr, 0, guichrom.size, guichrom, bufferCtx, tracknr);
@@ -18664,7 +21170,7 @@ var igv = (function (igv) {
         }
 
         function loadfeatures(source, chr, start, end, guichrom, bufferCtx, tracknr) {
-            //log("=== loadfeatures of chr " + chr + ", x=" + guichrom.x);            
+            //log("=== loadfeatures of chr " + chr + ", x=" + guichrom.x);
 
             source.getSummary(chr, start, end, function (featureList) {
                 if (featureList) {

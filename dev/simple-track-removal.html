@@ -77,6 +77,10 @@
         load track
     </div>
 
+    <div id="remove-track" class="remove-track-button">
+        remove track
+    </div>
+
 </div>
 
 <div id="app-container">
@@ -101,6 +105,10 @@
 
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
+        });
+
+        $('#remove-track').on('click', function(e){
+            browser.layoutController.removeTrackXYPair();
         });
 
         $('#load-track').on('click', function(e){

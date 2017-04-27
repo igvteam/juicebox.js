@@ -28,6 +28,9 @@
     <!-- Chosen CSS -->
     <link rel="stylesheet" href="https://harvesthq.github.io/chosen/chosen.css" />
 
+    <!-- site CSS -->
+    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
+
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox-bootstrap.css">
 
@@ -161,7 +164,7 @@
 
     <div class="row">
 
-        <div class="juicebox-widget-container col-md-2">
+        <div class="col-md-2 juicebox-widget-container">
             <div class="dropdown">
 
                 <button id="hic-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
@@ -190,7 +193,11 @@
             </div>
         </div>
 
-        <div class="juicebox-widget-container col-md-7">
+        <div id="remove-track" class="col-md-2 remove-track-button">
+            Remove Track
+        </div>
+
+        <div class="col-md-7 juicebox-widget-container">
             <select id="dataset_selector" data-placeholder="Choose a Hi-C map to view..." class="chosen-select" name="dataset_selector">
                 <option value=""></option>
                 <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
@@ -649,14 +656,6 @@
         var browser,
             reference;
 
-        $('#dataset_selector').on('change', function(e){
-            browser.loadHicFile({ url: $(this).val() });
-        });
-
-//        $('#normalization_selector').on('change', function(e) {
-//            browser.setNormalization($(this).val() );
-//        });
-
         reference =
             {
                 id: "hg19",
@@ -665,6 +664,14 @@
             };
 
         browser = hic.createBrowser($('#app-container'), { reference: reference });
+
+        $('#remove-track').on('click', function(e){
+            browser.layoutController.removeTrackXYPair();
+        });
+
+        $('#dataset_selector').on('change', function(e){
+            browser.loadHicFile({ url: $(this).val() });
+        });
 
         site.init();
 

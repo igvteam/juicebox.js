@@ -127,23 +127,24 @@ var hic = (function (hic) {
 
             _.each(event.data.trackXYPairs, function (trackXYPair) {
 
-                self.browser.trackXYPairCount += 1;
-                self.doLayoutTrackXYPairCount(self.browser.trackXYPairCount);
+                var w,
+                    h;
+
+                self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
 
                 // append tracks
                 trackXY = {};
-                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: self.track_height }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
-                trackXY.y = new hic.TrackRenderer(self.browser, { width: self.track_height, height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
+                w = h = self.track_height;
+                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: h         }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
+                trackXY.y = new hic.TrackRenderer(self.browser, { width: w,         height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
 
                 self.browser.trackRenderers.push(trackXY);
             });
 
-
             this.browser.renderTracks(true);
+            // this.browser.contactMatrixView.update();
+            this.browser.setZoom(this.browser.state.zoom);
 
-        } else if ('DidDeleteTrack' === event.type) {
-            console.log('layout controller - did delete track');
-            this.browser.renderTracks(true);
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
         }
@@ -151,17 +152,45 @@ var hic = (function (hic) {
 
     };
 
+    hic.LayoutController.prototype.removeTrackXYPair = function () {
+        var index,
+            discard;
+
+        if (_.size(this.browser.trackRenderers) > 0) {
+
+            // select last track to dicard
+            discard = _.last(this.browser.trackRenderers);
+
+            // discard DOM element's
+            discard[ 'x' ].$viewport.remove();
+            discard[ 'y' ].$viewport.remove();
+
+            // remove discard from list
+            index = this.browser.trackRenderers.indexOf(discard);
+            this.browser.trackRenderers.splice(index, 1);
+
+            discard = undefined;
+            this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
+
+            this.browser.renderTracks(true);
+            // this.browser.contactMatrixView.update();
+            this.browser.setZoom(this.browser.state.zoom);
+
+        } else {
+            console.log('No more tracks.');
+        }
+
+    };
+
     hic.LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount) {
 
         var track_aggregate_height,
-            track_aggregate_height_px,
             tokens,
             width_calc,
             height_calc;
 
 
         track_aggregate_height = trackXYPairCount * this.track_height;
-        track_aggregate_height_px = track_aggregate_height + 'px';
 
         tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -170,9 +199,10 @@ var hic = (function (hic) {
         width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
         // x-track container
-        this.$x_track_container.css('height', track_aggregate_height_px);
+        this.$x_track_container.height(track_aggregate_height);
+
         // track labels
-        this.$track_labels.css('width', track_aggregate_height_px);
+        this.$track_labels.width(track_aggregate_height);
         // x-tracks
         this.$x_tracks.css( 'width', width_calc );
 
@@ -184,7 +214,7 @@ var hic = (function (hic) {
         this.xAxisRuler.updateWidthWithCalculation(width_calc);
 
         // y-tracks
-        this.$y_tracks.css('width', track_aggregate_height_px);
+        this.$y_tracks.width(track_aggregate_height);
 
         // y-axis - repaint canvas
         this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
