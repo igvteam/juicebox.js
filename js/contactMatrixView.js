@@ -43,9 +43,9 @@ var hic = (function (hic) {
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
 
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.attr('height', this.$viewport.height());
-        this.ctx = this.$canvas.get(0).getContext("2d");
+        // this.$canvas.attr('width', this.$viewport.width());
+        // this.$canvas.attr('height', this.$viewport.height());
+        // this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
         this.$spinner = $('<div>');
@@ -115,6 +115,12 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.update = function () {
+
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
+        this.ctx = this.$canvas.get(0).getContext("2d");
+
+        console.log('update. viewport(' + this.$viewport.width() + ' x ' + this.$viewport.height() + ') canvas(' + this.$canvas.get(0).width + ' x ' + this.$canvas.get(0).height + ')');
 
         if (!this.dataset) return;
 

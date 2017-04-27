@@ -141,12 +141,10 @@ var hic = (function (hic) {
                 self.browser.trackRenderers.push(trackXY);
             });
 
-
             this.browser.renderTracks(true);
+            // this.browser.contactMatrixView.update();
+            this.browser.setZoom(this.browser.state.zoom);
 
-        } else if ('DidDeleteTrack' === event.type) {
-            console.log('layout controller - did delete track');
-            this.browser.renderTracks(true);
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
         }
@@ -173,7 +171,10 @@ var hic = (function (hic) {
 
             discard = undefined;
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
+
             this.browser.renderTracks(true);
+            // this.browser.contactMatrixView.update();
+            this.browser.setZoom(this.browser.state.zoom);
 
         } else {
             console.log('No more tracks.');
