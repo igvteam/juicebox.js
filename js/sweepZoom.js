@@ -41,49 +41,55 @@ var hic = (function (hic) {
         this.coordinateFrame = this.$rulerSweeper.parent().offset();
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
         this.sweepRect.origin = {x: 0, y: 0};
-        this.sweepRect.size = {width: 1, height: 1};
+        this.sweepRect.size = { width: 1, height: 1 };
     };
 
     hic.SweepZoom.prototype.update = function (mouseDown, coords, viewportBBox) {
-        var displacement,
-            delta,
+        var delta,
             aspectRatioScale,
             xMax,
             yMax,
-            str;
+            str,
+            left,
+            top;
 
-        delta = { x: (coords.x - mouseDown.x), y: (coords.y - mouseDown.y) };
+        this.sweepRect.origin.x = mouseDown.x;
+        this.sweepRect.origin.y = mouseDown.y;
 
-        this.sweepRect.origin.x = (delta.x < 0 ? mouseDown.x + delta.x : mouseDown.x);
-        this.sweepRect.origin.y = (delta.y < 0 ? mouseDown.y + delta.y : mouseDown.y);
-        this.dominantAxis = (Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y');
+        delta =
+            {
+                x: (coords.x - mouseDown.x),
+                y: (coords.y - mouseDown.y)
+            };
+
+        this.dominantAxis = delta.x > delta.y ? 'x' : 'y';
 
         if ('x' === this.dominantAxis) {
-            displacement = Math.abs(delta.x);
-            aspectRatioScale = {x: 1.0, y: 1.0 / this.aspectRatio};
+
+            this.sweepRect.size =
+                {
+                    width: delta.x,
+                    height: delta.x / this.aspectRatio
+                };
+
         } else {
-            displacement = Math.abs(delta.y);
-            aspectRatioScale = {x: this.aspectRatio, y: 1.0};
+
+            this.sweepRect.size =
+                {
+                    width: delta.y * this.aspectRatio,
+                    height: delta.y
+                };
         }
 
-        this.sweepRect.size = { width: aspectRatioScale.x * displacement, height: aspectRatioScale.y * displacement };
+        this.sweepRect.origin.x  = Math.min(this.sweepRect.origin.x, this.sweepRect.origin.x + this.sweepRect.size.width);
+        this.sweepRect.origin.y  = Math.min(this.sweepRect.origin.y, this.sweepRect.origin.y + this.sweepRect.size.height);
+        this.sweepRect.size.width = Math.abs(this.sweepRect.size.width);
+        this.sweepRect.size.height = Math.abs(this.sweepRect.size.height);
 
-        xMax = (mouseDown.x + this.sweepRect.size.width ) - viewportBBox.size.width;
-        yMax = (mouseDown.y + this.sweepRect.size.height) - viewportBBox.size.height;
-
-        if ('y' === this.dominantAxis && xMax > 0) {
-            this.sweepRect.size.width -= xMax;
-            this.sweepRect.size.height = this.sweepRect.size.width / this.aspectRatio;
-        } else if (yMax > 0) {
-            this.sweepRect.size.height -= yMax;
-            this.sweepRect.size.width = this.sweepRect.size.height * this.aspectRatio;
-        }
-
-        this.$rulerSweeper.width(Math.floor(this.sweepRect.size.width));
-        this.$rulerSweeper.height(Math.floor(this.sweepRect.size.height));
+        this.$rulerSweeper.width( this.sweepRect.size.width);
+        this.$rulerSweeper.height(this.sweepRect.size.height);
 
         this.$rulerSweeper.offset({ left: this.coordinateFrame.left + this.sweepRect.origin.x, top: this.coordinateFrame.top + this.sweepRect.origin.y });
-
         this.$rulerSweeper.show();
 
     };
