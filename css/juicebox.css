@@ -369,6 +369,13 @@
         height: 100%;
         background-color: #a5a5a5; }
 
+.hic-track-menu {
+  position: absolute;
+  color: white;
+  width: 120px;
+  height: 120px;
+  background-color: #3a8ab4; }
+
 .unselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

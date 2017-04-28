@@ -14,6 +14,7 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
+        // canvas container
         this.$viewport = $('<div>');
         if (size.width) {
             this.$viewport.width(size.width);
@@ -23,15 +24,10 @@ var hic = (function (hic) {
         }
         $container.append(this.$viewport);
 
+        // canvas
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
-
-        // delete track
-        this.$deleteTrack = $('<div>');
-        this.$viewport.append(this.$deleteTrack);
-        this.$deleteTrack.text('O');
-        this.$deleteTrack.hide();
 
         // spinner
         this.$spinner = $('<div>');
@@ -39,7 +35,8 @@ var hic = (function (hic) {
 
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 20 , padding: 7 }).appendTo( this.$spinner.get(0) );
+        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 20 , padding: 7 });
+        this.throbber.appendTo( this.$spinner.get(0) );
         this.stopSpinner();
 
         this.configTrackTransforms();

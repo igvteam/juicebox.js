@@ -384,7 +384,7 @@ var hic = (function (hic) {
             isSweepZooming = (true === e.altKey);
             isMouseDown = true;
 
-            coords = translateMouseCoordinates(e, $viewport);
+            coords = hic.translateMouseCoordinates(e, $viewport);
 
             mouseLast = coords;
             mouseDown = coords;
@@ -405,7 +405,7 @@ var hic = (function (hic) {
 
             e.preventDefault();
 
-            coords = translateMouseCoordinates(e, $viewport);
+            coords = hic.translateMouseCoordinates(e, $viewport);
 
             if (isMouseDown) { // Possibly dragging
 
@@ -451,24 +451,6 @@ var hic = (function (hic) {
             mouseDown = mouseLast = undefined;
         }
 
-    }
-
-    function translateMouseCoordinates(e, $target) {
-
-        var eFixed,
-            posx,
-            posy;
-
-        // Sets pageX and pageY for browsers that don't support them
-        eFixed = $.event.fix(e);
-
-        if (undefined === $target.offset()) {
-            console.log('igv.translateMouseCoordinates - $target.offset() is undefined.');
-        }
-        posx = eFixed.pageX - $target.offset().left;
-        posy = eFixed.pageY - $target.offset().top;
-
-        return {x: posx, y: posy}
     }
 
     hic.ColorScale = function (scale) {
