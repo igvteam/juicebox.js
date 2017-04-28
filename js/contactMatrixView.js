@@ -120,8 +120,6 @@ var hic = (function (hic) {
         this.$canvas.attr('height', this.$viewport.height());
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        console.log('update. viewport(' + this.$viewport.width() + ' x ' + this.$viewport.height() + ') canvas(' + this.$canvas.get(0).width + ' x ' + this.$canvas.get(0).height + ')');
-
         if (!this.dataset) return;
 
         var self = this,
@@ -423,8 +421,8 @@ var hic = (function (hic) {
                     if (isSweepZooming) {
 
                         self.sweepZoom.update(mouseDown, coords, {
-                            origin: {x: 0, y: 0},
-                            size: {width: $viewport.width(), height: $viewport.height()}
+                            min: { x: 0,                 y: 0 },
+                            max: { x: $viewport.width(), y: $viewport.height() }
                         });
                     } else {
                         self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
