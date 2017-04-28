@@ -201,14 +201,7 @@
       position: relative;
       width: 100%;
       margin-right: 0; }
-      .hic-x-track-container div:nth-child(2) div div:first-of-type {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 32px;
-        height: 32px;
-        z-index: 1024; }
-      .hic-x-track-container div:nth-child(2) div div:last-of-type {
+      .hic-x-track-container div:nth-child(2) div div {
         position: absolute;
         top: 0;
         left: 50%;
@@ -259,14 +252,7 @@
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        .hic-content-container div:nth-child(2) div:nth-child(1) div div:first-of-type {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 32px;
-          height: 32px;
-          z-index: 1024; }
-        .hic-content-container div:nth-child(2) div:nth-child(1) div div:last-of-type {
+        .hic-content-container div:nth-child(2) div:nth-child(1) div div {
           position: absolute;
           top: 50%;
           left: 0;
