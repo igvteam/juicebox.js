@@ -40,21 +40,21 @@ var hic = (function (hic) {
     hic.SweepZoom.prototype.reset = function () {
         this.coordinateFrame = this.$rulerSweeper.parent().offset();
         this.aspectRatio = this.browser.contactMatrixView.getViewDimensions().width / this.browser.contactMatrixView.getViewDimensions().height;
-        this.sweepRect.origin = {x: 0, y: 0};
-        this.sweepRect.size = { width: 1, height: 1 };
+        this.sweepRect.origin = {     x: 0,      y: 0 };
+        this.sweepRect.size   = { width: 1, height: 1 };
+        this.clipped = { value: false };
     };
 
     hic.SweepZoom.prototype.update = function (mouseDown, coords, viewportBBox) {
         var delta,
-            aspectRatioScale,
-            xMax,
-            yMax,
-            str,
-            left,
-            top;
+            multiplier,
+            displacement,
+            dominantAxis,
+            aspectRatioScale;
 
-        this.sweepRect.origin.x = mouseDown.x;
-        this.sweepRect.origin.y = mouseDown.y;
+        if (true === this.clipped.value) {
+            return;
+        }
 
         delta =
             {
@@ -62,50 +62,126 @@ var hic = (function (hic) {
                 y: (coords.y - mouseDown.y)
             };
 
-        this.dominantAxis = delta.x > delta.y ? 'x' : 'y';
+        multiplier = { x: sign(delta.x), y: sign(delta.y) };
 
-        if ('x' === this.dominantAxis) {
+        dominantAxis = Math.abs(delta.x) > Math.abs(delta.y) ? 'x' : 'y';
 
-            this.sweepRect.size =
-                {
-                    width: delta.x,
-                    height: delta.x / this.aspectRatio
-                };
+        displacement = 'x' === dominantAxis ? Math.abs(delta.x) : Math.abs(delta.y);
 
-        } else {
+        this.sweepRect.size =
+            {
+                width : multiplier.x * displacement,
+                height : multiplier.y * displacement
+            };
 
-            this.sweepRect.size =
-                {
-                    width: delta.y * this.aspectRatio,
-                    height: delta.y
-                };
-        }
+        // if ('x' === dominantAxis) {
+        //
+        //     this.sweepRect.size =
+        //         {
+        //             width: delta.x,
+        //             height: delta.x / this.aspectRatio
+        //         };
+        //
+        // } else {
+        //
+        //     this.sweepRect.size =
+        //         {
+        //             width: delta.y * this.aspectRatio,
+        //             height: delta.y
+        //         };
+        // }
 
-        this.sweepRect.origin.x  = Math.min(this.sweepRect.origin.x, this.sweepRect.origin.x + this.sweepRect.size.width);
-        this.sweepRect.origin.y  = Math.min(this.sweepRect.origin.y, this.sweepRect.origin.y + this.sweepRect.size.height);
+        this.sweepRect.origin.x = Math.min(mouseDown.x, mouseDown.x + this.sweepRect.size.width);
+        this.sweepRect.origin.y = Math.min(mouseDown.y, mouseDown.y + this.sweepRect.size.height);
+
         this.sweepRect.size.width = Math.abs(this.sweepRect.size.width);
         this.sweepRect.size.height = Math.abs(this.sweepRect.size.height);
+
+        this.sweepRect = clip(this.sweepRect, viewportBBox, this.clipped);
 
         this.$rulerSweeper.width( this.sweepRect.size.width);
         this.$rulerSweeper.height(this.sweepRect.size.height);
 
-        this.$rulerSweeper.offset({ left: this.coordinateFrame.left + this.sweepRect.origin.x, top: this.coordinateFrame.top + this.sweepRect.origin.y });
+        this.$rulerSweeper.offset(
+            {
+                left: this.coordinateFrame.left + this.sweepRect.origin.x,
+                top: this.coordinateFrame.top  + this.sweepRect.origin.y
+            }
+        );
         this.$rulerSweeper.show();
 
     };
 
     hic.SweepZoom.prototype.dismiss = function () {
-        var s = this.browser.state,
-            bpResolution = this.browser.resolution(),
-            bpX = (s.x + this.sweepRect.origin.x / s.pixelSize) * bpResolution,
-            bpY = (s.y + this.sweepRect.origin.y / s.pixelSize) * bpResolution,
-            bpXMax = bpX + (this.sweepRect.size.width / s.pixelSize) * bpResolution,
-            bpYMax = bpY + (this.sweepRect.size.height / s.pixelSize) * bpResolution;
+        var state,
+            resolution,
+            X,
+            Y,
+            XMax,
+            YMax;
 
         this.$rulerSweeper.hide();
-        this.browser.goto(bpX, bpXMax, bpY, bpYMax);
+
+        state = this.browser.state;
+
+        // bp-per-bin
+        resolution = this.browser.resolution();
+
+        // bp = (bin + pixel/pixel-per-bin) * bp-per-bin
+        X = (state.x + this.sweepRect.origin.x / state.pixelSize) * resolution;
+        Y = (state.y + this.sweepRect.origin.y / state.pixelSize) * resolution;
+
+        // bp = bp + (pixel/pixel-per-bin) * bp-per-bin
+        XMax = X + (this.sweepRect.size.width / state.pixelSize) * resolution;
+        YMax = Y + (this.sweepRect.size.height / state.pixelSize) * resolution;
+
+        this.browser.goto(X, XMax, Y, YMax);
 
     };
+
+    function sign(s) {
+        return s < 0 ? -1 : 1;
+    }
+
+    function clip(rect, bbox, clipped) {
+        var r,
+            result,
+            w,
+            h;
+
+        r = _.extend({}, { min : { x: rect.origin.x, y: rect.origin.y } });
+        r = _.extend(r, { max : { x: rect.origin.x + rect.size.width, y: rect.origin.y + rect.size.height } });
+
+        if (r.min.x <= bbox.min.x || r.min.y <= bbox.min.y) {
+            clipped.value = true;
+        } else if (bbox.max.x <= r.max.x || bbox.max.y <= r.max.y) {
+            clipped.value = true;
+        }
+
+        r.min.x = Math.max(r.min.x, bbox.min.x);
+        r.min.y = Math.max(r.min.y, bbox.min.y);
+
+        r.max.x = Math.min(r.max.x, bbox.max.x);
+        r.max.y = Math.min(r.max.y, bbox.max.y);
+
+        result = {};
+        result.origin =
+            {
+                x: r.min.x,
+                y: r.min.y
+            };
+
+        w = r.max.x - r.min.x;
+        h = r.max.y - r.min.y;
+
+        result.size =
+            {
+                width: Math.min(w, h),
+                height: Math.min(w, h)
+            };
+
+        return result;
+    }
 
     return hic;
 })(hic || {});
