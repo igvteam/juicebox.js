@@ -116,8 +116,11 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.update = function () {
 
+        this.$canvas.width(this.$viewport.width());
+        this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
+
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         if (!this.dataset) return;
@@ -184,8 +187,11 @@ var hic = (function (hic) {
             viewportWidth = self.$viewport.width(),
             viewportHeight = self.$viewport.height();
 
-        self.$canvas.attr('width', viewportWidth);
-        self.$canvas.attr('height', viewportHeight);
+        this.$canvas.width(this.$viewport.width());
+        this.$canvas.height(this.$viewport.height());
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
+
         imageTiles.forEach(function (imageTile) {
 
             var image = imageTile.image;
