@@ -141,9 +141,8 @@ var hic = (function (hic) {
                 self.browser.trackRenderers.push(trackXY);
             });
 
-            this.browser.updateLayout();
-            this.xAxisRuler.update();
-            this.yAxisRuler.update();
+            this.browser.renderTracks(true);
+            this.browser.setZoom(this.browser.state.zoom);
 
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
@@ -173,7 +172,6 @@ var hic = (function (hic) {
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
             this.browser.renderTracks(true);
-            // this.browser.contactMatrixView.update();
             this.browser.setZoom(this.browser.state.zoom);
 
         } else {
