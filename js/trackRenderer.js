@@ -35,7 +35,7 @@ var hic = (function (hic) {
 
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 32 , padding: 7 });
+        this.throbber = Throbber({ color: 'rgb(255, 0, 0)'/*'rgb(64, 64, 64)'*/, size: 32 , padding: 7 });
         this.throbber.appendTo( this.$spinner.get(0) );
         this.stopSpinner();
 
@@ -231,8 +231,9 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
-        this.throbber.stop();
-        this.$spinner.hide();
+        this.startSpinner();
+        // this.throbber.stop();
+        // this.$spinner.hide();
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {

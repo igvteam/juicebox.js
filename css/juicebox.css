@@ -209,7 +209,7 @@
         height: 32px;
         margin-left: -16px;
         z-index: 2048;
-        background-color: rgba(255, 255, 255, 0); }
+        background-color: greenyellow; }
 
 .hic-content-container {
   display: flex;
@@ -260,7 +260,7 @@
           height: 32px;
           margin-top: -16px;
           z-index: 2048;
-          background-color: rgba(255, 255, 255, 0); }
+          background-color: #58c0fb; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
       height: 100%; }
