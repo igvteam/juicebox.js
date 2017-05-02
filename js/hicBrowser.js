@@ -474,6 +474,16 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
+    hic.Browser.prototype.updateLayout = function () {
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        this.clamp();
+        this.renderTracks(true);
+        this.layoutController.xAxisRuler.update();
+        this.layoutController.yAxisRuler.update();
+        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.update();
+    };
+
     function minPixelSize(chr1, chr2, zoom) {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.dataset.chromosomes[chr1].size,

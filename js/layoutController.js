@@ -141,8 +141,7 @@ var hic = (function (hic) {
                 self.browser.trackRenderers.push(trackXY);
             });
 
-            this.browser.renderTracks(true);
-            this.browser.setZoom(this.browser.state.zoom);
+            this.browser.updateLayout();
 
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
@@ -171,8 +170,7 @@ var hic = (function (hic) {
             discard = undefined;
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
-            this.browser.renderTracks(true);
-            this.browser.setZoom(this.browser.state.zoom);
+            this.browser.updateLayout();
 
         } else {
             console.log('No more tracks.');
