@@ -349,6 +349,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // spinner container
       div {
+        display: block;
         position: absolute;
 
         top: 0;
@@ -400,6 +401,7 @@ $default-font-family: 'Open Sans', sans-serif;
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
       margin-right: $hic-scrollbar-height;
+      background-color: white;
     }
 
   }
@@ -441,6 +443,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         // spinner container
         div {
+          display: block;
           position: absolute;
 
           top: 50%;
@@ -465,6 +468,8 @@ $default-font-family: 'Open Sans', sans-serif;
     div:nth-child(2) {
       width: $hic-axis-height;
       height: 100%;
+      margin-bottom: $hic-scrollbar-height;
+      background-color: white;
     }
 
     // viewport

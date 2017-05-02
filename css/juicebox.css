@@ -202,6 +202,7 @@
       width: 100%;
       margin-right: 0; }
       .hic-x-track-container div:nth-child(2) div div {
+        display: block;
         position: absolute;
         top: 0;
         left: 50%;
@@ -229,7 +230,8 @@
     .hic-content-container div:nth-child(1) div {
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
-      margin-right: 20px; }
+      margin-right: 20px;
+      background-color: white; }
   .hic-content-container div:nth-child(2) {
     display: flex;
     flex-flow: row;
@@ -253,6 +255,7 @@
         margin-right: 0;
         background-color: white; }
         .hic-content-container div:nth-child(2) div:nth-child(1) div div {
+          display: block;
           position: absolute;
           top: 50%;
           left: 0;
@@ -263,7 +266,9 @@
           background-color: #58c0fb; }
     .hic-content-container div:nth-child(2) div:nth-child(2) {
       width: 32px;
-      height: 100%; }
+      height: 100%;
+      margin-bottom: 20px;
+      background-color: white; }
     .hic-content-container div:nth-child(2) div:nth-child(3) {
       display: block;
       position: relative;

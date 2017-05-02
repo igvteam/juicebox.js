@@ -32,9 +32,10 @@ var hic = (function (hic) {
         this.$canvas = $('<canvas>');
         $axis.append(this.$canvas);
 
-        this.$canvas.width($axis.width());
-        this.$canvas.height($axis.height());
+        this.$canvas.width(        $axis.width());
         this.$canvas.attr('width', $axis.width());
+
+        this.$canvas.height(        $axis.height());
         this.$canvas.attr('height', $axis.height());
 
         this.ctx = this.$canvas.get(0).getContext("2d");
@@ -70,7 +71,7 @@ var hic = (function (hic) {
 
         this.$axis.css( 'width', calc );
 
-        this.$canvas.width(this.$axis.width());
+        this.$canvas.width(        this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
 
         this.update();
@@ -78,7 +79,7 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.updateHeight = function (height) {
 
-        this.$canvas.height(height);
+        this.$canvas.height(        height);
         this.$canvas.attr('height', height);
 
         this.update();
