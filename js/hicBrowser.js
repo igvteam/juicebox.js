@@ -288,14 +288,14 @@ var hic = (function (hic) {
                     self.contactMatrixView.computeColorScale = true;
                 }
 
-
-
-
                 hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
                 }
+
+                self.encodeTable = new encode.EncodeTable($('#encodeModalBody'), self, dataset.genomeId, self.loadTrackXY);
+
 
             })
             .catch(function (error) {
@@ -458,6 +458,8 @@ var hic = (function (hic) {
         this.renderTracks(true);
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.update();
+
+
     };
 
     hic.Browser.prototype.setChromosomes = function (chr1, chr2) {

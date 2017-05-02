@@ -54,7 +54,7 @@ var site = (function (site) {
 
         });
 
-        hic.browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'), hic.browser, hic.browser.loadTrackXY);
+  //     hic.browser.encodeTable = new encode.EncodeTable($('#encodeModalBody'), hic.browser, hic.browser.loadTrackXY);
 
         payload =
             {
