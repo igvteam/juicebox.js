@@ -141,9 +141,9 @@ var hic = (function (hic) {
                 self.browser.trackRenderers.push(trackXY);
             });
 
-            this.browser.renderTracks(true);
-            // this.browser.contactMatrixView.update();
-            this.browser.setZoom(this.browser.state.zoom);
+            this.browser.updateLayout();
+            this.xAxisRuler.update();
+            this.yAxisRuler.update();
 
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);

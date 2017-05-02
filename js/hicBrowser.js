@@ -452,6 +452,14 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
+    hic.Browser.prototype.updateLayout = function () {
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        this.clamp();
+        this.renderTracks(true);
+        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.update();
+    };
+
     hic.Browser.prototype.setChromosomes = function (chr1, chr2) {
 
         this.state.chr1 = Math.min(chr1, chr2);
