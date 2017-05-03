@@ -29,6 +29,13 @@ var hic = (function (hic) {
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
 
+        if ('x' === this.axis) {
+            // label
+            this.$label = $('<div>');
+            this.$label.text('label');
+            this.$viewport.append(this.$label);
+        }
+
         // spinner
         this.$spinner = $('<div>');
         this.$viewport.append(this.$spinner);

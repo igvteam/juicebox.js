@@ -4,8 +4,6 @@
 
 var hic = (function (hic) {
 
-    hic.TrackLabel.defaultText = 'Untitled';
-
     hic.TrackLabel = function ($track) {
 
         var $container;
@@ -38,7 +36,7 @@ var hic = (function (hic) {
                 str;
 
             input = $(e.target);
-            str = ('' === input.val()) ? hic.TrackLabel.defaultText : input.val();
+            str = ('' === input.val()) ? hic.TrackLabel.defaultText() : input.val();
 
             label = input && input.prev();
             label.text(str);
@@ -47,6 +45,10 @@ var hic = (function (hic) {
             label.show();
         }
 
+    };
+
+    hic.TrackLabel.defaultText = function () {
+        return 'Untitled';
     };
 
     return hic;

@@ -339,7 +339,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // canvas container
     div {
-      display:block;
+
+      // reference point for child divs with position: absolute
       position: relative;
 
       width:100%;
@@ -347,9 +348,28 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
+      // track label container
+      div:first-of-type {
+        position: absolute;
+
+        top: 0;
+        left: 0;
+
+        width: 3 * $track-height;
+        height: $track-height;
+
+        text-align: center;
+        vertical-align: middle;
+        line-height: $track-height;
+
+        z-index: 2048;
+
+        color: red;
+        background-color: yellow;
+      }
+
       // spinner container
-      div {
-        display: block;
+      div:last-of-type {
         position: absolute;
 
         top: 0;

@@ -197,12 +197,22 @@
     height: 100%;
     margin-right: 20px; }
     #x-track-container #x-tracks div {
-      display: block;
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks div div {
-        display: block;
+      #x-track-container #x-tracks div div:first-of-type {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 96px;
+        height: 32px;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 32px;
+        z-index: 2048;
+        color: red;
+        background-color: yellow; }
+      #x-track-container #x-tracks div div:last-of-type {
         position: absolute;
         top: 0;
         left: 50%;
