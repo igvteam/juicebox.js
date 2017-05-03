@@ -184,7 +184,7 @@
   width: 100%;
   height: 0px;
   background-color: white; }
-  #x-track-container #track-labels {
+  #x-track-container #track-shim {
     width: 0px;
     height: 100%;
     margin-right: 32px; }

@@ -64,8 +64,8 @@ var hic = (function (hic) {
         $root.append(this.$x_track_container);
 
         // track labels
-        this.$track_labels = $('<div id="track-labels">');
-        this.$x_track_container.append(this.$track_labels);
+        this.$track_shim = $('<div id="track-shim">');
+        this.$x_track_container.append(this.$track_shim);
 
         // x-tracks
         this.$x_tracks = $('<div id="x-tracks">');
@@ -198,7 +198,7 @@ var hic = (function (hic) {
         this.$x_track_container.height(track_aggregate_height);
 
         // track labels
-        this.$track_labels.width(track_aggregate_height);
+        this.$track_shim.width(track_aggregate_height);
         // x-tracks
         this.$x_tracks.css( 'width', width_calc );
 

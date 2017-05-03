@@ -307,7 +307,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-// container: track-labels | x-tracks
+// container: track-shim | x-tracks
 #x-track-container {
   display:flex;
   flex-flow: row;
@@ -319,8 +319,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   background-color: white;
 
-  // track labels
-  #track-labels {
+  // track shim
+  #track-shim {
     width: $track-aggregate-height;
     height: 100%;
     margin-right: $hic-axis-height;
