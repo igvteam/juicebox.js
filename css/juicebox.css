@@ -220,7 +220,7 @@
         height: 32px;
         margin-left: -16px;
         z-index: 2048;
-        background-color: greenyellow; }
+        background-color: rgba(255, 255, 255, 0); }
 
 #content-container {
   display: flex;
@@ -273,7 +273,7 @@
           height: 32px;
           margin-top: -16px;
           z-index: 2048;
-          background-color: #58c0fb; }
+          background-color: rgba(255, 255, 255, 0); }
     #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis {
       width: 32px;
       height: 100%;
