@@ -60,30 +60,30 @@ var hic = (function (hic) {
         var $container;
 
         // .hic-x-track-container
-        this.$x_track_container = $('<div class="hic-x-track-container">');
+        this.$x_track_container = $('<div id="x-track-container">');
         $root.append(this.$x_track_container);
 
         // track labels
-        this.$track_labels = $('<div>');
+        this.$track_labels = $('<div id="track-labels">');
         this.$x_track_container.append(this.$track_labels);
 
         // x-tracks
-        this.$x_tracks = $('<div>');
+        this.$x_tracks = $('<div id="x-tracks">');
         this.$x_track_container.append(this.$x_tracks);
 
 
         // content container
-        this.$content_container = $('<div class="hic-content-container">');
+        this.$content_container = $('<div id="content-container">');
         $root.append(this.$content_container);
 
         // container: x-axis
-        $container = $('<div>');
+        $container = $('<div id="x-axis-container">');
         this.$content_container.append($container);
         xAxis.call(this, browser, $container);
 
 
         // container: y-tracks | y-axis | viewport | y-scrollbar
-        $container = $('<div>');
+        $container = $('<div id="y-tracks-y-axis-viewport-y-scrollbar">');
         this.$content_container.append($container);
 
         // y-tracks
@@ -97,7 +97,7 @@ var hic = (function (hic) {
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
         // container: x-scrollbar
-        $container = $('<div>');
+        $container = $('<div id="x-scrollbar">');
         this.$content_container.append($container);
 
         // x-scrollbar
