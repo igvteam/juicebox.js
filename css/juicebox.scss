@@ -387,7 +387,7 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: white;
 
   // container: x-axis
-  #x-axis-container:nth-child(1) {
+  #x-axis-container {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -407,7 +407,7 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   // container: y-tracks | y-axis | viewport | y-scrollbar
-  #y-tracks-y-axis-viewport-y-scrollbar:nth-child(2) {
+  #y-tracks-y-axis-viewport-y-scrollbar {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -553,7 +553,7 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   // container: x-scrollbar
-  #x-scrollbar:nth-child(3) {
+  #x-scrollbar-container {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;

@@ -97,7 +97,7 @@ var hic = (function (hic) {
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
         // container: x-scrollbar
-        $container = $('<div id="x-scrollbar">');
+        $container = $('<div id="x-scrollbar-container">');
         this.$content_container.append($container);
 
         // x-scrollbar
