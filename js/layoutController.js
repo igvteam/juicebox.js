@@ -60,34 +60,34 @@ var hic = (function (hic) {
         var $container;
 
         // .hic-x-track-container
-        this.$x_track_container = $('<div class="hic-x-track-container">');
+        this.$x_track_container = $('<div id="x-track-container">');
         $root.append(this.$x_track_container);
 
         // track labels
-        this.$track_labels = $('<div>');
+        this.$track_labels = $('<div id="track-labels">');
         this.$x_track_container.append(this.$track_labels);
 
         // x-tracks
-        this.$x_tracks = $('<div>');
+        this.$x_tracks = $('<div id="x-tracks">');
         this.$x_track_container.append(this.$x_tracks);
 
 
         // content container
-        this.$content_container = $('<div class="hic-content-container">');
+        this.$content_container = $('<div id="content-container">');
         $root.append(this.$content_container);
 
         // container: x-axis
-        $container = $('<div>');
+        $container = $('<div id="x-axis-container">');
         this.$content_container.append($container);
         xAxis.call(this, browser, $container);
 
 
         // container: y-tracks | y-axis | viewport | y-scrollbar
-        $container = $('<div>');
+        $container = $('<div id="y-tracks-y-axis-viewport-y-scrollbar">');
         this.$content_container.append($container);
 
         // y-tracks
-        this.$y_tracks = $('<div>');
+        this.$y_tracks = $('<div id="y-tracks">');
         $container.append(this.$y_tracks);
 
         // y-axis
@@ -97,21 +97,21 @@ var hic = (function (hic) {
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
         // container: x-scrollbar
-        $container = $('<div>');
+        $container = $('<div id="x-scrollbar-container">');
         this.$content_container.append($container);
 
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
 
         function xAxis(browser, $container) {
-            var $xAxis = $('<div>');
+            var $xAxis = $('<div id="x-axis">');
             $container.append($xAxis);
 
             this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
         }
 
         function yAxis(browser, $container) {
-            var $yAxis = $('<div>');
+            var $yAxis = $('<div id="y-axis">');
             $container.append($yAxis);
 
             this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
@@ -142,8 +142,6 @@ var hic = (function (hic) {
             });
 
             this.browser.updateLayout();
-            this.xAxisRuler.update();
-            this.yAxisRuler.update();
 
         } else if ('LocusChange' === event.type) {
             this.browser.renderTracks(false);
@@ -172,9 +170,7 @@ var hic = (function (hic) {
             discard = undefined;
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
-            this.browser.renderTracks(true);
-            // this.browser.contactMatrixView.update();
-            this.browser.setZoom(this.browser.state.zoom);
+            this.browser.updateLayout();
 
         } else {
             console.log('No more tracks.');

@@ -14,6 +14,7 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
+        // canvas container
         this.$viewport = $('<div>');
         if (size.width) {
             this.$viewport.width(size.width);
@@ -23,15 +24,10 @@ var hic = (function (hic) {
         }
         $container.append(this.$viewport);
 
+        // canvas
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
         this.ctx = this.$canvas.get(0).getContext("2d");
-
-        // delete track
-        this.$deleteTrack = $('<div>');
-        this.$viewport.append(this.$deleteTrack);
-        this.$deleteTrack.text('O');
-        this.$deleteTrack.hide();
 
         // spinner
         this.$spinner = $('<div>');
@@ -39,7 +35,8 @@ var hic = (function (hic) {
 
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 20 , padding: 7 }).appendTo( this.$spinner.get(0) );
+        this.throbber = Throbber({ color: 'rgb(255, 0, 0)'/*'rgb(64, 64, 64)'*/, size: 32 , padding: 7 });
+        this.throbber.appendTo( this.$spinner.get(0) );
         this.stopSpinner();
 
         this.configTrackTransforms();
@@ -57,8 +54,13 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.syncCanvas = function () {
 
         this.tile = null;
+
+        this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());
+
+        this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
+
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
     };
 
@@ -134,7 +136,7 @@ var hic = (function (hic) {
                         };
 
                     self.startSpinner();
-                    console.log(self.id + ' will get features');
+                    // console.log(self.id + ' will get features');
                     self.track
                         .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
                         .then(function (features) {
@@ -142,7 +144,7 @@ var hic = (function (hic) {
                             var buffer,
                                 ctx;
 
-                            console.log(self.id + '  did get features');
+                            // console.log(self.id + '  did get features');
                             self.loading = undefined;
 
                             self.stopSpinner();
@@ -179,13 +181,13 @@ var hic = (function (hic) {
 
                                 self.startSpinner();
 
-                                console.log(self.id + ' will draw');
+                                // console.log(self.id + ' will draw');
                                 self.track.draw(self.drawConfiguration);
                                 self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                                 self.drawTileWithGenomicState(self.tile, genomicState);
 
                                 self.stopSpinner();
-                                console.log(self.id + '  did draw');
+                                // console.log(self.id + '  did draw');
 
                                 fulfill(self.id + '.' + self.axis + ' drawTileWithGenomicState(' + _.size(features) + ')');
 
@@ -234,6 +236,7 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
+        // this.startSpinner();
         this.throbber.stop();
         this.$spinner.hide();
     };

@@ -27,15 +27,18 @@ var hic = (function (hic) {
 
         this.browser = browser;
         this.$axis = $axis;
+        this.axis = whichAxis;
 
         this.$canvas = $('<canvas>');
-        this.$canvas.attr('width', $axis.width());
-        this.$canvas.attr('height', $axis.height());
         $axis.append(this.$canvas);
 
-        this.ctx = this.$canvas.get(0).getContext("2d");
+        this.$canvas.width(        $axis.width());
+        this.$canvas.attr('width', $axis.width());
 
-        this.axis = whichAxis;
+        this.$canvas.height(        $axis.height());
+        this.$canvas.attr('height', $axis.height());
+
+        this.ctx = this.$canvas.get(0).getContext("2d");
 
         this.yAxisTransformWithContext = function(context) {
             context.scale(-1, 1);
@@ -67,13 +70,18 @@ var hic = (function (hic) {
     hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
 
         this.$axis.css( 'width', calc );
+
+        this.$canvas.width(        this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
+
         this.update();
     };
 
     hic.Ruler.prototype.updateHeight = function (height) {
 
+        this.$canvas.height(        height);
         this.$canvas.attr('height', height);
+
         this.update();
     };
 
@@ -90,10 +98,8 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
             igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
-            // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.randomRGB(120, 240) });
         } else {
             igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.rgbColor(255, 255, 255) });
-            // igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.randomRGB(120, 240) });
         }
 
         config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;

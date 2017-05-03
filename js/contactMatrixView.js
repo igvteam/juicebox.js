@@ -36,7 +36,7 @@ var hic = (function (hic) {
 
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
-        this.$viewport = $('<div>');
+        this.$viewport = $('<div id="viewport">');
         $container.append(this.$viewport);
 
         //content canvas
@@ -48,7 +48,7 @@ var hic = (function (hic) {
         // this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
-        this.$spinner = $('<div>');
+        this.$spinner = $('<div id="viewport-spinner-container">');
         this.$viewport.append(this.$spinner);
 
         // throbber
@@ -116,8 +116,11 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.update = function () {
 
+        this.$canvas.width(this.$viewport.width());
+        this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
+
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         if (!this.dataset) return;
@@ -184,8 +187,11 @@ var hic = (function (hic) {
             viewportWidth = self.$viewport.width(),
             viewportHeight = self.$viewport.height();
 
-        self.$canvas.attr('width', viewportWidth);
-        self.$canvas.attr('height', viewportHeight);
+        this.$canvas.width(this.$viewport.width());
+        this.$canvas.height(this.$viewport.height());
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
+
         imageTiles.forEach(function (imageTile) {
 
             var image = imageTile.image;
@@ -384,7 +390,7 @@ var hic = (function (hic) {
             isSweepZooming = (true === e.altKey);
             isMouseDown = true;
 
-            coords = translateMouseCoordinates(e, $viewport);
+            coords = hic.translateMouseCoordinates(e, $viewport);
 
             mouseLast = coords;
             mouseDown = coords;
@@ -405,7 +411,7 @@ var hic = (function (hic) {
 
             e.preventDefault();
 
-            coords = translateMouseCoordinates(e, $viewport);
+            coords = hic.translateMouseCoordinates(e, $viewport);
 
             if (isMouseDown) { // Possibly dragging
 
@@ -451,24 +457,6 @@ var hic = (function (hic) {
             mouseDown = mouseLast = undefined;
         }
 
-    }
-
-    function translateMouseCoordinates(e, $target) {
-
-        var eFixed,
-            posx,
-            posy;
-
-        // Sets pageX and pageY for browsers that don't support them
-        eFixed = $.event.fix(e);
-
-        if (undefined === $target.offset()) {
-            console.log('igv.translateMouseCoordinates - $target.offset() is undefined.');
-        }
-        posx = eFixed.pageX - $target.offset().left;
-        posy = eFixed.pageY - $target.offset().top;
-
-        return {x: posx, y: posy}
     }
 
     hic.ColorScale = function (scale) {

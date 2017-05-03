@@ -55,6 +55,24 @@ var hic = (function (hic) {
         }
     };
 
+    hic.translateMouseCoordinates = function(e, $target) {
+
+        var eFixed,
+            posx,
+            posy;
+
+        // Sets pageX and pageY for browsers that don't support them
+        eFixed = $.event.fix(e);
+
+        if (undefined === $target.offset()) {
+            console.log('igv.translateMouseCoordinates - $target.offset() is undefined.');
+        }
+        posx = eFixed.pageX - $target.offset().left;
+        posy = eFixed.pageY - $target.offset().top;
+
+        return {x: posx, y: posy}
+    };
+
     hic.reflectionRotationWithContext = function(context) {
         context.scale(-1, 1);
         context.rotate(Math.PI/2.0);

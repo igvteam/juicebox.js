@@ -176,7 +176,7 @@
     color: #5f5f5f;
     direction: rtl; }
 
-.hic-x-track-container {
+#x-track-container {
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -184,11 +184,11 @@
   width: 100%;
   height: 0px;
   background-color: white; }
-  .hic-x-track-container div:nth-child(1) {
+  #x-track-container #track-labels {
     width: 0px;
     height: 100%;
     margin-right: 32px; }
-  .hic-x-track-container div:nth-child(2) {
+  #x-track-container #x-tracks {
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
@@ -196,12 +196,13 @@
     width: calc(100% - (0px + 32px + 20px));
     height: 100%;
     margin-right: 20px; }
-    .hic-x-track-container div:nth-child(2) div {
+    #x-track-container #x-tracks div {
       display: block;
       position: relative;
       width: 100%;
       margin-right: 0; }
-      .hic-x-track-container div:nth-child(2) div div {
+      #x-track-container #x-tracks div div {
+        display: block;
         position: absolute;
         top: 0;
         left: 50%;
@@ -209,9 +210,9 @@
         height: 32px;
         margin-left: -16px;
         z-index: 2048;
-        background-color: rgba(255, 255, 255, 0); }
+        background-color: greenyellow; }
 
-.hic-content-container {
+#content-container {
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -219,18 +220,19 @@
   width: 100%;
   height: calc(100% - (70px + 0px));
   background-color: white; }
-  .hic-content-container div:nth-child(1) {
+  #content-container #x-axis-container {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
     width: 100%;
     height: 32px; }
-    .hic-content-container div:nth-child(1) div {
+    #content-container #x-axis-container #x-axis {
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
-      margin-right: 20px; }
-  .hic-content-container div:nth-child(2) {
+      margin-right: 20px;
+      background-color: white; }
+  #content-container #y-tracks-y-axis-viewport-y-scrollbar {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -238,7 +240,7 @@
     width: 100%;
     height: 100%;
     background-color: white; }
-    .hic-content-container div:nth-child(2) div:nth-child(1) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -246,13 +248,14 @@
       width: 0px;
       height: 100%;
       background-color: white; }
-      .hic-content-container div:nth-child(2) div:nth-child(1) div {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        .hic-content-container div:nth-child(2) div:nth-child(1) div div {
+        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div div {
+          display: block;
           position: absolute;
           top: 50%;
           left: 0;
@@ -260,11 +263,13 @@
           height: 32px;
           margin-top: -16px;
           z-index: 2048;
-          background-color: rgba(255, 255, 255, 0); }
-    .hic-content-container div:nth-child(2) div:nth-child(2) {
+          background-color: #58c0fb; }
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis {
       width: 32px;
-      height: 100%; }
-    .hic-content-container div:nth-child(2) div:nth-child(3) {
+      height: 100%;
+      margin-bottom: 20px;
+      background-color: white; }
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport {
       display: block;
       position: relative;
       left: 0;
@@ -273,7 +278,7 @@
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
-      .hic-content-container div:nth-child(2) div:nth-child(3) div:first-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #viewport-spinner-container {
         display: table-cell;
         margin: auto;
         position: absolute;
@@ -285,7 +290,7 @@
         z-index: 1024;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
-      .hic-content-container div:nth-child(2) div:nth-child(3) div:last-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #sweep-zoom-container {
         display: block;
         position: absolute;
         top: 0;
@@ -294,13 +299,13 @@
         height: 1px;
         z-index: 4096;
         background-color: rgba(68, 134, 247, 0.25); }
-    .hic-content-container div:nth-child(2) div:nth-child(4) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar {
       display: block;
       position: relative;
       width: 20px;
       height: 100%;
       background-color: #efefef; }
-      .hic-content-container div:nth-child(2) div:nth-child(4) div:first-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -319,7 +324,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      .hic-content-container div:nth-child(2) div:nth-child(4) div:last-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:last-child {
         position: relative;
         /* dynamic y and height */
         top: 25%;
@@ -327,21 +332,21 @@
         left: 0;
         width: 100%;
         background-color: #a5a5a5; }
-  .hic-content-container div:nth-child(3) {
+  #content-container #x-scrollbar-container {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
     width: 100%;
     height: 20px; }
-    .hic-content-container div:nth-child(3) div {
+    #content-container #x-scrollbar-container #x-scrollbar {
       display: block;
       position: relative;
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: #efefef; }
-      .hic-content-container div:nth-child(3) div div:first-child {
+      #content-container #x-scrollbar-container #x-scrollbar div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -360,7 +365,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      .hic-content-container div:nth-child(3) div div:last-child {
+      #content-container #x-scrollbar-container #x-scrollbar div:last-child {
         position: relative;
         /* dynamic x and width */
         left: 25%;
@@ -368,6 +373,13 @@
         top: 0;
         height: 100%;
         background-color: #a5a5a5; }
+
+.hic-track-menu {
+  position: absolute;
+  color: white;
+  width: 120px;
+  height: 120px;
+  background-color: #3a8ab4; }
 
 .unselect {
   -webkit-touch-callout: none;
