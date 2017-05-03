@@ -236,9 +236,9 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
-        this.startSpinner();
-        // this.throbber.stop();
-        // this.$spinner.hide();
+        // this.startSpinner();
+        this.throbber.stop();
+        this.$spinner.hide();
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {

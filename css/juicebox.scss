@@ -486,7 +486,7 @@ $default-font-family: 'Open Sans', sans-serif;
       overflow-y: hidden;
 
       // spinner container
-      div:first-of-type {
+      #viewport-spinner-container {
         display: table-cell;
 
         margin: auto;
@@ -510,7 +510,7 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
       // sweep zoom container
-      div:last-of-type {
+      #sweep-zoom-container {
         display: block;
 
         position: absolute;

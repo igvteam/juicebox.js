@@ -48,7 +48,7 @@ var hic = (function (hic) {
         // this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
-        this.$spinner = $('<div>');
+        this.$spinner = $('<div id="viewport-spinner-container">');
         this.$viewport.append(this.$spinner);
 
         // throbber

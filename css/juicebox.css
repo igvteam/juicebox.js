@@ -278,7 +278,7 @@
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport div:first-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #viewport-spinner-container {
         display: table-cell;
         margin: auto;
         position: absolute;
@@ -290,7 +290,7 @@
         z-index: 1024;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport div:last-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #sweep-zoom-container {
         display: block;
         position: absolute;
         top: 0;
