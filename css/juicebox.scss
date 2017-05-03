@@ -379,9 +379,10 @@ $default-font-family: 'Open Sans', sans-serif;
 
   width:  100%;
 
+  // Use for non-Bootstrap-ped site
   height: calc(100% - (#{$nav-bar-height} + #{$nav-bar-padding-bottom} + #{$track-aggregate-height}));
 
-  // Bootstrap compatibility: Remove $nav-bar-padding-bottom from height calc.
+  // Use for Bootstrap-ped site
   //height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
 
   background-color: white;
