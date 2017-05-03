@@ -14,6 +14,8 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
+        var str;
+
         // canvas container
         this.$viewport = $('<div>');
         if (size.width) {
@@ -32,7 +34,9 @@ var hic = (function (hic) {
         if ('x' === this.axis) {
             // label
             this.$label = $('<div>');
-            this.$label.text('label');
+
+            str = this.track.name || 'untitled';
+            this.$label.text(str);
             this.$viewport.append(this.$label);
         }
 

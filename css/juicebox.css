@@ -200,19 +200,31 @@
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks div div:first-of-type {
+      #x-track-container #x-tracks div div:nth-of-type(1) {
         position: absolute;
         top: 0;
         left: 0;
         width: 96px;
-        height: 32px;
+        height: 16px;
+        margin-top: 8px;
+        color: #5f5f5f;
+        font-family: "Open Sans", sans-serif;
+        font-size: 10px;
+        font-weight: 400;
         text-align: center;
         vertical-align: middle;
-        line-height: 32px;
+        line-height: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 2px;
+        padding-right: 2px;
+        border-style: solid;
+        border-width: thin;
+        border-color: #5f5f5f;
         z-index: 2048;
-        color: red;
-        background-color: yellow; }
-      #x-track-container #x-tracks div div:last-of-type {
+        background-color: white; }
+      #x-track-container #x-tracks div div:nth-of-type(2) {
         position: absolute;
         top: 0;
         left: 50%;
