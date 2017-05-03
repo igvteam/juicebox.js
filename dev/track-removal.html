@@ -25,9 +25,6 @@
     <!-- JQuery UI CSS -->
     <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
 
-    <!-- Chosen CSS -->
-    <link rel="stylesheet" href="https://harvesthq.github.io/chosen/chosen.css" />
-
     <!-- site CSS -->
     <link rel="stylesheet" type="text/css" href="../site/css/site.css">
 
@@ -50,9 +47,6 @@
     <!-- IGV JS-->
     <!--<script src="http://igv.org/web/beta/igv-beta.min.js"></script>-->
     <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
-
-    <!-- Chosen JS -->
-    <script src="https://harvesthq.github.io/chosen/chosen.jquery.js"></script>
 
     <!-- Throbber JS -->
     <script src="../js/throbber.js"></script>
@@ -198,7 +192,7 @@
         </div>
 
         <div class="col-md-7 juicebox-widget-container">
-            <select id="dataset_selector" data-placeholder="Choose a Hi-C map to view..." class="chosen-select" name="dataset_selector">
+            <select id="dataset_selector" data-placeholder="Choose a Hi-C map to view..." name="dataset_selector">
                 <option value=""></option>
                 <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
                 <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">Dudchenko et al. | Science 2017 Homo sapiens Hs2-HiC</option>
@@ -674,8 +668,6 @@
         });
 
         site.init();
-
-        $(".chosen-select").chosen();
     });
 
 </script>
