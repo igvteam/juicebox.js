@@ -397,7 +397,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-axis-height;
 
     // x-axis
-    div {
+    #x-axis {
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
       margin-right: $hic-scrollbar-height;
@@ -419,7 +419,7 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: white;
 
     // y-tracks
-    div:nth-child(1) {
+    #y-tracks {
       display:flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -465,7 +465,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-axis
-    div:nth-child(2) {
+    #y-axis {
       width: $hic-axis-height;
       height: 100%;
       margin-bottom: $hic-scrollbar-height;
@@ -473,7 +473,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // viewport
-    div:nth-child(3) {
+    #viewport {
       display:block;
 
       position: relative;
@@ -526,7 +526,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-scrollbar
-    div:nth-child(4) {
+    #y-scrollbar {
       display:block;
       position: relative;
 
@@ -563,7 +563,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-scrollbar-height;
 
     // x-scrollbar
-    div {
+    #x-scrollbar {
       display:block;
       position: relative;
 

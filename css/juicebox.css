@@ -227,7 +227,7 @@
     justify-content: flex-end;
     width: 100%;
     height: 32px; }
-    #content-container #x-axis-container div {
+    #content-container #x-axis-container #x-axis {
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
@@ -240,7 +240,7 @@
     width: 100%;
     height: 100%;
     background-color: white; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(1) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -248,13 +248,13 @@
       width: 0px;
       height: 100%;
       background-color: white; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(1) div {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(1) div div {
+        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div div {
           display: block;
           position: absolute;
           top: 50%;
@@ -264,12 +264,12 @@
           margin-top: -16px;
           z-index: 2048;
           background-color: #58c0fb; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(2) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis {
       width: 32px;
       height: 100%;
       margin-bottom: 20px;
       background-color: white; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(3) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport {
       display: block;
       position: relative;
       left: 0;
@@ -278,7 +278,7 @@
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(3) div:first-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport div:first-of-type {
         display: table-cell;
         margin: auto;
         position: absolute;
@@ -290,7 +290,7 @@
         z-index: 1024;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(3) div:last-of-type {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport div:last-of-type {
         display: block;
         position: absolute;
         top: 0;
@@ -299,13 +299,13 @@
         height: 1px;
         z-index: 4096;
         background-color: rgba(68, 134, 247, 0.25); }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(4) {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar {
       display: block;
       position: relative;
       width: 20px;
       height: 100%;
       background-color: #efefef; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(4) div:first-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -324,7 +324,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar div:nth-child(4) div:last-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:last-child {
         position: relative;
         /* dynamic y and height */
         top: 25%;
@@ -339,14 +339,14 @@
     justify-content: flex-end;
     width: 100%;
     height: 20px; }
-    #content-container #x-scrollbar-container div {
+    #content-container #x-scrollbar-container #x-scrollbar {
       display: block;
       position: relative;
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: #efefef; }
-      #content-container #x-scrollbar-container div div:first-child {
+      #content-container #x-scrollbar-container #x-scrollbar div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -365,7 +365,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      #content-container #x-scrollbar-container div div:last-child {
+      #content-container #x-scrollbar-container #x-scrollbar div:last-child {
         position: relative;
         /* dynamic x and width */
         left: 25%;

@@ -36,7 +36,7 @@ var hic = (function (hic) {
 
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
-        this.$viewport = $('<div>');
+        this.$viewport = $('<div id="viewport">');
         $container.append(this.$viewport);
 
         //content canvas

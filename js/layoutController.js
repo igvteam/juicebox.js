@@ -87,7 +87,7 @@ var hic = (function (hic) {
         this.$content_container.append($container);
 
         // y-tracks
-        this.$y_tracks = $('<div>');
+        this.$y_tracks = $('<div id="y-tracks">');
         $container.append(this.$y_tracks);
 
         // y-axis
@@ -104,14 +104,14 @@ var hic = (function (hic) {
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
 
         function xAxis(browser, $container) {
-            var $xAxis = $('<div>');
+            var $xAxis = $('<div id="x-axis">');
             $container.append($xAxis);
 
             this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
         }
 
         function yAxis(browser, $container) {
-            var $yAxis = $('<div>');
+            var $yAxis = $('<div id="y-axis">');
             $container.append($yAxis);
 
             this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
