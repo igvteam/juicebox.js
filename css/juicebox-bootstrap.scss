@@ -339,7 +339,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // canvas container
     div {
-      display:block;
+
+      // reference point for child divs with position: absolute
       position: relative;
 
       width:100%;
@@ -347,9 +348,62 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
+      // track label presenter
+      div:nth-of-type(1) {
+        position: absolute;
+
+        top:  0;
+        left: 0;
+
+        width:  0.25 * $track-height;
+        height: $track-height;
+
+        z-index: 2048;
+
+        background-image: url('../img/track-label-presenter.png');
+        //background-color: red;
+
+      }
+
+      // track label
+      div:nth-of-type(2) {
+        position: absolute;
+
+        top:  0;
+        left: 0;
+
+        width:  4.0 * $track-height;
+        height: 0.75 * $track-height;
+
+        margin-top: 0.125 * $track-height;
+
+        color: $default-dark-color;
+        font-family: $default-font-family;
+        font-size: 12px;
+        font-weight: 400;
+
+        text-align: center;
+        vertical-align: middle;
+        line-height: 0.75 * $track-height;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        padding-left: 2px;
+        padding-right: 2px;
+
+        border-style: solid;
+        border-width: thin;
+        border-color: $default-dark-color;
+
+        z-index: 1024;
+
+        background-color: white;
+      }
+
       // spinner container
-      div {
-        display: block;
+      div:nth-of-type(3) {
         position: absolute;
 
         top: 0;

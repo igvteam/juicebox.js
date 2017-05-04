@@ -197,12 +197,42 @@
     height: 100%;
     margin-right: 20px; }
     #x-track-container #x-tracks div {
-      display: block;
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks div div {
-        display: block;
+      #x-track-container #x-tracks div div:nth-of-type(1) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 8px;
+        height: 32px;
+        z-index: 2048;
+        background-image: url("../img/track-label-presenter.png"); }
+      #x-track-container #x-tracks div div:nth-of-type(2) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 128px;
+        height: 24px;
+        margin-top: 4px;
+        color: #5f5f5f;
+        font-family: "Open Sans", sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 24px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-left: 2px;
+        padding-right: 2px;
+        border-style: solid;
+        border-width: thin;
+        border-color: #5f5f5f;
+        z-index: 1024;
+        background-color: white; }
+      #x-track-container #x-tracks div div:nth-of-type(3) {
         position: absolute;
         top: 0;
         left: 50%;
