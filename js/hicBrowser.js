@@ -297,9 +297,14 @@ var hic = (function (hic) {
 
                 $e = $('#encodeModalBody');
                 if (1 === _.size($e)) {
+
+                    if (self.encodeTable) {
+                        $e.empty();
+                        self.encodeTable = undefined;
+                    }
+
                     self.encodeTable = new encode.EncodeTable($e, self, dataset.genomeId, self.loadTrackXY);
                 }
-
 
             })
             .catch(function (error) {
