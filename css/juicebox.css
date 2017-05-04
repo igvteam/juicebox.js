@@ -196,11 +196,11 @@
     width: calc(100% - (0px + 32px + 20px));
     height: 100%;
     margin-right: 20px; }
-    #x-track-container #x-tracks div {
+    #x-track-container #x-tracks .x-track-canvas-container {
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks div div:nth-of-type(1) {
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter {
         position: absolute;
         top: 0;
         left: 0;
@@ -208,7 +208,7 @@
         height: 32px;
         z-index: 2048;
         background-image: url("../img/track-label-presenter.png"); }
-      #x-track-container #x-tracks div div:nth-of-type(2) {
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label {
         position: absolute;
         top: 0;
         left: 0;
@@ -229,7 +229,7 @@
         padding-right: 2px;
         z-index: 1024;
         background-color: rgba(255, 255, 255, 0.75); }
-      #x-track-container #x-tracks div div:nth-of-type(3) {
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
         left: 50%;
@@ -275,13 +275,13 @@
       width: 0px;
       height: 100%;
       background-color: white; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div div {
+        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container .y-track-spinner {
           display: block;
           position: absolute;
           top: 50%;

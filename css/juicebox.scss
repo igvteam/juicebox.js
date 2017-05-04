@@ -338,7 +338,7 @@ $default-font-family: 'Open Sans', sans-serif;
     margin-right: $hic-scrollbar-height;
 
     // canvas container
-    div {
+    .x-track-canvas-container {
 
       // reference point for child divs with position: absolute
       position: relative;
@@ -348,8 +348,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
-      // track label presenter
-      div:nth-of-type(1) {
+      // x-track label presenter
+      .x-track-label-presenter {
         position: absolute;
 
         top:  0;
@@ -365,8 +365,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       }
 
-      // track label
-      div:nth-of-type(2) {
+      // x-track label
+      .x-track-label {
         position: absolute;
 
         top:  0;
@@ -402,8 +402,8 @@ $default-font-family: 'Open Sans', sans-serif;
         background-color: rgba(255, 255, 255, 0.75);
       }
 
-      // spinner container
-      div:nth-of-type(3) {
+      // x-track spinner container
+      .x-track-spinner {
         position: absolute;
 
         top: 0;
@@ -485,8 +485,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       background-color: white;
 
-      // canvas container
-      div {
+      // y-track canvas container
+      .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
@@ -496,8 +496,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
         // canvas inserted here
 
-        // spinner container
-        div {
+        // y-track spinner container
+        .y-track-spinner {
           display: block;
           position: absolute;
 

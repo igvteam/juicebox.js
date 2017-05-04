@@ -17,8 +17,8 @@ var hic = (function (hic) {
         var self = this,
             str;
 
-        // canvas container
-        this.$viewport = $('<div>');
+        // track canvas container
+        this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
         if (size.width) {
             this.$viewport.width(size.width);
         }
@@ -35,11 +35,11 @@ var hic = (function (hic) {
         if ('x' === this.axis) {
 
             // label presenter
-            this.$label_presenter = $('<div>');
+            this.$label_presenter = $('<div class="x-track-label-presenter">');
             this.$viewport.append(this.$label_presenter);
 
             // label
-            this.$label = $('<div>');
+            this.$label = $('<div class="x-track-label">');
             str = this.track.name || 'untitled';
             this.$label.text(str);
             this.$viewport.append(this.$label);
@@ -57,8 +57,8 @@ var hic = (function (hic) {
             this.$label_presenter.hide();
         }
 
-        // spinner
-        this.$spinner = $('<div>');
+        // track spinner container
+        this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
         this.$viewport.append(this.$spinner);
 
         // throbber
