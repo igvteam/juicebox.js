@@ -348,8 +348,25 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
-      // track label container
+      // track label presenter
       div:nth-of-type(1) {
+        position: absolute;
+
+        top:  0;
+        left: 0;
+
+        width:  0.25 * $track-height;
+        height: $track-height;
+
+        z-index: 2048;
+
+        background-image: url('./img/track-label-presenter.png');
+        //background-color: red;
+
+      }
+
+      // track label
+      div:nth-of-type(2) {
         position: absolute;
 
         top:  0;
@@ -380,13 +397,13 @@ $default-font-family: 'Open Sans', sans-serif;
         border-width: thin;
         border-color: $default-dark-color;
 
-        z-index: 2048;
+        z-index: 1024;
 
         background-color: white;
       }
 
       // spinner container
-      div:nth-of-type(2) {
+      div:nth-of-type(3) {
         position: absolute;
 
         top: 0;

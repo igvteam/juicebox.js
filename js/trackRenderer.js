@@ -14,7 +14,8 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
-        var str;
+        var self = this,
+            str;
 
         // canvas container
         this.$viewport = $('<div>');
@@ -32,12 +33,28 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         if ('x' === this.axis) {
+
+            // label presenter
+            this.$label_presenter = $('<div>');
+            this.$viewport.append(this.$label_presenter);
+
             // label
             this.$label = $('<div>');
-
             str = this.track.name || 'untitled';
             this.$label.text(str);
             this.$viewport.append(this.$label);
+
+            this.$label_presenter.on('click', function (e) {
+                self.$label.show();
+                $(this).hide();
+            });
+
+            this.$label.on('click', function (e) {
+                self.$label_presenter.show();
+                $(this).hide();
+            });
+
+            this.$label_presenter.hide();
         }
 
         // spinner
