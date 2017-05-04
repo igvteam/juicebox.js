@@ -227,11 +227,8 @@
         text-overflow: ellipsis;
         padding-left: 2px;
         padding-right: 2px;
-        border-style: solid;
-        border-width: thin;
-        border-color: #5f5f5f;
         z-index: 1024;
-        background-color: white; }
+        background-color: rgba(255, 255, 255, 0.75); }
       #x-track-container #x-tracks div div:nth-of-type(3) {
         position: absolute;
         top: 0;

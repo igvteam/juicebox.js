@@ -393,13 +393,13 @@ $default-font-family: 'Open Sans', sans-serif;
         padding-left: 2px;
         padding-right: 2px;
 
-        border-style: solid;
-        border-width: thin;
-        border-color: $default-dark-color;
+        //border-style: solid;
+        //border-width: thin;
+        //border-color: $default-dark-color;
 
         z-index: 1024;
 
-        background-color: white;
+        background-color: rgba(255, 255, 255, 0.75);
       }
 
       // spinner container
