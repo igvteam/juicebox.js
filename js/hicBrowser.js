@@ -263,6 +263,7 @@ var hic = (function (hic) {
         self.hicReader.loadDataset()
 
             .then(function (dataset) {
+                var $e;
 
                 self.contactMatrixView.stopSpinner();
 
@@ -294,7 +295,10 @@ var hic = (function (hic) {
                     self.getColorScale().high = config.colorScale;
                 }
 
-                self.encodeTable = new encode.EncodeTable($('#encodeModalBody'), self, dataset.genomeId, self.loadTrackXY);
+                $e = $('#encodeModalBody');
+                if (1 === _.size($e)) {
+                    self.encodeTable = new encode.EncodeTable($e, self, dataset.genomeId, self.loadTrackXY);
+                }
 
 
             })
