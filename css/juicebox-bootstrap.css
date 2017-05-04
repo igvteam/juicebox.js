@@ -79,14 +79,14 @@
   width: 24px;
   height: 24px;
   margin-left: 4px;
-  background-image: url("../img/circular-arrows-24-grey.png");
+  background-image: url("img/circular-arrows-24-grey.png");
   background-repeat: no-repeat; }
 
 .hic-chromosome-selector-widget-button:hover,
 .hic-chromosome-selector-widget-button:focus,
 .hic-chromosome-selector-widget-button:active {
   cursor: pointer;
-  background-image: url("../img/circular-arrows-24-blue.png"); }
+  background-image: url("img/circular-arrows-24-blue.png"); }
 
 .hic-chromosome-goto-container {
   order: 2;
@@ -196,19 +196,19 @@
     width: calc(100% - (0px + 32px + 20px));
     height: 100%;
     margin-right: 20px; }
-    #x-track-container #x-tracks div {
+    #x-track-container #x-tracks .x-track-canvas-container {
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks div div:nth-of-type(1) {
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter {
         position: absolute;
         top: 0;
         left: 0;
         width: 8px;
         height: 32px;
-        z-index: 2048;
-        background-image: url("../img/track-label-presenter.png"); }
-      #x-track-container #x-tracks div div:nth-of-type(2) {
+        z-index: 1024;
+        background-image: url("img/track-label-presenter.png"); }
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label {
         position: absolute;
         top: 0;
         left: 0;
@@ -227,16 +227,16 @@
         text-overflow: ellipsis;
         padding-left: 2px;
         padding-right: 2px;
-        z-index: 1024;
+        z-index: 512;
         background-color: rgba(255, 255, 255, 0.75); }
-      #x-track-container #x-tracks div div:nth-of-type(3) {
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
         left: 50%;
         width: 32px;
         height: 32px;
         margin-left: -16px;
-        z-index: 2048;
+        z-index: 512;
         background-color: rgba(255, 255, 255, 0); }
 
 #content-container {
@@ -275,13 +275,13 @@
       width: 0px;
       height: 100%;
       background-color: white; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks div div {
+        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container .y-track-spinner {
           display: block;
           position: absolute;
           top: 50%;
@@ -289,7 +289,7 @@
           width: 32px;
           height: 32px;
           margin-top: -16px;
-          z-index: 2048;
+          z-index: 512;
           background-color: rgba(255, 255, 255, 0); }
     #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis {
       width: 32px;
@@ -314,7 +314,7 @@
         right: 0;
         height: 120px;
         width: 120px;
-        z-index: 1024;
+        z-index: 512;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
       #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #sweep-zoom-container {
@@ -324,7 +324,7 @@
         left: 0;
         width: 1px;
         height: 1px;
-        z-index: 4096;
+        z-index: 512;
         background-color: rgba(68, 134, 247, 0.25); }
     #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar {
       display: block;
@@ -342,7 +342,7 @@
         bottom: 0;
         height: 20px;
         width: 20px;
-        z-index: 1024;
+        z-index: 512;
         background-color: rgba(255, 255, 255, 0.51);
         vertical-align: middle;
         text-align: center;
@@ -383,7 +383,7 @@
         bottom: 0;
         height: 20px;
         width: 20px;
-        z-index: 1024;
+        z-index: 512;
         background-color: rgba(255, 255, 255, 0.51);
         vertical-align: middle;
         text-align: center;

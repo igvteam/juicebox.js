@@ -51,7 +51,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-scrollbar-height;
     width: $hic-scrollbar-height;
 
-    z-index: 1024;
+    z-index: 512;
 
     background-color: rgba(255, 255, 255, 0.51);
 
@@ -228,7 +228,7 @@ $default-font-family: 'Open Sans', sans-serif;
   width: 24px;
   height: 24px;
   margin-left: 4px;
-  background-image: url('../img/circular-arrows-24-grey.png');
+  background-image: url('img/circular-arrows-24-grey.png');
   background-repeat: no-repeat;
 }
 
@@ -236,7 +236,7 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-chromosome-selector-widget-button:focus,
 .hic-chromosome-selector-widget-button:active  {
   cursor: pointer;
-  background-image: url('../img/circular-arrows-24-blue.png');
+  background-image: url('img/circular-arrows-24-blue.png');
 }
 
 // navbar - chromosome goto
@@ -338,7 +338,7 @@ $default-font-family: 'Open Sans', sans-serif;
     margin-right: $hic-scrollbar-height;
 
     // canvas container
-    div {
+    .x-track-canvas-container {
 
       // reference point for child divs with position: absolute
       position: relative;
@@ -348,8 +348,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
-      // track label presenter
-      div:nth-of-type(1) {
+      // x-track label presenter
+      .x-track-label-presenter {
         position: absolute;
 
         top:  0;
@@ -358,15 +358,15 @@ $default-font-family: 'Open Sans', sans-serif;
         width:  0.25 * $track-height;
         height: $track-height;
 
-        z-index: 2048;
+        z-index: 1024;
 
-        background-image: url('../img/track-label-presenter.png');
+        background-image: url('img/track-label-presenter.png');
         //background-color: red;
 
       }
 
-      // track label
-      div:nth-of-type(2) {
+      // x-track label
+      .x-track-label {
         position: absolute;
 
         top:  0;
@@ -397,13 +397,13 @@ $default-font-family: 'Open Sans', sans-serif;
         //border-width: thin;
         //border-color: $default-dark-color;
 
-        z-index: 1024;
+        z-index: 512;
 
         background-color: rgba(255, 255, 255, 0.75);
       }
 
-      // spinner container
-      div:nth-of-type(3) {
+      // x-track spinner container
+      .x-track-spinner {
         position: absolute;
 
         top: 0;
@@ -414,7 +414,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         margin-left: -($track-height/2);
 
-        z-index: 2048;
+        z-index: 512;
 
         background-color: rgba(255, 255, 255, 0);
         //background-color: greenyellow;
@@ -485,8 +485,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       background-color: white;
 
-      // canvas container
-      div {
+      // y-track canvas container
+      .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
@@ -496,8 +496,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
         // canvas inserted here
 
-        // spinner container
-        div {
+        // y-track spinner container
+        .y-track-spinner {
           display: block;
           position: absolute;
 
@@ -509,7 +509,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
           margin-top: -($track-height/2);
 
-          z-index: 2048;
+          z-index: 512;
 
           background-color: rgba(255, 255, 255, 0);
           //background-color: #58c0fb;
@@ -556,7 +556,7 @@ $default-font-family: 'Open Sans', sans-serif;
         height: $hic-viewport-spinner-size;
         width: $hic-viewport-spinner-size;
 
-        z-index: 1024;
+        z-index: 512;
 
         pointer-events:none;
 
@@ -574,7 +574,7 @@ $default-font-family: 'Open Sans', sans-serif;
         width: 1px;
         height: 1px;
 
-        z-index:4096;
+        z-index:512;
         background-color: rgba(68, 134, 247, 0.25);
       }
 
