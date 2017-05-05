@@ -300,6 +300,9 @@ var hic = (function (hic) {
                 if (1 === _.size($e)) {
 
                     if (self.encodeTable) {
+
+                        self.encodeTable.unbindAllMouseHandlers();
+
                         $e.empty();
                         self.encodeTable = undefined;
                     }
