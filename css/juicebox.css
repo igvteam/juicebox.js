@@ -207,7 +207,12 @@
         width: 8px;
         height: 32px;
         z-index: 1024;
-        background-image: url("img/track-label-presenter.png"); }
+        background-image: url("img/track-label-presenter-short.png"); }
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:hover,
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:focus,
+      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:active {
+        cursor: pointer;
+        background-image: url("img/track-label-presenter-tall.png"); }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-label {
         position: absolute;
         top: 0;
@@ -244,7 +249,7 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 8px + 0px));
+  height: calc(100% - (70px + 0px));
   background-color: white; }
   #content-container #x-axis-container {
     display: flex;
