@@ -67,6 +67,15 @@ var hic = (function (hic) {
         this.throbber.appendTo( this.$spinner.get(0) );
         this.stopSpinner();
 
+        if ('x' === this.axis) {
+
+            this.$menu_container = $('<div class="x-track-menu-container">');
+            this.$viewport.append(this.$menu_container);
+
+            this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
+            this.$menu_container.append(this.$menu_button);
+        }
+
         this.configTrackTransforms();
 
     };
