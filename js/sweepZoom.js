@@ -117,6 +117,8 @@ var hic = (function (hic) {
             resolution,
             X,
             Y,
+            Width,
+            Height,
             XMax,
             YMax;
 
@@ -127,13 +129,17 @@ var hic = (function (hic) {
         // bp-per-bin
         resolution = this.browser.resolution();
 
-        // bp = (bin + pixel/pixel-per-bin) * bp-per-bin
-        X = (state.x + this.sweepRect.origin.x / state.pixelSize) * resolution;
-        Y = (state.y + this.sweepRect.origin.y / state.pixelSize) * resolution;
+        // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+        X = (state.x + (this.sweepRect.origin.x / state.pixelSize)) * resolution;
+        Y = (state.y + (this.sweepRect.origin.y / state.pixelSize)) * resolution;
 
-        // bp = bp + (pixel/pixel-per-bin) * bp-per-bin
-        XMax = X + (this.sweepRect.size.width / state.pixelSize) * resolution;
-        YMax = Y + (this.sweepRect.size.height / state.pixelSize) * resolution;
+        // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+        Width  = (this.sweepRect.size.width  / state.pixelSize) * resolution;
+        Height = (this.sweepRect.size.height / state.pixelSize) * resolution;
+
+        // bp = bp + bp
+        XMax = X + Width;
+        YMax = Y + Height;
 
         this.browser.goto(X, XMax, Y, YMax);
 
