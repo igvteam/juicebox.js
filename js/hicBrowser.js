@@ -251,17 +251,18 @@ var hic = (function (hic) {
             return;
         }
 
-        self.url = config.url;
+        this.url = config.url;
+
+        this.layoutController.removeAllTrackXYPairs();
 
         this.hicReader = new hic.HiCReader(config);
 
         self.contactMatrixView.clearCaches();
 
-
         self.contactMatrixView.startSpinner();
 
-        self.hicReader.loadDataset()
-
+        self.hicReader
+            .loadDataset()
             .then(function (dataset) {
                 var $e;
 
@@ -299,6 +300,9 @@ var hic = (function (hic) {
                 if (1 === _.size($e)) {
 
                     if (self.encodeTable) {
+
+                        self.encodeTable.unbindAllMouseHandlers();
+
                         $e.empty();
                         self.encodeTable = undefined;
                     }

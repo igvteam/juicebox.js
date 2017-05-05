@@ -150,7 +150,39 @@ var hic = (function (hic) {
 
     };
 
-    hic.LayoutController.prototype.removeTrackXYPair = function () {
+    hic.LayoutController.prototype.removeAllTrackXYPairs = function () {
+        var self = this,
+            indices;
+
+        indices = _.range(_.size(this.browser.trackRenderers));
+
+        if (0 === _.size(indices)) {
+            return;
+        }
+
+        _.each(indices, function(unused) {
+            var discard,
+                index;
+
+            // select last track to dicard
+            discard = _.last(self.browser.trackRenderers);
+
+            // discard DOM element's
+            discard[ 'x' ].$viewport.remove();
+            discard[ 'y' ].$viewport.remove();
+
+            // remove discard from list
+            index = self.browser.trackRenderers.indexOf(discard);
+            self.browser.trackRenderers.splice(index, 1);
+
+            discard = undefined;
+            self.doLayoutTrackXYPairCount( _.size(self.browser.trackRenderers) );
+        });
+
+        // this.browser.updateLayout();
+    };
+
+    hic.LayoutController.prototype.removeLastTrackXYPair = function () {
         var index,
             discard;
 
