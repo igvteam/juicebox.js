@@ -54,7 +54,7 @@ var hic = (function (hic) {
                 $(this).hide();
             });
 
-            this.$label_presenter.hide();
+            this.$label.hide();
         }
 
         // track spinner container
