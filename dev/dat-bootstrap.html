@@ -661,7 +661,7 @@
         browser = hic.createBrowser($('#app-container'), { reference: reference });
 
         $('#remove-track').on('click', function(e){
-            browser.layoutController.removeTrackXYPair();
+            browser.layoutController.removeLastTrackXYPair();
         });
 
         $('#dataset_selector').on('change', function(e){
