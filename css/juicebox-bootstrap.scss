@@ -360,9 +360,16 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 1024;
 
-        background-image: url('img/track-label-presenter.png');
+        background-image: url('img/track-label-presenter-short.png');
         //background-color: red;
 
+      }
+
+      .x-track-label-presenter:hover,
+      .x-track-label-presenter:focus,
+      .x-track-label-presenter:active  {
+        cursor: pointer;
+        background-image: url('img/track-label-presenter-tall.png');
       }
 
       // x-track label
