@@ -29,6 +29,11 @@ var hic = (function (hic) {
 
     hic.createBrowser = function ($hic_container, config) {
 
+        var browser;
+
+        igv.trackMenuItemList = hic.replacementTrackMenuItemList;
+        igv.trackMenuItem = hic.replacementTrackMenuItem;
+
         defaultPixelSize = 1;
 
         defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
@@ -50,7 +55,25 @@ var hic = (function (hic) {
             config.colorScale = parseFloat(colorScale);
         }
 
-        return new hic.Browser($hic_container, config);
+        browser = new hic.Browser($hic_container, config);
+
+        // Popover object -- singleton shared by all components
+        igv.popover = new igv.Popover($hic_container);
+
+        // ColorPicker object -- singleton shared by all components
+        igv.colorPicker = new igv.ColorPicker($hic_container, undefined);
+        igv.colorPicker.hide();
+
+        // Dialog object -- singleton shared by all components
+        igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
+        igv.dialog.hide();
+
+        // Data Range Dialog object -- singleton shared by all components
+        igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
+        igv.dataRangeDialog.hide();
+
+        return browser;
+
     };
 
     hic.Browser = function ($app_container, config) {

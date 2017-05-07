@@ -6,7 +6,9 @@ var hic = (function (hic) {
     hic.TrackRenderer = function (browser, size, $container, track, axis) {
 
         this.browser = browser;
+
         this.track = track;
+
         this.id = _.uniqueId('trackRenderer_');
         this.axis = axis;
         this.initializationHelper($container, size);
@@ -75,7 +77,16 @@ var hic = (function (hic) {
 
             this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
             this.$menu_container.append(this.$menu_button);
+
+            this.$menu_button.click(function (e) {
+                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
+            });
+
         }
+
+        // compatibility with igv menus
+        this.track.trackView = this;
+        this.track.trackView.trackDiv = this.$viewport.get(0);
 
         this.configTrackTransforms();
 
@@ -103,8 +114,12 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.update = function () {
-        this.tile = null;
+        // this.tile = null;
         this.promiseToRepaint();
+    };
+
+    hic.TrackRenderer.prototype.repaint = function () {
+        this.update();
     };
 
     hic.TrackRenderer.prototype.promiseToRepaint = function () {

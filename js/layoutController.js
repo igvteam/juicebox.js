@@ -11,6 +11,9 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
+        // Compatibility wit igv menus
+        igv.browser.trackContainerDiv = this.$x_track_container.get(0);
+
         // Dupes of corresponding juicebox.scss variables
         // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
         this.nav_bar_height = 70;
