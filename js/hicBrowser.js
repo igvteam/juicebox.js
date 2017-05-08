@@ -297,7 +297,9 @@ var hic = (function (hic) {
                 }
 
                 $e = $('#encodeModalBody');
-                if (1 === _.size($e)) {
+
+                // If the encode button exists,  and the encode table is undefined OR is for another assembly load or reload it
+                if (1 === _.size($e) && (self.encodeTable === undefined || (self.dataset.genomeId != self.encodeTable.genomeID))) {
 
                     if (self.encodeTable) {
 
