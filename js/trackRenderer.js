@@ -125,6 +125,22 @@ var hic = (function (hic) {
         this.browser.renderTrackXY(this.trackRenderPair);
     };
 
+    hic.TrackRenderer.prototype.dataRange = function () {
+        return this.track.dataRange ? this.track.dataRange : undefined;
+    };
+
+    hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
+
+        _.each(this.trackRenderPair, function (trackRenderer) {
+            trackRenderer.tile = undefined;
+            trackRenderer.track.dataRange = { min: min, max: max };
+            trackRenderer.track.autscale = autoscale;
+        });
+
+        this.browser.renderTrackXY(this.trackRenderPair);
+
+    };
+
     hic.TrackRenderer.prototype.update = function () {
         this.tile = null;
         this.promiseToRepaint();
