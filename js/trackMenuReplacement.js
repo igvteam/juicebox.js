@@ -83,9 +83,7 @@ hic.trackMenuItemListReplacement = function (popover, trackRenderer) {
             undefined,
             function () {
                 popover.hide();
-
-                // TODO: Add track remove method to layoutController
-                // igv.browser.removeTrack(trackRenderer.track);
+                hic.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
             },
             true));
 

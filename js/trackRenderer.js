@@ -3,13 +3,13 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackXY, axis) {
+    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis) {
 
         this.browser = browser;
 
         this.trackRenderPair = trackRenderPair;
 
-        this.track = trackXY[ axis ];
+        this.track = trackPair[ axis ];
 
         this.id = _.uniqueId('trackRenderer_');
         this.axis = axis;
