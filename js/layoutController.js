@@ -11,6 +11,9 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
+        // Compatibility wit igv menus
+        igv.browser.trackContainerDiv = this.$x_track_container.get(0);
+
         // Dupes of corresponding juicebox.scss variables
         // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
         this.nav_bar_height = 70;
@@ -121,11 +124,11 @@ var hic = (function (hic) {
 
     hic.LayoutController.prototype.receiveEvent = function(event) {
         var self = this,
-            trackXY;
+            trackRendererPair;
 
         if ('DidAddTrack' === event.type) {
 
-            _.each(event.data.trackXYPairs, function (trackXYPair) {
+            _.each(event.data.trackXYPairs, function (trackPair) {
 
                 var w,
                     h;
@@ -133,12 +136,12 @@ var hic = (function (hic) {
                 self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
 
                 // append tracks
-                trackXY = {};
+                trackRendererPair = {};
                 w = h = self.track_height;
-                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: h         }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
-                trackXY.y = new hic.TrackRenderer(self.browser, { width: w,         height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
+                trackRendererPair.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackRendererPair, trackPair, 'x');
+                trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y');
 
-                self.browser.trackRenderers.push(trackXY);
+                self.browser.trackRenderers.push(trackRendererPair);
             });
 
             this.browser.updateLayout();
@@ -200,6 +203,33 @@ var hic = (function (hic) {
             this.browser.trackRenderers.splice(index, 1);
 
             discard = undefined;
+            this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
+
+            this.browser.updateLayout();
+
+        } else {
+            console.log('No more tracks.');
+        }
+
+    };
+
+    hic.LayoutController.prototype.removeTrackRendererPair = function (trackRendererPair) {
+
+        var index,
+            discard;
+
+        if (_.size(this.browser.trackRenderers) > 0) {
+
+            discard = trackRendererPair;
+
+            // discard DOM element's
+            discard[ 'x' ].$viewport.remove();
+            discard[ 'y' ].$viewport.remove();
+
+            // remove discard from list
+            index = this.browser.trackRenderers.indexOf(discard);
+            this.browser.trackRenderers.splice(index, 1);
+
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
             this.browser.updateLayout();

@@ -3,10 +3,14 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, track, axis) {
+    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis) {
 
         this.browser = browser;
-        this.track = track;
+
+        this.trackRenderPair = trackRenderPair;
+
+        this.track = trackPair[ axis ];
+
         this.id = _.uniqueId('trackRenderer_');
         this.axis = axis;
         this.initializationHelper($container, size);
@@ -75,7 +79,16 @@ var hic = (function (hic) {
 
             this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
             this.$menu_container.append(this.$menu_button);
+
+            this.$menu_button.click(function (e) {
+                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
+            });
+
         }
+
+        // compatibility with igv menus
+        this.track.trackView = this;
+        this.track.trackView.trackDiv = this.$viewport.get(0);
 
         this.configTrackTransforms();
 
@@ -102,8 +115,38 @@ var hic = (function (hic) {
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
     };
 
+    hic.TrackRenderer.prototype.setColor = function (color) {
+
+        _.each(this.trackRenderPair, function (trackRenderer) {
+            trackRenderer.tile = undefined;
+            trackRenderer.track.color = color;
+        });
+
+        this.browser.renderTrackXY(this.trackRenderPair);
+    };
+
+    hic.TrackRenderer.prototype.dataRange = function () {
+        return this.track.dataRange ? this.track.dataRange : undefined;
+    };
+
+    hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
+
+        _.each(this.trackRenderPair, function (trackRenderer) {
+            trackRenderer.tile = undefined;
+            trackRenderer.track.dataRange = { min: min, max: max };
+            trackRenderer.track.autscale = autoscale;
+        });
+
+        this.browser.renderTrackXY(this.trackRenderPair);
+
+    };
+
     hic.TrackRenderer.prototype.update = function () {
         this.tile = null;
+        this.promiseToRepaint();
+    };
+
+    hic.TrackRenderer.prototype.repaint = function () {
         this.promiseToRepaint();
     };
 
