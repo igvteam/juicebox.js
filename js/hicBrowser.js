@@ -59,6 +59,7 @@ var hic = (function (hic) {
 
         // Popover object -- singleton shared by all components
         igv.popover = new igv.Popover($hic_container);
+        igv.popover.presentTrackGearMenu = hic.popoverPresentTrackGearMenuReplacement;
 
         // ColorPicker object -- singleton shared by all components
         igv.colorPicker = new igv.ColorPicker($hic_container, undefined);

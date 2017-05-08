@@ -23439,14 +23439,14 @@ var igv = (function (igv) {
             popupX = pageX,
             popupY = pageY;
 
-        popupX -= popover.$parent.offset().left;
-        popupY -= popover.$parent.offset().top;
-        popupRect = { x: popupX, y: popupY, width: popover.$popover.outerWidth(), height: popover.$popover.outerHeight() };
+        // popupX -= popover.$parent.offset().left;
+        // popupY -= popover.$parent.offset().top;
+        // popupRect = { x: popupX, y: popupY, width: popover.$popover.outerWidth(), height: popover.$popover.outerHeight() };
 
         left = popupX;
-        if (containerCoordinates.x + popupRect.width > containerRect.width) {
-            left = popupX - popupRect.width;
-        }
+        // if (containerCoordinates.x + popupRect.width > containerRect.width) {
+        //     left = popupX - popupRect.width;
+        // }
 
         return { "left": left + "px", "top": popupY + "px" };
     }

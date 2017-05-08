@@ -2,6 +2,37 @@
  * Created by dat on 5/7/17.
  */
 
+hic.popoverPresentTrackGearMenuReplacement = function (pageX, pageY, trackView) {
+
+    var $container,
+        items;
+
+    items = igv.trackMenuItemList(this, trackView);
+    if (_.size(items) > 0) {
+
+        this.$popoverContent.empty();
+        this.$popoverContent.removeClass("igv-popover-track-popup-content");
+
+        $container = $('<div class="igv-track-menu-container">');
+        this.$popoverContent.append($container);
+
+        _.each(items, function(item) {
+
+            if (item.init) {
+                item.init();
+            }
+
+            $container.append(item.object);
+
+        });
+
+        this.$popover.css({ left: pageX + 'px', top: pageY + 'px' });
+        this.$popover.show();
+        // this.$popover.offset( igv.constrainBBox(this.$popover, $(igv.browser.trackContainerDiv)) );
+
+    }
+};
+
 hic.trackMenuItemListReplacement = function (popover, trackRenderer) {
 
     var menuItems = [],
