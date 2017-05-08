@@ -2,7 +2,7 @@
  * Created by dat on 5/7/17.
  */
 
-hic.replacementTrackMenuItemList = function (popover, trackRenderer) {
+hic.trackMenuItemListReplacement = function (popover, trackRenderer) {
 
     var menuItems = [],
         all;
@@ -61,7 +61,7 @@ hic.replacementTrackMenuItemList = function (popover, trackRenderer) {
     return all;
 };
 
-hic.replacementTrackMenuItem = function (popover, trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler, doAddTopBorder) {
+hic.trackMenuItemReplacement = function (popover, trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler, doAddTopBorder) {
 
     var $e,
         clickHandler;

@@ -138,8 +138,8 @@ var hic = (function (hic) {
                 // append tracks
                 trackXY = {};
                 w = h = self.track_height;
-                trackXY.x = new hic.TrackRenderer(self.browser, { width: undefined, height: h         }, self.$x_tracks, trackXYPair[ 'x' ], 'x');
-                trackXY.y = new hic.TrackRenderer(self.browser, { width: w,         height: undefined }, self.$y_tracks, trackXYPair[ 'y' ], 'y');
+                trackXY.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackXY, trackXYPair, 'x');
+                trackXY.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackXY, trackXYPair, 'y');
 
                 self.browser.trackRenderers.push(trackXY);
             });

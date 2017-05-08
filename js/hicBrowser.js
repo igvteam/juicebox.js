@@ -31,8 +31,8 @@ var hic = (function (hic) {
 
         var browser;
 
-        igv.trackMenuItemList = hic.replacementTrackMenuItemList;
-        igv.trackMenuItem = hic.replacementTrackMenuItem;
+        igv.trackMenuItemList = hic.trackMenuItemListReplacement;
+        igv.trackMenuItem = hic.trackMenuItemReplacement;
 
         defaultPixelSize = 1;
 
@@ -257,6 +257,26 @@ var hic = (function (hic) {
                 });
 
         }
+
+    };
+
+    hic.Browser.prototype.renderTrackXY = function (trackXY) {
+        var list;
+
+        // append each x-y track pair into a single list for Promise'ing
+        list = [];
+
+        list.push(trackXY.x.promiseToRepaint());
+        list.push(trackXY.y.promiseToRepaint());
+
+        Promise
+            .all(list)
+            .then(function (strings) {
+                // console.log(strings.join('\n'));
+            })
+            .catch(function (error) {
+                console.log(error.message)
+            });
 
     };
 

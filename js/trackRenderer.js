@@ -3,11 +3,13 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, track, axis) {
+    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackXY, axis) {
 
         this.browser = browser;
 
-        this.track = track;
+        this.trackRenderPair = trackRenderPair;
+
+        this.track = trackXY[ axis ];
 
         this.id = _.uniqueId('trackRenderer_');
         this.axis = axis;
@@ -113,13 +115,23 @@ var hic = (function (hic) {
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
     };
 
+    hic.TrackRenderer.prototype.setColor = function (color) {
+
+        _.each(this.trackRenderPair, function (trackRenderer) {
+            trackRenderer.tile = undefined;
+            trackRenderer.track.color = color;
+        });
+
+        this.browser.renderTrackXY(this.trackRenderPair);
+    };
+
     hic.TrackRenderer.prototype.update = function () {
-        // this.tile = null;
+        this.tile = null;
         this.promiseToRepaint();
     };
 
     hic.TrackRenderer.prototype.repaint = function () {
-        this.update();
+        this.promiseToRepaint();
     };
 
     hic.TrackRenderer.prototype.promiseToRepaint = function () {

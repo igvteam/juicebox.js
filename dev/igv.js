@@ -21074,17 +21074,17 @@ var igv = (function (igv) {
         }
     };
 
-    igv.setTrackColor = function (track, color) {
-
-        track.color = color;
-
-        if (track.trackView) {
-
-            track.trackView.repaint();
-
-        }
-
-    };
+    // igv.setTrackColor = function (track, color) {
+    //
+    //     track.color = color;
+    //
+    //     if (track.trackView) {
+    //
+    //         track.trackView.repaint();
+    //
+    //     }
+    //
+    // };
 
     igv.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
@@ -21694,6 +21694,11 @@ var igv = (function (igv) {
 
     };
 
+    igv.TrackView.prototype.setColor = function (color) {
+        this.track.color = color;
+        this.update();
+    };
+
     igv.TrackView.prototype.setTrackHeight = function (newHeight, update) {
 
         setTrackHeight_.call(this, newHeight, update || true);
@@ -22149,8 +22154,10 @@ var igv = (function (igv) {
 
                 if (parsed) {
 
-                    igv.setTrackColor(self.trackView.track, parsed);
-                    self.trackView.update();
+                    // igv.setTrackColor(self.trackView.track, parsed);
+                    // self.trackView.update();
+                    self.trackView.setColor( parsed );
+
                     addUserColor(parsed);
 
                     $(this).val("");
@@ -22273,8 +22280,9 @@ var igv = (function (igv) {
 
                 $filler.click(function () {
 
-                    igv.setTrackColor(self.trackView.track, $(this).css("background-color"));
-                    self.trackView.update();
+                    // igv.setTrackColor(self.trackView.track, $(this).css("background-color"));
+                    // self.trackView.update();
+                    self.trackView.setColor( $(this).css("background-color") );
 
                 });
 
@@ -22300,8 +22308,9 @@ var igv = (function (igv) {
             $column.append(self.$defaultColor);
 
             $column.click(function () {
-                igv.setTrackColor(self.trackView.track, $(this).find(".igv-col-filler").css("background-color"));
-                self.trackView.update();
+                // igv.setTrackColor(self.trackView.track, $(this).find(".igv-col-filler").css("background-color"));
+                // self.trackView.update();
+                self.trackView.setColor( $(this).find(".igv-col-filler").css("background-color") );
             });
 
             $row.append($column);
@@ -22335,8 +22344,9 @@ var igv = (function (igv) {
             $column.append(self.$previousColor);
 
             $column.click(function () {
-                igv.setTrackColor(self.trackView.track, $(this).find(".igv-col-filler").css("background-color"));
-                self.trackView.update();
+                // igv.setTrackColor(self.trackView.track, $(this).find(".igv-col-filler").css("background-color"));
+                // self.trackView.update();
+                self.trackView.setColor( $(this).find(".igv-col-filler").css("background-color") );
             });
 
             $row.append($column);
@@ -22396,8 +22406,9 @@ var igv = (function (igv) {
 
                 $filler.click(function () {
 
-                    igv.setTrackColor(self.trackView.track, $(this).css("background-color"));
-                    self.trackView.update();
+                    // igv.setTrackColor(self.trackView.track, $(this).css("background-color"));
+                    // self.trackView.update();
+                    self.trackView.setColor( $(this).css("background-color") )
 
                 });
 
