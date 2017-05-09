@@ -617,7 +617,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-scrollbar
-    #y-scrollbar {
+    #y-axis-scrollbar-container {
       display:block;
       position: relative;
 
@@ -654,7 +654,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-scrollbar-height;
 
     // x-scrollbar
-    #x-scrollbar {
+    #x-axis-scrollbar-container {
       display:block;
       position: relative;
 

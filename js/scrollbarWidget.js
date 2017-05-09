@@ -34,25 +34,25 @@ var hic = (function (hic) {
         this.isDragging = false;
 
         // x-axis
-        this.$x_axis_scrollbar_container = $('<div id="x-scrollbar">');
+        this.$x_axis_scrollbar_container = $('<div id="x-axis-scrollbar-container">');
 
-        this.$x_axis_label_container = $('<div>');
-        this.$x_axis_label_container.text('-');
+        this.$x_label = $('<div>');
+        this.$x_label.text('-');
 
         this.$x_axis_scrollbar = $('<div>');
 
-        this.$x_axis_scrollbar_container.append(this.$x_axis_label_container);
+        this.$x_axis_scrollbar_container.append(this.$x_label);
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
 
         // y-axis
-        this.$y_axis_scrollbar_container = $('<div id="y-scrollbar">');
+        this.$y_axis_scrollbar_container = $('<div id="y-axis-scrollbar-container">');
 
-        this.$y_axis_label_container = $('<div>');
-        this.$y_axis_label_container.text('-');
+        this.$y_label = $('<div>');
+        this.$y_label.text('-');
 
         this.$y_axis_scrollbar = $('<div>');
 
-        this.$y_axis_scrollbar_container.append(this.$y_axis_label_container);
+        this.$y_axis_scrollbar_container.append(this.$y_label);
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
         // this.$x_axis_scrollbar_container.hide();
@@ -180,8 +180,8 @@ var hic = (function (hic) {
             percentage = percentage.toString() + '%';
             this.$y_axis_scrollbar.css('top', percentage);
 
-            this.$x_axis_label_container.text( dataset.chromosomes[ state.chr1 ].name );
-            this.$y_axis_label_container.text( dataset.chromosomes[ state.chr2 ].name );
+            this.$x_label.text( dataset.chromosomes[ state.chr1 ].name );
+            this.$y_label.text( dataset.chromosomes[ state.chr2 ].name );
 
         }
     };

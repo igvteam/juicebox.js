@@ -349,13 +349,13 @@
         height: 1px;
         z-index: 512;
         background-color: rgba(68, 134, 247, 0.25); }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar {
+    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container {
       display: block;
       position: relative;
       width: 20px;
       height: 100%;
       background-color: #efefef; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:first-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -374,7 +374,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-scrollbar div:last-child {
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container div:last-child {
         position: relative;
         /* dynamic y and height */
         top: 25%;
@@ -389,14 +389,14 @@
     justify-content: flex-end;
     width: 100%;
     height: 20px; }
-    #content-container #x-scrollbar-container #x-scrollbar {
+    #content-container #x-scrollbar-container #x-axis-scrollbar-container {
       display: block;
       position: relative;
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: #efefef; }
-      #content-container #x-scrollbar-container #x-scrollbar div:first-child {
+      #content-container #x-scrollbar-container #x-axis-scrollbar-container div:first-child {
         display: table-cell;
         position: absolute;
         margin: auto;
@@ -415,7 +415,7 @@
         font-family: "Open Sans", sans-serif;
         font-size: medium;
         font-weight: 400; }
-      #content-container #x-scrollbar-container #x-scrollbar div:last-child {
+      #content-container #x-scrollbar-container #x-axis-scrollbar-container div:last-child {
         position: relative;
         /* dynamic x and width */
         left: 25%;
