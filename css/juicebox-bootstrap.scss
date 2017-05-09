@@ -435,7 +435,7 @@ $default-font-family: 'Open Sans', sans-serif;
         width:  $track-height;
         height: $track-height;
 
-        font-size: 0.75 * $track-height;
+        font-size: 0.50 * $track-height;
         line-height: $track-height;
 
         text-align: center;
@@ -443,7 +443,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 1024;
 
-        color:rgba(255, 255, 255, 0);
+        color: rgba(95, 95, 95, 0.25);
         background-color: rgba(255, 255, 255, 0);
 
       }
@@ -452,7 +452,7 @@ $default-font-family: 'Open Sans', sans-serif;
       .x-track-menu-container:focus,
       .x-track-menu-container:active  {
         cursor: pointer;
-        color:$default-dark-color;
+        color: $default-dark-color;
       }
 
     }
