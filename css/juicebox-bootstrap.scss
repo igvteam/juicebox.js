@@ -33,10 +33,10 @@ $scrollbar-color: #efefef;
 
 $default-font-family: 'Open Sans', sans-serif;
 
-@mixin scrollbar-label {
-  div:first-child {
+@mixin x-scrollbar-label {
+  div {
 
-    display: table-cell;
+    display: inline-block;
 
     // center vertically/horizontally
     position: absolute;
@@ -49,17 +49,44 @@ $default-font-family: 'Open Sans', sans-serif;
     bottom:0;
 
     height: $hic-scrollbar-height;
-    width: $hic-scrollbar-height;
+    width: 100%;
 
     z-index: 512;
-
-    background-color: rgba(255, 255, 255, 0.51);
 
     vertical-align: middle;
     text-align:center;
     line-height: $hic-scrollbar-height;
 
     color: #373737;
+
+    font-family: $default-font-family;
+    font-size: medium;
+    font-weight: 400;
+
+  }
+}
+
+@mixin y-scrollbar-label {
+  div {
+
+    display: inline-block;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform:  translateX(-50%) translateY(-50%) rotate(-90deg);
+
+    //height: 100%;
+    //width: $hic-scrollbar-height;
+
+    z-index: 512;
+
+    vertical-align: middle;
+    text-align:center;
+    line-height: $hic-scrollbar-height;
+
+    color: #373737;
+    //background-color: red;
 
     font-family: $default-font-family;
     font-size: medium;
@@ -617,7 +644,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-scrollbar
-    #y-scrollbar {
+    #y-axis-scrollbar-container {
       display:block;
       position: relative;
 
@@ -625,9 +652,7 @@ $default-font-family: 'Open Sans', sans-serif;
       height: 100%;
       background-color: $scrollbar-color;
 
-      @include scrollbar-label;
-
-      div:last-child {
+      #y-axis-scrollbar {
         position: relative;
 
         /* dynamic y and height */
@@ -637,6 +662,9 @@ $default-font-family: 'Open Sans', sans-serif;
         left: 0;
         width: 100%;
         background-color: $scrollbar-handle-color;
+
+        @include y-scrollbar-label;
+
       }
 
     }
@@ -654,7 +682,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-scrollbar-height;
 
     // x-scrollbar
-    #x-scrollbar {
+    #x-axis-scrollbar-container {
       display:block;
       position: relative;
 
@@ -663,9 +691,7 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-right: $hic-scrollbar-height;
       background-color: $scrollbar-color;
 
-      @include scrollbar-label;
-
-      div:last-child {
+      #x-axis-scrollbar {
         position: relative;
 
         /* dynamic x and width */
@@ -675,6 +701,8 @@ $default-font-family: 'Open Sans', sans-serif;
         top: 0;
         height: 100%;
         background-color: $scrollbar-handle-color;
+
+        @include x-scrollbar-label;
       }
 
     }

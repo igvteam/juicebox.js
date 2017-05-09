@@ -36,24 +36,22 @@ var hic = (function (hic) {
         // x-axis
         this.$x_axis_scrollbar_container = $('<div id="x-axis-scrollbar-container">');
 
-        this.$x_label = $('<div>');
-        this.$x_label.text('-');
-
-        this.$x_axis_scrollbar = $('<div>');
-
-        this.$x_axis_scrollbar_container.append(this.$x_label);
+        this.$x_axis_scrollbar = $('<div id="x-axis-scrollbar">');
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
+
+        this.$x_label = $('<div>');
+        this.$x_label.text('');
+        this.$x_axis_scrollbar.append(this.$x_label);
 
         // y-axis
         this.$y_axis_scrollbar_container = $('<div id="y-axis-scrollbar-container">');
 
-        this.$y_label = $('<div>');
-        this.$y_label.text('-');
-
-        this.$y_axis_scrollbar = $('<div>');
-
-        this.$y_axis_scrollbar_container.append(this.$y_label);
+        this.$y_axis_scrollbar = $('<div id="y-axis-scrollbar">');
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
+
+        this.$y_label = $('<div class="scrollbar-label-rotation-in-place">');
+        this.$y_label.text('');
+        this.$y_axis_scrollbar.append(this.$y_label);
 
         // this.$x_axis_scrollbar_container.hide();
         // this.$y_axis_scrollbar_container.hide();
