@@ -532,7 +532,8 @@ $default-font-family: 'Open Sans', sans-serif;
     justify-content: flex-end;
 
     width: 100%;
-    height: 100%;
+    //height: 100%;
+    height: calc(100% - (#{$hic-axis-height} + #{$hic-scrollbar-height}));
 
     background-color: white;
 
