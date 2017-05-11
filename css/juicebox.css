@@ -189,6 +189,7 @@
     height: 100%;
     margin-right: 32px; }
   #x-track-container #x-tracks {
+    position: relative;
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
@@ -196,6 +197,19 @@
     width: calc(100% - (0px + 32px + 20px));
     height: 100%;
     margin-right: 20px; }
+    #x-track-container #x-tracks #y-track-guide {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 1px;
+      height: 100%;
+      border-left-style: dotted;
+      border-left-width: thin;
+      border-left-color: #202020;
+      user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      z-index: 666; }
     #x-track-container #x-tracks .x-track-canvas-container {
       position: relative;
       width: 100%;
@@ -291,6 +305,7 @@
     height: calc(100% - (32px + 20px));
     background-color: white; }
     #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks {
+      position: relative;
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -298,6 +313,19 @@
       width: 0px;
       height: 100%;
       background-color: white; }
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks #x-track-guide {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        border-top-style: dotted;
+        border-top-width: thin;
+        border-top-color: #202020;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        z-index: 666; }
       #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container {
         display: block;
         position: relative;
@@ -349,6 +377,32 @@
         height: 1px;
         z-index: 512;
         background-color: rgba(68, 134, 247, 0.25); }
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #x-guide {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        border-top-style: dotted;
+        border-top-width: thin;
+        border-top-color: #202020;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        z-index: 555; }
+      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #y-guide {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        width: 1px;
+        height: 100%;
+        border-left-style: dotted;
+        border-left-width: thin;
+        border-left-color: #202020;
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        z-index: 666; }
     #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container {
       display: block;
       position: relative;

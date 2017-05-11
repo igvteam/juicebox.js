@@ -60,7 +60,8 @@ var hic = (function (hic) {
 
     function createAllContainers(browser, $root) {
 
-        var $container;
+        var $container,
+        $e;
 
         // .hic-x-track-container
         this.$x_track_container = $('<div id="x-track-container">');
@@ -74,6 +75,9 @@ var hic = (function (hic) {
         this.$x_tracks = $('<div id="x-tracks">');
         this.$x_track_container.append(this.$x_tracks);
 
+        // crosshairs guide
+        $e = $('<div id="y-track-guide">');
+        this.$x_tracks.append($e);
 
         // content container
         this.$content_container = $('<div id="content-container">');
@@ -92,6 +96,10 @@ var hic = (function (hic) {
         // y-tracks
         this.$y_tracks = $('<div id="y-tracks">');
         $container.append(this.$y_tracks);
+
+        // crosshairs guide
+        $e = $('<div id="x-track-guide">');
+        this.$y_tracks.append($e);
 
         // y-axis
         yAxis.call(this, browser, $container);
