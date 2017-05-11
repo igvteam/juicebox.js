@@ -98,6 +98,8 @@ var hic = (function (hic) {
 
         this.layoutController = new hic.LayoutController(this, $root);
 
+        this.hideCrosshairs();
+
         this.state = config.state ? config.state : defaultState.clone();
 
         if (config.colorScale && !isNaN(config.colorScale)) {
@@ -118,6 +120,32 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("DataLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
+    };
+
+    hic.Browser.prototype.updateCrosshairs = function (coords) {
+
+        this.contactMatrixView.$x_guide.css({ top: coords.y, left: 0 });
+        this.layoutController.$y_tracks.find('#x-track-guide').css({ top: coords.y, left: 0 });
+
+        this.contactMatrixView.$y_guide.css({ top: 0, left: coords.x });
+        this.layoutController.$x_tracks.find('#y-track-guide').css({ top: 0, left: coords.x });
+
+    };
+
+    hic.Browser.prototype.hideCrosshairs = function () {
+
+        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find('#y-track-guide'), this.layoutController.$y_tracks.find('#x-track-guide')], function ($e) {
+            $e.hide();
+        });
+
+    };
+
+    hic.Browser.prototype.showCrosshairs = function () {
+
+        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find('#y-track-guide'), this.layoutController.$y_tracks.find('#x-track-guide')], function ($e) {
+            $e.show();
+        });
+
     };
 
     hic.Browser.prototype.genomicState = function () {

@@ -60,7 +60,18 @@ var hic = (function (hic) {
         this.sweepZoom = new hic.SweepZoom(this.browser);
         this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
+
+        // x - guide
+        this.$x_guide = $('<div id="x-guide">');
+        this.$viewport.append(this.$x_guide);
+
+        // y - guide
+        this.$y_guide = $('<div id="y-guide">');
+        this.$viewport.append(this.$y_guide);
+
+
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
+
 
         addMouseHandlers.call(this, this.$viewport);
 
@@ -412,6 +423,20 @@ var hic = (function (hic) {
             e.preventDefault();
 
             coords = hic.translateMouseCoordinates(e, $viewport);
+
+            self.browser.updateCrosshairs(coords);
+
+            $(document).on('keydown', function (e) {
+                if (16 === e.keyCode) {
+                    self.browser.showCrosshairs();
+                }
+            });
+
+            $(document).on('keyup', function (e) {
+                if (16 === e.keyCode) {
+                    self.browser.hideCrosshairs();
+                }
+            });
 
             if (isMouseDown) { // Possibly dragging
 

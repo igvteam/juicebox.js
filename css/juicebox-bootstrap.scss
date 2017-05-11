@@ -355,6 +355,9 @@ $default-font-family: 'Open Sans', sans-serif;
 
   // x-tracks
   #x-tracks {
+
+    position:relative;
+
     display:flex;
     flex-flow: column;
     flex-wrap: nowrap;
@@ -363,6 +366,29 @@ $default-font-family: 'Open Sans', sans-serif;
     width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
     height: 100%;
     margin-right: $hic-scrollbar-height;
+
+    // y - guide
+    #y-track-guide {
+      position: absolute;
+
+      top:0;
+      left: 50%;
+
+      width: 1px;
+      height: 100%;
+
+      border-left-style: dotted;
+      border-left-width: thin;
+      border-left-color: rgba(32, 32, 32, 1);
+
+      user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+
+      //background-color: blue;
+
+      z-index: 666;
+    }
 
     // canvas container
     .x-track-canvas-container {
@@ -483,6 +509,7 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
     }
+
   }
 
 }
@@ -532,6 +559,8 @@ $default-font-family: 'Open Sans', sans-serif;
     justify-content: flex-end;
 
     width: 100%;
+
+    // THIS FIXES SAFARI AND FIREFOX LAYOUT INCOMPATIBILITY
     //height: 100%;
     height: calc(100% - (#{$hic-axis-height} + #{$hic-scrollbar-height}));
 
@@ -539,6 +568,9 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // y-tracks
     #y-tracks {
+
+      position:relative;
+
       display:flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -548,6 +580,29 @@ $default-font-family: 'Open Sans', sans-serif;
       height: 100%;
 
       background-color: white;
+
+      // y - guide
+      #x-track-guide {
+        position: absolute;
+
+        top:50%;
+        left: 0;
+
+        width: 100%;
+        height: 1px;
+
+        border-top-style: dotted;
+        border-top-width: thin;
+        border-top-color: rgba(32, 32, 32, 1);
+
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+
+        //background-color: red;
+
+        z-index: 666;
+      }
 
       // y-track canvas container
       .y-track-canvas-container {
@@ -640,6 +695,52 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index:512;
         background-color: rgba(68, 134, 247, 0.25);
+      }
+
+      // x - guide
+      #x-guide {
+        position: absolute;
+
+        top: 50%;
+        left: 0;
+
+        width: 100%;
+        height: 1px;
+
+        border-top-style: dotted;
+        border-top-width: thin;
+        border-top-color: rgba(32, 32, 32, 1);
+
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+
+        //background-color: red;
+
+        z-index: 555;
+      }
+
+      // y - guide
+      #y-guide {
+        position: absolute;
+
+        top:0;
+        left: 50%;
+
+        width: 1px;
+        height: 100%;
+
+        border-left-style: dotted;
+        border-left-width: thin;
+        border-left-color: rgba(32, 32, 32, 1);
+
+        user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+
+        //background-color: blue;
+
+        z-index: 666;
       }
 
     }
