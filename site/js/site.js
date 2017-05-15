@@ -32,10 +32,20 @@ var site = (function (site) {
 
         $('#hic-file-upload').on('change',function (e) {
 
-            // var localFile = $(this)[ 0 ].files[ 0 ];
-            var file = _.first($(this).get(0).files);
+            var file,
+                suffix;
 
-            hic.browser.loadTrackXY( [ { url: file } ] );
+            file = _.first($(this).get(0).files);
+
+            suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
+            console.log('#hic-load-url ' + suffix);
+
+            if ('hic' === suffix) {
+                hic.browser.loadHicFile({ url: file });
+            } else {
+                hic.browser.loadTrackXY( [ { url: file } ] );
+            }
+
 
             $(this).val("");
             $('#hic-file-upload-modal').modal('hide');
