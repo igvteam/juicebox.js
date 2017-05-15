@@ -30,27 +30,23 @@ var site = (function (site) {
 
         var payload;
 
-        // BED URL upload
         $('#hic-load-url').on('change', function (e) {
-            var config,
-                path;
+            var path,
+                suffix;
 
             path = $(this).val();
 
-            config =
-                {
-                    // type: 'bed',
-                    url: path,
-                    // color: 'rgb(3, 116, 178)',
-                    // format: 'bed',
-                    name: 'untitled'
-                };
+            suffix = path.substr(path.lastIndexOf('.') + 1);
+            console.log('#hic-load-url ' + suffix);
+            if ('hic' === suffix) {
+                hic.browser.loadHicFile({ url: path });
+            } else {
 
-
-            hic.browser.loadTrackXY([ config ]);
+                hic.browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
+            }
 
             $(this).val("");
-            $('#hicLoadURLModal').modal('hide');
+            $('#hic-load-url-modal').modal('hide');
 
         });
 

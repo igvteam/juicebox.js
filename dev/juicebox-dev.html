@@ -126,7 +126,7 @@
 </div>
 
 <!-- Load URL Modal -->
-<div id="hicLoadURLModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-url-modal-label" aria-hidden="true">
+<div id="hic-load-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-url-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -135,13 +135,13 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                <h4 id="hic-load-url-modal-label" class="modal-title">Load URL</h4>
+                <h4 id="hic-load-url-modal-label" class="modal-title">Load HiC or Track URL</h4>
             </div>
 
             <div class="modal-body">
 
                 <div class="form-group">
-                    <input id="hic-load-url" type="text" class="form-control" placeholder="Enter URL">
+                    <input id="hic-load-url" type="text" class="form-control" placeholder="Enter HiC or Track URL">
                 </div>
 
             </div>
@@ -611,7 +611,7 @@
             <div class="dropdown">
 
                 <button id="hic-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    Load Tracks&nbsp;
+                    Load HiC and Track Files&nbsp;
                     <span class="caret"></span>
                 </button>
 
@@ -619,18 +619,19 @@
 
                     <!--<li role="presentation" class="dropdown-header">Load data from</li>-->
 
-                    <!-- Select ENCODE -->
+
                     <li role="presentation"><!-- Select ENCODE -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
                             ENCODE
                         </a>
-                    </li>
+                    </li><!-- Select ENCODE -->
 
-                    <!--<li role="presentation">&lt;!&ndash; Load URL &ndash;&gt;-->
-                    <!--<a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicLoadURLModal">-->
-                    <!--URL-->
-                    <!--</a>-->
-                    <!--</li>&lt;!&ndash; Load URL &ndash;&gt;-->
+
+                    <li role="presentation"><!-- Load URL -->
+                    <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                    HiC or Track URL
+                    </a>
+                    </li><!-- Load URL -->
 
                 </ul>
 
@@ -651,6 +652,7 @@
 
         var browser,
             reference;
+
 
         $('#dataset_selector').on('change', function(e){
             browser.loadHicFile({ url: $(this).val() });
