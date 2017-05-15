@@ -4,19 +4,19 @@
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
  * following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
  * portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
  */
@@ -438,6 +438,7 @@ var hic = (function (hic) {
                         var parser = new igv.BinaryParser(new DataView(data));
                         var nRecords = parser.getInt();
                         var records = [];
+                        var countArray = [];
 
                         if (self.version < 7) {
                             for (i = 0; i < nRecords; i++) {
@@ -445,6 +446,7 @@ var hic = (function (hic) {
                                 var binY = parser.getInt();
                                 var counts = parser.getFloat();
                                 records.push(new hic.ContactRecord(binX, binY, counts));
+                                countArray.push(counts);
                             }
                         } else {
 
@@ -468,6 +470,7 @@ var hic = (function (hic) {
                                         binX = binXOffset + parser.getShort();
                                         counts = useShort ? parser.getShort() : parser.getFloat();
                                         records.push(new hic.ContactRecord(binX, binY, counts));
+                                        countArray.push(counts);
                                     }
                                 }
                             } else if (type == 2) {
@@ -486,28 +489,44 @@ var hic = (function (hic) {
                                         counts = parser.getShort();
                                         if (counts != Short_MIN_VALUE) {
                                             records.push(new hic.ContactRecord(bin1, bin2, counts));
+                                            countArray.push(counts);
                                         }
                                     } else {
                                         counts = parser.getFloat();
                                         if (!isNaN(counts)) {
                                             records.push(new hic.hic.ContactRecord(bin1, bin2, counts));
+                                            countArray.push(counts);
                                         }
                                     }
-
 
                                 }
 
                             } else {
                                 reject("Unknown block type: " + type);
                             }
+
                         }
-                        // console.log("Block " + blockNumber);
-                        fulfill(new hic.Block(blockNumber, zd, records));
+
+                        var block = new hic.Block(blockNumber, zd, records);
+                        if(countArray.length > 0) {
+                            block.percentile95 = percentile(countArray, 95);
+                        }
+
+                        fulfill(block);
                     })
                     .catch(reject);
             });
         }
     };
+
+    function percentile(array, p) {
+        var idx = Math.floor((p / 100.0) * array.length);
+        array.sort(function (a, b) {
+            return a - b;
+        });
+        return array[idx];
+
+    }
 
     function getSites(chrName) {
 

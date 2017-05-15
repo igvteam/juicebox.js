@@ -157,13 +157,13 @@ var hic = (function (hic) {
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
-                if (self.computeColorScale) {
-                    if (zd.averageCount) {
-                        self.colorScale.high = 2 * zd.averageCount;
-                        self.computeColorScale = false;
-                        hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
-                    }
-                }
+                // if (self.computeColorScale) {
+                //     if (zd.averageCount) {
+                //         self.colorScale.high = 20 * zd.averageCount;
+                //         self.computeColorScale = false;
+                //         hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
+                //     }
+                // }
 
                 for (r = row1; r <= row2; r++) {
                     for (c = col1; c <= col2; c++) {
@@ -337,6 +337,18 @@ var hic = (function (hic) {
 
                         var image;
                         if (block) {
+                            if (self.computeColorScale) {
+                                if (block.percentile95) {
+                                    self.colorScale.high = block.percentile95;
+                                    self.computeColorScale = false;
+                                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
+                                }
+                                else if (zd.averageCount) {
+                                    self.colorScale.high = 2 * zd.averageCount;
+                                    self.computeColorScale = false;
+                                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
+                                }
+                            }
                             image = drawBlock(block, transpose);
                         }
                         else {

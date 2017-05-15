@@ -99,14 +99,14 @@ var hic = (function (hic) {
 
                                             if (nvnv[x] !== 0 && !isNaN(nvnv)) {
                                                 counts = record.counts / nvnv;
-                                            } else {
-                                                counts = NaN;
+                                                //countArray.push(counts);
+                                                normRecords.push(new hic.ContactRecord(x, y, counts));
                                             }
-                                            normRecords.push(new hic.ContactRecord(x, y, counts));
-
                                         })
 
                                         normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+                                        
+                                        normBlock.percentile95 = block.percentile95;
 
                                         fulfill(normBlock);
                                     })
