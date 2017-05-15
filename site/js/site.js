@@ -30,6 +30,18 @@ var site = (function (site) {
 
         var payload;
 
+        $('#hic-file-upload').on('change',function (e) {
+
+            // var localFile = $(this)[ 0 ].files[ 0 ];
+            var file = _.first($(this).get(0).files);
+
+            hic.browser.loadTrackXY( [ { url: file } ] );
+
+            $(this).val("");
+            $('#hic-file-upload-modal').modal('hide');
+        });
+
+
         $('#hic-load-url').on('change', function (e) {
             var path,
                 suffix;

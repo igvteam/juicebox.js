@@ -228,7 +228,7 @@ var hic = (function (hic) {
         return new Promise(function (fulfill, reject) {
             var newTrack;
 
-            igv.inferTrackTypes(config);
+            // igv.inferTrackTypes(config);
 
             newTrack = igv.createTrackWithConfiguration(config);
 
