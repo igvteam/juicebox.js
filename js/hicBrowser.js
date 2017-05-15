@@ -558,6 +558,9 @@ var hic = (function (hic) {
         this.state.y = 0;
 
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
+
+        this.contactMatrixView.computeColorScale = true;
+        
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
