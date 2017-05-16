@@ -604,7 +604,7 @@ var hic = (function (hic) {
     hic.Browser.prototype.setNormalization = function (normalization) {
 
         this.state.normalization = normalization;
-
+        this.contactMatrixView.computeColorScale = true;
         hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
 
     };

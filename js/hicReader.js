@@ -438,7 +438,6 @@ var hic = (function (hic) {
                         var parser = new igv.BinaryParser(new DataView(data));
                         var nRecords = parser.getInt();
                         var records = [];
-                        var countArray = [];
 
                         if (self.version < 7) {
                             for (i = 0; i < nRecords; i++) {
@@ -446,7 +445,6 @@ var hic = (function (hic) {
                                 var binY = parser.getInt();
                                 var counts = parser.getFloat();
                                 records.push(new hic.ContactRecord(binX, binY, counts));
-                                countArray.push(counts);
                             }
                         } else {
 
@@ -470,7 +468,6 @@ var hic = (function (hic) {
                                         binX = binXOffset + parser.getShort();
                                         counts = useShort ? parser.getShort() : parser.getFloat();
                                         records.push(new hic.ContactRecord(binX, binY, counts));
-                                        countArray.push(counts);
                                     }
                                 }
                             } else if (type == 2) {
@@ -489,13 +486,11 @@ var hic = (function (hic) {
                                         counts = parser.getShort();
                                         if (counts != Short_MIN_VALUE) {
                                             records.push(new hic.ContactRecord(bin1, bin2, counts));
-                                            countArray.push(counts);
                                         }
                                     } else {
                                         counts = parser.getFloat();
                                         if (!isNaN(counts)) {
                                             records.push(new hic.hic.ContactRecord(bin1, bin2, counts));
-                                            countArray.push(counts);
                                         }
                                     }
 
@@ -508,9 +503,6 @@ var hic = (function (hic) {
                         }
 
                         var block = new hic.Block(blockNumber, zd, records);
-                        if(countArray.length > 0) {
-                            block.percentile95 = percentile(countArray, 95);
-                        }
 
                         fulfill(block);
                     })
@@ -519,14 +511,7 @@ var hic = (function (hic) {
         }
     };
 
-    function percentile(array, p) {
-        var idx = Math.floor((p / 100.0) * array.length);
-        array.sort(function (a, b) {
-            return a - b;
-        });
-        return array[idx];
 
-    }
 
     function getSites(chrName) {
 

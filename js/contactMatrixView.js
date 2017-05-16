@@ -53,7 +53,7 @@ var hic = (function (hic) {
 
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({ color: 'rgb(64, 64, 64)', size: 120, padding: 40 }).appendTo( this.$spinner.get(0) );
+        this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
         this.stopSpinner();
 
         // ruler sweeper widget surface
@@ -97,7 +97,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ContactMatrixView.prototype.setDataset = function(dataset) {
+    hic.ContactMatrixView.prototype.setDataset = function (dataset) {
 
         this.dataset = dataset;
         this.clearCaches();
@@ -119,7 +119,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
 
-        if("NormalizationChange" === event.type) {
+        if ("NormalizationChange" === event.type) {
             this.clearCaches();
         }
 
@@ -338,29 +338,22 @@ var hic = (function (hic) {
                         self.stopSpinner();
 
                         var image;
-                        if (block) {
+                        if (block && block.records.length > 0) {
                             if (self.computeColorScale) {
-                                if (block.percentile95) {
-                                    self.colorScale.high = block.percentile95;
-                                    self.computeColorScale = false;
-                                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
-                                }
-                                else if (zd.averageCount) {
-                                    self.colorScale.high = 2 * zd.averageCount;
-                                    self.computeColorScale = false;
-                                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
-                                }
+                                self.colorScale.high = computePercentile(block, 95);
+                                self.computeColorScale = false;
+                                hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
                             }
                             image = drawBlock(block, transpose);
                         }
                         else {
-                           // console.log("No block for " + blockNumber);
+                            // console.log("No block for " + blockNumber);
                         }
 
                         var imageTile = {row: row, column: column, image: image};
 
                         // Cache at most 20 image tiles
-                        if(self.imageTileCacheKeys.length > 20) {
+                        if (self.imageTileCacheKeys.length > 20) {
                             self.imageTileCache[self.imageTileCacheKeys[0]] = undefined;
                             self.imageTileCacheKeys.shift();
                         }
@@ -375,6 +368,20 @@ var hic = (function (hic) {
             })
         }
     };
+
+    function computePercentile(block, p) {
+
+        var array = [], i;
+        for (i = 0; i < block.records.length; i++) {
+            array.push(block.records[i].counts);
+        }
+
+        var idx = Math.floor((p / 100.0) * array.length);
+        array.sort(function (a, b) {
+            return a - b;
+        });
+        return array[idx];
+    }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
         this.$spinner.show();
@@ -475,8 +482,8 @@ var hic = (function (hic) {
                     if (isSweepZooming) {
 
                         self.sweepZoom.update(mouseDown, coords, {
-                            min: { x: 0,                 y: 0 },
-                            max: { x: $viewport.width(), y: $viewport.height() }
+                            min: {x: 0, y: 0},
+                            max: {x: $viewport.width(), y: $viewport.height()}
                         });
                     } else {
                         self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
