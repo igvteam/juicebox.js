@@ -30,10 +30,13 @@ var site = (function (site) {
 
         $('#dataset_selector').on('change', function(e) {
             var str = $(this).val();
+
+            $('#hic-contact-map-select-modal').modal('hide');
+
             hic.browser.loadHicFile({ url: str });
         });
 
-        $('#hic-file-upload').on('change',function (e) {
+        $('#hic-load-local-file').on('change',function (e) {
 
             var file,
                 suffix;
@@ -51,7 +54,7 @@ var site = (function (site) {
 
 
             $(this).val("");
-            $('#hic-file-upload-modal').modal('hide');
+            $('#hic-load-local-file-modal').modal('hide');
         });
 
         $('#hic-load-url').on('change', function (e) {
