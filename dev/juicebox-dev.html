@@ -187,7 +187,7 @@
     <div class="row">
 
         <!-- HiC select -->
-        <div class="col-md-7 juicebox-widget-container">
+        <div class="col-md-6 juicebox-widget-container">
             <div class="form-group">
                 <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
 
@@ -634,18 +634,44 @@
 
         </div>
 
-        <!-- Load Track URL and Local File -->
+        <!-- Load HiC: URL and Local File -->
+        <div class="col-md-2 juicebox-widget-container">
+            <div class="dropdown">
+
+                <button id="hic-url-local-file-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    Load HiC File &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-url-local-file-dropdown">
+
+                    <li role="presentation"><!-- Upload HiC File -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-file-upload-modal">
+                            Upload HiC File
+                        </a>
+                    </li><!-- Upload HiC File -->
+
+                    <li role="presentation"><!-- HiC File URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            HiC File URL
+                        </a>
+                    </li><!-- HiC File URL -->
+
+                </ul>
+
+            </div>
+        </div>
+
+        <!-- Load Track: URL and Local File -->
         <div class="col-md-2 juicebox-widget-container">
             <div class="dropdown">
 
                 <button id="hic-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    Load Track &nbsp;
+                    Load Track File &nbsp;
                     <span class="caret"></span>
                 </button>
 
                 <ul class="dropdown-menu" role="menu" aria-labelledby="hic-dropdown">
-
-                    <!--<li role="presentation" class="dropdown-header">Load data from</li>-->
 
                     <li role="presentation"><!-- Select ENCODE -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
@@ -653,17 +679,17 @@
                         </a>
                     </li><!-- Select ENCODE -->
 
-                    <li role="presentation"><!-- Upload Local File -->
+                    <li role="presentation"><!-- Upload Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-file-upload-modal">
-                            Upload File
+                            Upload Track File
                         </a>
-                    </li><!-- Upload Local File -->
+                    </li><!-- Upload Track File -->
 
-                    <li role="presentation"><!-- Load URL -->
+                    <li role="presentation"><!-- Track File URL -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                            URL
+                            Track File URL
                         </a>
-                    </li><!-- Load URL -->
+                    </li><!-- Track File URL -->
 
                 </ul>
 
