@@ -76,6 +76,7 @@ var hic = (function (hic) {
         addMouseHandlers.call(this, this.$viewport);
 
         this.imageTileCache = {};
+        this.imageTileCacheKeys = [];
 
         this.colorScale = new hic.ColorScale(
             {
@@ -105,6 +106,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
+        this.imageTileCacheKeys = [];
     };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
@@ -356,7 +358,16 @@ var hic = (function (hic) {
                         }
 
                         var imageTile = {row: row, column: column, image: image};
+
+                        // Cache at most 20 image tiles
+                        if(self.imageTileCacheKeys.length > 20) {
+                            self.imageTileCache[self.imageTileCacheKeys[0]] = undefined;
+                            self.imageTileCacheKeys.shift();
+                        }
+
                         self.imageTileCache[key] = imageTile;
+
+
                         fulfill(imageTile);
 
                     })

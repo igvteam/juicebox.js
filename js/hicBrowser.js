@@ -341,26 +341,15 @@ var hic = (function (hic) {
                 self.contactMatrixView.stopSpinner();
 
                 self.dataset = dataset;
-                self.contactMatrixView.setDataset(dataset);
 
                 if (config.state) {
                     self.setState(config.state);
                 }
                 else {
-
-                    // Don't be clever for now
-
-                    // z = findDefaultZoom.call(
-                    //     self,
-                    //     self.bpResolutions,
-                    //     defaultPixelSize,
-                    //     self.chromosomes[defaultState.chr1].size);
-                    //
-                    // defaultState.zoom = z;
-
                     self.setState(defaultState.clone());
                     self.contactMatrixView.computeColorScale = true;
                 }
+                self.contactMatrixView.setDataset(dataset);
 
                 hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
 
@@ -560,7 +549,7 @@ var hic = (function (hic) {
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
 
         this.contactMatrixView.computeColorScale = true;
-        
+
         hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
     };
 
