@@ -29,9 +29,15 @@ var site = (function (site) {
     site.init = function () {
 
         $('#dataset_selector').on('change', function(e) {
-            var str = $(this).val();
+            var $selected,
+                str;
 
             $('#hic-contact-map-select-modal').modal('hide');
+
+            str = $(this).val();
+
+            $selected = $(this).find('option:selected');
+            $('#hic-current-contact-map').text( $selected.text() );
 
             hic.browser.loadHicFile({ url: str });
         });
@@ -44,9 +50,9 @@ var site = (function (site) {
             file = _.first($(this).get(0).files);
 
             suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
-            console.log('#hic-load-url ' + suffix);
 
             if ('hic' === suffix) {
+                $('#hic-current-contact-map').text( file.name );
                 hic.browser.loadHicFile({ url: file });
             } else {
                 hic.browser.loadTrackXY( [ { url: file } ] );
@@ -64,9 +70,9 @@ var site = (function (site) {
             path = $(this).val();
 
             suffix = path.substr(path.lastIndexOf('.') + 1);
-            console.log('#hic-load-url ' + suffix);
+
             if ('hic' === suffix) {
-                hic.browser.loadHicFile({ url: path });
+                $('#hic-current-contact-map').text( path );
             } else {
 
                 hic.browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
