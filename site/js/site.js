@@ -73,6 +73,7 @@ var site = (function (site) {
 
             if ('hic' === suffix) {
                 $('#hic-current-contact-map').text( path );
+                hic.browser.loadHicFile({ url: path });
             } else {
 
                 hic.browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
