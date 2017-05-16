@@ -28,42 +28,60 @@ var site = (function (site) {
 
     site.init = function () {
 
-        var payload;
+        $('#dataset_selector').on('change', function(e) {
+            var $selected,
+                str;
 
-        // BED URL upload
+            $('#hic-contact-map-select-modal').modal('hide');
+
+            str = $(this).val();
+
+            $selected = $(this).find('option:selected');
+            $('#hic-current-contact-map').text( $selected.text() );
+
+            hic.browser.loadHicFile({ url: str });
+        });
+
+        $('#hic-load-local-file').on('change',function (e) {
+
+            var file,
+                suffix;
+
+            file = _.first($(this).get(0).files);
+
+            suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
+
+            if ('hic' === suffix) {
+                $('#hic-current-contact-map').text( file.name );
+                hic.browser.loadHicFile({ url: file });
+            } else {
+                hic.browser.loadTrackXY( [ { url: file } ] );
+            }
+
+
+            $(this).val("");
+            $('#hic-load-local-file-modal').modal('hide');
+        });
+
         $('#hic-load-url').on('change', function (e) {
-            var config,
-                path;
+            var path,
+                suffix;
 
             path = $(this).val();
 
-            config =
-                {
-                    // type: 'bed',
-                    url: path,
-                    // color: 'rgb(3, 116, 178)',
-                    // format: 'bed',
-                    name: 'untitled'
-                };
+            suffix = path.substr(path.lastIndexOf('.') + 1);
 
+            if ('hic' === suffix) {
+                $('#hic-current-contact-map').text( path );
+            } else {
 
-            hic.browser.loadTrackXY([ config ]);
+                hic.browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
+            }
 
             $(this).val("");
-            $('#hicLoadURLModal').modal('hide');
+            $('#hic-load-url-modal').modal('hide');
 
         });
-
-        payload =
-            {
-                receiveEvent: function (event) {
-                    if (event.type === "DataLoad") {
-                        updateDatasetPulldown(event.data);
-                    }
-                }
-            };
-
-        hic.GlobalEventBus.subscribe("DataLoad", payload);
 
         if (hic.browser.sequence) {
 
@@ -76,16 +94,6 @@ var site = (function (site) {
         }
 
     };
-
-    function updateDatasetPulldown(dataset) {
-
-        var selector = '#dataset_selector option[value="' + dataset.url + '"]',
-            $option = $(selector);
-
-        if ($option) $option.prop('selected', true);
-        $("#dataset_selector").trigger("chosen:updated");
-
-    }
 
     return site;
 

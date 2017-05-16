@@ -86,6 +86,7 @@ var hic = (function (hic) {
 
         // mock igv browser for igv.js compatibility
         igv.browser = {};
+        igv.browser.constants = { defaultColor: "rgb(0,0,150)" };
 
         this.trackRenderers = [];
 
@@ -186,6 +187,8 @@ var hic = (function (hic) {
         promises = [];
         _.each(trackConfigurations, function(config) {
 
+            igv.inferTrackTypes(config);
+
             config.height = self.layoutController.track_height;
 
             // TODO: HACK HACK HACK
@@ -225,7 +228,7 @@ var hic = (function (hic) {
         return new Promise(function (fulfill, reject) {
             var newTrack;
 
-            igv.inferTrackTypes(config);
+            // igv.inferTrackTypes(config);
 
             newTrack = igv.createTrackWithConfiguration(config);
 
