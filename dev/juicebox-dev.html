@@ -685,12 +685,6 @@
         var browser,
             reference;
 
-
-        $('#dataset_selector').on('change', function(e) {
-            var str = $(this).val();
-            browser.loadHicFile({ url: str });
-        });
-
         reference =
             {
                 id: "hg19",

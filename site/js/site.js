@@ -28,7 +28,10 @@ var site = (function (site) {
 
     site.init = function () {
 
-        var payload;
+        $('#dataset_selector').on('change', function(e) {
+            var str = $(this).val();
+            hic.browser.loadHicFile({ url: str });
+        });
 
         $('#hic-file-upload').on('change',function (e) {
 
@@ -51,7 +54,6 @@ var site = (function (site) {
             $('#hic-file-upload-modal').modal('hide');
         });
 
-
         $('#hic-load-url').on('change', function (e) {
             var path,
                 suffix;
@@ -72,17 +74,6 @@ var site = (function (site) {
 
         });
 
-        payload =
-            {
-                receiveEvent: function (event) {
-                    if (event.type === "DataLoad") {
-                        updateDatasetPulldown(event.data);
-                    }
-                }
-            };
-
-        hic.GlobalEventBus.subscribe("DataLoad", payload);
-
         if (hic.browser.sequence) {
 
             hic.browser.sequence
@@ -94,16 +85,6 @@ var site = (function (site) {
         }
 
     };
-
-    function updateDatasetPulldown(dataset) {
-
-        var selector = '#dataset_selector option[value="' + dataset.url + '"]',
-            $option = $(selector);
-
-        if ($option) $option.prop('selected', true);
-        $("#dataset_selector").trigger("chosen:updated");
-
-    }
 
     return site;
 
