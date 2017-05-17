@@ -180,10 +180,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadTrackXY = function (trackConfigurations) {
         var self = this,
-            axes,
             promises;
 
-        axes = [];
         promises = [];
         _.each(trackConfigurations, function(config) {
 
@@ -191,29 +189,20 @@ var hic = (function (hic) {
 
             config.height = self.layoutController.track_height;
 
-            // TODO: HACK HACK HACK
-            if ('bed' === config.format) {
-                config.featureHeight = self.layoutController.track_height;
-                config.indexed = false;
-            }
-
-            axes.push('x');
-            promises.push(self.promiseToLoadTrack(config));
-
-            axes.push('y');
-            promises.push(self.promiseToLoadTrack(config));
+            promises.push(self.loadTrack(config));   // X track
+            promises.push(self.loadTrack(config));   // Y track
 
         });
 
         Promise
             .all(promises)
             .then(function (tracks) {
-                var trackXYPairs = [];
-                _.each(_.range(_.size(tracks)), function (index){
-                    if (0 === index % 2) {
-                        trackXYPairs.push( { x: tracks[ index ], y: tracks[ 1 + index ] } );
-                    }
-                });
+                var trackXYPairs = [],
+                    index;
+
+                for(index = 0; index < tracks.length; index += 2) {
+                    trackXYPairs.push( { x: tracks[ index ], y: tracks[  index + 1 ] } );
+                }
 
                 self.addTrackXYPairs(trackXYPairs);
             })
@@ -223,7 +212,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.promiseToLoadTrack = function (config) {
+    hic.Browser.prototype.loadTrack = function (config) {
 
         return new Promise(function (fulfill, reject) {
             var newTrack;
