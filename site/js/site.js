@@ -26,7 +26,7 @@
  */
 var site = (function (site) {
 
-    site.init = function () {
+    site.init = function (browser) {
 
         $('#dataset_selector').on('change', function(e) {
             var $selected,
@@ -39,7 +39,7 @@ var site = (function (site) {
             $selected = $(this).find('option:selected');
             $('#hic-current-contact-map').text( $selected.text() );
 
-            hic.browser.loadHicFile({ url: str });
+            browser.loadHicFile({ url: str });
         });
 
         $('#hic-load-local-file').on('change',function (e) {
@@ -53,9 +53,9 @@ var site = (function (site) {
 
             if ('hic' === suffix) {
                 $('#hic-current-contact-map').text( file.name );
-                hic.browser.loadHicFile({ url: file });
+                browser.loadHicFile({ url: file });
             } else {
-                hic.browser.loadTrackXY( [ { url: file } ] );
+                browser.loadTrackXY( [ { url: file } ] );
             }
 
 
@@ -73,23 +73,25 @@ var site = (function (site) {
 
             if ('hic' === suffix) {
                 $('#hic-current-contact-map').text( path );
-                hic.browser.loadHicFile({ url: path });
+                browser.loadHicFile({ url: path });
             } else {
 
-                hic.browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
+                browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
             }
 
             $(this).val("");
             $('#hic-load-url-modal').modal('hide');
 
         });
+        
+        $('.selectpicker').selectpicker();
+        
+        if (browser.sequence) {
 
-        if (hic.browser.sequence) {
-
-            hic.browser.sequence
-                .init()
+            browser.sequence
+                .init(undefined)
                 .then(function () {
-                    igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+                    igv.browser.genome = new igv.Genome(browser.sequence, undefined, undefined);
                 });
 
         }

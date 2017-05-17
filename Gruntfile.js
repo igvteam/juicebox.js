@@ -15,7 +15,8 @@ module.exports = function (grunt) {
         concat: {
             hic: {
                 src: [
-                    'js/**/*.js'
+                    'js/**/*.js',
+                    'vendor/**/*.js'
                 ],
                 dest: 'dist/juicebox.js'
             }

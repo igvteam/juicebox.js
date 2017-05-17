@@ -19,7 +19,7 @@ hic.popoverPresentTrackGearMenuReplacement = function (pageX, pageY, trackView) 
         _.each(items, function(item) {
 
             if (item.init) {
-                item.init();
+                item.init(undefined);
             }
 
             $container.append(item.object);

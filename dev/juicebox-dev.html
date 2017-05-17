@@ -53,7 +53,7 @@
     <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
 
     <!-- Throbber JS -->
-    <script src="../js/throbber.js"></script>
+    <script src="../vendor/throbber.js"></script>
 
     <!-- Site JS-->
     <script src="../site/js/site.js"></script>
@@ -769,9 +769,8 @@
 
         browser = hic.createBrowser($('#app-container'), { reference: reference });
 
-        site.init();
+        site.init(browser);
 
-        $('.selectpicker').selectpicker();
     });
 
 </script>

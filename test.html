@@ -52,7 +52,7 @@
     <script src="https://harvesthq.github.io/chosen/chosen.jquery.js"></script>
 
     <!-- Throbber JS -->
-    <script src="js/throbber.js"></script>
+    <script src="vendor/throbber.js"></script>
 
     <!-- Site JS-->
     <script src="site/js/site.js"></script>
@@ -685,7 +685,7 @@
 
         browser = hic.createBrowser($('#app-container'), { reference: reference });
 
-        site.init();
+        site.init(undefined);
 
         $(".chosen-select").chosen();
     });

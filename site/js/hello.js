@@ -3,7 +3,7 @@
  */
 var hello = (function (hello) {
 
-    hello.init = function () {
+    hello.init = function (browser) {
 
         $('#load-track').on('click', function(e){
 
@@ -67,23 +67,23 @@ var hello = (function (hello) {
 //                };
 //            configurations.push(config);
 
-            hic.browser.loadTrackXY(configurations);
+            browser.loadTrackXY(configurations);
         });
 
         $('#remove-track').on('click', function(e){
-            hic.browser.layoutController.removeLastTrackXYPair();
+            browser.layoutController.removeLastTrackXYPair();
         });
 
         $('#dataset_selector').on('change', function(e){
-            hic.browser.loadHicFile({ url: $(this).val() });
+            browser.loadHicFile({ url: $(this).val() });
         });
 
-        if (hic.browser.sequence) {
+        if (browser.sequence) {
 
-            hic.browser.sequence
-                .init()
+            browser.sequence
+                .init(undefined)
                 .then(function () {
-                    igv.browser.genome = new igv.Genome(hic.browser.sequence, undefined, undefined);
+                    igv.browser.genome = new igv.Genome(browser.sequence, undefined, undefined);
                 });
 
         }

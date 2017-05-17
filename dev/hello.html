@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="shortcut icon" href=../img/favicon.ico>
-    <title>Juicebox JS</title>
+    <title>Hello</title>
 
     <!-- Font Awesome CSS -->
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
@@ -33,7 +33,7 @@
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- Throbber JS -->
-    <script src="../js/throbber.js"></script>
+    <script src="../vendor/throbber.js"></script>
 
     <!-- IGV JS -->
     <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
@@ -109,7 +109,7 @@
 
         browser = hic.createBrowser($('#app-container'), {reference: reference});
 
-        hello.init();
+        hello.init(browser);
     });
 
 </script>
