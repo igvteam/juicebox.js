@@ -150,6 +150,8 @@ var hic = (function (hic) {
                 trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y');
 
                 self.browser.trackRenderers.push(trackRendererPair);
+
+                self.browser.updateHref();
             });
 
             this.browser.updateLayout();
@@ -190,6 +192,8 @@ var hic = (function (hic) {
             self.doLayoutTrackXYPairCount( _.size(self.browser.trackRenderers) );
         });
 
+        this.browser.updateHref();
+
         // this.browser.updateLayout();
     };
 
@@ -214,6 +218,8 @@ var hic = (function (hic) {
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
             this.browser.updateLayout();
+
+            this.browser.updateHref();
 
         } else {
             console.log('No more tracks.');
@@ -241,6 +247,8 @@ var hic = (function (hic) {
             this.doLayoutTrackXYPairCount( _.size(this.browser.trackRenderers) );
 
             this.browser.updateLayout();
+
+            this.browser.updateHref();
 
         } else {
             console.log('No more tracks.');
@@ -290,6 +298,8 @@ var hic = (function (hic) {
 
         // x-scrollbar
         this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
+
+
 
     };
 

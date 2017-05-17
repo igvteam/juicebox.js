@@ -86,7 +86,7 @@ var hic = (function (hic) {
 
         // mock igv browser for igv.js compatibility
         igv.browser = {};
-        igv.browser.constants = { defaultColor: "rgb(0,0,150)" };
+        igv.browser.constants = {defaultColor: "rgb(0,0,150)"};
 
         this.trackRenderers = [];
 
@@ -125,11 +125,11 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
 
-        this.contactMatrixView.$x_guide.css({ top: coords.y, left: 0 });
-        this.layoutController.$y_tracks.find('#x-track-guide').css({ top: coords.y, left: 0 });
+        this.contactMatrixView.$x_guide.css({top: coords.y, left: 0});
+        this.layoutController.$y_tracks.find('#x-track-guide').css({top: coords.y, left: 0});
 
-        this.contactMatrixView.$y_guide.css({ top: 0, left: coords.x });
-        this.layoutController.$x_tracks.find('#y-track-guide').css({ top: 0, left: coords.x });
+        this.contactMatrixView.$y_guide.css({top: 0, left: coords.x});
+        this.layoutController.$x_tracks.find('#y-track-guide').css({top: 0, left: coords.x});
 
     };
 
@@ -153,15 +153,18 @@ var hic = (function (hic) {
         var gs,
             bpResolution;
 
-        bpResolution = this.dataset.bpResolutions[ this.state.zoom ];
+        bpResolution = this.dataset.bpResolutions[this.state.zoom];
 
         gs = {};
         gs.bpp = bpResolution / this.state.pixelSize;
 
-        gs.chromosome = { x: this.dataset.chromosomes[ this.state.chr1 ],  y: this.dataset.chromosomes[ this.state.chr2 ] };
+        gs.chromosome = {x: this.dataset.chromosomes[this.state.chr1], y: this.dataset.chromosomes[this.state.chr2]};
 
-        gs.startBP = { x: this.state.x * bpResolution,  y: this.state.y * bpResolution };
-        gs.endBP = { x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width, y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height };
+        gs.startBP = {x: this.state.x * bpResolution, y: this.state.y * bpResolution};
+        gs.endBP = {
+            x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width,
+            y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height
+        };
 
         return gs;
     };
@@ -183,7 +186,7 @@ var hic = (function (hic) {
             promises;
 
         promises = [];
-        _.each(trackConfigurations, function(config) {
+        _.each(trackConfigurations, function (config) {
 
             igv.inferTrackTypes(config);
 
@@ -200,8 +203,8 @@ var hic = (function (hic) {
                 var trackXYPairs = [],
                     index;
 
-                for(index = 0; index < tracks.length; index += 2) {
-                    trackXYPairs.push( { x: tracks[ index ], y: tracks[  index + 1 ] } );
+                for (index = 0; index < tracks.length; index += 2) {
+                    trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
                 }
 
                 self.addTrackXYPairs(trackXYPairs);
@@ -240,7 +243,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
-        hic.GlobalEventBus.post(hic.Event("DidAddTrack", { trackXYPairs: trackXYPairs }));
+        hic.GlobalEventBus.post(hic.Event("DidAddTrack", {trackXYPairs: trackXYPairs}));
     };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
@@ -565,7 +568,7 @@ var hic = (function (hic) {
 
         // Crude test for "whole genome"
         var isWholeGenome = this.dataset.chromosomes[chr1].name === "All";
-        if(isWholeGenome) {
+        if (isWholeGenome) {
             nBins1 *= 1000;
             nBins2 *= 1000;
         }
@@ -671,6 +674,24 @@ var hic = (function (hic) {
         href = replaceURIParameter("state", (this.state.stringify()), href);
 
         href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
+
+        if (this.trackRenderers && this.trackRenderers.length > 0) {
+            var trackString = "";
+            this.trackRenderers.forEach(function (trackRenderer) {
+                var track = trackRenderer.x.track,
+                    config = track.config,
+                    url = config.url,
+                    dataRange = track.dataRange;
+
+                if(typeof url === "string") {
+                    trackString += url + "@"
+                }
+            });
+            if(trackString.length > 0) {
+                href = replaceURIParameter("tracks", trackString, href);
+            }
+        }
+
 
         window.history.replaceState("", "juicebox", href);
     };
