@@ -25,42 +25,20 @@
     <link rel="stylesheet" type="text/css" href="../site/css/hello.css">
 
 
-
     <!-- jQuery JS -->
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
 
     <!-- jQuery UI JS -->
     <script src="//code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <!-- Throbber JS -->
-    <script src="../vendor/throbber.js"></script>
-
     <!-- IGV JS -->
     <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
 
-    <!-- Juicebox JS -->
-    <script src="../js/hicUtils.js"></script>
-    <script src="../js/hicReader.js"></script>
-    <script src="../js/hicColorScaleWidget.js"></script>
-    <script src="../js/hicLocusGoto.js"></script>
-    <script src="../js/hicResolutionSelector.js"></script>
-    <script src="../js/hicBrowser.js"></script>
-    <script src="../js/contactMatrixView.js"></script>
-    <script src="../js/hicRuler.js"></script>
-    <script src="../js/eventBus.js"></script>
-    <script src="../js/scrollbarWidget.js"></script>
-    <script src="../js/sweepZoom.js"></script>
-    <script src="../js/hicState.js"></script>
-    <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationVector.js"></script>
-    <script src="../js/normalizationWidget.js"></script>
-    <script src="../js/chromosomeSelectorWidget.js"></script>
-    <script src="../js/layoutController.js"></script>
-    <script src="../js/trackRenderer.js"></script>
-    <script src="../js/trackMenuReplacement.js"></script>
-
     <!-- Hello JS -->
     <script src="../site/js/hello.js"></script>
+
+    <!-- Juicebox JS -->
+    <script src="../dist/juicebox.js"></script>
 
 </head>
 
@@ -68,10 +46,8 @@
 
 <div class="site-container">
 
-    <!--<label for="dataset_selector">Data Set</label>-->
-
     <select id="dataset_selector" name="dataset_selector">
-        <option value="">Select...</option>
+        <option value="">Select Contact Matrix</option>
         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">GM12878 in-situ combined</option>
         <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
         <option value="http://hicfiles.s3.amazonaws.com/external/li/mcf7-rnapii-saturated.hic">Old file</option>
@@ -81,10 +57,6 @@
 
     <div id="load-track" class="load-track-button">
         load track
-    </div>
-
-    <div id="remove-track" class="remove-track-button">
-        remove track
     </div>
 
 </div>

@@ -10,15 +10,15 @@ var hello = (function (hello) {
             var config,
                 configurations = [];
 
-//            config =
-//                {
-//                    type: 'bed',
-//                    url: 'https://www.encodeproject.org/files/ENCFF100GSO/@@download/ENCFF100GSO.bed.gz',
-//                    format: 'bed',
-//                    name: 'GM12878 CTCF',
-//                    color: 'rgb(122,0,200)'
-//                };
-//            configurations.push(config);
+           config =
+               {
+                   type: 'bed',
+                   url: 'https://www.encodeproject.org/files/ENCFF100GSO/@@download/ENCFF100GSO.bed.gz',
+                   format: 'bed',
+                   name: 'GM12878 CTCF',
+                   color: 'rgb(122,0,200)'
+               };
+           configurations.push(config);
 
             config =
                 {
@@ -27,21 +27,21 @@ var hello = (function (hello) {
                 };
             configurations.push(config);
 
-//            config =
-//                {
-//                    url: '../test/data/snp/gwas_test.snp',
-//                    name: 'gwas test',
-//                    format: 'gtexGWAS',
-//                    featureType: 'gwas',
-//                    colorScale: {
-//                        thresholds: [],
-//                        colors:['rgb(122,179,23)']
-//                    },
-//
-//                    label: 'Test',
-//                    maxLogP: 16
-//                };
-//            configurations.push(config);
+           config =
+               {
+                   url: '../test/data/snp/gwas_test.snp',
+                   name: 'gwas test',
+                   format: 'gtexGWAS',
+                   featureType: 'gwas',
+                   colorScale: {
+                       thresholds: [],
+                       colors:['rgb(122,179,23)']
+                   },
+
+                   label: 'Test',
+                   maxLogP: 16
+               };
+           configurations.push(config);
 
 //            config =
 //                {
@@ -51,21 +51,21 @@ var hello = (function (hello) {
 //                };
 //            configurations.push(config);
 
-//            config =
-//                {
-//                    name: "Genes",
-//                    searchable: false,
-//                    type: "annotation",
-//                    format: "gtf",
-//                    sourceType: "file",
-//                    url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
-//                    indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
-//                    visibilityWindow: 10000000,
-//                    order: Number.MAX_VALUE,
-//                    displayMode: "COLLAPSED",
-//                    color: 'rgb(255,0,0)'
-//                };
-//            configurations.push(config);
+           config =
+               {
+                   name: "Genes",
+                   searchable: false,
+                   type: "annotation",
+                   format: "gtf",
+                   sourceType: "file",
+                   url: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz",
+                   indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.annotation.sorted.gtf.gz.tbi",
+                   visibilityWindow: 10000000,
+                   order: Number.MAX_VALUE,
+                   displayMode: "COLLAPSED",
+                   color: 'rgb(255,0,0)'
+               };
+           configurations.push(config);
 
             browser.loadTrackXY(configurations);
         });
