@@ -784,6 +784,9 @@
             path = $(this).val();
             name = $(this).find('option:selected').text();
 
+            // deselect all
+            $(this).find('option').removeAttr("selected");
+
             browser.loadTrackXY( [ { url: path, name: name } ] );
         });
 
