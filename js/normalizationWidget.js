@@ -26,18 +26,19 @@
  */
 var hic = (function (hic) {
 
-    var labels = {
-        VC: "Coverage",
-        VC_SQRT: "Coverage (Sqrt)",
-        KR: "Balanced",
-        INTER_VC: "Interchromosomal Coverage",
-        INTER_VC_SQRT: "Interchromosomal Coverage (Sqrt)",
-        INTER_KR: "Interchromosomal Balanced",
-        GW_VC: "Genome-wide Coverage",
-        GW_VC_SQRT: "Genome-wide Coverage (Sqrt)",
-        GW_KR: "Genome-wide Balanced"
-
-    };
+    var labels =
+        {
+                     NONE: 'None',
+                       VC: 'Coverage',
+                  VC_SQRT: 'Coverage (Sqrt)',
+                       KR: 'Balanced',
+                 INTER_VC: 'Interchromosomal Coverage',
+            INTER_VC_SQRT: 'Interchromosomal Coverage (Sqrt)',
+                 INTER_KR: 'Interchromosomal Balanced',
+                    GW_VC: 'Genome-wide Coverage',
+               GW_VC_SQRT: 'Genome-wide Coverage (Sqrt)',
+                    GW_KR: 'Genome-wide Balanced'
+        };
 
     hic.NormalizationWidget = function (browser) {
         var self = this,
@@ -75,11 +76,18 @@ var hic = (function (hic) {
 
             normalizationTypes = dataset.normalizationTypes;
             elements = _.map(normalizationTypes, function (normalization) {
-                var label = labels[normalization],
-                    selected = (norm === normalization);
-                return '<option' +
-                    (label === undefined ? '' : ' title = "' + label + '" ') +
-                    ' value=' + normalization + (selected ? ' selected' : '') + '>' + normalization + '</option>';
+                var label,
+                    isSelected,
+                    titleString,
+                    valueString;
+
+                label = labels[ normalization ];
+                isSelected = (norm === normalization);
+
+                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+
+                return '<option' + titleString + valueString + '>' + label + '</option>';
             });
 
             this.$normalization_selector.empty();
