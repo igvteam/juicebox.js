@@ -83,7 +83,7 @@ var site = (function (site) {
             $('#hic-load-url-modal').modal('hide');
 
         });
-        
+
         $('.selectpicker').selectpicker();
 
         if (browser.config.url) {
