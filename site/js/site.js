@@ -85,7 +85,11 @@ var site = (function (site) {
         });
         
         $('.selectpicker').selectpicker();
-        
+
+        if (browser.config.url) {
+            $('#hic-current-contact-map').text( browser.config.url );
+        }
+
         if (browser.sequence) {
 
             browser.sequence
