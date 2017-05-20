@@ -124,7 +124,7 @@
 
                 <div class="form-group">
                     <select id="annotation-selector" name="annotation-selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select Annotation">
-                        <option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>
+
                     </select>
                 </div>
 
@@ -772,8 +772,7 @@
 
     $(document).ready(function () {
 
-        var browser,
-            reference;
+        var browser;
 
         $('#annotation-selector').on('change', function(e) {
             var path,
@@ -790,15 +789,12 @@
             browser.loadTrackXY( [ { url: path, name: name } ] );
         });
 
-        reference =
-            {
-                id: "hg19",
-                fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/1kg_v37/human_g1k_v37_decoy.fasta",
-                cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/b37/b37_cytoband.txt"
-            };
-
-        browser = hic.createBrowser($('#app-container'), { reference: reference });
-
+        browser = hic.createBrowser(
+                $('#app-container'),
+                {
+                    annotationSelector: "annotation-selector"   // id for the annotation select list (optional)
+                })
+        ;
         site.init(browser);
     });
 

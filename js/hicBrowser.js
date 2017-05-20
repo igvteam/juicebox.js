@@ -81,8 +81,9 @@ var hic = (function (hic) {
 
         var $root;
 
-        setDefaults(config);
+        this.config = config;
 
+        setDefaults(config);
 
         // mock igv browser for igv.js compatibility
         igv.browser = {};
@@ -331,7 +332,7 @@ var hic = (function (hic) {
         self.hicReader
             .loadDataset()
             .then(function (dataset) {
-                var $e;
+                var $e, newGenome;
 
                 self.contactMatrixView.stopSpinner();
 
@@ -352,7 +353,7 @@ var hic = (function (hic) {
                     self.getColorScale().high = config.colorScale;
                 }
 
-                $e = $('#encodeModalBody');
+                $e = $('#encodeModalBody');      // TODO -- this ID should be a config parameter!
 
                 // If the encode button exists,  and the encode table is undefined OR is for another assembly load or reload it
                 if (1 === _.size($e) && (self.encodeTable === undefined || (self.dataset.genomeId != self.encodeTable.genomeID))) {
@@ -366,6 +367,11 @@ var hic = (function (hic) {
                     }
 
                     self.encodeTable = new encode.EncodeTable($e, self, dataset.genomeId, self.loadTrackXY);
+                }
+
+                // Update the annotation table.
+                if(self.config.annotationSelector !== undefined) {
+                    updateAnnotationSelector.call(self, self.config.annotationSelector, dataset.genomeId);
                 }
 
             })
@@ -741,6 +747,21 @@ var hic = (function (hic) {
     function setDefaults(config) {
         if (config.showChromosomeSelector === undefined) {
             config.showChromosomeSelector = true;
+        }
+    }
+
+
+    function updateAnnotationSelector(annotationSelector, genomeId) {
+
+        var $select = $("#" + annotationSelector);
+
+        $select.empty();
+
+        if(genomeId === "hg19") {
+            $select.append('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>');
+        }
+        else if(genomeId === "hg38") {
+            $select.append('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>');
         }
     }
 
