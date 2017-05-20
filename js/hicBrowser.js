@@ -753,28 +753,25 @@ var hic = (function (hic) {
 
     function updateAnnotationSelector(annotationSelector, genomeId) {
 
-        var $option,
-            $select = $("#" + annotationSelector);
+        var $select,
+            elements;
 
+        $select = $("#" + annotationSelector);
         $select.empty();
 
-        if(genomeId === "hg19") {
-            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
-            $select.append($option);
-            $option.text('Genes');
-            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
-            $select.append($option);
-            $option.text('Genes');
-            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
-            $select.append($option);
-            $option.text('Genes');
-        }
-        else if(genomeId === "hg38") {
-            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
-            $select.append($option);
-            $option.text('Genes');
+        elements = [];
+        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+        if ('hg19' === genomeId) {
+            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+            $select.append(elements.join(''));
+
+        } else if ('hg38' === genomeId) {
+            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+            $select.append(elements.join(''));
 
         }
+
     }
 
 
