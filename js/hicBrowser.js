@@ -762,6 +762,12 @@ var hic = (function (hic) {
             $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
             $select.append($option);
             $option.text('Genes');
+            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
+            $select.append($option);
+            $option.text('Genes');
+            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
+            $select.append($option);
+            $option.text('Genes');
         }
         else if(genomeId === "hg38") {
             $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
