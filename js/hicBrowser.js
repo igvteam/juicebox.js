@@ -753,15 +753,21 @@ var hic = (function (hic) {
 
     function updateAnnotationSelector(annotationSelector, genomeId) {
 
-        var $select = $("#" + annotationSelector);
+        var $option,
+            $select = $("#" + annotationSelector);
 
         $select.empty();
 
         if(genomeId === "hg19") {
-            $select.append('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>');
+            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
+            $select.append($option);
+            $option.text('Genes');
         }
         else if(genomeId === "hg38") {
-            $select.append('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>');
+            $option = $('<option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz"></option>');
+            $select.append($option);
+            $option.text('Genes');
+
         }
     }
 
