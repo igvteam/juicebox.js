@@ -49,7 +49,7 @@ var hic = (function (hic) {
         this.$container.append(this.$resolution_selector);
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("MapLoad", this);
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
@@ -63,7 +63,7 @@ var hic = (function (hic) {
                     return index === state.zoom;
                 })
                 .prop('selected', true);
-        } else if (event.type === "DataLoad") {
+        } else if (event.type === "MapLoad") {
 
             var dataset = event.data,
                 zoom =  this.browser.state.zoom;

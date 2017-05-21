@@ -52,14 +52,14 @@ var hic = (function (hic) {
             }
         });
 
-        hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("MapLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
     };
 
     hic.ColorScaleWidget.prototype.receiveEvent = function(event) {
 
         var colorScale;
-        if (event.type === "DataLoad" || event.type === "ColorScale") {
+        if (event.type === "MapLoad" || event.type === "ColorScale") {
 
             colorScale = Math.round( this.browser.getColorScale().high );
 

@@ -107,7 +107,7 @@ var site = (function (site) {
         });
 
 
-        hic.GlobalEventBus.subscribe("DataLoad", {
+        hic.GlobalEventBus.subscribe("MapLoad", {
 
             receiveEvent: function(event) {
 

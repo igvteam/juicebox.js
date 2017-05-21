@@ -61,13 +61,13 @@ var hic = (function (hic) {
         this.$container.append($label);
         this.$container.append(this.$normalization_selector);
 
-        hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("MapLoad", this);
 
     };
 
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
 
-        if (event.type === "DataLoad") {
+        if (event.type === "MapLoad") {
 
             var dataset = event.data,
                 normalizationTypes,

@@ -118,7 +118,7 @@ var hic = (function (hic) {
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
         hic.GlobalEventBus.subscribe("DragStopped", this);
-        hic.GlobalEventBus.subscribe("DataLoad", this);
+        hic.GlobalEventBus.subscribe("MapLoad", this);
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
@@ -243,7 +243,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
-        hic.GlobalEventBus.post(hic.Event("DidAddTrack", {trackXYPairs: trackXYPairs}));
+        hic.GlobalEventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
     };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
@@ -350,7 +350,7 @@ var hic = (function (hic) {
                 }
                 self.contactMatrixView.setDataset(dataset);
 
-                hic.GlobalEventBus.post(hic.Event("DataLoad", dataset));
+                hic.GlobalEventBus.post(hic.Event("MapLoad", dataset));
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
@@ -655,7 +655,7 @@ var hic = (function (hic) {
 
         var href = window.location.href;
 
-        if (event && event.type === "DataLoad") {
+        if (event && event.type === "MapLoad") {
             href = replaceURIParameter("hicUrl", this.url, href);
         }
 

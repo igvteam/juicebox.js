@@ -66,13 +66,13 @@ var hic = (function (hic) {
 
         this.dataLoadConfig = {
             receiveEvent: function (event) {
-                if (event.type === "DataLoad") {
+                if (event.type === "MapLoad") {
                     self.respondToDataLoadWithDataset(event.data);
                 }
             }
         };
         
-        hic.GlobalEventBus.subscribe("DataLoad", this.dataLoadConfig);
+        hic.GlobalEventBus.subscribe("MapLoad", this.dataLoadConfig);
 
         this.locusChangeConfig = {
             receiveEvent: function (event) {
