@@ -71,6 +71,7 @@ var hic = (function (hic) {
                 }
             }
         };
+        
         hic.GlobalEventBus.subscribe("DataLoad", this.dataLoadConfig);
 
         this.locusChangeConfig = {

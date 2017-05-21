@@ -123,8 +123,8 @@
             <div class="modal-body">
 
                 <div class="form-group">
-                    <select id="annotation-selector" name="annotation-selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select Annotation">
-                        <option value="https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz">Genes</option>
+                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
+
                     </select>
                 </div>
 
@@ -797,7 +797,7 @@
                 cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/b37/b37_cytoband.txt"
             };
 
-        browser = hic.createBrowser($('#app-container'), { reference: reference });
+        browser = hic.createBrowser($('#app-container'), { reference: reference, annotationSelector: 'annotation-selector' });
 
         site.init(browser);
     });

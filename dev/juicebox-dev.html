@@ -53,7 +53,7 @@
     <script src="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.js"></script>
 
     <!-- IGV JS -->
-    <script src="http://igv.org/web/beta/igv-beta.min.js"></script>
+    <script src="http://igv.org/web/beta/igv-beta.js"></script>
 
     <!-- Throbber JS -->
     <script src="../vendor/throbber.js"></script>
@@ -62,6 +62,7 @@
     <script src="../site/js/site.js"></script>
 
     <!-- Juicebox JS -->
+    <script src="../js/genome.js"></script>
     <script src="../js/hicUtils.js"></script>
     <script src="../js/hicReader.js"></script>
     <script src="../js/hicColorScaleWidget.js"></script>
@@ -126,6 +127,33 @@
 
     </div><!-- modal dialog -->
 
+</div>
+
+<!-- Annotation Select Modal -->
+<div id="hic-annotation-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
+
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
 </div>
 
 <!-- Contact Map Select Modal -->
@@ -692,7 +720,7 @@
 
                 </div>
 
-                <!-- Track File: ENCODE | Local File | URL -->
+                <!-- Track File: ENCODE | Annotations | Local File | URL -->
                 <div class="col-md-3 juicebox-widget-container">
 
                     <div class="dropdown">
@@ -709,6 +737,12 @@
                                     ENCODE
                                 </a>
                             </li><!-- Select ENCODE -->
+
+                            <li role="presentation"><!-- Select Annotations -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
+                                    Annotations
+                                </a>
+                            </li><!-- Select Annotations -->
 
                             <li role="presentation"><!-- Local Track File -->
                                 <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
@@ -760,20 +794,11 @@
 
     $(document).ready(function () {
 
-        var browser,
-            reference;
+        var browser;
 
-        reference =
-            {
-                id: "hg19",
-                fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/1kg_v37/human_g1k_v37_decoy.fasta",
-                cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/b37/b37_cytoband.txt"
-            };
-
-        browser = hic.createBrowser($('#app-container'), { reference: reference });
+        browser = hic.createBrowser($('#app-container'), { });
 
         site.init(browser);
-
     });
 
 </script>
