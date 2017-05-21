@@ -4,19 +4,19 @@
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
  * following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
  * portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
  */
@@ -90,17 +90,73 @@ var site = (function (site) {
             $('#hic-current-contact-map').text( browser.config.url );
         }
 
-        if (browser.sequence) {
 
-            browser.sequence
-                .init(undefined)
-                .then(function () {
-                    igv.browser.genome = new igv.Genome(browser.sequence, undefined, undefined);
-                });
+        $('#annotation-selector').on('change', function(e) {
+            var path,
+                name;
 
-        }
+            $('#hic-annotation-select-modal').modal('hide');
+
+            path = $(this).val();
+            name = $(this).find('option:selected').text();
+
+            // deselect all
+            $(this).find('option').removeAttr("selected");
+
+            browser.loadTrackXY( [ { url: path, name: name } ] );
+        });
+
+
+        hic.GlobalEventBus.subscribe("DataLoad", {
+
+            receiveEvent: function(event) {
+
+                var $select,
+                    elements,
+                    $e;
+
+                $select = $("#annotation-selector");
+
+                if($select) {
+
+                    var genomeId = browser.dataset.genomeId;
+
+                    $select.empty();
+
+                    elements = [];
+                    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+                    if ('hg19' === genomeId) {
+                        elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+                        $select.append(elements.join(''));
+
+                    } 
+                }
+
+
+                $e = $('#encodeModalBody');
+
+                // If the encode button exists,  and the encode table is undefined OR is for another assembly load or reload it
+                if (1 === _.size($e) && (browser.encodeTable === undefined || (browser.dataset.genomeId != browser.encodeTable.genomeID))) {
+
+                    if (browser.encodeTable) {
+
+                        browser.encodeTable.unbindAllMouseHandlers();
+
+                        $e.empty();
+                        browser.encodeTable = undefined;
+                    }
+
+                    browser.encodeTable = new encode.EncodeTable($e, browser, browser.dataset.genomeId, browser.loadTrackXY);
+                }
+
+            }
+
+        });
 
     };
+
+
 
     return site;
 

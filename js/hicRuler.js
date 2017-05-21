@@ -116,7 +116,8 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.draw = function (options) {
 
-        var fontStyle,
+        var self = this,
+            fontStyle,
             ts,
             spacing,
             nTick,
@@ -259,10 +260,10 @@ var hic = (function (hic) {
                 yShim = 2,
                 tickHeight = 10;
 
-            _.each(igv.browser.genome.wgChromosomeNames, function (chrName) {
+            _.each(self.browser.genome.chromosomes, function (chromosome) {
 
-                var chromosome = igv.browser.genome.getChromosome(chrName),
-                    bp = igv.browser.genome.getGenomeCoordinate(chrName, chromosome.bpLength),
+                var chrName = chromosome.name,
+                    bp = self.browser.genome.getGenomeCoordinate(chrName, chromosome.size),
                     x = Math.round((bp - options.bpStart ) / options.bpPerPixel),
                     chrLabel = chrName.startsWith("chr") ? chrName.substr(3) : chrName;
 

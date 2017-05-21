@@ -27,12 +27,34 @@ var hic = (function (hic) {
     var defaultPixelSize, defaultState;
     var maxPixelSize = 100;
 
+    // mock igv browser objects for igv.js compatibility
+    function createIGV($hic_container) {
+        igv.browser = {
+            constants: {defaultColor: "rgb(0,0,150)"}
+        }
+        igv.trackMenuItemList = hic.trackMenuItemListReplacement;
+        igv.trackMenuItem = hic.trackMenuItemReplacement;
+        // Popover object -- singleton shared by all components
+        igv.popover = new igv.Popover($hic_container);
+        // igv.popover.presentTrackGearMenu = hic.popoverPresentTrackGearMenuReplacement;
+
+        // ColorPicker object -- singleton shared by all components
+        igv.colorPicker = new igv.ColorPicker($hic_container, undefined);
+        igv.colorPicker.hide();
+
+        // Dialog object -- singleton shared by all components
+        igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
+        igv.dialog.hide();
+
+        // Data Range Dialog object -- singleton shared by all components
+        igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
+        igv.dataRangeDialog.hide();
+    }
+
+
     hic.createBrowser = function ($hic_container, config) {
 
         var browser;
-
-        igv.trackMenuItemList = hic.trackMenuItemListReplacement;
-        igv.trackMenuItem = hic.trackMenuItemReplacement;
 
         defaultPixelSize = 1;
 
@@ -55,23 +77,11 @@ var hic = (function (hic) {
             config.colorScale = parseFloat(colorScale);
         }
 
+        createIGV($hic_container);
+
         browser = new hic.Browser($hic_container, config);
 
-        // Popover object -- singleton shared by all components
-        igv.popover = new igv.Popover($hic_container);
-        // igv.popover.presentTrackGearMenu = hic.popoverPresentTrackGearMenuReplacement;
 
-        // ColorPicker object -- singleton shared by all components
-        igv.colorPicker = new igv.ColorPicker($hic_container, undefined);
-        igv.colorPicker.hide();
-
-        // Dialog object -- singleton shared by all components
-        igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
-        igv.dialog.hide();
-
-        // Data Range Dialog object -- singleton shared by all components
-        igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
-        igv.dataRangeDialog.hide();
 
         return browser;
 
@@ -81,18 +91,12 @@ var hic = (function (hic) {
 
         var $root;
 
-        setDefaults(config);
-
-
-        // mock igv browser for igv.js compatibility
-        igv.browser = {};
-        igv.browser.constants = {defaultColor: "rgb(0,0,150)"};
-
-        this.trackRenderers = [];
-
+        hic.browser = this;
         this.config = config;
 
-        hic.browser = this;
+        setDefaults(config);
+
+        this.trackRenderers = [];
 
         $root = $('<div class="hic-root unselect">');
         $app_container.append($root);
@@ -110,10 +114,6 @@ var hic = (function (hic) {
 
         if (config.url) {
             this.loadHicFile(config);
-        }
-
-        if (config.reference) {
-            this.sequence = new igv.FastaSequence(config.reference);
         }
 
         hic.GlobalEventBus.subscribe("LocusChange", this);
@@ -210,7 +210,8 @@ var hic = (function (hic) {
                 self.addTrackXYPairs(trackXYPairs);
             })
             .catch(function (error) {
-                console.log(error.message)
+                console.log(error.message);
+                alert(error.message);
             });
 
     };
@@ -218,9 +219,8 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadTrack = function (config) {
 
         return new Promise(function (fulfill, reject) {
-            var newTrack;
 
-            // igv.inferTrackTypes(config);
+            var newTrack;
 
             newTrack = igv.createTrackWithConfiguration(config);
 
@@ -331,11 +331,15 @@ var hic = (function (hic) {
         self.hicReader
             .loadDataset()
             .then(function (dataset) {
-                var $e;
+
+                var $e, newGenome;
 
                 self.contactMatrixView.stopSpinner();
 
                 self.dataset = dataset;
+
+                self.genome = new hic.Genome(self.dataset.chromosomes);
+                igv.browser.genome = self.genome;
 
                 if (config.state) {
                     self.setState(config.state);
@@ -350,22 +354,6 @@ var hic = (function (hic) {
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
-                }
-
-                $e = $('#encodeModalBody');
-
-                // If the encode button exists,  and the encode table is undefined OR is for another assembly load or reload it
-                if (1 === _.size($e) && (self.encodeTable === undefined || (self.dataset.genomeId != self.encodeTable.genomeID))) {
-
-                    if (self.encodeTable) {
-
-                        self.encodeTable.unbindAllMouseHandlers();
-
-                        $e.empty();
-                        self.encodeTable = undefined;
-                    }
-
-                    self.encodeTable = new encode.EncodeTable($e, self, dataset.genomeId, self.loadTrackXY);
                 }
 
             })
@@ -742,6 +730,30 @@ var hic = (function (hic) {
         if (config.showChromosomeSelector === undefined) {
             config.showChromosomeSelector = true;
         }
+    }
+
+
+    function updateAnnotationSelector(annotationSelector, genomeId) {
+
+        var $select,
+            elements;
+
+        $select = $("#" + annotationSelector);
+        $select.empty();
+
+        elements = [];
+        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+        if ('hg19' === genomeId) {
+            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+            $select.append(elements.join(''));
+
+        } else if ('hg38' === genomeId) {
+            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+            $select.append(elements.join(''));
+
+        }
+
     }
 
 
