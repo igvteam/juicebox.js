@@ -257,7 +257,9 @@ var hic = (function (hic) {
 
                                         viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
 
-                                        viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height())
+                                        viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
+
+                                        labelTransform: self.labelReflectionTransform
                                     };
 
                                 self.startSpinner();

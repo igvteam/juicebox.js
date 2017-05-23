@@ -167,7 +167,7 @@ var hic = (function (hic) {
 
                 // console.log(this.axis + ' chr ' + chrName + ' bp ' + igv.numberFormatter(Math.floor((pixel * options.bpPerPixel) + options.bpStart)) + ' size-bp ' + igv.numberFormatter(chrSize));
 
-                if (nTick % 1 == 0) {
+                if (nTick % 1 === 0) {
                     this.ctx.save();
                     this.labelReflectionTransform(this.ctx, pixel);
 
