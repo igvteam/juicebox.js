@@ -24,7 +24,7 @@ var hic = (function (hic) {
 
         this.track_height = 32;
 
-        hic.GlobalEventBus.subscribe('DidAddTrack', this);
+        hic.GlobalEventBus.subscribe('TrackLoad', this);
         hic.GlobalEventBus.subscribe('LocusChange', this);
 
     };
@@ -134,7 +134,7 @@ var hic = (function (hic) {
         var self = this,
             trackRendererPair;
 
-        if ('DidAddTrack' === event.type) {
+        if ('TrackLoad' === event.type) {
 
             _.each(event.data.trackXYPairs, function (trackPair) {
 
