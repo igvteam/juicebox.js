@@ -130,7 +130,10 @@ var site = (function (site) {
                         elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
                         $select.append(elements.join(''));
 
-                    } 
+                    } else if ('hg38' === genomeId) {
+                        elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/genes/refGene_hg38_collapsed.refgene.gz' + '>' + 'Genes' + '</option>');
+                        $select.append(elements.join(''));
+                    }
                 }
 
 
