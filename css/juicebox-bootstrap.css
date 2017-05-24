@@ -112,7 +112,7 @@
   .hic-chromosome-goto-container input {
     display: block;
     margin-top: 4px;
-    height: 20px;
+    height: 24px;
     width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
@@ -136,7 +136,7 @@
   .hic-colorscale-widget-container input {
     display: block;
     margin-top: 4px;
-    height: 20px;
+    height: 24px;
     width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
