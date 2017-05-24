@@ -82,7 +82,6 @@ var hic = (function (hic) {
         browser = new hic.Browser($hic_container, config);
 
 
-
         return browser;
 
     };
@@ -391,39 +390,41 @@ var hic = (function (hic) {
             newZoom,
             newPixelSize;
 
-        if (loci.length !== 2) {
-            console.log('ERROR. Must enter locus for x and y axes.');
+        if (loci.length === 1) {
+            xLocus = self.parseLocusString(loci[0]);
+            yLocus = xLocus;
         } else {
 
             xLocus = self.parseLocusString(loci[0]);
             yLocus = self.parseLocusString(loci[1]);
-
-            if (xLocus === undefined || yLocus === undefined) {
-                console.log('ERROR. Must enter valid loci for X and Y axes');
-            }
-
-            if (xLocus.wholeChr && yLocus.wholeChr) {
-                this.setChromosomes(xLocus.chr, yLocus.chr);
-            }
-            else {
-                maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-                targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
-
-                var bpResolutions = this.dataset.bpResolutions;
-                newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-                newPixelSize = this.state.pixelSize;   // Adjusting this is complex
-
-                this.setState(new hic.State(
-                    xLocus.chr,
-                    yLocus.chr,
-                    newZoom,
-                    xLocus.start / bpResolutions[this.state.zoom],
-                    yLocus.start / bpResolutions[this.state.zoom],
-                    newPixelSize
-                ));
-            }
-
         }
+
+        if (xLocus === undefined || yLocus === undefined) {
+            console.log('ERROR. Must enter valid loci for X and Y axes');
+            return;
+        }
+
+        if (xLocus.wholeChr && yLocus.wholeChr) {
+            this.setChromosomes(xLocus.chr, yLocus.chr);
+        }
+        else {
+            maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
+            targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
+
+            var bpResolutions = this.dataset.bpResolutions;
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+            newPixelSize = this.state.pixelSize;   // Adjusting this is complex
+
+            this.setState(new hic.State(
+                xLocus.chr,
+                yLocus.chr,
+                newZoom,
+                xLocus.start / bpResolutions[this.state.zoom],
+                yLocus.start / bpResolutions[this.state.zoom],
+                newPixelSize
+            ));
+        }
+
 
         function locusExtent(obj) {
             return obj.end - obj.start;
@@ -671,11 +672,11 @@ var hic = (function (hic) {
                     url = config.url,
                     dataRange = track.dataRange;
 
-                if(typeof url === "string") {
+                if (typeof url === "string") {
                     trackString += url + "@"
                 }
             });
-            if(trackString.length > 0) {
+            if (trackString.length > 0) {
                 href = replaceURIParameter("tracks", trackString, href);
             }
         }
