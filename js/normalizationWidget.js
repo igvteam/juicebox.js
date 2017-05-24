@@ -77,17 +77,18 @@ var hic = (function (hic) {
             normalizationTypes = dataset.normalizationTypes;
             elements = _.map(normalizationTypes, function (normalization) {
                 var label,
+                    labelPresentation,
                     isSelected,
                     titleString,
                     valueString;
 
                 label = labels[ normalization ];
                 isSelected = (norm === normalization);
-
                 titleString = (label === undefined ? '' : ' title = "' + label + '" ');
                 valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
 
-                return '<option' + titleString + valueString + '>' + label + '</option>';
+                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
             });
 
             this.$normalization_selector.empty();
