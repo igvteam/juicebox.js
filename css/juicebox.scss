@@ -120,7 +120,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display: block;
 
     margin-top:4px;
-    height: 20px;
+    height: 24px;
     width: 100%;
 
     font-family: $default-font-family;
@@ -148,6 +148,20 @@ $default-font-family: 'Open Sans', sans-serif;
   //background-color: red;
 }
 
+.blue-backdrop {
+  height: 8px;
+  background-color: dodgerblue;
+}
+
+.red-backdrop {
+  height: 8px;
+  background-color: orangered;
+}
+
+.green-backdrop {
+  background-color: greenyellow;
+}
+
 .green-box {
   height: 40px;
   color: white;
@@ -159,6 +173,12 @@ $default-font-family: 'Open Sans', sans-serif;
   color: white;
   background-color: blue;
 }
+
+.bootstrap-row-shim-top-4 { margin-top: 4px; }
+.bootstrap-row-shim-top-8 { margin-top: 8px; }
+
+.bootstrap-row-shim-bottom-4 { margin-bottom: 4px; }
+.bootstrap-row-shim-bottom-8 { margin-bottom: 8px; }
 
 // root
 .hic-root {

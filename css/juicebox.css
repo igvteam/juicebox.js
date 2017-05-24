@@ -3,6 +3,17 @@
   padding-bottom: 8px;
   color: white; }
 
+.blue-backdrop {
+  height: 8px;
+  background-color: dodgerblue; }
+
+.red-backdrop {
+  height: 8px;
+  background-color: orangered; }
+
+.green-backdrop {
+  background-color: greenyellow; }
+
 .green-box {
   height: 40px;
   color: white;
@@ -12,6 +23,18 @@
   height: 40px;
   color: white;
   background-color: blue; }
+
+.bootstrap-row-shim-top-4 {
+  margin-top: 4px; }
+
+.bootstrap-row-shim-top-8 {
+  margin-top: 8px; }
+
+.bootstrap-row-shim-bottom-4 {
+  margin-bottom: 4px; }
+
+.bootstrap-row-shim-bottom-8 {
+  margin-bottom: 8px; }
 
 .hic-root {
   position: relative;
@@ -101,7 +124,7 @@
   .hic-chromosome-goto-container input {
     display: block;
     margin-top: 4px;
-    height: 20px;
+    height: 24px;
     width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
@@ -125,7 +148,7 @@
   .hic-colorscale-widget-container input {
     display: block;
     margin-top: 4px;
-    height: 20px;
+    height: 24px;
     width: 100%;
     font-family: "Open Sans", sans-serif;
     font-size: 14px;
