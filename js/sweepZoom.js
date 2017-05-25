@@ -141,7 +141,7 @@ var hic = (function (hic) {
         XMax = X + Width;
         YMax = Y + Height;
 
-        this.browser.goto(X, XMax, Y, YMax);
+        this.browser.goto(state.chr1, X, XMax, state.chr2, Y, YMax);
 
     };
 

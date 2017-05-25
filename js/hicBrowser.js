@@ -394,7 +394,7 @@ var hic = (function (hic) {
             return obj.end - obj.start;
         }
 
-        function goto(xLocus, yLocus) {
+        function gotoBP(xLocus, yLocus) {
             if (xLocus === undefined || yLocus === undefined) {
                 console.log('ERROR. Must enter valid loci for X and Y axes');
                 return;
@@ -415,14 +415,17 @@ var hic = (function (hic) {
                     newXBin = xLocus.start / newResolution,
                     newYBin = yLocus.start / newResolution;
 
-                self.setState(new hic.State(
+                self.state = new hic.State(
                     xLocus.chr,
                     yLocus.chr,
                     newZoom,
                     newXBin,
                     newYBin,
                     newPixelSize
-                ));
+                );
+                self.contactMatrixView.clearCaches();
+                self.contactMatrixView.computeColorScale = true;
+                hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
             }
         }
 
@@ -438,7 +441,7 @@ var hic = (function (hic) {
                         if (result) {
                             xLocus = self.parseLocusString(result);
                             yLocus = xLocus;
-                            goto(xLocus, yLocus);
+                            gotoBP(xLocus, yLocus);
                         }
                         else {
                             alert('No feature found with name "' + loci[0] + '"');
@@ -458,7 +461,7 @@ var hic = (function (hic) {
             yLocus = self.parseLocusString(loci[1]);
         }
 
-        goto(xLocus, yLocus);
+        gotoBP(xLocus, yLocus);
 
 
     };
@@ -635,7 +638,7 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(locusChangeEvent);
     };
 
-    hic.Browser.prototype.goto = function (bpX, bpXMax, bpY, bpYMax) {
+    hic.Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax) {
 
         var viewDimensions, targetResolution, newZoom, actualResolution, pixelSize, binX, binY, currentState, newState;
 
@@ -647,7 +650,7 @@ var hic = (function (hic) {
         binX = bpX / actualResolution;
         binY = bpY / actualResolution;
         currentState = this.state;
-        newState = new hic.State(currentState.chr1, currentState.chr2, newZoom, binX, binY, pixelSize, currentState.normalization);
+        newState = new hic.State(chr1, chr2, newZoom, binX, binY, pixelSize, currentState.normalization);
 
         this.state = newState;
         this.contactMatrixView.clearCaches();
