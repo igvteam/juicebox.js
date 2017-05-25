@@ -413,6 +413,8 @@ $default-font-family: 'Open Sans', sans-serif;
     // canvas container
     .x-track-canvas-container {
 
+      cursor: pointer;
+
       // reference point for child divs with position: absolute
       position: relative;
 
@@ -421,38 +423,17 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // canvas inserted here
 
-      // x-track label presenter
-      .x-track-label-presenter {
-        position: absolute;
-
-        top:  0;
-        left: 0;
-
-        width:  0.25 * $track-height;
-        height: $track-height;
-
-        z-index: 1024;
-
-        background-image: url('img/track-label-presenter-short.png');
-        //background-color: red;
-
-      }
-
-      .x-track-label-presenter:hover,
-      .x-track-label-presenter:focus,
-      .x-track-label-presenter:active  {
-        cursor: pointer;
-        background-image: url('img/track-label-presenter-tall.png');
-      }
-
       // x-track label
       .x-track-label {
+
+        display: inline-block;
+
         position: absolute;
 
         top:  0;
         left: 0;
 
-        width:  4.0 * $track-height;
+        //width:  4.0 * $track-height;
         height: 0.75 * $track-height;
 
         margin-top: 0.125 * $track-height;
@@ -475,7 +456,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 512;
 
-        //background-color: rgba(255, 255, 255, 0);
+        background-color: rgba(255, 255, 255, 0.75);
+        //background-color: greenyellow;
       }
 
       // x-track spinner container
@@ -516,8 +498,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 1024;
 
-        color: rgba(95, 95, 95, 0.25);
-        background-color: rgba(255, 255, 255, 0);
+        color: rgba(55, 55, 55, 0.75);
+        background-color: rgba(255, 255, 255, 0.75);
 
       }
 
