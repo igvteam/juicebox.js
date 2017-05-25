@@ -337,7 +337,8 @@ var hic = (function (hic) {
 
                 self.dataset = dataset;
 
-                self.genome = new hic.Genome(self.dataset.chromosomes);
+                self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+
                 igv.browser.genome = self.genome;
 
                 if (config.state) {
@@ -390,45 +391,74 @@ var hic = (function (hic) {
             newZoom,
             newPixelSize;
 
+
+
+        function locusExtent(obj) {
+            return obj.end - obj.start;
+        }
+
+        function goto(xLocus, yLocus){
+            if (xLocus === undefined || yLocus === undefined) {
+                console.log('ERROR. Must enter valid loci for X and Y axes');
+                return;
+            }
+
+            if (xLocus.wholeChr && yLocus.wholeChr) {
+                self.setChromosomes(xLocus.chr, yLocus.chr);
+            }
+            else {
+                maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
+                targetResolution = maxExtent / (self.contactMatrixView.$viewport.width() / self.state.pixelSize);
+
+                var bpResolutions = self.dataset.bpResolutions;
+                newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions);
+                newPixelSize = self.state.pixelSize;   // Adjusting this is complex
+
+                self.setState(new hic.State(
+                    xLocus.chr,
+                    yLocus.chr,
+                    newZoom,
+                    xLocus.start / bpResolutions[self.state.zoom],
+                    yLocus.start / bpResolutions[self.state.zoom],
+                    newPixelSize
+                ));
+            }
+        }
+
         if (loci.length === 1) {
             xLocus = self.parseLocusString(loci[0]);
             yLocus = xLocus;
+
+            if (xLocus === undefined) {
+                // Try a gene name search.  This is recursive and has the potential for an infinite loop
+                hic.geneSearch(this.genome.id, loci[0].trim())
+
+                    .then(function (result) {
+                        if(result) {
+                            xLocus = self.parseLocusString(result);
+                            yLocus = xLocus;
+                            goto(xLocus, yLocus);
+                        }
+                        else {
+                            alert('No feature found with name "' + loci[0] + '"');
+                        }
+                    })
+                    .catch(function (error) {
+                        alert(error);
+                        console.log(error);
+                    });
+                return;
+            }
+
+
         } else {
 
             xLocus = self.parseLocusString(loci[0]);
             yLocus = self.parseLocusString(loci[1]);
         }
 
-        if (xLocus === undefined || yLocus === undefined) {
-            console.log('ERROR. Must enter valid loci for X and Y axes');
-            return;
-        }
+       goto(xLocus, yLocus);
 
-        if (xLocus.wholeChr && yLocus.wholeChr) {
-            this.setChromosomes(xLocus.chr, yLocus.chr);
-        }
-        else {
-            maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-            targetResolution = maxExtent / (this.contactMatrixView.$viewport.width() / this.state.pixelSize);
-
-            var bpResolutions = this.dataset.bpResolutions;
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-            newPixelSize = this.state.pixelSize;   // Adjusting this is complex
-
-            this.setState(new hic.State(
-                xLocus.chr,
-                yLocus.chr,
-                newZoom,
-                xLocus.start / bpResolutions[this.state.zoom],
-                yLocus.start / bpResolutions[this.state.zoom],
-                newPixelSize
-            ));
-        }
-
-
-        function locusExtent(obj) {
-            return obj.end - obj.start;
-        }
 
     };
 
@@ -459,7 +489,7 @@ var hic = (function (hic) {
             return chr.name;
         });
 
-        chrName = parts[0];
+        chrName = this.genome.getChromosomeName(parts[0]);
 
         if (!_.contains(chromosomeNames, chrName)) {
             return undefined;

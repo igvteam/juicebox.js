@@ -28,8 +28,9 @@
 
 var hic = (function (hic) {
 
-    hic.Genome = function (chromosomes) {
+    hic.Genome = function (id, chromosomes) {
 
+        this.id = id;
         this.chromosomes = chromosomes;
 
         // Alias for size for igv compatibility
