@@ -234,27 +234,15 @@
       -webkit-user-select: none;
       z-index: 666; }
     #x-track-container #x-tracks .x-track-canvas-container {
+      cursor: pointer;
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 8px;
-        height: 32px;
-        z-index: 1024;
-        background-image: url("img/track-label-presenter-short.png"); }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:hover,
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:focus,
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-label-presenter:active {
-        cursor: pointer;
-        background-image: url("img/track-label-presenter-tall.png"); }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-label {
+        display: inline-block;
         position: absolute;
         top: 0;
         left: 0;
-        width: 128px;
         height: 24px;
         margin-top: 4px;
         color: #5f5f5f;
@@ -269,7 +257,8 @@
         text-overflow: ellipsis;
         padding-left: 2px;
         padding-right: 2px;
-        z-index: 512; }
+        z-index: 512;
+        background-color: rgba(255, 255, 255, 0.75); }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
@@ -291,8 +280,8 @@
         text-align: center;
         vertical-align: middle;
         z-index: 1024;
-        color: rgba(95, 95, 95, 0.25);
-        background-color: rgba(255, 255, 255, 0); }
+        color: rgba(55, 55, 55, 0.75);
+        background-color: rgba(255, 255, 255, 0.75); }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:hover,
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:focus,
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:active {
