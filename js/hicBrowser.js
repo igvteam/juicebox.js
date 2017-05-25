@@ -385,6 +385,8 @@ var hic = (function (hic) {
             loci = string.split(' '),
             xLocus,
             yLocus,
+            xCenter,
+            yCenter,
             maxExtent,
             targetResolution,
             viewWidth;
@@ -394,40 +396,54 @@ var hic = (function (hic) {
             return obj.end - obj.start;
         }
 
-        function gotoBP(xLocus, yLocus) {
+        function gotoBP(xLocus, yLocus, minResolution) {
             if (xLocus === undefined || yLocus === undefined) {
                 console.log('ERROR. Must enter valid loci for X and Y axes');
                 return;
             }
 
+            if (minResolution === undefined) minResolution = 200;   // 200 BP / bin
+
             if (xLocus.wholeChr && yLocus.wholeChr) {
                 self.setChromosomes(xLocus.chr, yLocus.chr);
             }
             else {
-                maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-                viewWidth = self.contactMatrixView.$viewport.width();
-                targetResolution = maxExtent / viewWidth;
 
-                var bpResolutions = self.dataset.bpResolutions,
-                    newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
-                    newResolution = bpResolutions[newZoom],
-                    newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
-                    newXBin = xLocus.start / newResolution,
-                    newYBin = yLocus.start / newResolution;
-
-                self.state = new hic.State(
-                    xLocus.chr,
-                    yLocus.chr,
-                    newZoom,
-                    newXBin,
-                    newYBin,
-                    newPixelSize
-                );
-                self.contactMatrixView.clearCaches();
-                self.contactMatrixView.computeColorScale = true;
-                hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
+                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+                // maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
+                // viewWidth = self.contactMatrixView.$viewport.width();
+                // targetResolution = maxExtent / viewWidth;
+                //
+                // if (targetResolution < minResolution) {
+                //     maxExtent = viewWidth * minResolution;
+                //     xCenter = (xLocus.start + xLocus.end) / 2;
+                //     yCenter = (yLocus.start + yLocus.end) / 2;
+                //     xLocus.start = Math.max(xCenter - maxExtent / 2);
+                //     yLocus.start = Math.max(0, yCenter - maxExtent / 2);
+                //     targetResolution = minResolution;
+                // }
+                //
+                // var bpResolutions = self.dataset.bpResolutions,
+                //     newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
+                //     newResolution = bpResolutions[newZoom],
+                //     newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
+                //     newXBin = xLocus.start / newResolution,
+                //     newYBin = yLocus.start / newResolution;
+                //
+                // self.state = new hic.State(
+                //     xLocus.chr,
+                //     yLocus.chr,
+                //     newZoom,
+                //     newXBin,
+                //     newYBin,
+                //     newPixelSize
+                // );
+                // self.contactMatrixView.clearCaches();
+                // self.contactMatrixView.computeColorScale = true;
+                // hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
             }
         }
+
 
         if (loci.length === 1) {
             xLocus = self.parseLocusString(loci[0]);
@@ -441,7 +457,8 @@ var hic = (function (hic) {
                         if (result) {
                             xLocus = self.parseLocusString(result);
                             yLocus = xLocus;
-                            gotoBP(xLocus, yLocus);
+                            self.state.selectedGene = loci[0].trim();
+                            gotoBP(xLocus, yLocus, 5000);
                         }
                         else {
                             alert('No feature found with name "' + loci[0] + '"');
@@ -638,26 +655,50 @@ var hic = (function (hic) {
         hic.GlobalEventBus.post(locusChangeEvent);
     };
 
-    hic.Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax) {
 
-        var viewDimensions, targetResolution, newZoom, actualResolution, pixelSize, binX, binY, currentState, newState;
-
-        viewDimensions = this.contactMatrixView.getViewDimensions();
-        targetResolution = (bpXMax - bpX) / viewDimensions.width;
-        newZoom = this.findMatchingZoomIndex(targetResolution, this.dataset.bpResolutions);
-        actualResolution = this.dataset.bpResolutions[newZoom];
-        pixelSize = actualResolution / targetResolution;
-        binX = bpX / actualResolution;
-        binY = bpY / actualResolution;
-        currentState = this.state;
-        newState = new hic.State(chr1, chr2, newZoom, binX, binY, pixelSize, currentState.normalization);
-
-        this.state = newState;
-        this.contactMatrixView.clearCaches();
-        this.contactMatrixView.computeColorScale = true;
+    hic.Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
 
 
-        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+        var self = this,
+            xCenter,
+            yCenter,
+            maxExtent,
+            targetResolution,
+            viewWidth;
+
+        if(minResolution === undefined) minResolution = 200;
+
+        maxExtent = Math.max(bpXMax - bpX, bpYMax - bpY);
+        viewWidth = this.contactMatrixView.getViewDimensions().width;
+        targetResolution = maxExtent / viewWidth;
+
+        if (targetResolution < minResolution) {
+            maxExtent = viewWidth * minResolution;
+            xCenter = (bpX + bpXMax) / 2;
+            yCenter = (bpY + bpYMax) / 2;
+            bpX = Math.max(xCenter - maxExtent / 2);
+            bpY = Math.max(0, yCenter - maxExtent / 2);
+            targetResolution = minResolution;
+        }
+
+        var bpResolutions = self.dataset.bpResolutions,
+            newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
+            newResolution = bpResolutions[newZoom],
+            newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
+            newXBin = bpX / newResolution,
+            newYBin = bpY / newResolution;
+
+        self.state = new hic.State(
+            chr1,
+            chr2,
+            newZoom,
+            newXBin,
+            newYBin,
+            newPixelSize
+        );
+        self.contactMatrixView.clearCaches();
+        self.contactMatrixView.computeColorScale = true;
+        hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
 
     };
 

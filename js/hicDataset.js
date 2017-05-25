@@ -84,32 +84,41 @@ var hic = (function (hic) {
 
                         // Get the norm vectors serially, its very likely they are the same and the second will be cached
                         self.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
+
                             .then(function (nv1) {
 
                                 self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
+
                                     .then(function (nv2) {
                                         var normRecords = [],
                                             normBlock;
 
-                                        block.records.forEach(function (record) {
+                                        if(nv1 === undefined ||nv2 === undefined) {
+                                            console.log("Undefined normalization vector for: " + normalization);
+                                            fulfill(block);
+                                        }
 
-                                            var x = record.bin1,
-                                                y = record.bin2,
-                                                counts,
-                                                nvnv = nv1.data[x] * nv2.data[y];
+                                        else {
+                                            block.records.forEach(function (record) {
 
-                                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                                counts = record.counts / nvnv;
-                                                //countArray.push(counts);
-                                                normRecords.push(new hic.ContactRecord(x, y, counts));
-                                            }
-                                        })
+                                                var x = record.bin1,
+                                                    y = record.bin2,
+                                                    counts,
+                                                    nvnv = nv1.data[x] * nv2.data[y];
 
-                                        normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+                                                if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                                                    counts = record.counts / nvnv;
+                                                    //countArray.push(counts);
+                                                    normRecords.push(new hic.ContactRecord(x, y, counts));
+                                                }
+                                            })
 
-                                        normBlock.percentile95 = block.percentile95;
+                                            normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
 
-                                        fulfill(normBlock);
+                                            normBlock.percentile95 = block.percentile95;
+
+                                            fulfill(normBlock);
+                                        }
                                     })
                                     .catch(reject)
 

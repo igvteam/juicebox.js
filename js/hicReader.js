@@ -588,13 +588,13 @@ var hic = (function (hic) {
 
 
         if (this.normVectorIndex == null) {
-            Promise.resolve(null);
+            return Promise.resolve(undefined);
         }
 
         var idx = this.normVectorIndex[key];
         if (!idx) {
             alert("Normalization option " + type + " not available at this resolution");
-            Promise.resolve(null);
+            return Promise.resolve(undefined);
         }
 
         return new Promise(function (fulfill, reject) {
