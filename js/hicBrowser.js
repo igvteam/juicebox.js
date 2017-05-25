@@ -383,21 +383,18 @@ var hic = (function (hic) {
 
         var self = this,
             loci = string.split(' '),
-            newZoom,
             xLocus,
             yLocus,
             maxExtent,
             targetResolution,
-            newZoom,
-            newPixelSize;
-
+            viewWidth;
 
 
         function locusExtent(obj) {
             return obj.end - obj.start;
         }
 
-        function goto(xLocus, yLocus){
+        function goto(xLocus, yLocus) {
             if (xLocus === undefined || yLocus === undefined) {
                 console.log('ERROR. Must enter valid loci for X and Y axes');
                 return;
@@ -408,18 +405,22 @@ var hic = (function (hic) {
             }
             else {
                 maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-                targetResolution = maxExtent / (self.contactMatrixView.$viewport.width() / self.state.pixelSize);
+                viewWidth = self.contactMatrixView.$viewport.width();
+                targetResolution = maxExtent / viewWidth;
 
-                var bpResolutions = self.dataset.bpResolutions;
-                newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions);
-                newPixelSize = self.state.pixelSize;   // Adjusting this is complex
+                var bpResolutions = self.dataset.bpResolutions,
+                    newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
+                    newResolution = bpResolutions[newZoom],
+                    newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
+                    newXBin = xLocus.start / newResolution,
+                    newYBin = yLocus.start / newResolution;
 
                 self.setState(new hic.State(
                     xLocus.chr,
                     yLocus.chr,
                     newZoom,
-                    xLocus.start / bpResolutions[self.state.zoom],
-                    yLocus.start / bpResolutions[self.state.zoom],
+                    newXBin,
+                    newYBin,
                     newPixelSize
                 ));
             }
@@ -434,7 +435,7 @@ var hic = (function (hic) {
                 hic.geneSearch(this.genome.id, loci[0].trim())
 
                     .then(function (result) {
-                        if(result) {
+                        if (result) {
                             xLocus = self.parseLocusString(result);
                             yLocus = xLocus;
                             goto(xLocus, yLocus);
@@ -457,7 +458,7 @@ var hic = (function (hic) {
             yLocus = self.parseLocusString(loci[1]);
         }
 
-       goto(xLocus, yLocus);
+        goto(xLocus, yLocus);
 
 
     };
