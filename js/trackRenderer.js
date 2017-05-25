@@ -38,28 +38,17 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
-            // label presenter
-            this.$label_presenter = $('<div class="x-track-label-presenter">');
-            this.$viewport.append(this.$label_presenter);
-
             // label
             this.$label = $('<div class="x-track-label">');
             str = this.track.name || 'untitled';
             this.$label.text(str);
             this.$viewport.append(this.$label);
 
-            this.$label_presenter.on('click', function (e) {
-                self.$label.show();
-                $(this).hide();
+            this.$viewport.on('click', function (e) {
+                e.stopPropagation();
+                $('.x-track-label').toggle();
+                $('.x-track-menu-container').toggle();
             });
-
-            this.$label.on('click', function (e) {
-                self.$label_presenter.show();
-                $(this).hide();
-            });
-
-            this.$label_presenter.hide();
-            this.$label.show();
         }
 
         // track spinner container
@@ -81,6 +70,7 @@ var hic = (function (hic) {
             this.$menu_container.append(this.$menu_button);
 
             this.$menu_button.click(function (e) {
+                e.stopPropagation();
                 igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
             });
 
