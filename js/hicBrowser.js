@@ -92,7 +92,8 @@ var hic = (function (hic) {
             hicUrl = gup(href, "hicUrl"),
             stateString = gup(href, "state"),
             colorScale = gup(href, "colorScale"),
-            trackString = gup(href, "tracks");
+            trackString = gup(href, "tracks"),
+            selectedGene = gup(href, "selectedGene");
 
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
@@ -105,9 +106,14 @@ var hic = (function (hic) {
         if (colorScale) {
             config.colorScale = parseFloat(colorScale);
         }
+
         if (trackString) {
             trackString = decodeURIComponent(trackString);
             config.tracks = destringifyTracks(trackString);
+        }
+
+        if(selectedGene) {
+            igv.FeatureTrack.selectedGene = selectedGene;
         }
 
         createIGV($hic_container);
@@ -169,6 +175,10 @@ var hic = (function (hic) {
         href = replaceURIParameter("state", (this.state.stringify()), href);
 
         href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
+
+        if(igv.FeatureTrack.selectedGene) {
+            href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
+        }
 
         if (this.trackRenderers && this.trackRenderers.length > 0) {
             var trackString = "";

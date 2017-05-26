@@ -42,6 +42,9 @@ var hic = (function (hic) {
         }
         this.zoom = zoom;
         this.pixelSize = pixelSize;
+
+        if("undefined" === normalization) normalization = undefined;
+
         this.normalization = normalization;
     };
 
