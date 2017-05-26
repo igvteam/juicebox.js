@@ -205,8 +205,6 @@ var hic = (function (hic) {
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
 
-        console.log("draw tiles pixel size = " + state.pixelSize);
-
         imageTiles.forEach(function (imageTile) {
 
             var image = imageTile.image;
@@ -260,7 +258,6 @@ var hic = (function (hic) {
 
                 function drawBlock(block, transpose) {
 
-                    console.log("Draw block pixel size = " + state.pixelSize);
                     var blockNumber,
                         row,
                         col,

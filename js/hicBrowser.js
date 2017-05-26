@@ -71,7 +71,7 @@ var hic = (function (hic) {
         if (stateString) {
             stateString = decodeURIComponent(stateString);
             config.state = hic.destringifyState(stateString);
-            var tokens = stateString.split(",");
+
         }
         if (colorScale) {
             config.colorScale = parseFloat(colorScale);
@@ -309,11 +309,6 @@ var hic = (function (hic) {
 
         if (!config.url) {
             console.log("No .hic url specified");
-            return;
-        }
-
-        if (config.url === this.url) {
-            console.log(this.url + " already loaded");
             return;
         }
 
