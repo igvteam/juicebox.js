@@ -28,6 +28,7 @@ $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-heigh
 
 //
 $default-dark-color: #5f5f5f;
+$default-dark-dark-color: #373737;
 $scrollbar-handle-color: #a5a5a5;
 $scrollbar-color: #efefef;
 
@@ -434,9 +435,21 @@ $default-font-family: 'Open Sans', sans-serif;
         left: 0;
 
         //width:  4.0 * $track-height;
-        height: 0.75 * $track-height;
+        //height: 0.5 * $track-height;
+        height: 22px;
+
+        border-style: solid;
+        border-width: thin;
+        border-radius: 4px;
+        border-color: rgba(0, 0, 0, 0.25);
 
         margin-top: 0.125 * $track-height;
+
+        padding-left: 4px;
+        padding-right: 4px;
+        padding-top: 1px;
+        padding-bottom: 1px;
+
 
         color: $default-dark-color;
         font-family: $default-font-family;
@@ -444,15 +457,11 @@ $default-font-family: 'Open Sans', sans-serif;
         font-weight: 400;
 
         text-align: center;
-        vertical-align: middle;
-        line-height: 0.75 * $track-height;
+        vertical-align: top;
 
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-
-        padding-left: 2px;
-        padding-right: 2px;
 
         z-index: 512;
 
@@ -491,15 +500,17 @@ $default-font-family: 'Open Sans', sans-serif;
         height: $track-height;
 
         font-size: 0.50 * $track-height;
-        line-height: $track-height;
-
         text-align: center;
-        vertical-align: middle;
+        //line-height: $track-height;
+        //vertical-align: middle;
+
+        //padding-top: 0;
+        //padding-bottom: 0;
 
         z-index: 1024;
 
-        color: rgba(55, 55, 55, 0.75);
-        background-color: rgba(255, 255, 255, 0.75);
+        color: $default-dark-color;
+        //background-color: rgba(255, 255, 255, 0.75);
 
       }
 
@@ -507,7 +518,7 @@ $default-font-family: 'Open Sans', sans-serif;
       .x-track-menu-container:focus,
       .x-track-menu-container:active  {
         cursor: pointer;
-        color: $default-dark-color;
+        color: $default-dark-dark-color;
       }
 
     }
