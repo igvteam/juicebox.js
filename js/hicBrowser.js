@@ -384,104 +384,48 @@ var hic = (function (hic) {
         var self = this,
             loci = string.split(' '),
             xLocus,
-            yLocus,
-            xCenter,
-            yCenter,
-            maxExtent,
-            targetResolution,
-            viewWidth;
-
-
-        function locusExtent(obj) {
-            return obj.end - obj.start;
-        }
-
-        function gotoBP(xLocus, yLocus, minResolution) {
-            if (xLocus === undefined || yLocus === undefined) {
-                console.log('ERROR. Must enter valid loci for X and Y axes');
-                return;
-            }
-
-            if (minResolution === undefined) minResolution = 200;   // 200 BP / bin
-
-            if (xLocus.wholeChr && yLocus.wholeChr) {
-                self.setChromosomes(xLocus.chr, yLocus.chr);
-            }
-            else {
-
-                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
-                // maxExtent = Math.max(locusExtent(xLocus), locusExtent(yLocus));
-                // viewWidth = self.contactMatrixView.$viewport.width();
-                // targetResolution = maxExtent / viewWidth;
-                //
-                // if (targetResolution < minResolution) {
-                //     maxExtent = viewWidth * minResolution;
-                //     xCenter = (xLocus.start + xLocus.end) / 2;
-                //     yCenter = (yLocus.start + yLocus.end) / 2;
-                //     xLocus.start = Math.max(xCenter - maxExtent / 2);
-                //     yLocus.start = Math.max(0, yCenter - maxExtent / 2);
-                //     targetResolution = minResolution;
-                // }
-                //
-                // var bpResolutions = self.dataset.bpResolutions,
-                //     newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
-                //     newResolution = bpResolutions[newZoom],
-                //     newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
-                //     newXBin = xLocus.start / newResolution,
-                //     newYBin = yLocus.start / newResolution;
-                //
-                // self.state = new hic.State(
-                //     xLocus.chr,
-                //     yLocus.chr,
-                //     newZoom,
-                //     newXBin,
-                //     newYBin,
-                //     newPixelSize
-                // );
-                // self.contactMatrixView.clearCaches();
-                // self.contactMatrixView.computeColorScale = true;
-                // hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
-            }
-        }
+            yLocus;
 
 
         if (loci.length === 1) {
             xLocus = self.parseLocusString(loci[0]);
             yLocus = xLocus;
-
-            if (xLocus === undefined) {
-                // Try a gene name search.  This is recursive and has the potential for an infinite loop
-                hic.geneSearch(this.genome.id, loci[0].trim())
-
-                    .then(function (result) {
-                        if (result) {
-                            xLocus = self.parseLocusString(result);
-                            yLocus = xLocus;
-                            self.state.selectedGene = loci[0].trim();
-                            gotoBP(xLocus, yLocus, 5000);
-                        }
-                        else {
-                            alert('No feature found with name "' + loci[0] + '"');
-                        }
-                    })
-                    .catch(function (error) {
-                        alert(error);
-                        console.log(error);
-                    });
-                return;
-            }
-
-
         } else {
-
             xLocus = self.parseLocusString(loci[0]);
             yLocus = self.parseLocusString(loci[1]);
+            if(yLocus === undefined) yLocus = xLocus;
         }
 
-        gotoBP(xLocus, yLocus);
+        if (xLocus === undefined) {
+            // Try a gene name search.
+            hic.geneSearch(this.genome.id, loci[0].trim())
 
+                .then(function (result) {
+                    if (result) {
+                        xLocus = self.parseLocusString(result);
+                        yLocus = xLocus;
+                        self.state.selectedGene = loci[0].trim();
+                        self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+                    }
+                    else {
+                        alert('No feature found with name "' + loci[0] + '"');
+                    }
+                })
+                .catch(function (error) {
+                    alert(error);
+                    console.log(error);
+                });
+        } else {
 
-    };
+            if (xLocus.wholeChr && yLocus.wholeChr) {
+                self.setChromosomes(xLocus.chr, yLocus.chr);
+            }
+            else {
+                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+            }
+        }
+
+    }
 
     hic.Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
         var z;
@@ -549,14 +493,20 @@ var hic = (function (hic) {
 
         // Shift x,y to maintain center, if possible
         var bpResolutions = this.dataset.bpResolutions,
+            currentResolution = bpResolutions[this.state.zoom],
             viewDimensions = this.contactMatrixView.getViewDimensions(),
-            n = viewDimensions.width / (2 * this.state.pixelSize),
-            resRatio = bpResolutions[this.state.zoom] / bpResolutions[zoom];
+            xCenter = this.state.x + viewDimensions.width  / (2 * this.state.pixelSize),    // center in bins
+            yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize),    // center in bins
+            newResolution = bpResolutions[zoom],
+            newXCenter = xCenter * (currentResolution / newResolution),
+            newYCenter = yCenter * (currentResolution / newResolution),
+            newPixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+
 
         this.state.zoom = zoom;
-        this.state.x = (this.state.x + n) * resRatio - n;
-        this.state.y = (this.state.y + n) * resRatio - n;
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+        this.state.x = Math.max(0, newXCenter - viewDimensions.width  / (2 * newPixelSize));
+        this.state.y = Math.max(0, newYCenter - viewDimensions.height  / (2 * newPixelSize));
+        this.state.pixelSize = newPixelSize;
 
         this.clamp();
 
@@ -666,7 +616,7 @@ var hic = (function (hic) {
             targetResolution,
             viewWidth;
 
-        if(minResolution === undefined) minResolution = 200;
+        if (minResolution === undefined) minResolution = 200;
 
         maxExtent = Math.max(bpXMax - bpX, bpYMax - bpY);
         viewWidth = this.contactMatrixView.getViewDimensions().width;

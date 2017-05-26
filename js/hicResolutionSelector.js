@@ -65,8 +65,7 @@ var hic = (function (hic) {
                 .prop('selected', true);
         } else if (event.type === "MapLoad") {
 
-            var dataset = event.data,
-                zoom =  this.browser.state.zoom;
+            var zoom =  this.browser.state.zoom;
 
             var elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
                 var selected = zoom === index;
