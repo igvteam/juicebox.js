@@ -438,16 +438,16 @@ $default-font-family: 'Open Sans', sans-serif;
         //height: 0.5 * $track-height;
         height: 22px;
 
-        border-style: solid;
-        border-width: thin;
-        border-radius: 4px;
-        border-color: rgba(0, 0, 0, 0.25);
+        //border-style: solid;
+        //border-width: thin;
+        //border-radius: 4px;
+        //border-color: rgba(0, 0, 0, 0.25);
 
-        margin-top: 0.125 * $track-height;
+        //margin-top: 0.125 * $track-height;
 
         padding-left: 4px;
         padding-right: 4px;
-        padding-top: 1px;
+        //padding-top: 1px;
         padding-bottom: 1px;
 
 
@@ -465,7 +465,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 512;
 
-        background-color: rgba(255, 255, 255, 0.75);
+        background-color: rgb(255, 255, 255);
         //background-color: greenyellow;
       }
 

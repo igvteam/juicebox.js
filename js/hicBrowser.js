@@ -26,6 +26,7 @@ var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
     var maxPixelSize = 100;
+    var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container) {
@@ -188,6 +189,10 @@ var hic = (function (hic) {
         _.each(trackConfigurations, function (config) {
 
             igv.inferTrackTypes(config);
+
+            if("annotation" === config.type && config.color === undefined) {
+                config.color = DEFAULT_ANNOTATION_COLOR;
+            }
 
             config.height = self.layoutController.track_height;
 
