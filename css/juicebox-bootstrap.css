@@ -284,7 +284,7 @@
         font-size: 16px;
         text-align: center;
         z-index: 1024;
-        color: rgb(0,0,0);
+        color: #7f7f7f;
         }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:hover,
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:focus,
