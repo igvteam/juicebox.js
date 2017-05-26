@@ -52,6 +52,33 @@ var hic = (function (hic) {
         igv.dataRangeDialog.hide();
     }
 
+    function destringifyTracks(trackString) {
+
+        var trackTokens = trackString.split("|||"),
+            configList = [];
+
+        trackTokens.forEach(function (track) {
+            var tokens = track.split("|"),
+                url = tokens[0],
+                name = tokens[1],
+                dataRangeString = tokens[2],
+                color = tokens[3],
+                config = {url: url};
+
+            if (name) config.name = name;
+            if (dataRangeString) {
+                var r = dataRangeString.split("-");
+                config.min = parseFloat(r[0]);
+                config.max = parseFloat(r[1])
+            }
+            if (color) config.color = color;
+
+            configList.push(config);
+        });
+        return configList;
+
+    }
+
 
     hic.createBrowser = function ($hic_container, config) {
 
@@ -64,7 +91,8 @@ var hic = (function (hic) {
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
             stateString = gup(href, "state"),
-            colorScale = gup(href, "colorScale");
+            colorScale = gup(href, "colorScale"),
+            trackString = gup(href, "tracks");
 
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
@@ -76,6 +104,10 @@ var hic = (function (hic) {
         }
         if (colorScale) {
             config.colorScale = parseFloat(colorScale);
+        }
+        if (trackString) {
+            trackString = decodeURIComponent(trackString);
+            config.tracks = destringifyTracks(trackString);
         }
 
         createIGV($hic_container);
@@ -122,6 +154,48 @@ var hic = (function (hic) {
         hic.GlobalEventBus.subscribe("ColorScale", this);
         hic.GlobalEventBus.subscribe("NormalizationChange", this);
     };
+
+
+    hic.Browser.prototype.updateHref = function (event) {
+        var location = window.location,
+            href = location.href;
+
+        var href = window.location.href;
+
+        if (event && event.type === "MapLoad") {
+            href = replaceURIParameter("hicUrl", this.url, href);
+        }
+
+        href = replaceURIParameter("state", (this.state.stringify()), href);
+
+        href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
+
+        if (this.trackRenderers && this.trackRenderers.length > 0) {
+            var trackString = "";
+            this.trackRenderers.forEach(function (trackRenderer) {
+                var track = trackRenderer.x.track,
+                    config = track.config,
+                    url = config.url,
+                    name = track.name,
+                    dataRange = track.dataRange,
+                    color = track.color;
+
+                if (typeof url === "string") {
+                    if(trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (name ? name : "");
+                    trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
+                    trackString += "|" + (color ? color : "");
+                }
+            });
+            if (trackString.length > 0) {
+                href = replaceURIParameter("tracks", trackString, href);
+            }
+        }
+
+        window.history.replaceState("", "juicebox", href);
+    };
+
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
 
@@ -190,7 +264,7 @@ var hic = (function (hic) {
 
             igv.inferTrackTypes(config);
 
-            if("annotation" === config.type && config.color === undefined) {
+            if ("annotation" === config.type && config.color === undefined) {
                 config.color = DEFAULT_ANNOTATION_COLOR;
             }
 
@@ -356,6 +430,11 @@ var hic = (function (hic) {
                     self.getColorScale().high = config.colorScale;
                 }
 
+                if(config.tracks) {
+                    // Tracks can be embedded when restored from a URL
+                    self.loadTrackXY(config.tracks);
+                }
+
             })
             .catch(function (error) {
                 self.contactMatrixView.stopSpinner();
@@ -393,7 +472,7 @@ var hic = (function (hic) {
         } else {
             xLocus = self.parseLocusString(loci[0]);
             yLocus = self.parseLocusString(loci[1]);
-            if(yLocus === undefined) yLocus = xLocus;
+            if (yLocus === undefined) yLocus = xLocus;
         }
 
         if (xLocus === undefined) {
@@ -496,7 +575,7 @@ var hic = (function (hic) {
         var bpResolutions = this.dataset.bpResolutions,
             currentResolution = bpResolutions[this.state.zoom],
             viewDimensions = this.contactMatrixView.getViewDimensions(),
-            xCenter = this.state.x + viewDimensions.width  / (2 * this.state.pixelSize),    // center in bins
+            xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize),    // center in bins
             yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize),    // center in bins
             newResolution = bpResolutions[zoom],
             newXCenter = xCenter * (currentResolution / newResolution),
@@ -505,8 +584,8 @@ var hic = (function (hic) {
 
 
         this.state.zoom = zoom;
-        this.state.x = Math.max(0, newXCenter - viewDimensions.width  / (2 * newPixelSize));
-        this.state.y = Math.max(0, newYCenter - viewDimensions.height  / (2 * newPixelSize));
+        this.state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
+        this.state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
         this.state.pixelSize = newPixelSize;
 
         this.clamp();
@@ -676,40 +755,6 @@ var hic = (function (hic) {
         this.updateHref(event);
     };
 
-    hic.Browser.prototype.updateHref = function (event) {
-        var location = window.location,
-            href = location.href;
-
-        var href = window.location.href;
-
-        if (event && event.type === "MapLoad") {
-            href = replaceURIParameter("hicUrl", this.url, href);
-        }
-
-        href = replaceURIParameter("state", (this.state.stringify()), href);
-
-        href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
-
-        if (this.trackRenderers && this.trackRenderers.length > 0) {
-            var trackString = "";
-            this.trackRenderers.forEach(function (trackRenderer) {
-                var track = trackRenderer.x.track,
-                    config = track.config,
-                    url = config.url,
-                    dataRange = track.dataRange;
-
-                if (typeof url === "string") {
-                    trackString += url + "@"
-                }
-            });
-            if (trackString.length > 0) {
-                href = replaceURIParameter("tracks", trackString, href);
-            }
-        }
-
-
-        window.history.replaceState("", "juicebox", href);
-    };
 
     hic.Browser.prototype.resolution = function () {
         return this.dataset.bpResolutions[this.state.zoom];
@@ -757,30 +802,6 @@ var hic = (function (hic) {
         if (config.showChromosomeSelector === undefined) {
             config.showChromosomeSelector = true;
         }
-    }
-
-
-    function updateAnnotationSelector(annotationSelector, genomeId) {
-
-        var $select,
-            elements;
-
-        $select = $("#" + annotationSelector);
-        $select.empty();
-
-        elements = [];
-        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
-
-        if ('hg19' === genomeId) {
-            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
-            $select.append(elements.join(''));
-
-        } else if ('hg38' === genomeId) {
-            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
-            $select.append(elements.join(''));
-
-        }
-
     }
 
 
