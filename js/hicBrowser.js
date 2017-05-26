@@ -402,6 +402,7 @@ var hic = (function (hic) {
 
                 .then(function (result) {
                     if (result) {
+                        igv.FeatureTrack.selectedGene = loci[0].trim();
                         xLocus = self.parseLocusString(result);
                         yLocus = xLocus;
                         self.state.selectedGene = loci[0].trim();
