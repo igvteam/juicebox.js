@@ -248,7 +248,8 @@
         padding-right: 4px;
         padding-top: 1px;
         padding-bottom: 1px;
-        color: #5f5f5f;
+        margin-top: 5px;
+        /* color: #5f5f5f; */
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
         font-weight: 400;
@@ -258,7 +259,8 @@
         overflow: hidden;
         text-overflow: ellipsis;
         z-index: 512;
-        background-color: rgb(255, 255, 255); }
+        /* background-color: rgb(255, 255, 255);  */
+      }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;

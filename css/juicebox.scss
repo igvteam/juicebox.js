@@ -445,13 +445,15 @@ $default-font-family: 'Open Sans', sans-serif;
 
         //margin-top: 0.125 * $track-height;
 
+        margin-top: 5px;
+
         padding-left: 4px;
         padding-right: 4px;
         //padding-top: 1px;
         padding-bottom: 1px;
 
 
-        color: $default-dark-color;
+        //color: $default-dark-color;
         font-family: $default-font-family;
         font-size: 12px;
         font-weight: 400;
@@ -465,7 +467,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         z-index: 512;
 
-        background-color: rgb(255, 255, 255);
+        //background-color: rgb(255, 255, 255);
         //background-color: greenyellow;
       }
 
