@@ -100,6 +100,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.setDataset = function (dataset) {
 
         this.dataset = dataset;
+        dataset.contactMatrixView = this;
         this.clearCaches();
         this.update();
     };
@@ -139,8 +140,6 @@ var hic = (function (hic) {
         if (!this.dataset) return;
 
         this.updating = true;
-
-        this.startSpinner();
 
         this.dataset.getMatrix(state.chr1, state.chr2)
 
@@ -375,7 +374,6 @@ var hic = (function (hic) {
                     blockNumber = row * blockColumnCount + column;
                 }
 
-                self.startSpinner();
                 self.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
 
                     .then(function (block) {
@@ -429,11 +427,9 @@ var hic = (function (hic) {
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        if (!this.spinnerState) {
-            this.spinnerState = true;
+        console.log("Start spinner");
             this.$spinner.show();
             this.throbber.start();
-        }
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
