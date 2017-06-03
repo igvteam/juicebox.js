@@ -110,8 +110,6 @@ var hic = (function (hic) {
 
         config.pixelWidth = config.viewportWidth;
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());
-
-        console.log("Drawing ruler pixel size = " + browser.state.pixelSize);
         
         this.draw(config);
     };

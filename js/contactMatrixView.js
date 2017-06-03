@@ -129,21 +129,18 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.update = function () {
 
-        this.$canvas.width(this.$viewport.width());
-        this.$canvas.height(this.$viewport.height());
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.attr('height', this.$viewport.height());
+        var self = this,
+            state = this.browser.state;
 
-        this.ctx = this.$canvas.get(0).getContext("2d");
+        if (!this.ctx) {
+            this.ctx = this.$canvas.get(0).getContext("2d");
+        }
 
         if (!this.dataset) return;
 
-        var self = this,
-            state = this.browser.state,
-            sameChr = state.chr1 === state.chr2;
+        this.updating = true;
 
-
-        self.updating = true;
+        this.startSpinner();
 
         this.dataset.getMatrix(state.chr1, state.chr2)
 
@@ -159,51 +156,101 @@ var hic = (function (hic) {
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
-                // if (self.computeColorScale) {
-                //     if (zd.averageCount) {
-                //         self.colorScale.high = 20 * zd.averageCount;
-                //         self.computeColorScale = false;
-                //         hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
-                //     }
-                // }
+                self.checkColorScale(zd, row1, row2, col1, col2, state.normalization)
 
-                for (r = row1; r <= row2; r++) {
-                    for (c = col1; c <= col2; c++) {
-                        promises.push(self.getImageTile(zd, r, c));
-                    }
-                }
+                    .then(function () {
 
+                        for (r = row1; r <= row2; r++) {
+                            for (c = col1; c <= col2; c++) {
+                                promises.push(self.getImageTile(zd, r, c));
+                            }
+                        }
 
-                Promise.all(promises).then(function (imageTiles) {
-                    self.stopSpinner();
-                    self.draw(imageTiles, zd);
-                    self.updating = false;
-                }).catch(function (error) {
-                    self.stopSpinner(self);
-                    self.updating = false;
-                    console.error(error);
-                })
+                        Promise.all(promises)
+                            .then(function (imageTiles) {
+                                self.draw(imageTiles, zd);
+                                self.updating = false;
+                                self.stopSpinner();
+                            })
+                            .catch(function (error) {
+                                self.stopSpinner();
+                                self.updating = false;
+                                console.error(error);
+                            })
+
+                    })
+                    .catch(function (error) {
+                        self.stopSpinner(self);
+                        self.updating = false;
+                        console.error(error);
+                    })
             })
             .catch(function (error) {
-                self.stopSpinner(self);
+                self.stopSpinner();
                 self.updating = false;
                 console.error(error);
             })
     };
+
+    hic.ContactMatrixView.prototype.checkColorScale = function (zd, row1, row2, col1, col2, normalization) {
+
+        var self = this;
+
+        if (!self.computeColorScale) {
+            return Promise.resolve();
+        }
+        else {
+            return new Promise(function (fulfill, reject) {
+
+                var row, column, sameChr, blockNumber,
+                    promises = [];
+
+                sameChr = zd.chr1 === zd.chr2;
+
+                for (row = row1; row <= row2; row++) {
+                    for (column = col1; column <= col2; column++) {
+                        if (sameChr && row < column) {
+                            blockNumber = column * zd.blockColumnCount + row;
+                        }
+                        else {
+                            blockNumber = row * zd.blockColumnCount + column;
+                        }
+
+                        promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    }
+                }
+
+                Promise.all(promises).then(function (blocks) {
+
+                    self.colorScale.high = computePercentile(blocks, 95);
+                    self.computeColorScale = false;
+                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale));
+                    fulfill();
+
+                })
+                    .catch(reject);
+            })
+        }
+    }
 
     hic.ContactMatrixView.prototype.draw = function (imageTiles, zd) {
 
         var self = this,
             state = this.browser.state,
             blockBinCount = zd.blockBinCount,
-            blockColumnCount = zd.blockColumnCount,
             viewportWidth = self.$viewport.width(),
-            viewportHeight = self.$viewport.height();
+            viewportHeight = self.$viewport.height(),
+            canvasWidth = this.$canvas.width(),
+            canvasHeight = this.$canvas.height();
 
-        this.$canvas.width(this.$viewport.width());
-        this.$canvas.height(this.$viewport.height());
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.attr('height', this.$viewport.height());
+        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+            this.$canvas.width(viewportWidth);
+            this.$canvas.height(viewportHeight);
+            this.$canvas.attr('width', this.$viewport.width());
+            this.$canvas.attr('height', this.$viewport.height());
+        }
+
+        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
         imageTiles.forEach(function (imageTile) {
 
@@ -214,20 +261,18 @@ var hic = (function (hic) {
                     col = imageTile.column,
                     x0 = blockBinCount * col,
                     y0 = blockBinCount * row;
-
                 var offsetX = (x0 - state.x) * state.pixelSize;
                 var offsetY = (y0 - state.y) * state.pixelSize;
                 if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
                     offsetY <= viewportHeight && offsetY + image.height >= 0) {
                     self.ctx.drawImage(image, offsetX, offsetY);
                 }
-
             }
         })
 
     };
 
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column, block) {
 
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
@@ -339,15 +384,10 @@ var hic = (function (hic) {
 
                         var image;
                         if (block && block.records.length > 0) {
-                            if (self.computeColorScale) {
-                                self.colorScale.high = computePercentile(block, 95);
-                                self.computeColorScale = false;
-                                hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale))
-                            }
                             image = drawBlock(block, transpose);
                         }
                         else {
-                            // console.log("No block for " + blockNumber);
+                            console.log("No block for " + blockNumber);
                         }
 
                         var imageTile = {row: row, column: column, image: image};
@@ -369,12 +409,17 @@ var hic = (function (hic) {
         }
     };
 
-    function computePercentile(block, p) {
+    function computePercentile(blockArray, p) {
 
         var array = [], i;
-        for (i = 0; i < block.records.length; i++) {
-            array.push(block.records[i].counts);
-        }
+
+        blockArray.forEach(function (block) {
+            if (block) {
+                for (i = 0; i < block.records.length; i++) {
+                    array.push(block.records[i].counts);
+                }
+            }
+        });
 
         var idx = Math.floor((p / 100.0) * array.length);
         array.sort(function (a, b) {
@@ -384,11 +429,15 @@ var hic = (function (hic) {
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        this.$spinner.show();
-        this.throbber.start();
+        if (!this.spinnerState) {
+            this.spinnerState = true;
+            this.$spinner.show();
+            this.throbber.start();
+        }
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
+        this.spinnerState = false;
         this.throbber.stop();
         this.$spinner.hide();
     };
@@ -474,10 +523,10 @@ var hic = (function (hic) {
 
                     isDragging = true;
 
-                    if (self.updating) {
-                        // Freeze frame during updates
-                        return;
-                    }
+                    // if (self.updating) {
+                    //     // Freeze frame during updates
+                    //     return;
+                    // }
 
                     if (isSweepZooming) {
 
