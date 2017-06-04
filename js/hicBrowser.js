@@ -702,15 +702,15 @@ var hic = (function (hic) {
         var self = this,
             xCenter,
             yCenter,
-            maxExtent,
             targetResolution,
-            viewWidth;
+            viewDimensions = this.contactMatrixView.getViewDimensions(),
+            viewWidth = viewDimensions.width,
+            maxExtent;
 
         if (minResolution === undefined) minResolution = 200;
 
-        maxExtent = Math.max(bpXMax - bpX, bpYMax - bpY);
-        viewWidth = this.contactMatrixView.getViewDimensions().width;
-        targetResolution = maxExtent / viewWidth;
+        targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+
 
         if (targetResolution < minResolution) {
             maxExtent = viewWidth * minResolution;
@@ -724,7 +724,7 @@ var hic = (function (hic) {
         var bpResolutions = self.dataset.bpResolutions,
             newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
             newResolution = bpResolutions[newZoom],
-            newPixelSize = Math.max(1, (viewWidth * newResolution / maxExtent)),
+            newPixelSize = Math.max(1, newResolution / targetResolution),
             newXBin = bpX / newResolution,
             newYBin = bpY / newResolution;
 
