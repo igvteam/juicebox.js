@@ -45,19 +45,6 @@ var hic = (function (hic) {
 
     };
 
-    hic.Dataset.prototype.startSpinner = function () {
-        if(this.contactMatrixView) {
-            this.contactMatrixView.startSpinner();
-        }
-    }
-
-    hic.Dataset.prototype.stopSpinner = function () {
-        if(this.contactMatrixView) {
-            this.contactMatrixView.stopSpinner();
-        }
-    }
-
-
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
 
         var self = this,
@@ -68,13 +55,11 @@ var hic = (function (hic) {
         } else {
             return new Promise(function (fulfill, reject) {
 
-                self.startSpinner();
 
                 reader
                     .readMatrix(key)
                     .then(function (matrix) {
 
-                        self.stopSpinner();
 
                         self.matrixCache[key] = matrix;
                         fulfill(matrix);
@@ -161,14 +146,10 @@ var hic = (function (hic) {
 
                 var reader = self.hicReader;
 
-                self.startSpinner();
-
                 reader.readBlock(blockNumber, zd)
 
                     .then(function (block) {
 
-                        self.stopSpinner();
-                        
                         // Cache at most 10 blocks
                         if(self.blockCacheKeys.length > 10) {
                             self.blockCache[self.blockCacheKeys[0]] = undefined;
@@ -182,7 +163,6 @@ var hic = (function (hic) {
 
                     })
                     .catch(function (error) {
-                        self.stopSpinner();
                         reject(error);
                     })
             })

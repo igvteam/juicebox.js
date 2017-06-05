@@ -100,7 +100,6 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.setDataset = function (dataset) {
 
         this.dataset = dataset;
-        dataset.contactMatrixView = this;
         this.clearCaches();
         this.update();
     };
@@ -169,7 +168,6 @@ var hic = (function (hic) {
                             .then(function (imageTiles) {
                                 self.draw(imageTiles, zd);
                                 self.updating = false;
-                                self.stopSpinner();
                             })
                             .catch(function (error) {
                                 self.stopSpinner();
@@ -199,6 +197,9 @@ var hic = (function (hic) {
             return Promise.resolve();
         }
         else {
+
+            self.startSpinner();
+
             return new Promise(function (fulfill, reject) {
 
                 var row, column, sameChr, blockNumber,
@@ -219,7 +220,8 @@ var hic = (function (hic) {
                     }
                 }
 
-                Promise.all(promises).then(function (blocks) {
+                Promise.all(promises)
+                    .then(function (blocks) {
 
                     var s = computePercentile(blocks, 95);
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
@@ -227,10 +229,16 @@ var hic = (function (hic) {
                         self.computeColorScale = false;
                         hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale));
                     }
+
+                    self.stopSpinner();
+
                     fulfill();
 
                 })
-                    .catch(reject);
+                    .catch(function(error) {
+                        self.stopSpinner();
+                        reject(error);
+                    });
             })
         }
     }
@@ -377,11 +385,11 @@ var hic = (function (hic) {
                     blockNumber = row * blockColumnCount + column;
                 }
 
+                self.startSpinner();
+
                 self.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
 
                     .then(function (block) {
-
-                        self.stopSpinner();
 
                         var image;
                         if (block && block.records.length > 0) {
@@ -401,11 +409,14 @@ var hic = (function (hic) {
 
                         self.imageTileCache[key] = imageTile;
 
-
+                        self.stopSpinner();
                         fulfill(imageTile);
 
                     })
-                    .catch(reject)
+                    .catch(function (error) {
+                        self.stopSpinner();
+                        reject(error);
+                    })
             })
         }
     };
@@ -435,13 +446,13 @@ var hic = (function (hic) {
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        console.log("Start spinner");
+       // console.log("Start spinner");
         this.$spinner.show();
         this.throbber.start();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        this.spinnerState = false;
+      //  console.log("Stop spinner");
         this.throbber.stop();
         this.$spinner.hide();
     };
