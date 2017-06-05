@@ -564,13 +564,11 @@ var hic = (function (hic) {
                 return undefined;
             }
             else {
-                _.each(extent, function (value, index) {
-                    var numeric = value.replace(/\,/g, '');
-                    if (isNaN(numeric)) {
-                        return undefined;
-                    }
-                    locusObject[0 === index ? 'start' : 'end'] = parseInt(numeric, 10);
-                });
+                numeric = extent[0].replace(/\,/g, '');
+                locusObject.start = isNaN(numeric)  ? undefined : parseInt(numeric, 10) - 1;
+
+                numeric = extent[1].replace(/\,/g, '');
+                locusObject.end = isNaN(numeric)  ? undefined : parseInt(numeric, 10);
             }
         }
         return locusObject;
