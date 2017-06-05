@@ -67,7 +67,7 @@ var hello = (function (hello) {
                };
            configurations.push(config);
 
-            browser.loadTrackXY(configurations);
+            browser.loadTrack(configurations);
         });
 
         $('#remove-track').on('click', function(e){

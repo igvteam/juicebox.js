@@ -56,7 +56,7 @@ var site = (function (site) {
                 $('#hic-current-contact-map').text(file.name);
                 browser.loadHicFile({url: file});
             } else {
-                browser.loadTrackXY([{url: file}]);
+                browser.loadTrack([{url: file}]);
             }
 
 
@@ -77,7 +77,7 @@ var site = (function (site) {
                 browser.loadHicFile({url: path});
             } else {
 
-                browser.loadTrackXY([{url: path, name: 'untitled'}]);
+                browser.loadTrack([{url: path, name: 'untitled'}]);
             }
 
             $(this).val("");
@@ -106,7 +106,7 @@ var site = (function (site) {
             // deselect all
             $(this).find('option').removeAttr("selected");
 
-            browser.loadTrackXY([{url: path, name: name}]);
+            browser.loadTrack([{url: path, name: name}]);
         });
 
 
@@ -153,7 +153,7 @@ var site = (function (site) {
                         browser.encodeTable = undefined;
                     }
 
-                    browser.encodeTable = new encode.EncodeTable($e, browser, browser.dataset.genomeId, browser.loadTrackXY);
+                    browser.encodeTable = new encode.EncodeTable($e, browser, browser.dataset.genomeId, browser.loadTrack);
                 }
 
             }

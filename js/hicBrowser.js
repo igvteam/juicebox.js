@@ -272,7 +272,7 @@ var hic = (function (hic) {
         this.updateHref();
     };
 
-    hic.Browser.prototype.loadTrackXY = function (trackConfigurations) {
+    hic.Browser.prototype.loadTrack = function (trackConfigurations) {
         var self = this,
             promises;
 
@@ -287,8 +287,8 @@ var hic = (function (hic) {
 
             config.height = self.layoutController.track_height;
 
-            promises.push(self.loadTrack(config));   // X track
-            promises.push(self.loadTrack(config));   // Y track
+            promises.push(loadIGVTrack(config));   // X track
+            promises.push(loadIGVTrack(config));   // Y track
 
         });
 
@@ -311,7 +311,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.loadTrack = function (config) {
+    function loadIGVTrack (config) {
 
         return new Promise(function (fulfill, reject) {
 
@@ -451,7 +451,7 @@ var hic = (function (hic) {
 
                 if (config.tracks) {
                     // Tracks can be embedded when restored from a URL
-                    self.loadTrackXY(config.tracks);
+                    self.loadTrack(config.tracks);
                 }
 
             })
