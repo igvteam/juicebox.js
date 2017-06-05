@@ -28,21 +28,22 @@ var site = (function (site) {
 
     site.init = function (browser) {
 
-        $('#dataset_selector').on('change', function(e) {
+        $('#dataset_selector').on('change', function (e) {
             var $selected,
-                str;
+                url,
+                name;
 
             $('#hic-contact-map-select-modal').modal('hide');
 
-            str = $(this).val();
+            url = $(this).val();
 
             $selected = $(this).find('option:selected');
-            $('#hic-current-contact-map').text( $selected.text() );
+            $('#hic-current-contact-map').text($selected.text());
 
-            browser.loadHicFile({ url: str });
+            browser.loadHicFile({url: url, name: $selected.text()});
         });
 
-        $('#hic-load-local-file').on('change',function (e) {
+        $('#hic-load-local-file').on('change', function (e) {
 
             var file,
                 suffix;
@@ -52,10 +53,10 @@ var site = (function (site) {
             suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text( file.name );
-                browser.loadHicFile({ url: file });
+                $('#hic-current-contact-map').text(file.name);
+                browser.loadHicFile({url: file});
             } else {
-                browser.loadTrackXY( [ { url: file } ] );
+                browser.loadTrackXY([{url: file}]);
             }
 
 
@@ -72,11 +73,11 @@ var site = (function (site) {
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text( path );
-                browser.loadHicFile({ url: path });
+                $('#hic-current-contact-map').text(path);
+                browser.loadHicFile({url: path});
             } else {
 
-                browser.loadTrackXY( [ { url: path, name: 'untitled' } ] );
+                browser.loadTrackXY([{url: path, name: 'untitled'}]);
             }
 
             $(this).val("");
@@ -86,12 +87,14 @@ var site = (function (site) {
 
         $('.selectpicker').selectpicker();
 
-        if (browser.config.url) {
-            $('#hic-current-contact-map').text( browser.config.url );
+        if (browser.config.name) {
+            $('#hic-current-contact-map').text(browser.config.name);
+        } else if (browser.config.url) {
+            $('#hic-current-contact-map').text(browser.config.url);
         }
 
 
-        $('#annotation-selector').on('change', function(e) {
+        $('#annotation-selector').on('change', function (e) {
             var path,
                 name;
 
@@ -103,13 +106,13 @@ var site = (function (site) {
             // deselect all
             $(this).find('option').removeAttr("selected");
 
-            browser.loadTrackXY( [ { url: path, name: name } ] );
+            browser.loadTrackXY([{url: path, name: name}]);
         });
 
 
         hic.GlobalEventBus.subscribe("MapLoad", {
 
-            receiveEvent: function(event) {
+            receiveEvent: function (event) {
 
                 var $select,
                     elements,
@@ -117,7 +120,7 @@ var site = (function (site) {
 
                 $select = $("#annotation-selector");
 
-                if($select) {
+                if ($select) {
 
                     var genomeId = browser.dataset.genomeId;
 
@@ -160,8 +163,7 @@ var site = (function (site) {
     };
 
 
-
     return site;
 
-}) (site || {});
+})(site || {});
 

@@ -90,6 +90,7 @@ var hic = (function (hic) {
 
         var href = window.location.href,
             hicUrl = gup(href, "hicUrl"),
+            name = gup(href, "name"),
             stateString = gup(href, "state"),
             colorScale = gup(href, "colorScale"),
             trackString = gup(href, "tracks"),
@@ -97,6 +98,9 @@ var hic = (function (hic) {
 
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
+        }
+        if(name) {
+            config.name = decodeURIComponent(name);
         }
         if (stateString) {
             stateString = decodeURIComponent(stateString);
@@ -170,6 +174,9 @@ var hic = (function (hic) {
 
         if (event && event.type === "MapLoad") {
             href = replaceURIParameter("hicUrl", this.url, href);
+            if(this.name) {
+                href = replaceURIParameter("name", this.name, href);
+            }
         }
 
         href = replaceURIParameter("state", (this.state.stringify()), href);
@@ -402,6 +409,8 @@ var hic = (function (hic) {
         }
 
         this.url = config.url;
+
+        this.name = config.name;
 
         this.layoutController.removeAllTrackXYPairs();
 
@@ -732,7 +741,7 @@ var hic = (function (hic) {
         self.state.x = newXBin;
         self.state.y = newYBin;
         self.state.pixelSize = newPixelSize;
-        
+
         self.contactMatrixView.clearCaches();
         self.contactMatrixView.computeColorScale = true;
         hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
