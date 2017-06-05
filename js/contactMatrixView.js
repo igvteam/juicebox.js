@@ -221,9 +221,12 @@ var hic = (function (hic) {
 
                 Promise.all(promises).then(function (blocks) {
 
-                    self.colorScale.high = computePercentile(blocks, 95);
-                    self.computeColorScale = false;
-                    hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale));
+                    var s = computePercentile(blocks, 95);
+                    if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                        self.colorScale.high = s;
+                        self.computeColorScale = false;
+                        hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale));
+                    }
                     fulfill();
 
                 })
@@ -419,17 +422,22 @@ var hic = (function (hic) {
             }
         });
 
-        var idx = Math.floor((p / 100.0) * array.length);
-        array.sort(function (a, b) {
-            return a - b;
-        });
-        return array[idx];
+        if (array.length === 0) {
+            return Number.NaN;
+        }
+        else {
+            var idx = Math.floor((p / 100.0) * array.length);
+            array.sort(function (a, b) {
+                return a - b;
+            });
+            return array[idx];
+        }
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
         console.log("Start spinner");
-            this.$spinner.show();
-            this.throbber.start();
+        this.$spinner.show();
+        this.throbber.start();
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
