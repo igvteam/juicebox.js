@@ -40,6 +40,7 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
+            // note the pre-existing state of track labels/gear. hide/show accordingly.
             $x_track_label = $('.x-track-label');
             doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
 
