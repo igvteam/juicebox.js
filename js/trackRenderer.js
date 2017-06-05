@@ -19,7 +19,9 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
 
         var self = this,
-            str;
+            str,
+        doShowLabelAndGear,
+        $x_track_label;
 
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
@@ -37,6 +39,9 @@ var hic = (function (hic) {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         if ('x' === this.axis) {
+
+            $x_track_label = $('.x-track-label');
+            doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
 
             // label
             this.$label = $('<div class="x-track-label">');
@@ -73,6 +78,14 @@ var hic = (function (hic) {
                 e.stopPropagation();
                 igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
             });
+
+            if ( doShowLabelAndGear ) {
+                this.$label.show();
+                this.$menu_container.show();
+            } else {
+                this.$label.hide();
+                this.$menu_container.hide();
+            }
 
         }
 
