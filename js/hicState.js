@@ -43,7 +43,10 @@ var hic = (function (hic) {
         this.zoom = zoom;
         this.pixelSize = pixelSize;
 
-        if("undefined" === normalization) normalization = undefined;
+        if("undefined" === normalization) {
+            console.log("No normalization defined !!!");
+            normalization = undefined;
+        }
 
         this.normalization = normalization;
     };

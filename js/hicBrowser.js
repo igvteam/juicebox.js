@@ -112,7 +112,7 @@ var hic = (function (hic) {
             config.tracks = destringifyTracks(trackString);
         }
 
-        if(selectedGene) {
+        if (selectedGene) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
@@ -176,7 +176,7 @@ var hic = (function (hic) {
 
         href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
 
-        if(igv.FeatureTrack.selectedGene) {
+        if (igv.FeatureTrack.selectedGene) {
             href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
         }
 
@@ -191,7 +191,7 @@ var hic = (function (hic) {
                     color = track.color;
 
                 if (typeof url === "string") {
-                    if(trackString.length > 0) trackString += "|||";
+                    if (trackString.length > 0) trackString += "|||";
                     trackString += url;
                     trackString += "|" + (name ? name : "");
                     trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
@@ -440,7 +440,7 @@ var hic = (function (hic) {
                     self.getColorScale().high = config.colorScale;
                 }
 
-                if(config.tracks) {
+                if (config.tracks) {
                     // Tracks can be embedded when restored from a URL
                     self.loadTrackXY(config.tracks);
                 }
@@ -565,10 +565,10 @@ var hic = (function (hic) {
             }
             else {
                 numeric = extent[0].replace(/\,/g, '');
-                locusObject.start = isNaN(numeric)  ? undefined : parseInt(numeric, 10) - 1;
+                locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
 
                 numeric = extent[1].replace(/\,/g, '');
-                locusObject.end = isNaN(numeric)  ? undefined : parseInt(numeric, 10);
+                locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
             }
         }
         return locusObject;
@@ -726,14 +726,13 @@ var hic = (function (hic) {
             newXBin = bpX / newResolution,
             newYBin = bpY / newResolution;
 
-        self.state = new hic.State(
-            chr1,
-            chr2,
-            newZoom,
-            newXBin,
-            newYBin,
-            newPixelSize
-        );
+        self.state.chr1 = chr1;
+        self.state.chr2 = chr2;
+        self.state.zoom = newZoom;
+        self.state.x = newXBin;
+        self.state.y = newYBin;
+        self.state.pixelSize = newPixelSize;
+        
         self.contactMatrixView.clearCaches();
         self.contactMatrixView.computeColorScale = true;
         hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
