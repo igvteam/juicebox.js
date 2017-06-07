@@ -110,7 +110,7 @@ var site = (function (site) {
         });
 
 
-        hic.GlobalEventBus.subscribe("MapLoad", {
+        hic.GlobalEventBus.subscribe("GenomeChange", {
 
             receiveEvent: function (event) {
 
@@ -122,7 +122,7 @@ var site = (function (site) {
 
                 if ($select) {
 
-                    var genomeId = browser.dataset.genomeId;
+                    var genomeId = event.data;
 
                     $select.empty();
 
@@ -130,10 +130,29 @@ var site = (function (site) {
                     elements.push('<option value=' + '-' + '>' + '-' + '</option>');
 
                     if ('hg19' === genomeId) {
-                        elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
-                        $select.append(elements.join(''));
+
+                        igvxhr.loadString("https://hicfiles.s3.amazonaws.com/internal/tracksMenu_hg19.txt")
+                            .then(function (data) {
+                                var lines = data ? data.splitLines() : [];
+                                lines.forEach(function (line) {
+                                    var tokens = line.split('\t');
+                                    if (tokens.length > 1 && igvSupports(tokens[1])) {
+                                        elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
+                                    }
+                                })
+                                $select.append(elements.join(''));
+
+                            })
+                            .catch(function (error) {
+                                console.log("Error loading track menu: " + error)
+                                elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+                                elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+                                $select.append(elements.join(''));
+                            })
+
 
                     } else if ('hg38' === genomeId) {
+
                         elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/genes/refGene_hg38_collapsed.refgene.gz' + '>' + 'Genes' + '</option>');
                         $select.append(elements.join(''));
                     }
@@ -157,10 +176,16 @@ var site = (function (site) {
                 }
 
             }
-
-        });
+        })
 
     };
+
+    function igvSupports(path) {
+        var config = {url: path};
+        igv.inferTrackTypes(config);
+        return config.type !== undefined;
+
+    }
 
 
     return site;

@@ -424,7 +424,7 @@ var hic = (function (hic) {
             .loadDataset()
             .then(function (dataset) {
 
-                var $e, newGenome;
+                var previousGenomeId = self.genome ? self.genome.id : undefined;
 
                 self.contactMatrixView.stopSpinner();
 
@@ -442,6 +442,10 @@ var hic = (function (hic) {
                     self.contactMatrixView.computeColorScale = true;
                 }
                 self.contactMatrixView.setDataset(dataset);
+
+                if(self.genome.id !== previousGenomeId) {
+                    hic.GlobalEventBus.post(hic.Event("GenomeChange", self.genome.id));
+                }
 
                 hic.GlobalEventBus.post(hic.Event("MapLoad", dataset));
 
