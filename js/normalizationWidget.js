@@ -30,13 +30,13 @@ var hic = (function (hic) {
         {
                      NONE: 'None',
                        VC: 'Coverage',
-                  VC_SQRT: 'Coverage (Sqrt)',
+                  VC_SQRT: 'Coverage - Sqrt',
                        KR: 'Balanced',
                  INTER_VC: 'Interchromosomal Coverage',
-            INTER_VC_SQRT: 'Interchromosomal Coverage (Sqrt)',
+            INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
                  INTER_KR: 'Interchromosomal Balanced',
                     GW_VC: 'Genome-wide Coverage',
-               GW_VC_SQRT: 'Genome-wide Coverage (Sqrt)',
+               GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
                     GW_KR: 'Genome-wide Balanced'
         };
 
