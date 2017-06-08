@@ -77,7 +77,7 @@ var site = (function (site) {
                 browser.loadHicFile({url: path});
             } else {
 
-                browser.loadTrack([{url: path, name: 'untitled'}]);
+                browser.loadTrack([{url: path, name: extractFilename(path)}]);
             }
 
             $(this).val("");
@@ -184,6 +184,19 @@ var site = (function (site) {
         var config = {url: path};
         igv.inferTrackTypes(config);
         return config.type !== undefined;
+
+    }
+
+    function extractFilename(urlString) {
+
+        var idx = urlString.lastIndexOf("/");
+
+        if(idx > 0) {
+            return urlString.substring(idx + 1);
+        }
+        else {
+            return urlString;
+        }
 
     }
 
