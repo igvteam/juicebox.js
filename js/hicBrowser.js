@@ -524,7 +524,7 @@ var hic = (function (hic) {
                 self.setChromosomes(xLocus.chr, yLocus.chr);
             }
             else {
-                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 200);
             }
         }
 
