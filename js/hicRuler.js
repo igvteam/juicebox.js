@@ -21,6 +21,11 @@
  *
  */
 
+
+/**
+ * @author Jim Robinson
+ */
+
 var hic = (function (hic) {
 
     hic.Ruler = function (browser, $axis, whichAxis) {

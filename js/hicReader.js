@@ -22,6 +22,11 @@
  */
 
 
+/**
+ * @author Jim Robinson
+ */
+
+
 var hic = (function (hic) {
 
     var Short_MIN_VALUE = -32768;

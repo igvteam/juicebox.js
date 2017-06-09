@@ -21,10 +21,11 @@
  *
  */
 
-// {index: i, name: binaryParser.getString(), size: binaryParser.getInt()}
 
+/**
+ * @author Jim Robinson
+ */
 
-// Juicebox version of the igv genome object.
 
 var hic = (function (hic) {
 

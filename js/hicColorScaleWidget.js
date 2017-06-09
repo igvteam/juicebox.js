@@ -24,6 +24,7 @@
 /**
  * Created by dat on 3/3/17.
  */
+
 var hic = (function (hic) {
 
     hic.ColorScaleWidget = function (browser, $container) {

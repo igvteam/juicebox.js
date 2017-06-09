@@ -24,6 +24,7 @@
 /**
  * Created by dat on 3/4/17.
  */
+
 var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser) {

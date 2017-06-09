@@ -23,6 +23,11 @@
 
 
 /**
+ * @author Jim Robinson
+ */
+
+
+/**
  * Barebones event bus.
  */
 

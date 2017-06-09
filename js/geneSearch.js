@@ -21,6 +21,12 @@
  *
  */
 
+
+/**
+ * @author Jim Robinson
+ */
+
+
 var hic = (function (hic) {
 
 
