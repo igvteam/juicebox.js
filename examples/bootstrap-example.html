@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>JuiceboxJS - Bootstrap'ped </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
+
+    <!-- Shims for legacy browsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.css"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <!-- JQuery UI CSS -->
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
+
+    <!-- IGV CSS -->
+    <link rel="stylesheet" type="text/css" href="https://igv.org/web/release/jb/igv-beta.css">
+
+    <!-- Site CSS -->
+    <link rel="stylesheet" type="text/css" href="https://igv.org/web/jb/release/1.0/site/css/site.css">
+
+    <!-- Juicebox CSS-->
+    <link rel="stylesheet" type="text/css" href="https://igv.org/web/jb/release/1.0/juicebox-bootstrap-1.0.css">
+
+    <!-- Bootstrap-Select Plugin CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+
+    <!-- Underscore JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+    <!-- JQuery JS -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <!-- JQuery UI JS -->
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap-Select Plugin JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.js"></script>
+
+    <!-- IGV JS -->
+    <script src="https://igv.org/web/release/jb/igv-beta.js"></script>
+
+    <!-- Throbber JS -->
+    <script src="https://igv.org/web/jb/release/1.0/vendor/throbber.js"></script>
+
+    <!-- Site JS-->
+    <script src="https://igv.org/web/jb/release/1.0/site/js/site.js"></script>
+
+    <!-- Juicebox JS -->
+    <script src="https://igv.org/web/jb/release/1.0/juicebox-1.0.min.js"></script>
+
+
+</head>
+
+<body>
+
+<!-- ENCODE Modal -->
+<div id="hicEncodeModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="encodeModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg"><!-- modal dialog -->
+
+        <div class="modal-content"><!-- modal content -->
+
+            <div class="modal-header"><!-- modal header -->
+
+                <button id="encodeModalTopCloseButton" type="button" class="close" data-dismiss="modal"><!-- close -->
+                    <span aria-hidden="true">×</span>
+                    <span class="sr-only">Close</span>
+                </button>
+
+                <h4 class="modal-title" id="encodeModalLabel">Load Tracks from ENCODE</h4><!-- modal title -->
+
+            </div>
+
+            <div id="encodeModalBody" class="modal-body"><!-- modal body -->
+            </div><!-- modal body -->
+
+            <div class="modal-footer"><!-- modal footer -->
+                <button id="encodeModalBottomCloseButton" type="button" class="btn btn-default" data-dismiss="modal">
+                    Close
+                </button>
+                <!-- close -->
+                <button id="encodeModalGoButton" type="button" class="btn btn-primary" data-dismiss="modal">Go</button>
+                <!-- Go -->
+            </div>
+            <!-- modal footer -->
+
+        </div>
+        <!-- modal content -->
+
+    </div><!-- modal dialog -->
+
+</div>
+
+<!-- Annotation Select Modal -->
+<div id="hic-annotation-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
+
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Contact Map Select Modal -->
+<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-contact-map-select-modal-label">Select Contact Map</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
+                        <option value="https://s3.amazonaws.com/igv.broadinstitute.org/data/hic/intra_nofrag_30.hic">Test file - intra nofrag</option>
+                        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
+                        <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
+                    </select>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Load Local File Modal -->
+<div id="hic-load-local-file-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-local-file-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-load-local-file-modal-label">Load Local File</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <input id="hic-load-local-file" type="file" title="Load Local File" />
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Load URL Modal -->
+<div id="hic-load-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-url-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="hic-load-url-modal-label" class="modal-title">Load URL</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <input id="hic-load-url" type="text" class="form-control" placeholder="Enter URL">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h1>Juicebox Web</h1>
+            <!--<p>You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</p>-->
+        </div>
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-7">
+
+            <div class="row">
+
+                <!-- Contact Map: Select | Local File | URL -->
+                <div class="col-md-4 juicebox-widget-container">
+
+                    <div class="dropdown">
+
+                        <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                            Load Contact Map &nbsp;
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-contact-map-dropdown">
+
+                            <li role="presentation"><!-- Select Contact Map -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
+                                    Select Contact Map
+                                </a>
+                            </li><!-- Select Contact Map -->
+
+                            <li role="presentation"><!-- Local Contact Map File -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                                    Local Contact Map File
+                                </a>
+                            </li><!-- Local Contact Map File -->
+
+                            <li role="presentation"><!-- Contact Map URL -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                                    Contact Map URL
+                                </a>
+                            </li><!-- Contact Map URL -->
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+                <!-- Track File: ENCODE | Annotations | Local File | URL -->
+                <div class="col-md-3 juicebox-widget-container">
+
+                    <div class="dropdown">
+
+                        <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                            Load Tracks &nbsp;
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
+
+                            <li role="presentation"><!-- Select ENCODE -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
+                                    ENCODE
+                                </a>
+                            </li><!-- Select ENCODE -->
+
+                            <li role="presentation"><!-- Select Annotations -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
+                                    Annotations
+                                </a>
+                            </li><!-- Select Annotations -->
+
+                            <li role="presentation"><!-- Local Track File -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                                    Local Track File
+                                </a>
+                            </li><!-- Local Track File -->
+
+                            <li role="presentation"><!-- Track URL -->
+                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                                    Track URL
+                                </a>
+                            </li><!-- Track URL -->
+
+                        </ul>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="row bootstrap-row-shim-bottom-8">
+        <div class="col-md-10">
+            <div>
+                <span>
+                    Contact Map:&nbsp;
+                </span>
+                <span id="hic-current-contact-map">
+                    -
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="app-container">
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var browser;
+
+        browser = hic.createBrowser($('#app-container'), { });
+
+        site.init(browser);
+    });
+
+</script>
+
+</body>
+
+</html>
