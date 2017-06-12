@@ -38,7 +38,7 @@ var site = (function (site) {
             url = $(this).val();
 
             $selected = $(this).find('option:selected');
-            $('#hic-current-contact-map').text($selected.text());
+            $('#hic-nav-bar-contact-map-label').text($selected.text());
 
             browser.loadHicFile({url: url, name: $selected.text()});
         });
@@ -53,7 +53,7 @@ var site = (function (site) {
             suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text(file.name);
+                $('#hic-nav-bar-contact-map-label').text(file.name);
                 browser.loadHicFile({url: file});
             } else {
                 browser.loadTrack([{url: file}]);
@@ -73,7 +73,7 @@ var site = (function (site) {
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text(path);
+                $('#hic-nav-bar-contact-map-label').text(path);
                 browser.loadHicFile({url: path});
             } else {
 
@@ -88,9 +88,9 @@ var site = (function (site) {
         $('.selectpicker').selectpicker();
 
         if (browser.config.name) {
-            $('#hic-current-contact-map').text(browser.config.name);
+            $('#hic-nav-bar-contact-map-label').text(browser.config.name);
         } else if (browser.config.url) {
-            $('#hic-current-contact-map').text(browser.config.url);
+            $('#hic-nav-bar-contact-map-label').text(browser.config.url);
         }
 
 
