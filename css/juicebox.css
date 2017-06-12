@@ -41,7 +41,7 @@
   left: 0;
   right: 0;
   width: 852px;
-  height: 930px;
+  height: 962px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -49,21 +49,38 @@
 
 .hic-navbar-container {
   display: flex;
-  flex-flow: row;
+  flex-flow: column;
   flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-end;
+  align-items: flex-start;
   width: 100%;
-  height: 70px;
-  padding-bottom: 8px;
-  background-color: white;
+  height: 102px;
+  color: #5f5f5f;
   font-family: "Open Sans", sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: #5f5f5f;
+  background-color: white;
   border-bottom-style: solid;
   border-bottom-width: thin;
-  border-bottom-color: #5f5f5f; }
+  border-bottom-color: #5f5f5f;
+  padding-bottom: 8px; }
+  .hic-navbar-container #hic-nav-bar-contact-map-label {
+    width: 100%;
+    height: 32px;
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: #5f5f5f;
+    background-color: #f7f7f7;
+    padding-left: 8px;
+    padding-top: 4px; }
+  .hic-navbar-container #hic-nav-bar-widget-container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: space-around;
+    align-items: flex-end;
+    width: 100%;
+    height: 70px;
+    background-color: white; }
 
 .hic-chromosome-selector-widget-container {
   order: 1;
@@ -77,8 +94,7 @@
   padding-bottom: 4px;
   border-style: solid;
   border-width: thin;
-  border-color: #5f5f5f;
-  background-color: #efefef; }
+  border-color: #5f5f5f; }
   .hic-chromosome-selector-widget-container div:first-child {
     order: 1;
     padding-top: 2px;
@@ -244,12 +260,16 @@
         top: 0;
         left: 0;
         height: 22px;
+        border-style: solid;
+        border-width: thin;
+        border-radius: 4px;
+        border-color: rgba(0, 0, 0, 0.25);
+        margin-top: 4px;
         padding-left: 4px;
         padding-right: 4px;
         padding-top: 1px;
         padding-bottom: 1px;
-        margin-top: 5px;
-        /* color: #5f5f5f; */
+        color: #5f5f5f;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
         font-weight: 400;
@@ -259,8 +279,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         z-index: 512;
-        /* background-color: rgb(255, 255, 255);  */
-      }
+        background-color: rgba(255, 255, 255, 0.75); }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
@@ -280,7 +299,7 @@
         font-size: 16px;
         text-align: center;
         z-index: 1024;
-        color: #7f7f7f; }
+        color: #5f5f5f; }
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:hover,
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:focus,
       #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:active {
@@ -293,7 +312,7 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (70px + 8px + 0px));
+  height: calc(100% - (102px + 8px + 0px));
   background-color: white; }
   #content-container #x-axis-container {
     display: flex;
