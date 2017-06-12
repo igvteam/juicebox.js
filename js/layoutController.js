@@ -19,8 +19,6 @@ var hic = (function (hic) {
         this.nav_bar_label_height = 32;
         this.nav_bar_widget_container_height = 70;
         this.nav_bar_height = this.nav_bar_label_height + this.nav_bar_widget_container_height;
-        // this.nav_bar_padding_bottom = 8;
-        this.nav_bar_padding_bottom = 0;
 
         this.scrollbar_height = 20;
         this.axis_height = 32;
@@ -275,7 +273,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = trackXYPairCount * this.track_height;
 
-        tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
+        tokens = _.map([ this.nav_bar_height, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
         tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });

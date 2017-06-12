@@ -3,9 +3,9 @@
 $nav-bar-label-height: 32px;
 $nav-bar-widget-container-height: 70px;
 $nav-bar-height: $nav-bar-label-height + $nav-bar-widget-container-height;
-//$nav-bar-padding-bottom: 8px;
-$nav-bar-padding-bottom: 0;
+
 $nav-bar-widget-height: 24px;
+
 $chromosome-selector-widget-container-width: 160px;
 
 //
@@ -27,7 +27,7 @@ $hic-viewport-spinner-size: 120px;
 //$hic-root-height: 600px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 
-$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height + $nav-bar-padding-bottom;
+$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 //
 $default-light-color: #f7f7f7;
@@ -222,8 +222,6 @@ $default-font-family: 'Open Sans', sans-serif;
   border-bottom-style: solid;
   border-bottom-width: thin;
   border-bottom-color: $default-dark-color;
-
-  padding-bottom: $nav-bar-padding-bottom;
 
   #hic-nav-bar-contact-map-label {
     width: 100%;
@@ -566,9 +564,6 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-between;
 
   width:  100%;
-
-  // Use for non-Bootstrap-ped site
-  //height: calc(100% - (#{$nav-bar-height} + #{$nav-bar-padding-bottom} + #{$track-aggregate-height}));
 
   // Use for Bootstrap-ped site
   height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
