@@ -1,11 +1,11 @@
 
 //
 $nav-bar-label-height: 32px;
-$nav-bar-widget-container-height: 70px;
-$nav-bar-height: $nav-bar-label-height + $nav-bar-widget-container-height;
+$nav-bar-widget-container-height: 56px;
+$nav-bar-shim-height: 8px;
+$nav-bar-height: $nav-bar-label-height + $nav-bar-widget-container-height + $nav-bar-shim-height;
 
 $nav-bar-widget-height: 24px;
-
 $chromosome-selector-widget-container-width: 160px;
 
 //
@@ -223,6 +223,7 @@ $default-font-family: 'Open Sans', sans-serif;
   border-bottom-width: thin;
   border-bottom-color: $default-dark-color;
 
+  // nav-bar contact map label
   #hic-nav-bar-contact-map-label {
     width: 100%;
     height: $nav-bar-label-height;
@@ -237,6 +238,7 @@ $default-font-family: 'Open Sans', sans-serif;
     padding-top: 4px;
   }
 
+  // nav-bar widgets
   #hic-nav-bar-widget-container {
     display:flex;
     flex-flow: row;
@@ -247,6 +249,16 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 100%;
     height: $nav-bar-widget-container-height;
     background-color: white;
+  }
+
+  // nav-bar shim
+  .hic-nav-bar-shim {
+    width: 100%;
+    height: $nav-bar-shim-height;
+    min-height: $nav-bar-shim-height;
+
+    color: transparent;
+    background-color: transparent;
   }
 
 }
@@ -265,11 +277,9 @@ $default-font-family: 'Open Sans', sans-serif;
   padding-left: 4px;
   padding-bottom: 4px;
 
-  border-style: solid;
-  border-width: thin;
-  border-color: $default-dark-color;
-
-  //background-color: #efefef;
+  //border-style: solid;
+  //border-width: thin;
+  //border-color: $default-dark-color;
 
   div:first-child {
     order:1;

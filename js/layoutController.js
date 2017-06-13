@@ -33,6 +33,7 @@ var hic = (function (hic) {
     function createNavBar(browser, $root) {
 
         var $navbar_container,
+            $navbar_shim,
             $div;
 
         $navbar_container = $('<div class="hic-navbar-container">');
@@ -62,6 +63,10 @@ var hic = (function (hic) {
         // resolution widget
         browser.resolutionSelector = new hic.ResolutionSelector(browser);
         $div.append(browser.resolutionSelector.$container);
+
+        // nav-bar shim
+        $div = $('<div class="hic-nav-bar-shim">');
+        $navbar_container.append($div);
 
     }
 
