@@ -52,7 +52,7 @@ var hic = (function (hic) {
 
         this.setAxis( whichAxis );
 
-        hic.GlobalEventBus.subscribe('LocusChange', this);
+        this.browser.eventBus.subscribe('LocusChange', this);
 
     };
 

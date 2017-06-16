@@ -95,8 +95,8 @@ var hic = (function (hic) {
         );
         this.computeColorScale = true;
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("NormalizationChange", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("NormalizationChange", this);
 
     };
 
@@ -230,7 +230,7 @@ var hic = (function (hic) {
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
                         self.colorScale.high = s;
                         self.computeColorScale = false;
-                        hic.GlobalEventBus.post(hic.Event("ColorScale", self.colorScale));
+                        self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
                     }
 
                     self.stopSpinner();
@@ -572,7 +572,7 @@ var hic = (function (hic) {
 
             if (isDragging) {
                 isDragging = false;
-                hic.GlobalEventBus.post(hic.Event("DragStopped"));
+                self.browser.eventBus.post(hic.Event("DragStopped"));
             }
 
             isMouseDown = false;

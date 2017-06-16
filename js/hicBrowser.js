@@ -92,7 +92,7 @@ var hic = (function (hic) {
 
         defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
-        var href = window.location.href,
+        var href = config.href || window.location.href,
             hicUrl = gup(href, "hicUrl"),
             name = gup(href, "name"),
             stateString = gup(href, "state"),
@@ -137,9 +137,11 @@ var hic = (function (hic) {
 
         var $root;
 
+        //TODO -- remove this global reference !!!!
         hic.browser = this;
         this.config = config;
-
+        this.eventBus = new hic.EventBus();
+        
         setDefaults(config);
 
         this.trackRenderers = [];
@@ -162,11 +164,11 @@ var hic = (function (hic) {
             this.loadHicFile(config);
         }
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("DragStopped", this);
-        hic.GlobalEventBus.subscribe("MapLoad", this);
-        hic.GlobalEventBus.subscribe("ColorScale", this);
-        hic.GlobalEventBus.subscribe("NormalizationChange", this);
+        this.eventBus.subscribe("LocusChange", this);
+        this.eventBus.subscribe("DragStopped", this);
+        this.eventBus.subscribe("MapLoad", this);
+        this.eventBus.subscribe("ColorScale", this);
+        this.eventBus.subscribe("NormalizationChange", this);
     };
 
 
@@ -342,7 +344,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
-        hic.GlobalEventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
+        this.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
     };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
@@ -453,10 +455,10 @@ var hic = (function (hic) {
                 self.contactMatrixView.setDataset(dataset);
 
                 if(self.genome.id !== previousGenomeId) {
-                    hic.GlobalEventBus.post(hic.Event("GenomeChange", self.genome.id));
+                    self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                 }
 
-                hic.GlobalEventBus.post(hic.Event("MapLoad", dataset));
+                self.eventBus.post(hic.Event("MapLoad", dataset));
 
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
@@ -621,7 +623,7 @@ var hic = (function (hic) {
 
         this.clamp();
 
-        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", this.state));
     };
 
     hic.Browser.prototype.updateLayout = function () {
@@ -646,7 +648,7 @@ var hic = (function (hic) {
 
         this.contactMatrixView.computeColorScale = true;
 
-        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", this.state));
     };
 
     hic.Browser.prototype.updateLayout = function () {
@@ -679,7 +681,7 @@ var hic = (function (hic) {
     }
 
     hic.Browser.prototype.update = function () {
-        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", this.state));
     };
 
     /**
@@ -693,7 +695,7 @@ var hic = (function (hic) {
         // Possibly adjust pixel size
         this.state.pixelSize = Math.max(state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
-        hic.GlobalEventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", this.state));
 
     };
 
@@ -701,7 +703,7 @@ var hic = (function (hic) {
 
         this.state.normalization = normalization;
         this.contactMatrixView.computeColorScale = true;
-        hic.GlobalEventBus.post(hic.Event("NormalizationChange", this.state.normalization))
+        this.eventBus.post(hic.Event("NormalizationChange", this.state.normalization))
 
     };
 
@@ -713,15 +715,14 @@ var hic = (function (hic) {
 
         var locusChangeEvent = hic.Event("LocusChange", this.state);
         locusChangeEvent.dragging = true;
-        hic.GlobalEventBus.post(locusChangeEvent);
+        this.eventBus.post(locusChangeEvent);
     };
 
 
     hic.Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
 
 
-        var self = this,
-            xCenter,
+        var xCenter,
             yCenter,
             targetResolution,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
@@ -742,23 +743,23 @@ var hic = (function (hic) {
             targetResolution = minResolution;
         }
 
-        var bpResolutions = self.dataset.bpResolutions,
-            newZoom = self.findMatchingZoomIndex(targetResolution, bpResolutions),
+        var bpResolutions = this.dataset.bpResolutions,
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions),
             newResolution = bpResolutions[newZoom],
             newPixelSize = Math.max(1, newResolution / targetResolution),
             newXBin = bpX / newResolution,
             newYBin = bpY / newResolution;
 
-        self.state.chr1 = chr1;
-        self.state.chr2 = chr2;
-        self.state.zoom = newZoom;
-        self.state.x = newXBin;
-        self.state.y = newYBin;
-        self.state.pixelSize = newPixelSize;
+        this.state.chr1 = chr1;
+        this.state.chr2 = chr2;
+        this.state.zoom = newZoom;
+        this.state.x = newXBin;
+        this.state.y = newYBin;
+        this.state.pixelSize = newPixelSize;
 
-        self.contactMatrixView.clearCaches();
-        self.contactMatrixView.computeColorScale = true;
-        hic.GlobalEventBus.post(hic.Event("LocusChange", self.state));
+        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.computeColorScale = true;
+        this.eventBus.post(hic.Event("LocusChange", this.state));
 
     };
 

@@ -79,7 +79,7 @@ var hic = (function (hic) {
         //     }
         // });
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
 
         // function xAxisDragger () {
         //     var bin,

@@ -53,8 +53,8 @@ var hic = (function (hic) {
             }
         });
 
-        hic.GlobalEventBus.subscribe("MapLoad", this);
-        hic.GlobalEventBus.subscribe("ColorScale", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ColorScale", this);
     };
 
     hic.ColorScaleWidget.prototype.receiveEvent = function(event) {

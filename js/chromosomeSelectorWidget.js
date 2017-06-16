@@ -72,7 +72,7 @@ var hic = (function (hic) {
             }
         };
         
-        hic.GlobalEventBus.subscribe("MapLoad", this.dataLoadConfig);
+        this.browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
 
         this.locusChangeConfig = {
             receiveEvent: function (event) {
@@ -81,7 +81,7 @@ var hic = (function (hic) {
                 }
             }
         };
-        hic.GlobalEventBus.subscribe("LocusChange", this.locusChangeConfig);
+        this.browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
 
     };
 

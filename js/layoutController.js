@@ -25,8 +25,8 @@ var hic = (function (hic) {
 
         this.track_height = 32;
 
-        hic.GlobalEventBus.subscribe('TrackLoad', this);
-        hic.GlobalEventBus.subscribe('LocusChange', this);
+        this.browser.eventBus.subscribe('TrackLoad', this);
+        this.browser.eventBus.subscribe('LocusChange', this);
 
     };
 

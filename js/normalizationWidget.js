@@ -61,7 +61,7 @@ var hic = (function (hic) {
         this.$container.append($label);
         this.$container.append(this.$normalization_selector);
 
-        hic.GlobalEventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
 
     };
 

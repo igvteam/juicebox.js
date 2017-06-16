@@ -48,7 +48,7 @@ var hic = (function (hic) {
             browser.parseGotoInput(value);
         });
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
     };
 
     hic.LocusGoto.prototype.receiveEvent = function (event) {

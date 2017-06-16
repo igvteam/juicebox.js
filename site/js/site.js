@@ -98,7 +98,7 @@ var site = (function (site) {
         });
 
 
-        hic.GlobalEventBus.subscribe("GenomeChange", {
+        browser.eventBus.subscribe("GenomeChange", {
 
             receiveEvent: function (event) {
 

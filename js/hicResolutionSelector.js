@@ -49,8 +49,8 @@ var hic = (function (hic) {
         this.$container.append($label);
         this.$container.append(this.$resolution_selector);
 
-        hic.GlobalEventBus.subscribe("LocusChange", this);
-        hic.GlobalEventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
