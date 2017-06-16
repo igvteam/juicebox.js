@@ -217,20 +217,25 @@ $default-font-family: 'Open Sans', sans-serif;
   font-size: 14px;
   font-weight: 400;
 
-  background-color: white;
+  background-color: $default-light-color;
 
   border-bottom-style: solid;
   border-bottom-width: thin;
-  border-bottom-color: $default-dark-color;
+  //border-bottom-color: $default-dark-color;
+  border-bottom-color: transparent;
 
   // nav-bar contact map label
   #hic-nav-bar-contact-map-label {
     width: 100%;
     height: $nav-bar-label-height;
 
+    font-size: 15px;
+    font-weight: 700;
+
     border-bottom-style: solid;
     border-bottom-width: thin;
-    border-bottom-color: $default-dark-color;
+    //border-bottom-color: $default-dark-color;
+    border-bottom-color: transparent;
 
     background-color: $default-light-color;
 
@@ -248,7 +253,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
     width: 100%;
     height: $nav-bar-widget-container-height;
-    background-color: white;
+    background-color: transparent;
   }
 
   // nav-bar shim
@@ -275,16 +280,11 @@ $default-font-family: 'Open Sans', sans-serif;
 
   width: $chromosome-selector-widget-container-width;
   padding-left: 4px;
-  padding-bottom: 4px;
-
-  //border-style: solid;
-  //border-width: thin;
-  //border-color: $default-dark-color;
 
   div:first-child {
     order:1;
     padding-top:2px;
-    padding-bottom:2px;
+    padding-bottom:4px;
   }
 
   div:last-child {
@@ -314,7 +314,7 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-chromosome-selector-widget-button {
   width: 24px;
   height: 24px;
-  margin-left: 4px;
+  //margin-left: 4px;
   background-image: url('img/circular-arrows-24-grey.png');
   background-repeat: no-repeat;
 }
@@ -339,7 +339,7 @@ $default-font-family: 'Open Sans', sans-serif;
   width: 360px;
 
   div:first-child {
-    color: white;
+    color: transparent;
   }
 
   @include navbar-input;
