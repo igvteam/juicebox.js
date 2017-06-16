@@ -221,7 +221,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
   border-bottom-style: solid;
   border-bottom-width: thin;
-  //border-bottom-color: $default-dark-color;
   border-bottom-color: transparent;
 
   // nav-bar contact map label
@@ -234,10 +233,9 @@ $default-font-family: 'Open Sans', sans-serif;
 
     border-bottom-style: solid;
     border-bottom-width: thin;
-    //border-bottom-color: $default-dark-color;
     border-bottom-color: transparent;
 
-    background-color: $default-light-color;
+    background-color: transparent;
 
     padding-left: 8px;
     padding-top: 4px;
@@ -308,13 +306,11 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
-
 }
 
 .hic-chromosome-selector-widget-button {
   width: 24px;
   height: 24px;
-  //margin-left: 4px;
   background-image: url('img/circular-arrows-24-grey.png');
   background-repeat: no-repeat;
 }
