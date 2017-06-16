@@ -38,9 +38,7 @@ var site = (function (site) {
             url = $(this).val();
 
             $selected = $(this).find('option:selected');
-            $('#hic-current-contact-map').text($selected.text());
-
-            browser.loadHicFile({url: url, name: $selected.text()});
+            browser.loadHicFile({ url: url, name: $selected.text() });
         });
 
         $('#hic-load-local-file').on('change', function (e) {
@@ -53,10 +51,9 @@ var site = (function (site) {
             suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text(file.name);
-                browser.loadHicFile({url: file});
+                browser.loadHicFile({ url: file, name: file.name });
             } else {
-                browser.loadTrack([{url: file}]);
+                browser.loadTrack([{ url: file, name: file.name }]);
             }
 
 
@@ -73,10 +70,8 @@ var site = (function (site) {
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                $('#hic-current-contact-map').text(path);
-                browser.loadHicFile({url: path});
+                browser.loadHicFile({url: path, name: extractFilename(path)});
             } else {
-
                 browser.loadTrack([{url: path, name: extractFilename(path)}]);
             }
 
@@ -86,13 +81,6 @@ var site = (function (site) {
         });
 
         $('.selectpicker').selectpicker();
-
-        if (browser.config.name) {
-            $('#hic-current-contact-map').text(browser.config.name);
-        } else if (browser.config.url) {
-            $('#hic-current-contact-map').text(browser.config.url);
-        }
-
 
         $('#annotation-selector').on('change', function (e) {
             var path,

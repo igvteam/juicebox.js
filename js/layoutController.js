@@ -16,11 +16,12 @@ var hic = (function (hic) {
 
         // Dupes of corresponding juicebox.scss variables
         // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
-        this.nav_bar_height = 70;
-        this.nav_bar_padding_bottom = 8;
+        this.nav_bar_label_height = 32;
+        this.nav_bar_widget_container_height = 70;
+        this.nav_bar_height = this.nav_bar_label_height + this.nav_bar_widget_container_height;
 
-        this.axis_height = 32;
         this.scrollbar_height = 20;
+        this.axis_height = 32;
 
         this.track_height = 32;
 
@@ -31,30 +32,41 @@ var hic = (function (hic) {
 
     function createNavBar(browser, $root) {
 
-        var $navbar_container = $('<div class="hic-navbar-container">');
+        var $navbar_container,
+            $navbar_shim,
+            $div;
+
+        $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
-        // logo
-        // $navbar_container.append($('<div class="hic-logo-container">'));
+        $div = $('<div id="hic-nav-bar-contact-map-label">');
+        $navbar_container.append($div);
+
+        $div = $('<div id="hic-nav-bar-widget-container">');
+        $navbar_container.append($div);
 
         // chromosome selector
         if (browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $navbar_container);
+            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);
         }
 
         // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser, $navbar_container);
+        browser.locusGoto = new hic.LocusGoto(browser, $div);
 
         // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $navbar_container);
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $div);
 
         // resolution widget
         browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $navbar_container.append(browser.normalizationSelector.$container);
+        $div.append(browser.normalizationSelector.$container);
 
         // resolution widget
         browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $navbar_container.append(browser.resolutionSelector.$container);
+        $div.append(browser.resolutionSelector.$container);
+
+        // nav-bar shim
+        $div = $('<div class="hic-nav-bar-shim">');
+        $navbar_container.append($div);
 
     }
 
@@ -266,7 +278,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = trackXYPairCount * this.track_height;
 
-        tokens = _.map([ this.nav_bar_height, this.nav_bar_padding_bottom, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
+        tokens = _.map([ this.nav_bar_height, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
         tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });

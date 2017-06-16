@@ -405,16 +405,21 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
-        var self = this;
+        var self = this,
+            str;
 
         if (!config.url) {
             console.log("No .hic url specified");
             return;
         }
 
+
         this.url = config.url;
 
         this.name = config.name;
+
+        str = 'Contact Map: ' + config.name;
+        $('#hic-nav-bar-contact-map-label').text( str );
 
         this.layoutController.removeAllTrackXYPairs();
 
@@ -467,6 +472,7 @@ var hic = (function (hic) {
                 self.contactMatrixView.stopSpinner();
                 console.log(error);
             });
+
     };
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
