@@ -829,7 +829,13 @@ var hic = (function (hic) {
 
     // Set default values for config properties
     function setDefaults(config) {
-        if (config.showChromosomeSelector === undefined) {
+        if (undefined === config.showLocusGoto) {
+            config.showLocusGoto = true;
+        }
+        if (undefined === config.showHicContactMapLabel) {
+            config.showHicContactMapLabel = true;
+        }
+        if (undefined === config.showChromosomeSelector) {
             config.showChromosomeSelector = true;
         }
     }
