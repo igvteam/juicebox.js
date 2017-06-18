@@ -55,7 +55,8 @@ var hic = (function (hic) {
 
         // throbber
         // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
+        // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
+        this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 64, padding: 16}).appendTo(this.$spinner.get(0));
         this.stopSpinner();
 
         // ruler sweeper widget surface

@@ -39,19 +39,29 @@ var hic = (function (hic) {
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
+        // HiC Contact Map Label
         $div = $('<div id="hic-nav-bar-contact-map-label">');
         $navbar_container.append($div);
+        if (false === browser.config.showHicContactMapLabel) {
+            $div.hide();
+        }
 
+        // Widget container
         $div = $('<div id="hic-nav-bar-widget-container">');
         $navbar_container.append($div);
 
         // chromosome selector
-        if (browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);
+        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);
+        if (false === browser.config.showChromosomeSelector) {
+            browser.chromosomeSelector.$container.hide();
         }
 
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $div);
+
+        if (false === browser.config.showLocusGoto) {
+            browser.locusGoto.$container.hide();
+        }
 
         // colorscale widget
         browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $div);
