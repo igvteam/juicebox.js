@@ -40,8 +40,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 484px;
-  height: 580px;
+  width: 852px;
+  height: 948px;
   background-color: white;
   border-style: solid;
   border-width: thin;
@@ -395,8 +395,8 @@
         top: 25%;
         left: 0;
         right: 0;
-        height: 64px;
-        width: 64px;
+        height: 120px;
+        width: 120px;
         z-index: 512;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
