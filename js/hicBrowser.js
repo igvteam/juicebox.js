@@ -32,6 +32,9 @@ var hic = (function (hic) {
     var maxPixelSize = 100;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
+    var datasetCache = {};
+    var genomeCache = {};
+
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container) {
         igv.browser = {
@@ -88,9 +91,7 @@ var hic = (function (hic) {
 
         var browser;
 
-        defaultPixelSize = 1;
-
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
+        setDefaults(config);
 
         var href = config.href || window.location.href,
             hicUrl = gup(href, "hicUrl"),
@@ -100,10 +101,15 @@ var hic = (function (hic) {
             trackString = gup(href, "tracks"),
             selectedGene = gup(href, "selectedGene");
 
+        defaultPixelSize = 1;
+
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
+
+
         if (hicUrl) {
             config.url = decodeURIComponent(hicUrl);
         }
-        if(name) {
+        if (name) {
             config.name = decodeURIComponent(name);
         }
         if (stateString) {
@@ -141,12 +147,24 @@ var hic = (function (hic) {
         hic.browser = this;
         this.config = config;
         this.eventBus = new hic.EventBus();
-        
-        setDefaults(config);
+
 
         this.trackRenderers = [];
 
         $root = $('<div class="hic-root unselect">');
+
+        var navbarHeight = 96;     // TODO fix me
+        if (config.showHicContactMapLabel === false) {
+            navbarHeight = 60;
+        }
+        if (config.width) {
+            $root.css("width", String(config.width));
+        }
+        if (config.height) {
+            $root.css("height", String(config.height + navbarHeight));
+        }
+
+
         $app_container.append($root);
 
         this.layoutController = new hic.LayoutController(this, $root);
@@ -180,7 +198,7 @@ var hic = (function (hic) {
 
         if (event && event.type === "MapLoad") {
             href = replaceURIParameter("hicUrl", this.url, href);
-            if(this.name) {
+            if (this.name) {
                 href = replaceURIParameter("name", this.name, href);
             }
         }
@@ -216,7 +234,12 @@ var hic = (function (hic) {
             }
         }
 
-        window.history.replaceState("", "juicebox", href);
+        if (this.config.updateHref === false) {
+            console.log(href);
+        }
+        else {
+            window.history.replaceState("", "juicebox", href);
+        }
     };
 
 
@@ -317,7 +340,7 @@ var hic = (function (hic) {
 
     };
 
-    function loadIGVTrack (config) {
+    function loadIGVTrack(config) {
 
         return new Promise(function (fulfill, reject) {
 
@@ -415,24 +438,26 @@ var hic = (function (hic) {
             return;
         }
 
+        if (this.url !== undefined) {
+            // Unload previous map,  important for memory management
+            unloadDataset(this.url, this);
+        }
+
 
         this.url = config.url;
 
         this.name = config.name;
 
         str = 'Contact Map: ' + config.name;
-        $('#hic-nav-bar-contact-map-label').text( str );
+        $('#hic-nav-bar-contact-map-label').text(str);
 
         this.layoutController.removeAllTrackXYPairs();
-
-        this.hicReader = new hic.HiCReader(config);
 
         self.contactMatrixView.clearCaches();
 
         self.contactMatrixView.startSpinner();
 
-        self.hicReader
-            .loadDataset()
+        getDataset(config, this)
             .then(function (dataset) {
 
                 var previousGenomeId = self.genome ? self.genome.id : undefined;
@@ -454,7 +479,7 @@ var hic = (function (hic) {
                 }
                 self.contactMatrixView.setDataset(dataset);
 
-                if(self.genome.id !== previousGenomeId) {
+                if (self.genome.id !== previousGenomeId) {
                     self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                 }
 
@@ -476,6 +501,52 @@ var hic = (function (hic) {
             });
 
     };
+
+    /**
+     * Return a promise to load a dataset
+     * @param config
+     * @param browser
+     */
+    function getDataset(config, browser) {
+
+        var url = config.url,
+            obj = datasetCache[url];
+
+        if (obj !== undefined) {
+            obj.references.add(browser);   // Reference counting
+            Promise.resolve(obj.dataset);
+        }
+        else {
+            return new Promise(function (fulfill, reject) {
+                var hicReader = new hic.HiCReader(config);
+                hicReader.loadDataset()
+                    .then(function (dataset) {
+                        var obj = {
+                            dataset: dataset,
+                            references: new Set()
+                        }
+                        obj.references.add(browser);
+                        datasetCache[url] = obj;
+                        fulfill(dataset);
+                    })
+                    .catch(reject)
+            });
+        }
+    }
+
+
+    function unloadDataset(url, browser) {
+
+        var obj = datasetCache[url];
+
+        if (obj !== undefined) {
+            obj.references.delete(browser);
+            if (obj.references.size === 0) {
+                datasetCache[url] = undefined;
+            }
+        }
+    }
+
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
@@ -830,14 +901,27 @@ var hic = (function (hic) {
 
     // Set default values for config properties
     function setDefaults(config) {
-        if (undefined === config.showLocusGoto) {
-            config.showLocusGoto = true;
+
+        if (config.miniMode === true) {
+            config.showLocusGoto = false;
+            config.showHicContactMapLabel = false;
+            config.showChromosomeSelector = false;
+            config.updateHref = false;
         }
-        if (undefined === config.showHicContactMapLabel) {
-            config.showHicContactMapLabel = true;
-        }
-        if (undefined === config.showChromosomeSelector) {
-            config.showChromosomeSelector = true;
+        else {
+            if (undefined === config.updateHref) {
+                config.updateHref = true;
+            }
+            if (undefined === config.showLocusGoto) {
+                config.showLocusGoto = true;
+            }
+            if (undefined === config.showHicContactMapLabel) {
+                config.showHicContactMapLabel = true;
+            }
+            if (undefined === config.showChromosomeSelector) {
+                config.showChromosomeSelector = true
+            }
+
         }
     }
 

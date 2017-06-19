@@ -52,7 +52,7 @@ var hic = (function (hic) {
         $label.text('Normalization');
 
         this.$normalization_selector = $('<select name="select">');
-        this.$normalization_selector.attr('name', 'dataset_selector');
+        this.$normalization_selector.attr('name', 'normalization_selector');
         this.$normalization_selector.on('change', function (e) {
             self.browser.setNormalization($(this).val());
         });
@@ -60,6 +60,12 @@ var hic = (function (hic) {
         this.$container = $('<div class="hic-normalization-selector-container">');
         this.$container.append($label);
         this.$container.append(this.$normalization_selector);
+
+        if(browser.config.miniMode === true) {
+            this.$container.css("width", "50%");
+            this.$normalization_selector.css("direction", "ltr");
+        }
+
 
         this.browser.eventBus.subscribe("MapLoad", this);
 

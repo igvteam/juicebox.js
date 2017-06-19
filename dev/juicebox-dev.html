@@ -787,15 +787,9 @@
 
     $(document).ready(function () {
 
-        var config,
+        var config = {},
             browser;
 
-        config =
-            {
-                showLocusGoto: false,
-                showHicContactMapLabel: false,
-                showChromosomeSelector: false
-            };
         browser = hic.createBrowser($('#app-container'), config);
 
         site.init(browser);

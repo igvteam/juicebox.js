@@ -39,6 +39,10 @@ var hic = (function (hic) {
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
+        if(browser.config.showHicContactMapLabel === false) {
+            $navbar_container.css("height", "60");
+        }
+
         // HiC Contact Map Label
         $div = $('<div id="hic-nav-bar-contact-map-label">');
         $navbar_container.append($div);
