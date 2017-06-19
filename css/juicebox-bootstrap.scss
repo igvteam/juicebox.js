@@ -391,7 +391,7 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 // container: track-shim | x-tracks
-#x-track-container {
+div[id$="x-track-container"] {
   display:flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -403,14 +403,14 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: white;
 
   // track shim
-  #track-shim {
+  div[id$="x-track-container"]#track-shim {
     width: $track-aggregate-height;
     height: 100%;
     margin-right: $hic-axis-height;
   }
 
   // x-tracks
-  #x-tracks {
+  div[id$="x-tracks"] {
 
     position:relative;
 
@@ -424,7 +424,7 @@ $default-font-family: 'Open Sans', sans-serif;
     margin-right: $hic-scrollbar-height;
 
     // y - guide
-    #y-track-guide {
+    div[id$="y-track-guide"] {
       position: absolute;
 
       top:0;
@@ -440,8 +440,6 @@ $default-font-family: 'Open Sans', sans-serif;
       user-select: none;
       -moz-user-select: none;
       -webkit-user-select: none;
-
-      //background-color: blue;
 
       z-index: 666;
     }
@@ -563,7 +561,7 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 // container : (container: x-axis) | (container: y-tracks | y-axis | viewport | y-scrollbar) | (container: x-scrollbar)
-#content-container {
+div[id$="content-container"] {
   display:flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -577,7 +575,7 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: white;
 
   // container: x-axis
-  #x-axis-container {
+  div[id$="x-axis-container"] {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -587,7 +585,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-axis-height;
 
     // x-axis
-    #x-axis {
+    div[id$="x-axis"] {
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
       margin-right: $hic-scrollbar-height;
@@ -597,7 +595,7 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   // container: y-tracks | y-axis | viewport | y-scrollbar
-  #y-tracks-y-axis-viewport-y-scrollbar {
+  div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -612,7 +610,7 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: white;
 
     // y-tracks
-    #y-tracks {
+    div[id$="y-tracks"] {
 
       position:relative;
 
@@ -627,7 +625,7 @@ $default-font-family: 'Open Sans', sans-serif;
       background-color: white;
 
       // y - guide
-      #x-track-guide {
+      div[id$="x-track-guide"] {
         position: absolute;
 
         top:50%;
@@ -684,7 +682,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-axis
-    #y-axis {
+    div[id$="y-axis"] {
       width: $hic-axis-height;
       height: 100%;
       margin-bottom: $hic-scrollbar-height;
@@ -692,7 +690,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // viewport
-    #viewport {
+    div[id$="viewport"] {
       display:block;
 
       position: relative;
@@ -705,7 +703,7 @@ $default-font-family: 'Open Sans', sans-serif;
       overflow-y: hidden;
 
       // spinner container
-      #viewport-spinner-container {
+      div[id$="viewport-spinner-container"] {
         display: table-cell;
 
         margin: auto;
@@ -729,7 +727,7 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
       // sweep zoom container
-      #sweep-zoom-container {
+      div[id$="sweep-zoom-container"] {
         display: block;
 
         position: absolute;
@@ -743,7 +741,7 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
       // x - guide
-      #x-guide {
+      div[id$="x-guide"] {
         position: absolute;
 
         top: 50%;
@@ -766,7 +764,7 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
       // y - guide
-      #y-guide {
+      div[id$="y-guide"] {
         position: absolute;
 
         top:0;
@@ -791,7 +789,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // y-scrollbar
-    #y-axis-scrollbar-container {
+    div[id$="y-axis-scrollbar-container"] {
       display:block;
       position: relative;
 
@@ -799,7 +797,7 @@ $default-font-family: 'Open Sans', sans-serif;
       height: 100%;
       background-color: $scrollbar-color;
 
-      #y-axis-scrollbar {
+      div[id$="y-axis-scrollbar"] {
         position: relative;
 
         /* dynamic y and height */
@@ -819,7 +817,7 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   // container: x-scrollbar
-  #x-scrollbar-container {
+  div[id$="x-scrollbar-container"] {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -829,7 +827,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $hic-scrollbar-height;
 
     // x-scrollbar
-    #x-axis-scrollbar-container {
+    div[id$="x-axis-scrollbar-container"] {
       display:block;
       position: relative;
 
@@ -838,7 +836,7 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-right: $hic-scrollbar-height;
       background-color: $scrollbar-color;
 
-      #x-axis-scrollbar {
+      div[id$="x-axis-scrollbar"] {
         position: relative;
 
         /* dynamic x and width */
