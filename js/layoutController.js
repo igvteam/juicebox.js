@@ -86,45 +86,55 @@ var hic = (function (hic) {
 
     function createAllContainers(browser, $root) {
 
-        var $container,
-        $e;
+        var id,
+            $container,
+            $e;
 
         // .hic-x-track-container
-        this.$x_track_container = $('<div id="x-track-container">');
+        id = browser.id + '_' + 'x-track-container';
+        this.$x_track_container = $("<div>", { id:id });
         $root.append(this.$x_track_container);
 
         // track labels
-        this.$track_shim = $('<div id="track-shim">');
+        id = browser.id + '_' + 'track-shim';
+        this.$track_shim = $("<div>", { id:id });
         this.$x_track_container.append(this.$track_shim);
 
         // x-tracks
-        this.$x_tracks = $('<div id="x-tracks">');
+        id = browser.id + '_' + 'x-tracks';
+        this.$x_tracks = $("<div>", { id:id });
         this.$x_track_container.append(this.$x_tracks);
 
         // crosshairs guide
-        $e = $('<div id="y-track-guide">');
+        id = browser.id + '_' + 'y-track-guide';
+        $e = $("<div>", { id:id });
         this.$x_tracks.append($e);
 
         // content container
-        this.$content_container = $('<div id="content-container">');
+        id = browser.id + '_' + 'content-container';
+        this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
 
         // container: x-axis
-        $container = $('<div id="x-axis-container">');
+        id = browser.id + '_' + 'x-axis-container';
+        $container = $("<div>", { id:id });
         this.$content_container.append($container);
         xAxis.call(this, browser, $container);
 
 
         // container: y-tracks | y-axis | viewport | y-scrollbar
-        $container = $('<div id="y-tracks-y-axis-viewport-y-scrollbar">');
+        id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
+        $container = $("<div>", { id:id });
         this.$content_container.append($container);
 
         // y-tracks
-        this.$y_tracks = $('<div id="y-tracks">');
+        id = browser.id + '_' + 'y-tracks';
+        this.$y_tracks = $("<div>", { id:id });
         $container.append(this.$y_tracks);
 
         // crosshairs guide
-        $e = $('<div id="x-track-guide">');
+        id = browser.id + '_' + 'x-track-guide';
+        $e = $("<div>", { id:id });
         this.$y_tracks.append($e);
 
         // y-axis
@@ -134,21 +144,30 @@ var hic = (function (hic) {
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
         // container: x-scrollbar
-        $container = $('<div id="x-scrollbar-container">');
+        id = browser.id + '_' + 'x-scrollbar-container';
+        $container = $("<div>", { id:id });
         this.$content_container.append($container);
 
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
 
         function xAxis(browser, $container) {
-            var $xAxis = $('<div id="x-axis">');
+            var id,
+                $xAxis;
+
+            id = browser.id + '_' + 'x-axis';
+            $xAxis = $("<div>", { id:id });
             $container.append($xAxis);
 
             this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
         }
 
         function yAxis(browser, $container) {
-            var $yAxis = $('<div id="y-axis">');
+            var id,
+                $yAxis;
+
+            id = browser.id + '_' + 'y-axis';
+            $yAxis = $("<div>", { id:id });
             $container.append($yAxis);
 
             this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');

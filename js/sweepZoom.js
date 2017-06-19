@@ -27,10 +27,12 @@
 var hic = (function (hic) {
 
     hic.SweepZoom = function (browser) {
+        var id;
 
         this.browser = browser;
 
-        this.$rulerSweeper = $('<div id="sweep-zoom-container">');
+        id = browser.id + '_' + 'sweep-zoom-container';
+        this.$rulerSweeper = $("<div>", { id:id });
         this.$rulerSweeper.hide();
 
         this.sweepRect = {};

@@ -86,7 +86,6 @@ var hic = (function (hic) {
 
     }
 
-
     hic.createBrowser = function ($hic_container, config) {
 
         var browser;
@@ -148,7 +147,7 @@ var hic = (function (hic) {
         this.config = config;
         this.eventBus = new hic.EventBus();
 
-
+        this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
 
         $root = $('<div class="hic-root unselect">');
@@ -188,7 +187,6 @@ var hic = (function (hic) {
         this.eventBus.subscribe("ColorScale", this);
         this.eventBus.subscribe("NormalizationChange", this);
     };
-
 
     hic.Browser.prototype.updateHref = function (event) {
         var location = window.location,

@@ -28,15 +28,18 @@ var hic = (function (hic) {
 
     hic.ScrollbarWidget = function (browser) {
 
-        var self = this;
+        var self = this,
+            id;
 
         this.browser = browser;
         this.isDragging = false;
 
         // x-axis
-        this.$x_axis_scrollbar_container = $('<div id="x-axis-scrollbar-container">');
+        id = browser.id + '_' + 'x-axis-scrollbar-container';
+        this.$x_axis_scrollbar_container = $("<div>", { id:id });
 
-        this.$x_axis_scrollbar = $('<div id="x-axis-scrollbar">');
+        id = browser.id + '_' + 'x-axis-scrollbar';
+        this.$x_axis_scrollbar = $("<div>", { id:id });
         this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
 
         this.$x_label = $('<div>');
@@ -44,9 +47,11 @@ var hic = (function (hic) {
         this.$x_axis_scrollbar.append(this.$x_label);
 
         // y-axis
-        this.$y_axis_scrollbar_container = $('<div id="y-axis-scrollbar-container">');
+        id = browser.id + '_' + 'y-axis-scrollbar-container';
+        this.$y_axis_scrollbar_container = $("<div>", { id:id });
 
-        this.$y_axis_scrollbar = $('<div id="y-axis-scrollbar">');
+        id = browser.id + '_' + 'y-axis-scrollbar';
+        this.$y_axis_scrollbar = $("<div>", { id:id });
         this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
         this.$y_label = $('<div class="scrollbar-label-rotation-in-place">');
