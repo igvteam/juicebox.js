@@ -459,22 +459,13 @@ div[id$="x-track-container"] {
 
       // x-track label
       .x-track-label {
-
         display: inline-block;
 
         position: absolute;
-
-        top:  0;
+        top: 0;
         left: 0;
 
-        //width:  4.0 * $track-height;
-        //height: 0.5 * $track-height;
         height: 22px;
-
-        //border-style: solid;
-        //border-width: thin;
-        //border-radius: 4px;
-        //border-color: rgba(0, 0, 0, 0.25);
 
         margin-top: 0.125 * $track-height;
 
@@ -483,23 +474,17 @@ div[id$="x-track-container"] {
         padding-top: 1px;
         padding-bottom: 1px;
 
-
-        color: $default-dark-color;
         font-family: $default-font-family;
         font-size: 12px;
         font-weight: 400;
 
         text-align: center;
         vertical-align: top;
-
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
 
         z-index: 512;
-
-        background-color: rgba(255, 255, 255, 0.75);
-        //background-color: greenyellow;
       }
 
       // x-track spinner container

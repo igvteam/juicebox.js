@@ -267,7 +267,6 @@ div[id$="x-track-container"] {
         padding-right: 4px;
         padding-top: 1px;
         padding-bottom: 1px;
-        color: #5f5f5f;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
         font-weight: 400;
@@ -276,8 +275,7 @@ div[id$="x-track-container"] {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        z-index: 512;
-        background-color: rgba(255, 255, 255, 0.75); }
+        z-index: 512; }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
