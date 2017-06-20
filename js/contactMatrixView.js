@@ -33,12 +33,14 @@ var hic = (function (hic) {
     dragThreshold = 2;
 
     hic.ContactMatrixView = function (browser, $container) {
+        var id;
 
         this.browser = browser;
 
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
-        this.$viewport = $('<div id="viewport">');
+        id = browser.id + '_' + 'viewport';
+        this.$viewport = $("<div>", { id:id });
         $container.append(this.$viewport);
 
         //content canvas
@@ -50,7 +52,8 @@ var hic = (function (hic) {
         // this.ctx = this.$canvas.get(0).getContext("2d");
 
         //spinner
-        this.$spinner = $('<div id="viewport-spinner-container">');
+        id = browser.id + '_' + 'viewport-spinner-container';
+        this.$spinner = $("<div>", { id:id });
         this.$viewport.append(this.$spinner);
 
         // throbber
@@ -65,11 +68,13 @@ var hic = (function (hic) {
 
 
         // x - guide
-        this.$x_guide = $('<div id="x-guide">');
+        id = browser.id + '_' + 'x-guide';
+        this.$x_guide = $("<div>", { id:id });
         this.$viewport.append(this.$x_guide);
 
         // y - guide
-        this.$y_guide = $('<div id="y-guide">');
+        id = browser.id + '_' + 'y-guide';
+        this.$y_guide = $("<div>", { id:id });
         this.$viewport.append(this.$y_guide);
 
 
@@ -524,12 +529,14 @@ var hic = (function (hic) {
             self.browser.updateCrosshairs(coords);
 
             $(document).on('keydown', function (e) {
+                // shift key
                 if (16 === e.keyCode) {
                     self.browser.showCrosshairs();
                 }
             });
 
             $(document).on('keyup', function (e) {
+                // shift key
                 if (16 === e.keyCode) {
                     self.browser.hideCrosshairs();
                 }

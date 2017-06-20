@@ -217,7 +217,7 @@
     color: #5f5f5f;
     direction: rtl; }
 
-#x-track-container {
+div[id$="x-track-container"] {
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -225,11 +225,11 @@
   width: 100%;
   height: 0px;
   background-color: white; }
-  #x-track-container #track-shim {
+  div[id$="x-track-container"] div[id$="track-shim"] {
     width: 0px;
     height: 100%;
     margin-right: 32px; }
-  #x-track-container #x-tracks {
+  div[id$="x-track-container"] div[id$="x-tracks"] {
     position: relative;
     display: flex;
     flex-flow: column;
@@ -238,7 +238,7 @@
     width: calc(100% - (0px + 32px + 20px));
     height: 100%;
     margin-right: 20px; }
-    #x-track-container #x-tracks #y-track-guide {
+    div[id$="x-track-container"] div[id$="x-tracks"] div[id$="y-track-guide"] {
       position: absolute;
       top: 0;
       left: 50%;
@@ -251,27 +251,22 @@
       -moz-user-select: none;
       -webkit-user-select: none;
       z-index: 666; }
-    #x-track-container #x-tracks .x-track-canvas-container {
+    div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container {
       cursor: pointer;
       position: relative;
       width: 100%;
       margin-right: 0; }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-label {
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-label {
         display: inline-block;
         position: absolute;
         top: 0;
         left: 0;
         height: 22px;
-        border-style: solid;
-        border-width: thin;
-        border-radius: 4px;
-        border-color: rgba(0, 0, 0, 0.25);
         margin-top: 4px;
         padding-left: 4px;
         padding-right: 4px;
         padding-top: 1px;
         padding-bottom: 1px;
-        color: #5f5f5f;
         font-family: "Open Sans", sans-serif;
         font-size: 12px;
         font-weight: 400;
@@ -280,9 +275,8 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        z-index: 512;
-        background-color: rgba(255, 255, 255, 0.75); }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-spinner {
+        z-index: 512; }
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
         left: 50%;
@@ -291,7 +285,7 @@
         margin-left: -16px;
         z-index: 512;
         background-color: rgba(255, 255, 255, 0); }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container {
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container {
         position: absolute;
         display: inline-block;
         top: 0;
@@ -302,13 +296,13 @@
         text-align: center;
         z-index: 1024;
         color: #5f5f5f; }
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:hover,
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:focus,
-      #x-track-container #x-tracks .x-track-canvas-container .x-track-menu-container:active {
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:hover,
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:focus,
+      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:active {
         cursor: pointer;
         color: #373737; }
 
-#content-container {
+div[id$="content-container"] {
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -316,19 +310,19 @@
   width: 100%;
   height: calc(100% - (96px + 0px));
   background-color: white; }
-  #content-container #x-axis-container {
+  div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
     width: 100%;
     height: 32px; }
-    #content-container #x-axis-container #x-axis {
+    div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] {
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: white; }
-  #content-container #y-tracks-y-axis-viewport-y-scrollbar {
+  div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -336,7 +330,7 @@
     width: 100%;
     height: calc(100% - (32px + 20px));
     background-color: white; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks {
+    div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] {
       position: relative;
       display: flex;
       flex-flow: row;
@@ -345,7 +339,7 @@
       width: 0px;
       height: 100%;
       background-color: white; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks #x-track-guide {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] div[id$="x-track-guide"] {
         position: absolute;
         top: 50%;
         left: 0;
@@ -358,13 +352,13 @@
         -moz-user-select: none;
         -webkit-user-select: none;
         z-index: 666; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
         margin-right: 0;
         background-color: white; }
-        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-tracks .y-track-canvas-container .y-track-spinner {
+        div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] .y-track-canvas-container .y-track-spinner {
           display: block;
           position: absolute;
           top: 50%;
@@ -374,12 +368,12 @@
           margin-top: -16px;
           z-index: 512;
           background-color: rgba(255, 255, 255, 0); }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis {
+    div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] {
       width: 32px;
       height: 100%;
       margin-bottom: 20px;
       background-color: white; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport {
+    div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] {
       display: block;
       position: relative;
       left: 0;
@@ -388,7 +382,7 @@
       height: 100%;
       overflow-x: hidden;
       overflow-y: hidden; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #viewport-spinner-container {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] div[id$="viewport-spinner-container"] {
         display: table-cell;
         margin: auto;
         position: absolute;
@@ -400,7 +394,7 @@
         z-index: 512;
         pointer-events: none;
         background-color: rgba(255, 255, 255, 0); }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #sweep-zoom-container {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] div[id$="sweep-zoom-container"] {
         display: block;
         position: absolute;
         top: 0;
@@ -409,7 +403,7 @@
         height: 1px;
         z-index: 512;
         background-color: rgba(68, 134, 247, 0.25); }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #x-guide {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] div[id$="x-guide"] {
         position: absolute;
         top: 50%;
         left: 0;
@@ -422,7 +416,7 @@
         -moz-user-select: none;
         -webkit-user-select: none;
         z-index: 555; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #viewport #y-guide {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] div[id$="y-guide"] {
         position: absolute;
         top: 0;
         left: 50%;
@@ -435,13 +429,13 @@
         -moz-user-select: none;
         -webkit-user-select: none;
         z-index: 666; }
-    #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container {
+    div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis-scrollbar-container"] {
       display: block;
       position: relative;
       width: 20px;
       height: 100%;
       background-color: #efefef; }
-      #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container #y-axis-scrollbar {
+      div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis-scrollbar-container"] div[id$="y-axis-scrollbar"] {
         position: relative;
         /* dynamic y and height */
         top: 25%;
@@ -449,7 +443,7 @@
         left: 0;
         width: 100%;
         background-color: #a5a5a5; }
-        #content-container #y-tracks-y-axis-viewport-y-scrollbar #y-axis-scrollbar-container #y-axis-scrollbar div {
+        div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis-scrollbar-container"] div[id$="y-axis-scrollbar"] div {
           display: inline-block;
           position: absolute;
           top: 50%;
@@ -463,21 +457,21 @@
           font-family: "Open Sans", sans-serif;
           font-size: medium;
           font-weight: 400; }
-  #content-container #x-scrollbar-container {
+  div[id$="content-container"] div[id$="x-scrollbar-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
     width: 100%;
     height: 20px; }
-    #content-container #x-scrollbar-container #x-axis-scrollbar-container {
+    div[id$="content-container"] div[id$="x-scrollbar-container"] div[id$="x-axis-scrollbar-container"] {
       display: block;
       position: relative;
       width: calc(100% - (0px + 32px + 20px));
       height: 100%;
       margin-right: 20px;
       background-color: #efefef; }
-      #content-container #x-scrollbar-container #x-axis-scrollbar-container #x-axis-scrollbar {
+      div[id$="content-container"] div[id$="x-scrollbar-container"] div[id$="x-axis-scrollbar-container"] div[id$="x-axis-scrollbar"] {
         position: relative;
         /* dynamic x and width */
         left: 25%;
@@ -485,7 +479,7 @@
         top: 0;
         height: 100%;
         background-color: #a5a5a5; }
-        #content-container #x-scrollbar-container #x-axis-scrollbar-container #x-axis-scrollbar div {
+        div[id$="content-container"] div[id$="x-scrollbar-container"] div[id$="x-axis-scrollbar-container"] div[id$="x-axis-scrollbar"] div {
           display: inline-block;
           position: absolute;
           margin: auto;

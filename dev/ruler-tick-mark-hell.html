@@ -132,16 +132,6 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <h1>This is the second figure</h1>
-         </div>
-    </div>
-
-    <div class="col-md-12">
-        <div id="app-container-2">
-        </div>
-    </div>
 </div>
 
 
@@ -149,23 +139,14 @@
 
     $(document).ready(function () {
 
-        var browser1,
-            browser2,
+        var dev_null,
             str;
 
         str = 'state=1%2C1%2C4%2C594.253105%2C615.253105%2C1%2CNONE&colorScale=8&hicUrl=https%3A%2F%2Fhicfiles.s3.amazonaws.com%2Fhiseq%2Fgm12878%2Fin-situ%2FHIC046.hic&name=Rao%20and%20Huntley%20et%20al.%20%7C%20Cell%202014%20GM12878%20(human)%20in%20situ%20no%20crosslinking%20HIC046%20(46M)&tracks=https%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF222NCQ%2F%40%40download%2FENCFF222NCQ.bigWig%7CA375%200%3A1%7C%7Crgb(3%2C%20116%2C%20178)%7C%7C%7Chttps%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF972ZQA%2F%40%40download%2FENCFF972ZQA.bigWig%7CHepG2%20HNRNPAB0%3A1%7C%7Crgb(3%2C%20116%2C%20178)%7C%7C%7Chttps%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF027LKU%2F%40%40download%2FENCFF027LKU.bigWig%7CHepG2%20HNRNPU0%3A1%7C%7Crgb(3%2C%20116%2C%20178)';
-        browser1 = hic.createBrowser($('#app-container-1'), {
+        dev_null = hic.createBrowser($('#app-container-1'), {
             miniMode: true,
             width: 480,
             height: 480,
-            href: str
-        });
-
-        str = 'state=2%2C1%2C0%2C0%2C0%2C8.003992094366737%2CNONE&colorScale=6099&hicUrl=https%3A%2F%2Fhicfiles.s3.amazonaws.com%2Fhiseq%2Fhmec%2Fin-situ%2FHIC058.hic&name=Rao%20and%20Huntley%20et%20al.%20%7C%20Cell%202014%20HMEC%20(human)%20in%20situ%20%20HIC058%20(330M)&tracks=https%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF554MZA%2F%40%40download%2FENCFF554MZA.bigWig%7CHepG2%20BUD130%3A1%7C%7Crgb(3%2C%20116%2C%20178)%7C%7C%7Chttps%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF753ALA%2F%40%40download%2FENCFF753ALA.bigWig%7CiPS-15b%20H3K4me1%7C%7Crgb(0%2C%20150%2C%200)%7C%7C%7Chttps%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF928BGZ%2F%40%40download%2FENCFF928BGZ.bigWig%7CiPS-20b%20H3K27ac%7C%7Crgb(200%2C%200%2C%200)%7C%7C%7Chttps%3A%2F%2Fwww.encodeproject.org%2Ffiles%2FENCFF000KUW%2F%40%40download%2FENCFF000KUW.bigWig%7Cinduced%20pluripotent%20stem%20cell%200%3A1%7C%7Crgb(3%2C%20116%2C%20178)';
-        browser2 = hic.createBrowser($('#app-container-2'), {
-            miniMode: true,
-            width: 960,
-            height: 512,
             href: str
         });
 
