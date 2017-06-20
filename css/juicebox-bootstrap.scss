@@ -403,7 +403,7 @@ div[id$="x-track-container"] {
   background-color: white;
 
   // track shim
-  div[id$="x-track-container"]#track-shim {
+  div[id$="track-shim"] {
     width: $track-aggregate-height;
     height: 100%;
     margin-right: $hic-axis-height;
@@ -659,8 +659,6 @@ div[id$="content-container"] {
           z-index: 512;
 
           background-color: rgba(255, 255, 255, 0);
-          //background-color: #58c0fb;
-
         }
       }
 
