@@ -529,12 +529,14 @@ var hic = (function (hic) {
             self.browser.updateCrosshairs(coords);
 
             $(document).on('keydown', function (e) {
+                // shift key
                 if (16 === e.keyCode) {
                     self.browser.showCrosshairs();
                 }
             });
 
             $(document).on('keyup', function (e) {
+                // shift key
                 if (16 === e.keyCode) {
                     self.browser.hideCrosshairs();
                 }

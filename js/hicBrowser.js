@@ -244,16 +244,16 @@ var hic = (function (hic) {
     hic.Browser.prototype.updateCrosshairs = function (coords) {
 
         this.contactMatrixView.$x_guide.css({top: coords.y, left: 0});
-        this.layoutController.$y_tracks.find('#x-track-guide').css({top: coords.y, left: 0});
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css({top: coords.y, left: 0});
 
         this.contactMatrixView.$y_guide.css({top: 0, left: coords.x});
-        this.layoutController.$x_tracks.find('#y-track-guide').css({top: 0, left: coords.x});
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css({top: 0, left: coords.x});
 
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
 
-        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find('#y-track-guide'), this.layoutController.$y_tracks.find('#x-track-guide')], function ($e) {
+        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find("div[id$='y-track-guide']"), this.layoutController.$y_tracks.find("div[id$='x-track-guide']")], function ($e) {
             $e.hide();
         });
 
@@ -261,7 +261,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.showCrosshairs = function () {
 
-        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find('#y-track-guide'), this.layoutController.$y_tracks.find('#x-track-guide')], function ($e) {
+        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find("div[id$='y-track-guide']"), this.layoutController.$y_tracks.find("div[id$='x-track-guide']")], function ($e) {
             $e.show();
         });
 
