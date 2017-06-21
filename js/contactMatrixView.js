@@ -232,18 +232,18 @@ var hic = (function (hic) {
                 Promise.all(promises)
                     .then(function (blocks) {
 
-                    var s = computePercentile(blocks, 95);
-                    if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-                        self.colorScale.high = s;
-                        self.computeColorScale = false;
-                        self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
-                    }
+                        var s = computePercentile(blocks, 95);
+                        if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                            self.colorScale.high = s;
+                            self.computeColorScale = false;
+                            self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+                        }
 
-                    self.stopSpinner();
+                        self.stopSpinner();
 
-                    fulfill();
+                        fulfill();
 
-                })
+                    })
                     .catch(function(error) {
                         self.stopSpinner();
                         reject(error);
@@ -455,7 +455,7 @@ var hic = (function (hic) {
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-       // console.log("Start spinner");
+        // console.log("Start spinner");
         if(this.$spinner.is(':visible') !== true) {
             this.$spinner.show();
             this.throbber.start();
@@ -463,7 +463,7 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-      //  console.log("Stop spinner");
+        //  console.log("Stop spinner");
         this.throbber.stop();
         this.$spinner.hide();
     };
@@ -480,7 +480,7 @@ var hic = (function (hic) {
             wye;
 
         if (true === this.browser.config.gestureSupport) {
-            this.gestureManager = new Hammer($viewport.get(0));
+            this.gestureManager = new Hammer($viewport.get(0), { domEvents: true, threshold: dragThreshold });
             this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
         }
 
@@ -504,34 +504,57 @@ var hic = (function (hic) {
             }
         });
 
-        $viewport.on('mousedown', function (e) {
-
-            var coords;
-
-            isSweepZooming = (true === e.altKey);
-            isMouseDown = true;
-
-            coords = hic.translateMouseCoordinates(e, $viewport);
-
-            mouseLast = coords;
-            mouseDown = coords;
-
-            if (isSweepZooming) {
-                self.sweepZoom.reset();
-            }
-
-        });
-
-        if (true === this.browser.config.gestureSupport) {
-            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
+        if (false === this.browser.config.gestureSupport) {
+            $viewport.on('mousedown', function (e) {
 
                 var coords;
 
-                if (self.updating) {
-                    return;
+                isSweepZooming = (true === e.altKey);
+                isMouseDown = true;
+
+                coords = hic.translateMouseCoordinates(e, $viewport);
+
+                mouseLast = coords;
+                mouseDown = coords;
+
+                if (isSweepZooming) {
+                    self.sweepZoom.reset();
                 }
 
-                if (undefined === mouseDown) {
+            });
+        }
+
+        if (true === this.browser.config.gestureSupport) {
+
+            this.gestureManager.on('panstart', function (e_hammer) {
+
+                var coords;
+
+                isSweepZooming = (true === e_hammer.altKey);
+                isMouseDown = true;
+
+                coords = {};
+                coords.x = e_hammer.center.x - $viewport.offset().left;
+                coords.y = e_hammer.center.y - $viewport.offset().top;
+
+                // console.log('mousedown(' + coords.x + ', ' + coords.y + ')');
+
+                mouseLast = coords;
+                mouseDown = coords;
+
+                if (isSweepZooming) {
+                    self.sweepZoom.reset();
+                }
+
+            });
+
+            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
+
+                var coords,
+                    dx,
+                    dy;
+
+                if (self.updating) {
                     return;
                 }
 
@@ -557,7 +580,7 @@ var hic = (function (hic) {
 
                 if (isMouseDown) { // Possibly dragging
 
-                    if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
+                    if (mouseDown.x) {
 
                         isDragging = true;
 
@@ -568,7 +591,10 @@ var hic = (function (hic) {
                                 max: {x: $viewport.width(), y: $viewport.height()}
                             });
                         } else {
-                            self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                            dx = mouseLast.x - coords.x;
+                            dy = mouseLast.y - coords.y;
+                            // console.log('deltaX ' + e_hammerjs.deltaX + ' dx ' + dx);
+                            self.browser.shiftPixels(dx, dy);
                         }
 
                     }
