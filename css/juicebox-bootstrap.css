@@ -62,7 +62,7 @@
   border-bottom-style: solid;
   border-bottom-width: thin;
   border-bottom-color: transparent; }
-  .hic-navbar-container #hic-nav-bar-contact-map-label {
+  .hic-navbar-container div[id$="hic-nav-bar-contact-map-label"] {
     width: 100%;
     height: 32px;
     font-size: 15px;
@@ -73,7 +73,7 @@
     background-color: transparent;
     padding-left: 8px;
     padding-top: 4px; }
-  .hic-navbar-container #hic-nav-bar-widget-container {
+  .hic-navbar-container div[id$="hic-nav-bar-widget-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;

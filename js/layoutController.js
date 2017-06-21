@@ -32,8 +32,8 @@ var hic = (function (hic) {
 
     function createNavBar(browser, $root) {
 
-        var $navbar_container,
-            $navbar_shim,
+        var id,
+            $navbar_container,
             $div;
 
         $navbar_container = $('<div class="hic-navbar-container">');
@@ -44,14 +44,16 @@ var hic = (function (hic) {
         }
 
         // HiC Contact Map Label
-        $div = $('<div id="hic-nav-bar-contact-map-label">');
-        $navbar_container.append($div);
+        id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
+        browser.$contactMaplabel = $("<div>", { id:id });
+        $navbar_container.append(browser.$contactMaplabel);
         if (false === browser.config.showHicContactMapLabel) {
-            $div.hide();
+            browser.$contactMaplabel.hide();
         }
 
         // Widget container
-        $div = $('<div id="hic-nav-bar-widget-container">');
+        id = browser.id + '_' + 'hic-nav-bar-widget-container';
+        $div = $("<div>", { id:id });
         $navbar_container.append($div);
 
         // chromosome selector

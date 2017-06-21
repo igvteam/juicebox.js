@@ -224,7 +224,7 @@ $default-font-family: 'Open Sans', sans-serif;
   border-bottom-color: transparent;
 
   // nav-bar contact map label
-  #hic-nav-bar-contact-map-label {
+  div[id$="hic-nav-bar-contact-map-label"] {
     width: 100%;
     height: $nav-bar-label-height;
 
@@ -242,7 +242,7 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   // nav-bar widgets
-  #hic-nav-bar-widget-container {
+  div[id$="hic-nav-bar-widget-container"] {
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;

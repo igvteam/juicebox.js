@@ -457,7 +457,8 @@ var hic = (function (hic) {
         this.name = config.name;
 
         str = 'Contact Map: ' + config.name;
-        $('#hic-nav-bar-contact-map-label').text(str);
+        this.$contactMaplabel.text(str);
+        // $('#hic-nav-bar-contact-map-label').text(str);
 
         this.layoutController.removeAllTrackXYPairs();
 
