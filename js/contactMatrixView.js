@@ -479,8 +479,10 @@ var hic = (function (hic) {
             exe,
             wye;
 
-        this.gestureManager = new Hammer( $viewport.get(0) );
-        this.gestureManager.get('pan').set({ direction: Hammer.DIRECTION_ALL });
+        if (true === this.browser.config.gestureSupport) {
+            this.gestureManager = new Hammer($viewport.get(0));
+            this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+        }
 
         $(document).on({
             mousedown: function (e) {
