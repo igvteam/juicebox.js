@@ -73,7 +73,7 @@ var hic = (function (hic) {
             data: data
         }
     };
-    
+
 
     return hic;
 

@@ -71,7 +71,6 @@ var hic = (function (hic) {
         }
     };
 
-
     hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization) {
 
         var self = this;
@@ -98,7 +97,7 @@ var hic = (function (hic) {
                                         var normRecords = [],
                                             normBlock;
 
-                                        if(nv1 === undefined ||nv2 === undefined) {
+                                        if (nv1 === undefined || nv2 === undefined) {
                                             console.log("Undefined normalization vector for: " + normalization);
                                             fulfill(block);
                                         }
@@ -152,7 +151,7 @@ var hic = (function (hic) {
                     .then(function (block) {
 
                         // Cache at most 10 blocks
-                        if(self.blockCacheKeys.length > 10) {
+                        if (self.blockCacheKeys.length > 10) {
                             self.blockCache[self.blockCacheKeys[0]] = undefined;
                             self.blockCacheKeys.shift();
                         }
@@ -197,12 +196,55 @@ var hic = (function (hic) {
         }
     };
 
+    hic.Dataset.prototype.getNormalizationVectorIdx = function (type, chrIdx, unit, binSize) {
+
+        var key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+        return this.hicReader.normVectorIndex[key];
+
+    }
+
+    hic.Dataset.prototype.setNormalizationVectorIdx = function (type, chrIdx, unit, binSize, idx) {
+
+        var key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+        if (undefined === this.hicReader.normVectorIndex) this.hicReader.normVectorIndex = {};
+        this.hicReader.normVectorIndex[key] = idx;
+
+    }
+
+    /**
+     * Initialization the normalization index from a "nvi" parameter value.  Called on startup from a url
+     * while full norm vector index is loading
+     *
+     * @param state
+     * @param nvi
+     */
+    hic.Dataset.prototype.initNormVectorIdx = function (state, nviString) {
+
+        var nviArray = nviString.split("|"),
+            nvi = nviArray[0],
+            t2 = nvi.split(","),
+            idx1 = {filePosition: parseInt(t2[0]), size: parseInt(t2[1])},
+            binSize = this.bpResolutions[state.zoom];
+        this.setNormalizationVectorIdx(state.normalization, state.chr1, "BP", binSize, idx1);
+        this.normalizationTypes = [state.normalization];
+
+        if (nviArray.length > 1) {
+            nvi = nviArray[1];
+            t2 = nvi.split(",");
+            idx1 = {filePosition: parseInt(t2[0]), size: parseInt(t2[1])};
+            binSize = this.bpResolutions[state.zoom];
+            this.setNormalizationVectorIdx(state.normalization, state.chr2, "BP", binSize, idx1);
+        }
+
+    }
+
+
     hic.Block = function (blockNumber, zoomData, records) {
         this.blockNumber = blockNumber;
         this.zoomData = zoomData;
         this.records = records;
     };
-
 
     hic.ContactRecord = function (bin1, bin2, counts) {
         this.bin1 = bin1;

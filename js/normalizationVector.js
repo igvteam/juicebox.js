@@ -30,12 +30,13 @@
 var hic = (function (hic) {
 
 
-    hic.NormalizationVector = function (type, chrIdx, unit, resolution, data) {
+    hic.NormalizationVector = function (type, chrIdx, unit, resolution, data, idx) {
         this.type = type;
         this.chrIdx = chrIdx;
         this.unit = unit;
         this.resolution = resolution;
         this.data = data;
+        this.idx = idx;
     }
 
     hic.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {

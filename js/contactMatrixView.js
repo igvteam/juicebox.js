@@ -455,8 +455,10 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
        // console.log("Start spinner");
-        this.$spinner.show();
-        this.throbber.start();
+        if(this.$spinner.is(':visible') !== true) {
+            this.$spinner.show();
+            this.throbber.start();
+        }
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {

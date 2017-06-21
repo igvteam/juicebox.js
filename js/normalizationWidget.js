@@ -27,18 +27,18 @@
 var hic = (function (hic) {
 
     var labels =
-        {
-                     NONE: 'None',
-                       VC: 'Coverage',
-                  VC_SQRT: 'Coverage - Sqrt',
-                       KR: 'Balanced',
-                 INTER_VC: 'Interchromosomal Coverage',
-            INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
-                 INTER_KR: 'Interchromosomal Balanced',
-                    GW_VC: 'Genome-wide Coverage',
-               GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
-                    GW_KR: 'Genome-wide Balanced'
-        };
+    {
+        NONE: 'None',
+        VC: 'Coverage',
+        VC_SQRT: 'Coverage - Sqrt',
+        KR: 'Balanced',
+        INTER_VC: 'Interchromosomal Coverage',
+        INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
+        INTER_KR: 'Interchromosomal Balanced',
+        GW_VC: 'Genome-wide Coverage',
+        GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
+        GW_KR: 'Genome-wide Balanced'
+    };
 
     hic.NormalizationWidget = function (browser) {
         var self = this,
@@ -61,20 +61,20 @@ var hic = (function (hic) {
         this.$container.append($label);
         this.$container.append(this.$normalization_selector);
 
-        if(browser.config.miniMode === true) {
+        if (browser.config.miniMode === true) {
             this.$container.css("width", "50%");
             this.$normalization_selector.css("direction", "ltr");
         }
 
 
         this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
 
     };
 
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
 
-        if (event.type === "MapLoad") {
-
+        function updateOptions() {
             var dataset = event.data,
                 normalizationTypes,
                 elements,
@@ -88,7 +88,7 @@ var hic = (function (hic) {
                     titleString,
                     valueString;
 
-                label = labels[ normalization ];
+                label = labels[normalization];
                 isSelected = (norm === normalization);
                 titleString = (label === undefined ? '' : ' title = "' + label + '" ');
                 valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
@@ -99,6 +99,18 @@ var hic = (function (hic) {
 
             this.$normalization_selector.empty();
             this.$normalization_selector.append(elements.join(''));
+        }
+
+        if ("MapLoad" === event.type) {
+            // TODO -- start norm widget "not ready" state
+
+            updateOptions.call(this);
+
+        } else if ("NormVectorIndexLoad" === event.type) {
+
+            updateOptions.call(this);
+
+            // TODO -- end norm widget "not ready" state
         }
     };
 

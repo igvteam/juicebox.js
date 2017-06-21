@@ -98,7 +98,8 @@ var hic = (function (hic) {
             stateString = gup(href, "state"),
             colorScale = gup(href, "colorScale"),
             trackString = gup(href, "tracks"),
-            selectedGene = gup(href, "selectedGene");
+            selectedGene = gup(href, "selectedGene"),
+            nvi = gup(href, "nvi");
 
         defaultPixelSize = 1;
 
@@ -128,6 +129,8 @@ var hic = (function (hic) {
         if (selectedGene) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
+
+        config.nvi = nvi;
 
         createIGV($hic_container);
 
@@ -189,10 +192,9 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateHref = function (event) {
-        var location = window.location,
-            href = location.href;
 
-        var href = window.location.href;
+        var href = window.location.href,
+            nviString, trackString;
 
         if (event && event.type === "MapLoad") {
             href = replaceURIParameter("hicUrl", this.url, href);
@@ -209,8 +211,14 @@ var hic = (function (hic) {
             href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
         }
 
+
+        nviString = getNviString(this.dataset, this.state);
+        if (nviString) {
+            href = replaceURIParameter("nvi", nviString, href);
+        }
+
         if (this.trackRenderers && this.trackRenderers.length > 0) {
-            var trackString = "";
+            trackString = "";
             this.trackRenderers.forEach(function (trackRenderer) {
                 var track = trackRenderer.x.track,
                     config = track.config,
@@ -439,6 +447,8 @@ var hic = (function (hic) {
         if (this.url !== undefined) {
             // Unload previous map,  important for memory management
             unloadDataset(this.url, this);
+            this.dataset = undefined;
+            this.contactMatrixView.dataset = undefined;
         }
 
 
@@ -456,11 +466,10 @@ var hic = (function (hic) {
         self.contactMatrixView.startSpinner();
 
         getDataset(config, this)
+
             .then(function (dataset) {
 
                 var previousGenomeId = self.genome ? self.genome.id : undefined;
-
-                self.contactMatrixView.stopSpinner();
 
                 self.dataset = dataset;
 
@@ -481,22 +490,37 @@ var hic = (function (hic) {
                     self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                 }
 
-                self.eventBus.post(hic.Event("MapLoad", dataset));
-
                 if (config.colorScale) {
                     self.getColorScale().high = config.colorScale;
                 }
 
                 if (config.tracks) {
-                    // Tracks can be embedded when restored from a URL
                     self.loadTrack(config.tracks);
                 }
+
+                if (config.nvi) {
+                    var nviArray = decodeURIComponent(config.nvi).split("|");
+                    dataset.initNormVectorIdx(self.state, decodeURIComponent(config.nvi));
+                }
+
+                self.eventBus.post(hic.Event("MapLoad", dataset));
+
+
+                // Load norm vector index in the background
+                dataset.hicReader.readNormVectorIndex(dataset)
+                    .then(function (ignore) {
+                        self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
 
             })
             .catch(function (error) {
                 self.contactMatrixView.stopSpinner();
                 console.log(error);
             });
+
 
     };
 
@@ -923,6 +947,23 @@ var hic = (function (hic) {
         }
     }
 
+    function getNviString(dataset, state) {
+
+        if (state.normalization && "NONE" !== state.normalization && dataset.hicReader.normVectorIndex) {
+
+            var binSize = dataset.bpResolutions[state.zoom];
+            var idx1 = dataset.getNormalizationVectorIdx(state.normalization, state.chr1, "BP", binSize);
+            var nviString = String(idx1.filePosition) + "," + String(idx1.size);
+            if (state.chr1 !== state.chr2) {
+                var idx2 = dataset.getNormalizationVectorIdx(state.normalization, state.chr2, "BP", binSize);
+                nviString += "|" + String(idx2.filePosition) + "," + String(idx2.size);
+            }
+            return nviString
+        }
+        else {
+            return undefined;
+        }
+    }
 
     return hic;
 
