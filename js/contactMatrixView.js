@@ -523,11 +523,15 @@ var hic = (function (hic) {
         });
 
         if (true === this.browser.config.gestureSupport) {
-            this.gestureManager.on('pan', hic.throttle(function (e_hammerjs) {
+            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
 
                 var coords;
 
                 if (self.updating) {
+                    return;
+                }
+
+                if (undefined === mouseDown) {
                     return;
                 }
 
