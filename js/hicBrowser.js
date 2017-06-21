@@ -924,6 +924,10 @@ var hic = (function (hic) {
     // Set default values for config properties
     function setDefaults(config) {
 
+        if (undefined === config.gestureSupport) {
+            config.gestureSupport = false
+        }
+
         if (config.miniMode === true) {
             config.showLocusGoto = false;
             config.showHicContactMapLabel = false;

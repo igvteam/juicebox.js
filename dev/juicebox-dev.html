@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
     <title>JuiceboxJS - Bootstrap'ped </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
@@ -59,6 +60,9 @@
     <!-- IGV JS -->
     <script src="http://igv.org/web/beta/igv-beta.js"></script>
     <!--<script src="http://localhost/igv-web/dist/igv.js"></script>-->
+
+    <!-- Hammer JS -->
+    <script src="../vendor/hammer.min.js"></script>
 
     <!-- Throbber JS -->
     <script src="../vendor/throbber.js"></script>
@@ -790,6 +794,7 @@
         var config = {},
             browser;
 
+        config.gestureSupport = true;
         browser = hic.createBrowser($('#app-container'), config);
 
         site.init(browser);
