@@ -772,9 +772,11 @@
 
     $(document).ready(function () {
 
-        var browser;
+        var config = {},
+            browser;
 
-        browser = hic.createBrowser($('#app-container'), { });
+        config.gestureSupport = true;
+        browser = hic.createBrowser($('#app-container'), config);
 
         site.init(browser);
     });

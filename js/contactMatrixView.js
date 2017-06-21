@@ -37,6 +37,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
+
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
         id = browser.id + '_' + 'viewport';
@@ -478,6 +479,11 @@ var hic = (function (hic) {
             exe,
             wye;
 
+        if (true === this.browser.config.gestureSupport) {
+            this.gestureManager = new Hammer($viewport.get(0));
+            this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+        }
+
         $(document).on({
             mousedown: function (e) {
                 // do stuff
@@ -516,62 +522,116 @@ var hic = (function (hic) {
 
         });
 
-        $viewport.on('mousemove', hic.throttle(function (e) {
+        if (true === this.browser.config.gestureSupport) {
+            this.gestureManager.on('pan', hic.throttle(function (e_hammerjs) {
 
-            var coords;
+                var coords;
 
-            if (self.updating) {
-                return;
-            }
-
-            e.preventDefault();
-
-            coords = hic.translateMouseCoordinates(e, $viewport);
-
-            self.browser.updateCrosshairs(coords);
-
-            $(document).on('keydown', function (e) {
-                // shift key
-                if (16 === e.keyCode) {
-                    self.browser.showCrosshairs();
+                if (self.updating) {
+                    return;
                 }
-            });
 
-            $(document).on('keyup', function (e) {
-                // shift key
-                if (16 === e.keyCode) {
-                    self.browser.hideCrosshairs();
-                }
-            });
+                coords = {};
+                coords.x = mouseDown.x + e_hammerjs.deltaX;
+                coords.y = mouseDown.y + e_hammerjs.deltaY;
 
-            if (isMouseDown) { // Possibly dragging
+                self.browser.updateCrosshairs(coords);
 
-                if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
+                $(document).on('keydown', function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.showCrosshairs();
+                    }
+                });
 
-                    isDragging = true;
+                $(document).on('keyup', function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.hideCrosshairs();
+                    }
+                });
 
-                    // if (self.updating) {
-                    //     // Freeze frame during updates
-                    //     return;
-                    // }
+                if (isMouseDown) { // Possibly dragging
 
-                    if (isSweepZooming) {
+                    if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
 
-                        self.sweepZoom.update(mouseDown, coords, {
-                            min: {x: 0, y: 0},
-                            max: {x: $viewport.width(), y: $viewport.height()}
-                        });
-                    } else {
-                        self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                        isDragging = true;
+
+                        if (isSweepZooming) {
+
+                            self.sweepZoom.update(mouseDown, coords, {
+                                min: {x: 0, y: 0},
+                                max: {x: $viewport.width(), y: $viewport.height()}
+                            });
+                        } else {
+                            self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                        }
+
                     }
 
+                    mouseLast = coords;
                 }
 
-                mouseLast = coords;
-            }
+
+            }, 10));
+        } else {
+            $viewport.on('mousemove', hic.throttle(function (e) {
+
+                var coords;
+
+                if (self.updating) {
+                    return;
+                }
+
+                e.preventDefault();
+
+                coords = hic.translateMouseCoordinates(e, $viewport);
+
+                self.browser.updateCrosshairs(coords);
+
+                $(document).on('keydown', function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.showCrosshairs();
+                    }
+                });
+
+                $(document).on('keyup', function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.hideCrosshairs();
+                    }
+                });
+
+                if (isMouseDown) { // Possibly dragging
+
+                    if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
+
+                        isDragging = true;
+
+                        // if (self.updating) {
+                        //     // Freeze frame during updates
+                        //     return;
+                        // }
+
+                        if (isSweepZooming) {
+
+                            self.sweepZoom.update(mouseDown, coords, {
+                                min: {x: 0, y: 0},
+                                max: {x: $viewport.width(), y: $viewport.height()}
+                            });
+                        } else {
+                            self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                        }
+
+                    }
+
+                    mouseLast = coords;
+                }
 
 
-        }, 10));
+            }, 10));
+        }
 
         $viewport.on('mouseup', panMouseUpOrMouseOut);
 
