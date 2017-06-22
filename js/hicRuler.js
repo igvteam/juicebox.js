@@ -179,12 +179,11 @@ var hic = (function (hic) {
                 rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
 
                 modulo = (this.browser.resolution() < 100000) ? 2 : 1;
-                // console.log('modulo ' + modulo);
                 if (0 === nTick % modulo) {
 
                     if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
 
-                        console.log('       draw label');
+                        console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
 
                         this.ctx.save();
                         this.labelReflectionTransform(this.ctx, pixel);
@@ -199,7 +198,7 @@ var hic = (function (hic) {
                     }
 
                 } else {
-                    console.log('do NOT draw label');
+                    console.log('no label');
                 }
 
 
