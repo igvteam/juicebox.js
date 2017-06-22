@@ -475,9 +475,7 @@ var hic = (function (hic) {
             isDragging = false,
             isSweepZooming = false,
             mouseDown = undefined,
-            mouseLast = undefined,
-            exe,
-            wye;
+            mouseLast = undefined;
 
         if (true === this.browser.config.gestureSupport) {
             this.gestureManager = new Hammer($viewport.get(0), { domEvents: true, threshold: dragThreshold });
