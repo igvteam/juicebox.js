@@ -93,6 +93,7 @@ var hic = (function (hic) {
     hic.Ruler.prototype.update = function () {
 
         var bin,
+            dimen,
             config = {},
             browser = this.browser;
 
@@ -108,7 +109,9 @@ var hic = (function (hic) {
         }
 
         config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
-        config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
+
+        // config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
+        config.viewportWidth = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.dataset.bpResolutions[ browser.state.zoom ];
@@ -297,7 +300,7 @@ var hic = (function (hic) {
         }
 
 
-        // Now man zeroes?
+        // How many zeroes?
         var nZeroes = Math.floor(log10(maxValue));
         var majorUnit = "";
         var unitMultiplier = 1;

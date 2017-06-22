@@ -142,6 +142,9 @@ var hic = (function (hic) {
         // y-axis
         yAxis.call(this, browser, $container);
 
+        this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
+        this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
+
         // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
 
