@@ -478,8 +478,12 @@ var hic = (function (hic) {
             mouseLast = undefined;
 
         if (true === this.browser.config.gestureSupport) {
-            this.gestureManager = new Hammer($viewport.get(0), { domEvents: true, threshold: dragThreshold });
+            this.gestureManager = new Hammer($viewport.get(0), { domEvents: true, threshold: 0 });
             this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+            this.gestureManager.remove('tap');
+            this.gestureManager.remove('doubletap');
+            this.gestureManager.remove('press');
+            this.gestureManager.remove('swipe');
         }
 
         $(document).on({
