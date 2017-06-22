@@ -178,7 +178,8 @@ var hic = (function (hic) {
 
                 rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
 
-                modulo = (this.browser.resolution() < 100000) ? 2 : 1;
+                // modulo = (this.browser.resolution() < 100000) ? 2 : 1;
+                modulo = 1;
                 if (0 === nTick % modulo) {
 
                     if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
@@ -315,14 +316,14 @@ var hic = (function (hic) {
         var nZeroes = Math.floor(log10(rulerLengthBP));
         var majorUnit = "";
         var unitMultiplier = 1;
-        if (nZeroes >= 9) {
+        if (nZeroes > 9) {
             majorUnit = "gb";
             unitMultiplier = 1000000000;
         }
-        if (nZeroes >= 6) {
+        if (nZeroes > 6) {
             majorUnit = "mb";
             unitMultiplier = 1000000;
-        } else if (nZeroes >= 3) {
+        } else if (nZeroes > 3) {
             majorUnit = "kb";
             unitMultiplier = 1000;
         }
