@@ -504,25 +504,23 @@ var hic = (function (hic) {
             }
         });
 
-        if (false === this.browser.config.gestureSupport) {
-            $viewport.on('mousedown', function (e) {
+        $viewport.on('mousedown', function (e) {
 
-                var coords;
+            var coords;
 
-                isSweepZooming = (true === e.altKey);
-                isMouseDown = true;
-
+            if (false === self.browser.config.gestureSupport) {
                 coords = hic.translateMouseCoordinates(e, $viewport);
-
                 mouseLast = coords;
                 mouseDown = coords;
+            }
 
-                if (isSweepZooming) {
-                    self.sweepZoom.reset();
-                }
+            isSweepZooming = (true === e.altKey);
 
-            });
-        }
+            if (isSweepZooming) {
+                self.sweepZoom.reset();
+            }
+
+        });
 
         if (true === this.browser.config.gestureSupport) {
 
@@ -530,7 +528,6 @@ var hic = (function (hic) {
 
                 var coords;
 
-                isSweepZooming = (true === e_hammer.altKey);
                 isMouseDown = true;
 
                 coords = {};
