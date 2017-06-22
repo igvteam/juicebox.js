@@ -126,14 +126,18 @@ var hic = (function (hic) {
 
         var self = this,
             fontStyle,
-            ts,
-            spacing,
+            tickSpec,
+            majorTickSpacing,
             nTick,
+            pixelLast,
             pixel,
+            labelDrawThreshold,
+            modulo,
+            bpResolution,
             l,
             yShim,
             tickHeight,
-            chrPosition,
+            rulerLabel,
             chrSize,
             chrName,
             chromosomes = this.browser.dataset.chromosomes;
@@ -152,12 +156,14 @@ var hic = (function (hic) {
                 strokeStyle: "rgba(64, 64, 64, 1)"
             };
 
-            ts = findSpacing( Math.floor(options.viewportWidth * options.bpPerPixel) );
-            spacing = ts.majorTick;
+            tickSpec = findSpacing(Math.floor(options.viewportWidth * options.bpPerPixel));
+            majorTickSpacing = tickSpec.majorTick;
 
             // Find starting point closest to the current origin
-            nTick = Math.floor(options.bpStart / spacing) - 1;
-            pixel = 0;
+            nTick = Math.floor(options.bpStart / majorTickSpacing) - 1;
+
+            labelDrawThreshold = 32;
+            pixel = pixelLast = 0;
 
             igv.graphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
@@ -166,32 +172,38 @@ var hic = (function (hic) {
             tickHeight = 8;
             while (pixel < options.pixelWidth) {
 
-                l = Math.floor(nTick * spacing);
+                l = Math.floor(nTick * majorTickSpacing);
 
                 pixel = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
 
+                rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
 
-                chrPosition = formatNumber(l / ts.unitMultiplier, 0) + " " + ts.majorUnit;
-
-                // console.log(this.axis + ' chr ' + chrName + ' bp ' + igv.numberFormatter(Math.floor((pixel * options.bpPerPixel) + options.bpStart)) + ' size-bp ' + igv.numberFormatter(chrSize));
-
-                if (nTick % 1 === 0) {
-                    this.ctx.save();
-                    this.labelReflectionTransform(this.ctx, pixel);
+                modulo = (this.browser.resolution() < 100000) ? 2 : 1;
+                // console.log('modulo ' + modulo);
+                if (0 === nTick % modulo) {
 
                     if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                        igv.graphics.fillText(this.ctx, chrPosition, pixel, options.height - (tickHeight / 0.75));
+
+                        console.log('       draw label');
+
+                        this.ctx.save();
+                        this.labelReflectionTransform(this.ctx, pixel);
+                        igv.graphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
+                        this.ctx.restore();
                     }
 
-                    this.ctx.restore();
+                    if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
+                        igv.graphics.strokeLine(this.ctx,
+                            pixel, options.height - tickHeight,
+                            pixel, options.height - yShim);
+                    }
+
+                } else {
+                    console.log('do NOT draw label');
                 }
 
-                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                    igv.graphics.strokeLine(this.ctx,
-                        pixel, options.height - tickHeight,
-                        pixel, options.height - yShim);
-                }
 
+                pixelLast = pixel;
                 nTick++;
 
             } // while (pixel < options.pixelWidth)
@@ -293,30 +305,30 @@ var hic = (function (hic) {
         this.unitMultiplier = unitMultiplier;
     }
 
-    function findSpacing(maxValue) {
+    function findSpacing(rulerLengthBP) {
 
-        if (maxValue < 10) {
+        if (rulerLengthBP < 10) {
             return new TickSpacing(1, "", 1);
         }
 
 
         // How many zeroes?
-        var nZeroes = Math.floor(log10(maxValue));
+        var nZeroes = Math.floor(log10(rulerLengthBP));
         var majorUnit = "";
         var unitMultiplier = 1;
-        if (nZeroes > 9) {
+        if (nZeroes >= 9) {
             majorUnit = "gb";
             unitMultiplier = 1000000000;
         }
-        if (nZeroes > 6) {
+        if (nZeroes >= 6) {
             majorUnit = "mb";
             unitMultiplier = 1000000;
-        } else if (nZeroes > 3) {
+        } else if (nZeroes >= 3) {
             majorUnit = "kb";
             unitMultiplier = 1000;
         }
 
-        var nMajorTicks = maxValue / Math.pow(10, nZeroes - 1);
+        var nMajorTicks = rulerLengthBP / Math.pow(10, nZeroes - 1);
         if (nMajorTicks < 25) {
             return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
         } else {
