@@ -92,8 +92,9 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.update = function () {
 
-        var bin,
-            dimen,
+        var w,
+            h,
+            bin,
             config = {},
             browser = this.browser;
 
@@ -102,21 +103,21 @@ var hic = (function (hic) {
 
         this.canvasTransform(this.ctx);
 
-        if ('x' === this.axis) {
-            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
-        } else {
-            igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.height(), this.$canvas.width(), { fillStyle: igv.rgbColor(255, 255, 255) });
-        }
+        w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
+        h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
+
+        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.rgbColor(255, 255, 255) });
 
         config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
-
-        // config.viewportWidth = Math.max(this.$canvas.width(), this.$canvas.height());
-        config.viewportWidth = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.dataset.bpResolutions[ browser.state.zoom ];
 
-        config.pixelWidth = config.viewportWidth;
+        config.rulerTickMarkReferencePixels = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
+
+        config.rulerLengthPixels = w;
+        config.rulerHeightPixels = h;
+
         config.height = Math.min(this.$canvas.width(), this.$canvas.height());
 
         this.draw(config);
@@ -131,9 +132,9 @@ var hic = (function (hic) {
             nTick,
             pixelLast,
             pixel,
-            labelDrawThreshold,
+            tickSpacingPixels,
+            labelWidthPixels,
             modulo,
-            bpResolution,
             l,
             yShim,
             tickHeight,
@@ -149,6 +150,8 @@ var hic = (function (hic) {
             // drawAll.call(this);
         } else {
 
+            igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, { fillStyle: igv.rgbColor(255, 255, 255) });
+
             fontStyle = {
                 textAlign: 'center',
                 font: '9px PT Sans',
@@ -156,13 +159,12 @@ var hic = (function (hic) {
                 strokeStyle: "rgba(64, 64, 64, 1)"
             };
 
-            tickSpec = findSpacing(Math.floor(options.viewportWidth * options.bpPerPixel));
+            tickSpec = findSpacing(Math.floor(options.rulerTickMarkReferencePixels * options.bpPerPixel));
             majorTickSpacing = tickSpec.majorTick;
 
             // Find starting point closest to the current origin
             nTick = Math.floor(options.bpStart / majorTickSpacing) - 1;
 
-            labelDrawThreshold = 32;
             pixel = pixelLast = 0;
 
             igv.graphics.setProperties(this.ctx, fontStyle);
@@ -170,7 +172,7 @@ var hic = (function (hic) {
 
             yShim = 1;
             tickHeight = 8;
-            while (pixel < options.pixelWidth) {
+            while (pixel < options.rulerLengthPixels) {
 
                 l = Math.floor(nTick * majorTickSpacing);
 
@@ -178,8 +180,21 @@ var hic = (function (hic) {
 
                 rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
 
-                // modulo = (this.browser.resolution() < 100000) ? 2 : 1;
-                modulo = 1;
+                tickSpacingPixels = Math.abs(pixel - pixelLast);
+                labelWidthPixels = this.ctx.measureText(rulerLabel).width;
+
+                if (labelWidthPixels > tickSpacingPixels) {
+
+                    if (tickSpacingPixels < 32) {
+                        modulo = 4;
+                    } else {
+                        modulo = 2;
+                    }
+                } else {
+                    modulo = 1;
+                }
+
+                // modulo = 1;
                 if (0 === nTick % modulo) {
 
                     if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
@@ -190,27 +205,25 @@ var hic = (function (hic) {
                         this.labelReflectionTransform(this.ctx, pixel);
                         igv.graphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
                         this.ctx.restore();
-                    }
 
-                    if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                        igv.graphics.strokeLine(this.ctx,
-                            pixel, options.height - tickHeight,
-                            pixel, options.height - yShim);
                     }
 
                 } else {
                     // console.log('no label');
                 }
 
+                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
+                    igv.graphics.strokeLine(this.ctx,
+                        pixel, options.height - tickHeight,
+                        pixel, options.height - yShim);
+                }
 
                 pixelLast = pixel;
                 nTick++;
 
-            } // while (pixel < options.pixelWidth)
+            } // while (pixel < options.rulerLengthPixels)
 
-            igv.graphics.strokeLine(this.ctx,
-                0, options.height - yShim,
-                options.pixelWidth, options.height - yShim);
+            igv.graphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
 
         }
 
@@ -237,7 +250,7 @@ var hic = (function (hic) {
 
             var workStr = "" + workNum;
 
-            if (workStr.indexOf(".") == -1) {
+            if (-1 === workStr.indexOf(".")) {
                 workStr += "."
             }
 
@@ -249,7 +262,9 @@ var hic = (function (hic) {
                 pStr += "0"
             }
 
-            if (pStr == '.') pStr = '';
+            if ('.' === pStr) {
+                pStr = '';
+            }
 
             //--- Adds a comma in the thousands place.
             if (dNum >= 1000) {
@@ -294,7 +309,7 @@ var hic = (function (hic) {
                 lastX = x;
 
             });
-            igv.graphics.strokeLine(self.ctx, 0, self.height - yShim, options.pixelWidth, self.height - yShim);
+            igv.graphics.strokeLine(self.ctx, 0, self.height - yShim, options.rulerLengthPixels, self.height - yShim);
         }
 
     };
