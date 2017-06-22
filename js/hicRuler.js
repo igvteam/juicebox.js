@@ -183,7 +183,7 @@ var hic = (function (hic) {
 
                     if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
 
-                        console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
+                        // console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
 
                         this.ctx.save();
                         this.labelReflectionTransform(this.ctx, pixel);
@@ -198,7 +198,7 @@ var hic = (function (hic) {
                     }
 
                 } else {
-                    console.log('no label');
+                    // console.log('no label');
                 }
 
 
