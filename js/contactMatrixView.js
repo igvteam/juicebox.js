@@ -21,12 +21,9 @@
  *
  */
 
-
 /**
  * @author Jim Robinson
  */
-
-
 
 var hic = (function (hic) {
 
@@ -506,37 +503,38 @@ var hic = (function (hic) {
             }
         });
 
-        $viewport.on('mousedown', function (e) {
+        if (false === this.browser.config.gestureSupport) {
 
-            var coords;
+            $viewport.on('mousedown', function (e) {
 
-            if (false === self.browser.config.gestureSupport) {
+                var coords;
+
                 coords = hic.translateMouseCoordinates(e, $viewport);
                 mouseLast = coords;
                 mouseDown = coords;
-            }
 
-            isSweepZooming = (true === e.altKey);
+                isSweepZooming = (true === e.altKey);
+                if (isSweepZooming) {
+                    self.sweepZoom.reset();
+                }
 
-            if (isSweepZooming) {
-                self.sweepZoom.reset();
-            }
+                isMouseDown = true;
 
-        });
+            });
 
-        if (true === this.browser.config.gestureSupport) {
+        } else {
+
+            $viewport.on('mousedown', function (e) {
+                isSweepZooming = (true === e.altKey);
+            });
 
             this.gestureManager.on('panstart', function (e_hammer) {
 
                 var coords;
 
-                isMouseDown = true;
-
                 coords = {};
                 coords.x = e_hammer.center.x - $viewport.offset().left;
                 coords.y = e_hammer.center.y - $viewport.offset().top;
-
-                // console.log('mousedown(' + coords.x + ', ' + coords.y + ')');
 
                 mouseLast = coords;
                 mouseDown = coords;
@@ -545,7 +543,13 @@ var hic = (function (hic) {
                     self.sweepZoom.reset();
                 }
 
+                isMouseDown = true;
+
             });
+
+        }
+
+        if (true === this.browser.config.gestureSupport) {
 
             this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
 
@@ -553,57 +557,58 @@ var hic = (function (hic) {
                     dx,
                     dy;
 
-                if (self.updating) {
+                if (true === self.updating) {
                     return;
                 }
 
-                coords = {};
-                coords.x = mouseDown.x + e_hammerjs.deltaX;
-                coords.y = mouseDown.y + e_hammerjs.deltaY;
+                if (mouseDown && mouseDown.x && mouseDown.y) {
 
-                self.browser.updateCrosshairs(coords);
+                    coords = {};
+                    coords.x = mouseDown.x + e_hammerjs.deltaX;
+                    coords.y = mouseDown.y + e_hammerjs.deltaY;
 
-                $(document).on('keydown', function (e) {
-                    // shift key
-                    if (16 === e.keyCode) {
-                        self.browser.showCrosshairs();
-                    }
-                });
+                    self.browser.updateCrosshairs(coords);
 
-                $(document).on('keyup', function (e) {
-                    // shift key
-                    if (16 === e.keyCode) {
-                        self.browser.hideCrosshairs();
-                    }
-                });
+                    $(document).on('keydown', function (e) {
+                        // shift key
+                        if (16 === e.keyCode) {
+                            self.browser.showCrosshairs();
+                        }
+                    });
 
-                if (isMouseDown) { // Possibly dragging
+                    $(document).on('keyup', function (e) {
+                        // shift key
+                        if (16 === e.keyCode) {
+                            self.browser.hideCrosshairs();
+                        }
+                    });
 
-                    if (mouseDown.x) {
+                    if (true === isMouseDown) {
 
                         isDragging = true;
 
-                        if (isSweepZooming) {
+                        if (true === isSweepZooming) {
 
                             self.sweepZoom.update(mouseDown, coords, {
                                 min: {x: 0, y: 0},
                                 max: {x: $viewport.width(), y: $viewport.height()}
                             });
+
                         } else {
                             dx = mouseLast.x - coords.x;
                             dy = mouseLast.y - coords.y;
-                            // console.log('deltaX ' + e_hammerjs.deltaX + ' dx ' + dx);
                             self.browser.shiftPixels(dx, dy);
                         }
 
+                        mouseLast = coords;
                     }
 
-                    mouseLast = coords;
                 }
 
-
             }, 10));
+
         } else {
+
             $viewport.on('mousemove', hic.throttle(function (e) {
 
                 var coords;
@@ -660,6 +665,7 @@ var hic = (function (hic) {
 
 
             }, 10));
+
         }
 
         $viewport.on('mouseup', panMouseUpOrMouseOut);
@@ -668,7 +674,7 @@ var hic = (function (hic) {
 
         function panMouseUpOrMouseOut(e) {
 
-            if (isDragging) {
+            if (true === isDragging) {
                 isDragging = false;
                 self.browser.eventBus.post(hic.Event("DragStopped"));
             }
