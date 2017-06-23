@@ -524,21 +524,18 @@ var hic = (function (hic) {
 
         } else {
 
-            $viewport.on('mousedown', function (e) {
-                isSweepZooming = (true === e.altKey);
-            });
-
-            this.gestureManager.on('panstart', function (e_hammer) {
+            this.gestureManager.on('panstart', function (e_hammerjs) {
 
                 var coords;
 
                 coords = {};
-                coords.x = e_hammer.center.x - $viewport.offset().left;
-                coords.y = e_hammer.center.y - $viewport.offset().top;
+                coords.x = e_hammerjs.center.x - $viewport.offset().left;
+                coords.y = e_hammerjs.center.y - $viewport.offset().top;
 
                 mouseLast = coords;
                 mouseDown = coords;
 
+                isSweepZooming = (true === e_hammerjs.srcEvent.altKey);
                 if (isSweepZooming) {
                     self.sweepZoom.reset();
                 }
@@ -668,9 +665,17 @@ var hic = (function (hic) {
 
         }
 
-        $viewport.on('mouseup', panMouseUpOrMouseOut);
+        if (true === this.browser.config.gestureSupport) {
 
-        $viewport.on('mouseleave', panMouseUpOrMouseOut);
+            this.gestureManager.on('panend', panMouseUpOrMouseOut);
+
+        } else {
+
+            $viewport.on('mouseup', panMouseUpOrMouseOut);
+
+            $viewport.on('mouseleave', panMouseUpOrMouseOut);
+
+        }
 
         function panMouseUpOrMouseOut(e) {
 
