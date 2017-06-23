@@ -926,7 +926,7 @@ var hic = (function (hic) {
     function setDefaults(config) {
 
         if (undefined === config.gestureSupport) {
-            config.gestureSupport = false
+            config.gestureSupport = true;
         }
 
         if (config.miniMode === true) {

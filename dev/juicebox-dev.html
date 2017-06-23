@@ -791,10 +791,10 @@
 
     $(document).ready(function () {
 
-        var config = {},
+        var config,
             browser;
 
-        config.gestureSupport = true;
+        config = {};
         browser = hic.createBrowser($('#app-container'), config);
 
         site.init(browser);
