@@ -156,28 +156,28 @@ var hic = (function (hic) {
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
 
-        function xAxis(browser, $container) {
-            var id,
-                $xAxis;
+    }
 
-            id = browser.id + '_' + 'x-axis';
-            $xAxis = $("<div>", { id:id });
-            $container.append($xAxis);
+    function xAxis(browser, $container) {
+        var id,
+            $xAxis;
 
-            this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
-        }
+        id = browser.id + '_' + 'x-axis';
+        $xAxis = $("<div>", { id:id });
+        $container.append($xAxis);
 
-        function yAxis(browser, $container) {
-            var id,
-                $yAxis;
+        this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
+    }
 
-            id = browser.id + '_' + 'y-axis';
-            $yAxis = $("<div>", { id:id });
-            $container.append($yAxis);
+    function yAxis(browser, $container) {
+        var id,
+            $yAxis;
 
-            this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
-        }
+        id = browser.id + '_' + 'y-axis';
+        $yAxis = $("<div>", { id:id });
+        $container.append($yAxis);
 
+        this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
     }
 
     hic.LayoutController.prototype.receiveEvent = function(event) {
