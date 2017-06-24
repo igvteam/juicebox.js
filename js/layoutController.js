@@ -14,12 +14,6 @@ var hic = (function (hic) {
         // Compatibility wit igv menus
         igv.browser.trackContainerDiv = this.$x_track_container.get(0);
 
-        // Dupes of corresponding juicebox.scss variables
-        // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
-        this.nav_bar_label_height = 32;
-        this.nav_bar_widget_container_height = 56;
-        this.nav_bar_shim_height = 8;
-        this.nav_bar_height = this.nav_bar_label_height + this.nav_bar_widget_container_height + this.nav_bar_shim_height;
 
         this.scrollbar_height = 20;
         this.axis_height = 32;
@@ -31,6 +25,13 @@ var hic = (function (hic) {
 
     };
 
+    // Dupes of corresponding juicebox.scss variables
+    // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
+    hic.LayoutController.nav_bar_label_height = 32;
+    hic.LayoutController.nav_bar_widget_container_height = 56;
+    hic.LayoutController.nav_bar_shim_height = 8;
+    hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+
     function createNavBar(browser, $root) {
 
         var id,
@@ -38,11 +39,13 @@ var hic = (function (hic) {
             $div;
 
         $navbar_container = $('<div class="hic-navbar-container">');
-        $root.append($navbar_container);
 
         if(browser.config.showHicContactMapLabel === false) {
-            $navbar_container.css("height", "60");
+            $navbar_container.height(hic.LayoutController.nav_bar_height);
         }
+
+        $root.append($navbar_container);
+
 
         // HiC Contact Map Label
         id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
@@ -317,7 +320,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = trackXYPairCount * this.track_height;
 
-        tokens = _.map([ this.nav_bar_height, track_aggregate_height ], function(number){
+        tokens = _.map([ hic.LayoutController.nav_bar_height, track_aggregate_height ], function(number){
             return number.toString() + 'px';
         });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';

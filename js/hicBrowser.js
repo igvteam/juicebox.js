@@ -155,15 +155,22 @@ var hic = (function (hic) {
 
         $root = $('<div class="hic-root unselect">');
 
-        var navbarHeight = 96;     // TODO fix me
-        if (config.showHicContactMapLabel === false) {
-            navbarHeight = 60;
+        // var navbarHeight = 96;     // TODO fix me
+        // if (config.showHicContactMapLabel === false) {
+        //     navbarHeight = 60;
+        // }
+
+        if (false === config.showHicContactMapLabel) {
+            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_shim_height;
+        } else {
+            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
         }
+
         if (config.width) {
             $root.css("width", String(config.width));
         }
         if (config.height) {
-            $root.css("height", String(config.height + navbarHeight));
+            $root.css("height", String(config.height + hic.LayoutController.nav_bar_height));
         }
 
 
