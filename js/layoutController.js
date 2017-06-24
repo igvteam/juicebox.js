@@ -17,8 +17,9 @@ var hic = (function (hic) {
         // Dupes of corresponding juicebox.scss variables
         // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
         this.nav_bar_label_height = 32;
-        this.nav_bar_widget_container_height = 70;
-        this.nav_bar_height = this.nav_bar_label_height + this.nav_bar_widget_container_height;
+        this.nav_bar_widget_container_height = 56;
+        this.nav_bar_shim_height = 8;
+        this.nav_bar_height = this.nav_bar_label_height + this.nav_bar_widget_container_height + this.nav_bar_shim_height;
 
         this.scrollbar_height = 20;
         this.axis_height = 32;
@@ -316,10 +317,14 @@ var hic = (function (hic) {
 
         track_aggregate_height = trackXYPairCount * this.track_height;
 
-        tokens = _.map([ this.nav_bar_height, track_aggregate_height ], function(number){ return number.toString() + 'px'; });
+        tokens = _.map([ this.nav_bar_height, track_aggregate_height ], function(number){
+            return number.toString() + 'px';
+        });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
-        tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){ return number.toString() + 'px'; });
+        tokens = _.map([ track_aggregate_height, this.axis_height, this.scrollbar_height ], function(number){
+            return number.toString() + 'px';
+        });
         width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
         // x-track container
@@ -327,6 +332,7 @@ var hic = (function (hic) {
 
         // track labels
         this.$track_shim.width(track_aggregate_height);
+
         // x-tracks
         this.$x_tracks.css( 'width', width_calc );
 
