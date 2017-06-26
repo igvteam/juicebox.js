@@ -810,8 +810,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
-        this.state.x += dx;
-        this.state.y += dy;
+        this.state.x += (dx / this.state.pixelSize);
+        this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
         var locusChangeEvent = hic.Event("LocusChange", this.state);
