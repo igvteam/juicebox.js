@@ -42,34 +42,51 @@ var hic = (function (hic) {
 
     hic.NormalizationWidget = function (browser) {
         var self = this,
-            $label,
-            $option,
-            config;
+            $label;
 
         this.browser = browser;
 
+        // container
+        this.$container = $('<div class="hic-normalization-selector-container">');
+
+        // label
         $label = $('<div>');
         $label.text('Normalization');
+        this.$container.append($label);
 
+        // select
         this.$normalization_selector = $('<select name="select">');
         this.$normalization_selector.attr('name', 'normalization_selector');
         this.$normalization_selector.on('change', function (e) {
             self.browser.setNormalization($(this).val());
         });
-
-        this.$container = $('<div class="hic-normalization-selector-container">');
-        this.$container.append($label);
         this.$container.append(this.$normalization_selector);
+
+
+        // spinner
+        this.$spinner = $('<div>');
+        this.$spinner.text('Loading ...');
+        this.$container.append(this.$spinner);
+        this.$spinner.hide();
 
         if (browser.config.miniMode === true) {
             this.$container.css("width", "50%");
             this.$normalization_selector.css("direction", "ltr");
         }
 
-
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
 
+    };
+
+    hic.NormalizationWidget.prototype.startNotReady = function () {
+        this.$normalization_selector.hide();
+        this.$spinner.show();
+    };
+
+    hic.NormalizationWidget.prototype.stopNotReady = function () {
+        this.$spinner.hide();
+        this.$normalization_selector.show();
     };
 
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
@@ -103,6 +120,7 @@ var hic = (function (hic) {
 
         if ("MapLoad" === event.type) {
             // TODO -- start norm widget "not ready" state
+            this.startNotReady();
 
             updateOptions.call(this);
 
@@ -111,6 +129,7 @@ var hic = (function (hic) {
             updateOptions.call(this);
 
             // TODO -- end norm widget "not ready" state
+            this.stopNotReady();
         }
     };
 
