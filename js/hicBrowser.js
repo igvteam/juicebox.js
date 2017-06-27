@@ -507,24 +507,37 @@ var hic = (function (hic) {
                 }
 
                 if (config.nvi) {
-                    var nviArray = decodeURIComponent(config.nvi).split("|");
-                    dataset.initNormVectorIdx(self.state, decodeURIComponent(config.nvi));
+                    var nviArray = decodeURIComponent(config.nvi).split(","),
+                        range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                    dataset.hicReader.readNormVectorIndex(dataset, range)
+                        .then(function (ignore) {
+                            self.eventBus.post(hic.Event("MapLoad", dataset));
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+
+                        })
+                        .catch(function (error) {
+                            self.contactMatrixView.stopSpinner();
+                            console.log(error);
+                        })
+                } else {
+
+                    self.eventBus.post(hic.Event("MapLoad", dataset));
+
+                    // Load norm vector index in the background
+                    dataset.hicReader.readExpectedValuesAndNormVectorIndex(dataset)
+                        .then(function (ignore) {
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        })
+                        .catch(function (error) {
+                            self.contactMatrixView.stopSpinner();
+                            console.log(error);
+                        });
                 }
-
-                self.eventBus.post(hic.Event("MapLoad", dataset));
-
-
-                // Load norm vector index in the background
-                dataset.hicReader.readNormVectorIndex(dataset)
-                    .then(function (ignore) {
-                        self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
 
             })
             .catch(function (error) {
+                // Error getting dataset
                 self.contactMatrixView.stopSpinner();
                 console.log(error);
             });
@@ -961,15 +974,9 @@ var hic = (function (hic) {
 
     function getNviString(dataset, state) {
 
-        if (state.normalization && "NONE" !== state.normalization && dataset.hicReader.normVectorIndex) {
-
-            var binSize = dataset.bpResolutions[state.zoom];
-            var idx1 = dataset.getNormalizationVectorIdx(state.normalization, state.chr1, "BP", binSize);
-            var nviString = String(idx1.filePosition) + "," + String(idx1.size);
-            if (state.chr1 !== state.chr2) {
-                var idx2 = dataset.getNormalizationVectorIdx(state.normalization, state.chr2, "BP", binSize);
-                nviString += "|" + String(idx2.filePosition) + "," + String(idx2.size);
-            }
+        if (dataset.hicReader.normalizationVectorIndexRange) {
+            var range = dataset.hicReader.normalizationVectorIndexRange,
+                nviString = String(range.start) + "," + String(range.size);
             return nviString
         }
         else {
