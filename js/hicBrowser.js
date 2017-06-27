@@ -161,9 +161,9 @@ var hic = (function (hic) {
         // }
 
         if (false === config.showHicContactMapLabel) {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_shim_height;
+            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
         } else {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
         }
 
         if (config.width) {
