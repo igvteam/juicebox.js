@@ -60,7 +60,7 @@ var hic = (function (hic) {
         $div = $("<div>", { id:id });
 
         if (true === browser.config.miniMode) {
-            $div.addClass('hic-nav-bar-widget-font-mini-mode');
+            $div.addClass('hic-nav-bar-mini-mode-widget-container');
         }
 
         $navbar_container.append($div);

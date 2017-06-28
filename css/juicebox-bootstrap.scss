@@ -268,8 +268,14 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.hic-nav-bar-widget-font-mini-mode {
+.hic-nav-bar-mini-mode-widget-container {
   font-size: smaller;
+  div {
+    //margin-left: 4px;
+    //margin-right: 4px;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
 }
 
 // navbar - chromosome selector

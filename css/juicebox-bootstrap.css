@@ -89,8 +89,11 @@
     color: transparent;
     background-color: transparent; }
 
-.hic-nav-bar-widget-font-mini-mode {
+.hic-nav-bar-mini-mode-widget-container {
   font-size: smaller; }
+  .hic-nav-bar-mini-mode-widget-container div {
+    padding-left: 4px;
+    padding-right: 4px; }
 
 .hic-chromosome-selector-widget-container {
   order: 1;

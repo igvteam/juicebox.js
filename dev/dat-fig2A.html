@@ -150,39 +150,6 @@
 
 <br>
 
-<div class="row">
-    <div class="col-md-2">
-        <div id="legend">
-            <img class="img-responsive" src="https://theaidenlab.github.io/figures/css/img/fig2ATreated6hr.png"
-                 alt="Untreated">
-        </div>
-    </div>
-    <div class="col-md-10">
-        <div class="col-md-4">
-            <div id="app-container-2">
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div id="app-container-4">
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div id="app-container-6">
-            </div>
-        </div>
-    </div>
-</div>
-<br>
-<div>
-    <p style="text-align: center;">APA matrices for all loop domains >300kb long in Hi-C maps for untreated cells (top)
-        versus in
-        Hi-C maps for treated cells (bottom).APA scores are indicated in the lower left corner of each
-        matrix. The color scale for both matrices ranges from 0 (white) to five times the mean of the 6x6
-        box in the upper right corner of the matrix (red). The APA score after auxin treatment shows
-        complete loss of loop signal (APA score <=1), and no focal enrichment is visible. </p>
-</div>
-
 <style type="text/css">
 
     .row {
@@ -217,9 +184,9 @@
             .then(function (dataset) {
 
                 browser1 = hic.createBrowser($('#app-container-1'), {
-//                    miniMode: true,
-//                    width: windowSize,
-//                    height: windowSize,
+                    miniMode: true,
+                    width: windowSize,
+                    height: windowSize,
                     dataset: dataset,
                     href: "?state=8%2C8%2C8%2C26600.581227078823%2C26595.852454564872%2C2.511187643647933%2CKR&colorScale=25&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Funtreated%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Untreated"
                 });
