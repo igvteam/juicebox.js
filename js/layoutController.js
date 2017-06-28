@@ -93,6 +93,8 @@ var hic = (function (hic) {
     function createAllContainers(browser, $root) {
 
         var id,
+            tokens,
+            height_calc,
             $container,
             $e;
 
@@ -120,6 +122,15 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'content-container';
         this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
+
+        if(false === browser.config.showHicContactMapLabel) {
+            tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
+                return number.toString() + 'px';
+            });
+            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+            this.$content_container.css( 'height', height_calc );
+        }
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';
