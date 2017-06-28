@@ -193,11 +193,6 @@ var hic = (function (hic) {
 
         $root = $('<div class="hic-root unselect">');
 
-        // var navbarHeight = 96;     // TODO fix me
-        // if (config.showHicContactMapLabel === false) {
-        //     navbarHeight = 60;
-        // }
-
         if (false === config.showHicContactMapLabel) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
         } else {
@@ -479,35 +474,42 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.loadDataset = function (config) {
-
-
-    }
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            str,
-            hicReader;
+            hicReader,
+            queryIdx,
+            parts;
 
         if (!config.url) {
             console.log("No .hic url specified");
             return;
         }
 
-        this.url = config.url;
+        queryIdx = config.url.indexOf("?");
+        if(queryIdx > 0) {
+            this.url = config.url.substring(0, queryIdx);
+            parts = parseUri(config.url);
+            if(parts.queryKey) {
+                _.each(parts.queryKey, function(value, key) {
+                    config[key] = value;
+                });
+            }
+        }
+        else {
+          this.url = config.url;
+        }
 
         this.name = config.name;
 
-        str = 'Contact Map: ' + config.name;
-        this.$contactMaplabel.text(str);
-        // $('#hic-nav-bar-contact-map-label').text(str);
+        this.$contactMaplabel.text('Contact Map: ' + config.name);
 
         this.layoutController.removeAllTrackXYPairs();
 
-        self.contactMatrixView.clearCaches();
+        this.contactMatrixView.clearCaches();
 
-        self.contactMatrixView.startSpinner();
+        this.contactMatrixView.startSpinner();
 
         hicReader = new hic.HiCReader(config);
 
@@ -518,6 +520,7 @@ var hic = (function (hic) {
 
             self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
 
+            // TODO -- this is not going to work with browsers on different assemblies on the same page.
             igv.browser.genome = self.genome;
 
             if (config.state) {
@@ -990,6 +993,39 @@ var hic = (function (hic) {
             return undefined;
         }
     }
+
+    // parseUri 1.2.2
+    // (c) Steven Levithan <stevenlevithan.com>
+    // MIT License
+
+    function parseUri (str) {
+        var	o   = parseUri.options,
+            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+            uri = {},
+            i   = 14;
+
+        while (i--) uri[o.key[i]] = m[i] || "";
+
+        uri[o.q.name] = {};
+        uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+            if ($1) uri[o.q.name][$1] = $2;
+        });
+
+        return uri;
+    };
+
+    parseUri.options = {
+        strictMode: false,
+        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+        q:   {
+            name:   "queryKey",
+            parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+        },
+        parser: {
+            strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+        }
+    };
 
     return hic;
 

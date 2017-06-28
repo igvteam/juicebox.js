@@ -62,17 +62,22 @@ var site = (function (site) {
         });
 
         $('#hic-load-url').on('change', function (e) {
-            var path,
-                suffix;
+            var url,
+                suffix,
+                paramIdx,
+                path;
 
-            path = $(this).val();
+            url = $(this).val();
+
+            paramIdx = url.indexOf("?");
+            path = paramIdx > 0 ? url.substring(0, paramIdx) : path;
 
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                browser.loadHicFile({url: path, name: extractFilename(path)});
+                browser.loadHicFile({url: url, name: extractFilename(path)});
             } else {
-                browser.loadTrack([{url: path, name: extractFilename(path)}]);
+                browser.loadTrack([{url: url, name: extractFilename(path)}]);
             }
 
             $(this).val("");
