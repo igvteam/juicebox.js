@@ -33,7 +33,7 @@ var hic = (function (hic) {
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
     var datasetCache = {};
-    var genomeCache = {};
+
 
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container) {
@@ -140,6 +140,44 @@ var hic = (function (hic) {
         return browser;
 
     };
+
+
+    /**
+     * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
+     * instantiating multiple browsers in a page.
+     *
+     * @param config
+     */
+    hic.loadDataset = function (config) {
+
+        return new Promise(function (fulfill, reject) {
+            var hicReader = new hic.HiCReader(config);
+
+            hicReader.loadDataset()
+
+                .then(function (dataset) {
+
+                    if (config.nvi) {
+                        var nviArray = decodeURIComponent(config.nvi).split(","),
+                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                        hicReader.readNormVectorIndex(dataset, range)
+                            .then(function (ignore) {
+                                fulfill(dataset);
+                            })
+                            .catch(function (error) {
+                                self.contactMatrixView.stopSpinner();
+                                console.log(error);
+                            })
+                    }
+                    else {
+                        fulfill(dataset);
+                    }
+                })
+                .catch(reject)
+        });
+    }
+
 
     hic.Browser = function ($app_container, config) {
 
@@ -441,23 +479,21 @@ var hic = (function (hic) {
 
     };
 
+    hic.Browser.prototype.loadDataset = function (config) {
+
+
+    }
+
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            str;
+            str,
+            hicReader;
 
         if (!config.url) {
             console.log("No .hic url specified");
             return;
         }
-
-        if (this.url !== undefined) {
-            // Unload previous map,  important for memory management
-            unloadDataset(this.url, this);
-            this.dataset = undefined;
-            this.contactMatrixView.dataset = undefined;
-        }
-
 
         this.url = config.url;
 
@@ -473,40 +509,45 @@ var hic = (function (hic) {
 
         self.contactMatrixView.startSpinner();
 
-        getDataset(config, this)
+        hicReader = new hic.HiCReader(config);
 
-            .then(function (dataset) {
+        function setDataset(dataset) {
+            var previousGenomeId = self.genome ? self.genome.id : undefined;
 
-                var previousGenomeId = self.genome ? self.genome.id : undefined;
+            self.dataset = dataset;
 
-                self.dataset = dataset;
+            self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
 
-                self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+            igv.browser.genome = self.genome;
 
-                igv.browser.genome = self.genome;
+            if (config.state) {
+                self.setState(config.state);
+            }
+            else {
+                self.setState(defaultState.clone());
+                self.contactMatrixView.computeColorScale = true;
+            }
+            self.contactMatrixView.setDataset(dataset);
 
-                if (config.state) {
-                    self.setState(config.state);
-                }
-                else {
-                    self.setState(defaultState.clone());
-                    self.contactMatrixView.computeColorScale = true;
-                }
-                self.contactMatrixView.setDataset(dataset);
+            if (self.genome.id !== previousGenomeId) {
+                self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
+            }
 
-                if (self.genome.id !== previousGenomeId) {
-                    self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
-                }
+            if (config.colorScale) {
+                self.getColorScale().high = config.colorScale;
+            }
 
-                if (config.colorScale) {
-                    self.getColorScale().high = config.colorScale;
-                }
+            if (config.tracks) {
+                self.loadTrack(config.tracks);
+            }
 
-                if (config.tracks) {
-                    self.loadTrack(config.tracks);
-                }
-
+            if(dataset.hicReader.normVectorIndex) {
+                self.eventBus.post(hic.Event("MapLoad", dataset));
+                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+            }
+            else {
                 if (config.nvi) {
+
                     var nviArray = decodeURIComponent(config.nvi).split(","),
                         range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
 
@@ -534,61 +575,27 @@ var hic = (function (hic) {
                             console.log(error);
                         });
                 }
-
-            })
-            .catch(function (error) {
-                // Error getting dataset
-                self.contactMatrixView.stopSpinner();
-                console.log(error);
-            });
-
-
-    };
-
-    /**
-     * Return a promise to load a dataset
-     * @param config
-     * @param browser
-     */
-    function getDataset(config, browser) {
-
-        var url = config.url,
-            obj = datasetCache[url];
-
-        if (obj !== undefined) {
-            obj.references.add(browser);   // Reference counting
-            Promise.resolve(obj.dataset);
-        }
-        else {
-            return new Promise(function (fulfill, reject) {
-                var hicReader = new hic.HiCReader(config);
-                hicReader.loadDataset()
-                    .then(function (dataset) {
-                        var obj = {
-                            dataset: dataset,
-                            references: new Set()
-                        }
-                        obj.references.add(browser);
-                        datasetCache[url] = obj;
-                        fulfill(dataset);
-                    })
-                    .catch(reject)
-            });
-        }
-    }
-
-
-    function unloadDataset(url, browser) {
-
-        var obj = datasetCache[url];
-
-        if (obj !== undefined) {
-            obj.references.delete(browser);
-            if (obj.references.size === 0) {
-                datasetCache[url] = undefined;
             }
         }
-    }
+
+        if(config.dataset) {
+            setDataset(config.dataset);
+        }
+        else {
+            hicReader.loadDataset()
+
+                .then(function (dataset) {
+                    setDataset(dataset);
+
+                })
+                .catch(function (error) {
+                    // Error getting dataset
+                    self.contactMatrixView.stopSpinner();
+                    console.log(error);
+                });
+        }
+
+    };
 
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {

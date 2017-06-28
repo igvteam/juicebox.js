@@ -173,8 +173,7 @@ var hic = (function (hic) {
 
         var self = this,
             key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-
+        
         if (this.normVectorCache.hasOwnProperty(key)) {
             return Promise.resolve(this.normVectorCache[key]);
         } else {
@@ -195,49 +194,6 @@ var hic = (function (hic) {
             })
         }
     };
-
-    hic.Dataset.prototype.getNormalizationVectorIdx = function (type, chrIdx, unit, binSize) {
-
-        var key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-        return this.hicReader.normVectorIndex[key];
-
-    }
-
-    hic.Dataset.prototype.setNormalizationVectorIdx = function (type, chrIdx, unit, binSize, idx) {
-
-        var key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-        if (undefined === this.hicReader.normVectorIndex) this.hicReader.normVectorIndex = {};
-        this.hicReader.normVectorIndex[key] = idx;
-
-    }
-
-    /**
-     * Initialization the normalization index from a "nvi" parameter value.  Called on startup from a url
-     * while full norm vector index is loading
-     *
-     * @param state
-     * @param nvi
-     */
-    hic.Dataset.prototype.initNormVectorIdx = function (state, nviString) {
-
-        var nviArray = nviString.split("|"),
-            nvi = nviArray[0],
-            t2 = nvi.split(","),
-            idx1 = {filePosition: parseInt(t2[0]), size: parseInt(t2[1])},
-            binSize = this.bpResolutions[state.zoom];
-        this.setNormalizationVectorIdx(state.normalization, state.chr1, "BP", binSize, idx1);
-        this.normalizationTypes = [state.normalization];
-
-        if (nviArray.length > 1) {
-            nvi = nviArray[1];
-            t2 = nvi.split(",");
-            idx1 = {filePosition: parseInt(t2[0]), size: parseInt(t2[1])};
-            binSize = this.bpResolutions[state.zoom];
-            this.setNormalizationVectorIdx(state.normalization, state.chr2, "BP", binSize, idx1);
-        }
-
-    }
 
 
     hic.Block = function (blockNumber, zoomData, records) {
