@@ -58,7 +58,13 @@ var hic = (function (hic) {
         // Widget container
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
         $div = $("<div>", { id:id });
+
+        if (true === browser.config.miniMode) {
+            $div.addClass('hic-nav-bar-widget-font-mini-mode');
+        }
+
         $navbar_container.append($div);
+
 
         // chromosome selector
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);

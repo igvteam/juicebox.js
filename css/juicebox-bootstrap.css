@@ -89,6 +89,9 @@
     color: transparent;
     background-color: transparent; }
 
+.hic-nav-bar-widget-font-mini-mode {
+  font-size: smaller; }
+
 .hic-chromosome-selector-widget-container {
   order: 1;
   display: flex;
