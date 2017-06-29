@@ -70,7 +70,7 @@ var site = (function (site) {
             url = $(this).val();
 
             paramIdx = url.indexOf("?");
-            path = paramIdx > 0 ? url.substring(0, paramIdx) : path;
+            path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
