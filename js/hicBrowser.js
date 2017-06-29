@@ -487,18 +487,24 @@ var hic = (function (hic) {
             return;
         }
 
-        queryIdx = config.url.indexOf("?");
-        if(queryIdx > 0) {
-            this.url = config.url.substring(0, queryIdx);
-            parts = parseUri(config.url);
-            if(parts.queryKey) {
-                _.each(parts.queryKey, function(value, key) {
-                    config[key] = value;
-                });
+        if (config.url instanceof File) {
+            this.url = config.url;
+        } else {
+
+            queryIdx = config.url.indexOf("?");
+            if(queryIdx > 0) {
+                this.url = config.url.substring(0, queryIdx);
+                parts = parseUri(config.url);
+                if(parts.queryKey) {
+                    _.each(parts.queryKey, function(value, key) {
+                        config[key] = value;
+                    });
+                }
             }
-        }
-        else {
-          this.url = config.url;
+            else {
+                this.url = config.url;
+            }
+
         }
 
         this.name = config.name;
