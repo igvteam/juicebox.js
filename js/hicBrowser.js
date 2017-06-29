@@ -36,15 +36,29 @@ var hic = (function (hic) {
 
 
     // mock igv browser objects for igv.js compatibility
-    function createIGV($hic_container) {
-        igv.browser = {
-            constants: {defaultColor: "rgb(0,0,150)"}
-        }
-        igv.trackMenuItemList = hic.trackMenuItemListReplacement;
-        igv.trackMenuItem = hic.trackMenuItemReplacement;
+    function createIGV($hic_container, hicBrowser) {
+
+        igv.browser =
+            {
+                constants: { defaultColor: "rgb(0,0,150)" },
+
+                // Compatibility wit igv menus
+                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+            };
+
+        igv.trackMenuItem = function () {
+            return hicBrowser.trackMenuReplacement.trackMenuItemReplacement.apply(hicBrowser.trackMenuReplacement, arguments);
+        };
+
+        igv.trackMenuItemList = function () {
+            var args;
+            args = Array.prototype.slice.call(arguments);
+            args.push(hicBrowser);
+            return hicBrowser.trackMenuReplacement.trackMenuItemListReplacement.apply(hicBrowser.trackMenuReplacement, args);
+        };
+
         // Popover object -- singleton shared by all components
         igv.popover = new igv.Popover($hic_container);
-        // igv.popover.presentTrackGearMenu = hic.popoverPresentTrackGearMenuReplacement;
 
         // ColorPicker object -- singleton shared by all components
         igv.colorPicker = new igv.ColorPicker($hic_container, undefined);
@@ -132,10 +146,11 @@ var hic = (function (hic) {
 
         config.nvi = nvi;
 
-        createIGV($hic_container);
-
         browser = new hic.Browser($hic_container, config);
 
+        browser.trackMenuReplacement = new hic.TrackMenuReplacement();
+
+        createIGV($hic_container, browser);
 
         return browser;
 
