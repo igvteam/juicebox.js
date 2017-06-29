@@ -380,6 +380,9 @@ var hic = (function (hic) {
                         }
                     }
                     if (state.pixelSize == 1) ctx.putImageData(id, 0, 0);
+                    
+                    
+                    
                     return image;
                 }
 

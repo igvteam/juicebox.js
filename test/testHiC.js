@@ -18,51 +18,68 @@ function runHiCTests() {
 
 
         hicReader.loadDataset()
+
             .then(function (dataset) {
-                equal("HIC", hicReader.magic);
-                equal(hicReader.version, 8);
-                ok(hicReader.masterIndex);
 
-                equal(9, dataset.bpResolutions.length);
-                equal(2500000, dataset.bpResolutions[0]);
-                equal(5000, dataset.bpResolutions[8]);
+                hicReader.readExpectedValuesAndNormVectorIndex(dataset)
+                    .then(function (ignore) {
 
-                readMatrix(hicReader, 1, 1)
-                    .then(function (matrix) {
-                        equal(1, matrix.chr1);
-                        equal(1, matrix.chr2);
-                        equal(9, matrix.bpZoomData.length);
+                        equal("HIC", hicReader.magic);
+                        equal(hicReader.version, 8);
+                        ok(hicReader.masterIndex);
 
-                        var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
-                        ok(zd);
-                        equal(zd.zoom.binSize, 10000);
+                        equal(9, dataset.bpResolutions.length);
+                        equal(2500000, dataset.bpResolutions[0]);
+                        equal(5000, dataset.bpResolutions[8]);
 
-                        dataset.getNormalizedBlock(zd, 100, "KR")
-                            .then(function (block) {
-                                equal(100, block.blockNumber);
-                                equal(59500, block.records.length);
+                        readMatrix(hicReader, 1, 1)
+                            .then(function (matrix) {
+                                equal(1, matrix.chr1);
+                                equal(1, matrix.chr2);
+                                equal(9, matrix.bpZoomData.length);
 
-                                dataset.getNormalizationVector("KR", 1, "BP", 50000)
-                                    .then(function (normalizationVector) {
-                                        ok(normalizationVector);
-                                        equal(4990, normalizationVector.data.length);
-                                        start();
+                                var zd = matrix.getZoomData({unit: "BP", binSize: 10000});
+                                ok(zd);
+                                equal(zd.zoom.binSize, 10000);
+
+                                dataset.getNormalizedBlock(zd, 100, "KR")
+                                    .then(function (block) {
+                                        equal(100, block.blockNumber);
+                                        equal(59493, block.records.length);
+
+                                        dataset.getNormalizationVector("KR", 1, "BP", 50000)
+                                            .then(function (normalizationVector) {
+                                                ok(normalizationVector);
+                                                equal(4990, normalizationVector.data.length);
+                                                start();
+                                            })
+
+                                            .catch(function (error) {
+                                                console.log(error);
+                                                ok(false);
+                                                start();
+                                            });
+
+
                                     })
-
                                     .catch(function (error) {
                                         console.log(error);
                                         ok(false);
                                         start();
                                     });
-
-
                             })
                             .catch(function (error) {
                                 console.log(error);
                                 ok(false);
                                 start();
                             });
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        ok(false);
+                        start();
                     });
+
             })
             .catch(function (error) {
                 console.log(error);

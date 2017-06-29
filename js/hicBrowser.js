@@ -190,6 +190,7 @@ var hic = (function (hic) {
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
+        this.tracks2D = [];
 
         $root = $('<div class="hic-root unselect">');
 
@@ -349,9 +350,12 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadTrack = function (trackConfigurations) {
         var self = this,
-            promises;
+            promises,
+            promises2D;
 
         promises = [];
+        promises2D = [];
+
         _.each(trackConfigurations, function (config) {
 
             igv.inferTrackTypes(config);
@@ -362,29 +366,52 @@ var hic = (function (hic) {
 
             config.height = self.layoutController.track_height;
 
-            promises.push(loadIGVTrack(config));   // X track
-            promises.push(loadIGVTrack(config));   // Y track
+            if (config.type === undefined) {
+                // Assume this is a 2D track
+                promises2D.push(hic.loadTrack2D(config));
+            }
+            else {
+                promises.push(loadIGVTrack(config));   // X track
+                promises.push(loadIGVTrack(config));   // Y track
+            }
 
         });
 
-        Promise
-            .all(promises)
-            .then(function (tracks) {
-                var trackXYPairs = [],
-                    index;
+        // 1D tracks
+        if (promises.length > 0) {
+            Promise
+                .all(promises)
+                .then(function (tracks) {
+                    var trackXYPairs = [],
+                        index;
 
-                for (index = 0; index < tracks.length; index += 2) {
-                    trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
-                }
+                    for (index = 0; index < tracks.length; index += 2) {
+                        trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
+                    }
 
-                self.addTrackXYPairs(trackXYPairs);
-            })
-            .catch(function (error) {
+                    self.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
+                })
+                .catch(function (error) {
+                    console.log(error.message);
+                    alert(error.message);
+                });
+        }
+
+        // 2D tracks
+        if (promises2D.length > 0) {
+            Promise.all(promises2D)
+                .then(function (tracks2D) {
+                    self.tracks2D = self.tracks2D.concat(tracks2D);
+                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D))
+
+                }).catch(function (error) {
                 console.log(error.message);
                 alert(error.message);
             });
+        }
 
     };
+
 
     function loadIGVTrack(config) {
 
@@ -410,10 +437,6 @@ var hic = (function (hic) {
             }
         });
 
-    };
-
-    hic.Browser.prototype.addTrackXYPairs = function (trackXYPairs) {
-        this.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
     };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
@@ -550,7 +573,7 @@ var hic = (function (hic) {
                 self.loadTrack(config.tracks);
             }
 
-            if(dataset.hicReader.normVectorIndex) {
+            if (dataset.hicReader.normVectorIndex) {
                 self.eventBus.post(hic.Event("MapLoad", dataset));
                 self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
             }
@@ -587,7 +610,7 @@ var hic = (function (hic) {
             }
         }
 
-        if(config.dataset) {
+        if (config.dataset) {
             setDataset(config.dataset);
         }
         else {
@@ -1004,11 +1027,11 @@ var hic = (function (hic) {
     // (c) Steven Levithan <stevenlevithan.com>
     // MIT License
 
-    function parseUri (str) {
-        var	o   = parseUri.options,
-            m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
+    function parseUri(str) {
+        var o = parseUri.options,
+            m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
             uri = {},
-            i   = 14;
+            i = 14;
 
         while (i--) uri[o.key[i]] = m[i] || "";
 
@@ -1022,14 +1045,14 @@ var hic = (function (hic) {
 
     parseUri.options = {
         strictMode: false,
-        key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-        q:   {
-            name:   "queryKey",
+        key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
+        q: {
+            name: "queryKey",
             parser: /(?:^|&)([^&=]*)=?([^&]*)/g
         },
         parser: {
             strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-            loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+            loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
         }
     };
 
