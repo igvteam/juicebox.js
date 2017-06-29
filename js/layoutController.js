@@ -11,10 +11,6 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
-        // Compatibility wit igv menus
-        igv.browser.trackContainerDiv = this.$x_track_container.get(0);
-
-
         this.scrollbar_height = 20;
         this.axis_height = 32;
 
