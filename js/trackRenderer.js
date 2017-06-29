@@ -20,8 +20,9 @@ var hic = (function (hic) {
 
         var self = this,
             str,
-        doShowLabelAndGear,
-        $x_track_label;
+            doShowLabelAndGear,
+            $x_track_label,
+            $x_track_menu_container;
 
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
@@ -40,21 +41,16 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
-            // note the pre-existing state of track labels/gear. hide/show accordingly.
-            $x_track_label = $('.x-track-label');
-            doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
-
             // label
             this.$label = $('<div class="x-track-label">');
             str = this.track.name || 'untitled';
             this.$label.text(str);
-            this.$viewport.append(this.$label);
 
-            this.$viewport.on('click', function (e) {
-                e.stopPropagation();
-                $('.x-track-label').toggle();
-                $('.x-track-menu-container').toggle();
-            });
+            // note the pre-existing state of track labels/gear. hide/show accordingly.
+            $x_track_label = $container.find(this.$label);
+            doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
+
+            this.$viewport.append(this.$label);
         }
 
         // track spinner container
@@ -78,6 +74,17 @@ var hic = (function (hic) {
             this.$menu_button.click(function (e) {
                 e.stopPropagation();
                 igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
+            });
+
+            this.$viewport.on('click', function (e) {
+
+                e.stopPropagation();
+
+                // self.$label.toggle();
+                // self.$menu_container.toggle();
+
+                $container.find('.x-track-label').toggle();
+                $container.find('.x-track-menu-container').toggle();
             });
 
             if ( doShowLabelAndGear ) {
