@@ -154,6 +154,10 @@ var hic = (function (hic) {
 
         createIGV($hic_container, browser, browser.trackMenuReplacement);
 
+        if (config.url) {
+            browser.loadHicFile(config);
+        }
+
         return browser;
 
     };
@@ -236,10 +240,6 @@ var hic = (function (hic) {
         if (config.colorScale && !isNaN(config.colorScale)) {
             this.contactMatrixView.colorScale.high = config.colorScale;
             this.contactMatrixView.computeColorScale = false;
-        }
-
-        if (config.url) {
-            this.loadHicFile(config);
         }
 
         this.eventBus.subscribe("LocusChange", this);
@@ -468,7 +468,7 @@ var hic = (function (hic) {
             }
         });
 
-    };
+    }
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
 
