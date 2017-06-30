@@ -302,6 +302,8 @@ var hic = (function (hic) {
         }
 
         var self = this;
+        self.normalizationVectorIndexRange = range;
+
         return new Promise(function (fulfill, reject) {
 
             igvxhr.loadArrayBuffer(self.path,
@@ -336,7 +338,7 @@ var hic = (function (hic) {
                         binSize = binaryParser.getInt(),
                         filePosition = binaryParser.getLong(),
                         sizeInBytes = binaryParser.getInt();
-                    
+
                     key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
                     if (_.contains(dataset.normalizationTypes, type) === false) {

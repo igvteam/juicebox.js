@@ -67,10 +67,12 @@ var hic = (function (hic) {
         trackTokens.forEach(function (track) {
             var tokens = track.split("|"),
                 url = tokens[0],
-                name = tokens[1],
-                dataRangeString = tokens[2],
-                color = tokens[3],
-                config = {url: url};
+                config = {url: url},
+                name, dataRangeString, color;
+
+            if (tokens.length > 1) name = tokens[1];
+            if (tokens.length > 2) dataRangeString = tokens[2];
+            if (tokens.length > 3) color = tokens[3];
 
             if (name) config.name = name;
             if (dataRangeString) {
@@ -258,8 +260,9 @@ var hic = (function (hic) {
             href = replaceURIParameter("nvi", nviString, href);
         }
 
-        if (this.trackRenderers && this.trackRenderers.length > 0) {
+        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
             trackString = "";
+
             this.trackRenderers.forEach(function (trackRenderer) {
                 var track = trackRenderer.x.track,
                     config = track.config,
@@ -276,6 +279,19 @@ var hic = (function (hic) {
                     trackString += "|" + (color ? color : "");
                 }
             });
+
+            this.tracks2D.forEach(function (track) {
+                var config = track.config,
+                    url = config.url,
+                    name = track.name;
+
+                if (typeof url === "string") {
+                    if (trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (name ? name : "");
+                }
+            });
+
             if (trackString.length > 0) {
                 href = replaceURIParameter("tracks", trackString, href);
             }
@@ -515,11 +531,11 @@ var hic = (function (hic) {
         } else {
 
             queryIdx = config.url.indexOf("?");
-            if(queryIdx > 0) {
+            if (queryIdx > 0) {
                 this.url = config.url.substring(0, queryIdx);
                 parts = parseUri(config.url);
-                if(parts.queryKey) {
-                    _.each(parts.queryKey, function(value, key) {
+                if (parts.queryKey) {
+                    _.each(parts.queryKey, function (value, key) {
                         config[key] = value;
                     });
                 }

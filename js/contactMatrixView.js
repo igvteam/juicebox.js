@@ -38,7 +38,7 @@ var hic = (function (hic) {
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
         id = browser.id + '_' + 'viewport';
-        this.$viewport = $("<div>", { id:id });
+        this.$viewport = $("<div>", {id: id});
         $container.append(this.$viewport);
 
         //content canvas
@@ -51,7 +51,7 @@ var hic = (function (hic) {
 
         //spinner
         id = browser.id + '_' + 'viewport-spinner-container';
-        this.$spinner = $("<div>", { id:id });
+        this.$spinner = $("<div>", {id: id});
         this.$viewport.append(this.$spinner);
 
         // throbber
@@ -67,12 +67,12 @@ var hic = (function (hic) {
 
         // x - guide
         id = browser.id + '_' + 'x-guide';
-        this.$x_guide = $("<div>", { id:id });
+        this.$x_guide = $("<div>", {id: id});
         this.$viewport.append(this.$x_guide);
 
         // y - guide
         id = browser.id + '_' + 'y-guide';
-        this.$y_guide = $("<div>", { id:id });
+        this.$y_guide = $("<div>", {id: id});
         this.$viewport.append(this.$y_guide);
 
 
@@ -100,6 +100,7 @@ var hic = (function (hic) {
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("NormalizationChange", this);
+        this.browser.eventBus.subscribe("TrackLoad2D", this);
 
     };
 
@@ -125,7 +126,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
 
-        if ("NormalizationChange" === event.type) {
+        if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type) {
             this.clearCaches();
         }
 
@@ -241,7 +242,7 @@ var hic = (function (hic) {
                         fulfill();
 
                     })
-                    .catch(function(error) {
+                    .catch(function (error) {
                         self.stopSpinner();
                         reject(error);
                     });
@@ -319,20 +320,7 @@ var hic = (function (hic) {
 
                 function drawBlock(block, transpose) {
 
-                    var blockNumber,
-                        row,
-                        col,
-                        x0,
-                        y0,
-                        image,
-                        ctx,
-                        id,
-                        i,
-                        rec,
-                        x,
-                        y,
-                        color,
-                        fudge;
+                    var blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, fudge;
 
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
@@ -380,9 +368,35 @@ var hic = (function (hic) {
                         }
                     }
                     if (state.pixelSize == 1) ctx.putImageData(id, 0, 0);
-                    
-                    
-                    
+
+                    // Draw 2D tracks
+
+                    ctx.save();
+                    ctx.lineWidth = 2;
+                    self.browser.tracks2D.forEach(function (track2D) {
+
+                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+                        features.forEach(function (f) {
+
+                            var x1 = Math.floor((f.x1 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
+                            var x2 = Math.floor((f.x2 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
+                            var y1 = Math.floor((f.y1 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
+                            var y2 = Math.floor((f.y2 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
+
+                            var dim = Math.max(image.width, image.height);
+                            if(x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                ctx.strokeStyle = f.color;
+                                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                                if (sameChr && row === col) {
+                                    ctx.strokeRect(y1, x1, y2 - y1, x2 - x1);
+                                }
+                            }
+                        })
+                    });
+                    ctx.restore();
+
+
                     return image;
                 }
 
@@ -456,7 +470,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
         // console.log("Start spinner");
-        if(this.$spinner.is(':visible') !== true) {
+        if (this.$spinner.is(':visible') !== true) {
             this.$spinner.show();
             this.throbber.start();
         }
@@ -478,7 +492,7 @@ var hic = (function (hic) {
             mouseLast = undefined;
 
         if (true === this.browser.config.gestureSupport) {
-            this.gestureManager = new Hammer($viewport.get(0), { domEvents: true, threshold: 0 });
+            this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
             this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
             this.gestureManager.remove('tap');
             this.gestureManager.remove('doubletap');

@@ -35,7 +35,7 @@ function runTrack2DTests() {
 
         hic.loadTrack2D({url: url})
             .then(function (track2D) {
-                equal(track2D.features.length, 16);
+                equal(track2D.featureCount, 16);
                 start();
             })
             .catch(function (error) {

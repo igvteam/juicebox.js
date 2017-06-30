@@ -34,22 +34,19 @@ var hic = (function (hic) {
         return new Promise(function (fulfill, reject) {
 
             igvxhr
-                .loadString(config.url)
+                .loadString(config.url, {})
                 .then(function (data) {
-                  
+
                     var features = parseData(data);
-                    fulfill({
-                        config: config,
-                        features: features
-                    });
+
+                    fulfill(new Track2D(config, features));
                 })
                 .catch(reject);
 
         })
     }
 
-
-    function parseData (data) {
+    function parseData(data) {
 
         if (!data) return null;
 
@@ -75,11 +72,11 @@ var hic = (function (hic) {
 
             feature = {
                 chr1: tokens[0],
-                x1:   parseInt(tokens[1]),
-                x2:   parseInt(tokens[2]),
+                x1: parseInt(tokens[1]),
+                x2: parseInt(tokens[2]),
                 chr2: tokens[3],
-                y1:   parseInt(tokens[4]),
-                y2:   parseInt(tokens[5]),
+                y1: parseInt(tokens[4]),
+                y2: parseInt(tokens[5]),
                 color: "rgb(" + tokens[6] + ")"
             }
             allFeatures.push(feature);
@@ -87,6 +84,39 @@ var hic = (function (hic) {
 
         return allFeatures;
     };
+
+    function getKey(chr1, chr2) {
+        return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
+    }
+
+
+    function Track2D(config, features) {
+
+        var self = this;
+
+        this.config = config;
+        this.featureMap = {};
+        this.featureCount = 0;
+
+        features.forEach(function (f) {
+
+            self.featureCount++;
+
+            var key = getKey(f.chr1, f.chr2),
+                list = self.featureMap[key];
+
+            if(!list) {
+                list = [];
+                self.featureMap[key] = list;
+            }
+            list.push(f);
+        });
+    }
+
+    Track2D.prototype.getFeatures = function(chr1, chr2) {
+        var key = getKey(chr1, chr2);
+        return this.featureMap[key];
+    }
 
     return hic;
 
