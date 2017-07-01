@@ -43,7 +43,7 @@ var hic = (function (hic) {
         this.matrixCache = {};
         this.blockCache = {};
         this.normVectorCache = {};
-
+        this.colorScaleCaceh = {};
     };
 
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {

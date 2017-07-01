@@ -96,7 +96,9 @@ var hic = (function (hic) {
                 highB: 0
             }
         );
+
         this.computeColorScale = true;
+        this.colorScaleCache = {};
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("NormalizationChange", this);
@@ -205,48 +207,59 @@ var hic = (function (hic) {
         }
         else {
 
-            self.startSpinner();
+            var colorKey = zd.getKey() + "_" + normalization;
+            if (self.colorScaleCache[colorKey]) {
+                self.colorScale.high = self.colorScaleCache[colorKey];
+                self.computeColorScale = false;
+                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+                return Promise.resolve();
+            }
 
-            return new Promise(function (fulfill, reject) {
+            else {
+                self.startSpinner();
 
-                var row, column, sameChr, blockNumber,
-                    promises = [];
+                return new Promise(function (fulfill, reject) {
 
-                sameChr = zd.chr1 === zd.chr2;
+                    var row, column, sameChr, blockNumber,
+                        promises = [];
 
-                for (row = row1; row <= row2; row++) {
-                    for (column = col1; column <= col2; column++) {
-                        if (sameChr && row < column) {
-                            blockNumber = column * zd.blockColumnCount + row;
+                    sameChr = zd.chr1 === zd.chr2;
+
+                    for (row = row1; row <= row2; row++) {
+                        for (column = col1; column <= col2; column++) {
+                            if (sameChr && row < column) {
+                                blockNumber = column * zd.blockColumnCount + row;
+                            }
+                            else {
+                                blockNumber = row * zd.blockColumnCount + column;
+                            }
+
+                            promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
                         }
-                        else {
-                            blockNumber = row * zd.blockColumnCount + column;
-                        }
-
-                        promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
                     }
-                }
 
-                Promise.all(promises)
-                    .then(function (blocks) {
+                    Promise.all(promises)
+                        .then(function (blocks) {
 
-                        var s = computePercentile(blocks, 95);
-                        if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-                            self.colorScale.high = s;
-                            self.computeColorScale = false;
-                            self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
-                        }
+                            var s = computePercentile(blocks, 95);
+                            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                                self.colorScale.high = s;
+                                self.computeColorScale = false;
+                                self.colorScaleCache[colorKey] = s;
+                                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+                            }
 
-                        self.stopSpinner();
+                            self.stopSpinner();
 
-                        fulfill();
+                            fulfill();
 
-                    })
-                    .catch(function (error) {
-                        self.stopSpinner();
-                        reject(error);
-                    });
-            })
+                        })
+                        .catch(function (error) {
+                            self.stopSpinner();
+                            reject(error);
+                        });
+                })
+            }
         }
     }
 
@@ -408,8 +421,8 @@ var hic = (function (hic) {
                     ctx.restore();
 
                     // Uncomment to reveal tile boundaries for debugging.
-                    //ctx.fillStyle="rgb(255,255,255)";
-                    // ctx.strokeRect(0, 0, image.width-1, image.height-1)
+                    // ctx.fillStyle = "rgb(255,255,255)";
+                    // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
                     return image;

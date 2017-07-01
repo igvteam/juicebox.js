@@ -379,6 +379,20 @@ var hic = (function (hic) {
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
         this.updateHref();
+
+        var self = this,
+            state = this.state;
+        this.dataset.getMatrix(state.chr1, state.chr2)
+            .then(function (matrix) {
+                var zd = matrix.bpZoomData[state.zoom];
+                var colorKey = zd.getKey() + "_" + state.normalization;
+                self.contactMatrixView.colorScaleCache[colorKey] = high;
+                self.contactMatrixView.update();
+            })
+            .catch(function (error) {
+                console.log(error);
+                alert(error);
+            })
     };
 
     hic.Browser.prototype.loadTrack = function (trackConfigurations) {
