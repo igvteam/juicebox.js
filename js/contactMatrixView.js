@@ -474,8 +474,7 @@ var hic = (function (hic) {
 
     function computePercentile(blockArray, p) {
 
-        var array = [], i;
-
+        var array = [];
         blockArray.forEach(function (block) {
             if (block) {
                 for (i = 0; i < block.records.length; i++) {
@@ -484,16 +483,8 @@ var hic = (function (hic) {
             }
         });
 
-        if (array.length === 0) {
-            return Number.NaN;
-        }
-        else {
-            var idx = Math.floor((p / 100.0) * array.length);
-            array.sort(function (a, b) {
-                return a - b;
-            });
-            return array[idx];
-        }
+        return hic.Math.percentile(array, p);
+
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
