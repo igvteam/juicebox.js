@@ -370,7 +370,6 @@ var hic = (function (hic) {
                     if (state.pixelSize == 1) ctx.putImageData(id, 0, 0);
 
                     // Draw 2D tracks
-
                     ctx.save();
                     ctx.lineWidth = 2;
                     self.browser.tracks2D.forEach(function (track2D) {
@@ -382,19 +381,35 @@ var hic = (function (hic) {
                             var x2 = Math.floor((f.x2 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
                             var y1 = Math.floor((f.y1 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
                             var y2 = Math.floor((f.y2 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
+                            var w = x2 - x1;
+                            var h = y2 - y1;
+
+                            if (transpose) {
+                                t = y1;
+                                y1 = x1;
+                                x1 = t;
+
+                                t = h;
+                                h = w;
+                                w = t;
+                            }
 
                             var dim = Math.max(image.width, image.height);
-                            if(x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+                            if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
 
                                 ctx.strokeStyle = f.color;
-                                ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+                                ctx.strokeRect(x1, y1, w, h);
                                 if (sameChr && row === col) {
-                                    ctx.strokeRect(y1, x1, y2 - y1, x2 - x1);
+                                    ctx.strokeRect(y1, x1, h, w);
                                 }
                             }
                         })
                     });
                     ctx.restore();
+
+                    // Uncomment to reveal tile boundaries for debugging.
+                    //ctx.fillStyle="rgb(255,255,255)";
+                    // ctx.strokeRect(0, 0, image.width-1, image.height-1)
 
 
                     return image;
