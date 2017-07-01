@@ -247,6 +247,8 @@ var hic = (function (hic) {
         this.eventBus.subscribe("MapLoad", this);
         this.eventBus.subscribe("ColorScale", this);
         this.eventBus.subscribe("NormalizationChange", this);
+        this.eventBus.subscribe("TrackLoad2D", this);
+        this.eventBus.subscribe("TrackLoad", this);
     };
 
     hic.Browser.prototype.updateHref = function (event) {
@@ -570,6 +572,8 @@ var hic = (function (hic) {
         this.contactMatrixView.clearCaches();
 
         this.contactMatrixView.startSpinner();
+
+        this.tracks2D = [];
 
         hicReader = new hic.HiCReader(config);
 
