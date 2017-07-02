@@ -388,35 +388,38 @@ var hic = (function (hic) {
                     self.browser.tracks2D.forEach(function (track2D) {
 
                         var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-                        features.forEach(function (f) {
 
-                            var x1 = Math.floor((f.x1 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
-                            var x2 = Math.floor((f.x2 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
-                            var y1 = Math.floor((f.y1 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
-                            var y2 = Math.floor((f.y2 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
-                            var w = x2 - x1;
-                            var h = y2 - y1;
+                        if (features) {
+                            features.forEach(function (f) {
 
-                            if (transpose) {
-                                t = y1;
-                                y1 = x1;
-                                x1 = t;
+                                var x1 = Math.floor((f.x1 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
+                                var x2 = Math.floor((f.x2 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
+                                var y1 = Math.floor((f.y1 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
+                                var y2 = Math.floor((f.y2 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
+                                var w = x2 - x1;
+                                var h = y2 - y1;
 
-                                t = h;
-                                h = w;
-                                w = t;
-                            }
+                                if (transpose) {
+                                    t = y1;
+                                    y1 = x1;
+                                    x1 = t;
 
-                            var dim = Math.max(image.width, image.height);
-                            if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                ctx.strokeStyle = f.color;
-                                ctx.strokeRect(x1, y1, w, h);
-                                if (sameChr && row === col) {
-                                    ctx.strokeRect(y1, x1, h, w);
+                                    t = h;
+                                    h = w;
+                                    w = t;
                                 }
-                            }
-                        })
+
+                                var dim = Math.max(image.width, image.height);
+                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                    ctx.strokeStyle = f.color;
+                                    ctx.strokeRect(x1, y1, w, h);
+                                    if (sameChr && row === col) {
+                                        ctx.strokeRect(y1, x1, h, w);
+                                    }
+                                }
+                            })
+                        }
                     });
                     ctx.restore();
 

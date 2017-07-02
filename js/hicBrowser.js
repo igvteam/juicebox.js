@@ -84,19 +84,22 @@ var hic = (function (hic) {
                 config = {url: url},
                 name, dataRangeString, color;
 
-            if (tokens.length > 1) name = tokens[1];
-            if (tokens.length > 2) dataRangeString = tokens[2];
-            if (tokens.length > 3) color = tokens[3];
+            if(url.trim().length > 0) {
 
-            if (name) config.name = name;
-            if (dataRangeString) {
-                var r = dataRangeString.split("-");
-                config.min = parseFloat(r[0]);
-                config.max = parseFloat(r[1])
+                if (tokens.length > 1) name = tokens[1];
+                if (tokens.length > 2) dataRangeString = tokens[2];
+                if (tokens.length > 3) color = tokens[3];
+
+                if (name) config.name = name;
+                if (dataRangeString) {
+                    var r = dataRangeString.split("-");
+                    config.min = parseFloat(r[0]);
+                    config.max = parseFloat(r[1])
+                }
+                if (color) config.color = color;
+
+                configList.push(config);
             }
-            if (color) config.color = color;
-
-            configList.push(config);
         });
         return configList;
 
@@ -305,7 +308,9 @@ var hic = (function (hic) {
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    trackString += "|" + (name ? name : "");
+                    if(name) {
+                        trackString += "|" + name;
+                    }
                 }
             });
 
