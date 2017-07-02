@@ -317,7 +317,7 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
-                    imageSize = widthInBins * state.pixelSize,
+                    imageSize = Math.ceil(widthInBins * state.pixelSize),
                     transpose = sameChr && row < column,
                     blockNumber,
                     t;
