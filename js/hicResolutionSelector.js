@@ -29,13 +29,38 @@ var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser) {
         var self = this,
-            elements,
-            $label;
+            $locked,
+            $label,
+            $label_container,
+            $e;
 
         this.browser = browser;
 
+        // label container
+        $label_container = $('<div id="hic-resolution-label-container">');
+
+        // locked
+        $locked = $('<i id="hic-resolution-lock" class="fa fa-lock fa-lg" aria-hidden="true">');
+        $locked.hide();
+
+        $label_container.append($locked);
+
+        // Resolution (kb)
         $label = $('<div>');
         $label.text('Resolution (kb)');
+        $label_container.append($label);
+
+        $label_container.on('click', function (e) {
+            $locked.toggle();
+            if ($locked.is(":visible")) {
+                self.$resolution_selector.prop('disabled', 'disabled');
+                self.browser.resolutionLocked = true;
+            } else {
+                self.$resolution_selector.prop('disabled', false);
+                self.browser.resolutionLocked = false;
+            }
+        });
+
 
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.attr('name', 'resolution_selector');
@@ -46,7 +71,9 @@ var hic = (function (hic) {
         });
 
         this.$container = $('<div class="hic-resolution-selector-container">');
-        this.$container.append($label);
+        //
+        this.$container.append($label_container);
+        //
         this.$container.append(this.$resolution_selector);
 
         this.browser.eventBus.subscribe("LocusChange", this);
