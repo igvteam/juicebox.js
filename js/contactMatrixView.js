@@ -511,7 +511,8 @@ var hic = (function (hic) {
             isDragging = false,
             isSweepZooming = false,
             mouseDown = undefined,
-            mouseLast = undefined;
+            mouseLast = undefined,
+            mouseOver = undefined;
 
         if (true === this.browser.config.gestureSupport) {
             this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
@@ -540,6 +541,28 @@ var hic = (function (hic) {
                     self.sweepZoom.dismiss();
                 }
             }
+        });
+
+        $(document).on('keydown', function (e) {
+            // shift key
+            if (true === mouseOver && 16 === e.keyCode) {
+                self.browser.showCrosshairs();
+            }
+        });
+
+        $(document).on('keyup', function (e) {
+            // shift key
+            if (16 === e.keyCode) {
+                self.browser.hideCrosshairs();
+            }
+        });
+
+        $viewport.on('mouseover', function (e) {
+            mouseOver = true;
+        });
+
+        $viewport.on('mouseout', function (e) {
+            mouseOver = undefined;
         });
 
         if (false === this.browser.config.gestureSupport) {
@@ -658,20 +681,6 @@ var hic = (function (hic) {
                 coords = hic.translateMouseCoordinates(e, $viewport);
 
                 self.browser.updateCrosshairs(coords);
-
-                $(document).on('keydown', function (e) {
-                    // shift key
-                    if (16 === e.keyCode) {
-                        self.browser.showCrosshairs();
-                    }
-                });
-
-                $(document).on('keyup', function (e) {
-                    // shift key
-                    if (16 === e.keyCode) {
-                        self.browser.hideCrosshairs();
-                    }
-                });
 
                 if (isMouseDown) { // Possibly dragging
 
