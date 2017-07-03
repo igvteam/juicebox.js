@@ -161,6 +161,7 @@ var hic = (function (hic) {
                     col2 = Math.floor((state.x + widthInBins) / blockBinCount),
                     row1 = Math.floor(state.y / blockBinCount),
                     row2 = Math.floor((state.y + heightInBins) / blockBinCount),
+
                     r, c, promises = [];
 
                 self.checkColorScale(zd, row1, row2, col1, col2, state.normalization)
@@ -169,7 +170,7 @@ var hic = (function (hic) {
 
                         for (r = row1; r <= row2; r++) {
                             for (c = col1; c <= col2; c++) {
-                                promises.push(self.getImageTile(zd, r, c));
+                                promises.push(self.getImageTile(zd, r, c, state));
                             }
                         }
 
@@ -284,7 +285,8 @@ var hic = (function (hic) {
 
         imageTiles.forEach(function (imageTile) {
 
-            var image = imageTile.image;
+            var image = imageTile.image,
+                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
 
             if (image != null) {
                 var row = imageTile.row,
@@ -293,31 +295,39 @@ var hic = (function (hic) {
                     y0 = blockBinCount * row;
                 var offsetX = (x0 - state.x) * state.pixelSize;
                 var offsetY = (y0 - state.y) * state.pixelSize;
-                if (offsetX <= viewportWidth && offsetX + image.width >= 0 &&
-                    offsetY <= viewportHeight && offsetY + image.height >= 0) {
-                    self.ctx.drawImage(image, offsetX, offsetY);
+                var scale = state.pixelSize / pixelSizeInt;
+                var scaledWidth = Math.ceil(image.width * scale);
+                var scaledHeight = Math.ceil(image.height * scale);
+                if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+                    offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+                    if(scale === 1) {
+                        self.ctx.drawImage(image, offsetX, offsetY);
+                    }
+                    else {
+                        self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                    }
                 }
             }
         })
 
     };
 
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column, block) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column, state) {
 
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + row + "_" + column;
+            pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
+                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization;
 
         if (this.imageTileCache.hasOwnProperty(key)) {
             return Promise.resolve(this.imageTileCache[key]);
         } else {
             return new Promise(function (fulfill, reject) {
 
-                var state = self.browser.state,
-                    blockBinCount = zd.blockBinCount,
+                var blockBinCount = zd.blockBinCount,
                     blockColumnCount = zd.blockColumnCount,
                     widthInBins = zd.blockBinCount,
-                    imageSize = Math.ceil(widthInBins * state.pixelSize),
                     transpose = sameChr && row < column,
                     blockNumber,
                     t;
@@ -333,7 +343,8 @@ var hic = (function (hic) {
 
                 function drawBlock(block, transpose) {
 
-                    var blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, fudge;
+                    var imageSize = Math.ceil(widthInBins * pixelSizeInt),
+                        blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, fudge;
 
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
@@ -348,14 +359,14 @@ var hic = (function (hic) {
                     ctx.clearRect(0, 0, image.width, image.height);
 
                     id = ctx.getImageData(0, 0, image.width, image.height);
-                    fudge = 0.5;
+                    fudge = 0; //0.5;
 
                     // console.log('block records ' + _.size(block.records) + ' pixel size ' + state.pixelSize);
 
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
-                        x = Math.floor((rec.bin1 - x0) * state.pixelSize);
-                        y = Math.floor((rec.bin2 - y0) * state.pixelSize);
+                        x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
+                        y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
 
                         if (transpose) {
                             t = y;
@@ -366,7 +377,7 @@ var hic = (function (hic) {
                         color = self.colorScale.getColor(rec.counts);
                         ctx.fillStyle = color.rgb;
 
-                        if (state.pixelSize === 1) {
+                        if (pixelSizeInt === 1) {
                             // TODO -- verify that this bitblting is faster than fillRect
                             setPixel(id, x, y, color.red, color.green, color.blue, 255);
                             if (sameChr && row === col) {
@@ -374,54 +385,54 @@ var hic = (function (hic) {
                             }
                         }
                         else {
-                            ctx.fillRect(x, y, fudge + state.pixelSize, fudge + state.pixelSize);
+                            ctx.fillRect(x, y, fudge + pixelSizeInt, fudge + pixelSizeInt);
                             if (sameChr && row === col) {
-                                ctx.fillRect(y, x, fudge + state.pixelSize, fudge + state.pixelSize);
+                                ctx.fillRect(y, x, fudge + pixelSizeInt, fudge + pixelSizeInt);
                             }
                         }
                     }
-                    if (state.pixelSize == 1) ctx.putImageData(id, 0, 0);
+                    if (pixelSizeInt === 1) ctx.putImageData(id, 0, 0);
 
                     // Draw 2D tracks
-                    ctx.save();
-                    ctx.lineWidth = 2;
-                    self.browser.tracks2D.forEach(function (track2D) {
-
-                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-
-                        if (features) {
-                            features.forEach(function (f) {
-
-                                var x1 = Math.floor((f.x1 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
-                                var x2 = Math.floor((f.x2 / zd.zoom.binSize - x0) * state.pixelSize) + 0.5;
-                                var y1 = Math.floor((f.y1 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
-                                var y2 = Math.floor((f.y2 / zd.zoom.binSize - y0) * state.pixelSize) + 0.5;
-                                var w = x2 - x1;
-                                var h = y2 - y1;
-
-                                if (transpose) {
-                                    t = y1;
-                                    y1 = x1;
-                                    x1 = t;
-
-                                    t = h;
-                                    h = w;
-                                    w = t;
-                                }
-
-                                var dim = Math.max(image.width, image.height);
-                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                    ctx.strokeStyle = f.color;
-                                    ctx.strokeRect(x1, y1, w, h);
-                                    if (sameChr && row === col) {
-                                        ctx.strokeRect(y1, x1, h, w);
-                                    }
-                                }
-                            })
-                        }
-                    });
-                    ctx.restore();
+                    // ctx.save();
+                    // ctx.lineWidth = 2;
+                    // self.browser.tracks2D.forEach(function (track2D) {
+                    //
+                    //     var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+                    //
+                    //     if (features) {
+                    //         features.forEach(function (f) {
+                    //
+                    //             var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                    //             var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                    //             var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                    //             var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                    //             var w = x2 - x1;
+                    //             var h = y2 - y1;
+                    //
+                    //             if (transpose) {
+                    //                 t = y1;
+                    //                 y1 = x1;
+                    //                 x1 = t;
+                    //
+                    //                 t = h;
+                    //                 h = w;
+                    //                 w = t;
+                    //             }
+                    //
+                    //             var dim = Math.max(image.width, image.height);
+                    //             if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+                    //
+                    //                 ctx.strokeStyle = f.color;
+                    //                 ctx.strokeRect(x1, y1, w, h);
+                    //                 if (sameChr && row === col) {
+                    //                     ctx.strokeRect(y1, x1, h, w);
+                    //                 }
+                    //             }
+                    //         })
+                    //     }
+                    // });
+                    // ctx.restore();
 
                     // Uncomment to reveal tile boundaries for debugging.
                     // ctx.fillStyle = "rgb(255,255,255)";
