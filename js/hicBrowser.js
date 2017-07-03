@@ -107,41 +107,42 @@ var hic = (function (hic) {
 
     hic.createBrowser = function ($hic_container, config) {
 
-        var browser;
-
         setDefaults(config);
 
-        var href = config.href || window.location.href,
-            hicUrl = gup(href, "hicUrl"),
-            name = gup(href, "name"),
-            stateString = gup(href, "state"),
-            colorScale = gup(href, "colorScale"),
-            trackString = gup(href, "tracks"),
-            selectedGene = gup(href, "selectedGene"),
-            nvi = gup(href, "nvi");
+        var browser,
+            uri = config.href || window.location.href,
+            parts = parseUri(uri),
+            query = parts.queryKey,
+            uriDecode = uri.includes('%2C'),   // for backward compatibility, all old state values will have this
+            hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi;
 
-        defaultPixelSize = 1;
-
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
-
-
+        if(query) {
+            hicUrl = query["hicUrl"],
+                name = query["name"],
+                stateString = query["state"],
+                colorScale = query["colorScale"],
+                trackString = query["tracks"],
+                selectedGene = query["selectedGene"],
+                nvi = query["nvi"];
+        }
+        
         if (hicUrl) {
-            config.url = decodeURIComponent(hicUrl);
+            config.url = paramDecode(hicUrl, uriDecode);
         }
         if (name) {
-            config.name = decodeURIComponent(name);
+            config.name = paramDecode(name, uriDecode);
         }
         if (stateString) {
-            stateString = decodeURIComponent(stateString);
+            stateString = paramDecode(stateString, uriDecode);
             config.state = hic.destringifyState(stateString);
 
         }
         if (colorScale) {
-            config.colorScale = parseFloat(colorScale);
+            config.colorScale = parseFloat(colorScale, uriDecode);
         }
 
         if (trackString) {
-            trackString = decodeURIComponent(trackString);
+            trackString = paramDecode(trackString, uriDecode);
             config.tracks = destringifyTracks(trackString);
         }
 
@@ -998,32 +999,6 @@ var hic = (function (hic) {
         return this.dataset.bpResolutions[this.state.zoom];
     };
 
-    function gup(href, name) {
-        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-        var regexS = "[\\?&]" + name + "=([^&#]*)";
-        var regex = new RegExp(regexS);
-        var results = regex.exec(href);
-        if (results == null)
-            return undefined;
-        else
-            return results[1];
-    }
-
-    function replaceURIParameter(key, newValue, href) {
-
-
-        var oldValue = gup(href, key);
-        if (oldValue) {
-            href = href.replace(key + "=" + oldValue, key + "=" + encodeURIComponent(newValue));
-        }
-        else {
-            var delim = href.includes("?") ? "&" : "?";
-            href += delim + key + "=" + encodeURIComponent(newValue);
-        }
-
-        return href;
-
-    }
 
     hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
 
@@ -1037,6 +1012,9 @@ var hic = (function (hic) {
 
     // Set default values for config properties
     function setDefaults(config) {
+
+        defaultPixelSize = 1;
+        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
         if (undefined === config.gestureSupport) {
             config.gestureSupport = false;
@@ -1110,6 +1088,59 @@ var hic = (function (hic) {
         }
     };
 
+
+    function gup(href, name) {
+        name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+        var regexS = "[\\?&]" + name + "=([^&#]*)";
+        var regex = new RegExp(regexS);
+        var results = regex.exec(href);
+        if (results == null)
+            return undefined;
+        else
+            return results[1];
+    }
+
+    function replaceURIParameter(key, newValue, href) {
+        var oldValue = gup(href, key);
+        if (oldValue) {
+            href = href.replace(key + "=" + oldValue, key + "=" + paramEncode(newValue));
+        }
+        else {
+            var delim = href.includes("?") ? "&" : "?";
+            href += delim + key + "=" + paramEncode(newValue);
+        }
+
+        return href;
+    }
+
+    /**
+     * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
+     * to fully encode parameter values.
+     *
+     * @param str
+     */
+    function paramEncode(str) {
+        var s = replaceAll(str, '&', '%26');
+        s = replaceAll(s, ' ', '%20');
+        return s;
+    }
+
+    function paramDecode(str, uriDecode) {
+
+        if(uriDecode) {
+            return decodeURIComponent(str);   // Backward compatibility
+        }
+        else {
+            var s = replaceAll(str, '%26', '&');
+            s = replaceAll(s, '%20', ' ');
+            return s;
+        }
+    }
+
+
+    function replaceAll(str, target, replacement) {
+        return str.split(target).join(replacement);
+    };
     return hic;
 
 })
