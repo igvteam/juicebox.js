@@ -49,6 +49,7 @@ var hic = (function (hic) {
         });
 
         this.browser.eventBus.subscribe("LocusChange", this);
+        //this.browser.eventBus.subscribe("DragStopped", this);
     };
 
     hic.LocusGoto.prototype.receiveEvent = function (event) {
@@ -67,9 +68,9 @@ var hic = (function (hic) {
             chr1,
             chr2;
 
-        if (event.type === "LocusChange") {
+        if (event.type === "LocusChange") { //} && !event.data.dragging || event.type === "DragStopped") {
 
-            state = event.data.state,
+            state = event.data.state || self.browser.state,
             chr1 = self.browser.dataset.chromosomes[state.chr1];
             chr2 = self.browser.dataset.chromosomes[state.chr2];
 

@@ -70,7 +70,7 @@ var hic = (function (hic) {
     hic.Event = function(type, data) {
         return {
             type: type,
-            data: data
+            data: data || {}
         }
     };
 
