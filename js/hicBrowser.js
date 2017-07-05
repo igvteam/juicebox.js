@@ -834,15 +834,15 @@ var hic = (function (hic) {
         this.eventBus.post(hic.Event("LocusChange", this.state));
     };
 
-    hic.Browser.prototype.updateLayout = function () {
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
-        this.clamp();
-        this.renderTracks(true);
-        this.contactMatrixView.clearCaches();
-        this.contactMatrixView.update();
-
-
-    };
+    // hic.Browser.prototype.updateLayout = function () {
+    //     this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+    //     this.clamp();
+    //     this.renderTracks(true);
+    //     this.contactMatrixView.clearCaches();
+    //     this.contactMatrixView.update();
+    //
+    //
+    // };
 
     hic.Browser.prototype.setChromosomes = function (chr1, chr2) {
 
@@ -860,7 +860,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateLayout = function () {
-        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
         this.clamp();
         this.renderTracks(true);
         this.layoutController.xAxisRuler.update();
@@ -1000,15 +1000,15 @@ var hic = (function (hic) {
     };
 
 
-    hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
-
-        this.chr1 = chr1;
-        this.chr2 = chr2;
-        this.zoom = zoom;
-        this.x = x;
-        this.y = y;
-        this.pixelSize = pixelSize;
-    };
+    // hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
+    //
+    //     this.chr1 = chr1;
+    //     this.chr2 = chr2;
+    //     this.zoom = zoom;
+    //     this.x = x;
+    //     this.y = y;
+    //     this.pixelSize = pixelSize;
+    // };
 
     // Set default values for config properties
     function setDefaults(config) {
