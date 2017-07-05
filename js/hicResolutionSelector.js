@@ -39,11 +39,10 @@ var hic = (function (hic) {
         // label container
         $label_container = $('<div id="hic-resolution-label-container">');
 
-        // locked
-        $locked = $('<i id="hic-resolution-lock" class="fa fa-lock fa-lg" aria-hidden="true">');
-        $locked.hide();
+        // lock/unlock
+        this.$locked = $('<i id="hic-resolution-lock" class="fa fa-unlock fa-lg" aria-hidden="true">');
 
-        $label_container.append($locked);
+        $label_container.append(this.$locked);
 
         // Resolution (kb)
         $label = $('<div>');
@@ -51,16 +50,9 @@ var hic = (function (hic) {
         $label_container.append($label);
 
         $label_container.on('click', function (e) {
-            $locked.toggle();
-            if ($locked.is(":visible")) {
-                self.$resolution_selector.prop('disabled', 'disabled');
-                self.browser.resolutionLocked = true;
-            } else {
-                self.$resolution_selector.prop('disabled', false);
-                self.browser.resolutionLocked = false;
-            }
+            self.browser.resolutionLocked = !(self.browser.resolutionLocked);
+            self.setResolutionLock(self.browser.resolutionLocked);
         });
-
 
         this.$resolution_selector = $('<select name="select">');
         this.$resolution_selector.attr('name', 'resolution_selector');
@@ -80,30 +72,40 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("MapLoad", this);
     };
 
+    hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
+        this.$locked.removeClass( (true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+        this.$locked.addClass(    (true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+    };
+
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
+        var self = this;
+
         if (event.type === "LocusChange") {
-            var state = event.data.state,
-                resolutionChanged = event.data.resolutionChanged;
+
+            if (true === event.data.resolutionChanged) {
+                this.browser.resolutionLocked = false;
+                self.setResolutionLock(this.browser.resolutionLocked);
+            }
 
             this.$resolution_selector
                 .find('option')
                 .filter(function (index) {
-                    return index === state.zoom;
+                    return index === event.data.state.zoom;
                 })
                 .prop('selected', true);
+
         } else if (event.type === "MapLoad") {
 
-            var zoom =  this.browser.state.zoom;
+            var elements;
 
-            var elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
-                var selected = zoom === index;
+            this.browser.resolutionLocked = false;
+            this.setResolutionLock(this.browser.resolutionLocked);
 
+            elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
+                var selected = self.browser.state.zoom === index;
                 return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
             });
-
-
-
 
             this.$resolution_selector.empty();
             this.$resolution_selector.append(elements.join(''));
