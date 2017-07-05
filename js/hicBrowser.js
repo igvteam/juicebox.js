@@ -744,7 +744,7 @@ var hic = (function (hic) {
                 self.setChromosomes(xLocus.chr, yLocus.chr);
             }
             else {
-                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 200);
+                self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
             }
         }
 
@@ -940,8 +940,6 @@ var hic = (function (hic) {
             maxExtent, newZoom, newPixelSize, newXBin, newYBin,
             zoomChanged;
 
-        if (minResolution === undefined) minResolution = 200;
-
         targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
 
         if (targetResolution < minResolution) {
@@ -954,7 +952,7 @@ var hic = (function (hic) {
         }
 
 
-        if (true === this.resolutionLocked) {
+        if (true === this.resolutionLocked && minResolution === undefined) {
             zoomChanged = false;
             newZoom = this.state.zoom;
         } else {
