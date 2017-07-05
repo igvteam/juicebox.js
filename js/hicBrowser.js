@@ -29,7 +29,7 @@
 var hic = (function (hic) {
 
     var defaultPixelSize, defaultState;
-    var maxPixelSize = 100;
+    var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
     var datasetCache = {};
@@ -851,7 +851,7 @@ var hic = (function (hic) {
         this.state.x = 0;
         this.state.y = 0;
 
-        this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
+        this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
 
 
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: true}));
@@ -961,7 +961,7 @@ var hic = (function (hic) {
         }
 
         newResolution = bpResolutions[newZoom];
-        newPixelSize = Math.max(1, newResolution / targetResolution);
+        newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
         newXBin = bpX / newResolution;
         newYBin = bpY / newResolution;
 
@@ -1005,16 +1005,6 @@ var hic = (function (hic) {
         return this.dataset.bpResolutions[this.state.zoom];
     };
 
-
-    // hic.State = function (chr1, chr2, zoom, x, y, pixelSize) {
-    //
-    //     this.chr1 = chr1;
-    //     this.chr2 = chr2;
-    //     this.zoom = zoom;
-    //     this.x = x;
-    //     this.y = y;
-    //     this.pixelSize = pixelSize;
-    // };
 
     // Set default values for config properties
     function setDefaults(config) {
