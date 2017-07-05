@@ -208,7 +208,7 @@
   flex-wrap: nowrap;
   justify-content: space-around;
   align-items: flex-start;
-  width: 100px; }
+  width: 110px; }
   .hic-resolution-selector-container div#hic-resolution-label-container {
     display: flex;
     flex-flow: row;
@@ -217,9 +217,9 @@
     cursor: pointer; }
     .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
       display: block;
+      font-size: 12px;
       padding-top: 4px;
-      padding-left: 3px;
-      padding-right: 3px; }
+      padding-left: 5px; }
   .hic-resolution-selector-container select {
     display: block;
     margin-top: 4px;

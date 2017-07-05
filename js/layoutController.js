@@ -86,6 +86,8 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser);
         $div.append(browser.resolutionSelector.$container);
 
+        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
         // nav-bar shim
         $div = $('<div class="hic-nav-bar-shim">');
         $navbar_container.append($div);

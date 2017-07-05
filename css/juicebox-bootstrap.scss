@@ -402,7 +402,7 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: space-around;
   align-items: flex-start;
 
-  width: 100px;
+  width: 110px;
 
   div#hic-resolution-label-container {
     display:flex;
@@ -415,9 +415,10 @@ $default-font-family: 'Open Sans', sans-serif;
 
     i#hic-resolution-lock {
       display: block;
+      font-size: 12px;
       padding-top: 4px;
-      padding-left: 3px;
-      padding-right: 3px;
+      padding-left: 5px;
+      //padding-right: 3px;
     }
 
   }

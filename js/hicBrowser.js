@@ -211,6 +211,7 @@ var hic = (function (hic) {
         //TODO -- remove this global reference !!!!
         hic.browser = this;
         this.config = config;
+        this.resolutionLocked = false;
         this.eventBus = new hic.EventBus();
 
         this.id = _.uniqueId('browser_');
@@ -952,7 +953,8 @@ var hic = (function (hic) {
             targetResolution = minResolution;
         }
 
-        if (this.resolutionLocked) {
+
+        if (true === this.resolutionLocked) {
             zoomChanged = false;
             newZoom = this.state.zoom;
         } else {
