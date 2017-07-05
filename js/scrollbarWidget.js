@@ -131,7 +131,7 @@ var hic = (function (hic) {
 
         if (false === this.isDragging && event.type === "LocusChange") {
 
-            var state = event.data,
+            var state = event.data.state,
                 dataset = self.browser.dataset;
 
             this.$x_axis_scrollbar_container.show();

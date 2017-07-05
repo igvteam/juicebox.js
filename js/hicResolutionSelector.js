@@ -83,7 +83,8 @@ var hic = (function (hic) {
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
         if (event.type === "LocusChange") {
-            var state = event.data;
+            var state = event.data.state,
+                resolutionChanged = event.data.resolutionChanged;
 
             this.$resolution_selector
                 .find('option')

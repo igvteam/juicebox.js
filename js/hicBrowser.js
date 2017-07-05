@@ -819,7 +819,8 @@ var hic = (function (hic) {
             newResolution = bpResolutions[zoom],
             newXCenter = xCenter * (currentResolution / newResolution),
             newYCenter = yCenter * (currentResolution / newResolution),
-            newPixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom));
+            newPixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)),
+            zoomChanged = (this.state.zoom !== zoom);
 
 
         this.state.zoom = zoom;
@@ -829,7 +830,7 @@ var hic = (function (hic) {
 
         this.clamp();
 
-        this.eventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
     };
 
     // hic.Browser.prototype.updateLayout = function () {
@@ -853,7 +854,7 @@ var hic = (function (hic) {
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
 
 
-        this.eventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: true}));
     };
 
     hic.Browser.prototype.updateLayout = function () {
@@ -885,8 +886,9 @@ var hic = (function (hic) {
 //        return Math.min(viewDimensions.width * (binSize / chr1Length), viewDimensions.height * (binSize / chr2Length));
     }
 
+    // TODO -- when is this every called?
     hic.Browser.prototype.update = function () {
-        this.eventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
     };
 
     /**
@@ -895,12 +897,13 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.setState = function (state) {
 
+        var zoomChanged = (this.state.zoom !== state.zoom);
         this.state = state;
 
         // Possibly adjust pixel size
         this.state.pixelSize = Math.max(state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
-        this.eventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
 
     };
 
@@ -917,7 +920,7 @@ var hic = (function (hic) {
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
-        var locusChangeEvent = hic.Event("LocusChange", this.state);
+        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false});
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
     };
@@ -933,7 +936,8 @@ var hic = (function (hic) {
             viewDimensions = this.contactMatrixView.getViewDimensions(),
             bpResolutions = this.dataset.bpResolutions,
             viewWidth = viewDimensions.width,
-            maxExtent, newZoom, newPixelSize, newXBin, newYBin;
+            maxExtent, newZoom, newPixelSize, newXBin, newYBin,
+            zoomChanged;
 
         if (minResolution === undefined) minResolution = 200;
 
@@ -949,9 +953,11 @@ var hic = (function (hic) {
         }
 
         if (this.resolutionLocked) {
+            zoomChanged = false;
             newZoom = this.state.zoom;
         } else {
             newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+            zoomChanged = (newZoom !== this.state.zoom);
         }
 
         newResolution = bpResolutions[newZoom];
@@ -967,7 +973,7 @@ var hic = (function (hic) {
         this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearCaches();
-        this.eventBus.post(hic.Event("LocusChange", this.state));
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
 
     };
 

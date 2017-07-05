@@ -69,7 +69,7 @@ var hic = (function (hic) {
 
         if (event.type === "LocusChange") {
 
-            state = event.data,
+            state = event.data.state,
             chr1 = self.browser.dataset.chromosomes[state.chr1];
             chr2 = self.browser.dataset.chromosomes[state.chr2];
 

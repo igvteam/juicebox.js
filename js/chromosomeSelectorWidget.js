@@ -77,7 +77,7 @@ var hic = (function (hic) {
         this.locusChangeConfig = {
             receiveEvent: function (event) {
                 if (event.type === "LocusChange") {
-                    self.respondToLocusChangeWithState(event.data);
+                    self.respondToLocusChangeWithState(event.data.state);
                 }
             }
         };
