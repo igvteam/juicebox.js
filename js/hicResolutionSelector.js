@@ -29,25 +29,22 @@ var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser) {
         var self = this,
-            $locked,
             $label,
-            $label_container,
-            $e;
+            $label_container;
 
         this.browser = browser;
 
         // label container
         $label_container = $('<div id="hic-resolution-label-container">');
 
-        // lock/unlock
-        this.$locked = $('<i id="hic-resolution-lock" class="fa fa-unlock fa-lg" aria-hidden="true">');
-
-        $label_container.append(this.$locked);
-
         // Resolution (kb)
         $label = $('<div>');
         $label.text('Resolution (kb)');
         $label_container.append($label);
+
+        // lock/unlock
+        this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
+        $label_container.append(this.$resolution_lock);
 
         $label_container.on('click', function (e) {
             self.browser.resolutionLocked = !(self.browser.resolutionLocked);
@@ -73,8 +70,8 @@ var hic = (function (hic) {
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-        this.$locked.removeClass( (true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-        this.$locked.addClass(    (true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+        this.$resolution_lock.removeClass( (true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+        this.$resolution_lock.addClass(    (true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
