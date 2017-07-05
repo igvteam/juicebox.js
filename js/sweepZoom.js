@@ -117,12 +117,12 @@ var hic = (function (hic) {
     hic.SweepZoom.prototype.dismiss = function () {
         var state,
             resolution,
-            X,
-            Y,
-            Width,
-            Height,
-            XMax,
-            YMax;
+            x,
+            y,
+            width,
+            height,
+            xMax,
+            yMax;
 
         this.$rulerSweeper.hide();
 
@@ -132,18 +132,18 @@ var hic = (function (hic) {
         resolution = this.browser.resolution();
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        X = (state.x + (this.sweepRect.origin.x / state.pixelSize)) * resolution;
-        Y = (state.y + (this.sweepRect.origin.y / state.pixelSize)) * resolution;
+        x = (state.x + (this.sweepRect.origin.x / state.pixelSize)) * resolution;
+        y = (state.y + (this.sweepRect.origin.y / state.pixelSize)) * resolution;
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        Width  = (this.sweepRect.size.width  / state.pixelSize) * resolution;
-        Height = (this.sweepRect.size.height / state.pixelSize) * resolution;
+        width  = (this.sweepRect.size.width  / state.pixelSize) * resolution;
+        height = (this.sweepRect.size.height / state.pixelSize) * resolution;
 
         // bp = bp + bp
-        XMax = X + Width;
-        YMax = Y + Height;
+        xMax = x + width;
+        yMax = y + height;
 
-        this.browser.goto(state.chr1, X, XMax, state.chr2, Y, YMax);
+        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax);
 
     };
 

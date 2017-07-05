@@ -39,12 +39,12 @@ var hic = (function (hic) {
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-            {
-                constants: { defaultColor: "rgb(0,0,150)" },
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
 
-                // Compatibility wit igv menus
-                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-            };
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -84,7 +84,7 @@ var hic = (function (hic) {
                 config = {url: url},
                 name, dataRangeString, color;
 
-            if(url.trim().length > 0) {
+            if (url.trim().length > 0) {
 
                 if (tokens.length > 1) name = tokens[1];
                 if (tokens.length > 2) dataRangeString = tokens[2];
@@ -116,7 +116,7 @@ var hic = (function (hic) {
             uriDecode = uri.includes('%2C'),   // for backward compatibility, all old state values will have this
             hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi;
 
-        if(query) {
+        if (query) {
             hicUrl = query["hicUrl"],
                 name = query["name"],
                 stateString = query["state"],
@@ -308,7 +308,7 @@ var hic = (function (hic) {
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    if(name) {
+                    if (name) {
                         trackString += "|" + name;
                     }
                 }
@@ -929,14 +929,15 @@ var hic = (function (hic) {
         var xCenter,
             yCenter,
             targetResolution,
+            newResolution,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
+            bpResolutions = this.dataset.bpResolutions,
             viewWidth = viewDimensions.width,
-            maxExtent;
+            maxExtent, newZoom, newPixelSize, newXBin, newYBin;
 
         if (minResolution === undefined) minResolution = 200;
 
         targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
-
 
         if (targetResolution < minResolution) {
             maxExtent = viewWidth * minResolution;
@@ -947,12 +948,16 @@ var hic = (function (hic) {
             targetResolution = minResolution;
         }
 
-        var bpResolutions = this.dataset.bpResolutions,
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions),
-            newResolution = bpResolutions[newZoom],
-            newPixelSize = Math.max(1, newResolution / targetResolution),
-            newXBin = bpX / newResolution,
-            newYBin = bpY / newResolution;
+        if (this.resolutionLocked) {
+            newZoom = this.state.zoom;
+        } else {
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+        }
+
+        newResolution = bpResolutions[newZoom];
+        newPixelSize = Math.max(1, newResolution / targetResolution);
+        newXBin = bpX / newResolution;
+        newYBin = bpY / newResolution;
 
         this.state.chr1 = chr1;
         this.state.chr2 = chr2;
@@ -1122,7 +1127,7 @@ var hic = (function (hic) {
 
     function paramDecode(str, uriDecode) {
 
-        if(uriDecode) {
+        if (uriDecode) {
             return decodeURIComponent(str);   // Backward compatibility
         }
         else {
