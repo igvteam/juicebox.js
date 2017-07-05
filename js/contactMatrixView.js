@@ -97,7 +97,6 @@ var hic = (function (hic) {
             }
         );
 
-        this.computeColorScale = true;
         this.colorScaleCache = {};
 
         this.browser.eventBus.subscribe("LocusChange", this);
@@ -112,6 +111,17 @@ var hic = (function (hic) {
         this.clearCaches();
         this.update();
     };
+
+    hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
+        if(!state) state = this.browser.state;
+        
+        this.colorScale.high = value;
+        this.colorScaleCache[colorScaleKey(state)] = value;
+    }
+    
+    function colorScaleKey(state) {
+        return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
+    }
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
@@ -141,11 +151,12 @@ var hic = (function (hic) {
         var self = this,
             state = this.browser.state;
 
+        if (!this.dataset) return;
+
         if (!this.ctx) {
             this.ctx = this.$canvas.get(0).getContext("2d");
         }
 
-        if (!this.dataset) return;
 
         this.updating = true;
 
@@ -153,29 +164,30 @@ var hic = (function (hic) {
 
             .then(function (matrix) {
 
-                var widthInBins = self.$viewport.width() / state.pixelSize,
-                    heightInBins = self.$viewport.height() / state.pixelSize,
-                    zd = matrix.bpZoomData[state.zoom],
-                    blockBinCount = zd.blockBinCount,
-                    col1 = Math.floor(state.x / blockBinCount),
-                    col2 = Math.floor((state.x + widthInBins) / blockBinCount),
-                    row1 = Math.floor(state.y / blockBinCount),
-                    row2 = Math.floor((state.y + heightInBins) / blockBinCount),
-
+                var zd = matrix.bpZoomData[state.zoom],
+                    blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
+                    pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+                    widthInBins = self.$viewport.width() / pixelSizeInt,
+                    heightInBins = self.$viewport.height() / pixelSizeInt,
+                    blockCol1 = Math.floor(state.x / blockBinCount),
+                    blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
+                    blockRow1 = Math.floor(state.y / blockBinCount),
+                    blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
                     r, c, promises = [];
 
-                self.checkColorScale(zd, row1, row2, col1, col2, state.normalization)
+                self.checkColorScale(zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
                     .then(function () {
 
-                        for (r = row1; r <= row2; r++) {
-                            for (c = col1; c <= col2; c++) {
+                        for (r = blockRow1; r <= blockRow2; r++) {
+                            for (c = blockCol1; c <= blockCol2; c++) {
                                 promises.push(self.getImageTile(zd, r, c, state));
                             }
                         }
 
                         Promise.all(promises)
                             .then(function (imageTiles) {
+                                console.log("# blocks = " + imageTiles.length);
                                 self.draw(imageTiles, zd);
                                 self.updating = false;
                             })
@@ -202,66 +214,60 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.checkColorScale = function (zd, row1, row2, col1, col2, normalization) {
 
         var self = this;
-
-        if (!self.computeColorScale) {
+        
+        var colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        if (self.colorScaleCache[colorKey]) {
+            self.colorScale.high = self.colorScaleCache[colorKey];
+            self.computeColorScale = false;
+            self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             return Promise.resolve();
         }
+
         else {
+            self.startSpinner();
 
-            var colorKey = zd.getKey() + "_" + normalization;
-            if (self.colorScaleCache[colorKey]) {
-                self.colorScale.high = self.colorScaleCache[colorKey];
-                self.computeColorScale = false;
-                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
-                return Promise.resolve();
-            }
+            return new Promise(function (fulfill, reject) {
 
-            else {
-                self.startSpinner();
+                var row, column, sameChr, blockNumber,
+                    promises = [];
 
-                return new Promise(function (fulfill, reject) {
+                sameChr = zd.chr1 === zd.chr2;
 
-                    var row, column, sameChr, blockNumber,
-                        promises = [];
-
-                    sameChr = zd.chr1 === zd.chr2;
-
-                    for (row = row1; row <= row2; row++) {
-                        for (column = col1; column <= col2; column++) {
-                            if (sameChr && row < column) {
-                                blockNumber = column * zd.blockColumnCount + row;
-                            }
-                            else {
-                                blockNumber = row * zd.blockColumnCount + column;
-                            }
-
-                            promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                for (row = row1; row <= row2; row++) {
+                    for (column = col1; column <= col2; column++) {
+                        if (sameChr && row < column) {
+                            blockNumber = column * zd.blockColumnCount + row;
                         }
+                        else {
+                            blockNumber = row * zd.blockColumnCount + column;
+                        }
+
+                        promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
                     }
+                }
 
-                    Promise.all(promises)
-                        .then(function (blocks) {
+                Promise.all(promises)
+                    .then(function (blocks) {
+                        var s = computePercentile(blocks, 95);
+                        if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                            self.colorScale.high = s;
+                            self.computeColorScale = false;
+                            self.colorScaleCache[colorKey] = s;
+                            self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+                        }
 
-                            var s = computePercentile(blocks, 95);
-                            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-                                self.colorScale.high = s;
-                                self.computeColorScale = false;
-                                self.colorScaleCache[colorKey] = s;
-                                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
-                            }
+                        self.stopSpinner();
 
-                            self.stopSpinner();
+                        fulfill();
 
-                            fulfill();
-
-                        })
-                        .catch(function (error) {
-                            self.stopSpinner();
-                            reject(error);
-                        });
-                })
-            }
+                    })
+                    .catch(function (error) {
+                        self.stopSpinner();
+                        reject(error);
+                    });
+            })
         }
+
     }
 
     hic.ContactMatrixView.prototype.draw = function (imageTiles, zd) {
@@ -300,7 +306,7 @@ var hic = (function (hic) {
                 var scaledHeight = Math.ceil(image.height * scale);
                 if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
                     offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-                    if(scale === 1) {
+                    if (scale === 1) {
                         self.ctx.drawImage(image, offsetX, offsetY);
                     }
                     else {
@@ -317,6 +323,7 @@ var hic = (function (hic) {
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
             pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+            useImageData = pixelSizeInt === 1,
             key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
                 "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization;
 
@@ -343,8 +350,10 @@ var hic = (function (hic) {
 
                 function drawBlock(block, transpose) {
 
+                    var t0 = (new Date()).getTime();
+
                     var imageSize = Math.ceil(widthInBins * pixelSizeInt),
-                        blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, fudge;
+                        blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, px, py;
 
                     blockNumber = block.blockNumber;
                     row = Math.floor(blockNumber / blockColumnCount);
@@ -358,10 +367,9 @@ var hic = (function (hic) {
                     ctx = image.getContext('2d');
                     ctx.clearRect(0, 0, image.width, image.height);
 
-                    id = ctx.getImageData(0, 0, image.width, image.height);
-                    fudge = 0; //0.5;
-
-                    // console.log('block records ' + _.size(block.records) + ' pixel size ' + state.pixelSize);
+                    if (useImageData) {
+                        id = ctx.getImageData(0, 0, image.width, image.height);
+                    }
 
                     for (i = 0; i < block.records.length; i++) {
                         rec = block.records[i];
@@ -375,9 +383,8 @@ var hic = (function (hic) {
                         }
 
                         color = self.colorScale.getColor(rec.counts);
-                        ctx.fillStyle = color.rgb;
 
-                        if (pixelSizeInt === 1) {
+                        if (useImageData) {
                             // TODO -- verify that this bitblting is faster than fillRect
                             setPixel(id, x, y, color.red, color.green, color.blue, 255);
                             if (sameChr && row === col) {
@@ -385,59 +392,65 @@ var hic = (function (hic) {
                             }
                         }
                         else {
-                            ctx.fillRect(x, y, fudge + pixelSizeInt, fudge + pixelSizeInt);
+                            ctx.fillStyle = color.rgb;
+                            ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
                             if (sameChr && row === col) {
-                                ctx.fillRect(y, x, fudge + pixelSizeInt, fudge + pixelSizeInt);
+                                ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
                             }
                         }
                     }
-                    if (pixelSizeInt === 1) ctx.putImageData(id, 0, 0);
+                    if (useImageData) {
+                        ctx.putImageData(id, 0, 0);
+                    }
 
-                    // Draw 2D tracks
-                    // ctx.save();
-                    // ctx.lineWidth = 2;
-                    // self.browser.tracks2D.forEach(function (track2D) {
-                    //
-                    //     var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-                    //
-                    //     if (features) {
-                    //         features.forEach(function (f) {
-                    //
-                    //             var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                    //             var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                    //             var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                    //             var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
-                    //             var w = x2 - x1;
-                    //             var h = y2 - y1;
-                    //
-                    //             if (transpose) {
-                    //                 t = y1;
-                    //                 y1 = x1;
-                    //                 x1 = t;
-                    //
-                    //                 t = h;
-                    //                 h = w;
-                    //                 w = t;
-                    //             }
-                    //
-                    //             var dim = Math.max(image.width, image.height);
-                    //             if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-                    //
-                    //                 ctx.strokeStyle = f.color;
-                    //                 ctx.strokeRect(x1, y1, w, h);
-                    //                 if (sameChr && row === col) {
-                    //                     ctx.strokeRect(y1, x1, h, w);
-                    //                 }
-                    //             }
-                    //         })
-                    //     }
-                    // });
-                    // ctx.restore();
+                    //Draw 2D tracks
+                    ctx.save();
+                    ctx.lineWidth = 2;
+                    self.browser.tracks2D.forEach(function (track2D) {
+
+                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+
+                        if (features) {
+                            features.forEach(function (f) {
+
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var w = x2 - x1;
+                                var h = y2 - y1;
+
+                                if (transpose) {
+                                    t = y1;
+                                    y1 = x1;
+                                    x1 = t;
+
+                                    t = h;
+                                    h = w;
+                                    w = t;
+                                }
+
+                                var dim = Math.max(image.width, image.height);
+                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                    ctx.strokeStyle = f.color;
+                                    ctx.strokeRect(x1, y1, w, h);
+                                    if (sameChr && row === col) {
+                                        ctx.strokeRect(y1, x1, h, w);
+                                    }
+                                }
+                            })
+                        }
+                    });
+                    ctx.restore();
 
                     // Uncomment to reveal tile boundaries for debugging.
                     // ctx.fillStyle = "rgb(255,255,255)";
                     // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
+                    var t1 = (new Date()).getTime();
+
+                    console.log(t1 - t0);
 
                     return image;
                 }

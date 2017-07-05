@@ -125,7 +125,7 @@ var hic = (function (hic) {
                 selectedGene = query["selectedGene"],
                 nvi = query["nvi"];
         }
-        
+
         if (hicUrl) {
             config.url = paramDecode(hicUrl, uriDecode);
         }
@@ -242,8 +242,7 @@ var hic = (function (hic) {
         this.state = config.state ? config.state : defaultState.clone();
 
         if (config.colorScale && !isNaN(config.colorScale)) {
-            this.contactMatrixView.colorScale.high = config.colorScale;
-            this.contactMatrixView.computeColorScale = false;
+            this.contactMatrixView.setColorScale(config.colorScale, this.state);
         }
 
         this.eventBus.subscribe("LocusChange", this);
@@ -381,7 +380,8 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateColorScale = function (high) {
-        this.contactMatrixView.colorScale.high = high;
+
+        this.contactMatrixView.setColorScale(high);
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
         this.updateHref();
@@ -612,7 +612,6 @@ var hic = (function (hic) {
             }
             else {
                 self.setState(defaultState.clone());
-                self.contactMatrixView.computeColorScale = true;
             }
             self.contactMatrixView.setDataset(dataset);
 
@@ -810,7 +809,6 @@ var hic = (function (hic) {
     hic.Browser.prototype.setZoom = function (zoom) {
 
         this.contactMatrixView.clearCaches();
-        this.contactMatrixView.computeColorScale = true;
 
         // Shift x,y to maintain center, if possible
         var bpResolutions = this.dataset.bpResolutions,
@@ -854,7 +852,6 @@ var hic = (function (hic) {
 
         this.state.pixelSize = Math.min(maxPixelSize, Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)));
 
-        this.contactMatrixView.computeColorScale = true;
 
         this.eventBus.post(hic.Event("LocusChange", this.state));
     };
@@ -910,7 +907,6 @@ var hic = (function (hic) {
     hic.Browser.prototype.setNormalization = function (normalization) {
 
         this.state.normalization = normalization;
-        this.contactMatrixView.computeColorScale = true;
         this.eventBus.post(hic.Event("NormalizationChange", this.state.normalization))
 
     };
@@ -966,7 +962,6 @@ var hic = (function (hic) {
         this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearCaches();
-        this.contactMatrixView.computeColorScale = true;
         this.eventBus.post(hic.Event("LocusChange", this.state));
 
     };
