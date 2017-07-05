@@ -217,9 +217,9 @@ var hic = (function (hic) {
         
         var colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
         if (self.colorScaleCache[colorKey]) {
+            var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
             self.colorScale.high = self.colorScaleCache[colorKey];
-            self.computeColorScale = false;
-            self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            if(changed) self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             return Promise.resolve();
         }
 

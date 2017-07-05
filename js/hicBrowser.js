@@ -920,7 +920,7 @@ var hic = (function (hic) {
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
-        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false});
+        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false, dragging: true});
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
     };
