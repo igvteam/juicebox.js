@@ -545,70 +545,6 @@ var hic = (function (hic) {
             this.gestureManager.remove('doubletap');
             this.gestureManager.remove('press');
             this.gestureManager.remove('swipe');
-        }
-
-        $(document).on({
-            mousedown: function (e) {
-                // do stuff
-            },
-
-            mousemove: function (e) {
-                // do stuff
-            },
-
-            // for sweep-zoom allow user to sweep beyond viewport extent
-            // sweep area clamps since viewport mouse handlers stop firing
-            // when the viewport boundary is crossed.
-            mouseup: function (e) {
-                if (isSweepZooming) {
-                    isSweepZooming = false;
-                    self.sweepZoom.dismiss();
-                }
-            }
-        });
-
-        $(document).on('keydown', function (e) {
-            // shift key
-            if (true === mouseOver && 16 === e.keyCode) {
-                self.browser.showCrosshairs();
-            }
-        });
-
-        $(document).on('keyup', function (e) {
-            // shift key
-            if (16 === e.keyCode) {
-                self.browser.hideCrosshairs();
-            }
-        });
-
-        $viewport.on('mouseover', function (e) {
-            mouseOver = true;
-        });
-
-        $viewport.on('mouseout', function (e) {
-            mouseOver = undefined;
-        });
-
-        if (false === this.browser.config.gestureSupport) {
-
-            $viewport.on('mousedown', function (e) {
-
-                var coords;
-
-                coords = hic.translateMouseCoordinates(e, $viewport);
-                mouseLast = coords;
-                mouseDown = coords;
-
-                isSweepZooming = (true === e.altKey);
-                if (isSweepZooming) {
-                    self.sweepZoom.reset();
-                }
-
-                isMouseDown = true;
-
-            });
-
-        } else {
 
             this.gestureManager.on('panstart', function (e_hammerjs) {
 
@@ -621,7 +557,56 @@ var hic = (function (hic) {
                 mouseLast = coords;
                 mouseDown = coords;
 
-                isSweepZooming = (true === e_hammerjs.srcEvent.altKey);
+                isMouseDown = true;
+
+            });
+
+        } else {
+
+            $(document).on({
+
+                keydown:function (e) {
+                    // shift key
+                    if (true === mouseOver && 16 === e.keyCode) {
+                        self.browser.showCrosshairs();
+                    }
+                },
+
+                keyup:function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.hideCrosshairs();
+                    }
+                },
+
+                // for sweep-zoom allow user to sweep beyond viewport extent
+                // sweep area clamps since viewport mouse handlers stop firing
+                // when the viewport boundary is crossed.
+                mouseup: function (e) {
+                    if (isSweepZooming) {
+                        isSweepZooming = false;
+                        self.sweepZoom.dismiss();
+                    }
+                }
+            });
+
+            $viewport.on('mouseover', function (e) {
+                mouseOver = true;
+            });
+
+            $viewport.on('mouseout', function (e) {
+                mouseOver = undefined;
+            });
+
+            $viewport.on('mousedown', function (e) {
+
+                var coords;
+
+                coords = hic.translateMouseCoordinates(e, $viewport);
+                mouseLast = coords;
+                mouseDown = coords;
+
+                isSweepZooming = (true === e.altKey);
                 if (isSweepZooming) {
                     self.sweepZoom.reset();
                 }
@@ -650,38 +635,13 @@ var hic = (function (hic) {
                     coords.x = mouseDown.x + e_hammerjs.deltaX;
                     coords.y = mouseDown.y + e_hammerjs.deltaY;
 
-                    self.browser.updateCrosshairs(coords);
-
-                    $(document).on('keydown', function (e) {
-                        // shift key
-                        if (16 === e.keyCode) {
-                            self.browser.showCrosshairs();
-                        }
-                    });
-
-                    $(document).on('keyup', function (e) {
-                        // shift key
-                        if (16 === e.keyCode) {
-                            self.browser.hideCrosshairs();
-                        }
-                    });
-
                     if (true === isMouseDown) {
 
                         isDragging = true;
 
-                        if (true === isSweepZooming) {
-
-                            self.sweepZoom.update(mouseDown, coords, {
-                                min: {x: 0, y: 0},
-                                max: {x: $viewport.width(), y: $viewport.height()}
-                            });
-
-                        } else {
-                            dx = mouseLast.x - coords.x;
-                            dy = mouseLast.y - coords.y;
-                            self.browser.shiftPixels(dx, dy);
-                        }
+                        dx = mouseLast.x - coords.x;
+                        dy = mouseLast.y - coords.y;
+                        self.browser.shiftPixels(dx, dy);
 
                         mouseLast = coords;
                     }
@@ -689,6 +649,8 @@ var hic = (function (hic) {
                 }
 
             }, 10));
+
+            this.gestureManager.on('panend', panMouseUpOrMouseOut);
 
         } else {
 
@@ -734,14 +696,6 @@ var hic = (function (hic) {
 
 
             }, 10));
-
-        }
-
-        if (true === this.browser.config.gestureSupport) {
-
-            this.gestureManager.on('panend', panMouseUpOrMouseOut);
-
-        } else {
 
             $viewport.on('mouseup', panMouseUpOrMouseOut);
 
