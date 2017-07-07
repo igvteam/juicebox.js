@@ -206,8 +206,6 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var $root;
-
         //TODO -- remove this global reference !!!!
         hic.browser = this;
         this.config = config;
@@ -218,7 +216,7 @@ var hic = (function (hic) {
         this.trackRenderers = [];
         this.tracks2D = [];
 
-        $root = $('<div class="hic-root unselect">');
+        this.$root = $('<div class="hic-root unselect">');
 
         if (false === config.showHicContactMapLabel) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
@@ -226,17 +224,17 @@ var hic = (function (hic) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
         }
 
-        if (config.width) {
-            $root.css("width", String(config.width));
+        if (config['width']) {
+            this.$root.width(config['width']);
         }
-        if (config.height) {
-            $root.css("height", String(config.height + hic.LayoutController.nav_bar_height));
+        if (config['height']) {
+            this.$root.height(config['height'] + hic.LayoutController.nav_bar_height);
         }
 
 
-        $app_container.append($root);
+        $app_container.append(this.$root);
 
-        this.layoutController = new hic.LayoutController(this, $root);
+        this.layoutController = new hic.LayoutController(this, this.$root);
 
         this.hideCrosshairs();
 
@@ -859,11 +857,16 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateLayout = function () {
-        this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        var size;
+
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        // this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
         this.clamp();
         this.renderTracks(true);
         this.layoutController.xAxisRuler.update();
         this.layoutController.yAxisRuler.update();
+
+
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.update();
     };

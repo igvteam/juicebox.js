@@ -156,12 +156,10 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .blue-backdrop {
-  height: 8px;
   background-color: dodgerblue;
 }
 
 .red-backdrop {
-  height: 8px;
   background-color: orangered;
 }
 
@@ -175,10 +173,21 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: green;
 }
 
-.blue-box {
+.blue-button {
   height: 40px;
+
+  text-align: center;
+  vertical-align: top;
+  line-height: 40px;
   color: white;
-  background-color: blue;
+  background-color: #57bbf5;
+}
+
+.blue-button:hover,
+.blue-button:focus,
+.blue-button:active  {
+  cursor: pointer;
+  background-color: #367397;
 }
 
 .bootstrap-row-shim-top-4 { margin-top: 4px; }

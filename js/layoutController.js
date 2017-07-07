@@ -333,7 +333,7 @@ var hic = (function (hic) {
             height_calc;
 
 
-        track_aggregate_height = trackXYPairCount * this.track_height;
+        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * this.track_height;
 
         tokens = _.map([ hic.LayoutController.nav_bar_height, track_aggregate_height ], function(number){
             return number.toString() + 'px';
@@ -373,8 +373,19 @@ var hic = (function (hic) {
         // x-scrollbar
         this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css( 'width', width_calc );
 
+    };
 
+    hic.LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
 
+        var count;
+
+        this.browser.$root.width(size.width);
+        this.browser.$root.height(size.height + hic.LayoutController.nav_bar_height);
+
+        count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
+        this.doLayoutTrackXYPairCount(count);
+
+        this.browser.updateLayout();
     };
 
     return hic;

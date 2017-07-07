@@ -288,6 +288,7 @@ var hic = (function (hic) {
         }
 
         self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        // self.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
 
         imageTiles.forEach(function (imageTile) {
 
