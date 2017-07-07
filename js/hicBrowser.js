@@ -859,14 +859,14 @@ var hic = (function (hic) {
     hic.Browser.prototype.updateLayout = function () {
         var size;
 
-        this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+        // this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
         this.clamp();
         this.renderTracks(true);
         this.layoutController.xAxisRuler.update();
         this.layoutController.yAxisRuler.update();
 
-        size = this.contactMatrixView.getViewDimensions();
-        console.log('contact map ' + size.width + ', ' + size.height);
+
         this.contactMatrixView.clearCaches();
         this.contactMatrixView.update();
     };

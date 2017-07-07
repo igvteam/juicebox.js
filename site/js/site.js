@@ -29,10 +29,15 @@ var site = (function (site) {
     site.init = function (browser) {
 
         $('#contact-map-resize').on('click', function (e) {
-            var dimen;
+            var w,
+                h,
+
+                dimen;
 
             dimen = Math.floor(igv.random(300, 800));
-            browser.layoutController.doLayoutWithRootContainerSize({ width: dimen, height: dimen });
+            w = Math.floor(igv.random(300, 800));
+            h = Math.floor(igv.random(200, 1024));
+            browser.layoutController.doLayoutWithRootContainerSize({ width: w, height: h });
         });
 
 

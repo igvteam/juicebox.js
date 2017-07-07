@@ -379,8 +379,6 @@ var hic = (function (hic) {
 
         var count;
 
-        console.log('do layout with root container size ' + size.width + ', ' + size.height);
-
         this.browser.$root.width(size.width);
         this.browser.$root.height(size.height + hic.LayoutController.nav_bar_height);
 
