@@ -834,16 +834,6 @@ var hic = (function (hic) {
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
     };
 
-    // hic.Browser.prototype.updateLayout = function () {
-    //     this.state.pixelSize = Math.max(defaultPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
-    //     this.clamp();
-    //     this.renderTracks(true);
-    //     this.contactMatrixView.clearCaches();
-    //     this.contactMatrixView.update();
-    //
-    //
-    // };
-
     hic.Browser.prototype.setChromosomes = function (chr1, chr2) {
 
         this.state.chr1 = Math.min(chr1, chr2);
@@ -859,7 +849,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateLayout = function () {
-        this.state.pixelSize = Math.max(this.state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+
         this.clamp();
         this.renderTracks(true);
         this.layoutController.xAxisRuler.update();
@@ -887,7 +877,7 @@ var hic = (function (hic) {
 //        return Math.min(viewDimensions.width * (binSize / chr1Length), viewDimensions.height * (binSize / chr2Length));
     }
 
-    // TODO -- when is this every called?
+    // TODO -- when is this called?
     hic.Browser.prototype.update = function () {
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
     };
@@ -988,6 +978,7 @@ var hic = (function (hic) {
         // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
         maxX = Math.max(0, maxX);
         maxY = Math.max(0, maxY);
+
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
