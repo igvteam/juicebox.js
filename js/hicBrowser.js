@@ -206,8 +206,6 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var $root;
-
         //TODO -- remove this global reference !!!!
         hic.browser = this;
         this.config = config;
@@ -218,7 +216,7 @@ var hic = (function (hic) {
         this.trackRenderers = [];
         this.tracks2D = [];
 
-        $root = $('<div class="hic-root unselect">');
+        this.$root = $('<div class="hic-root unselect">');
 
         if (false === config.showHicContactMapLabel) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
@@ -227,16 +225,16 @@ var hic = (function (hic) {
         }
 
         if (config.width) {
-            $root.css("width", String(config.width));
+            this.$root.css("width", String(config.width));
         }
         if (config.height) {
-            $root.css("height", String(config.height + hic.LayoutController.nav_bar_height));
+            this.$root.css("height", String(config.height + hic.LayoutController.nav_bar_height));
         }
 
 
-        $app_container.append($root);
+        $app_container.append(this.$root);
 
-        this.layoutController = new hic.LayoutController(this, $root);
+        this.layoutController = new hic.LayoutController(this, this.$root);
 
         this.hideCrosshairs();
 

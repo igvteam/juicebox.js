@@ -28,6 +28,19 @@ var site = (function (site) {
 
     site.init = function (browser) {
 
+        $('#contact-map-resize').on('click', function (e) {
+            var w,
+                h,
+
+                dimen;
+
+            dimen = Math.floor(igv.random(300, 800));
+            w = Math.floor(igv.random(300, 800));
+            h = Math.floor(igv.random(200, 1024));
+            browser.layoutController.doLayoutWithRootContainerSize({ width: w, height: h });
+        });
+
+
         $('#dataset_selector').on('change', function (e) {
             var $selected,
                 url,
