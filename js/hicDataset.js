@@ -173,7 +173,7 @@ var hic = (function (hic) {
 
         var self = this,
             key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-        
+
         if (this.normVectorCache.hasOwnProperty(key)) {
             return Promise.resolve(this.normVectorCache[key]);
         } else {
@@ -194,6 +194,36 @@ var hic = (function (hic) {
             })
         }
     };
+
+    hic.Dataset.prototype.readNormalizationVectorFile = function (url) {
+
+        var self = this;
+
+        return new Promise(function (fulfill, reject) {
+
+            self.hicReader.readNormalizationVectorFile(url, self.chromosomes)
+
+                .then(function (normVectors) {
+
+                    _.extend(self.normVectorCache, normVectors);
+
+                    normVectors["types"].forEach(function (type) {
+
+                        if(!self.normalizationTypes) self.normalizationTypes = [];
+
+                        if (_.contains(self.normalizationTypes, type) === false) {
+                            self.normalizationTypes.push(type);
+                        }
+
+                    });
+
+                    fulfill(self);
+
+                })
+                .catch(reject)
+        });
+
+    }
 
 
     hic.Block = function (blockNumber, zoomData, records) {

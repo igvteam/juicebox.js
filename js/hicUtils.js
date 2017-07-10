@@ -92,6 +92,19 @@ var hic = (function (hic) {
 
     hic.Math = {
 
+        mean: function(array) {
+
+            var t = 0, n=0,
+                i;
+            for(i=0; i<array.length; i++) {
+                if(!isNaN(array[i])) {
+                    t += array[i];
+                    n++;
+                }
+            }
+            return n > 0 ? t / n : 0;
+        },
+
         percentile: function (array, p) {
 
             if(array.length === 0) return undefined;

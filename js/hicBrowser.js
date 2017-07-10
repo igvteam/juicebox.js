@@ -123,7 +123,8 @@ var hic = (function (hic) {
                 colorScale = query["colorScale"],
                 trackString = query["tracks"],
                 selectedGene = query["selectedGene"],
-                nvi = query["nvi"];
+                nvi = query["nvi"],
+                normVectorString = query["normVectorFiles"];
         }
 
         if (hicUrl) {
@@ -148,6 +149,10 @@ var hic = (function (hic) {
 
         if (selectedGene) {
             igv.FeatureTrack.selectedGene = selectedGene;
+        }
+
+        if(normVectorString) {
+            config.normVectorFiles = normVectorString.split("|||");
         }
 
         config.nvi = nvi;
@@ -217,6 +222,7 @@ var hic = (function (hic) {
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
         this.tracks2D = [];
+        this.normVectorFiles = [];
 
         $root = $('<div class="hic-root unselect">');
 
@@ -275,7 +281,6 @@ var hic = (function (hic) {
             href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
         }
 
-
         nviString = getNviString(this.dataset, this.state);
         if (nviString) {
             href = replaceURIParameter("nvi", nviString, href);
@@ -318,6 +323,20 @@ var hic = (function (hic) {
             if (trackString.length > 0) {
                 href = replaceURIParameter("tracks", trackString, href);
             }
+        }
+
+        if(this.normVectorFiles.length > 0) {
+
+            var normVectorString = "";
+            this.normVectorFiles.forEach(function (url) {
+
+                if(normVectorString.length > 0) normVectorString += "|||";
+                normVectorString += url;
+
+            });
+
+            href = replaceURIParameter("normVectorFiles", normVectorString, href);
+
         }
 
         if (this.config.updateHref === false) {
@@ -413,9 +432,14 @@ var hic = (function (hic) {
 
         _.each(trackConfigurations, function (config) {
 
-            var fn = config.url instanceof File ? config.url.name : config.url;
+            var isLocal = config.url instanceof File,
+                fn = isLocal ? config.url.name : config.url;
             if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                 self.loadNormalizationFile(config.url);
+                if(isLocal === false) {
+                    self.normVectorFiles.push(config.url);
+                    self.updateHref();
+                }
                 return;
             }
 
@@ -509,27 +533,17 @@ var hic = (function (hic) {
 
         self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
 
-        this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+        this.dataset.readNormalizationVectorFile(url)
 
-            .then(function (normVectors) {
+            .then(function (ignore) {
 
-                _.extend(self.dataset.normVectorCache, normVectors);
-
-                normVectors["types"].forEach(function (type) {
-
-                    if (_.contains(self.dataset.normalizationTypes, type) === false) {
-                        self.dataset.normalizationTypes.push(type);
-                    }
-
-                    self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
-                });
+                self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
 
             })
             .catch(function (error) {
                 self.eventBus.post(hic.Event("NormalizationFileLoad", "abort"));
                 console.log(error);
-            })
-
+            });
     }
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
@@ -635,9 +649,59 @@ var hic = (function (hic) {
 
         this.tracks2D = [];
 
-        hicReader = new hic.HiCReader(config);
+
+
+        if (config.dataset) {
+            setDataset(config.dataset);
+        }
+        else {
+
+            hicReader = new hic.HiCReader(config);
+
+            hicReader.loadDataset(config)
+
+                .then(function (dataset) {
+
+
+                    if (config.normVectorFiles) {
+
+
+                        var promises = [];
+
+                        config.normVectorFiles.forEach(function (f) {
+                            promises.push(dataset.readNormalizationVectorFile(f));
+                        })
+
+                        self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
+
+                        Promise.all(promises)
+
+                            .then(function (ignore) {
+
+                                setDataset(dataset);
+
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
+
+                            })
+                            .catch(function (error) {
+                                self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
+                                console.log(error);
+                            });
+                    }
+                    else {
+                        setDataset(dataset);
+                    }
+
+                })
+                .catch(function (error) {
+                    // Error getting dataset
+                    self.contactMatrixView.stopSpinner();
+                    console.log(error);
+                });
+        }
 
         function setDataset(dataset) {
+
             var previousGenomeId = self.genome ? self.genome.id : undefined;
 
             self.dataset = dataset;
@@ -702,23 +766,6 @@ var hic = (function (hic) {
                         });
                 }
             }
-        }
-
-        if (config.dataset) {
-            setDataset(config.dataset);
-        }
-        else {
-            hicReader.loadDataset()
-
-                .then(function (dataset) {
-                    setDataset(dataset);
-
-                })
-                .catch(function (error) {
-                    // Error getting dataset
-                    self.contactMatrixView.stopSpinner();
-                    console.log(error);
-                });
         }
 
     };

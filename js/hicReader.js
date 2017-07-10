@@ -40,7 +40,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.HiCReader.prototype.loadDataset = function () {
+    hic.HiCReader.prototype.loadDataset = function (config) {
 
         var self = this,
             dataset = new hic.Dataset(this);
@@ -51,7 +51,23 @@ var hic = (function (hic) {
                 .then(function () {
                     self.readFooter(dataset)
                         .then(function () {
-                            fulfill(dataset);
+
+                            if (config.normVectorFiles) {
+
+                                var promises = [];
+                                config.normVectorFiles.forEach(function (f) {
+                                    promises.push(dataset.readNormalizationVectorFile(f));
+                                })
+
+                                Promise.all(promises)
+                                    .then(function (ignore) {
+                                        fulfill(dataset);
+                                    })
+                                    .catch(reject);
+                            }
+                            else {
+                                fulfill(dataset);
+                            }
                         })
                         .catch(reject)
                 })
@@ -264,7 +280,11 @@ var hic = (function (hic) {
                 // Normalization vector index
                 var p0 = binaryParser.position;
                 self.normVectorIndex = {};
-                dataset.normalizationTypes = ['NONE'];
+
+                if(!dataset.normalizationTypes) {
+                    dataset.normalizationTypes = [];
+                }
+                dataset.normalizationTypes.push('NONE');
 
                 nEntries = binaryParser.getInt();
                 while (nEntries-- > 0) {
@@ -325,7 +345,11 @@ var hic = (function (hic) {
 
                 // Normalization vector index
                 if (undefined === self.normVectorIndex) self.normVectorIndex = {};
-                dataset.normalizationTypes = ['NONE'];
+
+                if(!dataset.normalizationTypes) {
+                    dataset.normalizationTypes = [];
+                }
+                dataset.normalizationTypes.push('NONE');
 
                 var p0 = binaryParser.position,
                     normalizationIndexPosition = range.start + p0;
@@ -671,7 +695,7 @@ var hic = (function (hic) {
 
                     var lines = data.splitLines(),
                         len = lines.length,
-                        line, i, type, chr, binSize, unit, tokens, values, v, key, chrIdx, chrMap, vectors, types;
+                        line, i, j, type, chr, binSize, unit, tokens, values, v, key, chrIdx, chrMap, vectors, types, mean;
 
                     types = new Set();
                     vectors = {};
@@ -679,7 +703,7 @@ var hic = (function (hic) {
                     chromosomes.forEach(function (chr) {
                         chrMap[chr.name] = chr.index;
                         // Hack for demo
-                        if(chr.name.startsWith("chr")) {
+                        if (chr.name.startsWith("chr")) {
                             chrMap[chr.name.substring(3)] = chr.index;
                         } else {
                             chrMap["chr" + chr.name] = chr.index;
@@ -690,7 +714,13 @@ var hic = (function (hic) {
                         line = lines[i].trim();
                         if (line.startsWith("vector")) {
 
-                            if(key) {
+                            if (key && values) {
+                                var mean = hic.Math.mean(values);
+                                if (mean > 0) {
+                                    for (j = 0; j < values.length; j++) {
+                                        values[j] /= mean;
+                                    }
+                                }
                                 vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values)
                             }
                             values = [];
@@ -703,7 +733,7 @@ var hic = (function (hic) {
 
 
                             chrIdx = chrMap[chr];
-                            if(chrIdx) {
+                            if (chrIdx) {
                                 types.add(type);
                                 key = hic.getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
                             } else {
@@ -714,7 +744,7 @@ var hic = (function (hic) {
 
                         }
                         else {
-                            if(key && values) {
+                            if (key && values) {
                                 v = (line.length === 0 || line == ".") ? NaN : parseFloat(line);
                                 values.push(v);
                             }
@@ -722,7 +752,13 @@ var hic = (function (hic) {
                     }
 
                     // Last one
-                    if(key && values && values.length > 0) {
+                    if (key && values && values.length > 0 && chrIdx) {
+                        mean = hic.Math.mean(values);
+                        if (mean > 0) {
+                            for (j = 0; j < values.length; j++) {
+                                values[j] /= mean;
+                            }
+                        }
                         vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values);
                     }
 
