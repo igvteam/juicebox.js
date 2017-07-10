@@ -89,6 +89,12 @@ var hic = (function (hic) {
         return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
     }
 
+    function getAltKey(chr1, chr2) {
+        var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
+            chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
+        return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
+    }
+
 
     function Track2D(config, features) {
 
@@ -114,8 +120,10 @@ var hic = (function (hic) {
     }
 
     Track2D.prototype.getFeatures = function(chr1, chr2) {
-        var key = getKey(chr1, chr2);
-        return this.featureMap[key];
+        var key = getKey(chr1, chr2),
+            features =  this.featureMap[key];
+
+        return features || this.featureMap[getAltKey(chr1, chr2)];
     }
 
     return hic;
