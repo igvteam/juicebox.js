@@ -1208,6 +1208,7 @@ var hic = (function (hic) {
         else {
             var s = replaceAll(str, '%26', '&');
             s = replaceAll(s, '%20', ' ');
+            s = replaceAll(s, "%7C", "|");
             return s;
         }
     }
