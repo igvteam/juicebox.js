@@ -656,6 +656,85 @@ var hic = (function (hic) {
         })
     }
 
+    hic.HiCReader.prototype.readNormalizationVectorFile = function (url, chromosomes) {
+
+        var self = this;
+
+
+        return new Promise(function (fullfill, reject) {
+
+            var options = igv.buildOptions({});    // Add oauth token, if any
+
+            igvxhr
+                .loadString(url, options)
+                .then(function (data) {
+
+                    var lines = data.splitLines(),
+                        len = lines.length,
+                        line, i, type, chr, binSize, unit, tokens, values, v, key, chrIdx, chrMap, vectors, types;
+
+                    types = new Set();
+                    vectors = {};
+                    chrMap = {};
+                    chromosomes.forEach(function (chr) {
+                        chrMap[chr.name] = chr.index;
+                        // Hack for demo
+                        if(chr.name.startsWith("chr")) {
+                            chrMap[chr.name.substring(3)] = chr.index;
+                        } else {
+                            chrMap["chr" + chr.name] = chr.index;
+                        }
+                    })
+
+                    for (i = 0; i < len; i++) {
+                        line = lines[i].trim();
+                        if (line.startsWith("vector")) {
+
+                            if(key) {
+                                vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values)
+                            }
+                            values = [];
+
+                            tokens = line.split("\t");
+                            type = tokens[1];
+                            chr = tokens[2];
+                            binSize = tokens[3];
+                            unit = tokens[4];
+
+
+                            chrIdx = chrMap[chr];
+                            if(chrIdx) {
+                                types.add(type);
+                                key = hic.getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
+                            } else {
+                                key = undefined;
+                                console.log("Unknown chromosome: " + chr);
+                            }
+
+
+                        }
+                        else {
+                            if(key && values) {
+                                v = (line.length === 0 || line == ".") ? NaN : parseFloat(line);
+                                values.push(v);
+                            }
+                        }
+                    }
+
+                    // Last one
+                    if(key && values && values.length > 0) {
+                        vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values);
+                    }
+
+                    vectors.types = types;
+
+                    fullfill(vectors);
+                })
+                .catch(reject);
+
+        });
+    };
+
 
     function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
         this.normType = normType;

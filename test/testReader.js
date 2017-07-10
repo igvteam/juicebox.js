@@ -1,10 +1,34 @@
-function runHiCTests() {
+function runHicReaderTests() {
 
 
     function createMockObjects() {
 
 
     }
+
+    asyncTest("Norm vectors", function () {
+
+        var url = "../test/data/normVector/normVectors.nv",
+            hicReader,
+            chromosomes = ["All", "chr1", "chr2"];
+
+        createMockObjects();
+
+        hicReader = new hic.HiCReader({url: url});
+        ok(hicReader);
+        
+        hicReader.readNormalizationVectorFile(url, chromosomes)
+            .then(function (normVectors) {
+                
+                ok(normVectors);
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+
+
+
+    });
 
     asyncTest("Version 8 file", function () {
 

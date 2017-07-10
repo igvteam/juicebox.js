@@ -403,6 +403,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.loadTrack = function (trackConfigurations) {
+
         var self = this,
             promises,
             promises2D;
@@ -411,6 +412,13 @@ var hic = (function (hic) {
         promises2D = [];
 
         _.each(trackConfigurations, function (config) {
+
+            var fn = config.url instanceof File ? config.url.name : config.url;
+            if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+                self.loadNormalizationFile(config.url);
+                return;
+            }
+
 
             igv.inferTrackTypes(config);
 
@@ -490,6 +498,37 @@ var hic = (function (hic) {
                 fulfill(newTrack);
             }
         });
+
+    }
+
+    hic.Browser.prototype.loadNormalizationFile = function (url) {
+
+        var self = this;
+
+        if (!this.dataset) return;
+
+        self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
+
+        this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+
+            .then(function (normVectors) {
+
+                _.extend(self.dataset.normVectorCache, normVectors);
+
+                normVectors["types"].forEach(function (type) {
+
+                    if (_.contains(self.dataset.normalizationTypes, type) === false) {
+                        self.dataset.normalizationTypes.push(type);
+                    }
+
+                    self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
+                });
+
+            })
+            .catch(function (error) {
+                self.eventBus.post(hic.Event("NormalizationFileLoad", "abort"));
+                console.log(error);
+            })
 
     }
 
@@ -1003,7 +1042,7 @@ var hic = (function (hic) {
         defaultPixelSize = 1;
         defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
-        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
             config.gestureSupport = true;
         } else {
             config.gestureSupport = false;

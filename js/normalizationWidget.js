@@ -76,6 +76,7 @@ var hic = (function (hic) {
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
+        this.browser.eventBus.subscribe("NormalizationFileLoad", this);
 
     };
 
@@ -105,7 +106,7 @@ var hic = (function (hic) {
                     titleString,
                     valueString;
 
-                label = labels[normalization];
+                label = labels[normalization] || normalization;
                 isSelected = (norm === normalization);
                 titleString = (label === undefined ? '' : ' title = "' + label + '" ');
                 valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
@@ -130,6 +131,13 @@ var hic = (function (hic) {
 
             // TODO -- end norm widget "not ready" state
             this.stopNotReady();
+
+        } else if ("NormalizationFileLoad" === event.type) {
+            if(event.data === "start") {
+                this.startNotReady();
+            } else {
+                this.stopNotReady();
+            }
         }
     };
 
