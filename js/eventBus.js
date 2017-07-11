@@ -34,7 +34,9 @@
 var hic = (function (hic) {
 
 
-    hic.EventBus = function () {
+    hic.EventBus = function (browser) {
+
+        this.browser = browser;
 
         // Map eventType -> list of subscribers
         this.subscribers = {};
@@ -53,7 +55,8 @@ var hic = (function (hic) {
 
     hic.EventBus.prototype.post = function (event) {
 
-        var eventType = event.type,
+        var self = this,
+            eventType = event.type,
             subscriberList = this.subscribers[eventType];
 
         if(subscriberList) {
@@ -65,12 +68,21 @@ var hic = (function (hic) {
             });
         }
 
+        if(event.type === "LocusChange"  && event.propogate) {
+
+            self.browser.synchedBrowsers.forEach(function (browser) {
+                browser.syncState(self.browser.state);
+            })
+
+        }
+
     };
 
-    hic.Event = function(type, data) {
+    hic.Event = function(type, data, propogate) {
         return {
             type: type,
-            data: data || {}
+            data: data || {},
+            propogate: propogate !== undefined ? propogate : true     // Default to true
         }
     };
 

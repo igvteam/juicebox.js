@@ -209,18 +209,31 @@ var hic = (function (hic) {
     }
 
 
+    hic.syncBrowsers = function(browsers) {
+
+        browsers.forEach(function (b1) {
+            browsers.forEach(function (b2) {
+                if(b1 !== b2) {
+                    b1.synchedBrowsers.push(b2);
+                }
+            })
+        })
+    }
+
     hic.Browser = function ($app_container, config) {
 
         //TODO -- remove this global reference !!!!
         hic.browser = this;
         this.config = config;
         this.resolutionLocked = false;
-        this.eventBus = new hic.EventBus();
+        this.eventBus = new hic.EventBus(this);
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
         this.tracks2D = [];
         this.normVectorFiles = [];
+
+        this.synchedBrowsers = [];
 
         this.$root = $('<div class="hic-root unselect">');
 
@@ -979,6 +992,26 @@ var hic = (function (hic) {
         this.state.pixelSize = Math.max(state.pixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
 
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
+
+    };
+
+    /**
+     * Used to synch state with other browsers
+     * @param state  browser state
+     */
+    hic.Browser.prototype.syncState = function (state) {
+
+        if(!this.dataset) return;
+
+        var zoomChanged = (this.state.zoom !== state.zoom);
+        this.state.chr1 = state.chr1;
+        this.state.chr2 = state.chr2;
+        this.state.zoom = state.zoom;
+        this.state.x = state.x;
+        this.state.y = state.y;
+        this.state.pixelSize = state.pixelSize;
+
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}, false));
 
     };
 
