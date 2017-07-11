@@ -66,6 +66,7 @@
     <script src="dist/juicebox.js"></script>
 
 </head>
+
 <body style="margin:30px">
 
 <h1 style="text-align: center; font:Helvetica Neue;font-size:36px;line-height: 40px; color: #333333
@@ -106,19 +107,20 @@
 
 
         browser1 = hic.createBrowser($('#app-container-1'), {
-
+            name: "Rao et al. | Biorxiv 2017 Combined Untreated",
             width: windowSize,
             height: windowSize,
             url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic",
-            nvi: "30439217680%2C36479"
+            nvi: "30439217680,36479"
         });
 
 
         browser2 = hic.createBrowser($('#app-container-2'), {
+            name: "Rao et al. | Biorxiv 2017 Combined Treated (6 hr)",
             width: windowSize,
             height: windowSize,
             url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic",
-            nvi: "33255540403%2C36479"
+            nvi: "33255540403,36479"
         });
 
         hic.syncBrowsers([browser1, browser2]);

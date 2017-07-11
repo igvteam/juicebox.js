@@ -155,7 +155,9 @@ var hic = (function (hic) {
             config.normVectorFiles = normVectorString.split("|||");
         }
 
-        config.nvi = nvi;
+        if(nvi) {
+            config.nvi = nvi;
+        }
 
         browser = new hic.Browser($hic_container, config);
 
