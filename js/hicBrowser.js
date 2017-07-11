@@ -183,7 +183,7 @@ var hic = (function (hic) {
         return new Promise(function (fulfill, reject) {
             var hicReader = new hic.HiCReader(config);
 
-            hicReader.loadDataset()
+            hicReader.loadDataset(config)
 
                 .then(function (dataset) {
 
