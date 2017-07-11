@@ -30,13 +30,21 @@
 var hic = (function (hic) {
 
 
-    hic.NormalizationVector = function (type, chrIdx, unit, resolution, data, idx) {
+    hic.NormalizationVector = function (type, chrIdx, unit, resolution, values) {
+     
+
+        var mean = hic.Math.mean(values), i;
+        if (mean > 0) {
+            for (i = 0; i < values.length; i++) {
+                values[i] /= mean;
+            }
+        }
+        
         this.type = type;
         this.chrIdx = chrIdx;
         this.unit = unit;
         this.resolution = resolution;
-        this.data = data;
-        this.idx = idx;
+        this.data = values;
     }
 
     hic.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {

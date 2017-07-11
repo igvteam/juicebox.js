@@ -714,13 +714,7 @@ var hic = (function (hic) {
                         line = lines[i].trim();
                         if (line.startsWith("vector")) {
 
-                            if (key && values) {
-                                var mean = hic.Math.mean(values);
-                                if (mean > 0) {
-                                    for (j = 0; j < values.length; j++) {
-                                        values[j] /= mean;
-                                    }
-                                }
+                            if (key && values && chrIdx) {
                                 vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values)
                             }
                             values = [];
@@ -753,12 +747,6 @@ var hic = (function (hic) {
 
                     // Last one
                     if (key && values && values.length > 0 && chrIdx) {
-                        mean = hic.Math.mean(values);
-                        if (mean > 0) {
-                            for (j = 0; j < values.length; j++) {
-                                values[j] /= mean;
-                            }
-                        }
                         vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values);
                     }
 
