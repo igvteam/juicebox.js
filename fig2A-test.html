@@ -241,6 +241,11 @@
                         dataset: dataset,
                         href: "?state=1%2C1%2C8%2C18341.574%2C18345.1742%2C1.0574360012699833%2CKR&colorScale=30&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Ftreated_6hr%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Treated%20(6%20hr)"
                     });
+
+                    if(browser1) hic.syncBrowsers([browser1, browser2]);
+                    if(browser3) hic.syncBrowsers([browser3, browser4]);
+                    if(browser5) hic.syncBrowsers([browser5, browser6]);
+
                 })
                 .catch(function (error) {
                     console.log(error);
