@@ -214,11 +214,21 @@ var hic = (function (hic) {
     hic.syncBrowsers = function(browsers) {
 
         browsers.forEach(function (b1) {
-            browsers.forEach(function (b2) {
-                if(b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
-                    b1.synchedBrowsers.push(b2);
-                }
-            })
+            if(b1 === undefined) {
+                console.log("Attempt to sync undefined browser");
+            }
+            else {
+                browsers.forEach(function (b2) {
+                    if(b2 === undefined) {
+                        console.log("Attempt to sync undefined browser");
+                    }
+                    else {
+                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
+                            b1.synchedBrowsers.push(b2);
+                        }
+                    }
+                })
+            }
         })
     }
 
