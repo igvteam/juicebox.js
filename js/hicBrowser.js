@@ -215,7 +215,7 @@ var hic = (function (hic) {
 
         browsers.forEach(function (b1) {
             browsers.forEach(function (b2) {
-                if(b1 !== b2 && b1.syncBrowsers.includes(b2)) {
+                if(b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
                     b1.synchedBrowsers.push(b2);
                 }
             })
