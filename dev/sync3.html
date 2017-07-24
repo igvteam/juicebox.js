@@ -240,19 +240,7 @@
                         href: "state=1%2C1%2C6%2C0%2C0%2C1.0257216823271986%2CNONE&colorScale=40&hicUrl=https://s3.amazonaws.com/elasticbeanstalk-fourfront-webdev-wfoutput/ca58cb8d-f193-405b-88b8-132ff55b3e4c/4DNFI7X20NJT.hic&name=4DNFI7X20NJT.hic&normVectorFiles=https://s3.amazonaws.com/soos-4dn-bucket/4DNFIITTJYNR.mcool.bins.juicerformat.gz&nvi=755845825%2C25900"
                     });
 
-                    if(browser2) hic.syncBrowsers([browser1, browser2]);
-                    if(browser4) hic.syncBrowsers([browser3, browser4]);
-                    if(browser6) hic.syncBrowsers([browser5, browser6]);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
 
-        hic.loadDataset({
-            url: "https://s3.amazonaws.com/elasticbeanstalk-fourfront-webdev-wfoutput/ca58cb8d-f193-405b-88b8-132ff55b3e4c/4DNFI7X20NJT.hic",
-            nvi: "755845825%2C25900"
-        })
-                .then(function (dataset) {
                     browser2 = hic.createBrowser($('#app-container-2'), {
                         miniMode: true,
                         width: windowSize,
@@ -277,9 +265,12 @@
                         href: "state=1%2C1%2C6%2C0%2C0%2C1.0257216823271986%2CNONE&colorScale=40&hicUrl=https://s3.amazonaws.com/elasticbeanstalk-fourfront-webdev-wfoutput/ca58cb8d-f193-405b-88b8-132ff55b3e4c/4DNFI7X20NJT.hic&name=4DNFI7X20NJT.hic&normVectorFiles=https://s3.amazonaws.com/soos-4dn-bucket/4DNFIITTJYNR.mcool.bins.juicerformat.gz&nvi=755845825%2C25900"
                     });
 
-                    if(browser1) hic.syncBrowsers([browser1, browser2]);
-                    if(browser3) hic.syncBrowsers([browser3, browser4]);
-                    if(browser5) hic.syncBrowsers([browser5, browser6]);
+                    hic.syncBrowsers([browser1, browser2]);
+                    hic.syncBrowsers([browser3, browser4]);
+                    hic.syncBrowsers([browser5, browser6]);
+                    hic.syncBrowsers([browser1, browser2]);
+                    hic.syncBrowsers([browser3, browser4]);
+                    hic.syncBrowsers([browser5, browser6]);
 
                 })
                 .catch(function (error) {
