@@ -109,6 +109,10 @@ var hic = (function (hic) {
 
         setDefaults(config);
 
+        if(config.href && !config.href.includes("?")) {
+            config.href = "?" + config.href;
+        }
+
         var browser,
             uri = config.href || window.location.href,
             parts = parseUri(uri),
@@ -151,11 +155,11 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if(normVectorString) {
+        if (normVectorString) {
             config.normVectorFiles = normVectorString.split("|||");
         }
 
-        if(nvi) {
+        if (nvi) {
             config.nvi = nvi;
         }
 
@@ -165,7 +169,7 @@ var hic = (function (hic) {
 
         createIGV($hic_container, browser, browser.trackMenuReplacement);
 
-        if (config.url) {
+        if (config.url || config.dataset) {
             browser.loadHicFile(config);
         }
 
@@ -211,15 +215,15 @@ var hic = (function (hic) {
     }
 
 
-    hic.syncBrowsers = function(browsers) {
+    hic.syncBrowsers = function (browsers) {
 
         browsers.forEach(function (b1) {
-            if(b1 === undefined) {
+            if (b1 === undefined) {
                 console.log("Attempt to sync undefined browser");
             }
             else {
                 browsers.forEach(function (b2) {
-                    if(b2 === undefined) {
+                    if (b2 === undefined) {
                         console.log("Attempt to sync undefined browser");
                     }
                     else {
@@ -290,7 +294,9 @@ var hic = (function (hic) {
             nviString, trackString;
 
         if (event && event.type === "MapLoad") {
-            href = replaceURIParameter("hicUrl", this.url, href);
+            if(this.url) {
+                href = replaceURIParameter("hicUrl", this.url, href);
+            }
             if (this.name) {
                 href = replaceURIParameter("name", this.name, href);
             }
@@ -348,12 +354,12 @@ var hic = (function (hic) {
             }
         }
 
-        if(this.normVectorFiles.length > 0) {
+        if (this.normVectorFiles.length > 0) {
 
             var normVectorString = "";
             this.normVectorFiles.forEach(function (url) {
 
-                if(normVectorString.length > 0) normVectorString += "|||";
+                if (normVectorString.length > 0) normVectorString += "|||";
                 normVectorString += url;
 
             });
@@ -459,7 +465,7 @@ var hic = (function (hic) {
                 fn = isLocal ? config.url.name : config.url;
             if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                 self.loadNormalizationFile(config.url);
-                if(isLocal === false) {
+                if (isLocal === false) {
                     self.normVectorFiles.push(config.url);
                     self.updateHref();
                 }
@@ -635,29 +641,30 @@ var hic = (function (hic) {
             queryIdx,
             parts;
 
-        if (!config.url) {
+        if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
             return;
         }
 
-        if (config.url instanceof File) {
-            this.url = config.url;
-        } else {
+        if (config.url) {
+            if (config.url instanceof File) {
+                this.url = config.url;
+            } else {
 
-            queryIdx = config.url.indexOf("?");
-            if (queryIdx > 0) {
-                this.url = config.url.substring(0, queryIdx);
-                parts = parseUri(config.url);
-                if (parts.queryKey) {
-                    _.each(parts.queryKey, function (value, key) {
-                        config[key] = value;
-                    });
+                queryIdx = config.url.indexOf("?");
+                if (queryIdx > 0) {
+                    this.url = config.url.substring(0, queryIdx);
+                    parts = parseUri(config.url);
+                    if (parts.queryKey) {
+                        _.each(parts.queryKey, function (value, key) {
+                            config[key] = value;
+                        });
+                    }
+                }
+                else {
+                    this.url = config.url;
                 }
             }
-            else {
-                this.url = config.url;
-            }
-
         }
 
         this.name = config.name;
@@ -671,8 +678,6 @@ var hic = (function (hic) {
         this.contactMatrixView.startSpinner();
 
         this.tracks2D = [];
-
-
 
         if (config.dataset) {
             setDataset(config.dataset);
@@ -1013,7 +1018,7 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.syncState = function (state) {
 
-        if(!this.dataset) return;
+        if (!this.dataset) return;
 
         var zoomChanged = (this.state.zoom !== state.zoom);
         this.state.chr1 = state.chr1;
