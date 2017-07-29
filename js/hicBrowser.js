@@ -109,7 +109,7 @@ var hic = (function (hic) {
 
         setDefaults(config);
 
-        if(config.href && !config.href.includes("?")) {
+        if (config.href && !config.href.includes("?")) {
             config.href = "?" + config.href;
         }
 
@@ -294,7 +294,7 @@ var hic = (function (hic) {
             nviString, trackString;
 
         if (event && event.type === "MapLoad") {
-            if(this.url) {
+            if (this.url) {
                 href = replaceURIParameter("hicUrl", this.url, href);
             }
             if (this.name) {
@@ -920,6 +920,34 @@ var hic = (function (hic) {
         }
         return locusObject;
     };
+
+    // Zoom in response to a double-click
+
+    hic.Browser.prototype.zoomIn = function (px, py) {
+
+        var bpResolutions = this.dataset.bpResolutions,
+            viewDimensions = this.contactMatrixView.getViewDimensions(),
+            dx = px - viewDimensions.width / 2,
+            dy = py - viewDimensions.height / 2,
+            newPixelSize, shiftRatio;
+
+        this.state.x += (dx / this.state.pixelSize);
+        this.state.y += (dy / this.state.pixelSize);
+
+        if (this.resolutionLocked || this.state.zoom == bpResolutions.length - 1) {
+
+            newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * 2);
+            shiftRatio = (newPixelSize - this.state.pixelSize) / newPixelSize;
+            this.state.pixelSize = newPixelSize;
+            this.state.x += shiftRatio * (viewDimensions.width / this.state.pixelSize);
+            this.state.y += shiftRatio * (viewDimensions.height / this.state.pixelSize);
+
+            this.clamp();
+            this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
+        } else {
+            this.setZoom(this.state.zoom + 1);
+        }
+    }
 
     hic.Browser.prototype.setZoom = function (zoom) {
 

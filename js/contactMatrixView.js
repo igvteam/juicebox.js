@@ -114,11 +114,11 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
         if(!state) state = this.browser.state;
-        
+
         this.colorScale.high = value;
         this.colorScaleCache[colorScaleKey(state)] = value;
     }
-    
+
     function colorScaleKey(state) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
     }
@@ -214,7 +214,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.checkColorScale = function (zd, row1, row2, col1, col2, normalization) {
 
         var self = this;
-        
+
         var colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
         if (self.colorScaleCache[colorKey]) {
             var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
@@ -537,6 +537,20 @@ var hic = (function (hic) {
             mouseDown = undefined,
             mouseLast = undefined,
             mouseOver = undefined;
+
+        // Double-click support.   I'm not sure if this should be enabled or what it does exactly for
+        // mobile devices
+
+        $viewport.dblclick(function (e) {
+
+            var mouseX = e.offsetX,
+                mouseY = e.offsetY;
+
+            self.browser.zoomIn(mouseX, mouseY);
+
+        })
+
+
 
         if (true === this.browser.config.gestureSupport) {
             this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
