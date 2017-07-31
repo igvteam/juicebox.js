@@ -2,7 +2,7 @@
 .DS_STORE
 .idea/workspace.xml
 node_modules
-
+dist
 
 docs/api.html
 oauth.json
