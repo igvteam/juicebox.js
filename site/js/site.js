@@ -120,7 +120,10 @@ var site = (function (site) {
 
             receiveEvent: function (event) {
 
-                var $select,
+                var columnWidths,
+                    encodeTableFormat,
+                    encodeDataSource,
+                    $select,
                     elements,
                     $e;
 
@@ -168,7 +171,7 @@ var site = (function (site) {
                 $e = $('#encodeModalBody');
 
                 // If the encode button exists,  and the encode table is undefined OR is for another assembly load or reload it
-                if (1 === _.size($e) && (browser.encodeTable === undefined || (browser.dataset.genomeId != browser.encodeTable.genomeID))) {
+                if (1 === _.size($e) && (browser.encodeTable === undefined || (browser.dataset.genomeId !== browser.encodeTable.genomeID))) {
 
                     if (browser.encodeTable) {
 
@@ -178,8 +181,26 @@ var site = (function (site) {
                         browser.encodeTable = undefined;
                     }
 
-                    browser.encodeTable = new encode.EncodeTable($e, browser, browser.dataset.genomeId, browser.loadTrack);
+                    columnWidths =
+                        {
+                            'Assembly': '10%',
+                            'Cell Type': '10%',
+                            'Target': '10%',
+                            'Assay Type': '20%',
+                            'Output Type': '20%',
+                            'Lab': '20%'
+                        };
+
+                    encodeTableFormat = new encode.EncodeTableFormat({ columnWidths: columnWidths });
+
+                    encodeDataSource = new encode.EncodeDataSource({ genomeID: 'hg19' }, encodeTableFormat);
+
+                    browser.encodeTable = new encode.EncodeTable($e, browser, browser.loadTrack, encodeDataSource);
                 }
+
+
+
+
 
             }
         })
