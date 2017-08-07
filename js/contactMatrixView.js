@@ -552,13 +552,42 @@ var hic = (function (hic) {
 
 
 
+
         if (true === this.browser.config.gestureSupport) {
             this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
             this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
+            this.gestureManager.get('pinch').set({ enable: true });
             this.gestureManager.remove('tap');
             this.gestureManager.remove('doubletap');
             this.gestureManager.remove('press');
             this.gestureManager.remove('swipe');
+
+            this.gestureManager.on('pinchstart', function (e_hammerjs) {
+                console.log("pinch start");
+                console.log("center x and y", e_hammerjs.center.x, e_hammerjs.center.y);
+            });
+
+            this.gestureManager.on('pinchin', function (e_hammerjs) {
+                console.log("pinch in");
+                console.log("movement on x, y axis", e_hammerjs.deltaX, e_hammerjs.deltaY);
+                console.log("scale change", e_hammerjs.scale);
+            });
+
+            this.gestureManager.on('pinchmove', function (e_hammerjs) {
+                console.log("pinch move");
+                console.log("movement on x, y axis", e_hammerjs.deltaX, e_hammerjs.deltaY);
+                console.log("scale change", e_hammerjs.scale);
+            });
+
+            this.gestureManager.on('pinchend', function (e_hammerjs) {
+                console.log("pinchend");
+            });
+
+            this.gestureManager.on('pinchout', function (e_hammerjs) {
+                console.log("pinch out");
+                console.log("movement on x, y axis", e_hammerjs.deltaX, e_hammerjs.deltaY);
+                console.log("scale change", e_hammerjs.scale);
+            });
 
             this.gestureManager.on('panstart', function (e_hammerjs) {
 
