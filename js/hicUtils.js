@@ -55,24 +55,6 @@ var hic = (function (hic) {
         }
     };
 
-    hic.translateMouseCoordinates = function (e, $target) {
-
-        var eFixed,
-            posx,
-            posy;
-
-        // Sets pageX and pageY for browsers that don't support them
-        eFixed = $.event.fix(e);
-
-        if (undefined === $target.offset()) {
-            console.log('igv.translateMouseCoordinates - $target.offset() is undefined.');
-        }
-        posx = eFixed.pageX - $target.offset().left;
-        posy = eFixed.pageY - $target.offset().top;
-
-        return {x: posx, y: posy}
-    };
-
     hic.reflectionRotationWithContext = function (context) {
         context.scale(-1, 1);
         context.rotate(Math.PI / 2.0);
@@ -88,7 +70,6 @@ var hic = (function (hic) {
         // 3x2 matrix. column major. (sx 0 0 sy tx ty).
         context.setTransform(1, 0, 0, 1, 0, 0);
     };
-
 
     hic.Math = {
 
@@ -142,9 +123,7 @@ var hic = (function (hic) {
 
             return heap.content[0];
         }
-    }
-
-
+    };
 
     function BinaryHeap(){
         this.content = [];

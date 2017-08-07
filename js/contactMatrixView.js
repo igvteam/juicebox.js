@@ -614,11 +614,8 @@ var hic = (function (hic) {
 
             $viewport.on('mousedown', function (e) {
 
-                var coords;
-
-                coords = hic.translateMouseCoordinates(e, $viewport);
-                mouseLast = coords;
-                mouseDown = coords;
+                mouseLast = { x:e.offsetX, y:e.offsetY };
+                mouseDown = { x:e.offsetX, y:e.offsetY };
 
                 isSweepZooming = (true === e.altKey);
                 if (isSweepZooming) {
@@ -678,7 +675,7 @@ var hic = (function (hic) {
 
                 e.preventDefault();
 
-                coords = hic.translateMouseCoordinates(e, $viewport);
+                coords = { x:e.offsetX, y:e.offsetY };
 
                 self.browser.updateCrosshairs(coords);
 
