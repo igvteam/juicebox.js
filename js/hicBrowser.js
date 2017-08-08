@@ -1067,6 +1067,10 @@ var hic = (function (hic) {
 
     };
 
+    hic.Browser.prototype.pinchZoom = function (dx, dy, zoom) {
+        this.shiftPixels(dx, dy);
+    };
+
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
         this.state.x += (dx / this.state.pixelSize);
