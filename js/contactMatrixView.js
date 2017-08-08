@@ -587,13 +587,13 @@ var hic = (function (hic) {
 
             this.gestureManager.on('pinchin', function (e_hammerjs) {
                 // pinchChatter('pinchin', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-                self.browser.pinchZoom(e_hammerjs.deltaX - pinchDelta.dx, e_hammerjs.deltaY - pinchDelta.dy, e_hammerjs.scale);
+                self.browser.pinchZoom(pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY, e_hammerjs.scale);
                 pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
             });
 
             this.gestureManager.on('pinchout', function (e_hammerjs) {
                 // pinchChatter('pinchout', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-                self.browser.pinchZoom(e_hammerjs.deltaX - pinchDelta.dx, e_hammerjs.deltaY - pinchDelta.dy, e_hammerjs.scale);
+                self.browser.pinchZoom(pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY, e_hammerjs.scale);
                 pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
 
             });
