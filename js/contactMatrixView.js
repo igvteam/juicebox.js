@@ -536,7 +536,8 @@ var hic = (function (hic) {
             isSweepZooming = false,
             mouseDown = undefined,
             mouseLast = undefined,
-            mouseOver = undefined;
+            mouseOver = undefined,
+            pinchDelta = undefined;
 
         // Double-click support.   I'm not sure if this should be enabled or what it does exactly for
         // mobile devices
@@ -574,22 +575,27 @@ var hic = (function (hic) {
 
             });
 
-            // this.gestureManager.on('pinchstart', function (e_hammerjs) {
-            //     pinchChatter('pinchstart', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-            // });
+            this.gestureManager.on('pinchstart', function (e_hammerjs) {
+                // pinchChatter('pinchstart', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
+                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
+            });
 
-            // this.gestureManager.on('pinchend', function (e_hammerjs) {
-            //     pinchChatter('pinchend', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-            // });
+            this.gestureManager.on('pinchend', function (e_hammerjs) {
+                // pinchChatter('pinchend', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
+                pinchDelta = undefined;
+            });
 
             this.gestureManager.on('pinchin', function (e_hammerjs) {
                 // pinchChatter('pinchin', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-                self.browser.pinchZoom(-e_hammerjs.deltaX, -e_hammerjs.deltaY, e_hammerjs.scale);
+                self.browser.pinchZoom(e_hammerjs.deltaX - pinchDelta.dx, e_hammerjs.deltaY - pinchDelta.dy, e_hammerjs.scale);
+                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
             });
 
             this.gestureManager.on('pinchout', function (e_hammerjs) {
                 // pinchChatter('pinchout', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-                self.browser.pinchZoom(-e_hammerjs.deltaX, -e_hammerjs.deltaY, e_hammerjs.scale);
+                self.browser.pinchZoom(e_hammerjs.deltaX - pinchDelta.dx, e_hammerjs.deltaY - pinchDelta.dy, e_hammerjs.scale);
+                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
+
             });
 
             // this.gestureManager.on('pinchmove', function (e_hammerjs) {
