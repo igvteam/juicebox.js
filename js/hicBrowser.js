@@ -1068,15 +1068,13 @@ var hic = (function (hic) {
     };
 
     /**
-     * @param zoom zoom factor. Values range from greater then 1 to decimal values less then one
-     *                          Value > 1 are magnification (zoom in)
-     *                          Decimal values (.9, .75, .25, etc.) are minification (zoom out)
-     * @param dx   x displacement (pixels)
-     * @param dy   y displacement (pixels)
-     * @returns {{px: number, px1: number, pw: number, h: number, py: number}}
+     * @param scaleFactor Values range from greater then 1 to decimal values less then one
+     *                    Value > 1 are magnification (zoom in)
+     *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
+     * @param dx x displacement (pixels)
+     * @param dy y displacement (pixels)
      */
-    hic.Browser.prototype.pinchZoom = function (zoom, dx, dy) {
-        console.log('browser.pinchZoom(' + dx + ', ' + dy + ')' );
+    hic.Browser.prototype.pinchZoom = function (scaleFactor, dx, dy) {
         this.shiftPixels(dx, dy);
     };
 
