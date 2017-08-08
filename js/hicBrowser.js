@@ -1068,6 +1068,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.pinchZoom = function (dx, dy, zoom) {
+        console.log('browser.pinchZoom(' + dx + ', ' + dy + ')' );
         this.shiftPixels(dx, dy);
     };
 
