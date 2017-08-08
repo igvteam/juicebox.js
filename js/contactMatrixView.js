@@ -584,12 +584,12 @@ var hic = (function (hic) {
             });
 
             this.gestureManager.on('pinchin', function (e_hammerjs) {
-                self.browser.pinchZoom(pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY, e_hammerjs.scale);
+                self.browser.pinchZoom(e_hammerjs.scale, pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY);
                 pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
             });
 
             this.gestureManager.on('pinchout', function (e_hammerjs) {
-                self.browser.pinchZoom(pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY, e_hammerjs.scale);
+                self.browser.pinchZoom(e_hammerjs.scale, pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY);
                 pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
 
             });
