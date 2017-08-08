@@ -574,14 +574,13 @@ var hic = (function (hic) {
 
             });
 
-            this.gestureManager.on('pinchstart', function (e_hammerjs) {
-                // console.log("pinch start");
-                // console.log("center x and y", e_hammerjs.center.x, e_hammerjs.center.y);
-            });
+            // this.gestureManager.on('pinchstart', function (e_hammerjs) {
+            //     pinchChatter('pinchstart', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
+            // });
 
-            this.gestureManager.on('pinchend', function (e_hammerjs) {
-                // console.log("pinchend");
-            });
+            // this.gestureManager.on('pinchend', function (e_hammerjs) {
+            //     pinchChatter('pinchend', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
+            // });
 
             this.gestureManager.on('pinchin', function (e_hammerjs) {
                 pinchChatter('pinchin', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
@@ -591,9 +590,9 @@ var hic = (function (hic) {
                 pinchChatter('pinchout', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
             });
 
-            this.gestureManager.on('pinchmove', function (e_hammerjs) {
-                pinchChatter('pinchmove', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-            });
+            // this.gestureManager.on('pinchmove', function (e_hammerjs) {
+            //     pinchChatter('pinchmove', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
+            // });
 
             function pinchChatter (str, dx, dy, scale) {
                 console.log(str + '- delta(', dx + ', ' + dy + ') scale(' + scale + ')');
