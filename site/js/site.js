@@ -193,7 +193,7 @@ var site = (function (site) {
 
                     encodeTableFormat = new encode.EncodeTableFormat({ columnWidths: columnWidths });
 
-                    encodeDataSource = new encode.EncodeDataSource({ genomeID: 'hg19' }, encodeTableFormat);
+                    encodeDataSource = new encode.EncodeDataSource({ genomeID: browser.dataset.genomeId }, encodeTableFormat);
 
                     browser.encodeTable = new encode.EncodeTable($e, browser, browser.loadTrack, encodeDataSource);
                 }
