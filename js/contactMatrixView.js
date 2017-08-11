@@ -555,8 +555,6 @@ var hic = (function (hic) {
             this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
             this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
             this.gestureManager.get('pinch').set({ enable: true });
-            this.gestureManager.remove('tap');
-            this.gestureManager.remove('doubletap');
             this.gestureManager.remove('press');
             this.gestureManager.remove('swipe');
 
@@ -592,6 +590,50 @@ var hic = (function (hic) {
                 self.browser.pinchZoom(e_hammerjs.scale, pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY);
                 pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
 
+            });
+
+            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
+
+                if(!self.browser.dataset) return;
+
+                var coords,
+                    dx,
+                    dy;
+
+                if (true === self.updating) {
+                    return;
+                }
+
+                if (mouseDown && mouseDown.x && mouseDown.y) {
+
+                    coords = {};
+                    coords.x = mouseDown.x + e_hammerjs.deltaX;
+                    coords.y = mouseDown.y + e_hammerjs.deltaY;
+
+                    if (true === isMouseDown) {
+
+                        isDragging = true;
+
+                        dx = mouseLast.x - coords.x;
+                        dy = mouseLast.y - coords.y;
+                        self.browser.shiftPixels(dx, dy);
+
+                        mouseLast = coords;
+                    }
+
+                }
+
+            }, 10));
+
+            this.gestureManager.on('panend', panMouseUpOrMouseOut);
+
+            this.gestureManager.on("singletap doubletap", function(ev) {
+                var pageX = ev.center.x,
+                    pageY = ev.center.y,
+                    offsetX = ev.srcEvent.layerX,
+                    offsetY = ev.srcEvent.layerY;
+                //console.log(ev.type + " " + ev.center);
+                self.browser.zoomIn(offsetX, offsetY);
             });
 
             // this.gestureManager.on('pinchmove', function (e_hammerjs) {
@@ -653,44 +695,6 @@ var hic = (function (hic) {
 
             });
 
-        }
-
-        if (true === this.browser.config.gestureSupport) {
-
-            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
-
-                var coords,
-                    dx,
-                    dy;
-
-                if (true === self.updating) {
-                    return;
-                }
-
-                if (mouseDown && mouseDown.x && mouseDown.y) {
-
-                    coords = {};
-                    coords.x = mouseDown.x + e_hammerjs.deltaX;
-                    coords.y = mouseDown.y + e_hammerjs.deltaY;
-
-                    if (true === isMouseDown) {
-
-                        isDragging = true;
-
-                        dx = mouseLast.x - coords.x;
-                        dy = mouseLast.y - coords.y;
-                        self.browser.shiftPixels(dx, dy);
-
-                        mouseLast = coords;
-                    }
-
-                }
-
-            }, 10));
-
-            this.gestureManager.on('panend', panMouseUpOrMouseOut);
-
-        } else {
 
             $viewport.on('mousemove', hic.throttle(function (e) {
 
