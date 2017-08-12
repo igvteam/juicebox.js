@@ -83,6 +83,8 @@ var hic = (function (hic) {
 
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
+        // Cache at most 20 image tiles
+        this.imageTileCacheLimit = browser.isMobile? 4 : 20;
 
         this.colorScale = new hic.ColorScale(
             {
@@ -479,8 +481,8 @@ var hic = (function (hic) {
 
                         var imageTile = {row: row, column: column, image: image};
 
-                        // Cache at most 20 image tiles
-                        if (self.imageTileCacheKeys.length > 20) {
+
+                        if (self.imageTileCacheKeys.length > self.imageTileCacheLimit) {
                             self.imageTileCache[self.imageTileCacheKeys[0]] = undefined;
                             self.imageTileCacheKeys.shift();
                         }
@@ -543,7 +545,7 @@ var hic = (function (hic) {
 
         var tpCache = new Array();
 
-        if (true === this.browser.config.gestureSupport) {
+        if (true === this.browser.isMobile) {
 
 
             el.ontouchstart = function (ev) {

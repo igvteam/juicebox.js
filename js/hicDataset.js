@@ -37,13 +37,16 @@ var hic = (function (hic) {
         this.blockCache = {};
         this.blockCacheKeys = [];
         this.normVectorCache = {};
+
+        // Cache at most 10 blocks
+        this.blockCacheLimit = hic.isMobile() ? 4 : 10;
     };
 
     hic.Dataset.prototype.clearCaches = function () {
         this.matrixCache = {};
         this.blockCache = {};
         this.normVectorCache = {};
-        this.colorScaleCaceh = {};
+        this.colorScaleCache = {};
     };
 
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
@@ -60,8 +63,6 @@ var hic = (function (hic) {
                 reader
                     .readMatrix(key)
                     .then(function (matrix) {
-
-
                         self.matrixCache[key] = matrix;
                         fulfill(matrix);
                     })
@@ -150,8 +151,7 @@ var hic = (function (hic) {
 
                     .then(function (block) {
 
-                        // Cache at most 10 blocks
-                        if (self.blockCacheKeys.length > 10) {
+                        if (self.blockCacheKeys.length > self.blockCacheLimit) {
                             self.blockCache[self.blockCacheKeys[0]] = undefined;
                             self.blockCacheKeys.shift();
                         }

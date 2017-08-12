@@ -251,6 +251,8 @@ var hic = (function (hic) {
 
         this.synchedBrowsers = [];
 
+        this.isMobile = hic.isMobile();
+
         this.$root = $('<div class="hic-root unselect">');
 
         if (false === config.showHicContactMapLabel) {
@@ -1219,12 +1221,6 @@ var hic = (function (hic) {
 
         defaultPixelSize = 1;
         defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
-
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            config.gestureSupport = true;
-        } else {
-            config.gestureSupport = false;
-        }
 
         if (config.miniMode === true) {
             config.showLocusGoto = false;
