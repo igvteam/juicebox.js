@@ -538,6 +538,7 @@ var hic = (function (hic) {
             mouseLast = undefined,
             mouseOver = undefined,
             lastTouchTime = undefined,
+            lastTouchFingerCount,
             el = $viewport[0];
 
         var tpCache = new Array();
@@ -564,7 +565,8 @@ var hic = (function (hic) {
 
                 var offsetX = ev.offsetX || ev.layerX;
                 var offsetY = ev.offsetY || ev.layerY;
-                var direction = ev.targetTouches.length == 2 ? -1 : 1;
+                var direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1;
+
                 if (lastTouchTime && ev.timeStamp - lastTouchTime < 300) {
                     self.browser.zoomIn(offsetX, offsetY, direction);
                     mouseLast = undefined;
@@ -576,6 +578,7 @@ var hic = (function (hic) {
                     lastTouchTime = ev.timeStamp;
                     mouseLast = {x: offsetX, y: offsetY};
                     lastTouchTime = ev.timeStamp;
+                    lastTouchFingerCount = ev.targetTouches.length;
                 }
 
             }
@@ -583,6 +586,8 @@ var hic = (function (hic) {
             el.ontouchmove = hic.throttle(function (ev) {
                 ev.preventDefault();
                 ev.stopPropagation();
+
+                if(self.updating) return;   // Don't overwhelm browser
 
                 if (mouseLast) {
                     var offsetX = ev.offsetX || ev.layerX;
