@@ -113,7 +113,7 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
-        if(!state) state = this.browser.state;
+        if (!state) state = this.browser.state;
 
         this.colorScale.high = value;
         this.colorScaleCache[colorScaleKey(state)] = value;
@@ -219,7 +219,7 @@ var hic = (function (hic) {
         if (self.colorScaleCache[colorKey]) {
             var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
             self.colorScale.high = self.colorScaleCache[colorKey];
-            if(changed) self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            if (changed) self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             return Promise.resolve();
         }
 
@@ -537,125 +537,112 @@ var hic = (function (hic) {
             mouseDown = undefined,
             mouseLast = undefined,
             mouseOver = undefined,
-            pinchDelta = undefined;
+            lastTouchTime = undefined,
+            el = $viewport[0];
 
-        // Double-click support.   I'm not sure if this should be enabled or what it does exactly for
-        // mobile devices
-
-        $viewport.dblclick(function (e) {
-
-            var mouseX = e.offsetX,
-                mouseY = e.offsetY;
-
-            self.browser.zoomIn(mouseX, mouseY);
-
-        });
+        var tpCache = new Array();
 
         if (true === this.browser.config.gestureSupport) {
-            this.gestureManager = new Hammer($viewport.get(0), {domEvents: true, threshold: 0});
-            this.gestureManager.get('pan').set({direction: Hammer.DIRECTION_ALL});
-            this.gestureManager.get('pinch').set({ enable: true });
-            this.gestureManager.remove('press');
-            this.gestureManager.remove('swipe');
 
-            this.gestureManager.on('panstart', function (e_hammerjs) {
 
-                var coords;
+            el.ontouchstart = function (ev) {
 
-                coords = {};
-                coords.x = e_hammerjs.center.x - $viewport.offset().left;
-                coords.y = e_hammerjs.center.y - $viewport.offset().top;
+                // If the user makes simultaneious touches, the browser will fire a
+                // separate touchstart event for each touch point. Thus if there are
+                // three simultaneous touches, the first touchstart event will have
+                // targetTouches length of one, the second event will have a length
+                // of two, and so on.
+                ev.preventDefault();
+                ev.stopPropagation();
 
-                mouseLast = coords;
-                mouseDown = coords;
+                // Cache the touch points for later processing of 2-touch pinch/zoom
+                // if (ev.targetTouches.length == 2) {
+                //     for (var i = 0; i < ev.targetTouches.length; i++) {
+                //         tpCache.push(ev.targetTouches[i]);
+                //     }
+                // }
 
-                isMouseDown = true;
-
-            });
-
-            this.gestureManager.on('pinchstart', function (e_hammerjs) {
-                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
-            });
-
-            this.gestureManager.on('pinchend', function (e_hammerjs) {
-                pinchDelta = undefined;
-            });
-
-            this.gestureManager.on('pinchin', function (e_hammerjs) {
-                self.browser.pinchZoom(e_hammerjs.scale, pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY);
-                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
-            });
-
-            this.gestureManager.on('pinchout', function (e_hammerjs) {
-                self.browser.pinchZoom(e_hammerjs.scale, pinchDelta.dx - e_hammerjs.deltaX, pinchDelta.dy - e_hammerjs.deltaY);
-                pinchDelta = { dx:e_hammerjs.deltaX, dy:e_hammerjs.deltaY };
-
-            });
-
-            this.gestureManager.on('panmove', hic.throttle(function (e_hammerjs) {
-
-                if(!self.browser.dataset) return;
-
-                var coords,
-                    dx,
-                    dy;
-
-                if (true === self.updating) {
-                    return;
-                }
-
-                if (mouseDown && mouseDown.x && mouseDown.y) {
-
-                    coords = {};
-                    coords.x = mouseDown.x + e_hammerjs.deltaX;
-                    coords.y = mouseDown.y + e_hammerjs.deltaY;
-
-                    if (true === isMouseDown) {
-
-                        isDragging = true;
-
-                        dx = mouseLast.x - coords.x;
-                        dy = mouseLast.y - coords.y;
-                        self.browser.shiftPixels(dx, dy);
-
-                        mouseLast = coords;
-                    }
+                var offsetX = ev.offsetX || ev.layerX;
+                var offsetY = ev.offsetY || ev.layerY;
+                var direction = ev.targetTouches.length == 2 ? -1 : 1;
+                if (lastTouchTime && ev.timeStamp - lastTouchTime < 300) {
+                    self.browser.zoomIn(offsetX, offsetY, direction);
+                    mouseLast = undefined;
+                    lastTouchTime = undefined;
 
                 }
+                else {
+                    // Possible start of drag or double-tap
+                    lastTouchTime = ev.timeStamp;
+                    mouseLast = {x: offsetX, y: offsetY};
+                    lastTouchTime = ev.timeStamp;
+                }
 
-            }, 10));
-
-            this.gestureManager.on('panend', panMouseUpOrMouseOut);
-
-            this.gestureManager.on("singletap doubletap", function(ev) {
-                var pageX = ev.center.x,
-                    pageY = ev.center.y,
-                    offsetX = ev.srcEvent.layerX,
-                    offsetY = ev.srcEvent.layerY;
-                //console.log(ev.type + " " + ev.center);
-                self.browser.zoomIn(offsetX, offsetY);
-            });
-
-            // this.gestureManager.on('pinchmove', function (e_hammerjs) {
-            //     pinchChatter('pinchmove', e_hammerjs.deltaX, e_hammerjs.deltaY, e_hammerjs.scale);
-            // });
-
-            function pinchChatter (str, dx, dy, scale) {
-                console.log(str + '- delta(', dx + ', ' + dy + ') scale(' + scale + ')');
             }
+
+            el.ontouchmove = hic.throttle(function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                if (mouseLast) {
+                    var offsetX = ev.offsetX || ev.layerX;
+                    var offsetY = ev.offsetY || ev.layerY;
+                    self.browser.shiftPixels(mouseLast.x - offsetX, mouseLast.y - offsetY);
+                }
+                mouseLast = {x: offsetX, y: offsetY};
+
+            }, 20);
+
+            // function handle_pinch_zoom(ev) {
+            //
+            //     if (ev.targetTouches.length == 2 && ev.changedTouches.length == 2) {
+            //         // Check if the two target touches are the same ones that started
+            //         // the 2-touch
+            //         var point1 = -1, point2 = -1;
+            //         for (var i = 0; i < tpCache.length; i++) {
+            //             if (tpCache[i].identifier == ev.targetTouches[0].identifier) point1 = i;
+            //             if (tpCache[i].identifier == ev.targetTouches[1].identifier) point2 = i;
+            //         }
+            //         if (point1 >= 0 && point2 >= 0) {
+            //             // Calculate the difference between the start and move coordinates
+            //             var diff1 = Math.abs(tpCache[point1].clientX - ev.targetTouches[0].clientX);
+            //             var diff2 = Math.abs(tpCache[point2].clientX - ev.targetTouches[1].clientX);
+            //
+            //             // This threshold is device dependent as well as application specific
+            //             var PINCH_THRESHHOLD = ev.target.clientWidth / 10;
+            //             if (diff1 >= PINCH_THRESHHOLD && diff2 >= PINCH_THRESHHOLD)
+            //                 console.log("PINCH");
+            //         }
+            //         else {
+            //             // empty tpCache
+            //             tpCache = new Array();
+            //         }
+            //     }
+            // }
 
         } else {
 
+
+            $viewport.dblclick(function (e) {
+
+                var mouseX = e.offsetX || e.layerX,
+                    mouseY = e.offsetY || e.layerX;
+
+                self.browser.zoomIn(mouseX, mouseY);
+
+            });
+
+
             $(document).on({
 
-                keydown:function (e) {
+                keydown: function (e) {
                     // shift key
                     if (true === mouseOver && 16 === e.keyCode) {
                         self.browser.showCrosshairs();
                     }
                 },
 
-                keyup:function (e) {
+                keyup: function (e) {
                     // shift key
                     if (16 === e.keyCode) {
                         self.browser.hideCrosshairs();
@@ -683,8 +670,8 @@ var hic = (function (hic) {
 
             $viewport.on('mousedown', function (e) {
 
-                mouseLast = { x:e.offsetX, y:e.offsetY };
-                mouseDown = { x:e.offsetX, y:e.offsetY };
+                mouseLast = {x: e.offsetX, y: e.offsetY};
+                mouseDown = {x: e.offsetX, y: e.offsetY};
 
                 isSweepZooming = (true === e.altKey);
                 if (isSweepZooming) {
@@ -706,7 +693,7 @@ var hic = (function (hic) {
 
                 e.preventDefault();
 
-                coords = { x:e.offsetX, y:e.offsetY };
+                coords = {x: e.offsetX, y: e.offsetY};
 
                 self.browser.updateCrosshairs(coords);
 

@@ -921,22 +921,76 @@ var hic = (function (hic) {
         return locusObject;
     };
 
-    // Zoom in response to a double-click
 
-    hic.Browser.prototype.zoomIn = function (px, py) {
+    /**
+     * @param scaleFactor Values range from greater then 1 to decimal values less then one
+     *                    Value > 1 are magnification (zoom in)
+     *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
+     * @param dx x displacement (pixels)
+     * @param dy y displacement (pixels)
+     */
+    hic.Browser.prototype.pinchZoom = function (scaleFactor, dx, dy) {
+
+        var bpResolutions = this.dataset.bpResolutions,
+            currentResolution, newResolution,
+            newResolution,
+            viewDimensions = this.contactMatrixView.getViewDimensions(),
+            shiftRatio,
+            viewWidth = viewDimensions.width,
+            maxExtent, newZoom, newPixelSize, newXBin, newYBin,
+            zoomChanged;
+
+        if (this.resolutionLocked ||
+            (this.state.zoom = bpResolutions.length - 1 && scaleFactor > 1) ||
+            (this.state.zoom = 0 && scaleFactor < 1)) {
+            // Can't change resolution level, must adjust pixel size
+            newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
+            zoomChanged = false;
+        }
+        else {
+            currentResolution = bpResolutions[this.state.zoom] / this.state.pixelSize;     // in bp per pixel
+            newResolution = currentResolution / scaleFactor;
+            newZoom = findMatchingZoomIndex(newResolution, bpResolutions);
+            zoomChanged = newZoom !== this.state.zoom;
+            newPixelSize = Math.min(MAX_PIXEL_SIZE, bpResolutions[newZoom] / newResolution);
+
+        }
+
+        // TODO -- set shift, can't just use shiftPixels.   new bins are in new resolution
+
+        newXBin =  (this.state.x + dx / this.state.pixelSize) / scaleFactor;
+        newYBin = (this.state.y + dy / this.state.pixelSize)  / scaleFactor;
+
+        this.state.zoom = newZoom;
+        this.state.x = newXBin;
+        this.state.y = newYBin;
+        this.state.pixelSize = newPixelSize;
+
+        this.contactMatrixView.clearCaches();
+        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
+
+        this.shiftPixels(dx, dy);
+    };
+
+    // Zoom in response to a double-click
+    hic.Browser.prototype.zoomIn = function (px, py, direction) {
 
         var bpResolutions = this.dataset.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
             dx = px - viewDimensions.width / 2,
             dy = py - viewDimensions.height / 2,
-            newPixelSize, shiftRatio;
+            newPixelSize, shiftRatio
+
+        if(direction === undefined) direction = 1;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
 
-        if (this.resolutionLocked || this.state.zoom == bpResolutions.length - 1) {
+        if (this.resolutionLocked ||
+            (direction > 0 && this.state.zoom == bpResolutions.length - 1) ||
+            (direction < 0 && this.state.zoom === 0)){
 
-            newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * 2);
+            newPixelSize = Math.max(1, Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)));
             shiftRatio = (newPixelSize - this.state.pixelSize) / newPixelSize;
             this.state.pixelSize = newPixelSize;
             this.state.x += shiftRatio * (viewDimensions.width / this.state.pixelSize);
@@ -945,7 +999,7 @@ var hic = (function (hic) {
             this.clamp();
             this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
         } else {
-            this.setZoom(this.state.zoom + 1);
+            this.setZoom(this.state.zoom + direction);
         }
     }
 
@@ -1067,16 +1121,6 @@ var hic = (function (hic) {
 
     };
 
-    /**
-     * @param scaleFactor Values range from greater then 1 to decimal values less then one
-     *                    Value > 1 are magnification (zoom in)
-     *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
-     * @param dx x displacement (pixels)
-     * @param dy y displacement (pixels)
-     */
-    hic.Browser.prototype.pinchZoom = function (scaleFactor, dx, dy) {
-        this.shiftPixels(dx, dy);
-    };
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
