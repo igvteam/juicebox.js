@@ -1126,6 +1126,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
+        if(!this.dataset) return;
+
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();

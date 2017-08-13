@@ -84,7 +84,7 @@ var hic = (function (hic) {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
-        this.imageTileCacheLimit = browser.isMobile? 4 : 20;
+        this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
 
         this.colorScale = new hic.ColorScale(
             {
@@ -536,11 +536,14 @@ var hic = (function (hic) {
             isMouseDown = false,
             isDragging = false,
             isSweepZooming = false,
-            mouseDown = undefined,
-            mouseLast = undefined,
-            mouseOver = undefined,
-            lastTouchTime = undefined,
+            mouseDown,
+            mouseLast,
+            mouseOver,
+
+            touchLast,
+            lastTouchTime,
             lastTouchFingerCount,
+            pinch,
             el = $viewport[0];
 
         var tpCache = new Array();
@@ -565,21 +568,25 @@ var hic = (function (hic) {
                 //     }
                 // }
 
-                var offsetX = ev.offsetX || ev.layerX;
-                var offsetY = ev.offsetY || ev.layerY;
-                var direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1;
+                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], el),
+                    offsetX = touchCoords.x,
+                    offsetY = touchCoords.y,
+                    direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1,
+                    timeStamp = ev.timeStamp || Date.now();
 
-                if (lastTouchTime && ev.timeStamp - lastTouchTime < 300) {
+                if (lastTouchTime && timeStamp - lastTouchTime < 300) {
                     self.browser.zoomIn(offsetX, offsetY, direction);
-                    mouseLast = undefined;
+                    touchLast = undefined;
                     lastTouchTime = undefined;
-
                 }
                 else {
-                    // Possible start of drag or double-tap
-                    lastTouchTime = ev.timeStamp;
-                    mouseLast = {x: offsetX, y: offsetY};
-                    lastTouchTime = ev.timeStamp;
+                    // Possible start of drag, pinch, or double-tap
+                    // if (ev.targetTouches.length == 2) {
+                    //     pinch = {start: ev};
+                    // }
+
+                    touchLast = {x: offsetX, y: offsetY};
+                    lastTouchTime = ev.timeStamp || Date.now();
                     lastTouchFingerCount = ev.targetTouches.length;
                 }
 
@@ -589,43 +596,69 @@ var hic = (function (hic) {
                 ev.preventDefault();
                 ev.stopPropagation();
 
-                if(self.updating) return;   // Don't overwhelm browser
+                if (ev.targetTouches.length == 2) {
 
-                if (mouseLast) {
-                    var offsetX = ev.offsetX || ev.layerX;
-                    var offsetY = ev.offsetY || ev.layerY;
-                    self.browser.shiftPixels(mouseLast.x - offsetX, mouseLast.y - offsetY);
+                    var t = {
+                        x1: ev.targetTouches[0].clientX,
+                        y1: ev.targetTouches[0].clientY,
+                        x2: ev.targetTouches[1].clientX,
+                        y2: ev.targetTouches[1].clientY
+                    };
+
+                    if (pinch) {
+                        pinch.end = t;
+                    } else {
+                        pinch = {start: t};
+                    }
+
                 }
-                mouseLast = {x: offsetX, y: offsetY};
+                else {
+                    if (self.updating) return;   // Don't overwhelm browser
+
+                    var touchCoords = translateTouchCoordinates(ev.targetTouches[0], el),
+                        offsetX = touchCoords.x,
+                        offsetY = touchCoords.y;
+                    if (touchLast) {
+                        var dx = touchLast.x - offsetX,
+                            dy = touchLast.y - offsetY;
+                        if (!isNaN(dx) && !isNaN(dy)) {
+                            self.browser.shiftPixels(touchLast.x - offsetX, touchLast.y - offsetY);
+                        }
+                    }
+                    touchLast = {x: offsetX, y: offsetY};
+                }
 
             }, 20);
 
-            // function handle_pinch_zoom(ev) {
-            //
-            //     if (ev.targetTouches.length == 2 && ev.changedTouches.length == 2) {
-            //         // Check if the two target touches are the same ones that started
-            //         // the 2-touch
-            //         var point1 = -1, point2 = -1;
-            //         for (var i = 0; i < tpCache.length; i++) {
-            //             if (tpCache[i].identifier == ev.targetTouches[0].identifier) point1 = i;
-            //             if (tpCache[i].identifier == ev.targetTouches[1].identifier) point2 = i;
-            //         }
-            //         if (point1 >= 0 && point2 >= 0) {
-            //             // Calculate the difference between the start and move coordinates
-            //             var diff1 = Math.abs(tpCache[point1].clientX - ev.targetTouches[0].clientX);
-            //             var diff2 = Math.abs(tpCache[point2].clientX - ev.targetTouches[1].clientX);
-            //
-            //             // This threshold is device dependent as well as application specific
-            //             var PINCH_THRESHHOLD = ev.target.clientWidth / 10;
-            //             if (diff1 >= PINCH_THRESHHOLD && diff2 >= PINCH_THRESHHOLD)
-            //                 console.log("PINCH");
-            //         }
-            //         else {
-            //             // empty tpCache
-            //             tpCache = new Array();
-            //         }
-            //     }
-            // }
+            el.ontouchend = function (ev) {
+
+                ev.preventDefault();
+                ev.stopPropagation();
+
+                if (pinch && pinch.end !== undefined) {
+
+                    var startT = pinch.start,
+                        endT = pinch.end,
+                        dxStart = startT.x2 - startT.x1,
+                        dyStart = startT.y2 - startT.y1,
+                        dxEnd = endT.x2 - endT.x1,
+                        dyEnd = endT.y2 - endT.y1,
+                        distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
+                        distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd);
+
+                    if (Math.abs(distEnd - distStart) > 10) {
+                        var scale = distEnd / distStart,
+                            centerX = ev.offsetX || ev.layerX,
+                            centerY = ev.offsetY || ev.layerY;
+
+                        var direction = scale > 1 ? 1 : -1;
+                        self.browser.zoomIn(centerX, centerY, direction);
+
+                    }
+                }
+                pinch = undefined;
+
+            }
 
         } else {
 
@@ -785,6 +818,19 @@ var hic = (function (hic) {
             blue: b,
             rgb: "rgb(" + r + "," + g + "," + b + ")"
         };
+    };
+
+    function translateTouchCoordinates(e, target) {
+
+        var $target = $(target),
+            eFixed,
+            posx,
+            posy;
+
+        posx = e.pageX - $target.offset().left;
+        posy = e.pageY - $target.offset().top;
+
+        return {x: posx, y: posy}
     };
 
     return hic;
