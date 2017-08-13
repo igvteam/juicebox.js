@@ -84,7 +84,7 @@ var hic = (function (hic) {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
-        this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
+        this.imageTileCacheLimit = browser.isMobile ? 10 : 20;
 
         this.colorScale = new hic.ColorScale(
             {
