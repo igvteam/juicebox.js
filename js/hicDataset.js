@@ -152,7 +152,7 @@ var hic = (function (hic) {
                     .then(function (block) {
 
                         if (self.blockCacheKeys.length > self.blockCacheLimit) {
-                            self.blockCache[self.blockCacheKeys[0]] = undefined;
+                            delete self.blockCache[self.blockCacheKeys[0]];
                             self.blockCacheKeys.shift();
                         }
 

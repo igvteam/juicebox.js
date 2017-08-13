@@ -483,7 +483,7 @@ var hic = (function (hic) {
 
 
                         if (self.imageTileCacheKeys.length > self.imageTileCacheLimit) {
-                            self.imageTileCache[self.imageTileCacheKeys[0]] = undefined;
+                            delete self.imageTileCache[self.imageTileCacheKeys[0]];
                             self.imageTileCacheKeys.shift();
                         }
 
