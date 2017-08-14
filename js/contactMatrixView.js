@@ -61,7 +61,7 @@ var hic = (function (hic) {
         this.stopSpinner();
 
         // ruler sweeper widget surface
-        this.sweepZoom = new hic.SweepZoom(this.browser);
+        this.sweepZoom = new hic.SweepZoom(browser, this.$viewport);
         this.$viewport.append(this.sweepZoom.$rulerSweeper);
 
 
@@ -84,7 +84,7 @@ var hic = (function (hic) {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
-        this.imageTileCacheLimit = browser.isMobile ? 10 : 20;
+        this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
 
         this.colorScale = new hic.ColorScale(
             {
@@ -544,123 +544,118 @@ var hic = (function (hic) {
             lastTouchTime,
             lastTouchFingerCount,
             pinch,
-            el = $viewport[0];
+            viewport = $viewport[0];
 
-        var tpCache = new Array();
+        viewport.ontouchstart = function (ev) {
 
-        if (true === this.browser.isMobile) {
+            // If the user makes simultaneious touches, the browser will fire a
+            // separate touchstart event for each touch point. Thus if there are
+            // three simultaneous touches, the first touchstart event will have
+            // targetTouches length of one, the second event will have a length
+            // of two, and so on.
+            ev.preventDefault();
+            ev.stopPropagation();
 
+            // Cache the touch points for later processing of 2-touch pinch/zoom
+            // if (ev.targetTouches.length == 2) {
+            //     for (var i = 0; i < ev.targetTouches.length; i++) {
+            //         tpCache.push(ev.targetTouches[i]);
+            //     }
+            // }
 
-            el.ontouchstart = function (ev) {
+            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
+                offsetX = touchCoords.x,
+                offsetY = touchCoords.y,
+                direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1,
+                timeStamp = ev.timeStamp || Date.now();
 
-                // If the user makes simultaneious touches, the browser will fire a
-                // separate touchstart event for each touch point. Thus if there are
-                // three simultaneous touches, the first touchstart event will have
-                // targetTouches length of one, the second event will have a length
-                // of two, and so on.
-                ev.preventDefault();
-                ev.stopPropagation();
-
-                // Cache the touch points for later processing of 2-touch pinch/zoom
+            if (lastTouchTime && timeStamp - lastTouchTime < 300) {
+                self.browser.zoomIn(offsetX, offsetY, direction);
+                touchLast = undefined;
+                lastTouchTime = undefined;
+            }
+            else {
+                // Possible start of drag, pinch, or double-tap
                 // if (ev.targetTouches.length == 2) {
-                //     for (var i = 0; i < ev.targetTouches.length; i++) {
-                //         tpCache.push(ev.targetTouches[i]);
-                //     }
+                //     pinch = {start: ev};
                 // }
 
-                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], el),
+                touchLast = {x: offsetX, y: offsetY};
+                lastTouchTime = ev.timeStamp || Date.now();
+                lastTouchFingerCount = ev.targetTouches.length;
+            }
+
+        }
+
+        viewport.ontouchmove = hic.throttle(function (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            if (ev.targetTouches.length == 2) {
+
+                var t = {
+                    x1: ev.targetTouches[0].clientX,
+                    y1: ev.targetTouches[0].clientY,
+                    x2: ev.targetTouches[1].clientX,
+                    y2: ev.targetTouches[1].clientY
+                };
+
+                if (pinch) {
+                    pinch.end = t;
+                } else {
+                    pinch = {start: t};
+                }
+
+            }
+            else {
+                if (self.updating) return;   // Don't overwhelm browser
+
+                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
                     offsetX = touchCoords.x,
-                    offsetY = touchCoords.y,
-                    direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1,
-                    timeStamp = ev.timeStamp || Date.now();
-
-                if (lastTouchTime && timeStamp - lastTouchTime < 300) {
-                    self.browser.zoomIn(offsetX, offsetY, direction);
-                    touchLast = undefined;
-                    lastTouchTime = undefined;
+                    offsetY = touchCoords.y;
+                if (touchLast) {
+                    var dx = touchLast.x - offsetX,
+                        dy = touchLast.y - offsetY;
+                    if (!isNaN(dx) && !isNaN(dy)) {
+                        self.browser.shiftPixels(touchLast.x - offsetX, touchLast.y - offsetY);
+                    }
                 }
-                else {
-                    // Possible start of drag, pinch, or double-tap
-                    // if (ev.targetTouches.length == 2) {
-                    //     pinch = {start: ev};
-                    // }
-
-                    touchLast = {x: offsetX, y: offsetY};
-                    lastTouchTime = ev.timeStamp || Date.now();
-                    lastTouchFingerCount = ev.targetTouches.length;
-                }
-
+                touchLast = {x: offsetX, y: offsetY};
             }
 
-            el.ontouchmove = hic.throttle(function (ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
+        }, 20);
 
-                if (ev.targetTouches.length == 2) {
+        viewport.ontouchend = function (ev) {
 
-                    var t = {
-                        x1: ev.targetTouches[0].clientX,
-                        y1: ev.targetTouches[0].clientY,
-                        x2: ev.targetTouches[1].clientX,
-                        y2: ev.targetTouches[1].clientY
-                    };
+            ev.preventDefault();
+            ev.stopPropagation();
 
-                    if (pinch) {
-                        pinch.end = t;
-                    } else {
-                        pinch = {start: t};
-                    }
+            if (pinch && pinch.end !== undefined) {
+
+                var startT = pinch.start,
+                    endT = pinch.end,
+                    dxStart = startT.x2 - startT.x1,
+                    dyStart = startT.y2 - startT.y1,
+                    dxEnd = endT.x2 - endT.x1,
+                    dyEnd = endT.y2 - endT.y1,
+                    distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
+                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd);
+
+                if (Math.abs(distEnd - distStart) > 10) {
+                    var scale = distEnd / distStart,
+                        centerX = ev.offsetX || ev.layerX,
+                        centerY = ev.offsetY || ev.layerY;
+
+                    var direction = scale > 1 ? 1 : -1;
+                    self.browser.zoomIn(centerX, centerY, direction);
 
                 }
-                else {
-                    if (self.updating) return;   // Don't overwhelm browser
-
-                    var touchCoords = translateTouchCoordinates(ev.targetTouches[0], el),
-                        offsetX = touchCoords.x,
-                        offsetY = touchCoords.y;
-                    if (touchLast) {
-                        var dx = touchLast.x - offsetX,
-                            dy = touchLast.y - offsetY;
-                        if (!isNaN(dx) && !isNaN(dy)) {
-                            self.browser.shiftPixels(touchLast.x - offsetX, touchLast.y - offsetY);
-                        }
-                    }
-                    touchLast = {x: offsetX, y: offsetY};
-                }
-
-            }, 20);
-
-            el.ontouchend = function (ev) {
-
-                ev.preventDefault();
-                ev.stopPropagation();
-
-                if (pinch && pinch.end !== undefined) {
-
-                    var startT = pinch.start,
-                        endT = pinch.end,
-                        dxStart = startT.x2 - startT.x1,
-                        dyStart = startT.y2 - startT.y1,
-                        dxEnd = endT.x2 - endT.x1,
-                        dyEnd = endT.y2 - endT.y1,
-                        distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                        distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd);
-
-                    if (Math.abs(distEnd - distStart) > 10) {
-                        var scale = distEnd / distStart,
-                            centerX = ev.offsetX || ev.layerX,
-                            centerY = ev.offsetY || ev.layerY;
-
-                        var direction = scale > 1 ? 1 : -1;
-                        self.browser.zoomIn(centerX, centerY, direction);
-
-                    }
-                }
-                pinch = undefined;
-
             }
+            pinch = undefined;
 
-        } else {
+        }
+
+        if (!this.browser.isMobile) {
 
 
             $viewport.dblclick(function (e) {
@@ -709,13 +704,15 @@ var hic = (function (hic) {
             });
 
             $viewport.on('mousedown', function (e) {
+                var eFixed;
 
                 mouseLast = {x: e.offsetX, y: e.offsetY};
                 mouseDown = {x: e.offsetX, y: e.offsetY};
 
                 isSweepZooming = (true === e.altKey);
                 if (isSweepZooming) {
-                    self.sweepZoom.reset();
+                    eFixed = $.event.fix(e);
+                    self.sweepZoom.reset({x: eFixed.pageX, y: eFixed.pageY});
                 }
 
                 isMouseDown = true;
@@ -725,7 +722,7 @@ var hic = (function (hic) {
 
             $viewport.on('mousemove', hic.throttle(function (e) {
 
-                var coords;
+                var coords, eFixed;
 
                 if (self.updating) {
                     return;
@@ -739,24 +736,18 @@ var hic = (function (hic) {
 
                 if (isMouseDown) { // Possibly dragging
 
-                    if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
+                    if (isSweepZooming) {
+                        // Sets pageX and pageY for browsers that don't support them
+                        eFixed = $.event.fix(e);
+                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
+                    }
+
+                    else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
 
                         isDragging = true;
 
-                        // if (self.updating) {
-                        //     // Freeze frame during updates
-                        //     return;
-                        // }
+                        self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
 
-                        if (isSweepZooming) {
-
-                            self.sweepZoom.update(mouseDown, coords, {
-                                min: {x: 0, y: 0},
-                                max: {x: $viewport.width(), y: $viewport.height()}
-                            });
-                        } else {
-                            self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
-                        }
 
                     }
 
