@@ -27,7 +27,10 @@
 
 var hic = (function (hic) {
 
-    dragThreshold = 2;
+    const DRAG_THRESHOLD = 2;
+    const PINCH_THRESHOLD = 25;
+    const DOUBLE_TAP_DIST_THRESHOLD = 20;
+    const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
     hic.ContactMatrixView = function (browser, $container) {
         var id;
@@ -539,65 +542,78 @@ var hic = (function (hic) {
             mouseDown,
             mouseLast,
             mouseOver,
-
-            touchLast,
-            lastTouchTime,
-            lastTouchFingerCount,
+            lastTouch,
             pinch,
             viewport = $viewport[0];
 
         viewport.ontouchstart = function (ev) {
 
-            // If the user makes simultaneious touches, the browser will fire a
-            // separate touchstart event for each touch point. Thus if there are
-            // three simultaneous touches, the first touchstart event will have
-            // targetTouches length of one, the second event will have a length
-            // of two, and so on.
             ev.preventDefault();
             ev.stopPropagation();
-
-            // Cache the touch points for later processing of 2-touch pinch/zoom
-            // if (ev.targetTouches.length == 2) {
-            //     for (var i = 0; i < ev.targetTouches.length; i++) {
-            //         tpCache.push(ev.targetTouches[i]);
-            //     }
-            // }
 
             var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
                 offsetX = touchCoords.x,
                 offsetY = touchCoords.y,
-                direction = (lastTouchFingerCount === 2 || ev.targetTouches.length === 2) ? -1 : 1,
-                timeStamp = ev.timeStamp || Date.now();
+                count = ev.targetTouches.length,
+                timeStamp = ev.timeStamp || Date.now(),
+                resolved = false,
+                dx, dy, dist, direction;
 
-            if (lastTouchTime && timeStamp - lastTouchTime < 300) {
-                self.browser.zoomIn(offsetX, offsetY, direction);
-                touchLast = undefined;
-                lastTouchTime = undefined;
-            }
-            else {
-                // Possible start of drag, pinch, or double-tap
-                // if (ev.targetTouches.length == 2) {
-                //     pinch = {start: ev};
-                // }
-
-                touchLast = {x: offsetX, y: offsetY};
-                lastTouchTime = ev.timeStamp || Date.now();
-                lastTouchFingerCount = ev.targetTouches.length;
+            if (count === 2) {
+                touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
+                offsetX = (offsetX + touchCoords.x) / 2;
+                offsetY = (offsetY + touchCoords.y) / 2;
             }
 
+            // NOTE: If the user makes simultaneous touches, the browser may fire a
+            // separate touchstart event for each touch point. Thus if there are
+            // two simultaneous touches, the first touchstart event will have
+            // targetTouches length of one and the second event will have a length
+            // of two.  In this case replace previous touch with this one and return
+            if (lastTouch && (timeStamp - lastTouch.timeStamp < 10) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
+                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
+                return;
+            }
+
+
+            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
+
+                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
+                dx = lastTouch.x - offsetX;
+                dy = lastTouch.y - offsetY;
+                dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist < DOUBLE_TAP_DIST_THRESHOLD && direction > 0) {   // Disable double-tap zoom out for now
+                    console.log("Center");
+                    self.browser.zoomAndCenter(offsetX, offsetY, direction);
+                    lastTouch = undefined;
+                    resolved = true;
+                }
+            }
+
+            if (!resolved) {
+                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
+            }
         }
 
         viewport.ontouchmove = hic.throttle(function (ev) {
+
+            var touchCoords1, touchCoords2, t;
+
             ev.preventDefault();
             ev.stopPropagation();
 
             if (ev.targetTouches.length == 2) {
 
-                var t = {
-                    x1: ev.targetTouches[0].clientX,
-                    y1: ev.targetTouches[0].clientY,
-                    x2: ev.targetTouches[1].clientX,
-                    y2: ev.targetTouches[1].clientY
+                // Update pinch  (assuming 2 finger movement is a pinch)
+                touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
+                touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport);
+
+                t = {
+                    x1: touchCoords1.x,
+                    y1: touchCoords1.y,
+                    x2: touchCoords2.x,
+                    y2: touchCoords2.y
                 };
 
                 if (pinch) {
@@ -605,22 +621,30 @@ var hic = (function (hic) {
                 } else {
                     pinch = {start: t};
                 }
-
             }
+
             else {
+                // Assuming 1 finger movement is a drag
+
                 if (self.updating) return;   // Don't overwhelm browser
 
                 var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
                     offsetX = touchCoords.x,
                     offsetY = touchCoords.y;
-                if (touchLast) {
-                    var dx = touchLast.x - offsetX,
-                        dy = touchLast.y - offsetY;
+                if (lastTouch) {
+                    var dx = lastTouch.x - offsetX,
+                        dy = lastTouch.y - offsetY;
                     if (!isNaN(dx) && !isNaN(dy)) {
-                        self.browser.shiftPixels(touchLast.x - offsetX, touchLast.y - offsetY);
+                        self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
                     }
                 }
-                touchLast = {x: offsetX, y: offsetY};
+
+                lastTouch = {
+                    x: offsetX,
+                    y: offsetY,
+                    timeStamp: ev.timeStamp || Date.now(),
+                    count: ev.targetTouches.length
+                };
             }
 
         }, 20);
@@ -639,18 +663,20 @@ var hic = (function (hic) {
                     dxEnd = endT.x2 - endT.x1,
                     dyEnd = endT.y2 - endT.y1,
                     distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd);
+                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
+                    scale = distEnd / distStart,
+                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
+                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
+                    anchorPx = (startT.x1 + startT.x2) / 2,
+                    anchorPy = (startT.y1 + startT.y2) / 2;
 
-                if (Math.abs(distEnd - distStart) > 10) {
-                    var scale = distEnd / distStart,
-                        centerX = ev.offsetX || ev.layerX,
-                        centerY = ev.offsetY || ev.layerY;
-
-                    var direction = scale > 1 ? 1 : -1;
-                    self.browser.zoomIn(centerX, centerY, direction);
-
+                if (scale < 0.8 || scale > 1.2) {
+                    lastTouch = undefined;
+                    self.browser.pinchZoom(anchorPx, anchorPy, scale);
                 }
             }
+
+            // a touch end always ends a pinch
             pinch = undefined;
 
         }
@@ -663,7 +689,7 @@ var hic = (function (hic) {
                 var mouseX = e.offsetX || e.layerX,
                     mouseY = e.offsetY || e.layerX;
 
-                self.browser.zoomIn(mouseX, mouseY);
+                self.browser.zoomAndCenter(mouseX, mouseY);
 
             });
 
@@ -742,7 +768,7 @@ var hic = (function (hic) {
                         self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
                     }
 
-                    else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > dragThreshold) {
+                    else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
                         isDragging = true;
 

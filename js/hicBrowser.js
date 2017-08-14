@@ -928,71 +928,78 @@ var hic = (function (hic) {
      * @param scaleFactor Values range from greater then 1 to decimal values less then one
      *                    Value > 1 are magnification (zoom in)
      *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
-     * @param dx x displacement (pixels)
-     * @param dy y displacement (pixels)
+     * @param anchorPx -- anchor position in pixels (should not move after transformation)
+     * @param anchorPy
      */
-    hic.Browser.prototype.pinchZoom = function (scaleFactor, dx, dy) {
+    hic.Browser.prototype.pinchZoom = function (anchorPx, anchorPy, scaleFactor) {
 
         var bpResolutions = this.dataset.bpResolutions,
-            currentResolution, newResolution,
+            currentResolution,
+            targetResolution,
             newResolution,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
-            shiftRatio,
-            viewWidth = viewDimensions.width,
-            maxExtent, newZoom, newPixelSize, newXBin, newYBin,
-            zoomChanged;
+            newZoom,
+            newPixelSize,
+            zoomChanged, gx, gy;
+
+        currentResolution = bpResolutions[this.state.zoom] ;
 
         if (this.resolutionLocked ||
-            (this.state.zoom = bpResolutions.length - 1 && scaleFactor > 1) ||
-            (this.state.zoom = 0 && scaleFactor < 1)) {
+            (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
+            (this.state.zoom === 0 && scaleFactor < 1)) {
             // Can't change resolution level, must adjust pixel size
+            newResolution = currentResolution;
             newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
+            newZoom = this.state.zoom;
             zoomChanged = false;
         }
         else {
-            currentResolution = bpResolutions[this.state.zoom] / this.state.pixelSize;     // in bp per pixel
-            newResolution = currentResolution / scaleFactor;
-            newZoom = findMatchingZoomIndex(newResolution, bpResolutions);
+            targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+            newResolution = bpResolutions[newZoom];
             zoomChanged = newZoom !== this.state.zoom;
-            newPixelSize = Math.min(MAX_PIXEL_SIZE, bpResolutions[newZoom] / newResolution);
-
+            newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
         }
 
-        // TODO -- set shift, can't just use shiftPixels.   new bins are in new resolution
+        newPixelSize = Math.max(newPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom));
 
-        newXBin =  (this.state.x + dx / this.state.pixelSize) / scaleFactor;
-        newYBin = (this.state.y + dy / this.state.pixelSize)  / scaleFactor;
+        // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+        gx = (this.state.x  + anchorPx  / this.state.pixelSize) * currentResolution;
+        gy = (this.state.y + anchorPy / this.state.pixelSize) * currentResolution;
+
+        this.state.x = gx / newResolution - anchorPx / newPixelSize;
+        this.state.y = gy / newResolution - anchorPy / newPixelSize;
 
         this.state.zoom = newZoom;
-        this.state.x = newXBin;
-        this.state.y = newYBin;
         this.state.pixelSize = newPixelSize;
 
-        this.contactMatrixView.clearCaches();
+        this.clamp();
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
 
-        this.shiftPixels(dx, dy);
     };
 
     // Zoom in response to a double-click
-    hic.Browser.prototype.zoomIn = function (px, py, direction) {
+    hic.Browser.prototype.zoomAndCenter = function (centerPX, centerPY, direction) {
 
         var bpResolutions = this.dataset.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
-            dx = px - viewDimensions.width / 2,
-            dy = py - viewDimensions.height / 2,
+            dx = centerPX - viewDimensions.width / 2,
+            dy = centerPY - viewDimensions.height / 2,
             newPixelSize, shiftRatio
 
-        if(direction === undefined) direction = 1;
+        if (direction === undefined) direction = 1;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
 
         if (this.resolutionLocked ||
             (direction > 0 && this.state.zoom == bpResolutions.length - 1) ||
-            (direction < 0 && this.state.zoom === 0)){
+            (direction < 0 && this.state.zoom === 0)) {
 
-            newPixelSize = Math.max(1, Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)));
+            newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)),
+                minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom));
+
+
             shiftRatio = (newPixelSize - this.state.pixelSize) / newPixelSize;
             this.state.pixelSize = newPixelSize;
             this.state.x += shiftRatio * (viewDimensions.width / this.state.pixelSize);
@@ -1006,8 +1013,6 @@ var hic = (function (hic) {
     }
 
     hic.Browser.prototype.setZoom = function (zoom) {
-
-        this.contactMatrixView.clearCaches();
 
         // Shift x,y to maintain center, if possible
         var bpResolutions = this.dataset.bpResolutions,
@@ -1126,7 +1131,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
-        if(!this.dataset) return;
+        if (!this.dataset) return;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);

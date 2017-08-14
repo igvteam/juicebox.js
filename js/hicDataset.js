@@ -39,7 +39,7 @@ var hic = (function (hic) {
         this.normVectorCache = {};
 
         // Cache at most 10 blocks
-        this.blockCacheLimit = hic.isMobile() ? 10 : 10;
+        this.blockCacheLimit = hic.isMobile() ? 4 : 10;
     };
 
     hic.Dataset.prototype.clearCaches = function () {
