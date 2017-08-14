@@ -570,7 +570,7 @@ var hic = (function (hic) {
             // two simultaneous touches, the first touchstart event will have
             // targetTouches length of one and the second event will have a length
             // of two.  In this case replace previous touch with this one and return
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < 10) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
+            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
                 lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
                 return;
             }
@@ -583,8 +583,7 @@ var hic = (function (hic) {
                 dy = lastTouch.y - offsetY;
                 dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < DOUBLE_TAP_DIST_THRESHOLD && direction > 0) {   // Disable double-tap zoom out for now
-                    console.log("Center");
+                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {  
                     self.browser.zoomAndCenter(offsetX, offsetY, direction);
                     lastTouch = undefined;
                     resolved = true;
