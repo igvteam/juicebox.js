@@ -979,15 +979,17 @@ var hic = (function (hic) {
     };
 
     // Zoom in response to a double-click
-    hic.Browser.prototype.zoomAndCenter = function (centerPX, centerPY, direction) {
+    hic.Browser.prototype.zoomAndCenter = function (direction, centerPX, centerPY) {
 
+        if(!this.dataset) return;
+        
         var bpResolutions = this.dataset.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
-            dx = centerPX - viewDimensions.width / 2,
-            dy = centerPY - viewDimensions.height / 2,
+            dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
+            dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
             newPixelSize, shiftRatio
 
-        if (direction === undefined) direction = 1;
+
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);

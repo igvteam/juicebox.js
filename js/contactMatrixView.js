@@ -583,8 +583,8 @@ var hic = (function (hic) {
                 dy = lastTouch.y - offsetY;
                 dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {  
-                    self.browser.zoomAndCenter(offsetX, offsetY, direction);
+                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
+                    self.browser.zoomAndCenter(direction, offsetX, offsetY);
                     lastTouch = undefined;
                     resolved = true;
                 }
@@ -688,36 +688,8 @@ var hic = (function (hic) {
                 var mouseX = e.offsetX || e.layerX,
                     mouseY = e.offsetY || e.layerX;
 
-                self.browser.zoomAndCenter(mouseX, mouseY);
+                self.browser.zoomAndCenter(1, mouseX, mouseY);
 
-            });
-
-
-            $(document).on({
-
-                keydown: function (e) {
-                    // shift key
-                    if (true === mouseOver && 16 === e.keyCode) {
-                        self.browser.showCrosshairs();
-                    }
-                },
-
-                keyup: function (e) {
-                    // shift key
-                    if (16 === e.keyCode) {
-                        self.browser.hideCrosshairs();
-                    }
-                },
-
-                // for sweep-zoom allow user to sweep beyond viewport extent
-                // sweep area clamps since viewport mouse handlers stop firing
-                // when the viewport boundary is crossed.
-                mouseup: function (e) {
-                    if (isSweepZooming) {
-                        isSweepZooming = false;
-                        self.sweepZoom.dismiss();
-                    }
-                }
             });
 
             $viewport.on('mouseover', function (e) {
@@ -743,7 +715,6 @@ var hic = (function (hic) {
                 isMouseDown = true;
 
             });
-
 
             $viewport.on('mousemove', hic.throttle(function (e) {
 
@@ -786,6 +757,41 @@ var hic = (function (hic) {
 
             $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
+            // Mousewheel events -- these are not standard, and not on a standards track.
+            // The jquery plugin was last updated in 2014, so we'll do these old school
+            // IE9, Chrome, Safari, Opera
+            $viewport[0].addEventListener("mousewheel", mouseWheelHandler, false);
+            // Firefox
+            $viewport[0].addEventListener("DOMMouseScroll", mouseWheelHandler, false);
+
+            // Document level events
+            $(document).on({
+
+                keydown: function (e) {
+                    // shift key
+                    if (true === mouseOver && 16 === e.keyCode) {
+                        self.browser.showCrosshairs();
+                    }
+                },
+
+                keyup: function (e) {
+                    // shift key
+                    if (16 === e.keyCode) {
+                        self.browser.hideCrosshairs();
+                    }
+                },
+
+                // for sweep-zoom allow user to sweep beyond viewport extent
+                // sweep area clamps since viewport mouse handlers stop firing
+                // when the viewport boundary is crossed.
+                mouseup: function (e) {
+                    if (isSweepZooming) {
+                        isSweepZooming = false;
+                        self.sweepZoom.dismiss();
+                    }
+                }
+            });
+
         }
 
         function panMouseUpOrMouseOut(e) {
@@ -797,6 +803,16 @@ var hic = (function (hic) {
 
             isMouseDown = false;
             mouseDown = mouseLast = undefined;
+        }
+
+        function mouseWheelHandler(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
+            var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+            self.browser.zoomAndCenter(delta);
         }
 
     }
