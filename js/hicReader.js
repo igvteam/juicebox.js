@@ -318,7 +318,7 @@ var hic = (function (hic) {
     hic.HiCReader.prototype.readNormVectorIndex = function (dataset, range) {
 
         if (this.normVectorIndex) {
-            Promise.resolve(this.normVectorIndex);
+            return Promise.resolve(this.normVectorIndex);
         }
 
         var self = this;
@@ -390,7 +390,7 @@ var hic = (function (hic) {
         var self = this;
         var idx = self.masterIndex[key];
         if (idx == null) {
-            Promise.resolve(undefined);
+            return Promise.resolve(undefined);
         }
 
         return new Promise(function (fulfill, reject) {
@@ -536,7 +536,7 @@ var hic = (function (hic) {
                                     } else {
                                         counts = parser.getFloat();
                                         if (!isNaN(counts)) {
-                                            records.push(new hic.hic.ContactRecord(bin1, bin2, counts));
+                                            records.push(new hic.ContactRecord(bin1, bin2, counts));
                                         }
                                     }
 
