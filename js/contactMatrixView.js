@@ -544,7 +544,8 @@ var hic = (function (hic) {
             mouseOver,
             lastTouch,
             pinch,
-            viewport = $viewport[0];
+            viewport = $viewport[0],
+            lastWheelTime;
 
         viewport.ontouchstart = function (ev) {
 
@@ -760,7 +761,7 @@ var hic = (function (hic) {
             // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
             // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
 
-            $viewport[0].addEventListener("wheel", mouseWheelHandler, false);
+            $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
 
             // Document level events
             $(document).on({
@@ -808,12 +809,19 @@ var hic = (function (hic) {
             e.preventDefault();
             e.stopPropagation();
 
-            // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-            var direction = e.deltaY < 0 ? -1 : 1,
-                coords = igv.translateMouseCoordinates(e, $viewport),
-                x = coords.x,
-                y = coords.y;
-            self.browser.zoomAndCenter(direction, x, y);
+            var t = Date.now();
+
+            if(lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
+                console.log("Wheel " + t + "  " + lastWheelTime + "  "  + (t - lastWheelTime));
+                // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
+                var direction = e.deltaY < 0 ? 1 : -1,
+                    coords = igv.translateMouseCoordinates(e, $viewport),
+                    x = coords.x,
+                    y = coords.y;
+                self.browser.zoomAndCenter(direction, x, y);
+                lastWheelTime = t;
+            }
+
         }
 
     }
