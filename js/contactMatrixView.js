@@ -757,12 +757,10 @@ var hic = (function (hic) {
 
             $viewport.on('mouseleave', panMouseUpOrMouseOut);
 
-            // Mousewheel events -- these are not standard, and not on a standards track.
-            // The jquery plugin was last updated in 2014, so we'll do these old school
-            // IE9, Chrome, Safari, Opera
-            $viewport[0].addEventListener("mousewheel", mouseWheelHandler, false);
-            // Firefox
-            $viewport[0].addEventListener("DOMMouseScroll", mouseWheelHandler, false);
+            // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
+            // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
+
+            $viewport[0].addEventListener("wheel", mouseWheelHandler, false);
 
             // Document level events
             $(document).on({
@@ -809,10 +807,13 @@ var hic = (function (hic) {
 
             e.preventDefault();
             e.stopPropagation();
-            
+
             // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-            var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-            self.browser.zoomAndCenter(delta);
+            var direction = e.deltaY < 0 ? -1 : 1,
+                coords = igv.translateMouseCoordinates(e, $viewport),
+                x = coords.x,
+                y = coords.y;
+            self.browser.zoomAndCenter(direction, x, y);
         }
 
     }
