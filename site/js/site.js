@@ -102,6 +102,19 @@ var site = (function (site) {
             hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
         });
 
+        $('.juicebox-app-clone-button').find('i.fa-plus-circle').on('click', function (e) {
+            var dev_null,
+                dimension = 768;
+
+            dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
+                width: dimension,
+                height: dimension,
+                dataset: undefined,
+                href: undefined
+            });
+
+        });
+
     };
 
     return site;
