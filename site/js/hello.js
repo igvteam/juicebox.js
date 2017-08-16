@@ -81,7 +81,7 @@ var hello = (function (hello) {
         if (browser.sequence) {
 
             browser.sequence
-                .init(undefined)
+                .init()
                 .then(function () {
                     igv.browser.genome = new igv.Genome(browser.sequence, undefined, undefined);
                 });

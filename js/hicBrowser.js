@@ -212,7 +212,7 @@ var hic = (function (hic) {
                 })
                 .catch(reject)
         });
-    }
+    };
 
 
     hic.syncBrowsers = function (browsers) {
@@ -234,7 +234,7 @@ var hic = (function (hic) {
                 })
             }
         })
-    }
+    };
 
     hic.Browser = function ($app_container, config) {
 
@@ -375,6 +375,21 @@ var hic = (function (hic) {
             }
         })
 
+    };
+
+    hic.Browser.getCurrentBrowser = function () {
+
+        if (undefined === hic.Browser.currentBrowser) {
+            console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
+            return undefined;
+        } else {
+            return hic.Browser.currentBrowser;
+        }
+
+    };
+
+    hic.Browser.setCurrentBrowser = function (browser) {
+        hic.Browser.currentBrowser = browser;
     };
 
     hic.Browser.prototype.updateHref = function (event) {

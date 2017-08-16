@@ -25,7 +25,7 @@ var hic = (function (hic) {
             _.each(items, function(item) {
 
                 if (item.init) {
-                    item.init(undefined);
+                    item.init();
                 }
 
                 $container.append(item.object);

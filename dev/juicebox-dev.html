@@ -791,7 +791,9 @@
         config = {};
         browser = hic.createBrowser($('#app-container'), config);
 
-        site.init(browser);
+        hic.Browser.setCurrentBrowser(browser);
+
+        site.init();
     });
 
 </script>

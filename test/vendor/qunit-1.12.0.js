@@ -350,7 +350,7 @@ Test.prototype = {
 			test = this;
 
 		synchronize(function() {
-			test.init(undefined);
+			test.init();
 		});
 		function run() {
 			// each of these can by async
@@ -1069,7 +1069,7 @@ QUnit.load = function() {
 		urlConfigHtml = "",
 		oldconfig = extend( {}, config );
 
-	QUnit.init(undefined);
+	QUnit.init();
 	extend(config, oldconfig);
 
 	config.blocking = false;

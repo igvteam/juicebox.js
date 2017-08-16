@@ -26,7 +26,7 @@
  */
 var site = (function (site) {
 
-    site.init = function (browser) {
+    site.init = function () {
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -38,7 +38,7 @@ var site = (function (site) {
             url = $(this).val();
 
             $selected = $(this).find('option:selected');
-            browser.loadHicFile({ url: url, name: $selected.text() });
+            hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
         });
 
         $('#hic-load-local-file').on('change', function (e) {
@@ -51,9 +51,9 @@ var site = (function (site) {
             suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                browser.loadHicFile({ url: file, name: file.name });
+                hic.Browser.getCurrentBrowser().loadHicFile({ url: file, name: file.name });
             } else {
-                browser.loadTrack([{ url: file, name: file.name }]);
+                hic.Browser.getCurrentBrowser().loadTrack([{ url: file, name: file.name }]);
             }
 
 
@@ -75,9 +75,9 @@ var site = (function (site) {
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                browser.loadHicFile({ url: url, name: hic.extractFilename(path) });
+                hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: hic.extractFilename(path) });
             } else {
-                browser.loadTrack([{url: url, name: hic.extractFilename(path)}]);
+                hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
             }
 
             $(this).val("");
@@ -99,7 +99,7 @@ var site = (function (site) {
             // deselect all
             $(this).find('option').removeAttr("selected");
 
-            browser.loadTrack([{url: path, name: name}]);
+            hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
         });
 
     };
