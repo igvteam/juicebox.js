@@ -177,7 +177,6 @@ var hic = (function (hic) {
 
     };
 
-
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
      * instantiating multiple browsers in a page.
@@ -213,7 +212,6 @@ var hic = (function (hic) {
                 .catch(reject)
         });
     };
-
 
     hic.syncBrowsers = function (browsers) {
 
@@ -381,7 +379,7 @@ var hic = (function (hic) {
 
                     encodeDataSource = new encode.EncodeDataSource({ genomeID: self.dataset.genomeId }, encodeTableFormat);
 
-                    self.encodeTable = new igv.IGVModalTable($e, browser, self.loadTrack, encodeDataSource);
+                    self.encodeTable = new igv.IGVModalTable($e, self, self.loadTrack, encodeDataSource);
                 }
 
             }
