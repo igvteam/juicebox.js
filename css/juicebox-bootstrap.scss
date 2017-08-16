@@ -154,9 +154,7 @@ $default-font-family: 'Open Sans', sans-serif;
   flex-wrap: wrap;
   justify-content: flex-start;
 
-  //width: 1024px;
-
-  background-color: #d0e2c1;
+  background-color: #efefef;
 }
 
 .juicebox-widget-container {
@@ -222,6 +220,18 @@ $default-font-family: 'Open Sans', sans-serif;
   border-width: thin;
   border-color: $default-dark-color;
 
+}
+
+.hic-root-selected  {
+  border-width: 4px;
+  border-color: red;
+}
+
+.hic-root:hover,
+.hic-root:focus,
+.hic-root:active  {
+  border-width: 4px;
+  border-color: red;
 }
 
 // navbar

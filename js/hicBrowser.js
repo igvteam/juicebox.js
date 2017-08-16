@@ -257,6 +257,18 @@ var hic = (function (hic) {
 
         this.$root = $('<div class="hic-root unselect">');
 
+        this.$root.on('click', function (e) {
+
+            var $selected;
+
+            $selected = $('.hic-root');
+
+            $selected.removeClass('hic-root-selected');
+            self.$root.addClass('hic-root-selected');
+
+            hic.Browser.setCurrentBrowser(self);
+        });
+
         if (false === config.showHicContactMapLabel) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
         } else {
