@@ -104,7 +104,7 @@ var site = (function (site) {
 
         $('.juicebox-app-clone-button').find('i.fa-plus-circle').on('click', function (e) {
             var dev_null,
-                dimension = 768;
+                dimension = hic.Browser.defaultDimension;
 
             dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
                 width: dimension,

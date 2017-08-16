@@ -389,6 +389,8 @@ var hic = (function (hic) {
 
     };
 
+    hic.Browser.defaultDimension = 600;
+
     hic.Browser.getCurrentBrowser = function () {
 
         if (undefined === hic.Browser.currentBrowser) {
