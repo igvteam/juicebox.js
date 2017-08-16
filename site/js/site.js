@@ -75,9 +75,9 @@ var site = (function (site) {
             suffix = path.substr(path.lastIndexOf('.') + 1);
 
             if ('hic' === suffix) {
-                browser.loadHicFile({url: url, name: extractFilename(path)});
+                browser.loadHicFile({ url: url, name: hic.extractFilename(path) });
             } else {
-                browser.loadTrack([{url: url, name: extractFilename(path)}]);
+                browser.loadTrack([{url: url, name: hic.extractFilename(path)}]);
             }
 
             $(this).val("");
@@ -131,7 +131,7 @@ var site = (function (site) {
                                 var lines = data ? data.splitLines() : [];
                                 lines.forEach(function (line) {
                                     var tokens = line.split('\t');
-                                    if (tokens.length > 1 && igvSupports(tokens[1])) {
+                                    if (tokens.length > 1 && hic.igvSupports(tokens[1])) {
                                         elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
                                     }
                                 })
@@ -152,7 +152,6 @@ var site = (function (site) {
                         $select.append(elements.join(''));
                     }
                 }
-
 
                 $e = $('#encodeModalBody');
 
@@ -192,27 +191,6 @@ var site = (function (site) {
         })
 
     };
-
-    function igvSupports(path) {
-        var config = {url: path};
-        igv.inferTrackTypes(config);
-        return config.type !== undefined;
-
-    }
-
-    function extractFilename(urlString) {
-
-        var idx = urlString.lastIndexOf("/");
-
-        if(idx > 0) {
-            return urlString.substring(idx + 1);
-        }
-        else {
-            return urlString;
-        }
-
-    }
-
 
     return site;
 

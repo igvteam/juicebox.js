@@ -26,6 +26,25 @@
  */
 var hic = (function (hic) {
 
+    hic.extractFilename = function (urlString) {
+
+        var idx = urlString.lastIndexOf("/");
+
+        if(idx > 0) {
+            return urlString.substring(idx + 1);
+        }
+        else {
+            return urlString;
+        }
+
+    };
+
+    hic.igvSupports = function (path) {
+        var config = { url: path };
+        igv.inferTrackTypes(config);
+        return config.type !== undefined;
+    };
+
     hic.throttle = function (fn, threshhold, scope) {
         var last,
             deferTimer;
