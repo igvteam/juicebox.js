@@ -1,3 +1,10 @@
+.juicebox-figure-clone-container {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  background-color: #57bbf5; }
+
 .juicebox-widget-container {
   padding-top: 4px;
   padding-bottom: 8px;

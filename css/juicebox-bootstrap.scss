@@ -147,6 +147,18 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+.juicebox-figure-clone-container {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  //width: 1024px;
+
+  background-color: #57bbf5;
+}
+
 .juicebox-widget-container {
   //height: 40px;
   padding-top: 4px;
