@@ -28,10 +28,10 @@
     <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
 
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
+    <link rel="stylesheet" type="text/css" href="../../site/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../css/juicebox-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../css/juicebox-bootstrap.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
@@ -62,34 +62,34 @@
     <!--<script src="http://localhost/igv-web/dist/igv.js"></script>-->
 
     <!-- Throbber JS -->
-    <script src="../vendor/throbber.js"></script>
+    <script src="../../vendor/throbber.js"></script>
 
     <!-- Site JS-->
-    <script src="../site/js/site.js"></script>
+    <script src="../../site/js/site.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../js/genome.js"></script>
-    <script src="../js/hicUtils.js"></script>
-    <script src="../js/hicReader.js"></script>
-    <script src="../js/hicColorScaleWidget.js"></script>
-    <script src="../js/hicLocusGoto.js"></script>
-    <script src="../js/hicResolutionSelector.js"></script>
-    <script src="../js/hicBrowser.js"></script>
-    <script src="../js/contactMatrixView.js"></script>
-    <script src="../js/hicRuler.js"></script>
-    <script src="../js/eventBus.js"></script>
-    <script src="../js/scrollbarWidget.js"></script>
-    <script src="../js/sweepZoom.js"></script>
-    <script src="../js/hicState.js"></script>
-    <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationVector.js"></script>
-    <script src="../js/normalizationWidget.js"></script>
-    <script src="../js/chromosomeSelectorWidget.js"></script>
-    <script src="../js/layoutController.js"></script>
-    <script src="../js/trackRenderer.js"></script>
-    <script src="../js/trackMenuReplacement.js"></script>
-    <script src="../js/geneSearch.js"></script>
-    <script src="../js/hic2DTrack.js"></script>
+    <script src="../../js/genome.js"></script>
+    <script src="../../js/hicUtils.js"></script>
+    <script src="../../js/hicReader.js"></script>
+    <script src="../../js/hicColorScaleWidget.js"></script>
+    <script src="../../js/hicLocusGoto.js"></script>
+    <script src="../../js/hicResolutionSelector.js"></script>
+    <script src="../../js/hicBrowser.js"></script>
+    <script src="../../js/contactMatrixView.js"></script>
+    <script src="../../js/hicRuler.js"></script>
+    <script src="../../js/eventBus.js"></script>
+    <script src="../../js/scrollbarWidget.js"></script>
+    <script src="../../js/sweepZoom.js"></script>
+    <script src="../../js/hicState.js"></script>
+    <script src="../../js/hicDataset.js"></script>
+    <script src="../../js/normalizationVector.js"></script>
+    <script src="../../js/normalizationWidget.js"></script>
+    <script src="../../js/chromosomeSelectorWidget.js"></script>
+    <script src="../../js/layoutController.js"></script>
+    <script src="../../js/trackRenderer.js"></script>
+    <script src="../../js/trackMenuReplacement.js"></script>
+    <script src="../../js/geneSearch.js"></script>
+    <script src="../../js/hic2DTrack.js"></script>
 
 </head>
 
@@ -781,46 +781,21 @@
         $container = $('.juicebox-figure-clone-container');
         $container.width(2 * dimension);
 
-        hic
-            .loadDataset({
-                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic",
-                nvi: "30439217680%2C36479"
-            })
-            .then(function (dataset) {
+        dev_null = hic.createBrowser($container, {
+            miniMode: true,
+            width: dimension,
+            height: dimension,
+            dataset: undefined,
+            href: undefined
+        });
 
-                dev_null = hic.createBrowser($container, {
-                    miniMode: true,
-                    width: dimension,
-                    height: dimension,
-                    dataset: dataset,
-//                    href: "?state=8%2C8%2C8%2C26600.581227078823%2C26595.852454564872%2C2.511187643647933%2CKR&colorScale=25&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Funtreated%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Untreated"
-                    href: undefined
-                });
-
-                dev_null = hic.createBrowser($container, {
-                    miniMode: true,
-                    width: dimension,
-                    height: dimension,
-                    dataset: dataset,
-//                    href: "?state=8%2C8%2C8%2C26600.581227078823%2C26595.852454564872%2C2.511187643647933%2CKR&colorScale=25&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Funtreated%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Untreated"
-                    href: undefined
-                });
-
-                dev_null = hic.createBrowser($container, {
-                    miniMode: true,
-                    width: dimension,
-                    height: dimension,
-                    dataset: dataset,
-//                    href: "?state=8%2C8%2C8%2C26600.581227078823%2C26595.852454564872%2C2.511187643647933%2CKR&colorScale=25&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Funtreated%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Untreated"
-                    href: undefined
-                });
-
-//                site.init(dev_null);
-
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+        dev_null = hic.createBrowser($container, {
+            miniMode: true,
+            width: dimension,
+            height: dimension,
+            dataset: undefined,
+            href: undefined
+        });
 
     });
 
