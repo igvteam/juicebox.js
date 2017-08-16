@@ -107,18 +107,30 @@ var hic = (function (hic) {
 
     hic.createBrowser = function ($hic_container, config) {
 
+        var browser,
+            uri,
+            parts,
+            query,
+            uriDecode,
+            hicUrl,
+            name,
+            stateString,
+            colorScale,
+            trackString,
+            selectedGene,
+            nvi,
+            normVectorString;
+
         setDefaults(config);
 
         if (config.href && !config.href.includes("?")) {
             config.href = "?" + config.href;
         }
 
-        var browser,
-            uri = config.href || window.location.href,
-            parts = parseUri(uri),
-            query = parts.queryKey,
-            uriDecode = uri.includes('%2C'),   // for backward compatibility, all old state values will have this
-            hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi;
+        uri = config.href || window.location.href;
+        parts = parseUri(uri);
+        query = parts.queryKey;
+        uriDecode = uri.includes('%2C');   // for backward compatibility, all old state values will have this
 
         if (query) {
             hicUrl = query["hicUrl"],

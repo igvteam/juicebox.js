@@ -109,8 +109,7 @@ var site = (function (site) {
             dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
                 width: dimension,
                 height: dimension,
-                dataset: undefined,
-                href: undefined
+                updateHref: false
             });
 
         });

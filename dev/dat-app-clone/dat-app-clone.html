@@ -782,9 +782,6 @@
 
         var w,
             aa,
-            bb,
-            cc,
-            dev_null,
             dimension,
             $container;
 
@@ -796,17 +793,8 @@
         aa = hic.createBrowser($container, {
             width: dimension,
             height: dimension,
-            dataset: undefined,
-            href: undefined
+            updateHref: false
         });
-
-//        dimension = hic.Browser.defaultDimension;
-//        bb = hic.createBrowser($container, {
-//            width: dimension,
-//            height: dimension,
-//            dataset: undefined,
-//            href: undefined
-//        });
 
         hic.Browser.setCurrentBrowser(aa);
 
