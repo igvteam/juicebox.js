@@ -66,6 +66,7 @@
 
     <!-- Site JS-->
     <script src="../site/js/site.js"></script>
+    <script src="../site/js/dynamic-map-resize.js"></script>
 
     <!-- Juicebox JS -->
     <script src="../js/genome.js"></script>
@@ -789,14 +790,13 @@
 
     $(document).ready(function () {
 
-        var config,
-            browser;
+        var config;
 
 
         config = {};
-        browser = hic.createBrowser($('#app-container'), config);
+        window.browser = hic.createBrowser($('#app-container'), config);
 
-        site.init(browser);
+        site.init(window.browser);
     });
 
 </script>

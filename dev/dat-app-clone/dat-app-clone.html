@@ -681,6 +681,12 @@
 
             <div class="row">
 
+                <!-- App clone button -->
+                <div class="col-md-1">
+                    <div class="blue-button">
+                    </div>
+                </div>
+
                 <!-- Contact Map: Select | Local File | URL -->
                 <div class="col-md-4 juicebox-widget-container">
 
@@ -780,6 +786,14 @@
         dimension = 400;
         $container = $('.juicebox-app-clone-container');
         $container.width(2 * dimension);
+
+        dev_null = hic.createBrowser($container, {
+            miniMode: true,
+            width: dimension,
+            height: dimension,
+            dataset: undefined,
+            href: undefined
+        });
 
         dev_null = hic.createBrowser($container, {
             miniMode: true,
