@@ -779,37 +779,39 @@
 
     $(document).ready(function () {
 
-        var dev_null,
+        var w,
+            aa,
+            bb,
+            cc,
+            dev_null,
             dimension,
             $container;
 
-        dimension = 400;
+        w = $(window).width();
         $container = $('.juicebox-app-clone-container');
-        $container.width(2 * dimension);
+        $container.width(w);
 
-        dev_null = hic.createBrowser($container, {
-            miniMode: true,
+        dimension = 768;
+        aa = hic.createBrowser($container, {
+//            miniMode: true,
             width: dimension,
             height: dimension,
             dataset: undefined,
             href: undefined
         });
 
-        dev_null = hic.createBrowser($container, {
-            miniMode: true,
+        dimension = 768;
+        bb = hic.createBrowser($container, {
+//            miniMode: true,
             width: dimension,
             height: dimension,
             dataset: undefined,
             href: undefined
         });
 
-        dev_null = hic.createBrowser($container, {
-            miniMode: true,
-            width: dimension,
-            height: dimension,
-            dataset: undefined,
-            href: undefined
-        });
+        hic.Browser.setCurrentBrowser(aa);
+
+        site.init();
 
     });
 
