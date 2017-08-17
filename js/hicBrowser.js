@@ -426,7 +426,11 @@ var hic = (function (hic) {
         if (browser === hic.Browser.currentBrowser) {
             // do nothing
         } else {
-            hic.Browser.currentBrowser = browser
+            hic.Browser.currentBrowser = browser;
+
+            if (hic.Browser.encodeTable) {
+                hic.Browser.encodeTable.browser = browser;
+            }
         }
 
     };
