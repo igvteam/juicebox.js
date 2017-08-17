@@ -164,15 +164,10 @@ $default-font-family: 'Open Sans', sans-serif;
   color: #a5a5a5;
 
   i.fa-plus-circle {
-    margin-top: 12px;
     float: left;
   }
 
-  div#juicebox-app-clone-button-label {
-    margin-top: 9px;
-    margin-left: 4px;
-    float: left;
-  }
+  margin-top: 14px;
 
 }
 
@@ -245,7 +240,8 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: white;
 
   border-style: solid;
-  border-width: thin;
+  //border-width: thin;
+  border-width: 2px;
   border-color: $default-dark-color;
 
 }
