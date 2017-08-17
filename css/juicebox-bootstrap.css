@@ -6,14 +6,14 @@
   background-color: #efefef; }
 
 .juicebox-app-clone-button {
-  margin-top: 8px; }
+  margin-top: 12px; }
   .juicebox-app-clone-button i.fa-plus-circle {
-    color: red; }
+    color: #bfbfbf; }
   .juicebox-app-clone-button i.fa-plus-circle:hover,
   .juicebox-app-clone-button i.fa-plus-circle:focus,
   .juicebox-app-clone-button i.fa-plus-circle:active {
     cursor: pointer;
-    color: #bf0000; }
+    color: #494949; }
 
 .juicebox-widget-container {
   padding-top: 4px;

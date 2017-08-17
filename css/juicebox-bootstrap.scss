@@ -159,17 +159,17 @@ $default-font-family: 'Open Sans', sans-serif;
 
 .juicebox-app-clone-button {
 
-  margin-top: 8px;
+  margin-top: 12px;
 
   i.fa-plus-circle {
-    color: red;
+    color: #bfbfbf;
   }
 
   i.fa-plus-circle:hover,
   i.fa-plus-circle:focus,
   i.fa-plus-circle:active  {
     cursor: pointer;
-    color: #bf0000;
+    color: #494949;
   }
 
 }
@@ -181,9 +181,6 @@ $default-font-family: 'Open Sans', sans-serif;
   color: white;
   //background-color: red;
 }
-
-
-
 
 .blue-backdrop {
   background-color: dodgerblue;
