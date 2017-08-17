@@ -195,7 +195,7 @@ var site = (function (site) {
 
                     encodeDataSource = new encode.EncodeDataSource({ genomeID: browser.dataset.genomeId }, encodeTableFormat);
 
-                    browser.encodeTable = new igv.IGVModalTable($e, browser, browser.loadTrack, encodeDataSource);
+                    browser.encodeTable = new igv.IGVModalTable($e, browser, 'loadTrack', encodeDataSource);
                 }
 
 
