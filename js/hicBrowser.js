@@ -397,7 +397,7 @@ var hic = (function (hic) {
 
             encodeDataSource = new encode.EncodeDataSource({ genomeID: genomeId }, encodeTableFormat);
 
-            hic.Browser.encodeTable = new igv.IGVModalTable($container, browser, browser.loadTrack, encodeDataSource);
+            hic.Browser.encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
         }
 
     };
@@ -426,13 +426,7 @@ var hic = (function (hic) {
         if (browser === hic.Browser.currentBrowser) {
             // do nothing
         } else {
-
-            if (browser.dataset && browser.dataset.genomeId) {
-                loadAnnotationSelector($('#annotation-selector'), browser.dataset.genomeId);
-                hic.Browser.oneEncodeTableToRuleThemAll(browser, $('#encodeModalBody'), browser.dataset.genomeId);
-            }
-
-            hic.Browser.currentBrowser = browser;
+            hic.Browser.currentBrowser = browser
         }
 
     };
