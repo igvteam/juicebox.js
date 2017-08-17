@@ -41,6 +41,10 @@ var site = (function (site) {
             $selected = $(this).find('option:selected');
 
             hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
+
+            // un-highlight all app tiles, if neeed
+            $('.hic-root').removeClass('hic-root-selected');
+
         });
 
         $('#hic-load-local-file').on('change', function (e) {
