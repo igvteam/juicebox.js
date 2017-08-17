@@ -275,13 +275,16 @@ var hic = (function (hic) {
 
             var $selected;
 
-            $selected = $('.hic-root');
-
-            $selected.removeClass('hic-root-selected');
-            self.$root.addClass('hic-root-selected');
+            if (_.size(hic.allBrowsers) > 1) {
+                $selected = $('.hic-root');
+                $selected.removeClass('hic-root-selected');
+                self.$root.addClass('hic-root-selected');
+            }
 
             hic.Browser.setCurrentBrowser(self);
         });
+
+        // configureHover.call(this, this.$root);
 
         if (false === config.showHicContactMapLabel) {
             hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
@@ -326,8 +329,33 @@ var hic = (function (hic) {
                 hic.Browser.oneEncodeTableToRuleThemAll(self, $('#encodeModalBody'), self.dataset.genomeId);
 
             }
-        })
+        });
 
+        function configureHover ($e) {
+
+            var self = this;
+
+            $e.hover(_in, _out);
+
+            _out();
+
+            function _in () {
+
+                if (_.size(hic.allBrowsers) > 1) {
+                    $e.css('border-color', '#df0000');
+                }
+
+            }
+
+            function _out () {
+
+                if (_.size(hic.allBrowsers) > 1) {
+                    $e.css('border-color', '#5f5f5f');
+                }
+
+            }
+
+        }
     };
 
     function loadAnnotationSelector($container, genomeId) {

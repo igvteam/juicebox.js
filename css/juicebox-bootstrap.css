@@ -74,14 +74,7 @@
   border-color: #5f5f5f; }
 
 .hic-root-selected {
-  border-width: 2px;
-  border-color: red; }
-
-.hic-root:hover,
-.hic-root:focus,
-.hic-root:active {
-  border-width: 2px;
-  border-color: red; }
+  border-color: #df0000; }
 
 .hic-navbar-container {
   display: flex;

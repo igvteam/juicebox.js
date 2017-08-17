@@ -240,22 +240,13 @@ $default-font-family: 'Open Sans', sans-serif;
   background-color: white;
 
   border-style: solid;
-  //border-width: thin;
   border-width: 2px;
-  border-color: $default-dark-color;
+  border-color: #5f5f5f;
 
 }
 
 .hic-root-selected  {
-  border-width: 2px;
-  border-color: red;
-}
-
-.hic-root:hover,
-.hic-root:focus,
-.hic-root:active  {
-  border-width: 2px;
-  border-color: red;
+  border-color: #df0000;
 }
 
 // navbar
