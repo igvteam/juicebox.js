@@ -273,14 +273,6 @@ var hic = (function (hic) {
 
         this.$root.on('click', function (e) {
 
-            var $selected;
-
-            if (_.size(hic.allBrowsers) > 1) {
-                $selected = $('.hic-root');
-                $selected.removeClass('hic-root-selected');
-                self.$root.addClass('hic-root-selected');
-            }
-
             hic.Browser.setCurrentBrowser(self);
         });
 
@@ -454,6 +446,12 @@ var hic = (function (hic) {
         if (browser === hic.Browser.currentBrowser) {
             // do nothing
         } else {
+
+            if (_.size(hic.allBrowsers) > 1) {
+                $('.hic-root').removeClass('hic-root-selected');
+                browser.$root.addClass('hic-root-selected');
+            }
+
             hic.Browser.currentBrowser = browser;
 
             if (hic.Browser.encodeTable) {
