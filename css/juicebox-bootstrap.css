@@ -5,14 +5,20 @@
   justify-content: flex-start; }
 
 .juicebox-app-clone-button {
-  margin-top: 12px; }
+  cursor: pointer;
+  color: #a5a5a5; }
   .juicebox-app-clone-button i.fa-plus-circle {
-    color: #bfbfbf; }
-  .juicebox-app-clone-button i.fa-plus-circle:hover,
-  .juicebox-app-clone-button i.fa-plus-circle:focus,
-  .juicebox-app-clone-button i.fa-plus-circle:active {
-    cursor: pointer;
-    color: #494949; }
+    margin-top: 12px;
+    float: left; }
+  .juicebox-app-clone-button div#juicebox-app-clone-button-label {
+    margin-top: 9px;
+    margin-left: 4px;
+    float: left; }
+
+.juicebox-app-clone-button:hover,
+.juicebox-app-clone-button:focus,
+.juicebox-app-clone-button:active {
+  color: #494949; }
 
 .juicebox-widget-container {
   padding-top: 4px;

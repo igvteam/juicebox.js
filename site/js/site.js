@@ -108,9 +108,8 @@ var site = (function (site) {
             hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
         });
 
-        $('.juicebox-app-clone-button').find('i.fa-plus-circle').on('click', function (e) {
-            var dev_null,
-                dimension = hic.Browser.defaultDimension;
+        $('.juicebox-app-clone-button').on('click', function (e) {
+            var dev_null;
 
             // If this is the first invocation strep href of parameters and turn off href updating
             if(hic.allBrowsers.length === 1) {
@@ -119,8 +118,6 @@ var site = (function (site) {
             }
 
             dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
-              //  width: dimension,
-              //  height: dimension,
                 updateHref: false
             });
 

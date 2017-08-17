@@ -159,19 +159,27 @@ $default-font-family: 'Open Sans', sans-serif;
 
 .juicebox-app-clone-button {
 
-  margin-top: 12px;
+  cursor: pointer;
+
+  color: #a5a5a5;
 
   i.fa-plus-circle {
-    color: #bfbfbf;
+    margin-top: 12px;
+    float: left;
   }
 
-  i.fa-plus-circle:hover,
-  i.fa-plus-circle:focus,
-  i.fa-plus-circle:active  {
-    cursor: pointer;
-    color: #494949;
+  div#juicebox-app-clone-button-label {
+    margin-top: 9px;
+    margin-left: 4px;
+    float: left;
   }
 
+}
+
+.juicebox-app-clone-button:hover,
+.juicebox-app-clone-button:focus,
+.juicebox-app-clone-button:active {
+  color: #494949;
 }
 
 .juicebox-widget-container {
