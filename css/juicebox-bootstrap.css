@@ -2,8 +2,7 @@
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  background-color: #efefef; }
+  justify-content: flex-start; }
 
 .juicebox-app-clone-button {
   margin-top: 12px; }
