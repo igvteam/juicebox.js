@@ -33,7 +33,7 @@ var hic = (function (hic) {
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
     var datasetCache = {};
-    
+
     hic.allBrowsers = [];
 
 
@@ -41,12 +41,12 @@ var hic = (function (hic) {
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-            {
-                constants: {defaultColor: "rgb(0,0,150)"},
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
 
-                // Compatibility wit igv menus
-                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-            };
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -178,7 +178,7 @@ var hic = (function (hic) {
         }
 
         browser = new hic.Browser($hic_container, config);
-        
+
         hic.allBrowsers.push(browser);
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
@@ -382,18 +382,18 @@ var hic = (function (hic) {
                     }
 
                     columnWidths =
-                        {
-                            'Assembly': '10%',
-                            'Cell Type': '10%',
-                            'Target': '10%',
-                            'Assay Type': '20%',
-                            'Output Type': '20%',
-                            'Lab': '20%'
-                        };
+                    {
+                        'Assembly': '10%',
+                        'Cell Type': '10%',
+                        'Target': '10%',
+                        'Assay Type': '20%',
+                        'Output Type': '20%',
+                        'Lab': '20%'
+                    };
 
-                    encodeTableFormat = new encode.EncodeTableFormat({ columnWidths: columnWidths });
+                    encodeTableFormat = new encode.EncodeTableFormat({columnWidths: columnWidths});
 
-                    encodeDataSource = new encode.EncodeDataSource({ genomeID: self.dataset.genomeId }, encodeTableFormat);
+                    encodeDataSource = new encode.EncodeDataSource({genomeID: self.dataset.genomeId}, encodeTableFormat);
 
                     self.encodeTable = new igv.IGVModalTable($e, self, self.loadTrack, encodeDataSource);
                 }
@@ -420,7 +420,7 @@ var hic = (function (hic) {
         hic.Browser.currentBrowser = browser;
     };
 
-    hic.Browser.prototype.updateHref = function (event) {
+    hic.Browser.prototype.updateUriParameters = function (event) {
 
         var href = window.location.href,
             nviString, trackString;
@@ -501,13 +501,24 @@ var hic = (function (hic) {
         }
 
         if (this.config.updateHref === false) {
-            console.log(href);
+            //         console.log(href);
         }
         else {
             window.history.replaceState("", "juicebox", href);
         }
     };
 
+    /**
+     * String the window href of browser parameters. Temporarily need to support multi maps
+     */
+    hic.Browser.prototype.stripUriParameters = function () {
+
+        var href = window.location.href,
+            idx = href.indexOf("?");
+
+        if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
+
+    }
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
 
@@ -565,7 +576,7 @@ var hic = (function (hic) {
         this.contactMatrixView.setColorScale(high);
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.update();
-        this.updateHref();
+        this.updateUriParameters();
 
         var self = this,
             state = this.state;
@@ -599,7 +610,7 @@ var hic = (function (hic) {
                 self.loadNormalizationFile(config.url);
                 if (isLocal === false) {
                     self.normVectorFiles.push(config.url);
-                    self.updateHref();
+                    self.updateUriParameters();
                 }
                 return;
             }
@@ -1072,7 +1083,7 @@ var hic = (function (hic) {
             newPixelSize,
             zoomChanged, gx, gy;
 
-        currentResolution = bpResolutions[this.state.zoom] ;
+        currentResolution = bpResolutions[this.state.zoom];
 
         if (this.resolutionLocked ||
             (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
@@ -1094,7 +1105,7 @@ var hic = (function (hic) {
         newPixelSize = Math.max(newPixelSize, minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom));
 
         // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-        gx = (this.state.x  + anchorPx  / this.state.pixelSize) * currentResolution;
+        gx = (this.state.x + anchorPx / this.state.pixelSize) * currentResolution;
         gy = (this.state.y + anchorPy / this.state.pixelSize) * currentResolution;
 
         this.state.x = gx / newResolution - anchorPx / newPixelSize;
@@ -1111,14 +1122,13 @@ var hic = (function (hic) {
     // Zoom in response to a double-click
     hic.Browser.prototype.zoomAndCenter = function (direction, centerPX, centerPY) {
 
-        if(!this.dataset) return;
+        if (!this.dataset) return;
 
         var bpResolutions = this.dataset.bpResolutions,
             viewDimensions = this.contactMatrixView.getViewDimensions(),
             dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
             dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
             newPixelSize, shiftRatio
-
 
 
         this.state.x += (dx / this.state.pixelSize);
@@ -1346,7 +1356,9 @@ var hic = (function (hic) {
 
         if (event.dragging) return;
 
-        this.updateHref(event);
+        if (this.updateHref) {
+            this.updateUriParameters(event);
+        }
     };
 
 

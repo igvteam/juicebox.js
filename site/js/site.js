@@ -108,6 +108,12 @@ var site = (function (site) {
             var dev_null,
                 dimension = hic.Browser.defaultDimension;
 
+            // If this is the first invocation strep href of parameters and turn off href updating
+            if(hic.allBrowsers.length === 1) {
+                hic.allBrowsers[0].updateHref = false;
+                hic.allBrowsers[0].stripUriParameters();
+            }
+
             dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
               //  width: dimension,
               //  height: dimension,
