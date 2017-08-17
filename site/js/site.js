@@ -109,8 +109,8 @@ var site = (function (site) {
                 dimension = hic.Browser.defaultDimension;
 
             dev_null = hic.createBrowser($('.juicebox-app-clone-container'), {
-                width: dimension,
-                height: dimension,
+              //  width: dimension,
+              //  height: dimension,
                 updateHref: false
             });
 
