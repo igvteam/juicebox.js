@@ -26,6 +26,7 @@
  */
 var site = (function (site) {
 
+
     site.init = function () {
 
         $('#dataset_selector').on('change', function (e) {
@@ -38,6 +39,7 @@ var site = (function (site) {
             url = $(this).val();
 
             $selected = $(this).find('option:selected');
+
             hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
         });
 
@@ -111,6 +113,8 @@ var site = (function (site) {
                 height: dimension,
                 updateHref: false
             });
+
+            hic.syncBrowsers(hic.allBrowsers);
 
         });
 

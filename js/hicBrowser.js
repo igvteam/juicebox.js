@@ -33,6 +33,8 @@ var hic = (function (hic) {
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
     var datasetCache = {};
+    
+    hic.allBrowsers = [];
 
 
     // mock igv browser objects for igv.js compatibility
@@ -176,6 +178,8 @@ var hic = (function (hic) {
         }
 
         browser = new hic.Browser($hic_container, config);
+        
+        hic.allBrowsers.push(browser);
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
