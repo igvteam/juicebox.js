@@ -402,7 +402,7 @@ var hic = (function (hic) {
             encodeTableFormat,
             encodeDataSource;
 
-        if (hic.Browser.encodeTable && genomeId === hic.Browser.encodeTable.genomeID) {
+        if (hic.Browser.encodeTable && genomeId === hic.Browser.encodeTable.genomeID()) {
             // do nothing
             console.log('nuthin');
         } else {
