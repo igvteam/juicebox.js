@@ -28,10 +28,10 @@
     <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
 
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
+    <link rel="stylesheet" type="text/css" href="../../site/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../css/juicebox-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../css/juicebox-bootstrap.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
@@ -61,36 +61,39 @@
     <script src="http://igv.org/web/beta/igv-beta.js"></script>
     <!--<script src="http://localhost/igv-web/dist/igv.js"></script>-->
 
+
     <!-- Throbber JS -->
-    <script src="../vendor/throbber.js"></script>
+    <script src="../../vendor/throbber.js"></script>
 
     <!-- Site JS-->
-    <script src="../site/js/site.js"></script>
-    <script src="../site/js/dynamic-map-resize.js"></script>
+    <script src="../../site/js/site.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../js/genome.js"></script>
-    <script src="../js/hicUtils.js"></script>
-    <script src="../js/hicReader.js"></script>
-    <script src="../js/hicColorScaleWidget.js"></script>
-    <script src="../js/hicLocusGoto.js"></script>
-    <script src="../js/hicResolutionSelector.js"></script>
-    <script src="../js/hicBrowser.js"></script>
-    <script src="../js/contactMatrixView.js"></script>
-    <script src="../js/hicRuler.js"></script>
-    <script src="../js/eventBus.js"></script>
-    <script src="../js/scrollbarWidget.js"></script>
-    <script src="../js/sweepZoom.js"></script>
-    <script src="../js/hicState.js"></script>
-    <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationVector.js"></script>
-    <script src="../js/normalizationWidget.js"></script>
-    <script src="../js/chromosomeSelectorWidget.js"></script>
-    <script src="../js/layoutController.js"></script>
-    <script src="../js/trackRenderer.js"></script>
-    <script src="../js/trackMenuReplacement.js"></script>
-    <script src="../js/geneSearch.js"></script>
-    <script src="../js/hic2DTrack.js"></script>
+    <script src="../../js/genome.js"></script>
+    <script src="../../js/hicUtils.js"></script>
+    <script src="../../js/hicReader.js"></script>
+    <script src="../../js/hicColorScaleWidget.js"></script>
+    <script src="../../js/hicLocusGoto.js"></script>
+    <script src="../../js/hicResolutionSelector.js"></script>
+    <script src="../../js/hicBrowser.js"></script>
+    <script src="../../js/contactMatrixView.js"></script>
+    <script src="../../js/hicRuler.js"></script>
+    <script src="../../js/eventBus.js"></script>
+    <script src="../../js/scrollbarWidget.js"></script>
+    <script src="../../js/sweepZoom.js"></script>
+    <script src="../../js/hicState.js"></script>
+    <script src="../../js/hicDataset.js"></script>
+    <script src="../../js/normalizationVector.js"></script>
+    <script src="../../js/normalizationWidget.js"></script>
+    <script src="../../js/chromosomeSelectorWidget.js"></script>
+    <script src="../../js/layoutController.js"></script>
+    <script src="../../js/trackRenderer.js"></script>
+    <script src="../../js/trackMenuReplacement.js"></script>
+    <script src="../../js/geneSearch.js"></script>
+
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
 </head>
 
@@ -181,7 +184,7 @@
                         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
                         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">Dudchenko et al. | Science 2017 Homo sapiens Hs2-HiC</option>
                         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic">Dudchenko et al. | Science 2017 Culex quinquefasciatus</option>
-                        <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic?nvi=54386046426%2C55860">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
+                        <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary (2.6B)</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/replicate.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI replicate (2.3B)</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/maternal.hic">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI maternal</option>
@@ -678,107 +681,6 @@
 
     <div class="row">
         <div class="col-md-12">
-            <h1>Dynamic Contact Map Resize</h1>
-        </div>
-    </div>
-
-    <div class="row">
-
-        <div class="col-md-7">
-
-            <div class="row">
-
-                <!-- Contact Map: Select | Local File | URL -->
-                <div class="col-md-4 juicebox-widget-container">
-
-                    <div class="dropdown">
-
-                        <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            Load Contact Map &nbsp;
-                            <span class="caret"></span>
-                        </button>
-
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-contact-map-dropdown">
-
-                            <li role="presentation"><!-- Select Contact Map -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
-                                    Select Contact Map
-                                </a>
-                            </li><!-- Select Contact Map -->
-
-                            <li role="presentation"><!-- Local Contact Map File -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
-                                    Local Contact Map File
-                                </a>
-                            </li><!-- Local Contact Map File -->
-
-                            <li role="presentation"><!-- Contact Map URL -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                                    Contact Map URL
-                                </a>
-                            </li><!-- Contact Map URL -->
-
-                        </ul>
-
-                    </div>
-
-                </div>
-
-                <!-- Track File: ENCODE | Annotations | Local File | URL -->
-                <div class="col-md-3 juicebox-widget-container">
-
-                    <div class="dropdown">
-
-                        <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            Load Tracks &nbsp;
-                            <span class="caret"></span>
-                        </button>
-
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
-
-                            <li role="presentation"><!-- Select ENCODE -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
-                                    ENCODE
-                                </a>
-                            </li><!-- Select ENCODE -->
-
-                            <li role="presentation"><!-- Select Annotations -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
-                                    Annotations
-                                </a>
-                            </li><!-- Select Annotations -->
-
-                            <li role="presentation"><!-- Local Track File -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
-                                    Local Track File
-                                </a>
-                            </li><!-- Local Track File -->
-
-                            <li role="presentation"><!-- Track URL -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                                    Track URL
-                                </a>
-                            </li><!-- Track URL -->
-
-                        </ul>
-
-                    </div>
-
-                </div>
-
-                <!-- Dynamic Contact Map Resize -->
-                <div id="contact-map-resize" class="col-md-4 blue-button">
-                    Resize Contact Map
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
             <div id="app-container">
             </div>
         </div>
@@ -790,13 +692,17 @@
 
     $(document).ready(function () {
 
-        var config;
+        var dev_null,
+            state;
 
+        state = 'http://localhost:63342/juicebox.js/dev/juicebox-dev.html?state=1%2C1%2C4%2C1115.253105%2C1149.253105%2C1%2CNONE&colorScale=29&hicUrl=https%3A%2F%2Fhicfiles.s3.amazonaws.com%2Fhiseq%2Fgm12878%2Fin-situ%2FHIC009.hic&name=Rao%20and%20Huntley%20et%20al.%20%7C%20Cell%202014%20GM12878%20(human)%20in%20situ%20MboI%20HIC009%20(95M)&nvi=2851728310%2C36479';
+        dev_null = hic.createBrowser($('#app-container'), {
+            miniMode: true,
+            width: 480,
+            height: 480,
+            href: state
+        });
 
-        config = {};
-        window.browser = hic.createBrowser($('#app-container'), config);
-
-        site.init();
     });
 
 </script>
