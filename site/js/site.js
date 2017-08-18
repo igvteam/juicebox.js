@@ -26,7 +26,6 @@
  */
 var site = (function (site) {
 
-
     site.init = function () {
 
         $('#dataset_selector').on('change', function (e) {
@@ -40,10 +39,11 @@ var site = (function (site) {
 
             $selected = $(this).find('option:selected');
 
-            hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
-
-            // un-highlight all app tiles, if neeed
-            $('.hic-root').removeClass('hic-root-selected');
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
+            }
 
         });
 
@@ -52,19 +52,24 @@ var site = (function (site) {
             var file,
                 suffix;
 
-            file = _.first($(this).get(0).files);
-
-            suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
-
-            if ('hic' === suffix) {
-                hic.Browser.getCurrentBrowser().loadHicFile({ url: file, name: file.name });
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                hic.Browser.getCurrentBrowser().loadTrack([{ url: file, name: file.name }]);
+
+                file = _.first($(this).get(0).files);
+
+                suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
+
+                if ('hic' === suffix) {
+                    hic.Browser.getCurrentBrowser().loadHicFile({ url: file, name: file.name });
+                } else {
+                    hic.Browser.getCurrentBrowser().loadTrack([{ url: file, name: file.name }]);
+                }
+
+                $(this).val("");
+                $('#hic-load-local-file-modal').modal('hide');
             }
 
-
-            $(this).val("");
-            $('#hic-load-local-file-modal').modal('hide');
         });
 
         $('#hic-load-url').on('change', function (e) {
@@ -73,21 +78,26 @@ var site = (function (site) {
                 paramIdx,
                 path;
 
-            url = $(this).val();
-
-            paramIdx = url.indexOf("?");
-            path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
-
-            suffix = path.substr(path.lastIndexOf('.') + 1);
-
-            if ('hic' === suffix) {
-                hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: hic.extractFilename(path) });
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
-            }
+                url = $(this).val();
 
-            $(this).val("");
-            $('#hic-load-url-modal').modal('hide');
+                paramIdx = url.indexOf("?");
+                path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
+
+                suffix = path.substr(path.lastIndexOf('.') + 1);
+
+                if ('hic' === suffix) {
+                    hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: hic.extractFilename(path) });
+                } else {
+                    hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
+                }
+
+                $(this).val("");
+                $('#hic-load-url-modal').modal('hide');
+
+            }
 
         });
 
@@ -97,15 +107,20 @@ var site = (function (site) {
             var path,
                 name;
 
-            $('#hic-annotation-select-modal').modal('hide');
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                $('#hic-annotation-select-modal').modal('hide');
 
-            path = $(this).val();
-            name = $(this).find('option:selected').text();
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
 
-            // deselect all
-            $(this).find('option').removeAttr("selected");
+                // deselect all
+                $(this).find('option').removeAttr("selected");
 
-            hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
         });
 
         $('.juicebox-app-clone-button').on('click', function (e) {

@@ -72,6 +72,11 @@ var hic = (function (hic) {
         // Data Range Dialog object -- singleton shared by all components
         igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
         igv.dataRangeDialog.hide();
+
+        // alert object -- singleton shared by all components
+        igv.alert = new igv.AlertDialog(hicBrowser.$root, "igv-alert");
+        igv.alert.hide();
+
     }
 
     function destringifyTracks(trackString) {
@@ -274,7 +279,6 @@ var hic = (function (hic) {
 
         this.$root = $('<div class="hic-root unselect">');
 
-
         // configureHover.call(this, this.$root);
 
         if (false === config.showHicContactMapLabel) {
@@ -315,10 +319,12 @@ var hic = (function (hic) {
 
             receiveEvent: function (event) {
 
-                hic.loadAnnotationSelector($('#annotation-selector'), event.data);
-
-                hic.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
-
+                if (undefined === hic.Browser.getCurrentBrowser()) {
+                    igv.presentAlert('ERROR: you must select a map panel.');
+                } else {
+                    hic.loadAnnotationSelector($('#annotation-selector'), event.data);
+                    hic.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
+                }
             }
         });
 
@@ -353,24 +359,35 @@ var hic = (function (hic) {
 
     hic.Browser.getCurrentBrowser = function () {
 
-        if (undefined === hic.Browser.currentBrowser) {
-            // Return the default browser
-            if(hic.allBrowsers.length > 0) {
-                return hic.allBrowsers[0];
-            }
-            else {
-                console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
-                return undefined;
-            }
+        if (1 === _.size(hic.allBrowsers)) {
+            return _.first(hic.allBrowsers);
         } else {
             return hic.Browser.currentBrowser;
         }
+
+        // if (undefined === hic.Browser.currentBrowser) {
+        //     // Return the default browser
+        //     if(hic.allBrowsers.length > 0) {
+        //         return hic.allBrowsers[0];
+        //     }
+        //     else {
+        //         console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
+        //         return undefined;
+        //     }
+        // } else {
+        //     return hic.Browser.currentBrowser;
+        // }
 
     };
 
     hic.Browser.setCurrentBrowser = function (browser) {
 
-        if (browser === hic.Browser.currentBrowser) {
+        if (undefined === browser) {
+
+            $('.hic-root').removeClass('hic-root-selected');
+            hic.Browser.currentBrowser = browser;
+        } else if (browser === hic.Browser.currentBrowser) {
+
             // toggle state (turn selection off)
             $('.hic-root').removeClass('hic-root-selected');
             hic.Browser.currentBrowser = undefined;
@@ -906,6 +923,10 @@ var hic = (function (hic) {
                         });
                 }
             }
+
+            $('.hic-root').removeClass('hic-root-selected');
+            hic.Browser.setCurrentBrowser(undefined);
+
         }
 
     };
