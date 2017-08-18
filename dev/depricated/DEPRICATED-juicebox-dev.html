@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-    <title>JuiceboxJS Figure Clone</title>
+    <title>JuiceboxJS - Bootstrap'ped </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
@@ -59,7 +59,6 @@
 
     <!-- IGV JS -->
     <script src="http://igv.org/web/beta/igv-beta.js"></script>
-    <!--<script src="http://localhost/igv-web/dist/igv.js"></script>-->
 
     <!-- Throbber JS -->
     <script src="../../vendor/throbber.js"></script>
@@ -674,20 +673,23 @@
     </div>
 </div>
 
-<div class="container-fluid">
+<div class="container">
 
     <div class="row">
         <div class="col-md-12">
             <h1>Juicebox Web</h1>
+            <!--<p>You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</p>-->
         </div>
     </div>
 
     <div class="row">
 
         <div class="col-md-7">
+
             <div class="row">
+
                 <!-- Contact Map: Select | Local File | URL -->
-                <div class="col-md-3 juicebox-widget-container">
+                <div class="col-md-4 juicebox-widget-container">
 
                     <div class="dropdown">
 
@@ -724,6 +726,7 @@
 
                 <!-- Track File: ENCODE | Annotations | Local File | URL -->
                 <div class="col-md-3 juicebox-widget-container">
+
                     <div class="dropdown">
 
                         <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
@@ -760,22 +763,19 @@
                         </ul>
 
                     </div>
-                </div>
 
-                <!-- App clone button -->
-                <div class="col-md-1">
-                    <div class="juicebox-app-clone-button" title="Add Map Panel">
-                        <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
-                    </div>
                 </div>
 
             </div>
+
         </div>
 
     </div>
 
     <div class="row">
-        <div class="juicebox-app-clone-container">
+        <div class="col-md-12">
+            <div id="app-container">
+            </div>
         </div>
     </div>
 
@@ -785,22 +785,19 @@
 
     $(document).ready(function () {
 
-        var w,
-            browser,
-            $container;
+        var config,
+            browser;
 
-        w = $(window).width();
-        $container = $('.juicebox-app-clone-container');
-        $container.width(2 * w);
+        config = {};
+        browser = hic.createBrowser($('#app-container'), config);
 
-        browser = hic.createBrowser($container, {});
         hic.Browser.setCurrentBrowser(browser);
 
         site.init();
-
     });
 
 </script>
 
 </body>
+
 </html>
