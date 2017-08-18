@@ -35,8 +35,7 @@ var hic = (function (hic) {
     var datasetCache = {};
 
     hic.allBrowsers = [];
-
-
+    
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
@@ -106,7 +105,7 @@ var hic = (function (hic) {
         return configList;
 
     }
-
+    
     hic.createBrowser = function ($hic_container, config) {
 
         var browser,
@@ -316,9 +315,9 @@ var hic = (function (hic) {
 
             receiveEvent: function (event) {
 
-                loadAnnotationSelector($('#annotation-selector'), event.data);
+                hic.loadAnnotationSelector($('#annotation-selector'), event.data);
 
-                hic.Browser.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
+                hic.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
 
             }
         });
@@ -348,84 +347,6 @@ var hic = (function (hic) {
             }
 
         }
-    };
-
-    function loadAnnotationSelector($container, genomeId) {
-
-        var elements;
-
-        $container.empty();
-
-        elements = [];
-        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
-
-        if ('hg19' === genomeId) {
-
-            igvxhr
-                .loadString("https://hicfiles.s3.amazonaws.com/internal/tracksMenu_hg19.txt")
-                .then(function (data) {
-                    var lines = data ? data.splitLines() : [];
-                    lines.forEach(function (line) {
-                        var tokens = line.split('\t');
-                        if (tokens.length > 1 && hic.igvSupports(tokens[1])) {
-                            elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
-                        }
-                    });
-                    $container.append(elements.join(''));
-
-                })
-                .catch(function (error) {
-                    console.log("Error loading track menu: " + error);
-                    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
-                    elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
-                    $container.append(elements.join(''));
-                })
-
-        } else if ('hg38' === genomeId) {
-            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/genes/refGene_hg38_collapsed.refgene.gz' + '>' + 'Genes' + '</option>');
-            $container.append(elements.join(''));
-        }
-
-    }
-
-    hic.Browser.createEncodeTable = function (browser, $container, genomeId) {
-
-        var columnWidths,
-            encodeTableFormat,
-            encodeDataSource;
-
-        if (hic.Browser.encodeTable && genomeId === hic.Browser.encodeTable.genomeID()) {
-            // do nothing
-            console.log('nuthin');
-        } else {
-
-            if (hic.Browser.encodeTable) {
-                hic.Browser.discardEncodeTable();
-            }
-
-            columnWidths =
-                {
-                    'Assembly': '10%',
-                    'Cell Type': '10%',
-                    'Target': '10%',
-                    'Assay Type': '20%',
-                    'Output Type': '20%',
-                    'Lab': '20%'
-                };
-
-            encodeTableFormat = new encode.EncodeTableFormat({ columnWidths: columnWidths });
-
-            encodeDataSource = new encode.EncodeDataSource({ genomeID: genomeId }, encodeTableFormat);
-
-            hic.Browser.encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
-        }
-
-    };
-
-    hic.Browser.discardEncodeTable = function () {
-        hic.Browser.encodeTable.unbindAllMouseHandlers();
-        $('#encodeModalBody').empty();
-        hic.Browser.encodeTable = undefined;
     };
 
     hic.Browser.defaultDimension = 600;
@@ -463,8 +384,8 @@ var hic = (function (hic) {
 
             hic.Browser.currentBrowser = browser;
 
-            if (hic.Browser.encodeTable) {
-                hic.Browser.encodeTable.browser = browser;
+            if (hic.encodeTable) {
+                hic.encodeTable.browser = browser;
             }
         }
 
@@ -568,7 +489,7 @@ var hic = (function (hic) {
 
         if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
 
-    }
+    };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
 
@@ -720,7 +641,6 @@ var hic = (function (hic) {
 
     };
 
-
     function loadIGVTrack(config) {
 
         return new Promise(function (fulfill, reject) {
@@ -766,7 +686,7 @@ var hic = (function (hic) {
                 self.eventBus.post(hic.Event("NormalizationFileLoad", "abort"));
                 console.log(error);
             });
-    }
+    };
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
 
@@ -825,7 +745,6 @@ var hic = (function (hic) {
             });
 
     };
-
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
@@ -991,7 +910,6 @@ var hic = (function (hic) {
 
     };
 
-
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
@@ -1055,7 +973,7 @@ var hic = (function (hic) {
             }
         }
 
-    }
+    };
 
     hic.Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
         var z;
@@ -1178,14 +1096,14 @@ var hic = (function (hic) {
             viewDimensions = this.contactMatrixView.getViewDimensions(),
             dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
             dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
-            newPixelSize, shiftRatio
+            newPixelSize, shiftRatio;
 
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
 
         if (this.resolutionLocked ||
-            (direction > 0 && this.state.zoom == bpResolutions.length - 1) ||
+            (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
             (direction < 0 && this.state.zoom === 0)) {
 
             newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)),
@@ -1202,7 +1120,7 @@ var hic = (function (hic) {
         } else {
             this.setZoom(this.state.zoom + direction);
         }
-    }
+    };
 
     hic.Browser.prototype.setZoom = function (zoom) {
 
@@ -1481,7 +1399,7 @@ var hic = (function (hic) {
         });
 
         return uri;
-    };
+    }
 
     parseUri.options = {
         strictMode: false,
@@ -1549,7 +1467,7 @@ var hic = (function (hic) {
 
     function replaceAll(str, target, replacement) {
         return str.split(target).join(replacement);
-    };
+    }
     return hic;
 
 })
