@@ -862,7 +862,7 @@ var hic = (function (hic) {
 
         this.name = config.name;
 
-        this.$contactMaplabel.text('Contact Map: ' + config.name);
+        this.$contactMaplabel.text(config.name);
 
         this.layoutController.removeAllTrackXYPairs();
 
