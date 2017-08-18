@@ -316,7 +316,7 @@ var hic = (function (hic) {
 
                 loadAnnotationSelector($('#annotation-selector'), event.data);
 
-                hic.Browser.oneEncodeTableToRuleThemAll(self, $('#encodeModalBody'), self.dataset.genomeId);
+                hic.Browser.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
 
             }
         });
@@ -386,7 +386,7 @@ var hic = (function (hic) {
 
     }
 
-    hic.Browser.oneEncodeTableToRuleThemAll = function (browser, $container, genomeId) {
+    hic.Browser.createEncodeTable = function (browser, $container, genomeId) {
 
         var columnWidths,
             encodeTableFormat,

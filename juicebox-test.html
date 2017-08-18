@@ -798,9 +798,10 @@
             browser,
             $container;
 
-        w = $(window).width();
+        // Why is this width set?  It screws up the flex grid
+      //  w = $(window).width();
         $container = $('.juicebox-app-clone-container');
-        $container.width(2 * w);
+      //  $container.width(2 * w);
 
         browser = hic.createBrowser($container, {});
 
