@@ -258,9 +258,11 @@ var hic = (function (hic) {
 
         //TODO -- remove this global reference !!!!
         hic.browser = this;
+
         this.config = config;
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
+        this.updateHref = config.updateHref === undefined ? true : config.updateHref;
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
