@@ -180,6 +180,8 @@ var hic = (function (hic) {
         browser = new hic.Browser($hic_container, config);
 
         hic.allBrowsers.push(browser);
+        hic.Browser.setCurrentBrowser(browser);
+
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
@@ -271,10 +273,6 @@ var hic = (function (hic) {
 
         this.$root = $('<div class="hic-root unselect">');
 
-        this.$root.on('click', function (e) {
-
-            hic.Browser.setCurrentBrowser(self);
-        });
 
         // configureHover.call(this, this.$root);
 
@@ -433,8 +431,14 @@ var hic = (function (hic) {
     hic.Browser.getCurrentBrowser = function () {
 
         if (undefined === hic.Browser.currentBrowser) {
-            console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
-            return undefined;
+            // Return the default browser
+            if(hic.allBrowsers.length > 0) {
+                return hic.allBrowsers[0];
+            }
+            else {
+                console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
+                return undefined;
+            }
         } else {
             return hic.Browser.currentBrowser;
         }
@@ -444,7 +448,10 @@ var hic = (function (hic) {
     hic.Browser.setCurrentBrowser = function (browser) {
 
         if (browser === hic.Browser.currentBrowser) {
-            // do nothing
+            // toggle state (turn selection off)
+            $('.hic-root').removeClass('hic-root-selected');
+            hic.Browser.currentBrowser = undefined;
+
         } else {
 
             if (_.size(hic.allBrowsers) > 1) {

@@ -122,7 +122,7 @@ var site = (function (site) {
                 updateHref: false
             });
 
-            hic.Browser.setCurrentBrowser(browser);
+           // hic.Browser.setCurrentBrowser(browser);
 
             hic.syncBrowsers(hic.allBrowsers);
 

@@ -36,6 +36,13 @@ var hic = (function (hic) {
 
         $navbar_container = $('<div class="hic-navbar-container">');
 
+
+        $navbar_container.on('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            hic.Browser.setCurrentBrowser(browser);
+        });
+
         if(browser.config.showHicContactMapLabel === false) {
             $navbar_container.height(hic.LayoutController.nav_bar_height);
         }

@@ -686,6 +686,9 @@ var hic = (function (hic) {
 
             $viewport.dblclick(function (e) {
 
+                e.preventDefault()
+                e.stopPropagation();
+                
                 var mouseX = e.offsetX || e.layerX,
                     mouseY = e.offsetY || e.layerX;
 
@@ -703,6 +706,9 @@ var hic = (function (hic) {
 
             $viewport.on('mousedown', function (e) {
                 var eFixed;
+
+                e.preventDefault()
+                e.stopPropagation();
 
                 mouseLast = {x: e.offsetX, y: e.offsetY};
                 mouseDown = {x: e.offsetX, y: e.offsetY};
@@ -726,7 +732,7 @@ var hic = (function (hic) {
                 }
 
                 e.preventDefault();
-
+                e.stopPropagation();
                 coords = {x: e.offsetX, y: e.offsetY};
 
                 self.browser.updateCrosshairs(coords);
@@ -784,10 +790,15 @@ var hic = (function (hic) {
                 // sweep area clamps since viewport mouse handlers stop firing
                 // when the viewport boundary is crossed.
                 mouseup: function (e) {
+
+                    e.preventDefault()
+                    e.stopPropagation();
+
                     if (isSweepZooming) {
                         isSweepZooming = false;
                         self.sweepZoom.dismiss();
                     }
+
                 }
             });
 
