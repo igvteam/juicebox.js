@@ -37,6 +37,7 @@ var hic = (function (hic) {
         this.headPath = config.headURL || this.path;
         this.config = config;
         this.fragmentSitesCache = {};
+        this.loadFragData = config.loadFragData;
 
     };
 
@@ -120,21 +121,21 @@ var hic = (function (hic) {
                     dataset.bpResolutions.push(binaryParser.getInt());
                 }
 
-                // We don't need frag level data yet, so don't load it
-                // self.fragResolutions = [];
-                // var nFragResolutions = binaryParser.getInt();
-                // while (nFragResolutions-- > 0) {
-                //     self.fragResolutions.push(binaryParser.getInt());
-                // }
-                //
-                // if (nFragResolutions > 0) {
-                //     self.sites = [];
-                //     var nSites = binaryParser.getInt();
-                //     while (nSites-- > 0) {
-                //         self.sites.push(binaryParser.getInt());
-                //     }
-                // }
+                if(this.loadFragData) {
+                    dataset.fragResolutions = [];
+                    var nFragResolutions = binaryParser.getInt();
+                    while (nFragResolutions-- > 0) {
+                        dataset.fragResolutions.push(binaryParser.getInt());
+                    }
 
+                    if (nFragResolutions > 0) {
+                        dataset.sites = [];
+                        var nSites = binaryParser.getInt();
+                        while (nSites-- > 0) {
+                            dataset.sites.push(binaryParser.getInt());
+                        }
+                    }
+                }
 
                 fulfill(self);
 
