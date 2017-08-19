@@ -209,7 +209,7 @@ var hic = (function (hic) {
 
                     normVectors["types"].forEach(function (type) {
 
-                        if(!self.normalizationTypes) self.normalizationTypes = [];
+                        if (!self.normalizationTypes) self.normalizationTypes = [];
 
                         if (_.contains(self.normalizationTypes, type) === false) {
                             self.normalizationTypes.push(type);
@@ -225,6 +225,34 @@ var hic = (function (hic) {
 
     }
 
+    hic.Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
+        var i,
+            resolutionArray;
+
+        unit = unit || "BP";
+
+        if (unit === "BP") {
+            resolutionArray = this.bpResolutions;
+        }
+        else if (unit === "FRAG") {
+            resolutionArray = this.fragResolutions;
+        }
+
+        // todo throw error if resolutionArray === undefined
+
+        for (i = 0; i < resolutionArray.length; i++) {
+            if (resolutionArray[i] === binSize) return i;
+        }
+
+    }
+
+    hic.Dataset.prototype.getChrIndexFromName = function(chrName) {
+        var i;
+        for(i = 0; i < this.chromosomes.length; i++) {
+            if(chrName === this.chromosomes[i].name) return i;
+        }
+        return undefined;
+    }
 
     hic.Block = function (blockNumber, zoomData, records) {
         this.blockNumber = blockNumber;

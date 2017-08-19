@@ -14,13 +14,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
 
     <!-- IGV JS -->
-    <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script>
+ <!--   <script type="text/javascript" src="http://igv.org/web/beta/igv-beta.js"></script> -->
 
+<script type="text/javascript" src="../igv.js"></script>
 
     <!-- HiC JS -->
-
-    <script src="../site/js/site.js"></script>
-
+    <script src="../js/genome.js"></script>
     <script src="../js/hicUtils.js"></script>
     <script src="../js/hicReader.js"></script>
     <script src="../js/hicColorScaleWidget.js"></script>
@@ -35,12 +34,20 @@
     <script src="../js/hicState.js"></script>
     <script src="../js/hicDataset.js"></script>
     <script src="../js/normalizationVector.js"></script>
+    <script src="../js/normalizationWidget.js"></script>
+    <script src="../js/chromosomeSelectorWidget.js"></script>
+    <script src="../js/layoutController.js"></script>
+    <script src="../js/trackRenderer.js"></script>
+    <script src="../js/trackMenuReplacement.js"></script>
+    <script src="../js/geneSearch.js"></script>
     <script src="../js/hic2DTrack.js"></script>
+    <script src="../js/hicStraw.js"></script>
 
     <script src="testReader.js"></script>
     <script src="testColorScale.js"></script>
     <script src="testTrack2D.js"></script>
     <script src="testMath.js"></script>
+    <script src="testStraw.js"></script>
 
 </head>
 <body>
@@ -50,8 +57,9 @@
     document.addEventListener('DOMContentLoaded', function () {
 //        runTrack2DTests();
 //        runColorTests();
-        runHicReaderTests();
+//        runHicReaderTests();
 //        runMathTests();
+        runStrawTests();
     });
 </script>
 </body>
