@@ -1301,6 +1301,11 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
+        if (this.dataset.bpResolutions.length >= state.zoom) {
+            console.log("Can't synch");
+            return;
+        }
+
         var zoomChanged = (this.state.zoom !== state.zoom);
         this.state.chr1 = state.chr1;
         this.state.chr2 = state.chr2;
