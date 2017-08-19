@@ -59,12 +59,14 @@
 
     <!-- IGV JS -->
     <script src="http://igv.org/web/beta/igv-beta.js"></script>
+    <!--<script src="http://localhost/igv-web/dist/igv.js"></script>-->
 
     <!-- Throbber JS -->
     <script src="../../vendor/throbber.js"></script>
 
     <!-- Site JS-->
     <script src="../../site/js/site.js"></script>
+    <script src="../../site/js/dynamic-map-resize.js"></script>
 
     <!-- Juicebox JS -->
     <script src="../../js/genome.js"></script>
@@ -176,8 +178,7 @@
 
                 <div class="form-group">
                     <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
-                        <option value="https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic">Broad hosted hic file</option>
-                        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>                        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
+                        <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
                         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">Dudchenko et al. | Science 2017 Homo sapiens Hs2-HiC</option>
                         <option value="http://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic">Dudchenko et al. | Science 2017 Culex quinquefasciatus</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined.hic?nvi=54386046426%2C55860">Rao and Huntley et al. | Cell 2014 GM12878 (human) in situ MboI primary+replicate (4.9B)</option>
@@ -677,8 +678,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <h1>Juicebox Web</h1>
-            <!--<p>You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</p>-->
+            <h1>Dynamic Contact Map Resize</h1>
         </div>
     </div>
 
@@ -766,6 +766,11 @@
 
                 </div>
 
+                <!-- Dynamic Contact Map Resize -->
+                <div id="contact-map-resize" class="col-md-4 blue-button">
+                    Resize Contact Map
+                </div>
+
             </div>
 
         </div>
@@ -785,13 +790,11 @@
 
     $(document).ready(function () {
 
-        var config,
-            browser;
+        var config;
+
 
         config = {};
-        browser = hic.createBrowser($('#app-container'), config);
-
-        hic.Browser.setCurrentBrowser(browser);
+        window.browser = hic.createBrowser($('#app-container'), config);
 
         site.init();
     });
