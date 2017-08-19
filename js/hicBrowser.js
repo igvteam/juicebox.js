@@ -1301,7 +1301,7 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
-        if (this.dataset.bpResolutions.length >= state.zoom) {
+        if (this.dataset.bpResolutions.length < state.zoom - 1) {
             console.log("Can't synch");
             return;
         }
