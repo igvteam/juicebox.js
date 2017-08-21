@@ -125,7 +125,8 @@ var hic = (function (hic) {
             trackString,
             selectedGene,
             nvi,
-            normVectorString;
+            normVectorString,
+            isMiniMode;
 
         setDefaults(config);
 
@@ -186,9 +187,10 @@ var hic = (function (hic) {
         hic.allBrowsers.push(browser);
         hic.Browser.setCurrentBrowser(browser);
 
-        // if (_.size(hic.allBrowsers) > 1) {
-        //     $('.hic-nav-bar-delete-button').show();
-        // }
+        isMiniMode = (config.miniMode && true === config.miniMode);
+        if (!isMiniMode && _.size(hic.allBrowsers) > 1) {
+            $('.hic-nav-bar-delete-button').show();
+        }
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
