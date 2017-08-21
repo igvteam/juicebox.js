@@ -125,7 +125,8 @@ var site = (function (site) {
 
         $('.juicebox-app-clone-button').on('click', function (e) {
 
-            var browser;
+            var browser,
+                config;
 
             // If this is the first invocation strep href of parameters and turn off href updating
             if(hic.allBrowsers.length === 1) {
@@ -133,9 +134,13 @@ var site = (function (site) {
                 hic.allBrowsers[0].stripUriParameters();
             }
 
-            browser = hic.createBrowser($('.juicebox-app-clone-container'), {
-                updateHref: false
-            });
+            config =
+                {
+                    width: hic.Browser.defaultSize.width,
+                    height: hic.Browser.defaultSize.height,
+                    updateHref: false
+                };
+            browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
 
            // hic.Browser.setCurrentBrowser(browser);
 

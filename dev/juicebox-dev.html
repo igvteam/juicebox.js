@@ -820,11 +820,20 @@
 
         var w,
             browser,
-            $container;
+            $container,
+            config;
+
+        w = $(window).width();
+        console.log('screen width ' + w);
 
         $container = $('.juicebox-app-clone-container');
 
-        browser = hic.createBrowser($container, {});
+        config =
+            {
+                width:  hic.Browser.defaultSize.width,
+                height:  hic.Browser.defaultSize.height
+            };
+        browser = hic.createBrowser($container, config);
 
         site.init();
 

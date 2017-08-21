@@ -355,7 +355,11 @@ var hic = (function (hic) {
         }
     };
 
-    hic.Browser.defaultDimension = 600;
+    hic.Browser.defaultSize =
+        {
+            width: 760,
+            height: 760
+        };
 
     hic.Browser.getCurrentBrowser = function () {
 

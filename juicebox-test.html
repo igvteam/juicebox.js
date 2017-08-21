@@ -61,9 +61,11 @@
 
     <!-- Site JS-->
     <script src="http://igv.org/web/jb/test/site/js/site.js"></script>
+    <!--<script src="site/js/site.js"></script>-->
 
     <!-- Juicebox JS -->
     <script src="http://igv.org/web/jb/test/dist/juicebox.js"></script>
+    <!--<script src="dist/juicebox.js"></script>-->
 
     <!-- MS polyfill (pointer -> touch -->
     <script src="https://igv.org/web/jb/release/current/touchpolyfill.min.js"></script>
@@ -796,18 +798,25 @@
 
         var w,
             browser,
-            $container;
+            $container,
+            config;
 
-        // Why is this width set?  It screws up the flex grid
-      //  w = $(window).width();
+        w = $(window).width();
+        console.log('screen width ' + w);
+
         $container = $('.juicebox-app-clone-container');
-      //  $container.width(2 * w);
 
-        browser = hic.createBrowser($container, {});
+        config =
+            {
+                width:  hic.Browser.defaultSize.width,
+                height:  hic.Browser.defaultSize.height
+            };
+        browser = hic.createBrowser($container, config);
 
         site.init();
 
     });
+
 
 </script>
 

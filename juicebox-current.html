@@ -818,13 +818,25 @@
 
     $(document).ready(function () {
 
-        var config,
-            browser;
+        var w,
+            browser,
+            $container,
+            config;
 
-        config = {};
-        browser = hic.createBrowser($('#app-container'), config);
+        w = $(window).width();
+        console.log('screen width ' + w);
 
-        site.init(browser);
+        $container = $('.juicebox-app-clone-container');
+
+        config =
+            {
+                width:  hic.Browser.defaultSize.width,
+                height:  hic.Browser.defaultSize.height
+            };
+        browser = hic.createBrowser($container, config);
+
+        site.init();
+
     });
 
 </script>
