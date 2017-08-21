@@ -91,17 +91,35 @@
   border-bottom-style: solid;
   border-bottom-width: thin;
   border-bottom-color: transparent; }
-  .hic-navbar-container div[id$="hic-nav-bar-contact-map-label"] {
-    width: 100%;
-    height: 32px;
-    font-size: 15px;
-    font-weight: 700;
-    border-bottom-style: solid;
-    border-bottom-width: thin;
-    border-bottom-color: transparent;
-    background-color: transparent;
-    padding-left: 8px;
-    padding-top: 4px; }
+  .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    width: 100%; }
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] div[id$="hic-nav-bar-contact-map-label"] {
+      width: 95%;
+      height: 32px;
+      font-size: 15px;
+      font-weight: 700;
+      border-bottom-style: solid;
+      border-bottom-width: thin;
+      border-bottom-color: transparent;
+      background-color: transparent;
+      padding-left: 8px;
+      padding-top: 4px; }
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button {
+      width: 5%;
+      height: 32px;
+      color: #a5a5a5; }
+      .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button i.fa-minus-circle {
+        cursor: pointer;
+        margin-top: 8px;
+        margin-left: 16px; }
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:hover,
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:focus,
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:active {
+      color: #494949; }
   .hic-navbar-container div[id$="hic-nav-bar-widget-container"] {
     display: flex;
     flex-flow: row;

@@ -274,22 +274,54 @@ $default-font-family: 'Open Sans', sans-serif;
   border-bottom-width: thin;
   border-bottom-color: transparent;
 
-  // nav-bar contact map label
-  div[id$="hic-nav-bar-contact-map-label"] {
+
+  // container: contact map label | browser delete button
+  div[id$="hic-nav-bar-contact-map-label-delete-button-container"] {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
     width: 100%;
-    height: $nav-bar-label-height;
 
-    font-size: 15px;
-    font-weight: 700;
+    // nav-bar contact map label
+    div[id$="hic-nav-bar-contact-map-label"] {
+      width: 95%;
+      height: $nav-bar-label-height;
 
-    border-bottom-style: solid;
-    border-bottom-width: thin;
-    border-bottom-color: transparent;
+      font-size: 15px;
+      font-weight: 700;
 
-    background-color: transparent;
+      border-bottom-style: solid;
+      border-bottom-width: thin;
+      border-bottom-color: transparent;
 
-    padding-left: 8px;
-    padding-top: 4px;
+      background-color: transparent;
+
+      padding-left: 8px;
+      padding-top: 4px;
+    }
+
+    // delete browser (map panel)
+    .hic-nav-bar-delete-button {
+      width: 5%;
+      height: $nav-bar-label-height;
+
+      color: #a5a5a5;
+
+      i.fa-minus-circle {
+        cursor: pointer;
+        margin-top: 8px;
+        margin-left: 16px;
+      }
+    }
+
+    .hic-nav-bar-delete-button:hover,
+    .hic-nav-bar-delete-button:focus,
+    .hic-nav-bar-delete-button:active {
+      color: #494949;
+    }
+
   }
 
   // nav-bar widgets

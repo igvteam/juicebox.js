@@ -32,7 +32,9 @@ var hic = (function (hic) {
 
         var id,
             $navbar_container,
-            $div;
+            $div,
+            $e,
+            $fa;
 
         $navbar_container = $('<div class="hic-navbar-container">');
 
@@ -50,13 +52,31 @@ var hic = (function (hic) {
         $root.append($navbar_container);
 
 
-        // HiC Contact Map Label
+        // container: contact map label | browser delete button
+        id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
+        $div = $("<div>", { id:id });
+        $navbar_container.append($div);
+
+        // contact map label
         id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
         browser.$contactMaplabel = $("<div>", { id:id });
-        $navbar_container.append(browser.$contactMaplabel);
+        $div.append(browser.$contactMaplabel);
+
         if (false === browser.config.showHicContactMapLabel) {
             browser.$contactMaplabel.hide();
         }
+
+        // browser delete button
+        $e = $("<div>", { class:'hic-nav-bar-delete-button' });
+        $div.append($e);
+
+        $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
+        // class="fa fa-plus-circle fa-lg" aria-hidden="true"
+        $e.append($fa);
+
+        // hide delete buttons for now. All delete buttons will later
+        // be shown IF there is more then one browser instance.
+        $e.hide();
 
         // Widget container
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
