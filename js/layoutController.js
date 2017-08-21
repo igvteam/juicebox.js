@@ -74,6 +74,20 @@ var hic = (function (hic) {
         // class="fa fa-plus-circle fa-lg" aria-hidden="true"
         $e.append($fa);
 
+        $fa.on('click', function (e) {
+            var index;
+
+            index = _.indexOf(hic.allBrowsers, browser);
+            hic.allBrowsers.splice(index, 1);
+
+            browser.$root.remove();
+            browser = undefined;
+
+            if (1 === _.size(hic.allBrowsers)) {
+                $('.hic-nav-bar-delete-button').hide();
+            }
+        });
+
         // hide delete buttons for now. All delete buttons will later
         // be shown IF there is more then one browser instance.
         $e.hide();
