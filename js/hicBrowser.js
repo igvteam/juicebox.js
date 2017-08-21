@@ -186,9 +186,9 @@ var hic = (function (hic) {
         hic.allBrowsers.push(browser);
         hic.Browser.setCurrentBrowser(browser);
 
-        if (_.size(hic.allBrowsers) > 1) {
-            $('.hic-nav-bar-delete-button').show();
-        }
+        // if (_.size(hic.allBrowsers) > 1) {
+        //     $('.hic-nav-bar-delete-button').show();
+        // }
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
