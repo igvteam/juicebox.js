@@ -75,11 +75,8 @@ var hic = (function (hic) {
         $e.append($fa);
 
         $fa.on('click', function (e) {
-            var index;
 
-            index = _.indexOf(hic.allBrowsers, browser);
-            hic.allBrowsers.splice(index, 1);
-
+            hic.allBrowsers.splice(_.indexOf(hic.allBrowsers, browser), 1);
             browser.$root.remove();
             browser = undefined;
 

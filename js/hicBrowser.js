@@ -263,9 +263,6 @@ var hic = (function (hic) {
 
         var self = this;
 
-        //TODO -- remove this global reference !!!!
-        hic.browser = this;
-
         this.config = config;
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
