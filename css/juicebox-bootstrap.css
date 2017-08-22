@@ -1,3 +1,8 @@
+.site-widget {
+  float: left;
+  margin-left: 4px;
+  margin-right: 32px; }
+
 .juicebox-app-clone-container {
   display: flex;
   flex-flow: row;
@@ -7,7 +12,7 @@
 .juicebox-app-clone-button {
   cursor: pointer;
   color: #a5a5a5;
-  margin-top: 14px; }
+  margin-top: 10px; }
   .juicebox-app-clone-button i.fa-plus-circle {
     float: left; }
 
