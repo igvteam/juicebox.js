@@ -695,98 +695,91 @@
 
     <div class="row">
 
-        <div class="col-md-7">
-            <div class="row">
-                <!-- Contact Map: Select | Local File | URL -->
-                <div class="col-md-3 juicebox-widget-container">
+        <div class="col-md-12">
 
-                    <div class="dropdown">
+            <!-- Contact Map: Select | Local File | URL -->
+            <div class="dropdown site-widget">
 
-                        <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            Load Contact Map &nbsp;
-                            <span class="caret"></span>
-                        </button>
+                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    Load Contact Map &nbsp;
+                    <span class="caret"></span>
+                </button>
 
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-contact-map-dropdown">
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-contact-map-dropdown">
 
-                            <li role="presentation"><!-- Select Contact Map -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
-                                    Select Contact Map
-                                </a>
-                            </li><!-- Select Contact Map -->
+                    <li role="presentation"><!-- Select Contact Map -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
+                            Select Contact Map
+                        </a>
+                    </li><!-- Select Contact Map -->
 
-                            <li role="presentation"><!-- Local Contact Map File -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
-                                    Local Contact Map File
-                                </a>
-                            </li><!-- Local Contact Map File -->
+                    <li role="presentation"><!-- Local Contact Map File -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                            Local Contact Map File
+                        </a>
+                    </li><!-- Local Contact Map File -->
 
-                            <li role="presentation"><!-- Contact Map URL -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                                    Contact Map URL
-                                </a>
-                            </li><!-- Contact Map URL -->
+                    <li role="presentation"><!-- Contact Map URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Contact Map URL
+                        </a>
+                    </li><!-- Contact Map URL -->
 
-                        </ul>
-
-                    </div>
-
-                </div>
-
-                <!-- Track File: ENCODE | Annotations | Local File | URL -->
-                <div class="col-md-3 juicebox-widget-container">
-                    <div class="dropdown">
-
-                        <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                            Load Tracks &nbsp;
-                            <span class="caret"></span>
-                        </button>
-
-                        <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
-
-                            <li role="presentation"><!-- Select ENCODE -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
-                                    ENCODE
-                                </a>
-                            </li><!-- Select ENCODE -->
-
-                            <li role="presentation"><!-- Select Annotations -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
-                                    Annotations
-                                </a>
-                            </li><!-- Select Annotations -->
-
-                            <li role="presentation"><!-- Local Track File -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
-                                    Local Track File
-                                </a>
-                            </li><!-- Local Track File -->
-
-                            <li role="presentation"><!-- Track URL -->
-                                <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                                    Track URL
-                                </a>
-                            </li><!-- Track URL -->
-
-                        </ul>
-
-                    </div>
-                </div>
-
-                <!-- App clone button -->
-                <div class="col-md-1">
-                    <div class="juicebox-app-clone-button" title="Add Map Panel">
-                        <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
-                    </div>
-                </div>
+                </ul>
 
             </div>
+
+            <!-- Track File: ENCODE | Annotations | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    Load Tracks &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
+
+                    <li role="presentation"><!-- Select ENCODE -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
+                            ENCODE
+                        </a>
+                    </li><!-- Select ENCODE -->
+
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
+                            Annotations
+                        </a>
+                    </li><!-- Select Annotations -->
+
+                    <li role="presentation"><!-- Local Track File -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                            Local Track File
+                        </a>
+                    </li><!-- Local Track File -->
+
+                    <li role="presentation"><!-- Track URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Track URL
+                        </a>
+                    </li><!-- Track URL -->
+
+                </ul>
+
+            </div>
+
+            <!-- App clone button -->
+            <div class="juicebox-app-clone-button site-widget" title="Add Map Panel">
+                <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
+            </div>
+
         </div>
 
     </div>
 
     <div class="row">
-        <div class="juicebox-app-clone-container">
+        <div class="col-md-12">
+            <div class="juicebox-app-clone-container">
+            </div>
         </div>
     </div>
 
