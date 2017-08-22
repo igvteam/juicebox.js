@@ -129,15 +129,13 @@ var site = (function (site) {
                 config;
 
             // If this is the first invocation strep href of parameters and turn off href updating
-            if(hic.allBrowsers.length === 1) {
-                hic.allBrowsers[0].updateHref = false;
-                hic.allBrowsers[0].stripUriParameters();
-            }
+            // if(hic.allBrowsers.length === 1) {
+            //     hic.allBrowsers[0].updateHref = false;
+            //     hic.allBrowsers[0].stripUriParameters();
+            // }
 
             config =
                 {
-                    width: hic.Browser.defaultSize.width,
-                    height: hic.Browser.defaultSize.height,
                     updateHref: false
                 };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);

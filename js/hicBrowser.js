@@ -31,21 +31,27 @@ var hic = (function (hic) {
     var defaultPixelSize, defaultState;
     var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
+    var defaultSize =
+    {
+        width: 760,
+        height: 760
+    };
+
 
     var datasetCache = {};
 
     hic.allBrowsers = [];
-    
+
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-            {
-                constants: {defaultColor: "rgb(0,0,150)"},
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
 
-                // Compatibility wit igv menus
-                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-            };
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -110,7 +116,7 @@ var hic = (function (hic) {
         return configList;
 
     }
-    
+
     hic.createBrowser = function ($hic_container, config) {
 
         var browser,
@@ -330,7 +336,7 @@ var hic = (function (hic) {
             }
         });
 
-        function configureHover ($e) {
+        function configureHover($e) {
 
             var self = this;
 
@@ -338,7 +344,7 @@ var hic = (function (hic) {
 
             _out();
 
-            function _in () {
+            function _in() {
 
                 if (_.size(hic.allBrowsers) > 1) {
                     $e.css('border-color', '#df0000');
@@ -346,7 +352,7 @@ var hic = (function (hic) {
 
             }
 
-            function _out () {
+            function _out() {
 
                 if (_.size(hic.allBrowsers) > 1) {
                     $e.css('border-color', '#5f5f5f');
@@ -356,12 +362,6 @@ var hic = (function (hic) {
 
         }
     };
-
-    hic.Browser.defaultSize =
-        {
-            width: 760,
-            height: 760
-        };
 
     hic.Browser.getCurrentBrowser = function () {
 
@@ -1380,6 +1380,12 @@ var hic = (function (hic) {
             config.updateHref = false;
         }
         else {
+            if (undefined === config.width) {
+                config.width = defaultSize.width;
+            }
+            if(undefined === config.height) {
+                config.height = defaultSize.height;
+            }
             if (undefined === config.updateHref) {
                 config.updateHref = true;
             }
@@ -1495,6 +1501,7 @@ var hic = (function (hic) {
     function replaceAll(str, target, replacement) {
         return str.split(target).join(replacement);
     }
+
     return hic;
 
 })
