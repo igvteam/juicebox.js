@@ -91,7 +91,7 @@
     <script src="https://igv.org/web/jb/release/current/touchpolyfill.min.js"></script>
 
     <!-- Website analytics -->
-    <script src="../js/analytics.js"></script>
+    <script src="http://www.aidenlab.org/js/analytics.js"></script>
 
 </head>
 <body id="portfolio">
@@ -103,30 +103,30 @@
          <span class="icon-bar"></span>
          <span class="icon-bar"></span>
        </button>
-       <a href="../index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
+       <a href="http://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
       </div>
       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
        <ul class="nav navbar-nav navbar-right">
          <li class="dropdown">
            <a href="#" class="dropdown-toggle" data-toggle="dropdown">About<b class="caret"></b></a>
            <ul class="dropdown-menu">
-             <li><a href="../aboutus.html" target="_blank">Team</a></li>
+             <li><a href="http://www.aidenlab.org/aboutus.html" target="_blank">Team</a></li>
              <li><a href="http://news.tc4ga.com/" target="_blank">News</a></li>
            </ul>
          </li>
          <li class="dropdown">
            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Research <b class="caret"></b></a>
            <ul class="dropdown-menu">
-             <li><a href="../research.html" target="_blank">Projects</a></li>
-             <li><a href="../publications.html" target="_blank">Publications</a></li>
-             <li><a href="../software.html" target="_blank">Software</a></li>
-             <li><a href="../documentation.html" target="_blank">Documentation</a></li>
-             <li><a href="../data.html" target="_blank">Data</a></li>
+             <li><a href="http://www.aidenlab.org/research.html" target="_blank">Projects</a></li>
+             <li><a href="http://www.aidenlab.org/publications.html" target="_blank">Publications</a></li>
+             <li><a href="http://www.aidenlab.org/software.html" target="_blank">Software</a></li>
+             <li><a href="http://www.aidenlab.org/documentation.html" target="_blank">Documentation</a></li>
+             <li><a href="http://www.aidenlab.org/data.html" target="_blank">Data</a></li>
            </ul>
          </li>
-         <li><a href="../join.html" target="_blank">Join</a></li>
-         <li><a href="../contactus.html" target="_blank">Contact</a></li>
-         <li><a href="../forum.html" target="_blank">Forum</a></li>
+         <li><a href="http://www.aidenlab.org/join.html" target="_blank">Join</a></li>
+         <li><a href="http://www.aidenlab.org/contactus.html" target="_blank">Contact</a></li>
+         <li><a href="http://www.aidenlab.org/forum.html" target="_blank">Forum</a></li>
        </ul>
       </nav>
     </div>
@@ -840,24 +840,58 @@
 	</div>
 </div>
 
+<div class="row header">
+    <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
+      <br>
+      <h4><a href="https://github.com/igvteam/juicebox.js" target="_blank">Juicebox.js</a> is cloud-based visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a href="http://igv.org" target="_blank">IGV</a> team, in collaboration with <a href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a href="http://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</h4><br><br>
+      <h4>If you use Juicebox in your research, please cite:</h4><br>
+      <h4>Neva C. Durand*, James T. Robinson*, Muhammad S. Shamim, Ido Machol, Jill P. Mesirov, Eric S. Lander, and Erez Lieberman Aiden. <em>"Juicebox provides a visualization system for Hi-C contact maps with unlimited zoom."</em> <i>Cell Systems</i> 3(1), 2016.</h4><br><br>
+    </div>
+  </div>
+  
+  <div id="footer-white" style="background:#414B5B;">
+    <div class="container">
+      <div class="row" align="center">
+	<div class="newsletter" style="width:60%;">
+	    <div class="signup clearfix">
+	          <p style="text-align:center;">
+		          Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+			      </p>
+		      <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+			      <input type="text" name="email" class="form-control" placeholder="Your email address" />
+			            <input type="submit" name="submit" value="Sign up" />
+				        </form>
+		        </div>
+	    </div>
+      </div>
+      <div class="row credits">
+	<div class="col-md-12">
+	    Copyright © 2017. Aiden Lab
+	    </div>
+      </div>
+    </div>
+  </div>
+
 <script type="text/javascript">
 
+
     $(document).ready(function () {
-
-        var w,
-            browser,
-            $container;
-
-    // Why is this width set?  It screws up the flex grid
-    //  w = $(window).width();
-    $container = $('.juicebox-app-clone-container');
-    //  $container.width(2 * w);
-    
-    browser = hic.createBrowser($container, {});
-    
-    site.init();
-    
-    });
+         var w,
+             browser,
+             $container,
+             config;
+ 
+         w = $(window).width();
+         console.log('screen width ' + w);
+ 
+         $container = $('.juicebox-app-clone-container');
+ 
+         config ={};
+         browser = hic.createBrowser($container, config);
+ 
+         site.init();
+ 
+     });
 
 </script>
 
