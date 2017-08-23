@@ -1247,26 +1247,62 @@ var hic = (function (hic) {
 
     };
 
+
+    /**
+     * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
+     * and resolution arrays
+     */
+    hic.Browser.prototype.getSyncState = function() {
+        return {
+            chr1Name: this.dataset.chromosomes[this.state.chr1].name,
+            chr2Name: this.dataset.chromosomes[this.state.chr2].name,
+            binSize: this.dataset.bpResolutions[this.state.zoom],
+            binX: this.state.x,            // TODO -- tranlsate to lower right corner
+            binY: this.state.y,
+            pixelSize: this.state.pixelSize
+        };
+    }
+
     /**
      * Used to synch state with other browsers
      * @param state  browser state
      */
-    hic.Browser.prototype.syncState = function (state) {
+    hic.Browser.prototype.syncState = function (syncState) {
 
         if (!this.dataset) return;
 
-        if (this.dataset.bpResolutions.length < state.zoom - 1) {
-            console.log("Can't synch");
-            return;
+        var chr1 = this.dataset.getChrIndexFromName(syncState.chr1Name),
+            chr2 = this.dataset.getChrIndexFromName(syncState.chr2Name),
+            zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
+            x = syncState.binX,
+            y = syncState.binY,
+            pixelSize = syncState.pixelSize;
+
+        if(zoom === undefined) {
+            // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
+            zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
+
+            // Compute equivalent in basepairs / pixel
+            pixelSize =  (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
+
+            // Translate bins so that origin is unchanged in basepairs
+            x = (syncState.binX / syncState.pixelSize) * pixelSize;
+            y = (syncState.binY / syncState.pixelSize) * pixelSize;
+
+            if(pixelSize > MAX_PIXEL_SIZE) {
+                console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)");
+                return;
+            }
         }
 
-        var zoomChanged = (this.state.zoom !== state.zoom);
-        this.state.chr1 = state.chr1;
-        this.state.chr2 = state.chr2;
-        this.state.zoom = state.zoom;
-        this.state.x = state.x;
-        this.state.y = state.y;
-        this.state.pixelSize = state.pixelSize;
+
+        var zoomChanged = (this.state.zoom !== zoom);
+        this.state.chr1 = chr1;
+        this.state.chr2 = chr2;
+        this.state.zoom = zoom;
+        this.state.x = x;
+        this.state.y = y;
+        this.state.pixelSize = pixelSize;
 
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}, false));
 

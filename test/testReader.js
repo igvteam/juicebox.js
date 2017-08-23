@@ -21,9 +21,11 @@ function runHicReaderTests() {
             .then(function (normVectors) {
                 
                 ok(normVectors);
+                start();
             })
             .catch(function (error) {
                 console.log(error);
+                start();
             })
 
 

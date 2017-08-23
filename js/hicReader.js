@@ -390,7 +390,7 @@ var hic = (function (hic) {
 
         var self = this;
         var idx = self.masterIndex[key];
-        if (idx == null) {
+        if (idx === null || idx === undefined) {
             return Promise.resolve(undefined);
         }
 

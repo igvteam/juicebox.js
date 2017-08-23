@@ -71,7 +71,7 @@ var hic = (function (hic) {
         if(event.type === "LocusChange"  && event.propogate) {
 
             self.browser.synchedBrowsers.forEach(function (browser) {
-                browser.syncState(self.browser.state);
+                browser.syncState(self.browser.getSyncState());
             })
 
         }
