@@ -140,7 +140,7 @@ var hic = (function (hic) {
             config.href = "?" + config.href;
         }
 
-        uri = config.href || window.location.href;
+        uri = config.href || (config.initFromUrl !== false && window.location.href) || "";
         parts = parseUri(uri);
         query = parts.queryKey;
         uriDecode = uri.includes('%2C');   // for backward compatibility, all old state values will have this
@@ -398,6 +398,10 @@ var hic = (function (hic) {
             $('.hic-root').removeClass('hic-root-selected');
             hic.Browser.currentBrowser = undefined;
 
+            if (hic.encodeTable) {
+                hic.encodeTable.browser = undefined;
+            }
+
         } else {
 
             if (_.size(hic.allBrowsers) > 1) {
@@ -592,6 +596,11 @@ var hic = (function (hic) {
         var self = this,
             promises,
             promises2D;
+
+        if (undefined === hic.Browser.getCurrentBrowser()) {
+            igv.presentAlert('ERROR: you must select a map panel.');
+            return;
+        }
 
         promises = [];
         promises2D = [];

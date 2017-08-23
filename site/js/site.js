@@ -136,6 +136,7 @@ var site = (function (site) {
 
             config =
                 {
+                    initFromUrl: false,
                     updateHref: false
                 };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
