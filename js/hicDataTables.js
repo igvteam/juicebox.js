@@ -29,6 +29,11 @@ var hic = (function (hic) {
             encodeTableFormat,
             encodeDataSource;
 
+        if (undefined === hic.Browser.getCurrentBrowser()) {
+            igv.presentAlert('ERROR: you must select a map panel.');
+            return;
+        }
+
         if (hic.encodeTable && genomeId === hic.encodeTable.genomeID()) {
             // do nothing
             console.log('nuthin');
@@ -66,6 +71,11 @@ var hic = (function (hic) {
     hic.loadAnnotationSelector = function ($container, genomeId) {
 
         var elements;
+
+        if (undefined === hic.Browser.getCurrentBrowser()) {
+            igv.presentAlert('ERROR: you must select a map panel.');
+            return;
+        }
 
         $container.empty();
 
