@@ -140,7 +140,7 @@ var hic = (function (hic) {
             config.href = "?" + config.href;
         }
 
-        uri = config.href || window.location.href;
+        uri = config.href || (config.initFromUrl !== false && window.location.href) || "";
         parts = parseUri(uri);
         query = parts.queryKey;
         uriDecode = uri.includes('%2C');   // for backward compatibility, all old state values will have this
