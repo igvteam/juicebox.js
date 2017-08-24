@@ -23,6 +23,9 @@
 
 /**
  * Created by Jim Robinson on 3/4/17.
+ *
+ * Page (site specific) code for the example pages.  
+ *
  */
 var site = (function (site) {
 
