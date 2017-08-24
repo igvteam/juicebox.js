@@ -322,19 +322,7 @@ var hic = (function (hic) {
         this.eventBus.subscribe("NormalizationChange", this);
         this.eventBus.subscribe("TrackLoad2D", this);
         this.eventBus.subscribe("TrackLoad", this);
-
-        this.eventBus.subscribe("GenomeChange", {
-
-            receiveEvent: function (event) {
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-                    hic.loadAnnotationSelector($('#annotation-selector'), event.data);
-                    hic.createEncodeTable(self, $('#encodeModalBody'), self.dataset.genomeId);
-                }
-            }
-        });
+        this.eventBus.subscribe("GenomeChange", this);
 
         function configureHover($e) {
 

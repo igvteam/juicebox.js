@@ -26,7 +26,20 @@
  */
 var site = (function (site) {
 
+    var encodeTable;
+
+    var genomeChangeListener = {
+        receiveEvent: function (event) {
+            loadAnnotationSelector($('#annotation-selector'), event.data);
+            createEncodeTable(self, $('#encodeModalBody'), event.data);
+        }
+    }
+
     site.init = function () {
+
+
+        // Listen for GenomeChange events for all browsers.
+        hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -42,7 +55,7 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: $selected.text() });
+                hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: $selected.text()});
             }
 
         });
@@ -61,9 +74,9 @@ var site = (function (site) {
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    hic.Browser.getCurrentBrowser().loadHicFile({ url: file, name: file.name });
+                    hic.Browser.getCurrentBrowser().loadHicFile({url: file, name: file.name});
                 } else {
-                    hic.Browser.getCurrentBrowser().loadTrack([{ url: file, name: file.name }]);
+                    hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
                 }
 
                 $(this).val("");
@@ -89,7 +102,7 @@ var site = (function (site) {
                 suffix = path.substr(path.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    hic.Browser.getCurrentBrowser().loadHicFile({ url: url, name: hic.extractFilename(path) });
+                    hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: hic.extractFilename(path)});
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
                 }
@@ -135,17 +148,107 @@ var site = (function (site) {
             // }
 
             config =
-                {
-                    initFromUrl: false,
-                    updateHref: false
-                };
+            {
+                initFromUrl: false,
+                updateHref: false
+            };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
 
-           // hic.Browser.setCurrentBrowser(browser);
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+
+            // hic.Browser.setCurrentBrowser(browser);
 
             hic.syncBrowsers(hic.allBrowsers);
 
         });
+
+    };
+
+    function createEncodeTable(browser, $container, genomeId) {
+
+        var columnWidths,
+            encodeTableFormat,
+            encodeDataSource;
+
+        if (undefined === hic.Browser.getCurrentBrowser()) {
+            igv.presentAlert('ERROR: you must select a map panel.');
+            return;
+        }
+
+        if (encodeTable && genomeId === encodeTable.genomeID()) {
+            // do nothing
+            console.log('nuthin');
+        } else {
+
+            if (encodeTable) {
+                discardEncodeTable();
+            }
+
+            columnWidths =
+            {
+                'Assembly': '10%',
+                'Cell Type': '10%',
+                'Target': '10%',
+                'Assay Type': '20%',
+                'Output Type': '20%',
+                'Lab': '20%'
+            };
+
+            encodeTableFormat = new encode.EncodeTableFormat({columnWidths: columnWidths});
+
+            encodeDataSource = new encode.EncodeDataSource({genomeID: genomeId}, encodeTableFormat);
+
+            encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
+        }
+
+    };
+
+     function discardEncodeTable() {
+        encodeTable.unbindAllMouseHandlers();
+        $('#encodeModalBody').empty();
+        encodeTable = undefined;
+    };
+
+    function loadAnnotationSelector($container, genomeId) {
+
+        var elements;
+
+        if (undefined === hic.Browser.getCurrentBrowser()) {
+            igv.presentAlert('ERROR: you must select a map panel.');
+            return;
+        }
+
+        $container.empty();
+
+        elements = [];
+        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+        if ('hg19' === genomeId) {
+
+            igvxhr
+                .loadString("https://hicfiles.s3.amazonaws.com/internal/tracksMenu_hg19.txt")
+                .then(function (data) {
+                    var lines = data ? data.splitLines() : [];
+                    lines.forEach(function (line) {
+                        var tokens = line.split('\t');
+                        if (tokens.length > 1 && hic.igvSupports(tokens[1])) {
+                            elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
+                        }
+                    });
+                    $container.append(elements.join(''));
+
+                })
+                .catch(function (error) {
+                    console.log("Error loading track menu: " + error);
+                    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+                    elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
+                    $container.append(elements.join(''));
+                })
+
+        } else if ('hg38' === genomeId) {
+            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/genes/refGene_hg38_collapsed.refgene.gz' + '>' + 'Genes' + '</option>');
+            $container.append(elements.join(''));
+        }
 
     };
 
