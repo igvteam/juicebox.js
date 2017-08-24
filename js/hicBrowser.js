@@ -771,7 +771,23 @@ var hic = (function (hic) {
         var self = this,
             hicReader,
             queryIdx,
-            parts;
+            parts,
+            i,
+            otherBrowser;
+
+        // A hack to sync newly loaded file with files in other panels.
+        if(hic.allBrowsers.length > 1) {
+            // Find first browser that is not self
+            for(i=0; i<hic.allBrowsers.length; i++) {
+                if(hic.allBrowsers[i] !== self) {
+                    otherBrowser = hic.allBrowsers[i];
+                    break;
+                }
+            }
+            if(otherBrowser) {
+                config.syncState = otherBrowser.getSyncState();
+            }
+        }
 
         if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
@@ -873,8 +889,9 @@ var hic = (function (hic) {
 
             if (config.state) {
                 self.setState(config.state);
-            }
-            else {
+            } else if(config.syncState) {
+                self.syncState(config.syncState);
+            } else {
                 self.setState(defaultState.clone());
             }
             self.contactMatrixView.setDataset(dataset);
