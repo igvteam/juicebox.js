@@ -247,7 +247,6 @@ var hic = (function (hic) {
     };
 
     hic.syncBrowsers = function (browsers) {
-
         browsers.forEach(function (b1) {
             if (b1 === undefined) {
                 console.log("Attempt to sync undefined browser");
@@ -862,7 +861,9 @@ var hic = (function (hic) {
 
         function setDataset(dataset) {
 
-            var previousGenomeId = self.genome ? self.genome.id : undefined;
+            var previousGenomeId = self.genome ? self.genome.id : undefined,
+                me,
+                any_other;
 
             self.dataset = dataset;
 
@@ -873,9 +874,15 @@ var hic = (function (hic) {
 
             if (config.state) {
                 self.setState(config.state);
-            }
-            else {
-                self.setState(defaultState.clone());
+            } else {
+
+                if (1 === _.size(hic.allBrowsers)) {
+                    self.setState(defaultState.clone());
+                } else {
+                    me = [ self ];
+                    any_other = _.first(_.difference(hic.allBrowsers, me));
+                    self.setState(any_other.state.clone());
+                }
             }
             self.contactMatrixView.setDataset(dataset);
 
