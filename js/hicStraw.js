@@ -93,18 +93,18 @@ var hic = (function (hic) {
             .then(function (blocks) {
                 var contactRecords = [];
 
-                for (let block of blocks) {
+                blocks.forEach(function (block) {
                     if (block === null) { // This is most likely caused by a base pair range outside the chromosome
-                        continue;
+                        return;
                     }
-                    let records = block.records;
-                    for (let rec of records) {
+                    block.records.forEach(function(rec) {
                         // TODO -- transpose?
                         if(rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2) {
                             contactRecords.push(rec);
                         }
-                    }
-                }
+                    });
+                });
+                
                 return contactRecords;
             });
     }
