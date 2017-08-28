@@ -39,81 +39,74 @@ var hic = (function (hic) {
         var self = this,
             chr1 = region1.chr,
             chr2 = region2.chr,
-            bpx1 = region1.start,
-            bpx2 = region1.end,
-            bpy1 = region2.start,
-            bpy2 = region2.end;
+            x1 = region1.start / binsize, 
+            x2 = region1.end / binsize,
+            y1 = region2.start / binsize,
+            y2 = region2.end / binsize;
 
-        return new Promise(function (success, reject) {
+        return getDataset.call(self)
+            .then(function (dataset) {
 
+                self.dataset = dataset;
 
-            getDataset.call(self)
-                .then(function (dataset) {
+                var chr1idx = dataset.getChrIndexFromName(chr1),
+                    chr2idx = dataset.getChrIndexFromName(chr2);
 
-                    self.dataset = dataset;
+                if (chr1idx === undefined || chr2idx === undefined) {
+                    throw new Error("One or both chromosomes not in this dataset");
+                }
 
-                    var chr1idx = dataset.getChrIndexFromName(chr1),
-                        chr2idx = dataset.getChrIndexFromName(chr2);
+                return dataset.getMatrix(chr1idx, chr2idx)
+            })
+            .then(function (matrix) {
+                // Find the requested resolution
+                var z = self.dataset.getZoomIndexForBinSize(binsize, units);
+                if (z === -1) {
+                    throw new Error("Invalid bin size");
+                }
 
-                    dataset.getMatrix(chr1idx, chr2idx)
+                var zd = matrix.bpZoomData[z],
+                    blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
+                    col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount),
+                    col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount),
+                    row1 = Math.floor(y1 / blockBinCount),
+                    row2 = Math.floor(y2 / blockBinCount),
+                    row, column, sameChr, blockNumber,
+                    promises = [];
 
-                        .then(function (matrix) {
+                sameChr = chr1 === chr2;
 
-                            // Find the requested resolution
-                            var z = dataset.getZoomIndexForBinSize(binsize, units),
-                                x1 = bpx1 / binsize,
-                                x2 = bpx2 / binsize,
-                                y1 = bpy1 / binsize,
-                                y2 = bpy2 / binsize,
-                                zd = matrix.bpZoomData[z],
-                                blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
-                                col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount),
-                                col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount),
-                                row1 = Math.floor(y1 / blockBinCount),
-                                row2 = Math.floor(y2 / blockBinCount),
-                                row, column, sameChr, blockNumber,
-                                promises = [];
+                for (row = row1; row <= row2; row++) {
+                    for (column = col1; column <= col2; column++) {
+                        if (sameChr && row < column) {
+                            blockNumber = column * zd.blockColumnCount + row;
+                        }
+                        else {
+                            blockNumber = row * zd.blockColumnCount + column;
+                        }
+                        promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    }
+                }
 
-                            sameChr = chr1 === chr2;
+                return Promise.all(promises);
+            })
+            .then(function (blocks) {
+                var contactRecords = [];
 
-                            for (row = row1; row <= row2; row++) {
-                                for (column = col1; column <= col2; column++) {
-                                    if (sameChr && row < column) {
-                                        blockNumber = column * zd.blockColumnCount + row;
-                                    }
-                                    else {
-                                        blockNumber = row * zd.blockColumnCount + column;
-                                    }
-                                    promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
-                                }
-                            }
-
-                            Promise.all(promises)
-                                .then(function (blocks) {
-
-                                    var contactRecords = [],
-                                        rec;
-
-                                    blocks.forEach(function (block) {
-
-                                        for (i = 0; i < block.records.length; i++) {
-                                            rec = block.records[i];
-                                            // TODO -- transpose?
-                                            if(rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2) {
-                                                contactRecords.push(rec);
-                                            }
-
-                                        }
-                                    });
-                                    success(contactRecords);
-
-                                })
-                                .catch(reject);
-                        })
-                        .catch(reject);
-                })
-                .catch(reject);
-        });
+                for (let block of blocks) {
+                    if (block === null) { // This is most likely caused by a base pair range outside the chromosome
+                        continue;
+                    }
+                    let records = block.records;
+                    for (let rec of records) {
+                        // TODO -- transpose?
+                        if(rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2) {
+                            contactRecords.push(rec);
+                        }
+                    }
+                }
+                return contactRecords;
+            });
     }
 
 
@@ -125,7 +118,6 @@ var hic = (function (hic) {
         else {
             return this.reader.loadDataset(this.config);
         }
-
     }
 
 

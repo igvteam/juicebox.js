@@ -236,14 +236,15 @@ var hic = (function (hic) {
         }
         else if (unit === "FRAG") {
             resolutionArray = this.fragResolutions;
+        } else {
+            throw new Error("Invalid unit: " + unit);
         }
-
-        // todo throw error if resolutionArray === undefined
 
         for (i = 0; i < resolutionArray.length; i++) {
             if (resolutionArray[i] === binSize) return i;
         }
 
+        return -1;
     }
 
     hic.Dataset.prototype.getChrIndexFromName = function(chrName) {
