@@ -24,7 +24,7 @@
 /**
  * Created by Jim Robinson on 3/4/17.
  *
- * Page (site specific) code for the example pages.  
+ * Page (site specific) code for the example pages.
  *
  */
 var site = (function (site) {
@@ -234,7 +234,7 @@ var site = (function (site) {
                     var lines = data ? data.splitLines() : [];
                     lines.forEach(function (line) {
                         var tokens = line.split('\t');
-                        if (tokens.length > 1 && hic.igvSupports(tokens[1])) {
+                        if (tokens.length > 1) {
                             elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
                         }
                     });
