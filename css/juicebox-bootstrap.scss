@@ -408,7 +408,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome selector
 .hic-chromosome-selector-widget-container {
-  order:1;
 
   display:flex;
   flex-flow: column;
@@ -464,7 +463,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  order:2;
 
   display:flex;
   flex-flow: column;
@@ -484,7 +482,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - colorscale
 .hic-colorscale-widget-container {
-  order:3;
 
   display:flex;
   flex-flow: column;
@@ -500,7 +497,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - normalization
 .hic-normalization-selector-container {
-  order:4;
 
   display:flex;
   flex-flow: column;
@@ -517,7 +513,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - resolution
 .hic-resolution-selector-container {
-  order:5;
 
   display:flex;
   flex-flow: column;

@@ -165,7 +165,6 @@
     padding-right: 4px; }
 
 .hic-chromosome-selector-widget-container {
-  order: 1;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -205,7 +204,6 @@
   background-image: url("img/circular-arrows-24-blue.png"); }
 
 .hic-chromosome-goto-container {
-  order: 2;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -230,7 +228,6 @@
     background-color: white; }
 
 .hic-colorscale-widget-container {
-  order: 3;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -253,7 +250,6 @@
     background-color: white; }
 
 .hic-normalization-selector-container {
-  order: 4;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
@@ -271,7 +267,6 @@
     direction: rtl; }
 
 .hic-resolution-selector-container {
-  order: 5;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
