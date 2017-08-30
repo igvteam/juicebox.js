@@ -109,16 +109,6 @@ var hic = (function (hic) {
         // colorscale widget
         browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $div);
 
-        // resolution widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $div.append(browser.normalizationSelector.$container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $div.append(browser.resolutionSelector.$container);
-
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
         // nav-bar shim
         $div = $('<div class="hic-nav-bar-shim">');
         $navbar_container.append($div);
@@ -161,14 +151,10 @@ var hic = (function (hic) {
 
 
         // menu
-        $menu = $('<div>', { id:'hic-menu' });
+        $menu = $('<div>', { class:'hic-menu' });
         $root.append($menu);
 
         createMenu(browser, $menu);
-
-
-
-
 
 
 
@@ -224,14 +210,16 @@ var hic = (function (hic) {
 
     function createMenu(browser, $menu) {
 
-        var id,
-            $navbar_container,
-            $div,
-            $e,
-            $fa;
-
-
+        // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
+
+        // normalization widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
+
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
+        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
 
     }
 

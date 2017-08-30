@@ -77,53 +77,122 @@
   border-style: solid;
   border-width: 2px;
   border-color: #5f5f5f; }
-  .hic-root #hic-menu {
+  .hic-root .hic-menu {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 200px;
     height: 100%;
-    background-color: rgba(181, 229, 143, 0.52);
+    background-color: #efefef;
+    border-right-style: solid;
+    border-right-width: thin;
+    border-right-color: #5f5f5f;
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     align-items: flex-start; }
-    .hic-root #hic-menu .hic-chromosome-selector-widget-container {
+    .hic-root .hic-menu .hic-chromosome-selector-widget-container {
       display: flex;
       flex-flow: column;
       flex-wrap: nowrap;
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      padding-left: 4px; }
-      .hic-root #hic-menu .hic-chromosome-selector-widget-container div:first-child {
-        order: 1;
+      height: 64px;
+      padding-left: 8px;
+      padding-bottom: 4px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      background-color: transparent;
+      border-bottom-style: solid;
+      border-bottom-width: thin;
+      border-bottom-color: transparent; }
+      .hic-root .hic-menu .hic-chromosome-selector-widget-container div {
         padding-top: 2px;
         padding-bottom: 4px; }
-      .hic-root #hic-menu .hic-chromosome-selector-widget-container div:last-child {
-        order: 2;
+      .hic-root .hic-menu .hic-chromosome-selector-widget-container div {
         display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
         justify-content: space-between;
         align-items: flex-start; }
-        .hic-root #hic-menu .hic-chromosome-selector-widget-container div:last-child select {
+        .hic-root .hic-menu .hic-chromosome-selector-widget-container div select {
           display: block;
           cursor: pointer;
-          width: 48px;
+          width: 64px;
           height: 24px;
-          margin-right: 4px;
+          margin-right: 8px;
           direction: rtl; }
-    .hic-root #hic-menu .hic-chromosome-selector-widget-button {
-      width: 24px;
-      height: 24px;
-      background-image: url("img/circular-arrows-24-grey.png");
-      background-repeat: no-repeat; }
-    .hic-root #hic-menu .hic-chromosome-selector-widget-button:hover,
-    .hic-root #hic-menu .hic-chromosome-selector-widget-button:focus,
-    .hic-root #hic-menu .hic-chromosome-selector-widget-button:active {
-      cursor: pointer;
-      background-image: url("img/circular-arrows-24-blue.png"); }
+        .hic-root .hic-menu .hic-chromosome-selector-widget-container div div {
+          width: 24px;
+          height: 24px;
+          background-image: url("img/circular-arrows-24-grey.png");
+          background-repeat: no-repeat; }
+        .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:hover,
+        .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:focus,
+        .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:active {
+          cursor: pointer;
+          background-image: url("img/circular-arrows-24-blue.png"); }
+    .hic-root .hic-menu .hic-normalization-selector-container {
+      display: flex;
+      flex-flow: column;
+      flex-wrap: nowrap;
+      justify-content: space-around;
+      align-items: flex-start;
+      width: 100%;
+      height: 64px;
+      padding-left: 8px;
+      padding-right: 8px;
+      padding-bottom: 4px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      background-color: transparent;
+      border-bottom-style: solid;
+      border-bottom-width: thin;
+      border-bottom-color: transparent; }
+      .hic-root .hic-menu .hic-normalization-selector-container select {
+        display: block;
+        margin-top: 4px;
+        height: 24px;
+        width: 100%;
+        font-family: "Open Sans", sans-serif;
+        font-weight: 400;
+        color: #5f5f5f;
+        direction: rtl; }
+    .hic-root .hic-menu .hic-resolution-selector-container {
+      display: flex;
+      flex-flow: column;
+      flex-wrap: nowrap;
+      justify-content: space-around;
+      align-items: flex-start;
+      width: 100%;
+      height: 64px;
+      padding-left: 8px;
+      padding-right: 8px;
+      padding-bottom: 4px;
+      margin-top: 16px;
+      margin-bottom: 16px;
+      background-color: transparent; }
+      .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container {
+        display: flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        cursor: pointer; }
+        .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
+          display: block;
+          font-size: 12px;
+          padding-top: 4px;
+          padding-left: 5px; }
+      .hic-root .hic-menu .hic-resolution-selector-container select {
+        display: block;
+        margin-top: 4px;
+        height: 24px;
+        width: 100%;
+        font-family: "Open Sans", sans-serif;
+        font-weight: 400;
+        color: #5f5f5f;
+        direction: rtl; }
 
 .hic-root-selected {
   border-color: #df0000; }
@@ -239,51 +308,6 @@
     border-width: thin;
     border-color: #a6a6a6;
     background-color: white; }
-
-.hic-normalization-selector-container {
-  display: flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 100px; }
-  .hic-normalization-selector-container select {
-    display: block;
-    margin-top: 4px;
-    height: 24px;
-    width: 100%;
-    font-family: "Open Sans", sans-serif;
-    font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
-
-.hic-resolution-selector-container {
-  display: flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 110px; }
-  .hic-resolution-selector-container div#hic-resolution-label-container {
-    display: flex;
-    flex-flow: row;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    cursor: pointer; }
-    .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
-      display: block;
-      font-size: 12px;
-      padding-top: 4px;
-      padding-left: 5px; }
-  .hic-resolution-selector-container select {
-    display: block;
-    margin-top: 4px;
-    height: 24px;
-    width: 100%;
-    font-family: "Open Sans", sans-serif;
-    font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
 
 div[id$="x-track-container"] {
   display: flex;

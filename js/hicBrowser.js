@@ -33,8 +33,8 @@ var hic = (function (hic) {
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
     {
-        width: 760,
-        height: 760
+        width: 640,
+        height: 640
     };
 
 

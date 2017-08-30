@@ -40,7 +40,7 @@ var hic = (function (hic) {
         GW_KR: 'Genome-wide Balanced'
     };
 
-    hic.NormalizationWidget = function (browser) {
+    hic.NormalizationWidget = function (browser, $parent) {
         var self = this,
             $label;
 
@@ -48,6 +48,7 @@ var hic = (function (hic) {
 
         // container
         this.$container = $('<div class="hic-normalization-selector-container">');
+        $parent.append(this.$container);
 
         // label
         $label = $('<div>');
@@ -61,7 +62,6 @@ var hic = (function (hic) {
             self.browser.setNormalization($(this).val());
         });
         this.$container.append(this.$normalization_selector);
-
 
         // spinner
         this.$spinner = $('<div>');
