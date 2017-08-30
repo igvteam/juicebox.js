@@ -138,6 +138,7 @@ var hic = (function (hic) {
             tokens,
             height_calc,
             $container,
+            $menu,
             $e;
 
         // .hic-x-track-container
@@ -164,6 +165,29 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'content-container';
         this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
+
+
+        // menu
+        $menu = $('<div>', { id:'hic-menu' });
+        $root.append($menu);
+
+        //
+        $e = $('<div>');
+        $menu.append($e);
+
+        //
+        $e = $('<div>');
+        $menu.append($e);
+
+        //
+        $e = $('<div>');
+        $menu.append($e);
+
+
+
+
+
+
 
         if(false === browser.config.showHicContactMapLabel) {
             tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
