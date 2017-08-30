@@ -99,13 +99,6 @@ var hic = (function (hic) {
 
         $navbar_container.append($div);
 
-
-        // chromosome selector
-        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);
-        if (false === browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector.$container.hide();
-        }
-
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $div);
 
@@ -171,17 +164,7 @@ var hic = (function (hic) {
         $menu = $('<div>', { id:'hic-menu' });
         $root.append($menu);
 
-        //
-        $e = $('<div>');
-        $menu.append($e);
-
-        //
-        $e = $('<div>');
-        $menu.append($e);
-
-        //
-        $e = $('<div>');
-        $menu.append($e);
+        createMenu(browser, $menu);
 
 
 
@@ -236,6 +219,19 @@ var hic = (function (hic) {
 
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+    }
+
+    function createMenu(browser, $menu) {
+
+        var id,
+            $navbar_container,
+            $div,
+            $e,
+            $fa;
+
+
+        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
     }
 

@@ -83,17 +83,47 @@
     left: 0;
     width: 200px;
     height: 100%;
-    z-index: 1000;
     background-color: rgba(181, 229, 143, 0.52);
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     align-items: flex-start; }
-    .hic-root #hic-menu div {
+    .hic-root #hic-menu .hic-chromosome-selector-widget-container {
+      display: flex;
+      flex-flow: column;
+      flex-wrap: nowrap;
+      justify-content: space-around;
+      align-items: flex-start;
       width: 100%;
-      height: 64px;
-      margin-bottom: 4px;
-      background-color: rgba(0, 106, 229, 0.52); }
+      padding-left: 4px; }
+      .hic-root #hic-menu .hic-chromosome-selector-widget-container div:first-child {
+        order: 1;
+        padding-top: 2px;
+        padding-bottom: 4px; }
+      .hic-root #hic-menu .hic-chromosome-selector-widget-container div:last-child {
+        order: 2;
+        display: flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: flex-start; }
+        .hic-root #hic-menu .hic-chromosome-selector-widget-container div:last-child select {
+          display: block;
+          cursor: pointer;
+          width: 48px;
+          height: 24px;
+          margin-right: 4px;
+          direction: rtl; }
+    .hic-root #hic-menu .hic-chromosome-selector-widget-button {
+      width: 24px;
+      height: 24px;
+      background-image: url("img/circular-arrows-24-grey.png");
+      background-repeat: no-repeat; }
+    .hic-root #hic-menu .hic-chromosome-selector-widget-button:hover,
+    .hic-root #hic-menu .hic-chromosome-selector-widget-button:focus,
+    .hic-root #hic-menu .hic-chromosome-selector-widget-button:active {
+      cursor: pointer;
+      background-image: url("img/circular-arrows-24-blue.png"); }
 
 .hic-root-selected {
   border-color: #df0000; }
@@ -163,45 +193,6 @@
   .hic-nav-bar-mini-mode-widget-container div {
     padding-left: 4px;
     padding-right: 4px; }
-
-.hic-chromosome-selector-widget-container {
-  display: flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 160px;
-  padding-left: 4px; }
-  .hic-chromosome-selector-widget-container div:first-child {
-    order: 1;
-    padding-top: 2px;
-    padding-bottom: 4px; }
-  .hic-chromosome-selector-widget-container div:last-child {
-    order: 2;
-    display: flex;
-    flex-flow: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: flex-start; }
-    .hic-chromosome-selector-widget-container div:last-child select {
-      display: block;
-      cursor: pointer;
-      width: 56px;
-      height: 24px;
-      margin-right: 4px;
-      direction: rtl; }
-
-.hic-chromosome-selector-widget-button {
-  width: 24px;
-  height: 24px;
-  background-image: url("img/circular-arrows-24-grey.png");
-  background-repeat: no-repeat; }
-
-.hic-chromosome-selector-widget-button:hover,
-.hic-chromosome-selector-widget-button:focus,
-.hic-chromosome-selector-widget-button:active {
-  cursor: pointer;
-  background-image: url("img/circular-arrows-24-blue.png"); }
 
 .hic-chromosome-goto-container {
   display: flex;
