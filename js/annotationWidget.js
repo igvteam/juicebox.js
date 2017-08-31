@@ -22,17 +22,143 @@
  */
 
 var hic = (function (hic) {
-    hic.AnnotationWidget = function (browser, $parent) {
+    hic.AnnotationWidget = function (browser, $parent, title) {
 
+        var self = this,
+            modal_id,
+            $container;
+
+        this.browser = browser;
+
+        $container = $("<div>", { class:'hic-annotation-container' });
+        $parent.append($container);
+
+        modal_id = browser.id + '_' + 'modal';
+
+        modalPresentationButton.call(this, modal_id, $container);
+
+        modal.call(this, modal_id, $('body'), title);
+
+        this.$modal.on('shown.bs.modal', function () {
+            self.updateBody();
+        });
+
+        browser.eventBus.subscribe('TrackLoad2D', this);
+
+    };
+
+    hic.AnnotationWidget.prototype.updateBody = function () {
+
+        var self = this;
+
+        self.$annotation_modal_container.empty();
+
+        _.each(_.range(3), function (number) {
+            modalBodyRow.call(self, self.$annotation_modal_container, number.toString());
+        });
+
+    };
+
+    hic.AnnotationWidget.prototype.receiveEvent = function(event) {
+
+        if ('TrackLoad2D' === event.type) {
+            // do stuff
+            console.log('annotation widget received TrackLoad2D event');
+        }
+
+
+    };
+
+    function modalPresentationButton(modal_id, $parent) {
+        var str,
+            $e;
+
+        // annotation modal presentation button
+        str = '#' + modal_id;
+        $e = $('<button>', { type:'button', class:'btn btn-default', 'data-toggle':'modal', 'data-target':str });
+        $e.text('Annotations');
+
+        $parent.append($e);
+
+    }
+
+    function modal(modal_id, $parent, title) {
+        var modal_label,
+            $modal,
+            $modal_dialog,
+            $modal_content,
+            $modal_header,
+            $modal_title,
+            $close,
+            $modal_body,
+            $modal_footer,
+            $e;
+
+        modal_label = modal_id + 'Label';
+        // modal
+        $modal = $('<div>', { class:'modal fade', 'id':modal_id, tabindex:'-1', role:'dialog', 'aria-labelledby':modal_label, 'aria-hidden':'true' });
+        $parent.append($modal);
+
+        // modal-dialog
+        $modal_dialog = $('<div>', { class:'modal-dialog', role:'document' });
+        $modal.append($modal_dialog);
+
+        // modal-content
+        $modal_content = $('<div>', { class:'modal-content' });
+        $modal_dialog.append($modal_content);
+
+        // modal-header
+        $modal_header = $('<div>', { class:'modal-header', id:modal_label });
+        $modal_content.append($modal_header);
+
+        // modal-title
+        $modal_title = $('<h5>', { class:'modal-title' });
+        $modal_title.text(title);
+        $modal_header.append($modal_title);
+
+        // close button
+        $close = $('<button>', { type:'button', class:'close', 'data-dismiss':'modal', 'aria-label':'Close' });
+        $e = $('<span>', { 'aria-hidden':'true'});
+        $e.html('&times;');
+        $close.append($e);
+        $modal_header.append($close);
+
+        // modal-body
+        $modal_body = $('<div>', { class:'modal-body'});
+        $modal_content.append($modal_body);
+
+        // modal-body - annotation container
+        this.$annotation_modal_container = $("<div>", { class:'hic-annotation-modal-container' });
+        $modal_body.append(this.$annotation_modal_container);
+
+
+        // modal-footer
+        $modal_footer = $('<div>', { class:'modal-footer'});
+        $modal_content.append($modal_footer);
+
+        // modal footer - close
+        $e = $('<button>', { type:'button', class:'btn btn-secondary', 'data-dismiss':'modal' });
+        $e.text('Close');
+        $modal_footer.append($e);
+
+        // modal footer - save changes
+        $e = $('<button>', { type:'button', class:'btn btn-primary' });
+        $e.text('Save changes');
+        $modal_footer.append($e);
+
+        this.$modal_body = $modal_body;
+        this.$modal = $modal;
+
+    }
+
+    function modalBodyRow($container, string) {
         var $e;
 
-        this.$container = $("<div>", { class:'hic-annotation-container' });
-        $parent.append(this.$container);
+        $e = $("<div>", { class:'hic-annotation-modal-row' });
+        $e.text(string);
+        $container.append($e);
 
-        $e = $('<div>');
-        this.$container.append($e);
-        $e.text('Annotations');
-    };
+    }
 
     return hic;
 })(hic || {});

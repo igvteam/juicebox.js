@@ -260,14 +260,14 @@ var hic = (function (hic) {
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
-        // normalization widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
-
         // resolution widget
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
-        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu);
+        // normalization widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
+
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, 'Annotations');
 
         browser.$menu = $menu;
 
