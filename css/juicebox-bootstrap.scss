@@ -383,13 +383,18 @@ $default-font-family: 'Open Sans', sans-serif;
 
     }
 
-    div:hover,
-    div:focus,
-    div:active {
-      cursor: pointer;
-      background-color: #dfdfdf;
+    // annotations
+    .hic-annotation-container {
+      @include menu-item;
     }
 
+  }
+
+  .hic-menu > div:hover,
+  .hic-menu > div:focus,
+  .hic-menu > div:active {
+    cursor: pointer;
+    background-color: #dfdfdf;
   }
 
 }

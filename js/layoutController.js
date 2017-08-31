@@ -267,6 +267,8 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu);
+
         browser.$menu = $menu;
 
         browser.$menu.hide();
