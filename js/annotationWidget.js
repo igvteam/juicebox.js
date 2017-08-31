@@ -111,7 +111,7 @@ var hic = (function (hic) {
         $parent.append($modal);
 
         // modal-dialog
-        $modal_dialog = $('<div>', { class:'modal-dialog', role:'document' });
+        $modal_dialog = $('<div>', { class:'modal-dialog modal-lg', role:'document' });
         $modal.append($modal_dialog);
 
         // modal-content
