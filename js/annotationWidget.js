@@ -72,11 +72,30 @@ var hic = (function (hic) {
     };
 
     function modalBodyRow($container, string) {
-        var $e;
+        var $row,
+            $e;
 
-        $e = $("<div>", { class:'hic-annotation-modal-row' });
+        $row = $("<div>", { class:'hic-annotation-modal-row' });
+        $container.append($row);
+
+        // track name
+        $e = $("<div>");
         $e.text(string);
-        $container.append($e);
+        $row.append($e);
+
+        // track hide/show
+        $e = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
+        $e.on('click', function (e) {
+            console.log('hide/show track');
+        });
+        $row.append($e);
+
+        // track delete
+        $e = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
+        $e.on('click', function (e) {
+            console.log('delete track');
+        });
+        $row.append($e);
 
     }
 
@@ -123,7 +142,7 @@ var hic = (function (hic) {
         $modal_content.append($modal_header);
 
         // modal-title
-        $modal_title = $('<h5>', { class:'modal-title' });
+        $modal_title = $('<h4>', { class:'modal-title' });
         $modal_title.text(title);
         $modal_header.append($modal_title);
 

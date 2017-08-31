@@ -415,7 +415,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   color: $default-dark-color;
   font-family: $default-font-family;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
 
   .hic-annotation-modal-row {
@@ -423,7 +423,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
 
     width: 100%;
@@ -435,8 +435,25 @@ $default-font-family: 'Open Sans', sans-serif;
     border-bottom-width: thin;
     border-bottom-color: $default-dark-color;
 
-    div {
+    cursor: default;
 
+    div {
+      margin-left: 4px;
+      margin-right: 4px;
+    }
+
+    i.fa {
+      display: block;
+      margin-left: 32px;
+      margin-right: 32px;
+      color: $default-dark-color;
+    }
+
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: #0f0f0f;
     }
 
   }
