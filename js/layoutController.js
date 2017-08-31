@@ -267,7 +267,7 @@ var hic = (function (hic) {
         // normalization widget
         browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
 
-        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, 'Annotations');
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
 
         browser.$menu = $menu;
 

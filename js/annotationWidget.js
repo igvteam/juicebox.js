@@ -39,35 +39,46 @@ var hic = (function (hic) {
 
         modal.call(this, modal_id, $('body'), title);
 
-        this.$modal.on('shown.bs.modal', function () {
-            self.updateBody();
+        this.$modal.on('show.bs.modal', function () {
+            // do stuff
+        });
+
+        this.$modal.on('hidden.bs.modal', function () {
+            // do stuff
         });
 
         browser.eventBus.subscribe('TrackLoad2D', this);
 
     };
 
-    hic.AnnotationWidget.prototype.updateBody = function () {
+    hic.AnnotationWidget.prototype.receiveEvent = function(event) {
+
+        if ('TrackLoad2D' === event.type) {
+            this.updateBody(event.data);
+        }
+
+    };
+
+    hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
 
         var self = this;
 
         self.$annotation_modal_container.empty();
 
-        _.each(_.range(3), function (number) {
-            modalBodyRow.call(self, self.$annotation_modal_container, number.toString());
+        _.each(tracks2D, function (track) {
+            modalBodyRow.call(self, self.$annotation_modal_container, track.config.name);
         });
 
     };
 
-    hic.AnnotationWidget.prototype.receiveEvent = function(event) {
+    function modalBodyRow($container, string) {
+        var $e;
 
-        if ('TrackLoad2D' === event.type) {
-            // do stuff
-            console.log('annotation widget received TrackLoad2D event');
-        }
+        $e = $("<div>", { class:'hic-annotation-modal-row' });
+        $e.text(string);
+        $container.append($e);
 
-
-    };
+    }
 
     function modalPresentationButton(modal_id, $parent) {
         var str,
@@ -148,15 +159,6 @@ var hic = (function (hic) {
 
         this.$modal_body = $modal_body;
         this.$modal = $modal;
-
-    }
-
-    function modalBodyRow($container, string) {
-        var $e;
-
-        $e = $("<div>", { class:'hic-annotation-modal-row' });
-        $e.text(string);
-        $container.append($e);
 
     }
 
