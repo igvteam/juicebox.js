@@ -151,6 +151,27 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+@mixin menu-item {
+
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+
+  width: 100%;
+  height: $hic-menu-item-height;
+
+  padding-left: $hic-menu-item-padding;
+  padding-bottom: 4px;
+
+  margin-top: $hic-menu-margin;
+  margin-bottom: $hic-menu-margin;
+
+  background-color: transparent;
+
+}
+
 .site-widget {
 
   float: left;
@@ -277,26 +298,7 @@ $default-font-family: 'Open Sans', sans-serif;
     // container: chromosome-label | chromosome-selector-container
     .hic-chromosome-selector-widget-container {
 
-      display:flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: flex-start;
-
-      width: 100%;
-      height: $hic-menu-item-height;
-
-      padding-left: $hic-menu-item-padding;
-      padding-bottom: 4px;
-
-      margin-top: $hic-menu-margin;
-      margin-bottom: $hic-menu-margin;
-
-      background-color: transparent;
-
-      border-bottom-style: solid;
-      border-bottom-width: thin;
-      border-bottom-color: transparent;
+      @include menu-item;
 
       // label: 'Chromosome'
       div {
@@ -343,27 +345,9 @@ $default-font-family: 'Open Sans', sans-serif;
     // normalization
     .hic-normalization-selector-container {
 
-      display:flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: flex-start;
+      @include menu-item;
 
-      width: 100%;
-      height: $hic-menu-item-height;
-
-      padding-left: $hic-menu-item-padding;
       padding-right: $hic-menu-item-padding;
-      padding-bottom: 4px;
-
-      margin-top: $hic-menu-margin;
-      margin-bottom: $hic-menu-margin;
-
-      background-color: transparent;
-
-      border-bottom-style: solid;
-      border-bottom-width: thin;
-      border-bottom-color: transparent;
 
       @include navbar-select;
 
@@ -372,23 +356,9 @@ $default-font-family: 'Open Sans', sans-serif;
     // resolution
     .hic-resolution-selector-container {
 
-      display:flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: flex-start;
+      @include menu-item;
 
-      width: 100%;
-      height: $hic-menu-item-height;
-
-      padding-left: $hic-menu-item-padding;
       padding-right: $hic-menu-item-padding;
-      padding-bottom: 4px;
-
-      margin-top: $hic-menu-margin;
-      margin-bottom: $hic-menu-margin;
-
-      background-color: transparent;
 
       div#hic-resolution-label-container {
         display:flex;
@@ -411,6 +381,13 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include navbar-select;
 
+    }
+
+    div:hover,
+    div:focus,
+    div:active {
+      cursor: pointer;
+      background-color: #dfdfdf;
     }
 
   }
