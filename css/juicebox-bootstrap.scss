@@ -438,8 +438,9 @@ $default-font-family: 'Open Sans', sans-serif;
       width: 95%;
       height: $nav-bar-label-height;
 
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 400;
+      text-overflow: ellipsis;
 
       border-bottom-style: solid;
       border-bottom-width: thin;
@@ -449,6 +450,31 @@ $default-font-family: 'Open Sans', sans-serif;
 
       padding-left: 8px;
       padding-top: 4px;
+    }
+
+    // menu presentation
+    .hic-nav-bar-menu-button {
+      width: 5%;
+      height: $nav-bar-label-height;
+
+      color: #a5a5a5;
+
+      i.fa-bars {
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+      i.fa-times {
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+    }
+
+    .hic-nav-bar-menu-button:hover,
+    .hic-nav-bar-menu-button:focus,
+    .hic-nav-bar-menu-button:active {
+      color: #494949;
     }
 
     // delete browser (map panel)
@@ -461,7 +487,8 @@ $default-font-family: 'Open Sans', sans-serif;
       i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
-        margin-left: 16px;
+        margin-left: 8px;
+        margin-right: 8px;
       }
     }
 

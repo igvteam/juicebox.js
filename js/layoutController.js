@@ -66,7 +66,41 @@ var hic = (function (hic) {
             browser.$contactMaplabel.hide();
         }
 
-        // browser delete button
+        // menu button
+        browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
+        $div.append(browser.$menuPresentDismiss);
+
+        // menu presentation
+        $fa = $("<i>", { class:'fa fa-bars fa-lg' });
+        browser.$menuPresentDismiss.append($fa);
+
+        $fa.on('click', function (e) {
+            console.log('present menu');
+            browser.$menuPresentDismiss.find('.fa-bars').hide();
+            browser.$menuPresentDismiss.find('.fa-times').hide();
+            browser.$menuPresentDismiss.find('.fa-times').show();
+        });
+
+        // menu dismiss
+        $fa = $("<i>", { class:'fa fa-times fa-lg' });
+        browser.$menuPresentDismiss.append($fa);
+        $fa.hide();
+
+        $fa.on('click', function (e) {
+            console.log('dismiss menu');
+            browser.$menuPresentDismiss.find('.fa-bars').hide();
+            browser.$menuPresentDismiss.find('.fa-times').hide();
+            browser.$menuPresentDismiss.find('.fa-bars').show();
+        });
+
+
+
+
+
+
+
+
+        // delete button
         $e = $("<div>", { class:'hic-nav-bar-delete-button' });
         $div.append($e);
 
@@ -88,6 +122,15 @@ var hic = (function (hic) {
         // hide delete buttons for now. All delete buttons will later
         // be shown IF there is more then one browser instance.
         $e.hide();
+
+
+
+
+
+
+
+
+
 
         // Widget container
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
@@ -220,6 +263,7 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
+        $menu.hide();
 
     }
 

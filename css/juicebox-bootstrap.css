@@ -220,14 +220,29 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] div[id$="hic-nav-bar-contact-map-label"] {
       width: 95%;
       height: 32px;
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 12px;
+      font-weight: 400;
+      text-overflow: ellipsis;
       border-bottom-style: solid;
       border-bottom-width: thin;
       border-bottom-color: transparent;
       background-color: transparent;
       padding-left: 8px;
       padding-top: 4px; }
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button {
+      width: 5%;
+      height: 32px;
+      color: #a5a5a5; }
+      .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button i.fa-bars {
+        cursor: pointer;
+        margin-top: 8px; }
+      .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button i.fa-times {
+        cursor: pointer;
+        margin-top: 8px; }
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:hover,
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:focus,
+    .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:active {
+      color: #494949; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button {
       width: 5%;
       height: 32px;
@@ -235,7 +250,8 @@
       .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
-        margin-left: 16px; }
+        margin-left: 8px;
+        margin-right: 8px; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:hover,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:focus,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:active {
