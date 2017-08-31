@@ -121,7 +121,6 @@ var hic = (function (hic) {
             tokens,
             height_calc,
             $container,
-            $menu,
             $e;
 
         // .hic-x-track-container
@@ -149,13 +148,8 @@ var hic = (function (hic) {
         this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
 
-
         // menu
-        $menu = $('<div>', { class:'hic-menu' });
-        $root.append($menu);
-
-        createMenu(browser, $menu);
-
+        createMenu(browser, $root);
 
 
         if(false === browser.config.showHicContactMapLabel) {
@@ -208,7 +202,13 @@ var hic = (function (hic) {
 
     }
 
-    function createMenu(browser, $menu) {
+    function createMenu(browser, $root) {
+
+        var $menu;
+
+        // menu
+        $menu = $('<div>', { class:'hic-menu' });
+        $root.append($menu);
 
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
