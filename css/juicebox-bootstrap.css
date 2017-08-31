@@ -205,7 +205,7 @@
   height: 96px;
   color: #5f5f5f;
   font-family: "Open Sans", sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
   background-color: #f7f7f7;
   border-bottom-style: solid;
@@ -220,8 +220,7 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] div[id$="hic-nav-bar-contact-map-label"] {
       width: 95%;
       height: 32px;
-      font-size: 12px;
-      font-weight: 400;
+      font-weight: 700;
       text-overflow: ellipsis;
       border-bottom-style: solid;
       border-bottom-width: thin;

@@ -412,8 +412,8 @@ $default-font-family: 'Open Sans', sans-serif;
   color: $default-dark-color;
   font-family: $default-font-family;
 
-  //font-size: 14px;
-  font-size: 12px;
+  font-size: 14px;
+  //font-size: 12px;
 
   font-weight: 400;
 
@@ -438,8 +438,7 @@ $default-font-family: 'Open Sans', sans-serif;
       width: 95%;
       height: $nav-bar-label-height;
 
-      font-size: 12px;
-      font-weight: 400;
+      font-weight: 700;
       text-overflow: ellipsis;
 
       border-bottom-style: solid;

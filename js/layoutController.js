@@ -75,10 +75,12 @@ var hic = (function (hic) {
         browser.$menuPresentDismiss.append($fa);
 
         $fa.on('click', function (e) {
-            console.log('present menu');
+
             browser.$menuPresentDismiss.find('.fa-bars').hide();
             browser.$menuPresentDismiss.find('.fa-times').hide();
+
             browser.$menuPresentDismiss.find('.fa-times').show();
+            browser.$menu.show();
         });
 
         // menu dismiss
@@ -87,10 +89,12 @@ var hic = (function (hic) {
         $fa.hide();
 
         $fa.on('click', function (e) {
-            console.log('dismiss menu');
+
             browser.$menuPresentDismiss.find('.fa-bars').hide();
             browser.$menuPresentDismiss.find('.fa-times').hide();
+
             browser.$menuPresentDismiss.find('.fa-bars').show();
+            browser.$menu.hide();
         });
 
 
@@ -263,7 +267,9 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
-        $menu.hide();
+        browser.$menu = $menu;
+
+        browser.$menu.hide();
 
     }
 
