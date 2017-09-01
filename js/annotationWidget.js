@@ -72,7 +72,8 @@ var hic = (function (hic) {
     };
 
     function modalBodyRow($container, string) {
-        var $row,
+        var self = this,
+            $row,
             $e;
 
         $row = $("<div>", { class:'hic-annotation-modal-row' });
@@ -87,6 +88,13 @@ var hic = (function (hic) {
         $e = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
         $e.on('click', function (e) {
             console.log('hide/show track');
+            if ($(this).hasClass('fa-eye')) {
+                $(this).addClass('fa-eye-slash');
+                $(this).removeClass('fa-eye');
+            } else {
+                $(this).addClass('fa-eye');
+                $(this).removeClass('fa-eye-slash');
+            }
         });
         $row.append($e);
 
@@ -94,6 +102,7 @@ var hic = (function (hic) {
         $e = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
         $e.on('click', function (e) {
             console.log('delete track');
+            // self.browser.tracks2D;
         });
         $row.append($e);
 
@@ -172,9 +181,9 @@ var hic = (function (hic) {
         $modal_footer.append($e);
 
         // modal footer - save changes
-        $e = $('<button>', { type:'button', class:'btn btn-primary' });
-        $e.text('Save changes');
-        $modal_footer.append($e);
+        // $e = $('<button>', { type:'button', class:'btn btn-primary' });
+        // $e.text('Save changes');
+        // $modal_footer.append($e);
 
         this.$modal_body = $modal_body;
         this.$modal = $modal;
