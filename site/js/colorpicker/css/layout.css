@@ -139,7 +139,7 @@ h1 {
 	position: relative;
 	width: 36px;
 	height: 36px;
-	background: url(../images/select.png);
+	background: url(../images/select_dugla.png);
 }
 #colorSelector div {
 	position: absolute;
@@ -147,7 +147,7 @@ h1 {
 	left: 3px;
 	width: 30px;
 	height: 30px;
-	background: url(../images/select.png) center;
+	background: url(../images/select_dugla.png) center;
 }
 #colorSelector2 {
 	position: absolute;
