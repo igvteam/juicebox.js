@@ -76,7 +76,6 @@ var hic = (function (hic) {
 
     function modalBodyRow($container, track2D) {
         var self = this,
-            dev_null,
             $row,
             $hideShowTrack,
             $deleteTrack,
@@ -129,6 +128,8 @@ var hic = (function (hic) {
 
             self.browser.contactMatrixView.clearCaches();
             self.browser.contactMatrixView.update();
+
+            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
         });
 
     }
