@@ -41,6 +41,7 @@ var hic = (function (hic) {
 
         this.$modal.on('show.bs.modal', function () {
             // do stuff
+            self.updateBody(self.browser.tracks2D);
         });
 
         this.$modal.on('hidden.bs.modal', function () {
@@ -61,50 +62,74 @@ var hic = (function (hic) {
 
     hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
 
-        var self = this;
+        var self = this,
+            hideShowHandler,
+            deleteHandler;
 
         self.$annotation_modal_container.empty();
 
-        _.each(tracks2D, function (track) {
-            modalBodyRow.call(self, self.$annotation_modal_container, track.config.name);
+        _.each(tracks2D, function (track2D, i) {
+            modalBodyRow.call(self, self.$annotation_modal_container, track2D);
         });
 
     };
 
-    function modalBodyRow($container, string) {
+    function modalBodyRow($container, track2D) {
         var self = this,
+            dev_null,
             $row,
+            $hideShowTrack,
+            $deleteTrack,
             $e;
 
-        $row = $("<div>", { class:'hic-annotation-modal-row' });
+        $row = $('<div>', { class:'hic-annotation-modal-row'});
         $container.append($row);
+
+        $row.data('track2D', track2D);
 
         // track name
         $e = $("<div>");
-        $e.text(string);
+        $e.text(track2D.config.name);
         $row.append($e);
 
         // track hide/show
-        $e = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
-        $e.on('click', function (e) {
-            console.log('hide/show track');
-            if ($(this).hasClass('fa-eye')) {
-                $(this).addClass('fa-eye-slash');
-                $(this).removeClass('fa-eye');
+        $hideShowTrack = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
+        $row.append($hideShowTrack);
+        $hideShowTrack.on('click', function (e) {
+            var track2D;
+
+            track2D = $row.data('track2D');
+
+            if ($hideShowTrack.hasClass('fa-eye')) {
+                $hideShowTrack.addClass('fa-eye-slash');
+                $hideShowTrack.removeClass('fa-eye');
+                track2D.isVisible = false;
             } else {
-                $(this).addClass('fa-eye');
-                $(this).removeClass('fa-eye-slash');
+                $hideShowTrack.addClass('fa-eye');
+                $hideShowTrack.removeClass('fa-eye-slash');
+                track2D.isVisible = true;
             }
+
+            self.browser.contactMatrixView.clearCaches();
+            self.browser.contactMatrixView.update();
+
         });
-        $row.append($e);
 
         // track delete
-        $e = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
-        $e.on('click', function (e) {
-            console.log('delete track');
-            // self.browser.tracks2D;
+        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
+        $row.append($deleteTrack);
+        $deleteTrack.on('click', function (e) {
+            var track2D,
+                index;
+
+            track2D = $row.data('track2D');
+            index = _.indexOf(self.browser.tracks2D, track2D);
+
+            self.browser.tracks2D.splice(index, 1);
+
+            self.browser.contactMatrixView.clearCaches();
+            self.browser.contactMatrixView.update();
         });
-        $row.append($e);
 
     }
 

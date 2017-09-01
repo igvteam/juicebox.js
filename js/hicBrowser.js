@@ -651,7 +651,7 @@ var hic = (function (hic) {
             Promise.all(promises2D)
                 .then(function (tracks2D) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
-                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D))
+                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
 
                 }).catch(function (error) {
                 console.log(error.message);
