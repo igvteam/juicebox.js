@@ -93,7 +93,6 @@ var hic = (function (hic) {
         $e.text(track2D.config.name);
         $row.append($e);
 
-
         // track hide/show
         $hideShowTrack = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
         $row.append($hideShowTrack);
@@ -117,12 +116,29 @@ var hic = (function (hic) {
 
         });
 
+        // track delete
+        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
+        $row.append($deleteTrack);
+        $deleteTrack.on('click', function (e) {
+            var track2D,
+                index;
+
+            track2D = $row.data('track2D');
+            index = _.indexOf(self.browser.tracks2D, track2D);
+
+            self.browser.tracks2D.splice(index, 1);
+
+            self.browser.contactMatrixView.clearCaches();
+            self.browser.contactMatrixView.update();
+
+            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+        });
 
         // track up/down
-        $upTrack = $("<i>", { class:'fa fa-lg fa-arrow-up', 'aria-hidden':'true' });
+        $upTrack = $("<i>", { class:'fa fa-arrow-up', 'aria-hidden':'true' });
         $row.append($upTrack);
 
-        $downTrack = $("<i>", { class:'fa fa-lg fa-arrow-down', 'aria-hidden':'true' });
+        $downTrack = $("<i>", { class:'fa fa-arrow-down', 'aria-hidden':'true' });
         $row.append($downTrack);
 
         if (1 === _.size(self.browser.tracks2D)) {
@@ -163,25 +179,6 @@ var hic = (function (hic) {
             track2D = self.browser.tracks2D[ indexB ];
             self.browser.tracks2D[ indexB ] = self.browser.tracks2D[ indexA ];
             self.browser.tracks2D[ indexA ] = track2D;
-
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
-
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
-        });
-
-
-        // track delete
-        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
-        $row.append($deleteTrack);
-        $deleteTrack.on('click', function (e) {
-            var track2D,
-                index;
-
-            track2D = $row.data('track2D');
-            index = _.indexOf(self.browser.tracks2D, track2D);
-
-            self.browser.tracks2D.splice(index, 1);
 
             self.browser.contactMatrixView.clearCaches();
             self.browser.contactMatrixView.update();

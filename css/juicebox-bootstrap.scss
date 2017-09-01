@@ -415,7 +415,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   color: $default-dark-color;
   font-family: $default-font-family;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
 
   .hic-annotation-modal-row {
@@ -427,19 +427,26 @@ $default-font-family: 'Open Sans', sans-serif;
     align-items: center;
 
     width: 100%;
-    height: 32px;
+    height: 40px;
 
-    background-color: #efefef;
+    background-color: white;
 
-    border-bottom-style: solid;
-    border-bottom-width: thin;
-    border-bottom-color: $default-dark-color;
+    //border-bottom-style: solid;
+    //border-bottom-width: thin;
+    //border-bottom-color: $default-dark-color;
 
     cursor: default;
 
     div {
       margin-left: 4px;
       margin-right: 4px;
+    }
+
+    div:first-child {
+      margin-left: 16px;
+      text-overflow: ellipsis;
+      //background-color: rgba(0, 191, 255, 0.5);
+      width: 384px;
     }
 
     i.fa {
@@ -456,6 +463,12 @@ $default-font-family: 'Open Sans', sans-serif;
       color: #0f0f0f;
     }
 
+  }
+
+  .hic-annotation-modal-row:hover,
+  .hic-annotation-modal-row:focus,
+  .hic-annotation-modal-row:active {
+    background-color: #f7f7f7;
   }
 
 }
