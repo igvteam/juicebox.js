@@ -210,63 +210,6 @@ var hic = (function (hic) {
 
     };
 
-    /**
-     * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
-     * instantiating multiple browsers in a page.
-     *
-     * @param config
-     */
-    hic.loadDataset = function (config) {
-
-        return new Promise(function (fulfill, reject) {
-            var hicReader = new hic.HiCReader(config);
-
-            hicReader.loadDataset(config)
-
-                .then(function (dataset) {
-
-                    if (config.nvi) {
-                        var nviArray = decodeURIComponent(config.nvi).split(","),
-                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-
-                        hicReader.readNormVectorIndex(dataset, range)
-                            .then(function (ignore) {
-                                fulfill(dataset);
-                            })
-                            .catch(function (error) {
-                                self.contactMatrixView.stopSpinner();
-                                console.log(error);
-                            })
-                    }
-                    else {
-                        fulfill(dataset);
-                    }
-                })
-                .catch(reject)
-        });
-    };
-
-    hic.syncBrowsers = function (browsers) {
-
-        browsers.forEach(function (b1) {
-            if (b1 === undefined) {
-                console.log("Attempt to sync undefined browser");
-            }
-            else {
-                browsers.forEach(function (b2) {
-                    if (b2 === undefined) {
-                        console.log("Attempt to sync undefined browser");
-                    }
-                    else {
-                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
-                            b1.synchedBrowsers.push(b2);
-                        }
-                    }
-                })
-            }
-        })
-    };
-
     hic.Browser = function ($app_container, config) {
 
         var self = this;
@@ -349,6 +292,79 @@ var hic = (function (hic) {
             }
 
         }
+    };
+
+    hic.Browser.prototype.showMenu = function () {
+        this.$menuPresentDismiss.find('.fa-bars').hide();
+        this.$menuPresentDismiss.find('.fa-times').hide();
+
+        this.$menuPresentDismiss.find('.fa-times').show();
+        this.$menu.show();
+    };
+
+    hic.Browser.prototype.hideMenu = function () {
+        this.$menuPresentDismiss.find('.fa-bars').hide();
+        this.$menuPresentDismiss.find('.fa-times').hide();
+
+        this.$menuPresentDismiss.find('.fa-bars').show();
+        this.$menu.hide();
+    };
+
+    /**
+     * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
+     * instantiating multiple browsers in a page.
+     *
+     * @param config
+     */
+    hic.loadDataset = function (config) {
+
+        return new Promise(function (fulfill, reject) {
+            var hicReader = new hic.HiCReader(config);
+
+            hicReader.loadDataset(config)
+
+                .then(function (dataset) {
+
+                    if (config.nvi) {
+                        var nviArray = decodeURIComponent(config.nvi).split(","),
+                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                        hicReader.readNormVectorIndex(dataset, range)
+                            .then(function (ignore) {
+                                fulfill(dataset);
+                            })
+                            .catch(function (error) {
+                                self.contactMatrixView.stopSpinner();
+                                console.log(error);
+                            })
+                    }
+                    else {
+                        fulfill(dataset);
+                    }
+                })
+                .catch(reject)
+        });
+    };
+
+    hic.syncBrowsers = function (browsers) {
+
+        browsers.forEach(function (b1) {
+            if (b1 === undefined) {
+                console.log("Attempt to sync undefined browser");
+            }
+            else {
+                browsers.forEach(function (b2) {
+                    if (b2 === undefined) {
+                        console.log("Attempt to sync undefined browser");
+                    }
+                    else {
+                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
+                            b1.synchedBrowsers.push(b2);
+                        }
+                    }
+                })
+            }
+        })
     };
 
     hic.Browser.getCurrentBrowser = function () {

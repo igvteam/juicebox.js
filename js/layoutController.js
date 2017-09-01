@@ -11,6 +11,13 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
+        $('html').on('click', function () {
+            if (browser.$menu.is(':visible')) {
+                browser.hideMenu();
+            }
+        });
+
+
         this.scrollbar_height = 20;
         this.axis_height = 32;
 
@@ -70,38 +77,21 @@ var hic = (function (hic) {
         browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
         $div.append(browser.$menuPresentDismiss);
 
-        // menu presentation
+        // show menu
         $fa = $("<i>", { class:'fa fa-bars fa-lg' });
         browser.$menuPresentDismiss.append($fa);
-
         $fa.on('click', function (e) {
-
-            browser.$menuPresentDismiss.find('.fa-bars').hide();
-            browser.$menuPresentDismiss.find('.fa-times').hide();
-
-            browser.$menuPresentDismiss.find('.fa-times').show();
-            browser.$menu.show();
+            browser.showMenu();
         });
 
-        // menu dismiss
+        // hide menu
         $fa = $("<i>", { class:'fa fa-times fa-lg' });
         browser.$menuPresentDismiss.append($fa);
-        $fa.hide();
-
         $fa.on('click', function (e) {
-
-            browser.$menuPresentDismiss.find('.fa-bars').hide();
-            browser.$menuPresentDismiss.find('.fa-times').hide();
-
-            browser.$menuPresentDismiss.find('.fa-bars').show();
-            browser.$menu.hide();
+            browser.hideMenu();
         });
 
-
-
-
-
-
+        $fa.hide();
 
 
         // delete button
