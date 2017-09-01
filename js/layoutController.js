@@ -81,17 +81,16 @@ var hic = (function (hic) {
         $fa = $("<i>", { class:'fa fa-bars fa-lg' });
         browser.$menuPresentDismiss.append($fa);
         $fa.on('click', function (e) {
-            browser.showMenu();
+            browser.toggleMenu();
         });
 
         // hide menu
-        $fa = $("<i>", { class:'fa fa-times fa-lg' });
-        browser.$menuPresentDismiss.append($fa);
-        $fa.on('click', function (e) {
-            browser.hideMenu();
-        });
-
-        $fa.hide();
+        // $fa = $("<i>", { class:'fa fa-times fa-lg' });
+        // browser.$menuPresentDismiss.append($fa);
+        // $fa.on('click', function (e) {
+        //     browser.hideMenu();
+        // });
+        // $fa.hide();
 
 
         // delete button

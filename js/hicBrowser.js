@@ -294,19 +294,21 @@ var hic = (function (hic) {
         }
     };
 
-    hic.Browser.prototype.showMenu = function () {
-        this.$menuPresentDismiss.find('.fa-bars').hide();
-        this.$menuPresentDismiss.find('.fa-times').hide();
+    hic.Browser.prototype.toggleMenu = function () {
 
-        this.$menuPresentDismiss.find('.fa-times').show();
+        if (this.$menu.is(':visible')) {
+            this.hideMenu();
+        } else {
+            this.showMenu();
+        }
+
+    };
+
+    hic.Browser.prototype.showMenu = function () {
         this.$menu.show();
     };
 
     hic.Browser.prototype.hideMenu = function () {
-        this.$menuPresentDismiss.find('.fa-bars').hide();
-        this.$menuPresentDismiss.find('.fa-times').hide();
-
-        this.$menuPresentDismiss.find('.fa-bars').show();
         this.$menu.hide();
     };
 
