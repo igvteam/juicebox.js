@@ -11,11 +11,11 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
-        $('html').on('click', function () {
-            if (browser.$menu.is(':visible')) {
-                browser.hideMenu();
-            }
-        });
+        // $('html').on('click', function () {
+        //     if (browser.$menu.is(':visible')) {
+        //         browser.hideMenu();
+        //     }
+        // });
 
 
         this.scrollbar_height = 20;
