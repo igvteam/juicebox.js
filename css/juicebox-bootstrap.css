@@ -230,8 +230,10 @@
     background-color: white;
     cursor: default; }
     .hic-annotation-modal-container .hic-annotation-modal-row div:first-child {
+      display: block;
       margin-left: 4px;
-      margin-right: 32px;
+      margin-right: 4px;
+      text-align: left;
       text-overflow: ellipsis;
       width: 384px; }
     .hic-annotation-modal-container .hic-annotation-modal-row i.fa {

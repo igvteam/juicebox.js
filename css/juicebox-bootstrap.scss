@@ -460,8 +460,10 @@ $default-font-family: 'Open Sans', sans-serif;
     cursor: default;
 
     div:first-child {
+      display: block;
       margin-left: 4px;
-      margin-right: 32px;
+      margin-right: 4px;
+      text-align: left;
       text-overflow: ellipsis;
       //background-color: rgba(0, 191, 255, 0.5);
       width: 384px;
