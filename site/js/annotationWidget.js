@@ -135,12 +135,15 @@ var hic = (function (hic) {
             self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
         });
 
+        $e = $('<div>');
+        $row.append($e);
+
         // track up/down
         $upTrack = $("<i>", { class:'fa fa-arrow-up', 'aria-hidden':'true' });
-        $row.append($upTrack);
+        $e.append($upTrack);
 
         $downTrack = $("<i>", { class:'fa fa-arrow-down', 'aria-hidden':'true' });
-        $row.append($downTrack);
+        $e.append($downTrack);
 
         if (1 === _.size(self.browser.tracks2D)) {
             $upTrack.css('color', hidden_color);

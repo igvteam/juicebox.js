@@ -482,6 +482,30 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-dark-color;
     }
 
+    div:last-child {
+
+      display:flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
+
+      i.fa:first-child {
+        display: block;
+        margin-left: 32px;
+        margin-right: 8px;
+        color: $default-dark-color;
+      }
+
+      i.fa:last-child {
+        display: block;
+        margin-left: 8px;
+        margin-right: 8px;
+        color: $default-dark-color;
+      }
+
+    }
+
     //i.fa:hover,
     //i.fa:focus,
     //i.fa:active {

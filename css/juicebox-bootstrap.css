@@ -241,6 +241,22 @@
       margin-left: 32px;
       margin-right: 32px;
       color: #5f5f5f; }
+    .hic-annotation-modal-container .hic-annotation-modal-row div:last-child {
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center; }
+      .hic-annotation-modal-container .hic-annotation-modal-row div:last-child i.fa:first-child {
+        display: block;
+        margin-left: 32px;
+        margin-right: 8px;
+        color: #5f5f5f; }
+      .hic-annotation-modal-container .hic-annotation-modal-row div:last-child i.fa:last-child {
+        display: block;
+        margin-left: 8px;
+        margin-right: 8px;
+        color: #5f5f5f; }
   .hic-annotation-modal-container .hic-annotation-modal-row:hover,
   .hic-annotation-modal-container .hic-annotation-modal-row:focus,
   .hic-annotation-modal-container .hic-annotation-modal-row:active {
