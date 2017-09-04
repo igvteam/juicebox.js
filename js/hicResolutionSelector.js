@@ -27,7 +27,7 @@
 
 var hic = (function (hic) {
 
-    hic.ResolutionSelector = function (browser) {
+    hic.ResolutionSelector = function (browser, $parent) {
         var self = this,
             $label,
             $label_container;
@@ -60,6 +60,8 @@ var hic = (function (hic) {
         });
 
         this.$container = $('<div class="hic-resolution-selector-container">');
+        $parent.append(this.$container);
+
         //
         this.$container.append($label_container);
         //

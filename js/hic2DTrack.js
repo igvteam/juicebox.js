@@ -103,6 +103,8 @@ var hic = (function (hic) {
         this.config = config;
         this.featureMap = {};
         this.featureCount = 0;
+        this.isVisible = true;
+        this.zorder = 0;
 
         features.forEach(function (f) {
 

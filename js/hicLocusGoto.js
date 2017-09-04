@@ -35,11 +35,6 @@ var hic = (function (hic) {
         this.$container = $('<div class="hic-chromosome-goto-container">');
         $container.append(this.$container);
 
-        // shim for nav alignment purposes
-        $label = $('<div>');
-        this.$container.append($label);
-        $label.text('shim');
-
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
         this.$container.append(this.$resolution_selector);
 
@@ -49,7 +44,6 @@ var hic = (function (hic) {
         });
 
         this.browser.eventBus.subscribe("LocusChange", this);
-        //this.browser.eventBus.subscribe("DragStopped", this);
     };
 
     hic.LocusGoto.prototype.receiveEvent = function (event) {

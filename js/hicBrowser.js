@@ -33,8 +33,8 @@ var hic = (function (hic) {
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
     {
-        width: 760,
-        height: 760
+        width: 640,
+        height: 640
     };
 
 
@@ -210,63 +210,6 @@ var hic = (function (hic) {
 
     };
 
-    /**
-     * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
-     * instantiating multiple browsers in a page.
-     *
-     * @param config
-     */
-    hic.loadDataset = function (config) {
-
-        return new Promise(function (fulfill, reject) {
-            var hicReader = new hic.HiCReader(config);
-
-            hicReader.loadDataset(config)
-
-                .then(function (dataset) {
-
-                    if (config.nvi) {
-                        var nviArray = decodeURIComponent(config.nvi).split(","),
-                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-
-                        hicReader.readNormVectorIndex(dataset, range)
-                            .then(function (ignore) {
-                                fulfill(dataset);
-                            })
-                            .catch(function (error) {
-                                self.contactMatrixView.stopSpinner();
-                                console.log(error);
-                            })
-                    }
-                    else {
-                        fulfill(dataset);
-                    }
-                })
-                .catch(reject)
-        });
-    };
-
-    hic.syncBrowsers = function (browsers) {
-
-        browsers.forEach(function (b1) {
-            if (b1 === undefined) {
-                console.log("Attempt to sync undefined browser");
-            }
-            else {
-                browsers.forEach(function (b2) {
-                    if (b2 === undefined) {
-                        console.log("Attempt to sync undefined browser");
-                    }
-                    else {
-                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
-                            b1.synchedBrowsers.push(b2);
-                        }
-                    }
-                })
-            }
-        })
-    };
-
     hic.Browser = function ($app_container, config) {
 
         var self = this;
@@ -349,6 +292,81 @@ var hic = (function (hic) {
             }
 
         }
+    };
+
+    hic.Browser.prototype.toggleMenu = function () {
+
+        if (this.$menu.is(':visible')) {
+            this.hideMenu();
+        } else {
+            this.showMenu();
+        }
+
+    };
+
+    hic.Browser.prototype.showMenu = function () {
+        this.$menu.show();
+    };
+
+    hic.Browser.prototype.hideMenu = function () {
+        this.$menu.hide();
+    };
+
+    /**
+     * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
+     * instantiating multiple browsers in a page.
+     *
+     * @param config
+     */
+    hic.loadDataset = function (config) {
+
+        return new Promise(function (fulfill, reject) {
+            var hicReader = new hic.HiCReader(config);
+
+            hicReader.loadDataset(config)
+
+                .then(function (dataset) {
+
+                    if (config.nvi) {
+                        var nviArray = decodeURIComponent(config.nvi).split(","),
+                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                        hicReader.readNormVectorIndex(dataset, range)
+                            .then(function (ignore) {
+                                fulfill(dataset);
+                            })
+                            .catch(function (error) {
+                                self.contactMatrixView.stopSpinner();
+                                console.log(error);
+                            })
+                    }
+                    else {
+                        fulfill(dataset);
+                    }
+                })
+                .catch(reject)
+        });
+    };
+
+    hic.syncBrowsers = function (browsers) {
+
+        browsers.forEach(function (b1) {
+            if (b1 === undefined) {
+                console.log("Attempt to sync undefined browser");
+            }
+            else {
+                browsers.forEach(function (b2) {
+                    if (b2 === undefined) {
+                        console.log("Attempt to sync undefined browser");
+                    }
+                    else {
+                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
+                            b1.synchedBrowsers.push(b2);
+                        }
+                    }
+                })
+            }
+        })
     };
 
     hic.Browser.getCurrentBrowser = function () {
@@ -651,7 +669,7 @@ var hic = (function (hic) {
             Promise.all(promises2D)
                 .then(function (tracks2D) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
-                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D))
+                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
 
                 }).catch(function (error) {
                 console.log(error.message);

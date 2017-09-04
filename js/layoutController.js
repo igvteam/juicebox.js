@@ -11,6 +11,13 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
+        // $('html').on('click', function () {
+        //     if (browser.$menu.is(':visible')) {
+        //         browser.hideMenu();
+        //     }
+        // });
+
+
         this.scrollbar_height = 20;
         this.axis_height = 32;
 
@@ -66,7 +73,27 @@ var hic = (function (hic) {
             browser.$contactMaplabel.hide();
         }
 
-        // browser delete button
+        // menu button
+        browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
+        $div.append(browser.$menuPresentDismiss);
+
+        // show menu
+        $fa = $("<i>", { class:'fa fa-bars fa-lg' });
+        browser.$menuPresentDismiss.append($fa);
+        $fa.on('click', function (e) {
+            browser.toggleMenu();
+        });
+
+        // hide menu
+        // $fa = $("<i>", { class:'fa fa-times fa-lg' });
+        // browser.$menuPresentDismiss.append($fa);
+        // $fa.on('click', function (e) {
+        //     browser.hideMenu();
+        // });
+        // $fa.hide();
+
+
+        // delete button
         $e = $("<div>", { class:'hic-nav-bar-delete-button' });
         $div.append($e);
 
@@ -89,6 +116,15 @@ var hic = (function (hic) {
         // be shown IF there is more then one browser instance.
         $e.hide();
 
+
+
+
+
+
+
+
+
+
         // Widget container
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
         $div = $("<div>", { id:id });
@@ -99,13 +135,6 @@ var hic = (function (hic) {
 
         $navbar_container.append($div);
 
-
-        // chromosome selector
-        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $div);
-        if (false === browser.config.showChromosomeSelector) {
-            browser.chromosomeSelector.$container.hide();
-        }
-
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $div);
 
@@ -115,16 +144,6 @@ var hic = (function (hic) {
 
         // colorscale widget
         browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $div);
-
-        // resolution widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser);
-        $div.append(browser.normalizationSelector.$container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser);
-        $div.append(browser.resolutionSelector.$container);
-
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         // nav-bar shim
         $div = $('<div class="hic-nav-bar-shim">');
@@ -164,6 +183,10 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'content-container';
         this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
+
+        // menu
+        createMenu(browser, $root);
+
 
         if(false === browser.config.showHicContactMapLabel) {
             tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
@@ -212,6 +235,32 @@ var hic = (function (hic) {
 
         // x-scrollbar
         $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+    }
+
+    function createMenu(browser, $root) {
+
+        var $menu;
+
+        // menu
+        $menu = $('<div>', { class:'hic-menu' });
+        $root.append($menu);
+
+        // chromosome select widget
+        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
+
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
+        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
+        // normalization widget
+        browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
+
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
+
+        browser.$menu = $menu;
+
+        browser.$menu.hide();
 
     }
 
