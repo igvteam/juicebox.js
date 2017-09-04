@@ -117,28 +117,10 @@ var hic = (function (hic) {
 
         });
 
-        // track delete
-        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
-        $row.append($deleteTrack);
-        $deleteTrack.on('click', function (e) {
-            var track2D,
-                index;
-
-            track2D = $row.data('track2D');
-            index = _.indexOf(self.browser.tracks2D, track2D);
-
-            self.browser.tracks2D.splice(index, 1);
-
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
-
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
-        });
-
+        // track up/down
         $e = $('<div>');
         $row.append($e);
 
-        // track up/down
         $upTrack = $("<i>", { class:'fa fa-arrow-up', 'aria-hidden':'true' });
         $e.append($upTrack);
 
@@ -183,6 +165,27 @@ var hic = (function (hic) {
             track2D = self.browser.tracks2D[ indexB ];
             self.browser.tracks2D[ indexB ] = self.browser.tracks2D[ indexA ];
             self.browser.tracks2D[ indexA ] = track2D;
+
+            self.browser.contactMatrixView.clearCaches();
+            self.browser.contactMatrixView.update();
+
+            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+        });
+
+
+
+
+        // track delete
+        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
+        $row.append($deleteTrack);
+        $deleteTrack.on('click', function (e) {
+            var track2D,
+                index;
+
+            track2D = $row.data('track2D');
+            index = _.indexOf(self.browser.tracks2D, track2D);
+
+            self.browser.tracks2D.splice(index, 1);
 
             self.browser.contactMatrixView.clearCaches();
             self.browser.contactMatrixView.update();
