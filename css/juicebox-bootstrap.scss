@@ -1,7 +1,7 @@
 
 //
-$nav-bar-label-height: 32px;
-$nav-bar-widget-container-height: 56px;
+$nav-bar-label-height: 28px;
+$nav-bar-widget-container-height: 28px;
 $nav-bar-shim-height: 8px;
 $nav-bar-height: $nav-bar-label-height + $nav-bar-widget-container-height + $nav-bar-shim-height;
 
@@ -667,8 +667,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   i.fa {
     display: block;
-    margin-left: 32px;
-    margin-right: 32px;
+    margin-left: 8px;
+    margin-right: 8px;
     color: $default-dark-color;
   }
 
