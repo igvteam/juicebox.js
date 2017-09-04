@@ -29,7 +29,8 @@ var hic = (function (hic) {
 
     hic.ColorScaleWidget = function (browser, $container) {
 
-        var $label,
+        var self = this,
+            $label,
             $fa;
 
         this.browser = browser;
@@ -45,20 +46,39 @@ var hic = (function (hic) {
         this.$container.append(this.$high_colorscale_input);
 
         this.$high_colorscale_input.on('change', function(e){
-            var value = $(this).val(),
-                numeric = value.replace(/\,/g, '');
+
+            var value,
+                numeric;
+
+            value = $(this).val();
+            numeric = value.replace(/\,/g, '');
+
             if (isNaN(numeric)) {
-   // Error message ?
-            }
-            else {
+            } else {
                 browser.updateColorScale(parseInt(numeric, 10))
             }
         });
 
         $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
+        $fa.on('click', function (e) {
+            var value;
+
+            value = browser.getColorScale().high * 2.0;
+            self.$high_colorscale_input.val(value);
+            browser.updateColorScale( value );
+
+        });
         this.$container.append($fa);
 
         $fa = $("<i>", { class:'fa fa-minus', 'aria-hidden':'true' });
+        $fa.on('click', function (e) {
+            var value;
+
+            value = browser.getColorScale().high / 2.0;
+            self.$high_colorscale_input.val(value);
+            browser.updateColorScale( value );
+
+        });
         this.$container.append($fa);
 
 
