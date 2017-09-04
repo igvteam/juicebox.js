@@ -333,14 +333,7 @@
     padding-right: 4px; }
 
 .hic-chromosome-goto-container {
-  display: flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
   width: 360px; }
-  .hic-chromosome-goto-container div:first-child {
-    color: transparent; }
   .hic-chromosome-goto-container input {
     display: block;
     margin-top: 4px;
@@ -358,16 +351,21 @@
 
 .hic-colorscale-widget-container {
   display: flex;
-  flex-flow: column;
+  flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 80px; }
+  justify-content: flex-start;
+  align-items: center;
+  width: 200px; }
+  .hic-colorscale-widget-container div {
+    margin-top: 4px;
+    padding-top: 2px;
+    height: 24px;
+    width: 80px; }
   .hic-colorscale-widget-container input {
     display: block;
     margin-top: 4px;
     height: 24px;
-    width: 100%;
+    width: 64px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
     color: #5f5f5f;
@@ -377,6 +375,16 @@
     border-width: thin;
     border-color: #a6a6a6;
     background-color: white; }
+  .hic-colorscale-widget-container i.fa {
+    display: block;
+    margin-left: 32px;
+    margin-right: 32px;
+    color: #5f5f5f; }
+  .hic-colorscale-widget-container i.fa:hover,
+  .hic-colorscale-widget-container i.fa:focus,
+  .hic-colorscale-widget-container i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f; }
 
 div[id$="x-track-container"] {
   display: flex;

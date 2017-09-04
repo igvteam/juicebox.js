@@ -151,6 +151,32 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+@mixin navbar-color-scale-input {
+
+  input {
+    display: block;
+
+    margin-top:4px;
+    height: 24px;
+    width: 64px;
+
+    font-family: $default-font-family;
+    font-weight: 400;
+    color: $default-dark-color;
+
+    padding-left: 4px;
+    outline: none;
+
+    border-style: solid;
+    border-width: thin;
+    //border-color: $default-dark-color;
+    border-color: $default-medium-color;
+
+    background-color: white;
+  }
+
+}
+
 @mixin menu-item {
 
   display:flex;
@@ -613,35 +639,45 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-
-  display:flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-
   width: 360px;
-
-  div:first-child {
-    color: transparent;
-  }
-
   @include navbar-input;
-
 }
 
 // navbar - colorscale
 .hic-colorscale-widget-container {
 
   display:flex;
-  flex-flow: column;
+  flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
 
-  width: 80px;
+  width: 200px;
 
-  @include navbar-input;
+  div {
+    margin-top:4px;
+    padding-top: 2px;
+    height: 24px;
+    width: 80px;
+
+    //background-color: rgba(184, 250, 255, 0.5);
+  }
+
+  @include navbar-color-scale-input;
+
+  i.fa {
+    display: block;
+    margin-left: 32px;
+    margin-right: 32px;
+    color: $default-dark-color;
+  }
+
+  i.fa:hover,
+  i.fa:focus,
+  i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f;
+  }
 
 }
 

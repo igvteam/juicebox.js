@@ -29,7 +29,8 @@ var hic = (function (hic) {
 
     hic.ColorScaleWidget = function (browser, $container) {
 
-        var $label;
+        var $label,
+            $fa;
 
         this.browser = browser;
 
@@ -42,6 +43,7 @@ var hic = (function (hic) {
 
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
         this.$container.append(this.$high_colorscale_input);
+
         this.$high_colorscale_input.on('change', function(e){
             var value = $(this).val(),
                 numeric = value.replace(/\,/g, '');
@@ -52,6 +54,13 @@ var hic = (function (hic) {
                 browser.updateColorScale(parseInt(numeric, 10))
             }
         });
+
+        $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
+        this.$container.append($fa);
+
+        $fa = $("<i>", { class:'fa fa-minus', 'aria-hidden':'true' });
+        this.$container.append($fa);
+
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
