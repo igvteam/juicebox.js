@@ -241,11 +241,6 @@
       margin-left: 32px;
       margin-right: 32px;
       color: #5f5f5f; }
-    .hic-annotation-modal-container .hic-annotation-modal-row i.fa:hover,
-    .hic-annotation-modal-container .hic-annotation-modal-row i.fa:focus,
-    .hic-annotation-modal-container .hic-annotation-modal-row i.fa:active {
-      cursor: pointer;
-      color: #0f0f0f; }
   .hic-annotation-modal-container .hic-annotation-modal-row:hover,
   .hic-annotation-modal-container .hic-annotation-modal-row:focus,
   .hic-annotation-modal-container .hic-annotation-modal-row:active {

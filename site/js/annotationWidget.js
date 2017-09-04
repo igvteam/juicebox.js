@@ -81,7 +81,8 @@ var hic = (function (hic) {
             $deleteTrack,
             $upTrack,
             $downTrack,
-            $e;
+            $e,
+            hidden_color = '#f7f7f7';
 
         $row = $('<div>', { class:'hic-annotation-modal-row'});
         $container.append($row);
@@ -142,12 +143,12 @@ var hic = (function (hic) {
         $row.append($downTrack);
 
         if (1 === _.size(self.browser.tracks2D)) {
-            $upTrack.hide();
-            $downTrack.hide();
+            $upTrack.css('color', hidden_color);
+            $downTrack.css('color', hidden_color);
         } else if (track2D === _.first(self.browser.tracks2D)) {
-            $upTrack.hide();
+            $upTrack.css('color', hidden_color);
         } else if (track2D === _.last(self.browser.tracks2D)) {
-            $downTrack.hide();
+            $downTrack.css('color', hidden_color);
         }
 
         $upTrack.on('click', function (e) {
