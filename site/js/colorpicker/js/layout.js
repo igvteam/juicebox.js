@@ -34,9 +34,13 @@
 		.bind('keyup', function(){
 			$(this).ColorPickerSetColor(this.value);
 		});
+
+
+
 		$('#colorSelector').ColorPicker({
 			color: '#0000ff',
 			onShow: function (colpkr) {
+                // $('#colorSelector').find('div:first-child').css('backgroundColor', '#00ff00');
 				$(colpkr).fadeIn(500);
 				return false;
 			},
@@ -45,9 +49,12 @@
 				return false;
 			},
 			onChange: function (hsb, hex, rgb) {
-				$('#colorSelector div').css('backgroundColor', '#' + hex);
+				// $('#colorSelector > div').css('backgroundColor', '#' + hex);
+                $('#colorSelector').find('div:first-child').css('backgroundColor', '#' + hex);
 			}
 		});
+
+
 	};
 	
 	var showTab = function(e) {

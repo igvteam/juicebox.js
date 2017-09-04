@@ -135,11 +135,12 @@ h1 {
 	margin-top: 16px;
 }
 
+
 #colorSelector {
 	position: relative;
 	width: 36px;
 	height: 36px;
-	background: url(../images/select.png);
+	/*background: url(../images/select-dat.png);*/
 }
 #colorSelector div {
 	position: absolute;
@@ -147,8 +148,10 @@ h1 {
 	left: 3px;
 	width: 30px;
 	height: 30px;
-	background: url(../images/select.png) center;
+	background: url(../images/select-dat.png) center;
 }
+
+
 #colorSelector2 {
 	position: absolute;
 	top: 0;
