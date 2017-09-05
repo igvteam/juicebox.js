@@ -28,7 +28,7 @@
 
 
 var hic = (function (hic) {
-
+    
     hic.loadTrack2D = function (config) {
 
         return new Promise(function (fulfill, reject) {
@@ -101,8 +101,12 @@ var hic = (function (hic) {
         var self = this;
 
         this.config = config;
+        this.name = config.name;
         this.featureMap = {};
         this.featureCount = 0;
+        this.isVisible = true;
+        this.zorder = 0;
+        this.color = config.color === undefined ? features[0].color : config.color;
 
         features.forEach(function (f) {
 

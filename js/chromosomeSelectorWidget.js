@@ -51,7 +51,7 @@ var hic = (function (hic) {
         this.$y_axis_selector = $('<select name="y-axis-selector">');
         $selector_container.append(this.$y_axis_selector);
 
-        $doit = $('<div class="hic-chromosome-selector-widget-button">');
+        $doit = $('<div>');
         $selector_container.append($doit);
 
         $doit.on('click', function (e) {

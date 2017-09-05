@@ -412,41 +412,45 @@ var hic = (function (hic) {
                     ctx.save();
                     ctx.lineWidth = 2;
                     self.browser.tracks2D.forEach(function (track2D) {
+                        var color;
 
-                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+                        if (track2D.isVisible) {
+                            var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
 
-                        if (features) {
-                            features.forEach(function (f) {
+                            if (features) {
+                                features.forEach(function (f) {
 
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var w = x2 - x1;
-                                var h = y2 - y1;
+                                    var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                    var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                    var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                    var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                    var w = x2 - x1;
+                                    var h = y2 - y1;
 
-                                if (transpose) {
-                                    t = y1;
-                                    y1 = x1;
-                                    x1 = t;
+                                    if (transpose) {
+                                        t = y1;
+                                        y1 = x1;
+                                        x1 = t;
 
-                                    t = h;
-                                    h = w;
-                                    w = t;
-                                }
-
-                                var dim = Math.max(image.width, image.height);
-                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                    ctx.strokeStyle = f.color;
-                                    ctx.strokeRect(x1, y1, w, h);
-                                    if (sameChr && row === col) {
-                                        ctx.strokeRect(y1, x1, h, w);
+                                        t = h;
+                                        h = w;
+                                        w = t;
                                     }
-                                }
-                            })
+
+                                    var dim = Math.max(image.width, image.height);
+                                    if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                        ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                        ctx.strokeRect(x1, y1, w, h);
+                                        if (sameChr && row === col) {
+                                            ctx.strokeRect(y1, x1, h, w);
+                                        }
+                                    }
+                                })
+                            }
                         }
                     });
+
                     ctx.restore();
 
                     // Uncomment to reveal tile boundaries for debugging.
@@ -688,7 +692,7 @@ var hic = (function (hic) {
 
                 e.preventDefault()
                 e.stopPropagation();
-                
+
                 var mouseX = e.offsetX || e.layerX,
                     mouseY = e.offsetY || e.layerX;
 
@@ -822,8 +826,8 @@ var hic = (function (hic) {
 
             var t = Date.now();
 
-            if(lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-                console.log("Wheel " + t + "  " + lastWheelTime + "  "  + (t - lastWheelTime));
+            if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
+                console.log("Wheel " + t + "  " + lastWheelTime + "  " + (t - lastWheelTime));
                 // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
                 var direction = e.deltaY < 0 ? 1 : -1,
                     coords = igv.translateMouseCoordinates(e, $viewport),

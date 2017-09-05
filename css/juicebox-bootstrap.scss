@@ -1,7 +1,7 @@
 
 //
-$nav-bar-label-height: 32px;
-$nav-bar-widget-container-height: 56px;
+$nav-bar-label-height: 28px;
+$nav-bar-widget-container-height: 28px;
 $nav-bar-shim-height: 8px;
 $nav-bar-height: $nav-bar-label-height + $nav-bar-widget-container-height + $nav-bar-shim-height;
 
@@ -22,6 +22,10 @@ $hic-viewport-width:  800px;
 $hic-viewport-height: 800px;
 $hic-viewport-spinner-size: 120px;
 
+//
+$hic-menu-item-height: 64px;
+$hic-menu-item-padding: 8px;
+$hic-menu-margin: 16px;
 //
 //$hic-root-width:  800px;
 //$hic-root-height: 600px;
@@ -147,6 +151,53 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+@mixin navbar-color-scale-input {
+
+  input {
+    display: block;
+
+    margin-top:4px;
+    height: 24px;
+    width: 64px;
+
+    font-family: $default-font-family;
+    font-weight: 400;
+    color: $default-dark-color;
+
+    padding-left: 4px;
+    outline: none;
+
+    border-style: solid;
+    border-width: thin;
+    //border-color: $default-dark-color;
+    border-color: $default-medium-color;
+
+    background-color: white;
+  }
+
+}
+
+@mixin menu-item {
+
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+  align-items: flex-start;
+
+  width: 100%;
+  height: $hic-menu-item-height;
+
+  padding-left: $hic-menu-item-padding;
+  padding-bottom: 4px;
+
+  margin-top: $hic-menu-margin;
+  margin-bottom: $hic-menu-margin;
+
+  background-color: transparent;
+
+}
+
 .site-widget {
 
   float: left;
@@ -251,10 +302,218 @@ $default-font-family: 'Open Sans', sans-serif;
   border-width: 2px;
   border-color: #5f5f5f;
 
+  .hic-menu {
+    position:absolute;
+
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+
+    background-color: $scrollbar-color;
+
+    border-right-style: solid;
+    border-right-width: thin;
+    border-right-color: $default-dark-color;
+
+    display:flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
+    // container: chromosome-label | chromosome-selector-container
+    .hic-chromosome-selector-widget-container {
+
+      @include menu-item;
+
+      // label: 'Chromosome'
+      div {
+        padding-top:2px;
+        padding-bottom:4px;
+      }
+
+      // container: selector-container
+      div {
+        display:flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: flex-start;
+
+        select {
+          display:block;
+          cursor: pointer;
+          width: 64px;
+          height: $nav-bar-widget-height;
+
+          margin-right: 8px;
+          direction: rtl;
+        }
+
+        div {
+          width: 24px;
+          height: 24px;
+          background-image: url('img/circular-arrows-24-grey.png');
+          background-repeat: no-repeat;
+        }
+
+        div:hover,
+        div:focus,
+        div:active  {
+          cursor: pointer;
+          background-image: url('img/circular-arrows-24-blue.png');
+        }
+
+      }
+
+    }
+
+    // normalization
+    .hic-normalization-selector-container {
+
+      @include menu-item;
+
+      padding-right: $hic-menu-item-padding;
+
+      @include navbar-select;
+
+    }
+
+    // resolution
+    .hic-resolution-selector-container {
+
+      @include menu-item;
+
+      padding-right: $hic-menu-item-padding;
+
+      div#hic-resolution-label-container {
+        display:flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+
+        cursor: pointer;
+        //background-color: #57bbf5;
+
+        i#hic-resolution-lock {
+          display: block;
+          font-size: 12px;
+          padding-top: 4px;
+          padding-left: 5px;
+          //padding-right: 3px;
+        }
+
+      }
+
+      @include navbar-select;
+
+    }
+
+    // annotations
+    .hic-annotation-container {
+      @include menu-item;
+
+    }
+
+  }
+
+  .hic-menu > div:hover,
+  .hic-menu > div:focus,
+  .hic-menu > div:active {
+    cursor: pointer;
+    background-color: #dfdfdf;
+  }
+
 }
 
 .hic-root-selected  {
   border-color: #df0000;
+}
+
+.hic-annotation-modal-container {
+
+  display:flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+
+  width: 100%;
+
+  color: $default-dark-color;
+  font-family: $default-font-family;
+  font-size: 16px;
+  font-weight: 400;
+
+  .hic-annotation-modal-row {
+
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    width: 100%;
+    height: 40px;
+
+    background-color: white;
+
+    cursor: default;
+
+    div:first-child {
+      display: block;
+      margin-left: 4px;
+      margin-right: 4px;
+      text-align: left;
+      text-overflow: ellipsis;
+      //background-color: rgba(0, 191, 255, 0.5);
+      width: 384px;
+    }
+
+    i.fa {
+      display: block;
+      margin-left: 32px;
+      margin-right: 32px;
+      color: $default-dark-color;
+    }
+
+    div {
+      display:flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
+
+      i.fa:first-child {
+        display: block;
+        margin-left: 32px;
+        margin-right: 8px;
+        color: $default-dark-color;
+      }
+
+      i.fa:last-child {
+        display: block;
+        margin-left: 8px;
+        margin-right: 32px;
+        color: $default-dark-color;
+      }
+
+    }
+
+    //i.fa:hover,
+    //i.fa:focus,
+    //i.fa:active {
+    //  cursor: pointer;
+    //  color: #0f0f0f;
+    //}
+
+  }
+
+  .hic-annotation-modal-row:hover,
+  .hic-annotation-modal-row:focus,
+  .hic-annotation-modal-row:active {
+    background-color: #f7f7f7;
+  }
+
 }
 
 // navbar
@@ -271,8 +530,8 @@ $default-font-family: 'Open Sans', sans-serif;
   color: $default-dark-color;
   font-family: $default-font-family;
 
-  //font-size: 14px;
-  font-size: 12px;
+  font-size: 14px;
+  //font-size: 12px;
 
   font-weight: 400;
 
@@ -297,8 +556,8 @@ $default-font-family: 'Open Sans', sans-serif;
       width: 95%;
       height: $nav-bar-label-height;
 
-      font-size: 15px;
       font-weight: 700;
+      text-overflow: ellipsis;
 
       border-bottom-style: solid;
       border-bottom-width: thin;
@@ -308,6 +567,31 @@ $default-font-family: 'Open Sans', sans-serif;
 
       padding-left: 8px;
       padding-top: 4px;
+    }
+
+    // menu presentation
+    .hic-nav-bar-menu-button {
+      width: 5%;
+      height: $nav-bar-label-height;
+
+      color: #a5a5a5;
+
+      i.fa-bars {
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+      i.fa-times {
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+    }
+
+    .hic-nav-bar-menu-button:hover,
+    .hic-nav-bar-menu-button:focus,
+    .hic-nav-bar-menu-button:active {
+      color: #494949;
     }
 
     // delete browser (map panel)
@@ -320,7 +604,8 @@ $default-font-family: 'Open Sans', sans-serif;
       i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
-        margin-left: 16px;
+        margin-left: 8px;
+        margin-right: 8px;
       }
     }
 
@@ -369,147 +654,47 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 }
 
-// navbar - chromosome selector
-.hic-chromosome-selector-widget-container {
-  order:1;
-
-  display:flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-
-  width: $chromosome-selector-widget-container-width;
-  padding-left: 4px;
-
-  div:first-child {
-    order:1;
-    padding-top:2px;
-    padding-bottom:4px;
-  }
-
-  div:last-child {
-    order:2;
-
-    display:flex;
-    flex-flow: row;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: flex-start;
-
-    select {
-      display:block;
-      cursor: pointer;
-      width: .70 * ($chromosome-selector-widget-container-width/2);
-      height: $nav-bar-widget-height;
-
-      margin-right: 4px;
-      direction: rtl;
-    }
-
-  }
-
-}
-
-.hic-chromosome-selector-widget-button {
-  width: 24px;
-  height: 24px;
-  background-image: url('img/circular-arrows-24-grey.png');
-  background-repeat: no-repeat;
-}
-
-.hic-chromosome-selector-widget-button:hover,
-.hic-chromosome-selector-widget-button:focus,
-.hic-chromosome-selector-widget-button:active  {
-  cursor: pointer;
-  background-image: url('img/circular-arrows-24-blue.png');
-}
-
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  order:2;
-
-  display:flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-
   width: 360px;
-
-  div:first-child {
-    color: transparent;
-  }
-
   @include navbar-input;
-
 }
 
 // navbar - colorscale
 .hic-colorscale-widget-container {
-  order:3;
 
   display:flex;
-  flex-flow: column;
+  flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
+  justify-content: flex-start;
+  align-items: center;
 
-  width: 80px;
+  width: 200px;
 
-  @include navbar-input;
+  div {
+    margin-top:4px;
+    padding-top: 2px;
+    height: 24px;
+    width: 80px;
 
-}
-
-// navbar - normalization
-.hic-normalization-selector-container {
-  order:4;
-
-  display:flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  //justify-content: flex-start;
-  align-items: flex-start;
-
-  width: 100px;
-
-  @include navbar-select;
-
-}
-
-// navbar - resolution
-.hic-resolution-selector-container {
-  order:5;
-
-  display:flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-  align-items: flex-start;
-
-  width: 110px;
-
-  div#hic-resolution-label-container {
-    display:flex;
-    flex-flow: row;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-
-    cursor: pointer;
-    //background-color: #57bbf5;
-
-    i#hic-resolution-lock {
-      display: block;
-      font-size: 12px;
-      padding-top: 4px;
-      padding-left: 5px;
-      //padding-right: 3px;
-    }
-
+    //background-color: rgba(184, 250, 255, 0.5);
   }
 
-  @include navbar-select;
+  @include navbar-color-scale-input;
+
+  i.fa {
+    display: block;
+    margin-left: 8px;
+    margin-right: 8px;
+    color: $default-dark-color;
+  }
+
+  i.fa:hover,
+  i.fa:focus,
+  i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f;
+  }
 
 }
 
