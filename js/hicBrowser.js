@@ -265,6 +265,7 @@ var hic = (function (hic) {
         this.eventBus.subscribe("NormalizationChange", this);
         this.eventBus.subscribe("TrackLoad2D", this);
         this.eventBus.subscribe("TrackLoad", this);
+        this.eventBus.subscribe("TrackState2D", this);
         this.eventBus.subscribe("GenomeChange", this);
 
         function configureHover($e) {
@@ -472,16 +473,18 @@ var hic = (function (hic) {
             });
 
             this.tracks2D.forEach(function (track) {
+
                 var config = track.config,
                     url = config.url,
-                    name = track.name;
+                    name = track.name,
+                    color = track.color;
 
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    if (name) {
-                        trackString += "|" + name;
-                    }
+                    trackString += "|" + (name ? name : "");
+                    trackString += "|";   // Data range
+                    trackString += "|" + (color ? color : "");
                 }
             });
 
@@ -1426,6 +1429,12 @@ var hic = (function (hic) {
 
         if (this.updateHref) {
             this.updateUriParameters(event);
+        }
+        
+        if(event.type === "TrackState2D") {
+            this.updateUriParameters(event);
+            this.contactMatrixView.clearCaches();
+            this.contactMatrixView.update();
         }
     };
 

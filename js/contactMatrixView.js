@@ -412,6 +412,8 @@ var hic = (function (hic) {
                     ctx.save();
                     ctx.lineWidth = 2;
                     self.browser.tracks2D.forEach(function (track2D) {
+                        var color;
+
                         if (track2D.isVisible) {
                             var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
 
@@ -438,7 +440,7 @@ var hic = (function (hic) {
                                     var dim = Math.max(image.width, image.height);
                                     if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
 
-                                        ctx.strokeStyle = f.color;
+                                        ctx.strokeStyle = track2D.color ? track2D.color : f.color;
                                         ctx.strokeRect(x1, y1, w, h);
                                         if (sameChr && row === col) {
                                             ctx.strokeRect(y1, x1, h, w);

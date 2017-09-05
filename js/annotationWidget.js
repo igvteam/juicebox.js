@@ -30,7 +30,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $container = $("<div>", { class:'hic-annotation-container' });
+        $container = $("<div>", {class: 'hic-annotation-container'});
         $parent.append($container);
 
         modal_id = browser.id + '_' + 'modal';
@@ -52,7 +52,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.AnnotationWidget.prototype.receiveEvent = function(event) {
+    hic.AnnotationWidget.prototype.receiveEvent = function (event) {
 
         if ('TrackLoad2D' === event.type) {
             this.updateBody(event.data);
@@ -77,6 +77,7 @@ var hic = (function (hic) {
     function modalBodyRow($container, track2D) {
         var self = this,
             $row,
+            $colorPicker,
             $hideShowTrack,
             $deleteTrack,
             $upTrack,
@@ -84,7 +85,7 @@ var hic = (function (hic) {
             $e,
             hidden_color = '#f7f7f7';
 
-        $row = $('<div>', { class:'hic-annotation-modal-row'});
+        $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $container.append($row);
 
         $row.data('track2D', track2D);
@@ -95,7 +96,7 @@ var hic = (function (hic) {
         $row.append($e);
 
         // track hide/show
-        $hideShowTrack = $("<i>", { class:'fa fa-eye fa-lg', 'aria-hidden':'true' });
+        $hideShowTrack = $("<i>", {class: 'fa fa-eye fa-lg', 'aria-hidden': 'true'});
         $row.append($hideShowTrack);
         $hideShowTrack.on('click', function (e) {
             var track2D;
@@ -117,14 +118,24 @@ var hic = (function (hic) {
 
         });
 
+        // color
+        $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
+        $row.append($colorPicker);
+        $colorPicker.on("change", function () {
+            var hexColor = $colorPicker.val(),
+                rgb = hexToRgb(hexColor);
+            track2D.color = rgb;
+            self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
+        })
+
         // track up/down
         $e = $('<div>');
         $row.append($e);
 
-        $upTrack = $("<i>", { class:'fa fa-arrow-up', 'aria-hidden':'true' });
+        $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
         $e.append($upTrack);
 
-        $downTrack = $("<i>", { class:'fa fa-arrow-down', 'aria-hidden':'true' });
+        $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
         $e.append($downTrack);
 
         if (1 === _.size(self.browser.tracks2D)) {
@@ -144,14 +155,12 @@ var hic = (function (hic) {
             indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
             indexB = indexA - 1;
 
-            track2D = self.browser.tracks2D[ indexB ];
-            self.browser.tracks2D[ indexB ] = self.browser.tracks2D[ indexA ];
-            self.browser.tracks2D[ indexA ] = track2D;
+            track2D = self.browser.tracks2D[indexB];
+            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
+            self.browser.tracks2D[indexA] = track2D;
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
-
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
+            self.updateBody(self.browser.tracks2D);
         });
 
         $downTrack.on('click', function (e) {
@@ -162,21 +171,17 @@ var hic = (function (hic) {
             indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
             indexB = indexA + 1;
 
-            track2D = self.browser.tracks2D[ indexB ];
-            self.browser.tracks2D[ indexB ] = self.browser.tracks2D[ indexA ];
-            self.browser.tracks2D[ indexA ] = track2D;
+            track2D = self.browser.tracks2D[indexB];
+            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
+            self.browser.tracks2D[indexA] = track2D;
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
-
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
+            self.updateBody(self.browser.tracks2D);
         });
 
 
-
-
         // track delete
-        $deleteTrack = $("<i>", { class:'fa fa-trash-o fa-lg', 'aria-hidden':'true' });
+        $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
         $row.append($deleteTrack);
         $deleteTrack.on('click', function (e) {
             var track2D,
@@ -201,7 +206,7 @@ var hic = (function (hic) {
 
         // annotation modal presentation button
         str = '#' + modal_id;
-        $e = $('<button>', { type:'button', class:'btn btn-default', 'data-toggle':'modal', 'data-target':str });
+        $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
         $e.text('Annotations');
 
         $parent.append($e);
@@ -222,48 +227,55 @@ var hic = (function (hic) {
 
         modal_label = modal_id + 'Label';
         // modal
-        $modal = $('<div>', { class:'modal fade', 'id':modal_id, tabindex:'-1', role:'dialog', 'aria-labelledby':modal_label, 'aria-hidden':'true' });
+        $modal = $('<div>', {
+            class: 'modal fade',
+            'id': modal_id,
+            tabindex: '-1',
+            role: 'dialog',
+            'aria-labelledby': modal_label,
+            'aria-hidden': 'true'
+        });
         $parent.append($modal);
 
         // modal-dialog
-        $modal_dialog = $('<div>', { class:'modal-dialog modal-lg', role:'document' });
+        $modal_dialog = $('<div>', {class: 'modal-dialog modal-lg', role: 'document'});
         $modal.append($modal_dialog);
 
         // modal-content
-        $modal_content = $('<div>', { class:'modal-content' });
+        $modal_content = $('<div>', {class: 'modal-content'});
         $modal_dialog.append($modal_content);
 
         // modal-header
-        $modal_header = $('<div>', { class:'modal-header', id:modal_label });
+        $modal_header = $('<div>', {class: 'modal-header', id: modal_label});
         $modal_content.append($modal_header);
 
         // modal-title
-        $modal_title = $('<h4>', { class:'modal-title' });
+        $modal_title = $('<h4>', {class: 'modal-title'});
         $modal_title.text(title);
         $modal_header.append($modal_title);
 
         // close button
-        $close = $('<button>', { type:'button', class:'close', 'data-dismiss':'modal', 'aria-label':'Close' });
-        $e = $('<span>', { 'aria-hidden':'true'});
+        $close = $('<button>', {type: 'button', class: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close'});
+        $e = $('<span>', {'aria-hidden': 'true'});
         $e.html('&times;');
         $close.append($e);
         $modal_header.append($close);
 
         // modal-body
-        $modal_body = $('<div>', { class:'modal-body'});
+        $modal_body = $('<div>', {class: 'modal-body'});
         $modal_content.append($modal_body);
 
         // modal-body - annotation container
-        this.$annotation_modal_container = $("<div>", { class:'hic-annotation-modal-container' });
+        this.$annotation_modal_container = $("<div>", {class: 'hic-annotation-modal-container'});
         $modal_body.append(this.$annotation_modal_container);
 
 
         // modal-footer
-        $modal_footer = $('<div>', { class:'modal-footer'});
+        $modal_footer = $('<div>', {class: 'modal-footer'});
         $modal_content.append($modal_footer);
 
         // modal footer - close
-        $e = $('<button>', { type:'button', class:'btn btn-secondary', 'data-dismiss':'modal' });
+        $e = $('<button>', {type: 'button', class: 'btn btn-secondary', 'data-dismiss': 'modal'});
         $e.text('Close');
         $modal_footer.append($e);
 
@@ -276,6 +288,24 @@ var hic = (function (hic) {
         this.$modal = $modal;
 
     }
+
+    // Some conversion functions for the color input element -- spec says hex must be used
+    function rgbToHex(rgb) {
+        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
+        return (rgb && rgb.length === 4) ? "#" +
+        ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
+        ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
+        ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
+    }
+
+    function hexToRgb(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return "rgb(" +
+            parseInt(result[1], 16) + ", " +
+            parseInt(result[2], 16) + ", " +
+            parseInt(result[3], 16) + ")";
+    }
+
 
     return hic;
 })(hic || {});
