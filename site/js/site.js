@@ -35,8 +35,15 @@ var site = (function (site) {
 
     genomeChangeListener = {
         receiveEvent: function (event) {
+            var browserRetrievalFunction;
+
             loadAnnotationSelector($('#annotation-selector'), event.data);
-            createEncodeTable(hic.Browser.getCurrentBrowser(), $('#encodeModalBody'), event.data);
+
+            browserRetrievalFunction = function () {
+              return hic.Browser.getCurrentBrowser();
+            };
+
+            createEncodeTable(browserRetrievalFunction, $('#encodeModalBody'), event.data);
         }
     };
 
@@ -54,9 +61,6 @@ var site = (function (site) {
 
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-        // Listen for browser changes.
-        hic.Browser.getCurrentBrowser().eventBus.subscribe("DidSetBrowser", browserListener);
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
