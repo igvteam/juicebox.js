@@ -405,10 +405,6 @@ var hic = (function (hic) {
             $('.hic-root').removeClass('hic-root-selected');
             hic.Browser.currentBrowser = undefined;
 
-            if (hic.encodeTable) {
-                hic.encodeTable.browser = undefined;
-            }
-
         } else {
 
             if (_.size(hic.allBrowsers) > 1) {
@@ -417,10 +413,6 @@ var hic = (function (hic) {
             }
 
             hic.Browser.currentBrowser = browser;
-
-            if (hic.encodeTable) {
-                hic.encodeTable.browser = browser;
-            }
         }
 
     };

@@ -29,20 +29,34 @@
  */
 var site = (function (site) {
 
-    var encodeTable;
+    var encodeTable,
+        genomeChangeListener,
+        browserListener;
 
-    var genomeChangeListener = {
+    genomeChangeListener = {
         receiveEvent: function (event) {
             loadAnnotationSelector($('#annotation-selector'), event.data);
-            createEncodeTable(self, $('#encodeModalBody'), event.data);
+            createEncodeTable(hic.Browser.getCurrentBrowser(), $('#encodeModalBody'), event.data);
         }
-    }
+    };
+
+    browserListener = {
+        receiveEvent: function (event) {
+
+            if (encodeTable) {
+                encodeTable.browser = event.data;
+            }
+
+        }
+    };
 
     site.init = function () {
 
-
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
+
+        // Listen for browser changes.
+        hic.Browser.getCurrentBrowser().eventBus.subscribe("DidSetBrowser", browserListener);
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -151,10 +165,10 @@ var site = (function (site) {
             // }
 
             config =
-            {
-                initFromUrl: false,
-                updateHref: false
-            };
+                {
+                    initFromUrl: false,
+                    updateHref: false
+                };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -188,14 +202,14 @@ var site = (function (site) {
             }
 
             columnWidths =
-            {
-                'Assembly': '10%',
-                'Cell Type': '10%',
-                'Target': '10%',
-                'Assay Type': '20%',
-                'Output Type': '20%',
-                'Lab': '20%'
-            };
+                {
+                    'Assembly': '10%',
+                    'Cell Type': '10%',
+                    'Target': '10%',
+                    'Assay Type': '20%',
+                    'Output Type': '20%',
+                    'Lab': '20%'
+                };
 
             encodeTableFormat = new encode.EncodeTableFormat({columnWidths: columnWidths});
 
@@ -204,13 +218,13 @@ var site = (function (site) {
             encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
         }
 
-    };
+    }
 
-     function discardEncodeTable() {
+    function discardEncodeTable() {
         encodeTable.unbindAllMouseHandlers();
         $('#encodeModalBody').empty();
         encodeTable = undefined;
-    };
+    }
 
     function loadAnnotationSelector($container, genomeId) {
 
@@ -253,7 +267,7 @@ var site = (function (site) {
             $container.append(elements.join(''));
         }
 
-    };
+    }
 
     return site;
 

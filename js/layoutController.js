@@ -30,8 +30,8 @@ var hic = (function (hic) {
 
     // Dupes of corresponding juicebox.scss variables
     // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
-    hic.LayoutController.nav_bar_label_height = 32;
-    hic.LayoutController.nav_bar_widget_container_height = 56;
+    hic.LayoutController.nav_bar_label_height = 28;
+    hic.LayoutController.nav_bar_widget_container_height = 28;
     hic.LayoutController.nav_bar_shim_height = 8;
     hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
 
