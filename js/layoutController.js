@@ -44,20 +44,13 @@ var hic = (function (hic) {
             $fa;
 
         $navbar_container = $('<div class="hic-navbar-container">');
-
+        $root.append($navbar_container);
 
         $navbar_container.on('click', function (e) {
             e.stopPropagation();
             e.preventDefault();
             hic.Browser.setCurrentBrowser(browser);
         });
-
-        if(browser.config.showHicContactMapLabel === false) {
-            $navbar_container.height(hic.LayoutController.nav_bar_height);
-        }
-
-        $root.append($navbar_container);
-
 
         // container: contact map label | browser delete button
         id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
@@ -67,11 +60,15 @@ var hic = (function (hic) {
         // contact map label
         id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
         browser.$contactMaplabel = $("<div>", { id:id });
+        if(false === browser.config.showHicContactMapLabel) {
+            browser.$contactMaplabel.addClass('hidden-text');
+        }
+
         $div.append(browser.$contactMaplabel);
 
-        if (false === browser.config.showHicContactMapLabel) {
-            browser.$contactMaplabel.hide();
-        }
+        // if (false === browser.config.showHicContactMapLabel) {
+        //     browser.$contactMaplabel.hide();
+        // }
 
         // menu button
         browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
@@ -129,9 +126,9 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
         $div = $("<div>", { id:id });
 
-        if (true === browser.config.miniMode) {
-            $div.addClass('hic-nav-bar-mini-mode-widget-container');
-        }
+        // if (true === browser.config.miniMode) {
+        //     $div.addClass('hic-nav-bar-mini-mode-widget-container');
+        // }
 
         $navbar_container.append($div);
 
@@ -188,14 +185,14 @@ var hic = (function (hic) {
         createMenu(browser, $root);
 
 
-        if(false === browser.config.showHicContactMapLabel) {
-            tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
-                return number.toString() + 'px';
-            });
-            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-            this.$content_container.css( 'height', height_calc );
-        }
+        // if(false === browser.config.showHicContactMapLabel) {
+        //     tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
+        //         return number.toString() + 'px';
+        //     });
+        //     height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+        //
+        //     this.$content_container.css( 'height', height_calc );
+        // }
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';

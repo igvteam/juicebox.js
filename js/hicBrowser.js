@@ -232,11 +232,11 @@ var hic = (function (hic) {
 
         // configureHover.call(this, this.$root);
 
-        if (false === config.showHicContactMapLabel) {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
-        } else {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
-        }
+        // if (false === config.showHicContactMapLabel) {
+        //     hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+        // } else {
+        //     hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+        // }
 
         if (config.width) {
             this.$root.css("width", String(config.width));
@@ -1445,7 +1445,7 @@ var hic = (function (hic) {
         if (config.miniMode === true) {
             config.showLocusGoto = false;
             config.showHicContactMapLabel = false;
-            config.showChromosomeSelector = false;
+            // config.showChromosomeSelector = false;
             config.updateHref = false;
         }
         else {

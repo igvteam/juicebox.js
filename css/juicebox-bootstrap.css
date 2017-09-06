@@ -1,3 +1,6 @@
+.hidden-text {
+  color: transparent; }
+
 .site-widget {
   float: left;
   margin-left: 4px;
