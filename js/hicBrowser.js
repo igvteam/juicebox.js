@@ -230,19 +230,11 @@ var hic = (function (hic) {
 
         this.$root = $('<div class="hic-root unselect">');
 
-        // configureHover.call(this, this.$root);
-
-        if (false === config.showHicContactMapLabel) {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
-        } else {
-            hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
-        }
-
         if (config.width) {
             this.$root.css("width", String(config.width));
         }
         if (config.height) {
-            this.$root.css("height", String(config.height + hic.LayoutController.nav_bar_height));
+            this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.miniMode)));
         }
 
 

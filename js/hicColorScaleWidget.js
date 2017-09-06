@@ -31,17 +31,24 @@ var hic = (function (hic) {
 
         var self = this,
             $label,
-            $fa;
+            $fa,
+            $e;
 
         this.browser = browser;
 
         this.$container = $('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
-        $label = $('<div>');
-        this.$container.append($label);
-        $label.text('Color Scale');
+        // color chip
+        $e = $('<div>');
+        this.$container.append($e);
 
+        // =
+        $e = $('<div>');
+        this.$container.append($e);
+        $e.html('=');
+
+        // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
         this.$container.append(this.$high_colorscale_input);
 
@@ -59,28 +66,29 @@ var hic = (function (hic) {
             }
         });
 
-        $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
-        $fa.on('click', function (e) {
-            var value;
-
-            value = browser.getColorScale().high * 2.0;
-            self.$high_colorscale_input.val(value);
-            browser.updateColorScale( value );
-
-        });
-        this.$container.append($fa);
-
+        // -
         $fa = $("<i>", { class:'fa fa-minus', 'aria-hidden':'true' });
         $fa.on('click', function (e) {
             var value;
 
-            value = browser.getColorScale().high / 2.0;
+            value = Math.floor(browser.getColorScale().high / 2.0);
             self.$high_colorscale_input.val(value);
             browser.updateColorScale( value );
 
         });
         this.$container.append($fa);
 
+        // +
+        $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
+        $fa.on('click', function (e) {
+            var value;
+
+            value = Math.floor(browser.getColorScale().high * 2.0);
+            self.$high_colorscale_input.val(value);
+            browser.updateColorScale( value );
+
+        });
+        this.$container.append($fa);
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);

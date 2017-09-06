@@ -69,11 +69,6 @@ var hic = (function (hic) {
         this.$container.append(this.$spinner);
         this.$spinner.hide();
 
-        if (browser.config.miniMode === true) {
-            this.$container.css("width", "50%");
-            this.$normalization_selector.css("direction", "ltr");
-        }
-
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
         this.browser.eventBus.subscribe("NormalizationFileLoad", this);

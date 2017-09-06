@@ -1,3 +1,6 @@
+.hidden-text {
+  color: transparent; }
+
 .site-widget {
   float: left;
   margin-left: 4px;
@@ -11,7 +14,7 @@
 
 .juicebox-app-clone-button {
   cursor: pointer;
-  color: #a5a5a5;
+  color: #5f5f5f;
   margin-top: 10px; }
   .juicebox-app-clone-button i.fa-plus-circle {
     float: left; }
@@ -19,7 +22,7 @@
 .juicebox-app-clone-button:hover,
 .juicebox-app-clone-button:focus,
 .juicebox-app-clone-button:active {
-  color: #494949; }
+  color: #0f0f0f; }
 
 .juicebox-widget-container {
   padding-top: 4px;
@@ -71,7 +74,7 @@
   left: 0;
   right: 0;
   width: 852px;
-  height: 916px;
+  height: 964px;
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -130,63 +133,6 @@
         .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:active {
           cursor: pointer;
           background-image: url("img/circular-arrows-24-blue.png"); }
-    .hic-root .hic-menu .hic-normalization-selector-container {
-      display: flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: flex-start;
-      width: 100%;
-      height: 64px;
-      padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
-      background-color: transparent;
-      padding-right: 8px; }
-      .hic-root .hic-menu .hic-normalization-selector-container select {
-        display: block;
-        margin-top: 4px;
-        height: 24px;
-        width: 100%;
-        font-family: "Open Sans", sans-serif;
-        font-weight: 400;
-        color: #5f5f5f;
-        direction: rtl; }
-    .hic-root .hic-menu .hic-resolution-selector-container {
-      display: flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: flex-start;
-      width: 100%;
-      height: 64px;
-      padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
-      background-color: transparent;
-      padding-right: 8px; }
-      .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        align-items: flex-start;
-        cursor: pointer; }
-        .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
-          display: block;
-          font-size: 12px;
-          padding-top: 4px;
-          padding-left: 5px; }
-      .hic-root .hic-menu .hic-resolution-selector-container select {
-        display: block;
-        margin-top: 4px;
-        height: 24px;
-        width: 100%;
-        font-family: "Open Sans", sans-serif;
-        font-weight: 400;
-        color: #5f5f5f;
-        direction: rtl; }
     .hic-root .hic-menu .hic-annotation-container {
       display: flex;
       flex-flow: column;
@@ -266,9 +212,10 @@
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  height: 64px;
+  height: 112px;
   color: #5f5f5f;
   font-family: "Open Sans", sans-serif;
   font-size: 14px;
@@ -281,23 +228,25 @@
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    align-items: flex-start;
-    width: 100%; }
+    justify-content: space-between;
+    align-items: center;
+    width: 95%;
+    height: 36px; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] div[id$="hic-nav-bar-contact-map-label"] {
-      width: 95%;
-      height: 28px;
+      width: 90%;
+      height: 100%;
       font-weight: 700;
       text-overflow: ellipsis;
+      vertical-align: middle;
+      line-height: 36px;
       border-bottom-style: solid;
       border-bottom-width: thin;
       border-bottom-color: transparent;
-      background-color: transparent;
-      padding-left: 8px;
-      padding-top: 4px; }
+      background-color: transparent; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button {
       width: 5%;
-      height: 28px;
-      color: #a5a5a5; }
+      height: 100%;
+      color: #5f5f5f; }
       .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button i.fa-bars {
         cursor: pointer;
         margin-top: 8px; }
@@ -307,11 +256,11 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:hover,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:focus,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:active {
-      color: #494949; }
+      color: #0f0f0f; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button {
       width: 5%;
-      height: 28px;
-      color: #a5a5a5; }
+      height: 100%;
+      color: #5f5f5f; }
       .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
@@ -320,35 +269,27 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:hover,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:focus,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:active {
-      color: #494949; }
+      color: #0f0f0f; }
   .hic-navbar-container div[id$="hic-nav-bar-widget-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-around;
-    align-items: flex-end;
+    align-items: center;
     width: 100%;
-    height: 28px;
-    background-color: transparent; }
+    height: 36px;
+    margin-top: 4px;
+    margin-bottom: 4px; }
   .hic-navbar-container .hic-nav-bar-shim {
     width: 100%;
-    height: 8px;
-    min-height: 8px;
-    color: transparent;
+    height: 4px;
     background-color: transparent; }
 
-.hic-nav-bar-mini-mode-widget-container {
-  font-size: 10px; }
-  .hic-nav-bar-mini-mode-widget-container div {
-    padding-left: 4px;
-    padding-right: 4px; }
-
 .hic-chromosome-goto-container {
-  width: 360px; }
+  width: 95%; }
   .hic-chromosome-goto-container input {
     display: block;
-    margin-top: 4px;
-    height: 24px;
+    height: 32px;
     width: 100%;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
@@ -365,22 +306,29 @@
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
-  align-items: center;
-  width: 200px; }
-  .hic-colorscale-widget-container div {
-    margin-top: 4px;
-    padding-top: 2px;
-    height: 24px;
-    width: 80px; }
+  align-items: center; }
+  .hic-colorscale-widget-container div:nth-child(1) {
+    display: block;
+    height: 30px;
+    width: 30px;
+    background-color: red; }
+  .hic-colorscale-widget-container div:nth-child(2) {
+    display: block;
+    font-size: 18px;
+    color: #5f5f5f;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 30px;
+    height: 30px;
+    width: 30px; }
   .hic-colorscale-widget-container input {
     display: block;
-    margin-top: 4px;
-    height: 24px;
+    margin-right: 4px;
+    height: 32px;
     width: 64px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
     color: #5f5f5f;
-    padding-left: 4px;
     outline: none;
     border-style: solid;
     border-width: thin;
@@ -388,14 +336,63 @@
     background-color: white; }
   .hic-colorscale-widget-container i.fa {
     display: block;
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
     color: #5f5f5f; }
   .hic-colorscale-widget-container i.fa:hover,
   .hic-colorscale-widget-container i.fa:focus,
   .hic-colorscale-widget-container i.fa:active {
     cursor: pointer;
     color: #0f0f0f; }
+
+.hic-normalization-selector-container {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center; }
+  .hic-normalization-selector-container div {
+    display: block;
+    margin-right: 6px; }
+  .hic-normalization-selector-container select {
+    display: block;
+    height: 32px;
+    width: 96px;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 400;
+    color: #5f5f5f;
+    direction: rtl; }
+  .hic-normalization-selector-container select {
+    width: 116px; }
+
+.hic-resolution-selector-container {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center; }
+  .hic-resolution-selector-container div#hic-resolution-label-container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    margin-right: 6px;
+    cursor: pointer; }
+    .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
+      display: block;
+      font-size: 12px;
+      padding-top: 4px;
+      padding-left: 5px; }
+  .hic-resolution-selector-container select {
+    display: block;
+    height: 32px;
+    width: 96px;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 400;
+    color: #5f5f5f;
+    direction: rtl; }
+  .hic-resolution-selector-container select {
+    width: 72px; }
 
 div[id$="x-track-container"] {
   display: flex;
@@ -454,8 +451,7 @@ div[id$="x-track-container"] {
         vertical-align: top;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
-        z-index: 512; }
+        text-overflow: ellipsis; }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
@@ -463,7 +459,6 @@ div[id$="x-track-container"] {
         width: 32px;
         height: 32px;
         margin-left: -16px;
-        z-index: 512;
         background-color: rgba(255, 255, 255, 0); }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container {
         position: absolute;
@@ -488,7 +483,7 @@ div[id$="content-container"] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (64px + 0px));
+  height: calc(100% - (112px + 0px));
   background-color: white; }
   div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;
@@ -546,7 +541,6 @@ div[id$="content-container"] {
           width: 32px;
           height: 32px;
           margin-top: -16px;
-          z-index: 512;
           background-color: rgba(255, 255, 255, 0); }
     div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] {
       width: 32px;
