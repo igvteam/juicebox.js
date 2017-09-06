@@ -74,7 +74,7 @@ var hic = (function (hic) {
 
     };
 
-    function modalBodyRow($container, track2D) {
+    function modalBodyRow($container, track2D, index) {
         var self = this,
             $row,
             $colorPicker,
@@ -119,14 +119,25 @@ var hic = (function (hic) {
         });
 
         // color
-        $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
+
+
+        if (inputTypeColorSupport()) {
+            $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
+            $colorPicker.on("change", function () {
+                var hexColor = $colorPicker.val(),
+                    rgb = hexToRgb(hexColor);
+                track2D.color = rgb;
+                self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
+            })
+        } else {
+            $colorPicker = createGenericColorPicker(track2D.color, function (color) {
+                track2D.color = hexToRgb(color);
+                self.browser.eventBus.post(hic.Event("TrackState2D", track2D));
+            });
+        }
+
         $row.append($colorPicker);
-        $colorPicker.on("change", function () {
-            var hexColor = $colorPicker.val(),
-                rgb = hexToRgb(hexColor);
-            track2D.color = rgb;
-            self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
-        })
+
 
         // track up/down
         $e = $('<div>');
@@ -305,6 +316,112 @@ var hic = (function (hic) {
             parseInt(result[2], 16) + ", " +
             parseInt(result[3], 16) + ")";
     }
+
+    function inputTypeColorSupport() {
+        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
+            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
+            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
+        }
+        return inputTypeColorSupport._cachedResult;
+    }
+
+    function createGenericColorPicker(color, callback) {
+
+        var $widget, $palletDiv, $buttonContainer, $showButton, $hideButton;
+
+        $widget = $('<div/>')
+
+        // Set position property to "fixed" to take it out of the page flow.  Otherwise it will move controls to the right
+        $palletDiv = $('<div style="width: 300px; display:none; border: 2px black; margin: 5px; position: fixed">');
+
+        $buttonContainer = $('<div style="width: 300px; display: flex; flex-wrap: wrap">');
+        $palletDiv.append($buttonContainer);
+
+        $buttonContainer.append(createColorRow(color));  // self color, might be duplicated in CSS_NAMES but we don't care
+
+        if(!WEB_SAFE_COLORS) createWebSafeColorArray();
+
+        WEB_SAFE_COLORS.forEach(function (c) {
+            $buttonContainer.append(createColorRow(c));
+        });
+
+        $hideButton = $('<input/>', {
+            type: "button",
+            value: "Close",
+            style: "margin: 5px, border-radius: 5px"
+        });
+        $hideButton.click(function () {
+            $palletDiv.css("display", "none");
+        });
+        $palletDiv.append($hideButton);
+
+        $showButton = $('<button/>', {
+            style: "width: 20px; height: 20px; background-color: " + color
+        });
+        $showButton.on("click", function () {
+            $palletDiv.css("display", "block");
+        });
+
+
+        $widget.append($showButton);
+        $widget.append($palletDiv);
+        return $widget;
+
+        function createColorRow(color) {
+
+            var $cell = $('<input>', {
+                type: "button",
+                style: "width: 20px; background-color:" + color + "; height: 20px",
+            })
+            $cell.click(function () {
+                $showButton.css("background-color", color);
+                $palletDiv.css("display", "none");
+                callback(color);
+
+            });
+            return $cell;
+        }
+
+        function createWebSafeColorArray() {
+
+            var safe = new Array('00', '33', '66', '99', 'CC', 'FF'),
+                color, r, g, b;
+
+            WEB_SAFE_COLORS = [];
+            for (r = 0; r <= 5; r++) {
+                for (g = 0; g <= 5; g++) {
+                    for (b = 0; b <= 5; b++) {
+                        color = "#" + safe[r] + safe[g] + safe[b];
+                        WEB_SAFE_COLORS.push(color);
+                    }
+
+                }
+            }
+        }
+
+
+    }
+
+    var WEB_SAFE_COLORS;
+
+    var CSS_COLOR_NAMES = ["AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure", "Beige", "Bisque", "Black",
+        "BlanchedAlmond", "Blue", "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse", "Chocolate", "Coral",
+        "CornflowerBlue", "Cornsilk", "Crimson", "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray",
+        "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed",
+        "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet",
+        "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue", "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia",
+        "Gainsboro", "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey", "Green", "GreenYellow", "HoneyDew", "HotPink",
+        "IndianRed", "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", "LawnGreen", "LemonChiffon", "LightBlue",
+        "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink",
+        "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey", "LightSteelBlue",
+        "LightYellow", "Lime", "LimeGreen", "Linen", "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue",
+        "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise",
+        "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin", "NavajoWhite", "Navy", "OldLace",
+        "Olive", "OliveDrab", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed",
+        "PapayaWhip", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "Red", "RosyBrown", "RoyalBlue",
+        "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue", "SlateBlue",
+        "SlateGray", "SlateGrey", "Snow", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise",
+        "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"];
 
 
     return hic;
