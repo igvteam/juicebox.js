@@ -811,7 +811,7 @@ div[id$="x-track-container"] {
         overflow: hidden;
         text-overflow: ellipsis;
 
-        z-index: 512;
+        //z-index: 512;
       }
 
       // x-track spinner container
@@ -826,10 +826,9 @@ div[id$="x-track-container"] {
 
         margin-left: -($track-height/2);
 
-        z-index: 512;
+        //z-index: 512;
 
         background-color: rgba(255, 255, 255, 0);
-        //background-color: greenyellow;
       }
 
       // x-track menu container
@@ -983,7 +982,7 @@ div[id$="content-container"] {
 
           margin-top: -($track-height/2);
 
-          z-index: 512;
+          //z-index: 512;
 
           background-color: rgba(255, 255, 255, 0);
         }

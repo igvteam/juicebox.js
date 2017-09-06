@@ -451,8 +451,7 @@ div[id$="x-track-container"] {
         vertical-align: top;
         white-space: nowrap;
         overflow: hidden;
-        text-overflow: ellipsis;
-        z-index: 512; }
+        text-overflow: ellipsis; }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-spinner {
         position: absolute;
         top: 0;
@@ -460,7 +459,6 @@ div[id$="x-track-container"] {
         width: 32px;
         height: 32px;
         margin-left: -16px;
-        z-index: 512;
         background-color: rgba(255, 255, 255, 0); }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container {
         position: absolute;
@@ -543,7 +541,6 @@ div[id$="content-container"] {
           width: 32px;
           height: 32px;
           margin-top: -16px;
-          z-index: 512;
           background-color: rgba(255, 255, 255, 0); }
     div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] {
       width: 32px;
