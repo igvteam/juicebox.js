@@ -40,7 +40,7 @@ var hic = (function (hic) {
         modal.call(this, modal_id, $('body'), title);
 
         this.$modal.on('show.bs.modal', function () {
-            // do stuff
+            browser.hideMenu();
             self.updateBody(self.browser.tracks2D);
         });
 
