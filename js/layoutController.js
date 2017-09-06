@@ -33,12 +33,24 @@ var hic = (function (hic) {
     hic.LayoutController.nav_bar_label_height = 28;
     hic.LayoutController.nav_bar_widget_container_height = 28;
     hic.LayoutController.nav_bar_shim_height = 8;
-    hic.LayoutController.nav_bar_height = hic.LayoutController.nav_bar_label_height + hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+
+    hic.LayoutController.navbarHeight = function (miniMode) {
+        var height;
+        if (true === miniMode) {
+            height =  hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+        } else {
+            height  = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+        }
+        console.log('navbar height ' + height);
+        return height;
+    };
 
     function createNavBar(browser, $root) {
 
         var id,
             $navbar_container,
+            $label_delete_button_container,
+            $widget_container,
             $div,
             $e,
             $fa;
@@ -52,47 +64,34 @@ var hic = (function (hic) {
             hic.Browser.setCurrentBrowser(browser);
         });
 
-        // container: contact map label | browser delete button
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
-        $div = $("<div>", { id:id });
-        $navbar_container.append($div);
-
-        // contact map label
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
-        browser.$contactMaplabel = $("<div>", { id:id });
-        if(false === browser.config.showHicContactMapLabel) {
-            browser.$contactMaplabel.addClass('hidden-text');
+        if(true === browser.config.miniMode) {
+            $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.miniMode));
         }
 
-        $div.append(browser.$contactMaplabel);
+        // container: label | menu button | browser delete button
+        id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
+        $label_delete_button_container = $("<div>", { id:id });
+        $navbar_container.append($label_delete_button_container);
 
-        // if (false === browser.config.showHicContactMapLabel) {
-        //     browser.$contactMaplabel.hide();
-        // }
+        // label
+        id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
+        browser.$contactMaplabel = $("<div>", { id:id });
+        $label_delete_button_container.append(browser.$contactMaplabel);
+
 
         // menu button
         browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
-        $div.append(browser.$menuPresentDismiss);
+        $label_delete_button_container.append(browser.$menuPresentDismiss);
 
-        // show menu
         $fa = $("<i>", { class:'fa fa-bars fa-lg' });
         browser.$menuPresentDismiss.append($fa);
         $fa.on('click', function (e) {
             browser.toggleMenu();
         });
 
-        // hide menu
-        // $fa = $("<i>", { class:'fa fa-times fa-lg' });
-        // browser.$menuPresentDismiss.append($fa);
-        // $fa.on('click', function (e) {
-        //     browser.hideMenu();
-        // });
-        // $fa.hide();
-
-
-        // delete button
+        // browser delete button
         $e = $("<div>", { class:'hic-nav-bar-delete-button' });
-        $div.append($e);
+        $label_delete_button_container.append($e);
 
         $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
         // class="fa fa-plus-circle fa-lg" aria-hidden="true"
@@ -109,38 +108,29 @@ var hic = (function (hic) {
             }
         });
 
-        // hide delete buttons for now. All delete buttons will later
-        // be shown IF there is more then one browser instance.
+        // hide delete buttons for now. Delete button is only
+        // if there is more then one browser instance.
         $e.hide();
 
-
-
-
-
-
-
-
-
+        if(true === browser.config.miniMode) {
+            $label_delete_button_container.hide();
+        }
 
         // Widget container
         id = browser.id + '_' + 'hic-nav-bar-widget-container';
-        $div = $("<div>", { id:id });
+        $widget_container = $("<div>", { id:id });
 
-        // if (true === browser.config.miniMode) {
-        //     $div.addClass('hic-nav-bar-mini-mode-widget-container');
-        // }
-
-        $navbar_container.append($div);
+        $navbar_container.append($widget_container);
 
         // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser, $div);
+        browser.locusGoto = new hic.LocusGoto(browser, $widget_container);
 
         if (false === browser.config.showLocusGoto) {
             browser.locusGoto.$container.hide();
         }
 
         // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $div);
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $widget_container);
 
         // nav-bar shim
         $div = $('<div class="hic-nav-bar-shim">');
@@ -183,16 +173,6 @@ var hic = (function (hic) {
 
         // menu
         createMenu(browser, $root);
-
-
-        // if(false === browser.config.showHicContactMapLabel) {
-        //     tokens = _.map([ hic.LayoutController.nav_bar_height ], function(number){
-        //         return number.toString() + 'px';
-        //     });
-        //     height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-        //
-        //     this.$content_container.css( 'height', height_calc );
-        // }
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';
@@ -253,7 +233,9 @@ var hic = (function (hic) {
         // normalization widget
         browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
 
-        if(false === browser.config.miniMode) {
+        if(true === browser.config.miniMode) {
+            // do nothing
+        } else {
             browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
         }
 
@@ -421,7 +403,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * this.track_height;
 
-        tokens = _.map([ hic.LayoutController.nav_bar_height, track_aggregate_height ], function(number){
+        tokens = _.map([ hic.LayoutController.navbarHeight(this.browser.config.miniMode), track_aggregate_height ], function(number){
             return number.toString() + 'px';
         });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -466,7 +448,7 @@ var hic = (function (hic) {
         var count;
 
         this.browser.$root.width(size.width);
-        this.browser.$root.height(size.height + hic.LayoutController.nav_bar_height);
+        this.browser.$root.height(size.height + hic.LayoutController.navbarHeight(this.browser.config.miniMode));
 
         count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
         this.doLayoutTrackXYPairCount(count);
