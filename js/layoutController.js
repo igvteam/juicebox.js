@@ -171,6 +171,18 @@ var hic = (function (hic) {
         this.$content_container = $("<div>", { id:id });
         $root.append(this.$content_container);
 
+        // If we are in mini-mode we must recalculate the content container height
+        // to coinside with the root browser container height
+        if(true === browser.config.miniMode) {
+            tokens = _.map([ hic.LayoutController.navbarHeight(browser.config.miniMode) ], function(number){
+                return number.toString() + 'px';
+            });
+            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+            this.$content_container.css( 'height', height_calc );
+        }
+
+
         // menu
         createMenu(browser, $root);
 
