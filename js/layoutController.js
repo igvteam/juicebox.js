@@ -41,7 +41,7 @@ var hic = (function (hic) {
         } else {
             height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height +  hic.LayoutController.nav_bar_label_height;
         }
-        console.log('navbar height ' + height);
+        // console.log('navbar height ' + height);
         return height;
     };
 

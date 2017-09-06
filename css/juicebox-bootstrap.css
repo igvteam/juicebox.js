@@ -14,7 +14,7 @@
 
 .juicebox-app-clone-button {
   cursor: pointer;
-  color: #a5a5a5;
+  color: #5f5f5f;
   margin-top: 10px; }
   .juicebox-app-clone-button i.fa-plus-circle {
     float: left; }
@@ -22,7 +22,7 @@
 .juicebox-app-clone-button:hover,
 .juicebox-app-clone-button:focus,
 .juicebox-app-clone-button:active {
-  color: #494949; }
+  color: #0f0f0f; }
 
 .juicebox-widget-container {
   padding-top: 4px;
@@ -246,7 +246,7 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button {
       width: 5%;
       height: 100%;
-      color: #a5a5a5; }
+      color: #5f5f5f; }
       .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button i.fa-bars {
         cursor: pointer;
         margin-top: 8px; }
@@ -256,11 +256,11 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:hover,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:focus,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-menu-button:active {
-      color: #494949; }
+      color: #0f0f0f; }
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button {
       width: 5%;
       height: 100%;
-      color: #a5a5a5; }
+      color: #5f5f5f; }
       .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
@@ -269,7 +269,7 @@
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:hover,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:focus,
     .hic-navbar-container div[id$="hic-nav-bar-contact-map-label-delete-button-container"] .hic-nav-bar-delete-button:active {
-      color: #494949; }
+      color: #0f0f0f; }
   .hic-navbar-container div[id$="hic-nav-bar-widget-container"] {
     display: flex;
     flex-flow: row;
