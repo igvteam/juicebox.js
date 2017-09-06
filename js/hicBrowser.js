@@ -1437,7 +1437,7 @@ var hic = (function (hic) {
         if (config.miniMode === true) {
             config.showLocusGoto = false;
             config.showHicContactMapLabel = false;
-            // config.showChromosomeSelector = false;
+            config.showChromosomeSelector = false;
             config.updateHref = false;
         }
         else {

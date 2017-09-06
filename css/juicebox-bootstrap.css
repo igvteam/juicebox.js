@@ -74,7 +74,7 @@
   left: 0;
   right: 0;
   width: 852px;
-  height: 916px;
+  height: 944px;
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -271,7 +271,7 @@
   flex-wrap: nowrap;
   align-items: flex-start;
   width: 100%;
-  height: 64px;
+  height: 92px;
   color: #5f5f5f;
   font-family: "Open Sans", sans-serif;
   font-size: 14px;
@@ -329,7 +329,7 @@
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-around;
-    align-items: flex-end;
+    align-items: center;
     width: 100%;
     height: 28px;
     background-color: transparent; }
@@ -340,14 +340,8 @@
     color: transparent;
     background-color: transparent; }
 
-.hic-nav-bar-mini-mode-widget-container {
-  font-size: 10px; }
-  .hic-nav-bar-mini-mode-widget-container div {
-    padding-left: 4px;
-    padding-right: 4px; }
-
 .hic-chromosome-goto-container {
-  width: 360px; }
+  width: 95%; }
   .hic-chromosome-goto-container input {
     display: block;
     margin-top: 4px;
@@ -491,7 +485,7 @@ div[id$="content-container"] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (64px + 0px));
+  height: calc(100% - (92px + 0px));
   background-color: white; }
   div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;

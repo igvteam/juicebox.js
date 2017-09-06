@@ -37,9 +37,9 @@ var hic = (function (hic) {
     hic.LayoutController.navbarHeight = function (miniMode) {
         var height;
         if (true === miniMode) {
-            height =  hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height;
+            height =  (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
         } else {
-            height  = hic.LayoutController.nav_bar_widget_container_height + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+            height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
         }
         console.log('navbar height ' + height);
         return height;
@@ -50,7 +50,8 @@ var hic = (function (hic) {
         var id,
             $navbar_container,
             $label_delete_button_container,
-            $widget_container,
+            $upper_widget_container,
+            $lower_widget_container,
             $div,
             $e,
             $fa;
@@ -112,29 +113,31 @@ var hic = (function (hic) {
         // if there is more then one browser instance.
         $e.hide();
 
-        if(true === browser.config.miniMode) {
-            $label_delete_button_container.hide();
-        }
-
-        // Widget container
-        id = browser.id + '_' + 'hic-nav-bar-widget-container';
-        $widget_container = $("<div>", { id:id });
-
-        $navbar_container.append($widget_container);
+        // upper widget container
+        id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
+        $upper_widget_container = $("<div>", { id:id });
+        $navbar_container.append($upper_widget_container);
 
         // location box / goto
-        browser.locusGoto = new hic.LocusGoto(browser, $widget_container);
+        browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
-        if (false === browser.config.showLocusGoto) {
-            browser.locusGoto.$container.hide();
-        }
 
-        // colorscale widget
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $widget_container);
+        // lower widget container
+        id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
+        $lower_widget_container = $("<div>", { id:id });
+        $navbar_container.append($lower_widget_container);
 
-        // nav-bar shim
+        // colorscale
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+
+        // shim
         $div = $('<div class="hic-nav-bar-shim">');
         $navbar_container.append($div);
+
+        if(true === browser.config.miniMode) {
+            $label_delete_button_container.hide();
+            // $upper_widget_container.hide();
+        }
 
     }
 
