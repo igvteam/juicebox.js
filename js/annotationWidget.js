@@ -220,7 +220,7 @@ var hic = (function (hic) {
         // annotation modal presentation button
         str = '#' + modal_id;
         $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
-        $e.text('Annotations');
+        $e.text('2D Annotations');
 
         $parent.append($e);
 
