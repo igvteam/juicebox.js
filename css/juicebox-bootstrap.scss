@@ -156,15 +156,14 @@ $default-font-family: 'Open Sans', sans-serif;
   input {
     display: block;
 
-    margin-top:4px;
-    height: 24px;
+    margin-right:4px;
+    height: $nav-bar-widget-container-height - 4px;
     width: 64px;
 
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
 
-    padding-left: 4px;
     outline: none;
 
     border-style: solid;
@@ -661,23 +660,40 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: flex-start;
   align-items: center;
 
-  width: 200px;
+  //width: 200px;
 
-  div {
-    margin-top:4px;
-    padding-top: 2px;
-    height: 24px;
-    width: 80px;
+  div:nth-child(1) {
+    display: block;
+    height: $nav-bar-widget-container-height - 6px;
+    width: $nav-bar-widget-container-height - 6px;
 
-    //background-color: rgba(184, 250, 255, 0.5);
+    background-color: red;
+  }
+
+  div:nth-child(2) {
+    display: block;
+
+    font-size: 18px;
+
+    color: $default-dark-color;
+
+    text-align: center;
+
+    vertical-align: middle;
+    line-height: $nav-bar-widget-container-height - 6px;
+
+    height: $nav-bar-widget-container-height - 6px;
+    width: $nav-bar-widget-container-height - 6px;
+
+    //background-color: yellow;
   }
 
   @include navbar-color-scale-input;
 
   i.fa {
     display: block;
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 4px;
+    margin-right: 4px;
     color: $default-dark-color;
   }
 

@@ -31,17 +31,22 @@ var hic = (function (hic) {
 
         var self = this,
             $label,
-            $fa;
+            $fa,
+            $e;
 
         this.browser = browser;
 
         this.$container = $('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
-        // label
-        $label = $('<div>');
-        this.$container.append($label);
-        $label.text('Color Scale');
+        // color chip
+        $e = $('<div>');
+        this.$container.append($e);
+
+        // =
+        $e = $('<div>');
+        this.$container.append($e);
+        $e.html('=');
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
