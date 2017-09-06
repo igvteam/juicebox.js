@@ -83,7 +83,8 @@ var hic = (function (hic) {
             $upTrack,
             $downTrack,
             $e,
-            hidden_color = '#f7f7f7';
+            hidden_color = '#f7f7f7',
+            str;
 
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $container.append($row);
@@ -96,7 +97,8 @@ var hic = (function (hic) {
         $row.append($e);
 
         // track hide/show
-        $hideShowTrack = $("<i>", {class: 'fa fa-eye fa-lg', 'aria-hidden': 'true'});
+        str = (true === track2D.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
         $row.append($hideShowTrack);
         $hideShowTrack.on('click', function (e) {
             var track2D;
