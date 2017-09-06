@@ -130,6 +130,11 @@ var hic = (function (hic) {
         // colorscale
         browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
 
+        // normalization
+        browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+
+
+
         // shim
         $div = $('<div class="hic-nav-bar-shim">');
         $navbar_container.append($div);
@@ -244,9 +249,6 @@ var hic = (function (hic) {
         // resolution widget
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-        // normalization widget
-        browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
 
         if(true === browser.config.miniMode) {
             // do nothing

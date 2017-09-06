@@ -110,12 +110,10 @@ $default-font-family: 'Open Sans', sans-serif;
   select {
     display: block;
 
-    margin-top:4px;
-    height: 24px;
-    width:100%;
+    height: $nav-bar-widget-container-height - 4px;
+    width: 96px;
 
     font-family: $default-font-family;
-    //font-size: 14px;
     font-weight: 400;
     color: $default-dark-color;
 
@@ -371,47 +369,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     }
 
-    // normalization
-    .hic-normalization-selector-container {
-
-      @include menu-item;
-
-      padding-right: $hic-menu-item-padding;
-
-      @include navbar-select;
-
-    }
-
-    // resolution
-    .hic-resolution-selector-container {
-
-      @include menu-item;
-
-      padding-right: $hic-menu-item-padding;
-
-      div#hic-resolution-label-container {
-        display:flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        align-items: flex-start;
-
-        cursor: pointer;
-        //background-color: #57bbf5;
-
-        i#hic-resolution-lock {
-          display: block;
-          font-size: 12px;
-          padding-top: 4px;
-          padding-left: 5px;
-          //padding-right: 3px;
-        }
-
-      }
-
-      @include navbar-select;
-
-    }
-
     // annotations
     .hic-annotation-container {
       @include menu-item;
@@ -625,7 +582,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
 
     width: 100%;
@@ -703,6 +660,55 @@ $default-font-family: 'Open Sans', sans-serif;
     cursor: pointer;
     color: #0f0f0f;
   }
+
+}
+
+// normalization
+.hic-normalization-selector-container {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  div {
+    display: block;
+    margin-right: 6px;
+    //background-color: red;
+  }
+
+  @include navbar-select;
+
+}
+
+// resolution
+.hic-resolution-selector-container {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  div#hic-resolution-label-container {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+
+    cursor: pointer;
+
+    i#hic-resolution-lock {
+      display: block;
+      font-size: 12px;
+      padding-top: 4px;
+      padding-left: 5px;
+    }
+
+  }
+
+  @include navbar-select;
 
 }
 
