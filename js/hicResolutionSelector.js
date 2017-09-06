@@ -34,24 +34,29 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
+        this.$container = $('<div class="hic-resolution-selector-container">');
+        $parent.append(this.$container);
+
         // label container
         $label_container = $('<div id="hic-resolution-label-container">');
+        this.$container.append($label_container);
 
         // Resolution (kb)
         $label = $('<div>');
-        $label.text('Resolution (kb)');
         $label_container.append($label);
+        $label.text('Resolution (kb)');
 
         // lock/unlock
         this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
         $label_container.append(this.$resolution_lock);
-
         $label_container.on('click', function (e) {
             self.browser.resolutionLocked = !(self.browser.resolutionLocked);
             self.setResolutionLock(self.browser.resolutionLocked);
         });
 
         this.$resolution_selector = $('<select name="select">');
+        this.$container.append(this.$resolution_selector);
+
         this.$resolution_selector.attr('name', 'resolution_selector');
 
         this.$resolution_selector.on('change', function (e) {
@@ -59,13 +64,6 @@ var hic = (function (hic) {
             self.browser.setZoom(zoomIndex);
         });
 
-        this.$container = $('<div class="hic-resolution-selector-container">');
-        $parent.append(this.$container);
-
-        //
-        this.$container.append($label_container);
-        //
-        this.$container.append(this.$resolution_selector);
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("MapLoad", this);

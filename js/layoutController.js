@@ -133,6 +133,9 @@ var hic = (function (hic) {
         // normalization
         browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
 
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
+        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
 
         // shim
@@ -245,10 +248,6 @@ var hic = (function (hic) {
 
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         if(true === browser.config.miniMode) {
             // do nothing

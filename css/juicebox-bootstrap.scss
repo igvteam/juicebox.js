@@ -582,7 +582,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
 
     width: 100%;
@@ -697,6 +697,7 @@ $default-font-family: 'Open Sans', sans-serif;
     flex-wrap: nowrap;
     align-items: flex-start;
 
+    margin-right: 6px;
     cursor: pointer;
 
     i#hic-resolution-lock {
