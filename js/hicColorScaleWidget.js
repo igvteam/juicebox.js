@@ -71,7 +71,7 @@ var hic = (function (hic) {
         $fa.on('click', function (e) {
             var value;
 
-            value = browser.getColorScale().high / 2.0;
+            value = Math.floor(browser.getColorScale().high / 2.0);
             self.$high_colorscale_input.val(value);
             browser.updateColorScale( value );
 
@@ -83,7 +83,7 @@ var hic = (function (hic) {
         $fa.on('click', function (e) {
             var value;
 
-            value = browser.getColorScale().high * 2.0;
+            value = Math.floor(browser.getColorScale().high * 2.0);
             self.$high_colorscale_input.val(value);
             browser.updateColorScale( value );
 

@@ -1,9 +1,10 @@
 
 //
-$nav-bar-label-height: 28px;
-$nav-bar-widget-container-height: 28px;
-$nav-bar-shim-height: 8px;
+$nav-bar-label-height: 36px;
+$nav-bar-widget-container-height: 36px;
+$nav-bar-shim-height: 4px;
 $nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
+//$nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height);
 
 $nav-bar-widget-height: 24px;
 $chromosome-selector-widget-container-width: 160px;
@@ -27,10 +28,7 @@ $hic-menu-item-height: 64px;
 $hic-menu-item-padding: 8px;
 $hic-menu-margin: 16px;
 //
-//$hic-root-width:  800px;
-//$hic-root-height: 600px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 //
@@ -127,12 +125,10 @@ $default-font-family: 'Open Sans', sans-serif;
   input {
     display: block;
 
-    margin-top:4px;
-    height: 24px;
+    height: $nav-bar-widget-container-height - 4px;
     width: 100%;
 
     font-family: $default-font-family;
-    //font-size: 14px;
     font-weight: 400;
     color: $default-dark-color;
 
@@ -141,7 +137,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     border-style: solid;
     border-width: thin;
-    //border-color: $default-dark-color;
     border-color: $default-medium-color;
 
     background-color: white;
@@ -482,7 +477,8 @@ $default-font-family: 'Open Sans', sans-serif;
   display:flex;
   flex-flow: column;
   flex-wrap: nowrap;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
 
   width: 100%;
   height: $nav-bar-height;
@@ -491,7 +487,6 @@ $default-font-family: 'Open Sans', sans-serif;
   font-family: $default-font-family;
 
   font-size: 14px;
-  //font-size: 12px;
 
   font-weight: 400;
 
@@ -506,17 +501,22 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    align-items: flex-start;
+    justify-content: space-between;
+    align-items: center;
 
-    width: 100%;
+    width: 95%;
+    height: $nav-bar-widget-container-height;
 
     // nav-bar contact map label
     div[id$="hic-nav-bar-contact-map-label"] {
-      width: 95%;
-      height: $nav-bar-label-height;
+      width: 90%;
+      height: 100%;
 
       font-weight: 700;
       text-overflow: ellipsis;
+
+      vertical-align: middle;
+      line-height: $nav-bar-widget-container-height;
 
       border-bottom-style: solid;
       border-bottom-width: thin;
@@ -524,14 +524,12 @@ $default-font-family: 'Open Sans', sans-serif;
 
       background-color: transparent;
 
-      padding-left: 8px;
-      padding-top: 4px;
     }
 
     // menu presentation
     .hic-nav-bar-menu-button {
       width: 5%;
-      height: $nav-bar-label-height;
+      height: 100%;
 
       color: #a5a5a5;
 
@@ -556,7 +554,7 @@ $default-font-family: 'Open Sans', sans-serif;
     // delete browser (map panel)
     .hic-nav-bar-delete-button {
       width: 5%;
-      height: $nav-bar-label-height;
+      height: 100%;
 
       color: #a5a5a5;
 
@@ -587,19 +585,16 @@ $default-font-family: 'Open Sans', sans-serif;
 
     width: 100%;
     height: $nav-bar-widget-container-height;
-    background-color: transparent;
+
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
 
-  // nav-bar shim
   .hic-nav-bar-shim {
     width: 100%;
     height: $nav-bar-shim-height;
-    min-height: $nav-bar-shim-height;
-
-    color: transparent;
     background-color: transparent;
   }
-
 }
 
 // navbar - chromosome goto
@@ -680,6 +675,10 @@ $default-font-family: 'Open Sans', sans-serif;
 
   @include navbar-select;
 
+  select {
+    width: 116px;
+  }
+
 }
 
 // resolution
@@ -710,6 +709,10 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   @include navbar-select;
+
+  select {
+    width: 72px;
+  }
 
 }
 

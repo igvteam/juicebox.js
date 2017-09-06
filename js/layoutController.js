@@ -30,16 +30,16 @@ var hic = (function (hic) {
 
     // Dupes of corresponding juicebox.scss variables
     // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
-    hic.LayoutController.nav_bar_label_height = 28;
-    hic.LayoutController.nav_bar_widget_container_height = 28;
-    hic.LayoutController.nav_bar_shim_height = 8;
+    hic.LayoutController.nav_bar_label_height = 36;
+    hic.LayoutController.nav_bar_widget_container_height = 36;
+    hic.LayoutController.nav_bar_shim_height = 4;
 
     hic.LayoutController.navbarHeight = function (miniMode) {
         var height;
         if (true === miniMode) {
             height =  (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
         } else {
-            height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+            height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height +  hic.LayoutController.nav_bar_label_height;
         }
         console.log('navbar height ' + height);
         return height;
@@ -137,14 +137,12 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
-
         // shim
         $div = $('<div class="hic-nav-bar-shim">');
         $navbar_container.append($div);
 
         if(true === browser.config.miniMode) {
             $label_delete_button_container.hide();
-            // $upper_widget_container.hide();
         }
 
     }
