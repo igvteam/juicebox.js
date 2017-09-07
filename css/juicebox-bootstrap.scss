@@ -581,10 +581,10 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
 
-    width: 100%;
+    width: 95%;
     height: $nav-bar-widget-container-height;
 
     margin-top: 4px;
@@ -600,7 +600,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  width: 95%;
+  width: 100%;
   @include navbar-input;
 }
 
