@@ -105,9 +105,8 @@
       width: 100%;
       height: 64px;
       padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
+      margin-top: 8px;
+      margin-bottom: 8px;
       background-color: transparent;
       width: 100%; }
       .hic-root .hic-menu .hic-chromosome-selector-widget-container div {
@@ -143,7 +142,8 @@
       justify-content: space-around;
       align-items: center;
       width: 95%;
-      margin-top: 8px; }
+      margin-top: 16px;
+      margin-bottom: 8px; }
       .hic-root .hic-menu .hic-colorscale-widget-container div {
         display: block;
         height: 30px;
@@ -184,9 +184,8 @@
       width: 100%;
       height: 64px;
       padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
+      margin-top: 8px;
+      margin-bottom: 8px;
       background-color: transparent;
       width: 100%; }
       .hic-root .hic-menu .hic-normalization-selector-container select {
@@ -208,9 +207,8 @@
       width: 100%;
       height: 64px;
       padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
+      margin-top: 8px;
+      margin-bottom: 8px;
       background-color: transparent;
       width: 100%; }
       .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container {
@@ -243,16 +241,14 @@
       width: 100%;
       height: 64px;
       padding-left: 8px;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 16px;
+      margin-top: 8px;
+      margin-bottom: 8px;
       background-color: transparent;
       width: 100%; }
   .hic-root .hic-menu > div:hover,
   .hic-root .hic-menu > div:focus,
   .hic-root .hic-menu > div:active {
-    cursor: pointer;
-    background-color: #dfdfdf; }
+    cursor: pointer; }
 
 .hic-root-selected {
   border-color: #df0000; }

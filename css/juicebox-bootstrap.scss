@@ -24,7 +24,7 @@ $hic-viewport-spinner-size: 120px;
 //
 $hic-menu-item-height: 64px;
 $hic-menu-item-padding: 8px;
-$hic-menu-margin: 16px;
+$hic-menu-margin: 8px;
 
 //
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
@@ -183,7 +183,7 @@ $default-font-family: 'Open Sans', sans-serif;
   height: $hic-menu-item-height;
 
   padding-left: $hic-menu-item-padding;
-  padding-bottom: 4px;
+  //padding-bottom: 4px;
 
   margin-top: $hic-menu-margin;
   margin-bottom: $hic-menu-margin;
@@ -382,7 +382,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
       width: 95%;
 
-      margin-top: 8px;
+      margin-top: 2 * $hic-menu-item-padding;
+      margin-bottom: $hic-menu-item-padding;
 
       // red chip
       div {
@@ -466,7 +467,9 @@ $default-font-family: 'Open Sans', sans-serif;
     // annotations
     .hic-annotation-container {
       @include menu-item;
+
       width: 100%;
+
     }
 
   }
@@ -475,7 +478,7 @@ $default-font-family: 'Open Sans', sans-serif;
   .hic-menu > div:focus,
   .hic-menu > div:active {
     cursor: pointer;
-    background-color: #dfdfdf;
+    //background-color: #dfdfdf;
   }
 
 }
