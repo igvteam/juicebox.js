@@ -152,10 +152,11 @@
         margin-right: 4px;
         height: 32px;
         width: 64px;
+        padding: 4px;
         font-family: "Open Sans", sans-serif;
         font-weight: 400;
         color: #5f5f5f;
-        text-align: center;
+        text-align: left;
         outline: none;
         border-style: solid;
         border-width: thin;
@@ -379,10 +380,11 @@
     display: block;
     height: 32px;
     width: 100%;
+    padding-left: 4px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
     color: #5f5f5f;
-    text-align: center;
+    text-align: left;
     outline: none;
     border-style: solid;
     border-width: thin;
@@ -399,6 +401,8 @@
     display: block;
     height: 30px;
     width: 30px;
+    margin-right: 6px;
+    color: red;
     background-color: red; }
   .hic-colorscale-widget-container div:nth-child(2) {
     display: block;
@@ -414,15 +418,18 @@
     margin-right: 4px;
     height: 32px;
     width: 64px;
+    padding: 4px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
     color: #5f5f5f;
-    text-align: center;
+    text-align: left;
     outline: none;
     border-style: solid;
     border-width: thin;
     border-color: #a6a6a6;
     background-color: white; }
+  .hic-colorscale-widget-container input {
+    width: 110px; }
   .hic-colorscale-widget-container i.fa {
     display: block;
     margin-left: 4px;
@@ -452,7 +459,7 @@
     color: #5f5f5f;
     direction: rtl; }
   .hic-normalization-selector-container select {
-    width: 116px; }
+    width: 120px; }
 
 .hic-resolution-selector-container {
   display: flex;

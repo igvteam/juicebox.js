@@ -127,13 +127,13 @@ $default-font-family: 'Open Sans', sans-serif;
 
     height: $nav-bar-widget-container-height - 4px;
     width: 100%;
+    padding-left: 4px;
 
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
-    text-align: center;
+    text-align: left;
 
-    //padding-left: 4px;
     outline: none;
 
     border-style: solid;
@@ -153,11 +153,12 @@ $default-font-family: 'Open Sans', sans-serif;
     margin-right:4px;
     height: $nav-bar-widget-container-height - 4px;
     width: 64px;
+    padding: 4px;
 
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
-    text-align: center;
+    text-align: left;
 
     outline: none;
 
@@ -695,14 +696,17 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: flex-start;
   align-items: center;
 
-  //width: 200px;
-
   div:nth-child(1) {
     display: block;
+
     height: $nav-bar-widget-container-height - 6px;
     width: $nav-bar-widget-container-height - 6px;
 
+    margin-right: 6px;
+
+    color: red;
     background-color: red;
+
   }
 
   div:nth-child(2) {
@@ -724,6 +728,10 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   @include navbar-color-scale-input;
+
+  input {
+    width: 110px;
+  }
 
   i.fa {
     display: block;
@@ -759,7 +767,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 116px;
+    width: 120px;
   }
 
 }
