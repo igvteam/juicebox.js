@@ -607,7 +607,7 @@ var hic = (function (hic) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            if (ev.targetTouches.length == 2) {
+            if (ev.targetTouches.length === 2) {
 
                 // Update pinch  (assuming 2 finger movement is a pinch)
                 touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
@@ -690,7 +690,7 @@ var hic = (function (hic) {
 
             $viewport.dblclick(function (e) {
 
-                e.preventDefault()
+                e.preventDefault();
                 e.stopPropagation();
 
                 var mouseX = e.offsetX || e.layerX,
@@ -711,8 +711,12 @@ var hic = (function (hic) {
             $viewport.on('mousedown', function (e) {
                 var eFixed;
 
-                e.preventDefault()
+                e.preventDefault();
                 e.stopPropagation();
+
+                if (self.browser.$menu.is(':visible')) {
+                    self.browser.hideMenu();
+                }
 
                 mouseLast = {x: e.offsetX, y: e.offsetY};
                 mouseDown = {x: e.offsetX, y: e.offsetY};
