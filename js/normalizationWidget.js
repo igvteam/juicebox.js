@@ -52,7 +52,7 @@ var hic = (function (hic) {
 
         // label
         $label = $('<div>');
-        $label.text('Normalization');
+        $label.text( (true === browser.config.miniMode) ? 'Normalization' : 'Norm.');
         this.$container.append($label);
 
         // select

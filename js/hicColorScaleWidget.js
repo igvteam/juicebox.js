@@ -42,11 +42,7 @@ var hic = (function (hic) {
         // color chip
         $e = $('<div>');
         this.$container.append($e);
-
-        // =
-        $e = $('<div>');
-        this.$container.append($e);
-        $e.html('=');
+        $e.html('X');
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');

@@ -11,11 +11,6 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
-        // $('html').on('click', function () {
-        //     if (browser.$menu.is(':visible')) {
-        //         browser.hideMenu();
-        //     }
-        // });
 
 
         this.scrollbar_height = 20;
@@ -37,7 +32,7 @@ var hic = (function (hic) {
     hic.LayoutController.navbarHeight = function (miniMode) {
         var height;
         if (true === miniMode) {
-            height =  (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
+            height =  hic.LayoutController.nav_bar_label_height;
         } else {
             height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height +  hic.LayoutController.nav_bar_label_height;
         }
@@ -52,21 +47,23 @@ var hic = (function (hic) {
             $label_delete_button_container,
             $upper_widget_container,
             $lower_widget_container,
-            $div,
+            $navbar_shim,
             $e,
             $fa;
 
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
-        $navbar_container.on('click', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            hic.Browser.setCurrentBrowser(browser);
-        });
-
         if(true === browser.config.miniMode) {
             $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.miniMode));
+        } else {
+
+            $navbar_container.on('click', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                hic.Browser.setCurrentBrowser(browser);
+            });
+
         }
 
         // container: label | menu button | browser delete button
@@ -78,7 +75,6 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
         browser.$contactMaplabel = $("<div>", { id:id });
         $label_delete_button_container.append(browser.$contactMaplabel);
-
 
         // menu button
         browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
@@ -121,29 +117,32 @@ var hic = (function (hic) {
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
-
-        // lower widget container
-        id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-        $lower_widget_container = $("<div>", { id:id });
-        $navbar_container.append($lower_widget_container);
-
-        // colorscale
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
-
-        // normalization
-        browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-        // shim
-        $div = $('<div class="hic-nav-bar-shim">');
-        $navbar_container.append($div);
-
         if(true === browser.config.miniMode) {
-            $label_delete_button_container.hide();
+            browser.$contactMaplabel.addClass('hidden-text');
+            $upper_widget_container.hide();
+        } else {
+
+            // lower widget container
+            id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
+            $lower_widget_container = $("<div>", { id:id });
+            $navbar_container.append($lower_widget_container);
+
+            // colorscale
+            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+
+            // normalization
+            browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
+            // shim
+            $navbar_shim = $('<div class="hic-nav-bar-shim">');
+            $navbar_container.append($navbar_shim);
+
         }
+
 
     }
 
@@ -248,10 +247,21 @@ var hic = (function (hic) {
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
         if(true === browser.config.miniMode) {
-            // do nothing
-        } else {
-            browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
+
+            browser.chromosomeSelector.$container.hide();
+
+            // colorscale
+            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $menu);
+
+            // normalization
+            browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
         }
+
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
 
         browser.$menu = $menu;
 
