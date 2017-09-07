@@ -316,7 +316,11 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: column;
     flex-wrap: nowrap;
-    align-items: flex-start;
+    //align-items: flex-start;
+
+    justify-content: space-around;
+    align-items: center;
+
 
     // container: chromosome-label | chromosome-selector-container
     .hic-chromosome-selector-widget-container {
@@ -365,12 +369,53 @@ $default-font-family: 'Open Sans', sans-serif;
 
     }
 
+    // colorscale
+    .hic-colorscale-widget-container {
+
+      display:flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: space-around;
+      align-items: center;
+
+      width: 90%;
+
+      // red chip
+      div {
+
+        display: block;
+        height: $nav-bar-widget-container-height - 6px;
+        width: $nav-bar-widget-container-height - 6px;
+
+        color: red;
+        background-color: red;
+      }
+
+      // input element
+      @include navbar-color-scale-input;
+
+      i.fa {
+        display: block;
+        margin-left: 4px;
+        margin-right: 4px;
+        color: $default-dark-color;
+      }
+
+      i.fa:hover,
+      i.fa:focus,
+      i.fa:active {
+        cursor: pointer;
+        color: $default-hover-color;
+      }
+
+    }
+
     // normalization
     .hic-normalization-selector-container {
 
       @include menu-item;
 
-      padding-right: $hic-menu-item-padding;
+      //padding-right: $hic-menu-item-padding;
 
       @include navbar-select;
 
@@ -403,57 +448,6 @@ $default-font-family: 'Open Sans', sans-serif;
       }
 
       @include navbar-select;
-
-    }
-
-    // colorscale
-    .hic-colorscale-widget-container {
-
-      @include menu-item;
-
-      padding-right: $hic-menu-item-padding;
-
-      div:nth-child(1) {
-        display: block;
-        height: $nav-bar-widget-container-height - 6px;
-        width: $nav-bar-widget-container-height - 6px;
-
-        background-color: red;
-      }
-
-      div:nth-child(2) {
-        display: block;
-
-        font-size: 18px;
-
-        color: $default-dark-color;
-
-        text-align: center;
-
-        vertical-align: middle;
-        line-height: $nav-bar-widget-container-height - 6px;
-
-        height: $nav-bar-widget-container-height - 6px;
-        width: $nav-bar-widget-container-height - 6px;
-
-        //background-color: yellow;
-      }
-
-      @include navbar-color-scale-input;
-
-      i.fa {
-        display: block;
-        margin-left: 4px;
-        margin-right: 4px;
-        color: $default-dark-color;
-      }
-
-      i.fa:hover,
-      i.fa:focus,
-      i.fa:active {
-        cursor: pointer;
-        color: $default-hover-color;
-      }
 
     }
 
