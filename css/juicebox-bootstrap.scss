@@ -152,7 +152,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
     margin-right:4px;
     height: $nav-bar-widget-container-height - 4px;
-    width: 64px;
+    width: 96px;
     padding: 4px;
 
     font-family: $default-font-family;
@@ -317,15 +317,15 @@ $default-font-family: 'Open Sans', sans-serif;
     display:flex;
     flex-flow: column;
     flex-wrap: nowrap;
-    //align-items: flex-start;
-
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center;
 
     // container: chromosome-label | chromosome-selector-container
     .hic-chromosome-selector-widget-container {
 
       @include menu-item;
+
+      width: 100%;
 
       // label: 'Chromosome'
       div {
@@ -378,7 +378,9 @@ $default-font-family: 'Open Sans', sans-serif;
       justify-content: space-around;
       align-items: center;
 
-      width: 90%;
+      width: 95%;
+
+      margin-top: 8px;
 
       // red chip
       div {
@@ -415,9 +417,13 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      //padding-right: $hic-menu-item-padding;
+      width: 100%;
 
       @include navbar-select;
+
+      select {
+        width: 95%;
+      }
 
     }
 
@@ -426,7 +432,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      padding-right: $hic-menu-item-padding;
+      width: 100%;
 
       div#hic-resolution-label-container {
         display:flex;
@@ -449,12 +455,16 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include navbar-select;
 
+      select {
+        width: 95%;
+      }
+
     }
 
     // annotations
     .hic-annotation-container {
       @include menu-item;
-
+      width: 100%;
     }
 
   }

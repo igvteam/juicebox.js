@@ -93,7 +93,7 @@
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
-    justify-content: space-around;
+    justify-content: flex-start;
     align-items: center; }
     .hic-root .hic-menu .hic-chromosome-selector-widget-container {
       display: flex;
@@ -107,7 +107,8 @@
       padding-bottom: 4px;
       margin-top: 16px;
       margin-bottom: 16px;
-      background-color: transparent; }
+      background-color: transparent;
+      width: 100%; }
       .hic-root .hic-menu .hic-chromosome-selector-widget-container div {
         padding-top: 2px;
         padding-bottom: 4px; }
@@ -140,7 +141,8 @@
       flex-wrap: nowrap;
       justify-content: space-around;
       align-items: center;
-      width: 90%; }
+      width: 95%;
+      margin-top: 8px; }
       .hic-root .hic-menu .hic-colorscale-widget-container div {
         display: block;
         height: 30px;
@@ -151,7 +153,7 @@
         display: block;
         margin-right: 4px;
         height: 32px;
-        width: 64px;
+        width: 96px;
         padding: 4px;
         font-family: "Open Sans", sans-serif;
         font-weight: 400;
@@ -184,7 +186,8 @@
       padding-bottom: 4px;
       margin-top: 16px;
       margin-bottom: 16px;
-      background-color: transparent; }
+      background-color: transparent;
+      width: 100%; }
       .hic-root .hic-menu .hic-normalization-selector-container select {
         display: block;
         height: 32px;
@@ -193,6 +196,8 @@
         font-weight: 400;
         color: #5f5f5f;
         direction: rtl; }
+      .hic-root .hic-menu .hic-normalization-selector-container select {
+        width: 95%; }
     .hic-root .hic-menu .hic-resolution-selector-container {
       display: flex;
       flex-flow: column;
@@ -206,7 +211,7 @@
       margin-top: 16px;
       margin-bottom: 16px;
       background-color: transparent;
-      padding-right: 8px; }
+      width: 100%; }
       .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container {
         display: flex;
         flex-flow: row;
@@ -226,6 +231,8 @@
         font-weight: 400;
         color: #5f5f5f;
         direction: rtl; }
+      .hic-root .hic-menu .hic-resolution-selector-container select {
+        width: 95%; }
     .hic-root .hic-menu .hic-annotation-container {
       display: flex;
       flex-flow: column;
@@ -238,7 +245,8 @@
       padding-bottom: 4px;
       margin-top: 16px;
       margin-bottom: 16px;
-      background-color: transparent; }
+      background-color: transparent;
+      width: 100%; }
   .hic-root .hic-menu > div:hover,
   .hic-root .hic-menu > div:focus,
   .hic-root .hic-menu > div:active {
@@ -417,7 +425,7 @@
     display: block;
     margin-right: 4px;
     height: 32px;
-    width: 64px;
+    width: 96px;
     padding: 4px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
