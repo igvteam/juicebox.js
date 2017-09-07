@@ -79,7 +79,6 @@ var hic = (function (hic) {
         browser.$contactMaplabel = $("<div>", { id:id });
         $label_delete_button_container.append(browser.$contactMaplabel);
 
-
         // menu button
         browser.$menuPresentDismiss = $("<div>", { class:'hic-nav-bar-menu-button' });
         $label_delete_button_container.append(browser.$menuPresentDismiss);
@@ -121,32 +120,32 @@ var hic = (function (hic) {
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
-
-        // lower widget container
-        id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-        $lower_widget_container = $("<div>", { id:id });
-        $navbar_container.append($lower_widget_container);
-
-        // colorscale
-        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
-
-        // normalization
-        browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
-
-        // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-        // shim
-        $navbar_shim = $('<div class="hic-nav-bar-shim">');
-        $navbar_container.append($navbar_shim);
-
         if(true === browser.config.miniMode) {
             browser.$contactMaplabel.addClass('hidden-text');
             $upper_widget_container.hide();
-            $lower_widget_container.hide();
-            $navbar_shim.hide();
+        } else {
+
+            // lower widget container
+            id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
+            $lower_widget_container = $("<div>", { id:id });
+            $navbar_container.append($lower_widget_container);
+
+            // colorscale
+            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+
+            // normalization
+            browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
+            // shim
+            $navbar_shim = $('<div class="hic-nav-bar-shim">');
+            $navbar_container.append($navbar_shim);
+
         }
+
 
     }
 
@@ -241,17 +240,27 @@ var hic = (function (hic) {
 
     function createMenu(browser, $root) {
 
-            var $menu;
+        var $menu;
 
-            // menu
-            $menu = $('<div>', { class:'hic-menu' });
-            $root.append($menu);
+        // menu
+        $menu = $('<div>', { class:'hic-menu' });
+        $root.append($menu);
 
-            // chromosome select widget
-            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
+        // chromosome select widget
+        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
-            if(true === browser.config.miniMode) {
-            // do nothing
+        if(true === browser.config.miniMode) {
+
+            // colorscale
+            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $menu);
+
+            // normalization
+            browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
         } else {
             browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
         }
