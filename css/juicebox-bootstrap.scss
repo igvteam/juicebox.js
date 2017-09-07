@@ -769,6 +769,8 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: flex-start;
   align-items: center;
 
+  width: 200px;
+
   div {
     display: block;
     margin-right: 6px;
@@ -778,7 +780,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 120px;
+    width: 160px;
   }
 
 }

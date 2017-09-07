@@ -455,7 +455,8 @@
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
-  align-items: center; }
+  align-items: center;
+  width: 200px; }
   .hic-normalization-selector-container div {
     display: block;
     margin-right: 6px; }
@@ -468,7 +469,7 @@
     color: #5f5f5f;
     direction: rtl; }
   .hic-normalization-selector-container select {
-    width: 120px; }
+    width: 160px; }
 
 .hic-resolution-selector-container {
   display: flex;
