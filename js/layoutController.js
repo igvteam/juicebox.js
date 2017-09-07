@@ -251,6 +251,8 @@ var hic = (function (hic) {
 
         if(true === browser.config.miniMode) {
 
+            browser.chromosomeSelector.$container.hide();
+
             // colorscale
             browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $menu);
 
@@ -260,10 +262,9 @@ var hic = (function (hic) {
             // resolution widget
             browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
             browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-        } else {
-            browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
         }
+
+        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
 
         browser.$menu = $menu;
 

@@ -26,7 +26,7 @@
  */
 var hic = (function (hic) {
 
-    hic.ChromosomeSelectorWidget = function (browser, $container) {
+    hic.ChromosomeSelectorWidget = function (browser, $parent) {
 
         var self = this,
             $label,
@@ -36,7 +36,7 @@ var hic = (function (hic) {
         this.browser = browser;
 
         this.$container = $('<div class="hic-chromosome-selector-widget-container">');
-        $container.append(this.$container);
+        $parent.append(this.$container);
 
         $label = $('<div>');
         this.$container.append($label);
