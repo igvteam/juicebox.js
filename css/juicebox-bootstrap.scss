@@ -806,12 +806,21 @@ $default-font-family: 'Open Sans', sans-serif;
     margin-right: 6px;
     cursor: pointer;
 
-    i#hic-resolution-lock {
+    i.fa#hic-resolution-lock {
       display: block;
       font-size: 12px;
       padding-top: 4px;
       padding-left: 5px;
     }
+
+
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: $default-hover-color;
+    }
+
 
   }
 

@@ -480,11 +480,16 @@
     align-items: flex-start;
     margin-right: 6px;
     cursor: pointer; }
-    .hic-resolution-selector-container div#hic-resolution-label-container i#hic-resolution-lock {
+    .hic-resolution-selector-container div#hic-resolution-label-container i.fa#hic-resolution-lock {
       display: block;
       font-size: 12px;
       padding-top: 4px;
       padding-left: 5px; }
+    .hic-resolution-selector-container div#hic-resolution-label-container i.fa:hover,
+    .hic-resolution-selector-container div#hic-resolution-label-container i.fa:focus,
+    .hic-resolution-selector-container div#hic-resolution-label-container i.fa:active {
+      cursor: pointer;
+      color: #0f0f0f; }
   .hic-resolution-selector-container select {
     display: block;
     height: 32px;
