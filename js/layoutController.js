@@ -59,14 +59,16 @@ var hic = (function (hic) {
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
-        $navbar_container.on('click', function (e) {
-            e.stopPropagation();
-            e.preventDefault();
-            hic.Browser.setCurrentBrowser(browser);
-        });
-
         if(true === browser.config.miniMode) {
             $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.miniMode));
+        } else {
+
+            $navbar_container.on('click', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                hic.Browser.setCurrentBrowser(browser);
+            });
+
         }
 
         // container: label | menu button | browser delete button

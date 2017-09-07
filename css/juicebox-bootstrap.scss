@@ -308,6 +308,8 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 200px;
     height: 100%;
 
+    z-index: 4096;
+
     background-color: $scrollbar-color;
 
     border-right-style: solid;

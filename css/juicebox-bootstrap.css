@@ -86,6 +86,7 @@
     left: 0;
     width: 200px;
     height: 100%;
+    z-index: 4096;
     background-color: #efefef;
     border-right-style: solid;
     border-right-width: thin;
