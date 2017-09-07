@@ -529,7 +529,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // menu presentation
     .hic-nav-bar-menu-button {
-      width: 5%;
       height: 100%;
 
       color: $default-dark-color;
@@ -554,7 +553,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // delete browser (map panel)
     .hic-nav-bar-delete-button {
-      width: 5%;
       height: 100%;
 
       color: $default-dark-color;
@@ -562,8 +560,6 @@ $default-font-family: 'Open Sans', sans-serif;
       i.fa-minus-circle {
         cursor: pointer;
         margin-top: 8px;
-        margin-left: 8px;
-        margin-right: 8px;
       }
     }
 
