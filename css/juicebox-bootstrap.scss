@@ -1,10 +1,8 @@
-
 //
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
 $nav-bar-shim-height: 4px;
 $nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
-//$nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height);
 
 $nav-bar-widget-height: 24px;
 $chromosome-selector-widget-container-width: 160px;
@@ -27,6 +25,7 @@ $hic-viewport-spinner-size: 120px;
 $hic-menu-item-height: 64px;
 $hic-menu-item-padding: 8px;
 $hic-menu-margin: 16px;
+
 //
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
@@ -132,8 +131,9 @@ $default-font-family: 'Open Sans', sans-serif;
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
+    text-align: center;
 
-    padding-left: 4px;
+    //padding-left: 4px;
     outline: none;
 
     border-style: solid;
@@ -157,12 +157,12 @@ $default-font-family: 'Open Sans', sans-serif;
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
+    text-align: center;
 
     outline: none;
 
     border-style: solid;
     border-width: thin;
-    //border-color: $default-dark-color;
     border-color: $default-medium-color;
 
     background-color: white;
