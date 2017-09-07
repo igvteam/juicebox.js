@@ -37,7 +37,7 @@ var hic = (function (hic) {
     hic.LayoutController.navbarHeight = function (miniMode) {
         var height;
         if (true === miniMode) {
-            height =  (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
+            height =  hic.LayoutController.nav_bar_label_height;
         } else {
             height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height +  hic.LayoutController.nav_bar_label_height;
         }
@@ -52,7 +52,7 @@ var hic = (function (hic) {
             $label_delete_button_container,
             $upper_widget_container,
             $lower_widget_container,
-            $div,
+            $navbar_shim,
             $e,
             $fa;
 
@@ -138,11 +138,14 @@ var hic = (function (hic) {
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         // shim
-        $div = $('<div class="hic-nav-bar-shim">');
-        $navbar_container.append($div);
+        $navbar_shim = $('<div class="hic-nav-bar-shim">');
+        $navbar_container.append($navbar_shim);
 
         if(true === browser.config.miniMode) {
-            $label_delete_button_container.hide();
+            browser.$contactMaplabel.addClass('hidden-text');
+            $upper_widget_container.hide();
+            $lower_widget_container.hide();
+            $navbar_shim.hide();
         }
 
     }
@@ -238,16 +241,16 @@ var hic = (function (hic) {
 
     function createMenu(browser, $root) {
 
-        var $menu;
+            var $menu;
 
-        // menu
-        $menu = $('<div>', { class:'hic-menu' });
-        $root.append($menu);
+            // menu
+            $menu = $('<div>', { class:'hic-menu' });
+            $root.append($menu);
 
-        // chromosome select widget
-        browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
+            // chromosome select widget
+            browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
-        if(true === browser.config.miniMode) {
+            if(true === browser.config.miniMode) {
             // do nothing
         } else {
             browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
