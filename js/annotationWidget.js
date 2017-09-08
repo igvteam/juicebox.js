@@ -52,19 +52,14 @@ var hic = (function (hic) {
 
     hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
 
-        var self = this;
+        var self = this, zi;
 
         self.$annotation_modal_container.empty();
 
-        _.each(tracks2D, function (track2D, i) {
-            var li,
-                zi;
-
-            li = _.indexOf(tracks2D, _.last(tracks2D));
-            zi = li - i;
-            // Reverse list to present layers in "z" order.
+        // Reverse list to present layers in "z" order.
+        for(zi = tracks2D.length-1; zi>= 0; zi--) {
             modalBodyRow.call(self, self.$annotation_modal_container, tracks2D[ zi ]);
-        });
+        }
 
     };
 
