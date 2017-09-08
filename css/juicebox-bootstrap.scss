@@ -322,6 +322,39 @@ $default-font-family: 'Open Sans', sans-serif;
     justify-content: flex-start;
     align-items: center;
 
+    // menu close
+    .hic-menu-close-button {
+
+      display:flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
+
+      width: 100%;
+      height: $hic-menu-item-height / 2;
+
+      margin-top: $hic-menu-margin / 2;
+      margin-bottom: $hic-menu-margin / 2;
+
+      padding-right: $hic-menu-margin;
+
+      i.fa {
+        display: block;
+        margin-left: 4px;
+        margin-right: 4px;
+        color: $default-dark-color;
+      }
+
+      i.fa:hover,
+      i.fa:focus,
+      i.fa:active {
+        cursor: pointer;
+        color: $default-hover-color;
+      }
+
+    }
+
     // container: chromosome-label | chromosome-selector-container
     .hic-chromosome-selector-widget-container {
 
