@@ -378,24 +378,11 @@ var hic = (function (hic) {
 
     hic.Browser.getCurrentBrowser = function () {
 
-        if (1 === _.size(hic.allBrowsers)) {
-            return _.first(hic.allBrowsers);
+        if (hic.allBrowsers.length === 1) {
+            return hic.allBrowsers[0];
         } else {
             return hic.Browser.currentBrowser;
         }
-
-        // if (undefined === hic.Browser.currentBrowser) {
-        //     // Return the default browser
-        //     if(hic.allBrowsers.length > 0) {
-        //         return hic.allBrowsers[0];
-        //     }
-        //     else {
-        //         console.log('ERROR. hic.Browser.getCurrentBrowser(). undefined!!');
-        //         return undefined;
-        //     }
-        // } else {
-        //     return hic.Browser.currentBrowser;
-        // }
 
     };
 
@@ -413,7 +400,7 @@ var hic = (function (hic) {
 
         } else {
 
-            if (_.size(hic.allBrowsers) > 1) {
+            if (hic.allBrowsers.length > 1) {
                 $('.hic-root').removeClass('hic-root-selected');
                 browser.$root.addClass('hic-root-selected');
             }
@@ -603,7 +590,7 @@ var hic = (function (hic) {
         var self = this,
             promises,
             promises2D;
-        
+
         promises = [];
         promises2D = [];
 
@@ -785,9 +772,7 @@ var hic = (function (hic) {
         var self = this,
             hicReader,
             queryIdx,
-            parts,
-            i,
-            otherBrowser;
+            parts;
 
 
         if (!config.url && !config.dataset) {
@@ -893,8 +878,8 @@ var hic = (function (hic) {
 
             if (config.state) {
                 self.setState(config.state);
-            } else if(config.syncState) {
-                self.syncState(config.syncState);
+            } else if(config.synchState) {
+                self.syncState(config.synchState);
             } else {
                 self.setState(defaultState.clone());
             }

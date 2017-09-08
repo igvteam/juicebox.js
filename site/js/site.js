@@ -62,6 +62,16 @@ var site = (function (site) {
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
 
+        function loadHicFile(url, $selected) {
+            var synchState;
+
+            if(hic.allBrowsers.length > 1) {
+                 synchState = hic.allBrowsers[0].getSyncState();
+            }
+
+            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+        }
+
         $('#dataset_selector').on('change', function (e) {
             var $selected,
                 url,
@@ -76,7 +86,7 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: $selected.text()});
+                loadHicFile(url, $selected.text());
             }
 
         });
@@ -95,7 +105,7 @@ var site = (function (site) {
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    hic.Browser.getCurrentBrowser().loadHicFile({url: file, name: file.name});
+                    loadHicFile({url: file, name: file.name});
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
                 }
@@ -123,7 +133,7 @@ var site = (function (site) {
                 suffix = path.substr(path.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: hic.extractFilename(path)});
+                    loadHicFile({url: url, name: hic.extractFilename(path)});
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
                 }
