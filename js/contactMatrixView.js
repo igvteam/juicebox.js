@@ -192,9 +192,13 @@ var hic = (function (hic) {
 
         this.updating = true;
 
+        this.startSpinner();
+
         this.dataset.getMatrix(state.chr1, state.chr2)
 
             .then(function (matrix) {
+
+                self.stopSpinner();
 
                 var zd = matrix.bpZoomData[state.zoom],
                     blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)

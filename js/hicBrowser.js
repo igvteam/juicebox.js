@@ -1401,8 +1401,6 @@ var hic = (function (hic) {
 
         if(event.type === "TrackState2D") {
             this.updateUriParameters(event);
-            this.contactMatrixView.clearCaches();
-            this.contactMatrixView.update();
         }
     };
 
