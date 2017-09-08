@@ -122,21 +122,21 @@ var hic = (function (hic) {
 
         // color
 
-
-        if (inputTypeColorSupport()) {
-            $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
-            $colorPicker.on("change", function () {
-                var hexColor = $colorPicker.val(),
-                    rgb = hexToRgb(hexColor);
-                track2D.color = rgb;
-                self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
-            })
-        } else {
-            $colorPicker = createGenericColorPicker(track2D.color, function (color) {
-                track2D.color = hexToRgb(color);
-                self.browser.eventBus.post(hic.Event("TrackState2D", track2D));
-            });
-        }
+        //
+        // if (inputTypeColorSupport()) {
+        //     $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
+        //     $colorPicker.on("change", function () {
+        //         var hexColor = $colorPicker.val(),
+        //             rgb = hexToRgb(hexColor);
+        //         track2D.color = rgb;
+        //         self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
+        //     })
+        // } else {
+        $colorPicker = createGenericColorPicker(track2D.color, function (color) {
+            track2D.color = color;
+            self.browser.eventBus.post(hic.Event("TrackState2D", track2D));
+        });
+        //}
 
         $row.append($colorPicker);
 
@@ -327,7 +327,7 @@ var hic = (function (hic) {
         return inputTypeColorSupport._cachedResult;
     }
 
-    function createGenericColorPicker(color, callback) {
+    function createGenericColorPicker(currentColor, callback) {
 
         var $widget, $palletDiv, $buttonContainer, $showButton, $hideButton;
 
@@ -339,11 +339,12 @@ var hic = (function (hic) {
         $buttonContainer = $('<div style="width: 300px; display: flex; flex-wrap: wrap">');
         $palletDiv.append($buttonContainer);
 
-        $buttonContainer.append(createColorRow(color));  // self color, might be duplicated in CSS_NAMES but we don't care
+        if(currentColor) {
+            $buttonContainer.append(createColorRow(currentColor));  // self color, might be duplicated in CSS_NAMES but we don't care
+        }
 
-        if(!WEB_SAFE_COLORS) createWebSafeColorArray();
-
-        WEB_SAFE_COLORS.forEach(function (c) {
+        //if(!WEB_SAFE_COLORS) createWebSafeColorArray();
+        CSS_COLOR_NAMES.forEach(function (c) {
             $buttonContainer.append(createColorRow(c));
         });
 
@@ -358,7 +359,7 @@ var hic = (function (hic) {
         $palletDiv.append($hideButton);
 
         $showButton = $('<button/>', {
-            style: "width: 20px; height: 20px; background-color: " + color
+            style: "width: 20px; height: 20px; background-color: " + currentColor
         });
         $showButton.on("click", function () {
             $palletDiv.css("display", "block");
