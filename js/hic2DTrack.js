@@ -105,7 +105,6 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
-        this.zorder = 0;
         this.color = config.color === undefined ? features[0].color : config.color;
 
         features.forEach(function (f) {
