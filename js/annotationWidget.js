@@ -56,13 +56,19 @@ var hic = (function (hic) {
 
         self.$annotation_modal_container.empty();
 
-        _.each(tracks2D, function (track2D) {
-            modalBodyRow.call(self, self.$annotation_modal_container, track2D);
+        _.each(tracks2D, function (track2D, i) {
+            var li,
+                zi;
+
+            li = _.indexOf(tracks2D, _.last(tracks2D));
+            zi = li - i;
+            // Reverse list to present layers in "z" order.
+            modalBodyRow.call(self, self.$annotation_modal_container, tracks2D[ zi ]);
         });
 
     };
 
-    function modalBodyRow($container, track2D) {
+    function modalBodyRow($container, track) {
         var self = this,
             $row,
             $colorPicker,
@@ -77,15 +83,15 @@ var hic = (function (hic) {
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $container.append($row);
 
-        $row.data('track2D', track2D);
+        $row.data('track2D', track);
 
         // track name
         $e = $("<div>");
-        $e.text(track2D.config.name);
+        $e.text(track.config.name);
         $row.append($e);
 
         // track hide/show
-        str = (true === track2D.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
         $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
         $row.append($hideShowTrack);
         $hideShowTrack.on('click', function (e) {
@@ -120,9 +126,9 @@ var hic = (function (hic) {
         //         self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
         //     })
         // } else {
-        $colorPicker = createGenericColorPicker(track2D.color, function (color) {
-            track2D.color = color;
-            self.browser.eventBus.post(hic.Event("TrackState2D", track2D));
+        $colorPicker = createGenericColorPicker(track.color, function (color) {
+            track.color = color;
+            self.browser.eventBus.post(hic.Event("TrackState2D", track));
         });
         //}
 
@@ -142,10 +148,10 @@ var hic = (function (hic) {
         if (1 === _.size(self.browser.tracks2D)) {
             $upTrack.css('color', hidden_color);
             $downTrack.css('color', hidden_color);
-        } else if (track2D === _.first(self.browser.tracks2D)) {
-            $upTrack.css('color', hidden_color);
-        } else if (track2D === _.last(self.browser.tracks2D)) {
+        } else if (track === _.first(self.browser.tracks2D)) {
             $downTrack.css('color', hidden_color);
+        } else if (track === _.last(self.browser.tracks2D)) {
+            $upTrack.css('color', hidden_color);
         }
 
         $upTrack.on('click', function (e) {
@@ -154,7 +160,7 @@ var hic = (function (hic) {
                 indexB;
 
             indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA - 1;
+            indexB = indexA + 1;
 
             track2D = self.browser.tracks2D[indexB];
             self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
@@ -170,7 +176,7 @@ var hic = (function (hic) {
                 indexB;
 
             indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA + 1;
+            indexB = indexA - 1;
 
             track2D = self.browser.tracks2D[indexB];
             self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
