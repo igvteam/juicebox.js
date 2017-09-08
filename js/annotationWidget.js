@@ -48,33 +48,21 @@ var hic = (function (hic) {
             // do stuff
         });
 
-        browser.eventBus.subscribe('TrackLoad2D', this);
-
-    };
-
-    hic.AnnotationWidget.prototype.receiveEvent = function (event) {
-
-        if ('TrackLoad2D' === event.type) {
-            this.updateBody(event.data);
-        }
-
     };
 
     hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
 
-        var self = this,
-            hideShowHandler,
-            deleteHandler;
+        var self = this;
 
         self.$annotation_modal_container.empty();
 
-        _.each(tracks2D, function (track2D, i) {
+        _.each(tracks2D, function (track2D) {
             modalBodyRow.call(self, self.$annotation_modal_container, track2D);
         });
 
     };
 
-    function modalBodyRow($container, track2D, index) {
+    function modalBodyRow($container, track2D) {
         var self = this,
             $row,
             $colorPicker,
