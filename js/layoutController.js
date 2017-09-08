@@ -237,11 +237,39 @@ var hic = (function (hic) {
 
     function createMenu(browser, $root) {
 
-        var $menu;
+        var $menu,
+            $div,
+            $fa;
 
         // menu
         $menu = $('<div>', { class:'hic-menu' });
         $root.append($menu);
+
+        // menu close button
+        $div = $('<div>', { class:'hic-menu-close-button' });
+        $menu.append($div);
+
+        // $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
+        $fa = $("<i>", { class:'fa fa-times' });
+        $div.append($fa);
+
+        $fa.on('click', function (e) {
+            browser.toggleMenu();
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
