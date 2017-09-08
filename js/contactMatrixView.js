@@ -106,6 +106,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
+        this.browser.eventBus.subscribe("TrackState2D", this);
 
     };
 
@@ -148,7 +149,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
         // Perhaps in the future we'll do something special based on event type & properties
 
-        if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type) {
+        if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type || "TrackState2D" === event.type) {
             this.clearCaches();
             this.initialImage = undefined;
         }
