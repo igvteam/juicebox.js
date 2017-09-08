@@ -37,7 +37,6 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-
         this.scrollbarWidget = new hic.ScrollbarWidget(browser);
 
         id = browser.id + '_' + 'viewport';
@@ -110,6 +109,11 @@ var hic = (function (hic) {
 
     };
 
+    hic.ContactMatrixView.prototype.setInitialImage = function(state, image) {
+        this.initialImageState = state.clone();
+        this.initialImage = image;
+    }
+
     hic.ContactMatrixView.prototype.setDataset = function (dataset) {
 
         this.dataset = dataset;
@@ -131,6 +135,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
+        //this.initialImage = undefined;
     };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
@@ -145,6 +150,14 @@ var hic = (function (hic) {
 
         if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type) {
             this.clearCaches();
+            this.initialImage = undefined;
+        }
+        else if("LocusChange" === event.type) {
+            if(!event.data.state.equals(this.initialImageState)) {
+                this.initialImage = undefined;
+            }
+        } else {
+            this.initialImageState = undefined;
         }
 
         this.update();
@@ -162,6 +175,20 @@ var hic = (function (hic) {
             this.ctx = this.$canvas.get(0).getContext("2d");
         }
 
+        if(this.initialImage) {
+            var viewportWidth = self.$viewport.width(),
+                viewportHeight = self.$viewport.height(),
+                canvasWidth = this.$canvas.width(),
+                canvasHeight = this.$canvas.height();
+            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+                this.$canvas.width(viewportWidth);
+                this.$canvas.height(viewportHeight);
+                this.$canvas.attr('width', this.$viewport.width());
+                this.$canvas.attr('height', this.$viewport.height());
+            }
+            this.ctx.drawImage(this.initialImage, 0, 0);
+            return;
+        }
 
         this.updating = true;
 
@@ -192,7 +219,6 @@ var hic = (function (hic) {
 
                         Promise.all(promises)
                             .then(function (imageTiles) {
-                                console.log("# blocks = " + imageTiles.length);
                                 self.draw(imageTiles, zd);
                                 self.updating = false;
                             })

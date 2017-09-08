@@ -32,28 +32,30 @@ var hic = (function (hic) {
 
     hic.State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
 
-        if(chr1 <= chr2) {
-            this.chr1 = chr1;
-            this.chr2 = chr2;
-            this.x = x;
-            this.y = y;
-        }
-        else {
-            // Transpose
-            this.chr1 = chr2;
-            this.chr2 = chr1;
-            this.x = y;
-            this.y = x;
-        }
-        this.zoom = zoom;
-        this.pixelSize = pixelSize;
+        if(chr1) {
+            if (chr1 <= chr2) {
+                this.chr1 = chr1;
+                this.chr2 = chr2;
+                this.x = x;
+                this.y = y;
+            }
+            else {
+                // Transpose
+                this.chr1 = chr2;
+                this.chr2 = chr1;
+                this.x = y;
+                this.y = x;
+            }
+            this.zoom = zoom;
+            this.pixelSize = pixelSize;
 
-        if("undefined" === normalization) {
-            console.log("No normalization defined !!!");
-            normalization = undefined;
-        }
+            if ("undefined" === normalization) {
+                console.log("No normalization defined !!!");
+                normalization = undefined;
+            }
 
-        this.normalization = normalization;
+            this.normalization = normalization;
+        }
     };
 
     hic.State.prototype.stringify = function () {
@@ -61,7 +63,13 @@ var hic = (function (hic) {
     }
 
     hic.State.prototype.clone = function () {
-        return new hic.State(this.chr1, this.chr2, this.zoom, this.x, this.y, this.pixelSize, this.normalization)
+        return Object.assign(new hic.State(), this);
+    }
+
+    hic.State.prototype.equals = function(state) {
+        var s1 = JSON.stringify(this);
+        var s2 = JSON.stringify(state);
+        return s1 === s2;
     }
 
 
@@ -69,8 +77,8 @@ var hic = (function (hic) {
 
         var tokens = string.split(",");
         return new hic.State(
-            tokens[0],    // chr1
-            tokens[1],    // chr2
+            parseInt(tokens[0]),    // chr1
+            parseInt(tokens[1]),    // chr2
             parseFloat(tokens[2]), // zoom
             parseFloat(tokens[3]), // x
             parseFloat(tokens[4]), // y

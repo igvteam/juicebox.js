@@ -202,8 +202,22 @@ var hic = (function (hic) {
 
         createIGV($hic_container, browser, browser.trackMenuReplacement);
 
-        if (config.url || config.dataset) {
-            browser.loadHicFile(config);
+
+
+        if(config.initialImage) {
+            var img = new Image();
+            img.onload = function () {
+                browser.contactMatrixView.setInitialImage(browser.state, img);
+                if (config.url || config.dataset) {
+                    browser.loadHicFile(config);
+                }
+            }
+            img.src = config.initialImage;
+        }
+        else {
+            if (config.url || config.dataset) {
+                browser.loadHicFile(config);
+            }
         }
 
         return browser;
@@ -283,8 +297,8 @@ var hic = (function (hic) {
                 }
 
             }
-
         }
+
     };
 
     hic.Browser.prototype.toggleMenu = function () {
@@ -589,12 +603,7 @@ var hic = (function (hic) {
         var self = this,
             promises,
             promises2D;
-
-        if (undefined === hic.Browser.getCurrentBrowser()) {
-            igv.presentAlert('ERROR: you must select a map panel.');
-            return;
-        }
-
+        
         promises = [];
         promises2D = [];
 
@@ -780,19 +789,6 @@ var hic = (function (hic) {
             i,
             otherBrowser;
 
-        // A hack to sync newly loaded file with files in other panels.
-        if(hic.allBrowsers.length > 1) {
-            // Find first browser that is not self
-            for(i=0; i<hic.allBrowsers.length; i++) {
-                if(hic.allBrowsers[i] !== self) {
-                    otherBrowser = hic.allBrowsers[i];
-                    break;
-                }
-            }
-            if(otherBrowser) {
-                config.syncState = otherBrowser.getSyncState();
-            }
-        }
 
         if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
@@ -828,7 +824,9 @@ var hic = (function (hic) {
 
         this.contactMatrixView.clearCaches();
 
-        this.contactMatrixView.startSpinner();
+        if(!this.config.initialImage) {
+            this.contactMatrixView.startSpinner();
+        }
 
         this.tracks2D = [];
 
@@ -888,6 +886,7 @@ var hic = (function (hic) {
             self.dataset = dataset;
 
             self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+
 
             // TODO -- this is not going to work with browsers on different assemblies on the same page.
             igv.browser.genome = self.genome;
@@ -1414,7 +1413,7 @@ var hic = (function (hic) {
         if (this.updateHref) {
             this.updateUriParameters(event);
         }
-        
+
         if(event.type === "TrackState2D") {
             this.updateUriParameters(event);
             this.contactMatrixView.clearCaches();
