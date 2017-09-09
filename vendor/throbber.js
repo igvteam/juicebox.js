@@ -45,11 +45,11 @@
 
             var requestFrame = (function(){
               var r = 'RequestAnimationFrame';
-              return window.requestAnimationFrame || 
-                window['webkit'+r] || 
-                window['moz'+r] || 
-                window['o'+r] || 
-                window['ms'+r] || 
+              return window.requestAnimationFrame ||
+                window['webkit'+r] ||
+                window['moz'+r] ||
+                window['o'+r] ||
+                window['ms'+r] ||
                 function( callback ) {
                   window.setTimeout(callback, 1000 / 60);
                 };
@@ -153,7 +153,7 @@
             }
 
             if ( o.rotationspeed ) {
-                ctx.save();
+               // ctx.save();   // TODO <- this is a resource leak,  ctx.restore() is never called.
                 _restore( ctx, size, false );
 
                 ctx.rotate( rd * ( 360/o.lines/( 20-o.rotationspeed*2 ) ) * M.PI/180 ); //rotate in origin
@@ -307,7 +307,7 @@
 
             // copy the amount of lines into steps
             this.step = o.lines;
-            
+
             // double-up for retina screens
             if (!!window.devicePixelRatio) {
                 // lock element into desired end size
