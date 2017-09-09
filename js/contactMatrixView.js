@@ -110,7 +110,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ContactMatrixView.prototype.setInitialImage = function(state, image) {
+    hic.ContactMatrixView.prototype.setInitialImage = function (state, image) {
         this.initialImageState = state.clone();
         this.initialImage = image;
     }
@@ -153,8 +153,8 @@ var hic = (function (hic) {
             this.clearCaches();
             this.initialImage = undefined;
         }
-        else if("LocusChange" === event.type) {
-            if(!event.data.state.equals(this.initialImageState)) {
+        else if ("LocusChange" === event.type) {
+            if (!event.data.state.equals(this.initialImageState)) {
                 this.initialImage = undefined;
             }
         } else {
@@ -164,6 +164,20 @@ var hic = (function (hic) {
         this.update();
 
     };
+
+    function drawStaticImage(image) {
+        var viewportWidth = this.$viewport.width(),
+            viewportHeight = this.$viewport.height(),
+            canvasWidth = this.$canvas.width(),
+            canvasHeight = this.$canvas.height();
+        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+            this.$canvas.width(viewportWidth);
+            this.$canvas.height(viewportHeight);
+            this.$canvas.attr('width', this.$viewport.width());
+            this.$canvas.attr('height', this.$viewport.height());
+        }
+        this.ctx.drawImage(image, 0, 0);
+    }
 
     hic.ContactMatrixView.prototype.update = function () {
 
@@ -176,30 +190,16 @@ var hic = (function (hic) {
             this.ctx = this.$canvas.get(0).getContext("2d");
         }
 
-        if(this.initialImage) {
-            var viewportWidth = self.$viewport.width(),
-                viewportHeight = self.$viewport.height(),
-                canvasWidth = this.$canvas.width(),
-                canvasHeight = this.$canvas.height();
-            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-                this.$canvas.width(viewportWidth);
-                this.$canvas.height(viewportHeight);
-                this.$canvas.attr('width', this.$viewport.width());
-                this.$canvas.attr('height', this.$viewport.height());
-            }
-            this.ctx.drawImage(this.initialImage, 0, 0);
+        if (this.initialImage) {
+            drawStaticImage.call(this, this.initialImage);
             return;
         }
 
         this.updating = true;
 
-        this.startSpinner();
-
         this.dataset.getMatrix(state.chr1, state.chr2)
 
             .then(function (matrix) {
-
-                self.stopSpinner();
 
                 var zd = matrix.bpZoomData[state.zoom],
                     blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
@@ -568,6 +568,16 @@ var hic = (function (hic) {
         this.$spinner.hide();
     };
 
+    function shiftCurrentImage(self, dx, dy) {
+        var canvasWidth = self.$canvas.width(),
+            canvasHeight = self.$canvas.height(),
+            imageData;
+
+        imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        self.ctx.putImageData(imageData, dx, dy);
+    }
+
     function addMouseHandlers($viewport) {
 
         var self = this,
@@ -766,9 +776,6 @@ var hic = (function (hic) {
 
                 var coords, eFixed;
 
-                if (self.updating) {
-                    return;
-                }
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -788,8 +795,16 @@ var hic = (function (hic) {
 
                         isDragging = true;
 
-                        self.browser.shiftPixels(mouseLast.x - coords.x, mouseLast.y - coords.y);
+                        var dx = mouseLast.x - coords.x;
+                        var dy = mouseLast.y - coords.y;
 
+                        // If matrix data is updating shift current map image while we wait
+                        if (self.updating) {
+                            shiftCurrentImage(self, -dx, -dy);
+                        }
+                        else {
+                            self.browser.shiftPixels(dx, dy);
+                        }
 
                     }
 
