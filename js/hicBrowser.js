@@ -203,8 +203,7 @@ var hic = (function (hic) {
         createIGV($hic_container, browser, browser.trackMenuReplacement);
 
 
-
-        if(config.initialImage) {
+        if (config.initialImage) {
             var img = new Image();
             img.onload = function () {
                 browser.contactMatrixView.setInitialImage(browser.state, img);
@@ -711,60 +710,25 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
 
-        var list;
+        var self = this;
 
-        if (_.size(this.trackRenderers) > 0) {
+        this.trackRenderers.forEach(function (xy) {
 
-            // append each x-y track pair into a single list for Promise'ing
-            list = [];
-            _.each(this.trackRenderers, function (xy) {
-
-                // sync canvas size with container div if needed
-                _.each(xy, function (r) {
-                    if (true === doSyncCanvas) {
-                        r.syncCanvas();
-                    }
-                });
-
-                // concatenate Promises
-                list.push(xy.x.promiseToRepaint());
-                list.push(xy.y.promiseToRepaint());
+            // sync canvas size with container div if needed
+            // jtr -- this is fragile, if "xy" contains any property other than track renderer it will blow up
+            _.each(xy, function (r) {
+                if (true === doSyncCanvas) {
+                    r.syncCanvas();
+                }
             });
 
-
-            // Execute list of async Promises serially, waiting for
-            // completion of one before executing the next.
-            Promise
-                .all(list)
-                .then(function (strings) {
-                    // console.log(strings.join('\n'));
-                })
-                .catch(function (error) {
-                    console.log(error.message)
-                });
-
-        }
-
+            self.renderTrackXY(xy);
+        });
     };
 
-    hic.Browser.prototype.renderTrackXY = function (trackXY) {
-        var list;
-
-        // append each x-y track pair into a single list for Promise'ing
-        list = [];
-
-        list.push(trackXY.x.promiseToRepaint());
-        list.push(trackXY.y.promiseToRepaint());
-
-        Promise
-            .all(list)
-            .then(function (strings) {
-                // console.log(strings.join('\n'));
-            })
-            .catch(function (error) {
-                console.log(error.message)
-            });
-
+    hic.Browser.prototype.renderTrackXY = function (xy) {
+        xy.x.repaint();
+        xy.y.repaint();
     };
 
     hic.Browser.prototype.loadHicFile = function (config) {
@@ -809,7 +773,7 @@ var hic = (function (hic) {
 
         this.contactMatrixView.clearCaches();
 
-        if(!this.config.initialImage) {
+        if (!this.config.initialImage) {
             this.contactMatrixView.startSpinner();
         }
 
@@ -878,7 +842,7 @@ var hic = (function (hic) {
 
             if (config.state) {
                 self.setState(config.state);
-            } else if(config.synchState) {
+            } else if (config.synchState) {
                 self.syncState(config.synchState);
             } else {
                 self.setState(defaultState.clone());
@@ -1246,7 +1210,7 @@ var hic = (function (hic) {
      * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
      * and resolution arrays
      */
-    hic.Browser.prototype.getSyncState = function() {
+    hic.Browser.prototype.getSyncState = function () {
         return {
             chr1Name: this.dataset.chromosomes[this.state.chr1].name,
             chr2Name: this.dataset.chromosomes[this.state.chr2].name,
@@ -1272,18 +1236,18 @@ var hic = (function (hic) {
             y = syncState.binY,
             pixelSize = syncState.pixelSize;
 
-        if(zoom === undefined) {
+        if (zoom === undefined) {
             // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
             zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
 
             // Compute equivalent in basepairs / pixel
-            pixelSize =  (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
+            pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
 
             // Translate bins so that origin is unchanged in basepairs
             x = (syncState.binX / syncState.pixelSize) * pixelSize;
             y = (syncState.binY / syncState.pixelSize) * pixelSize;
 
-            if(pixelSize > MAX_PIXEL_SIZE) {
+            if (pixelSize > MAX_PIXEL_SIZE) {
                 console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)");
                 return;
             }
@@ -1399,7 +1363,7 @@ var hic = (function (hic) {
             this.updateUriParameters(event);
         }
 
-        if(event.type === "TrackState2D") {
+        if (event.type === "TrackState2D") {
             this.updateUriParameters(event);
         }
     };
@@ -1426,7 +1390,7 @@ var hic = (function (hic) {
             if (undefined === config.width) {
                 config.width = defaultSize.width;
             }
-            if(undefined === config.height) {
+            if (undefined === config.height) {
                 config.height = defaultSize.height;
             }
             if (undefined === config.updateHref) {

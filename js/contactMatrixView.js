@@ -195,6 +195,10 @@ var hic = (function (hic) {
             return;
         }
 
+        if(this.updating) {
+            return;
+        }
+
         this.updating = true;
 
         this.dataset.getMatrix(state.chr1, state.chr2)
@@ -802,9 +806,8 @@ var hic = (function (hic) {
                         if (self.updating) {
                             shiftCurrentImage(self, -dx, -dy);
                         }
-                        else {
-                            self.browser.shiftPixels(dx, dy);
-                        }
+
+                        self.browser.shiftPixels(dx, dy);
 
                     }
 
