@@ -248,6 +248,7 @@ var hic = (function (hic) {
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
         this.updateHref = config.updateHref === undefined ? true : config.updateHref;
+        this.updateHref_ = this.updateHref_;   // Need to remember this to restore state on map load (after local file)
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
@@ -516,10 +517,8 @@ var hic = (function (hic) {
         }
     };
 
-    /**
-     * String the window href of browser parameters. Temporarily need to support multi maps
-     */
-    hic.Browser.prototype.stripUriParameters = function () {
+
+    stripUriParameters = function () {
 
         var href = window.location.href,
             idx = href.indexOf("?");
@@ -765,8 +764,10 @@ var hic = (function (hic) {
         if (config.url) {
             if (config.url instanceof File) {
                 this.url = config.url;
+                this.updateHref = false;
+                stripUriParameters();
             } else {
-
+                this.updateHref = this.updateHref_;
                 queryIdx = config.url.indexOf("?");
                 if (queryIdx > 0) {
                     this.url = config.url.substring(0, queryIdx);
