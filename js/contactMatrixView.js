@@ -80,9 +80,6 @@ var hic = (function (hic) {
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
-
-        addMouseHandlers.call(this, this.$viewport);
-
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
@@ -110,12 +107,22 @@ var hic = (function (hic) {
 
     };
 
-    hic.ContactMatrixView.prototype.setInitialImage = function (state, image) {
-        this.initialImageState = state.clone();
-        this.initialImage = image;
+    hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
+        this.initialImage = {
+            x: x,
+            y: y,
+            state: state.clone(),
+            img: image
+        }
     }
 
     hic.ContactMatrixView.prototype.setDataset = function (dataset) {
+
+        // Don't enable mouse actions until we have a dataset.
+        if(!this.mouseHandlersEnabled) {
+            addMouseHandlers.call(this, this.$viewport);
+            this.mouseHandlersEnabled = true;
+        }
 
         this.dataset = dataset;
         this.clearCaches();
@@ -123,6 +130,7 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
+
         if (!state) state = this.browser.state;
 
         this.colorScale.high = value;
@@ -151,32 +159,55 @@ var hic = (function (hic) {
 
         if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type || "TrackState2D" === event.type) {
             this.clearCaches();
-            this.initialImage = undefined;
         }
-        else if ("LocusChange" === event.type) {
-            if (!event.data.state.equals(this.initialImageState)) {
+
+        if (this.initialImage) {
+            if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
                 this.initialImage = undefined;
+                this.startSpinner();
             }
-        } else {
-            this.initialImageState = undefined;
         }
 
         this.update();
 
     };
 
+    function validateInitialImage(initialImage, state) {
+
+        if (initialImage.state.equals(state)) return true;
+
+        if (!(initialImage.state.chr1 === state.chr1 && initialImage.state.chr2 === state.chr2 &&
+            initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
+            initialImage.state.normalization === state.normalization)) return false;
+
+        // Now see if initial image fills view
+        var offsetX = (initialImage.x - state.x) * state.pixelSize,
+            offsetY = (initialImage.y - state.y) * state.pixelSize,
+            width = initialImage.img.width,
+            height = initialImage.img.height,
+            viewportWidth = this.$viewport.width(),
+            viewportHeight = this.$viewport.height();
+
+        // Viewport rectangle must be completely contained in image rectangle
+        return offsetX <= 0 && offsetY <= 0 && (width + offsetX) >= viewportWidth && (height + offsetY) >= viewportHeight;
+
+    }
+
     function drawStaticImage(image) {
         var viewportWidth = this.$viewport.width(),
             viewportHeight = this.$viewport.height(),
             canvasWidth = this.$canvas.width(),
-            canvasHeight = this.$canvas.height();
+            canvasHeight = this.$canvas.height(),
+            state = this.browser.state,
+            offsetX = (image.x - state.x) * state.pixelSize,
+            offsetY = (image.y - state.y) * state.pixelSize;
         if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
             this.$canvas.width(viewportWidth);
             this.$canvas.height(viewportHeight);
             this.$canvas.attr('width', this.$viewport.width());
             this.$canvas.attr('height', this.$viewport.height());
         }
-        this.ctx.drawImage(image, 0, 0);
+        this.ctx.drawImage(image.img, offsetX, offsetY);
     }
 
     hic.ContactMatrixView.prototype.update = function () {
@@ -195,7 +226,7 @@ var hic = (function (hic) {
             return;
         }
 
-        if(this.updating) {
+        if (this.updating) {
             return;
         }
 
@@ -389,8 +420,6 @@ var hic = (function (hic) {
                 }
 
                 function drawBlock(block, transpose) {
-
-                    var t0 = (new Date()).getTime();
 
                     var imageSize = Math.ceil(widthInBins * pixelSizeInt),
                         blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, px, py;
@@ -824,7 +853,9 @@ var hic = (function (hic) {
             // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
             // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
 
-            $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+            if(!self.browser.figureMode) {
+                $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+            }
 
             // Document level events
             $(document).on({
@@ -907,6 +938,10 @@ var hic = (function (hic) {
 
 
     };
+
+    hic.ColorScale.prototype.equals = function(cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    }
 
     hic.ColorScale.prototype.getColor = function (value) {
         var scale = this, r, g, b, frac, diff;

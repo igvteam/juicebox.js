@@ -132,7 +132,10 @@ var hic = (function (hic) {
             selectedGene,
             nvi,
             normVectorString,
-            isMiniMode;
+            isMiniMode,
+            initialImageImg,
+            initialImageX,
+            initialImageY;
 
         setDefaults(config);
 
@@ -204,14 +207,27 @@ var hic = (function (hic) {
 
 
         if (config.initialImage) {
-            var img = new Image();
-            img.onload = function () {
-                browser.contactMatrixView.setInitialImage(browser.state, img);
+
+            initialImageImg = new Image();
+
+            initialImageImg.onload = function () {
+
+                if(typeof config.initialImage === 'string') {
+                    initialImageX = browser.state.x;
+                    initialImageY = browser.state.y;
+                } else {
+                    initialImageX = config.initialImage.left || browser.state.x;
+                    initialImageY = config.initialImage.top || browser.state.y;
+                }
+
+                browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
+
+                // Load hic file after initial image is loaded -- important
                 if (config.url || config.dataset) {
                     browser.loadHicFile(config);
                 }
             }
-            img.src = config.initialImage;
+            initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
         }
         else {
             if (config.url || config.dataset) {
@@ -228,6 +244,7 @@ var hic = (function (hic) {
         var self = this;
 
         this.config = config;
+        this.figureMode = config.miniMode;
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
         this.updateHref = config.updateHref === undefined ? true : config.updateHref;
@@ -566,6 +583,7 @@ var hic = (function (hic) {
 
         this.contactMatrixView.setColorScale(high);
         this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
         this.updateUriParameters();
 

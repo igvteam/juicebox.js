@@ -224,12 +224,12 @@ var hic = (function (hic) {
 
                         self.stopSpinner();
 
-                        if (features) {
+                        buffer = document.createElement('canvas');
+                        buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
+                        buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
+                        ctx = buffer.getContext("2d");
 
-                            buffer = document.createElement('canvas');
-                            buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
-                            buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
-                            ctx = buffer.getContext("2d");
+                        if (features) {
 
                             self.canvasTransform(ctx);
 
@@ -257,11 +257,13 @@ var hic = (function (hic) {
                             };
 
                             self.track.draw(self.drawConfiguration);
-                            self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
+
                         } else {
                             ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
                         }
+
                         self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
+
                         self.repaint();
 
                     })

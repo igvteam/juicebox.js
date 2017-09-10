@@ -252,7 +252,11 @@
                         width: windowSize,
                         height: windowSize,
                         dataset: dataset,
-                        initialImage: "../figures/fig6A-1.png",
+                        initialImage: {
+                            left: 19176.2903,
+                            top: 19176.2903,
+                            imageURL: "../figures/fig6A-1.png"
+                        },
                         href: "?state=3%2C3%2C7%2C19215%2C19215%2C1.55%2CKR&colorScale=72&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Funtreated%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Untreated&tracks=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Fchipseq%5Fdata%2Funtreated%2FH3K36me3%5FFE.bw%7CUntreated%20H3K36me3%7C0-3%7Crgb(0%2C150%2C0)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Fchipseq%5Fdata%2Funtreated%2FH3K4me1%5FFE.bw%7CUntreated%20H3K4me1%7C0-7%7Crgb(0%2C150%2C0)"
                     });
                     if(browser2) hic.syncBrowsers([browser1, browser2]);
@@ -270,7 +274,7 @@
                         width: windowSize,
                         height: windowSize,
                         dataset: dataset,
-                        initialImage: "../figures/fig6A-2.png",
+                        initialImage:  "../figures/fig6A-2.png",
                         href: "?state=3%2C3%2C7%2C19215%2C19215%2C1.55%2CKR&colorScale=31&hicUrl=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Ftreated_6hr%2Funsynchronized%2Fcombined.hic&name=Rao%20et%20al.%20%7C%20Biorxiv%202017%20Combined%20Treated%20(6%20hr)&tracks=https%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Fchipseq%5Fdata%2Ftreated%2FH3K36me3%5FFE.bw%7C6hr%20Treated%20H3K36me3%7C0-3%7Crgb(0%2C150%2C0)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2Fdegron%2Fchipseq%5Fdata%2Ftreated%2FH3K4me1%5FFE.bw%7C6hr%20Treated%20H3K4me1%7C0-7%7Crgb(0%2C150%2C0)"
                     });
                     if(browser1) hic.syncBrowsers([browser1, browser2]);
