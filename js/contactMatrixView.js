@@ -125,6 +125,7 @@ var hic = (function (hic) {
         }
 
         this.dataset = dataset;
+        this.updating = false;
         this.clearCaches();
         this.update();
     };

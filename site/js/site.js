@@ -62,7 +62,7 @@ var site = (function (site) {
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
 
-        function loadHicFile(url, $selected) {
+        function loadHicFile(url, name) {
             var synchState;
 
             if(hic.allBrowsers.length > 1) {
@@ -105,7 +105,7 @@ var site = (function (site) {
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    loadHicFile({url: file, name: file.name});
+                    loadHicFile(file, file.name);
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
                 }
@@ -133,7 +133,7 @@ var site = (function (site) {
                 suffix = path.substr(path.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    loadHicFile({url: url, name: hic.extractFilename(path)});
+                    loadHicFile(url, hic.extractFilename(path));
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
                 }
