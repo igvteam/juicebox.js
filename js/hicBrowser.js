@@ -248,7 +248,7 @@ var hic = (function (hic) {
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
         this.updateHref = config.updateHref === undefined ? true : config.updateHref;
-        this.updateHref_ = this.updateHref_;   // Need to remember this to restore state on map load (after local file)
+        this.updateHref_ = this.updateHref;   // Need to remember this to restore state on map load (after local file)
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];

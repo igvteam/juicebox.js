@@ -121,7 +121,7 @@ var hic = (function (hic) {
                     dataset.bpResolutions.push(binaryParser.getInt());
                 }
 
-                if(this.loadFragData) {
+                if (this.loadFragData) {
                     dataset.fragResolutions = [];
                     var nFragResolutions = binaryParser.getInt();
                     while (nFragResolutions-- > 0) {
@@ -223,7 +223,7 @@ var hic = (function (hic) {
                     withCredentials: self.config.withCredentials
                 }).then(function (data) {
 
-                var key, pos, size;
+                var key, pos, size, nEntries;
 
                 if (!data) {
                     fulfill(null);
@@ -233,7 +233,9 @@ var hic = (function (hic) {
                 var binaryParser = new igv.BinaryParser(new DataView(data));
 
                 dataset.expectedValueVectors = {};
+
                 nEntries = binaryParser.getInt();
+
                 while (nEntries-- > 0) {
                     var type = "NONE";
                     var unit = binaryParser.getString();
@@ -256,54 +258,62 @@ var hic = (function (hic) {
 
 
                 dataset.normalizedExpectedValueVectors = {};
-                nEntries = binaryParser.getInt();
-                while (nEntries-- > 0) {
-                    var type = binaryParser.getString();
-                    var unit = binaryParser.getString();
-                    var binSize = binaryParser.getInt();
-                    var nValues = binaryParser.getInt();
-                    var values = [];
-                    while (nValues-- > 0) {
-                        values.push(binaryParser.getDouble());
+
+                try {
+                    nEntries = binaryParser.getInt();
+
+
+                    while (nEntries-- > 0) {
+                        var type = binaryParser.getString();
+                        var unit = binaryParser.getString();
+                        var binSize = binaryParser.getInt();
+                        var nValues = binaryParser.getInt();
+                        var values = [];
+                        while (nValues-- > 0) {
+                            values.push(binaryParser.getDouble());
+                        }
+                        var nChrScaleFactors = binaryParser.getInt();
+                        var normFactors = {};
+                        while (nChrScaleFactors-- > 0) {
+                            normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                        }
+                        var key = unit + "_" + binSize + "_" + type;
+                        // NOT USED YET SO DON'T STORE
+                        //   dataset.normalizedExpectedValueVectors[key] =
+                        //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
                     }
-                    var nChrScaleFactors = binaryParser.getInt();
-                    var normFactors = {};
-                    while (nChrScaleFactors-- > 0) {
-                        normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+
+
+                    // Normalization vector index
+                    var p0 = binaryParser.position;
+                    self.normVectorIndex = {};
+
+                    if (!dataset.normalizationTypes) {
+                        dataset.normalizationTypes = [];
                     }
-                    var key = unit + "_" + binSize + "_" + type;
-                    // NOT USED YET SO DON'T STORE
-                    //   dataset.normalizedExpectedValueVectors[key] =
-                    //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                }
+                    dataset.normalizationTypes.push('NONE');
 
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        type = binaryParser.getString();
+                        var chrIdx = binaryParser.getInt();
+                        unit = binaryParser.getString();
+                        binSize = binaryParser.getInt();
+                        var filePosition = binaryParser.getLong();
+                        var sizeInBytes = binaryParser.getInt();
+                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
-                // Normalization vector index
-                var p0 = binaryParser.position;
-                self.normVectorIndex = {};
-
-                if(!dataset.normalizationTypes) {
-                    dataset.normalizationTypes = [];
-                }
-                dataset.normalizationTypes.push('NONE');
-
-                nEntries = binaryParser.getInt();
-                while (nEntries-- > 0) {
-                    type = binaryParser.getString();
-                    var chrIdx = binaryParser.getInt();
-                    unit = binaryParser.getString();
-                    binSize = binaryParser.getInt();
-                    var filePosition = binaryParser.getLong();
-                    var sizeInBytes = binaryParser.getInt();
-                    key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-                    if (_.contains(dataset.normalizationTypes, type) === false) {
-                        dataset.normalizationTypes.push(type);
+                        if (_.contains(dataset.normalizationTypes, type) === false) {
+                            dataset.normalizationTypes.push(type);
+                        }
+                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
                     }
-                    self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                }
 
-                self.normalizationVectorIndexRange = {start: range.start + p0, size: binaryParser.position - p0};
+                    self.normalizationVectorIndexRange = {start: range.start + p0, size: binaryParser.position - p0};
+                } catch (e) {
+                    // This is normal, apparently, when there are no vectors.
+                    self.normalizationVectorIndexRange = undefined;
+                }
 
 
                 fulfill(self);
@@ -347,7 +357,7 @@ var hic = (function (hic) {
                 // Normalization vector index
                 if (undefined === self.normVectorIndex) self.normVectorIndex = {};
 
-                if(!dataset.normalizationTypes) {
+                if (!dataset.normalizationTypes) {
                     dataset.normalizationTypes = [];
                 }
                 dataset.normalizationTypes.push('NONE');
