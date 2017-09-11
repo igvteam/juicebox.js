@@ -127,12 +127,15 @@ var hic = (function (hic) {
 
         this.updating = false;
         this.clearCaches();
+        this.colorScaleCache = {};
         this.update();
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
 
-        if (!state) state = this.browser.state;
+        if (!state) {
+            state = this.browser.state;
+        }
 
         this.colorScale.high = value;
         this.colorScaleCache[colorScaleKey(state)] = value;
@@ -145,7 +148,6 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
-        this.colorScaleCache = {};
     };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
