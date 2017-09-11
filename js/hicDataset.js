@@ -54,8 +54,10 @@ var hic = (function (hic) {
         var self = this,
             reader = this.hicReader,
             key = "" + Math.min(chr1, chr2) + "_" + Math.max(chr1, chr2);
+
         if (this.matrixCache.hasOwnProperty(key)) {
             return Promise.resolve(self.matrixCache[key]);
+
         } else {
             return new Promise(function (fulfill, reject) {
 
@@ -95,6 +97,7 @@ var hic = (function (hic) {
                                 self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
                                     .then(function (nv2) {
+
                                         var normRecords = [],
                                             normBlock;
 
@@ -127,7 +130,8 @@ var hic = (function (hic) {
                                     })
                                     .catch(reject)
 
-                            }).catch(reject);
+                            })
+                            .catch(reject);
                     }
                 })
                 .catch(reject);
@@ -247,10 +251,10 @@ var hic = (function (hic) {
         return -1;
     }
 
-    hic.Dataset.prototype.getChrIndexFromName = function(chrName) {
+    hic.Dataset.prototype.getChrIndexFromName = function (chrName) {
         var i;
-        for(i = 0; i < this.chromosomes.length; i++) {
-            if(chrName === this.chromosomes[i].name) return i;
+        for (i = 0; i < this.chromosomes.length; i++) {
+            if (chrName === this.chromosomes[i].name) return i;
         }
         return undefined;
     }

@@ -116,15 +116,15 @@ var hic = (function (hic) {
         }
     }
 
-    hic.ContactMatrixView.prototype.setDataset = function (dataset) {
 
+    hic.ContactMatrixView.prototype.datasetUpdated = function () {
+        // This should probably be an event
         // Don't enable mouse actions until we have a dataset.
-        if(!this.mouseHandlersEnabled) {
+        if (!this.mouseHandlersEnabled) {
             addMouseHandlers.call(this, this.$viewport);
             this.mouseHandlersEnabled = true;
         }
 
-        this.dataset = dataset;
         this.updating = false;
         this.clearCaches();
         this.update();
@@ -145,7 +145,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.clearCaches = function () {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
-        //this.initialImage = undefined;
+        this.colorScaleCache = {};
     };
 
     hic.ContactMatrixView.prototype.getViewDimensions = function () {
@@ -216,24 +216,26 @@ var hic = (function (hic) {
         var self = this,
             state = this.browser.state;
 
-        if (!this.dataset) return;
+        if (!self.browser.dataset) return;
 
-        if (!this.ctx) {
-            this.ctx = this.$canvas.get(0).getContext("2d");
+        if (!self.ctx) {
+            self.ctx = this.$canvas.get(0).getContext("2d");
         }
 
-        if (this.initialImage) {
+        if (self.initialImage) {
             drawStaticImage.call(this, this.initialImage);
             return;
         }
 
-        if (this.updating) {
+        if (self.updating) {
             return;
         }
 
-        this.updating = true;
+        self.updating = true;
 
-        this.dataset.getMatrix(state.chr1, state.chr2)
+        self.startSpinner();
+
+        self.browser.dataset.getMatrix(state.chr1, state.chr2)
 
             .then(function (matrix) {
 
@@ -260,25 +262,26 @@ var hic = (function (hic) {
 
                         Promise.all(promises)
                             .then(function (imageTiles) {
-                                self.draw(imageTiles, zd);
                                 self.updating = false;
+                                self.draw(imageTiles, zd);
+                                self.stopSpinner();
                             })
                             .catch(function (error) {
-                                self.stopSpinner();
                                 self.updating = false;
+                                self.stopSpinner();
                                 console.error(error);
                             })
 
                     })
                     .catch(function (error) {
-                        self.stopSpinner(self);
                         self.updating = false;
+                        self.stopSpinner(self);
                         console.error(error);
                     })
             })
             .catch(function (error) {
-                self.stopSpinner();
                 self.updating = false;
+                self.stopSpinner();
                 console.error(error);
             })
     };
@@ -314,7 +317,7 @@ var hic = (function (hic) {
                             blockNumber = row * zd.blockColumnCount + column;
                         }
 
-                        promises.push(self.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                        promises.push(self.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization))
                     }
                 }
 
@@ -539,7 +542,7 @@ var hic = (function (hic) {
 
                 self.startSpinner();
 
-                self.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
+                self.browser.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
 
                     .then(function (block) {
 
@@ -548,7 +551,7 @@ var hic = (function (hic) {
                             image = drawBlock(block, transpose);
                         }
                         else {
-                            console.log("No block for " + blockNumber);
+                            //console.log("No block for " + blockNumber);
                         }
 
                         var imageTile = {row: row, column: column, image: image};
@@ -854,7 +857,7 @@ var hic = (function (hic) {
             // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
             // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
 
-            if(!self.browser.figureMode) {
+            if (!self.browser.figureMode) {
                 $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
             }
 
@@ -940,7 +943,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.ColorScale.prototype.equals = function(cs) {
+    hic.ColorScale.prototype.equals = function (cs) {
         return JSON.stringify(this) === JSON.stringify(cs);
     }
 

@@ -809,6 +809,7 @@ var hic = (function (hic) {
 
                 .then(function (dataset) {
 
+                    self.dataset = dataset;
 
                     if (config.normVectorFiles) {
 
@@ -831,8 +832,7 @@ var hic = (function (hic) {
 
                             })
                             .catch(function (error) {
-                                self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
-                                console.log(error);
+                                throw new Error("Error");
                             });
                     }
                     else {
@@ -855,7 +855,6 @@ var hic = (function (hic) {
 
             self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
 
-
             // TODO -- this is not going to work with browsers on different assemblies on the same page.
             igv.browser.genome = self.genome;
 
@@ -866,7 +865,7 @@ var hic = (function (hic) {
             } else {
                 self.setState(defaultState.clone());
             }
-            self.contactMatrixView.setDataset(dataset);
+            self.contactMatrixView.datasetUpdated();
 
             if (self.genome.id !== previousGenomeId) {
                 self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
