@@ -335,6 +335,31 @@
   .hic-annotation-modal-container .hic-annotation-modal-row:active {
     background-color: #f7f7f7; }
 
+.hic-color-swatch-container {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%; }
+
+.hic-color-swatch {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px; }
+  .hic-color-swatch i.fa-circle {
+    display: block;
+    color: blue; }
+  .hic-color-swatch i.fa:hover,
+  .hic-color-swatch i.fa:focus,
+  .hic-color-swatch i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f; }
+
 .hic-navbar-container {
   display: flex;
   flex-flow: column;

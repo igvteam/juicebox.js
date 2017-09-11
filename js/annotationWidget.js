@@ -66,7 +66,6 @@ var hic = (function (hic) {
     function modalBodyRow($container, track) {
         var self = this,
             $row,
-            $colorPicker,
             $hideShowTrack,
             $deleteTrack,
             $upTrack,
@@ -75,9 +74,11 @@ var hic = (function (hic) {
             hidden_color = '#f7f7f7',
             str;
 
+        // one row
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $container.append($row);
 
+        // get associated track2D reference
         $row.data('track2D', track);
 
         // track name
@@ -109,26 +110,17 @@ var hic = (function (hic) {
 
         });
 
-        // color
+        // color swatch selector
+        $e = colorSwatch(track.color);
+        $row.append($e);
+        $e.on('click', function (e) {
+            $row.next('.hic-color-swatch-container').toggle();
+        });
 
-        //
-        // if (inputTypeColorSupport()) {
-        //     $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
-        //     $colorPicker.on("change", function () {
-        //         var hexColor = $colorPicker.val(),
-        //             rgb = hexToRgb(hexColor);
-        //         track2D.color = rgb;
-        //         self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
-        //     })
-        // } else {
-        $colorPicker = createGenericColorPicker(track.color, function (color) {
+        createColorSwatchSelector($container, function (color) {
             track.color = color;
             self.browser.eventBus.post(hic.Event("TrackState2D", track));
         });
-        //}
-
-        $row.append($colorPicker);
-
 
         // track up/down
         $e = $('<div>');
@@ -180,7 +172,6 @@ var hic = (function (hic) {
             self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
             self.updateBody(self.browser.tracks2D);
         });
-
 
         // track delete
         $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
@@ -308,56 +299,29 @@ var hic = (function (hic) {
             parseInt(result[3], 16) + ")";
     }
 
-    function inputTypeColorSupport() {
-        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
-            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
-            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
-        }
-        return inputTypeColorSupport._cachedResult;
-    }
+    function createColorSwatchSelector($parent, callback) {
 
-    function createGenericColorPicker(currentColor, callback) {
+        var $color_swatch_container,
+            $palletDiv,
+            $showButton;
 
-        var $widget, $palletDiv, $buttonContainer, $showButton, $hideButton;
+        // color swatch selector
+        $color_swatch_container = $('<div>', {class: 'hic-color-swatch-container'});
+        $parent.append($color_swatch_container);
 
-        $widget = $('<div/>')
+        $color_swatch_container.hide();
 
-        // Set position property to "fixed" to take it out of the page flow.  Otherwise it will move controls to the right
-        $palletDiv = $('<div style="width: 300px; display:none; border: 2px black; margin: 5px; position: fixed">');
-
-        $buttonContainer = $('<div style="width: 300px; display: flex; flex-wrap: wrap">');
-        $palletDiv.append($buttonContainer);
-
-        if(currentColor) {
-            $buttonContainer.append(createColorRow(currentColor));  // self color, might be duplicated in CSS_NAMES but we don't care
-        }
-
-        //if(!WEB_SAFE_COLORS) createWebSafeColorArray();
         CSS_COLOR_NAMES.forEach(function (c) {
-            $buttonContainer.append(createColorRow(c));
-        });
+            var $swatch;
 
-        $hideButton = $('<input/>', {
-            type: "button",
-            value: "Close",
-            style: "margin: 5px, border-radius: 5px"
-        });
-        $hideButton.click(function () {
-            $palletDiv.css("display", "none");
-        });
-        $palletDiv.append($hideButton);
+            $swatch = colorSwatch(c);
+            $color_swatch_container.append($swatch);
 
-        $showButton = $('<button/>', {
-            style: "width: 20px; height: 20px; background-color: " + currentColor
-        });
-        $showButton.on("click", function () {
-            $palletDiv.css("display", "block");
-        });
+            $swatch.click(function () {
+                callback(c);
+            });
 
-
-        $widget.append($showButton);
-        $widget.append($palletDiv);
-        return $widget;
+        });
 
         function createColorRow(color) {
 
@@ -391,7 +355,20 @@ var hic = (function (hic) {
             }
         }
 
+    }
 
+    function colorSwatch(color) {
+        var $swatch,
+            $fa;
+
+        $swatch = $('<div>', {class: 'hic-color-swatch'});
+
+        $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
+        $swatch.append($fa);
+
+        $fa.css({ color: color });
+
+        return $swatch;
     }
 
     var WEB_SAFE_COLORS;

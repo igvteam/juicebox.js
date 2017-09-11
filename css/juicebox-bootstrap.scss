@@ -30,6 +30,7 @@ $hic-menu-margin: 8px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
+$hic-color-swatch-size: 32px;
 //
 $default-light-color: #f7f7f7;
 $default-medium-color: #a6a6a6;
@@ -616,6 +617,46 @@ $default-font-family: 'Open Sans', sans-serif;
   .hic-annotation-modal-row:focus,
   .hic-annotation-modal-row:active {
     background-color: #f7f7f7;
+  }
+
+}
+
+// color swatch selector
+.hic-color-swatch-container {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+
+}
+
+.hic-color-swatch {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  //justify-content: flex-start;
+  justify-content: center;
+  align-items: center;
+
+  width: $hic-color-swatch-size;
+  height: $hic-color-swatch-size;
+  //background-color: greenyellow;
+
+  i.fa-circle {
+    display: block;
+    color: blue;
+  }
+
+  i.fa:hover,
+  i.fa:focus,
+  i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f;
   }
 
 }
