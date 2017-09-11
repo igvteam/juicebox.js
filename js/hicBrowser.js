@@ -194,6 +194,7 @@ var hic = (function (hic) {
         browser = new hic.Browser($hic_container, config);
 
         hic.allBrowsers.push(browser);
+
         hic.Browser.setCurrentBrowser(browser);
 
         isMiniMode = (config.miniMode && true === config.miniMode);
@@ -813,7 +814,6 @@ var hic = (function (hic) {
 
                     if (config.normVectorFiles) {
 
-
                         var promises = [];
 
                         config.normVectorFiles.forEach(function (f) {
@@ -873,6 +873,7 @@ var hic = (function (hic) {
 
             if (config.colorScale) {
                 self.getColorScale().high = config.colorScale;
+                self.contactMatrixView.setColorScale(config.colorScale, self.state);
             }
 
             if (config.tracks) {
