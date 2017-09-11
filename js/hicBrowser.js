@@ -281,6 +281,9 @@ var hic = (function (hic) {
         if (config.colorScale && !isNaN(config.colorScale)) {
             this.contactMatrixView.setColorScale(config.colorScale, this.state);
         }
+        if(config.miniMode) {
+            this.contactMatrixView.imageTileCacheLimit = 4;
+        }
 
         this.eventBus.subscribe("LocusChange", this);
         this.eventBus.subscribe("DragStopped", this);
@@ -852,6 +855,8 @@ var hic = (function (hic) {
             var previousGenomeId = self.genome ? self.genome.id : undefined;
 
             self.dataset = dataset;
+
+            if(self.figureMode) dataset.setFigureMode(self.figureMode);
 
             self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
 
