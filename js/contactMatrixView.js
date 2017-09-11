@@ -379,8 +379,8 @@ var hic = (function (hic) {
                 var offsetX = (x0 - state.x) * state.pixelSize;
                 var offsetY = (y0 - state.y) * state.pixelSize;
                 var scale = state.pixelSize / pixelSizeInt;
-                var scaledWidth = Math.ceil(image.width * scale);
-                var scaledHeight = Math.ceil(image.height * scale);
+                var scaledWidth = image.width * scale;
+                var scaledHeight =image.height * scale;
                 if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
                     offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
                     if (scale === 1) {
