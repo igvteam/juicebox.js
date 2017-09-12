@@ -364,7 +364,7 @@
   border-style: solid;
   border-width: thin;
   border-color: transparent; }
-  .hic-color-swatch i.fa-circle {
+  .hic-color-swatch i.fa {
     display: block; }
   .hic-color-swatch i.fa:hover,
   .hic-color-swatch i.fa:focus,
@@ -506,14 +506,24 @@
     background-color: white; }
   .hic-colorscale-widget-container input {
     width: 110px; }
-  .hic-colorscale-widget-container i.fa {
+  .hic-colorscale-widget-container i.fa-minus {
     display: block;
     margin-left: 4px;
     margin-right: 4px;
     color: #5f5f5f; }
-  .hic-colorscale-widget-container i.fa:hover,
-  .hic-colorscale-widget-container i.fa:focus,
-  .hic-colorscale-widget-container i.fa:active {
+  .hic-colorscale-widget-container i.fa-minus:hover,
+  .hic-colorscale-widget-container i.fa-minus:focus,
+  .hic-colorscale-widget-container i.fa-minus:active {
+    cursor: pointer;
+    color: #0f0f0f; }
+  .hic-colorscale-widget-container i.fa-plus {
+    display: block;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: #5f5f5f; }
+  .hic-colorscale-widget-container i.fa-plus:hover,
+  .hic-colorscale-widget-container i.fa-plus:focus,
+  .hic-colorscale-widget-container i.fa-plus:active {
     cursor: pointer;
     color: #0f0f0f; }
 

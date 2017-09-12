@@ -381,6 +381,7 @@ var hic = (function (hic) {
         $swatch = $('<div>', {class: 'hic-color-swatch'});
 
         // $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
+        // $fa = $('<i>', { class: 'fa fa-square fa-2x', 'aria-hidden': 'true' });
         $fa = $('<i>', { class: 'fa fa-square fa-lg', 'aria-hidden': 'true' });
         $swatch.append($fa);
 

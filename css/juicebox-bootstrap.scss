@@ -660,8 +660,7 @@ $default-font-family: 'Open Sans', sans-serif;
   border-width: thin;
   border-color: transparent;
 
-
-  i.fa-circle {
+  i.fa {
     display: block;
   }
 
@@ -678,7 +677,6 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-color-swatch:active {
   border-color: #dddddd;
 }
-
 
 // navbar
 .hic-navbar-container {
@@ -854,16 +852,30 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 110px;
   }
 
-  i.fa {
+  i.fa-minus {
     display: block;
     margin-left: 4px;
     margin-right: 4px;
     color: $default-dark-color;
   }
 
-  i.fa:hover,
-  i.fa:focus,
-  i.fa:active {
+  i.fa-minus:hover,
+  i.fa-minus:focus,
+  i.fa-minus:active {
+    cursor: pointer;
+    color: $default-hover-color;
+  }
+
+  i.fa-plus {
+    display: block;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: $default-dark-color;
+  }
+
+  i.fa-plus:hover,
+  i.fa-plus:focus,
+  i.fa-plus:active {
     cursor: pointer;
     color: $default-hover-color;
   }
