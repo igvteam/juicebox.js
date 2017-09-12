@@ -292,6 +292,13 @@
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
   font-weight: 400; }
+  .hic-annotation-modal-container .hic-annotation-row-container {
+    display: flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%; }
   .hic-annotation-modal-container .hic-annotation-modal-row {
     display: flex;
     flex-flow: row;

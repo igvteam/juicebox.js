@@ -31,6 +31,8 @@ $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 $hic-color-swatch-size: 32px;
+$hic-annotation-modal-row-height: 40px;
+
 //
 $default-light-color: #f7f7f7;
 $default-medium-color: #a6a6a6;
@@ -548,6 +550,18 @@ $default-font-family: 'Open Sans', sans-serif;
   font-family: $default-font-family;
   font-size: 16px;
   font-weight: 400;
+
+  .hic-annotation-row-container {
+
+    display:flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    width: 100%;
+
+  }
 
   .hic-annotation-modal-row {
 

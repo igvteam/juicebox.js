@@ -65,6 +65,7 @@ var hic = (function (hic) {
 
     function modalBodyRow($container, track) {
         var self = this,
+            $row_container,
             $row,
             $hideShowTrack,
             $deleteTrack,
@@ -74,9 +75,13 @@ var hic = (function (hic) {
             hidden_color = '#f7f7f7',
             str;
 
+        // row container
+        $row_container = $('<div>', {class: 'hic-annotation-row-container'});
+        $container.append($row_container);
+
         // one row
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
-        $container.append($row);
+        $row_container.append($row);
 
         // track2D reference
         $row.data('track2D', track);
@@ -119,10 +124,11 @@ var hic = (function (hic) {
         $e.on('click', function (e) {
             $row.next('.hic-color-swatch-container').toggle();
         });
-        createColorSwatchSelector($container, function (color) {
+        createColorSwatchSelector($row_container, function (color) {
             var $swatch;
 
-            $swatch = $row.find('.fa-circle');
+            // $swatch = $row.find('.fa-circle');
+            $swatch = $row.find('.fa-square');
             $swatch.css({ color: color });
 
             track.color = color;
@@ -374,7 +380,8 @@ var hic = (function (hic) {
 
         $swatch = $('<div>', {class: 'hic-color-swatch'});
 
-        $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
+        // $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
+        $fa = $('<i>', { class: 'fa fa-square fa-lg', 'aria-hidden': 'true' });
         $swatch.append($fa);
 
         $fa.css({ color: color });
