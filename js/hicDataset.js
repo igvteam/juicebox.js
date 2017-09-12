@@ -54,7 +54,7 @@ var hic = (function (hic) {
     }
     
     hic.Dataset.prototype.checkBlockCacheSize = function (size) {
-        this.blockCacheLimit = Math.max(this.blockCacheLimit, szie);
+        this.blockCacheLimit = Math.max(this.blockCacheLimit, size);
     }
 
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
