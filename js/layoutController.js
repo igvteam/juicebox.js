@@ -48,6 +48,8 @@ var hic = (function (hic) {
             $upper_widget_container,
             $lower_widget_container,
             $navbar_shim,
+            $a,
+            $b,
             $e,
             $fa;
 
@@ -140,8 +142,19 @@ var hic = (function (hic) {
             // shim
             $navbar_shim = $('<div class="hic-nav-bar-shim">');
             $navbar_container.append($navbar_shim);
-
         }
+
+
+        // color swatch selector
+        $a = $('<div>', { class: 'color-scale-swatch-scroll-container' });
+        $navbar_container.append($a);
+
+        $b = $('<div>', { class: 'color-scale-swatch-container' });
+        $a.append($b);
+
+        hic.createColorSwatchSelector($b, function (color) {
+            // do stuff
+        });
 
 
     }

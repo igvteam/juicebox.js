@@ -118,18 +118,22 @@ var hic = (function (hic) {
         });
 
 
-        // color swatch selector
-        $e = colorSwatch(track.color);
+        // color swatch selector button
+        $e = hic.colorSwatch(track.color);
         $row.append($e);
         $e.on('click', function (e) {
             $row.next('.hic-color-swatch-container').toggle();
         });
-        createColorSwatchSelector($row_container, function (color) {
+
+        // color swatch selector
+        $e = $('<div>', { class: 'hic-color-swatch-container' });
+        $row_container.append($e);
+
+        hic.createColorSwatchSelector($e, function (color) {
             var $swatch;
 
-            // $swatch = $row.find('.fa-circle');
             $swatch = $row.find('.fa-square');
-            $swatch.css({ color: color });
+            $swatch.css({color: color});
 
             track.color = color;
             self.browser.eventBus.post(hic.Event("TrackState2D", track));
@@ -298,119 +302,6 @@ var hic = (function (hic) {
         this.$modal = $modal;
 
     }
-
-    // Some conversion functions for the color input element -- spec says hex must be used
-    function rgbToHex(rgb) {
-        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-        return (rgb && rgb.length === 4) ? "#" +
-        ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
-        ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
-        ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
-    }
-
-    function hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return "rgb(" +
-            parseInt(result[1], 16) + ", " +
-            parseInt(result[2], 16) + ", " +
-            parseInt(result[3], 16) + ")";
-    }
-
-    function createColorSwatchSelector($parent, callback) {
-
-        var $color_swatch_container,
-            $palletDiv,
-            $showButton;
-
-        // color swatch selector
-        $color_swatch_container = $('<div>', {class: 'hic-color-swatch-container'});
-        $parent.append($color_swatch_container);
-
-        $color_swatch_container.hide();
-
-        CSS_COLOR_NAMES.forEach(function (c) {
-            var $swatch;
-
-            $swatch = colorSwatch(c);
-            $color_swatch_container.append($swatch);
-
-            $swatch.click(function () {
-                callback(c);
-            });
-
-        });
-
-        function createColorRow(color) {
-
-            var $cell = $('<input>', {
-                type: "button",
-                style: "width: 20px; background-color:" + color + "; height: 20px",
-            })
-            $cell.click(function () {
-                $showButton.css("background-color", color);
-                $palletDiv.css("display", "none");
-                callback(color);
-
-            });
-            return $cell;
-        }
-
-        function createWebSafeColorArray() {
-
-            var safe = new Array('00', '33', '66', '99', 'CC', 'FF'),
-                color, r, g, b;
-
-            WEB_SAFE_COLORS = [];
-            for (r = 0; r <= 5; r++) {
-                for (g = 0; g <= 5; g++) {
-                    for (b = 0; b <= 5; b++) {
-                        color = "#" + safe[r] + safe[g] + safe[b];
-                        WEB_SAFE_COLORS.push(color);
-                    }
-
-                }
-            }
-        }
-
-    }
-
-    function colorSwatch(color) {
-        var $swatch,
-            $fa;
-
-        $swatch = $('<div>', {class: 'hic-color-swatch'});
-
-        // $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
-        // $fa = $('<i>', { class: 'fa fa-square fa-2x', 'aria-hidden': 'true' });
-        $fa = $('<i>', { class: 'fa fa-square fa-lg', 'aria-hidden': 'true' });
-        $swatch.append($fa);
-
-        $fa.css({ color: color });
-
-        return $swatch;
-    }
-
-    var WEB_SAFE_COLORS;
-
-    var CSS_COLOR_NAMES = ["Red", "Blue", "Green","AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure", "Beige",
-        "Bisque", "Black", "BlanchedAlmond",  "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse", "Chocolate",
-        "Coral", "CornflowerBlue", "Cornsilk", "Crimson", "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray",
-        "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed",
-        "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet",
-        "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue", "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia",
-        "Gainsboro", "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey", "GreenYellow", "HoneyDew", "HotPink",
-        "IndianRed", "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", "LawnGreen", "LemonChiffon", "LightBlue",
-        "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink",
-        "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey", "LightSteelBlue",
-        "LightYellow", "Lime", "LimeGreen", "Linen", "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue",
-        "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise",
-        "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin", "NavajoWhite", "Navy", "OldLace",
-        "Olive", "OliveDrab", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed",
-        "PapayaWhip", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "RosyBrown", "RoyalBlue",
-        "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue", "SlateBlue",
-        "SlateGray", "SlateGrey", "Snow", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise",
-        "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"];
-
 
     return hic;
 })(hic || {});

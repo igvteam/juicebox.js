@@ -449,6 +449,17 @@
     width: 100%;
     height: 4px;
     background-color: transparent; }
+  .hic-navbar-container .color-scale-swatch-scroll-container {
+    width: 100%;
+    overflow-x: scroll;
+    background-color: white; }
+    .hic-navbar-container .color-scale-swatch-scroll-container .color-scale-swatch-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+      height: 32px; }
 
 .hic-chromosome-goto-container {
   width: 100%; }
