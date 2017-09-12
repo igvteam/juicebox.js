@@ -40,9 +40,8 @@ var hic = (function (hic) {
         $container.append(this.$container);
 
         // color chip
-        $e = $('<div>');
+        $e = hic.colorSwatch('red');
         this.$container.append($e);
-        $e.html('X');
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');

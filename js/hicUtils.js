@@ -26,6 +26,22 @@
  */
 var hic = (function (hic) {
 
+    hic.colorSwatch = function (color) {
+        var $swatch,
+            $fa;
+
+        $swatch = $('<div>', { class: 'hic-color-swatch' });
+
+        // $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
+        // $fa = $('<i>', { class: 'fa fa-square fa-2x', 'aria-hidden': 'true' });
+        $fa = $('<i>', { class: 'fa fa-square fa-lg', 'aria-hidden': 'true' });
+        $swatch.append($fa);
+
+        $fa.css({ color: color });
+
+        return $swatch;
+    };
+
     hic.extractFilename = function (urlString) {
 
         var idx = urlString.lastIndexOf("/");
