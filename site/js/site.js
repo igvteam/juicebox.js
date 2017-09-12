@@ -34,13 +34,21 @@ var site = (function (site) {
         browserListener;
 
     genomeChangeListener = {
-        receiveEvent: function (event) {
-            var browserRetrievalFunction;
 
-            loadAnnotationSelector($('#annotation-selector'), event.data);
+        receiveEvent: function (event) {
+            var browserRetrievalFunction,
+                genomeId = event.data,
+                tracksURL,
+                annotations2dURL;
+
+            tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
+            annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
+
+            loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
+            loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
 
             browserRetrievalFunction = function () {
-              return hic.Browser.getCurrentBrowser();
+                return hic.Browser.getCurrentBrowser();
             };
 
             createEncodeTable(browserRetrievalFunction, $('#encodeModalBody'), event.data);
@@ -65,8 +73,8 @@ var site = (function (site) {
         function loadHicFile(url, name) {
             var synchState;
 
-            if(hic.allBrowsers.length > 1) {
-                 synchState = hic.allBrowsers[0].getSyncState();
+            if (hic.allBrowsers.length > 1) {
+                synchState = hic.allBrowsers[0].getSyncState();
             }
 
             hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
@@ -167,6 +175,26 @@ var site = (function (site) {
 
         });
 
+        $('#annotation-2D-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                $('#hic-annotation-2D-select-modal').modal('hide');
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                // deselect all
+                $(this).find('option').removeAttr("selected");
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
+        });
+
         $('.juicebox-app-clone-button').on('click', function (e) {
 
             var browser,
@@ -179,10 +207,10 @@ var site = (function (site) {
             // }
 
             config =
-                {
-                    initFromUrl: false,
-                    updateHref: false
-                };
+            {
+                initFromUrl: false,
+                updateHref: false
+            };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -216,14 +244,14 @@ var site = (function (site) {
             }
 
             columnWidths =
-                {
-                    'Assembly': '10%',
-                    'Cell Type': '10%',
-                    'Target': '10%',
-                    'Assay Type': '20%',
-                    'Output Type': '20%',
-                    'Lab': '20%'
-                };
+            {
+                'Assembly': '10%',
+                'Cell Type': '10%',
+                'Target': '10%',
+                'Assay Type': '20%',
+                'Output Type': '20%',
+                'Lab': '20%'
+            };
 
             encodeTableFormat = new encode.EncodeTableFormat({columnWidths: columnWidths});
 
@@ -240,46 +268,37 @@ var site = (function (site) {
         encodeTable = undefined;
     }
 
-    function loadAnnotationSelector($container, genomeId) {
+    function loadAnnotationSelector($container, url, type) {
 
         var elements;
-
-        if (undefined === hic.Browser.getCurrentBrowser()) {
-            igv.presentAlert('ERROR: you must select a map panel.');
-            return;
-        }
 
         $container.empty();
 
         elements = [];
         elements.push('<option value=' + '-' + '>' + '-' + '</option>');
 
-        if ('hg19' === genomeId) {
+        igvxhr
+            .loadString(url)
+            .then(function (data) {
+                var lines = data ? data.splitLines() : [];
+                lines.forEach(function (line) {
+                    var tokens = line.split('\t');
+                    if (tokens.length > 1 && ("2D" === type|| igvSupports(tokens[1]))) {
+                        elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
+                    }
+                });
+                $container.append(elements.join(''));
 
-            igvxhr
-                .loadString("https://hicfiles.s3.amazonaws.com/internal/tracksMenu_hg19.txt")
-                .then(function (data) {
-                    var lines = data ? data.splitLines() : [];
-                    lines.forEach(function (line) {
-                        var tokens = line.split('\t');
-                        if (tokens.length > 1) {
-                            elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
-                        }
-                    });
-                    $container.append(elements.join(''));
+            })
+            .catch(function (error) {
+                console.log("Error loading track menu: " + url + "  " + error);
+            })
+    }
 
-                })
-                .catch(function (error) {
-                    console.log("Error loading track menu: " + error);
-                    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
-                    elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz' + '>' + 'Genes' + '</option>');
-                    $container.append(elements.join(''));
-                })
-
-        } else if ('hg38' === genomeId) {
-            elements.push('<option value=' + 'https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/genes/refGene_hg38_collapsed.refgene.gz' + '>' + 'Genes' + '</option>');
-            $container.append(elements.join(''));
-        }
+    function igvSupports(path) {
+        var config = {url: path};
+        igv.inferTrackTypes(config);
+        return config.type !== undefined;
 
     }
 

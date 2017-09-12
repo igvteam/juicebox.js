@@ -154,12 +154,37 @@
 
                     </select>
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>
+
+
+<!-- 2DAnnotation Select Modal -->
+<div id="hic-annotation-2D-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-2D-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-annotation-select-2D-modal-label">2D Annotations</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
+
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- Contact Map Select Modal -->
 <div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
@@ -175,9 +200,13 @@
             </div>
 
             <div class="modal-body">
-
                 <div class="form-group">
                     <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
+                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc.hic">4DN Dekker Lab H1 hESC combined</option>
+                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1.hic">4DN Dekker Lab H1 hESC rep1</option>
+                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2.hic">4DN Dekker Lab H1 hESC rep2</option>
+                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1.hic">4DN Dekker Lab 4DN Dekker Lab HFFc6 rep1</option>
+                        <option value="https://s3.amazonaws.com/hicfiles/external/ctbp_8_4_17/all_intra_megabase_michrom.hic">Di Pierro and Cheng et al. | Biorxiv 2017 MEGABASE+MiChroM In Silico GM12878</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic">Dudchenko et al. | Science 2017 Homo sapiens Hs2-HiC</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic">Dudchenko et al. | Science 2017 Culex quinquefasciatus</option>
@@ -650,9 +679,7 @@
                         <option value="https://s3.amazonaws.com/hicfiles/external/wapl_hic/WT.hic">Haarhuis et al. | Cell 2017 Hap1 control</option>
                     </select>
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>
@@ -707,12 +734,51 @@
     </div>
 </div>
 
-<div class="container-fluid">
 
+<header class="navbar navbar-inverse normal navbar-fixed-top" role="banner">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
+        </div>
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="http://www.aidenlab.org/aboutus.html" target="_blank">Team</a></li>
+                        <li><a href="http://news.tc4ga.com/" target="_blank">News</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Research <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="http://www.aidenlab.org/research.html" target="_blank">Projects</a></li>
+                        <li><a href="http://www.aidenlab.org/publications.html" target="_blank">Publications</a></li>
+                        <li><a href="http://www.aidenlab.org/software.html" target="_blank">Software</a></li>
+                        <li><a href="http://www.aidenlab.org/documentation.html" target="_blank">Documentation</a></li>
+                        <li><a href="http://www.aidenlab.org/data.html" target="_blank">Data</a></li>
+                    </ul>
+                </li>
+                <li><a href="http://www.aidenlab.org/join.html" target="_blank">Join</a></li>
+                <li><a href="http://www.aidenlab.org/contactus.html" target="_blank">Contact</a></li>
+                <li><a href="http://www.aidenlab.org/forum.html" target="_blank">Forum</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="site-widget">Juicebox Web</h1>
+            <h1>&nbsp;</h1>
+            <!--<p>You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</p>-->
         </div>
+    </div>
 
     <div class="row">
 
@@ -768,9 +834,15 @@
 
                     <li role="presentation"><!-- Select Annotations -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
-                            Annotations
+                            Genome Annotations
                         </a>
                     </li><!-- Select Annotations -->
+
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">
+                            2D Annotations
+                        </a>
+                    </li><!-- Select 2D Annotations -->
 
                     <li role="presentation"><!-- Local Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
@@ -800,12 +872,44 @@
     <div class="row">
         <div class="col-md-12">
             <div class="juicebox-app-clone-container">
-
             </div>
         </div>
     </div>
 
+    <div class="row header">
+        <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
+            <br>
+            <h4><a href="https://github.com/igvteam/juicebox.js" target="_blank">Juicebox.js</a> is cloud-based visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a href="http://igv.org" target="_blank">IGV</a> team, in collaboration with <a href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a href="http://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</h4><br><br>
+            <h4>If you use Juicebox in your research, please cite:</h4><br>
+            <h4>Neva C. Durand*, James T. Robinson*, Muhammad S. Shamim, Ido Machol, Jill P. Mesirov, Eric S. Lander, and Erez Lieberman Aiden. <em>"Juicebox provides a visualization system for Hi-C contact maps with unlimited zoom."</em> <i>Cell Systems</i> 3(1), 2016.</h4><br><br>
+        </div>
+    </div>
+
 </div>
+
+<div id="footer-white" style="background:#414B5B;">
+    <div class="container">
+        <div class="row" align="center">
+            <div class="newsletter" style="width:60%;">
+                <div class="signup clearfix">
+                    <p style="text-align:center;">
+                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+                    </p>
+                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+                        <input type="text" name="email" class="form-control" placeholder="Your email address">
+                        <input type="submit" name="submit" value="Sign up">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row credits">
+            <div class="col-md-12">
+                Copyright © 2017. Aiden Lab
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script type="text/javascript">
 

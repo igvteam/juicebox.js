@@ -155,12 +155,37 @@
 
                     </select>
                 </div>
-
             </div>
-
         </div>
     </div>
 </div>
+
+
+<!-- 2DAnnotation Select Modal -->
+<div id="hic-annotation-2D-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-2D-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="hic-annotation-select-2D-modal-label">2D Annotations</h4>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-group">
+          <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
+
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <!-- Contact Map Select Modal -->
 <div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
@@ -810,9 +835,15 @@
 
                     <li role="presentation"><!-- Select Annotations -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
-                            Annotations
+                           Genome Annotations
                         </a>
                     </li><!-- Select Annotations -->
+
+                  <li role="presentation"><!-- Select Annotations -->
+                    <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">
+                      2D Annotations
+                    </a>
+                  </li><!-- Select 2D Annotations -->
 
                     <li role="presentation"><!-- Local Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
