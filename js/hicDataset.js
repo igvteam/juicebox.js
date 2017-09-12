@@ -36,7 +36,7 @@ var hic = (function (hic) {
         this.matrixCache = {};
         this.blockCache = {};
         this.blockCacheKeys = [];
-        this.normVectors = {};
+        this.normVectorCache = {};
 
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
@@ -45,17 +45,9 @@ var hic = (function (hic) {
     hic.Dataset.prototype.clearCaches = function () {
         this.matrixCache = {};
         this.blockCache = {};
+        this.normVectorCache = {};
+        this.colorScaleCache = {};
     };
-    
-    hic.Dataset.prototype.setFigureMode = function(figureMode) {
-        if(figureMode) {
-            this.blockCacheLimit = 4;
-        }
-    }
-    
-    hic.Dataset.prototype.checkBlockCacheSize = function (size) {
-        this.blockCacheLimit = Math.max(this.blockCacheLimit, size);
-    }
 
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
 
@@ -68,7 +60,8 @@ var hic = (function (hic) {
 
         } else {
             return new Promise(function (fulfill, reject) {
-                
+
+
                 reader
                     .readMatrix(key)
                     .then(function (matrix) {
@@ -185,8 +178,8 @@ var hic = (function (hic) {
         var self = this,
             key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
-        if (this.normVectors.hasOwnProperty(key)) {
-            return Promise.resolve(this.normVectors[key]);
+        if (this.normVectorCache.hasOwnProperty(key)) {
+            return Promise.resolve(this.normVectorCache[key]);
         } else {
             return new Promise(function (fulfill, reject) {
 
@@ -196,7 +189,7 @@ var hic = (function (hic) {
 
                     .then(function (nv) {
 
-                        self.normVectors[key] = nv;
+                        self.normVectorCache[key] = nv;
 
                         fulfill(nv);
 
@@ -216,7 +209,7 @@ var hic = (function (hic) {
 
                 .then(function (normVectors) {
 
-                    _.extend(self.normVectors, normVectors);
+                    _.extend(self.normVectorCache, normVectors);
 
                     normVectors["types"].forEach(function (type) {
 

@@ -318,13 +318,10 @@ var hic = (function (hic) {
                         else {
                             blockNumber = row * zd.blockColumnCount + column;
                         }
+
                         promises.push(self.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization))
                     }
                 }
-
-                // Ensure that cache sizes are sufficient for query
-                self.browser.dataset.checkBlockCacheSize(promises.length);
-                self.imageTileCacheLimit = Math.max(self.imageTileCacheLimit, promises.length);
 
                 Promise.all(promises)
                     .then(function (blocks) {
