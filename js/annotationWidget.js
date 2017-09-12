@@ -118,7 +118,7 @@ var hic = (function (hic) {
         });
 
 
-        // color swatzch selector
+        // color swatch selector
         $e = colorSwatch(track.color);
         $row.append($e);
         $e.on('click', function (e) {
@@ -137,7 +137,7 @@ var hic = (function (hic) {
 
 
         // track up/down
-        $e = $('<div>');
+        $e = $('<div>', {class: 'up-down-arrow-container'});
         $row.append($e);
 
         $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});

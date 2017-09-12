@@ -584,7 +584,6 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-right: 4px;
       text-align: left;
       text-overflow: ellipsis;
-      //background-color: rgba(0, 191, 255, 0.5);
       width: 384px;
     }
 
@@ -595,7 +594,7 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-dark-color;
     }
 
-    div {
+    .up-down-arrow-container {
       display:flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -618,13 +617,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     }
 
-    //i.fa:hover,
-    //i.fa:focus,
-    //i.fa:active {
-    //  cursor: pointer;
-    //  color: #0f0f0f;
-    //}
-
   }
 
   .hic-annotation-modal-row:hover,
@@ -639,12 +631,16 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-color-swatch-container {
 
   display:flex;
-  flex-flow: row;
+  flex-direction: row-reverse;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
 
   width: 100%;
+
+  border-style: solid;
+  border-width: thin;
+  border-color: #dddddd;
 
 }
 
@@ -659,11 +655,14 @@ $default-font-family: 'Open Sans', sans-serif;
 
   width: $hic-color-swatch-size;
   height: $hic-color-swatch-size;
-  //background-color: greenyellow;
+
+  border-style: solid;
+  border-width: thin;
+  border-color: transparent;
+
 
   i.fa-circle {
     display: block;
-    color: blue;
   }
 
   i.fa:hover,
@@ -672,8 +671,14 @@ $default-font-family: 'Open Sans', sans-serif;
     cursor: pointer;
     color: #0f0f0f;
   }
-
 }
+
+.hic-color-swatch:hover,
+.hic-color-swatch:focus,
+.hic-color-swatch:active {
+  border-color: #dddddd;
+}
+
 
 // navbar
 .hic-navbar-container {
