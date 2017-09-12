@@ -78,13 +78,15 @@ var hic = (function (hic) {
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $container.append($row);
 
-        // get associated track2D reference
+        // track2D reference
         $row.data('track2D', track);
+
 
         // track name
         $e = $("<div>");
         $e.text(track.config.name);
         $row.append($e);
+
 
         // track hide/show
         str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
@@ -110,17 +112,23 @@ var hic = (function (hic) {
 
         });
 
-        // color swatch selector
+
+        // color swatzch selector
         $e = colorSwatch(track.color);
         $row.append($e);
         $e.on('click', function (e) {
             $row.next('.hic-color-swatch-container').toggle();
         });
-
         createColorSwatchSelector($container, function (color) {
+            var $swatch;
+
+            $swatch = $row.find('.fa-circle');
+            $swatch.css({ color: color });
+
             track.color = color;
             self.browser.eventBus.post(hic.Event("TrackState2D", track));
         });
+
 
         // track up/down
         $e = $('<div>');
@@ -173,6 +181,7 @@ var hic = (function (hic) {
             self.updateBody(self.browser.tracks2D);
         });
 
+
         // track delete
         $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
         $row.append($deleteTrack);
@@ -189,6 +198,8 @@ var hic = (function (hic) {
             self.browser.contactMatrixView.update();
 
             self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+
+            self.updateBody(self.browser.tracks2D);
         });
 
     }
