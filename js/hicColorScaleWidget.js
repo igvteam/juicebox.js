@@ -42,6 +42,14 @@ var hic = (function (hic) {
         // color chip
         $e = hic.colorSwatch('red');
         this.$container.append($e);
+        $e.on('click', function (e) {
+            var $r,
+                $s;
+
+            $r = self.browser.$root;
+            $s = $r.find('.color-scale-swatch-container');
+            $s.toggle();
+        });
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');

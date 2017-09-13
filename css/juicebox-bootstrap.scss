@@ -536,23 +536,26 @@ $default-font-family: 'Open Sans', sans-serif;
     position:absolute;
     bottom: 0;
     left: 0;
-    height: 256px;
     width: 100%;
-
     z-index: 5000;
 
     overflow-x: scroll;
     background-color: white;
 
+    border-style: solid;
+    border-width: thin;
+    border-color: #dddddd;
+
     .color-scale-swatch-container {
 
       display:flex;
       flex-direction: row;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       justify-content: center;
       align-items: center;
 
-      height: $hic-color-swatch-size;
+      height: 3 * $hic-color-swatch-size;
+      width: 100%;
     }
 
   }
