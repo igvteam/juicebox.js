@@ -101,7 +101,8 @@ var hic = (function (hic) {
 
             elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
                 var selected = self.browser.state.zoom === index;
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.floor(resolution / 1e3)) + '</option>';
+                
+                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(resolution / 1e3) + '</option>';
             });
 
             this.$resolution_selector.empty();
