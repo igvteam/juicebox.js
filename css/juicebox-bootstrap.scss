@@ -192,6 +192,11 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+// remove modal backdrop scrim
+.modal-backdrop {
+  background-color: transparent;
+}
+
 .hidden-text {
   color: transparent;
 }
