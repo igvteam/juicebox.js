@@ -316,6 +316,7 @@ var hic = (function (hic) {
             browser.contactMatrixView.colorScaleCache = {};
             browser.contactMatrixView.update();
         });
+        $scroll_container.hide();
 
     }
 

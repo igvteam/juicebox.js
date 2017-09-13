@@ -30,7 +30,7 @@ $hic-menu-margin: 8px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
-$hic-color-swatch-size: 32px;
+$hic-color-swatch-size: 24px;
 $hic-annotation-modal-row-height: 40px;
 
 //
@@ -534,13 +534,13 @@ $default-font-family: 'Open Sans', sans-serif;
   .color-scale-swatch-scroll-container {
 
     position:absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    top: 25%;
+    left: 15%;
+    width: 75%;
     z-index: 5000;
 
     overflow-x: scroll;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: white;
 
     border-style: solid;
     border-width: thin;
@@ -551,11 +551,12 @@ $default-font-family: 'Open Sans', sans-serif;
       display:flex;
       flex-direction: row;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
 
-      height: 3 * $hic-color-swatch-size;
+      //height: 3 * $hic-color-swatch-size;
       width: 100%;
+
     }
 
   }
@@ -660,7 +661,7 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-color-swatch-container {
 
   display:flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;

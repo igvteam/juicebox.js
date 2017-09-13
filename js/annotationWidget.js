@@ -138,6 +138,8 @@ var hic = (function (hic) {
             track.color = color;
             self.browser.eventBus.post(hic.Event("TrackState2D", track));
         });
+        $e.hide();
+
 
 
         // track up/down

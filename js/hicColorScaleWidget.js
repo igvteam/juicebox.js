@@ -47,7 +47,7 @@ var hic = (function (hic) {
                 $s;
 
             $r = self.browser.$root;
-            $s = $r.find('.color-scale-swatch-container');
+            $s = $r.find('.color-scale-swatch-scroll-container');
             $s.toggle();
         });
 

@@ -52,7 +52,7 @@ var hic = (function (hic) {
                 "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"
             ];
 
-        $color_swatch_container.hide();
+        // $color_swatch_container.hide();
 
         cssColorNames.forEach(function (c) {
             var $swatch;
