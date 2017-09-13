@@ -531,6 +531,32 @@ $default-font-family: 'Open Sans', sans-serif;
     //background-color: #dfdfdf;
   }
 
+  .color-scale-swatch-scroll-container {
+
+    position:absolute;
+    bottom: 0;
+    left: 0;
+    height: 256px;
+    width: 100%;
+
+    z-index: 5000;
+
+    overflow-x: scroll;
+    background-color: white;
+
+    .color-scale-swatch-container {
+
+      display:flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: center;
+      align-items: center;
+
+      height: $hic-color-swatch-size;
+    }
+
+  }
+
 }
 
 .hic-root-selected  {
@@ -796,27 +822,6 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 100%;
     height: $nav-bar-shim-height;
     background-color: transparent;
-  }
-
-  .color-scale-swatch-scroll-container {
-
-    width: 100%;
-    //height: $hic-color-swatch-size;
-
-    overflow-x: scroll;
-    background-color: white;
-
-    .color-scale-swatch-container {
-
-      display:flex;
-      flex-direction: row;
-      flex-wrap: nowrap;
-      justify-content: center;
-      align-items: center;
-
-      height: $hic-color-swatch-size;
-    }
-
   }
 
 }

@@ -144,19 +144,6 @@ var hic = (function (hic) {
             $navbar_container.append($navbar_shim);
         }
 
-
-        // color swatch selector
-        $a = $('<div>', { class: 'color-scale-swatch-scroll-container' });
-        $navbar_container.append($a);
-
-        $b = $('<div>', { class: 'color-scale-swatch-container' });
-        $a.append($b);
-
-        hic.createColorSwatchSelector($b, function (color) {
-            // do stuff
-        });
-
-
     }
 
     function createAllContainers(browser, $root) {
