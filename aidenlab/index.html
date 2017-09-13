@@ -1,9 +1,31 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<!--
+  ~  The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2016-2017 The Regents of the University of California
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  ~ associated documentation files (the "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+  ~ following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all copies or substantial
+  ~ portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+  ~ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  ~ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ~ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  ~
+  -->
+<html>
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
     <title>Juicebox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
@@ -28,10 +50,10 @@
     <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
 
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
+    <link rel="stylesheet" type="text/css" href="http://igv.org/web/jb/test/site/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../css/juicebox-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="http://igv.org/web/jb/test/dist/juicebox-bootstrap.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
@@ -57,132 +79,112 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.js"></script>
 
-    <!-- IGV JS -->
-    <script src="http://igv.org/web/beta/igv-beta.js"></script>
-
-    <!-- Throbber JS -->
-    <script src="../vendor/throbber.js"></script>
+    <!-- IGV JS-->
+    <script src="https://igv.org/web/beta/igv-beta.min.js"></script>
 
     <!-- Site JS-->
-    <script src="../site/js/site.js"></script>
-    <script src="../js/annotationWidget.js"></script>
+    <script src="http://igv.org/web/jb/test/site/js/site.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../js/genome.js"></script>
-    <script src="../js/hicUtils.js"></script>
-    <script src="../js/hicReader.js"></script>
-    <script src="../js/hicColorScaleWidget.js"></script>
-    <script src="../js/hicLocusGoto.js"></script>
-    <script src="../js/hicResolutionSelector.js"></script>
-    <script src="../js/hicBrowser.js"></script>
-    <script src="../js/contactMatrixView.js"></script>
-    <script src="../js/hicRuler.js"></script>
-    <script src="../js/eventBus.js"></script>
-    <script src="../js/scrollbarWidget.js"></script>
-    <script src="../js/sweepZoom.js"></script>
-    <script src="../js/hicState.js"></script>
-    <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationVector.js"></script>
-    <script src="../js/normalizationWidget.js"></script>
-    <script src="../js/chromosomeSelectorWidget.js"></script>
-    <script src="../js/layoutController.js"></script>
-    <script src="../js/trackRenderer.js"></script>
-    <script src="../js/trackMenuReplacement.js"></script>
-    <script src="../js/geneSearch.js"></script>
-    <script src="../js/hic2DTrack.js"></script>
+    <script src="http://igv.org/web/jb/test/dist/juicebox.js"></script>
+
+    <!-- MS polyfill (pointer -> touch -->
+    <script src="https://igv.org/web/jb/release/current/touchpolyfill.min.js"></script>
+
+    <!-- Website analytics -->
+    <script src="http://www.aidenlab.org/js/analytics.js"></script>
 
 </head>
 
-<body>
-
+<body id="portfolio">
 
 <!-- ENCODE Modal -->
 <div id="hicEncodeModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="encodeModalLabel" aria-hidden="true">
 
-    <div class="modal-dialog modal-lg"><!-- modal dialog -->
+  <div class="modal-dialog modal-lg"><!-- modal dialog -->
 
-        <div class="modal-content"><!-- modal content -->
+    <div class="modal-content"><!-- modal content -->
 
-            <div class="modal-header"><!-- modal header -->
+      <div class="modal-header"><!-- modal header -->
 
-                <button id="encodeModalTopCloseButton" type="button" class="close" data-dismiss="modal"><!-- close -->
-                    <span aria-hidden="true">×</span>
-                    <span class="sr-only">Close</span>
-                </button>
+        <button id="encodeModalTopCloseButton" type="button" class="close" data-dismiss="modal"><!-- close -->
+          <span aria-hidden="true">×</span>
+          <span class="sr-only">Close</span>
+        </button>
 
-                <h4 class="modal-title" id="encodeModalLabel">Load Tracks from ENCODE</h4><!-- modal title -->
+        <h4 class="modal-title" id="encodeModalLabel">Load Tracks from ENCODE</h4><!-- modal title -->
 
-            </div>
+      </div>
 
-            <div id="encodeModalBody" class="modal-body"><!-- modal body -->
-            </div><!-- modal body -->
+      <div id="encodeModalBody" class="modal-body"><!-- modal body -->
+      </div><!-- modal body -->
 
-            <div class="modal-footer"><!-- modal footer -->
-                <button id="encodeModalBottomCloseButton" type="button" class="btn btn-default" data-dismiss="modal">
-                    Close
-                </button>
-                <!-- close -->
-                <button id="encodeModalGoButton" type="button" class="btn btn-primary" data-dismiss="modal">Go</button>
-                <!-- Go -->
-            </div>
-            <!-- modal footer -->
+      <div class="modal-footer"><!-- modal footer -->
+        <button id="encodeModalBottomCloseButton" type="button" class="btn btn-default" data-dismiss="modal">
+          Close
+        </button>
+        <!-- close -->
+        <button id="encodeModalGoButton" type="button" class="btn btn-primary" data-dismiss="modal">Go</button>
+        <!-- Go -->
+      </div>
+      <!-- modal footer -->
 
-        </div>
-        <!-- modal content -->
+    </div>
+    <!-- modal content -->
 
-    </div><!-- modal dialog -->
+  </div><!-- modal dialog -->
 
 </div>
 
 <!-- Annotation Select Modal -->
 <div id="hic-annotation-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-modal-label" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+  <div class="modal-dialog">
+    <div class="modal-content">
 
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
-            </div>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
+      </div>
 
-            <div class="modal-body">
+      <div class="modal-body">
 
-                <div class="form-group">
-                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
+        <div class="form-group">
+          <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
 
-                    </select>
-                </div>
-            </div>
+          </select>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 
 <!-- 2DAnnotation Select Modal -->
 <div id="hic-annotation-2D-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-2D-modal-label" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
+  <div class="modal-dialog">
+    <div class="modal-content">
 
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <h4 class="modal-title" id="hic-annotation-select-2D-modal-label">2D Annotations</h4>
-            </div>
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">
+          <span aria-hidden="true">&times;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h4 class="modal-title" id="hic-annotation-select-2D-modal-label">2D Annotations</h4>
+      </div>
 
-            <div class="modal-body">
+      <div class="modal-body">
 
-                <div class="form-group">
-                    <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
+        <div class="form-group">
+          <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
 
-                    </select>
-                </div>
-            </div>
+          </select>
         </div>
+      </div>
     </div>
+  </div>
 </div>
 
 
@@ -202,9 +204,9 @@
             <div class="modal-body">
                 <div class="form-group">
                     <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
-                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc.hic">4DN Dekker Lab H1 hESC combined</option>
-                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1.hic">4DN Dekker Lab H1 hESC rep1</option>
-                        <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2.hic">4DN Dekker Lab H1 hESC rep2</option>
+		      <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc.hic">4DN Dekker Lab H1 hESC combined</option>
+		      <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1.hic">4DN Dekker Lab H1 hESC rep1</option>
+                      <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2.hic">4DN Dekker Lab H1 hESC rep2</option>
                         <option value="https://hicfiles.s3.amazonaws.com/external/dekker/4dn/hffc6_rep1.hic">4DN Dekker Lab 4DN Dekker Lab HFFc6 rep1</option>
                         <option value="https://s3.amazonaws.com/hicfiles/external/ctbp_8_4_17/all_intra_megabase_michrom.hic">Di Pierro and Cheng et al. | Biorxiv 2017 MEGABASE+MiChroM In Silico GM12878</option>
                         <option value="https://hicfiles.s3.amazonaws.com/hiseq/assembly/aedes/combined.hic">Dudchenko et al. | Science 2017 Aedes aegypti AaegL4</option>
@@ -832,17 +834,18 @@
                         </a>
                     </li><!-- Select ENCODE -->
 
-                    <li role="presentation"><!-- Select Annotations -->
-                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
-                            Genome Annotations
-                        </a>
-                    </li><!-- Select Annotations -->
 
-                    <li role="presentation"><!-- Select Annotations -->
-                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">
-                            2D Annotations
-                        </a>
-                    </li><!-- Select 2D Annotations -->
+                  <li role="presentation"><!-- Select Annotations -->
+                    <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
+                      Genome Annotations
+                    </a>
+                  </li><!-- Select Annotations -->
+
+                  <li role="presentation"><!-- Select Annotations -->
+                    <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">
+                      2D Annotations
+                    </a>
+                  </li><!-- Select 2D Annotations -->
 
                     <li role="presentation"><!-- Local Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
@@ -910,22 +913,21 @@
     </div>
 </div>
 
-
 <script type="text/javascript">
 
-    $(document).ready(function () {
 
+    $(document).ready(function () {
         var w,
-            browser,
-            $container,
-            config;
+                browser,
+                $container,
+                config;
 
         w = $(window).width();
-//        console.log('screen width ' + w);
+        console.log('screen width ' + w);
 
         $container = $('.juicebox-app-clone-container');
 
-        config = {};
+        config ={};
         browser = hic.createBrowser($container, config);
 
         site.init();
