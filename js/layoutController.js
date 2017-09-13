@@ -315,6 +315,8 @@ var hic = (function (hic) {
             browser.contactMatrixView.clearCaches();
             browser.contactMatrixView.colorScaleCache = {};
             browser.contactMatrixView.update();
+        }, function () {
+            browser.$root.find('.color-scale-swatch-scroll-container').toggle();
         });
         $scroll_container.hide();
 

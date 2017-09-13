@@ -539,7 +539,7 @@ $default-font-family: 'Open Sans', sans-serif;
     width: 75%;
     z-index: 5000;
 
-    overflow-x: scroll;
+    //overflow-x: scroll;
     background-color: white;
 
     border-style: solid;
@@ -554,8 +554,35 @@ $default-font-family: 'Open Sans', sans-serif;
       justify-content: flex-start;
       align-items: center;
 
-      //height: 3 * $hic-color-swatch-size;
       width: 100%;
+
+      div:first-child {
+        display:flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        align-items: center;
+
+        width: 100%;
+        height: $hic-color-swatch-size;
+
+        border-bottom-style: solid;
+        border-bottom-width: thin;
+        border-bottom-color: #dddddd;
+
+        i.fa {
+          display: block;
+          margin-right: 4px;
+          color: $default-dark-color;
+        }
+
+        i.fa:hover,
+        i.fa:focus,
+        i.fa:active {
+          cursor: pointer;
+          color: $default-hover-color;
+        }
+      }
 
     }
 
@@ -671,6 +698,34 @@ $default-font-family: 'Open Sans', sans-serif;
   border-style: solid;
   border-width: thin;
   border-color: #dddddd;
+
+  div:first-child {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    width: 100%;
+    height: $hic-color-swatch-size;
+
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: #dddddd;
+
+    i.fa {
+      display: block;
+      margin-right: 4px;
+      color: $default-dark-color;
+    }
+
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: $default-hover-color;
+    }
+  }
 
 }
 

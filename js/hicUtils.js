@@ -26,9 +26,12 @@
  */
 var hic = (function (hic) {
 
-    hic.createColorSwatchSelector = function ($color_swatch_container, callback) {
+    hic.createColorSwatchSelector = function ($color_swatch_container, callback, closeCallback) {
 
-        var cssColorNames;
+        var $div,
+            $fa,
+            $close_container,
+            cssColorNames;
 
         cssColorNames =
             [
@@ -53,6 +56,21 @@ var hic = (function (hic) {
             ];
 
         // $color_swatch_container.hide();
+
+        // close button container
+        $close_container = $('<div>');
+        $color_swatch_container.append($close_container);
+
+        // close button
+        $div = $('<div>', { class:'hic-menu-close-button' });
+        $close_container.append($div);
+
+        $fa = $("<i>", { class:'fa fa-times' });
+        $div.append($fa);
+
+        $fa.on('click', function (e) {
+            closeCallback();
+        });
 
         cssColorNames.forEach(function (c) {
             var $swatch;

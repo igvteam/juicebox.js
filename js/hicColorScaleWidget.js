@@ -43,12 +43,7 @@ var hic = (function (hic) {
         $e = hic.colorSwatch('red');
         this.$container.append($e);
         $e.on('click', function (e) {
-            var $r,
-                $s;
-
-            $r = self.browser.$root;
-            $s = $r.find('.color-scale-swatch-scroll-container');
-            $s.toggle();
+            self.browser.$root.find('.color-scale-swatch-scroll-container').toggle();
         });
 
         // input

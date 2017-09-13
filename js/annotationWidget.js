@@ -137,6 +137,8 @@ var hic = (function (hic) {
 
             track.color = color;
             self.browser.eventBus.post(hic.Event("TrackState2D", track));
+        }, function () {
+            $row.next('.hic-color-swatch-container').toggle();
         });
         $e.hide();
 
