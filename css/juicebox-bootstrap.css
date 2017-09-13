@@ -285,7 +285,7 @@
     width: 100%;
     z-index: 5000;
     overflow-x: scroll;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.6);
     border-style: solid;
     border-width: thin;
     border-color: #dddddd; }

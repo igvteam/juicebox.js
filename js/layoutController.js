@@ -301,8 +301,20 @@ var hic = (function (hic) {
         $container = $('<div>', { class:'color-scale-swatch-container' });
         $scroll_container.append($container);
 
-        hic.createColorSwatchSelector($container, function (color) {
-            console.log('Change color to ' + color);
+        hic.createColorSwatchSelector($container, function (colorName) {
+            var rgb;
+
+            rgb = Colors.name2rgb(colorName);
+            // console.log('Change color to ' + colorName + ' ' + rgb.RGB);
+
+            browser.contactMatrixView.colorScale.highR = rgb.R;
+            browser.contactMatrixView.colorScale.highG = rgb.G;
+            browser.contactMatrixView.colorScale.highB = rgb.B;
+
+            browser.contactMatrixView.updating = false;
+            browser.contactMatrixView.clearCaches();
+            browser.contactMatrixView.colorScaleCache = {};
+            browser.contactMatrixView.update();
         });
 
     }
