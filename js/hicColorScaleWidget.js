@@ -30,7 +30,6 @@ var hic = (function (hic) {
     hic.ColorScaleWidget = function (browser, $container) {
 
         var self = this,
-            $label,
             $fa,
             $e;
 
@@ -40,9 +39,9 @@ var hic = (function (hic) {
         $container.append(this.$container);
 
         // color chip
-        $e = hic.colorSwatch('red');
-        this.$container.append($e);
-        $e.on('click', function (e) {
+        this.$button = hic.colorSwatch('red');
+        this.$container.append(this.$button);
+        this.$button.on('click', function (e) {
             self.browser.$root.find('.color-scale-swatch-scroll-container').toggle();
         });
 

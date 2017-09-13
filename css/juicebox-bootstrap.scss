@@ -31,14 +31,17 @@ $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 $hic-color-swatch-size: 24px;
+
 $hic-annotation-modal-row-height: 40px;
 
 //
 $default-light-color: #f7f7f7;
 $default-medium-color: #a6a6a6;
 $default-dark-color: #5f5f5f;
-$default-hover-color: #0f0f0f;
 $default-dark-dark-color: #373737;
+
+$default-hover-color: #0f0f0f;
+
 $scrollbar-handle-color: #a5a5a5;
 $scrollbar-color: #efefef;
 
@@ -253,47 +256,6 @@ $default-font-family: 'Open Sans', sans-serif;
   color: white;
   //background-color: red;
 }
-
-.blue-backdrop {
-  background-color: dodgerblue;
-}
-
-.red-backdrop {
-  background-color: orangered;
-}
-
-.green-backdrop {
-  background-color: greenyellow;
-}
-
-.green-box {
-  height: 40px;
-  color: white;
-  background-color: green;
-}
-
-.blue-button {
-  height: 40px;
-
-  text-align: center;
-  vertical-align: top;
-  line-height: 40px;
-  color: white;
-  background-color: #529bd3;
-}
-
-.blue-button:hover,
-.blue-button:focus,
-.blue-button:active  {
-  cursor: pointer;
-  background-color: #367397;
-}
-
-.bootstrap-row-shim-top-4 { margin-top: 4px; }
-.bootstrap-row-shim-top-8 { margin-top: 8px; }
-
-.bootstrap-row-shim-bottom-4 { margin-bottom: 4px; }
-.bootstrap-row-shim-bottom-8 { margin-bottom: 8px; }
 
 // root
 .hic-root {

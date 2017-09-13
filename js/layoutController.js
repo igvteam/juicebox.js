@@ -305,7 +305,8 @@ var hic = (function (hic) {
             var rgb;
 
             rgb = Colors.name2rgb(colorName);
-            // console.log('Change color to ' + colorName + ' ' + rgb.RGB);
+
+            browser.colorscaleWidget.$button.find('.fa-square').css({ color: colorName });
 
             browser.contactMatrixView.colorScale.highR = rgb.R;
             browser.contactMatrixView.colorScale.highG = rgb.G;

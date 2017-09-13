@@ -32,46 +32,6 @@
   padding-bottom: 8px;
   color: white; }
 
-.blue-backdrop {
-  background-color: dodgerblue; }
-
-.red-backdrop {
-  background-color: orangered; }
-
-.green-backdrop {
-  background-color: greenyellow; }
-
-.green-box {
-  height: 40px;
-  color: white;
-  background-color: green; }
-
-.blue-button {
-  height: 40px;
-  text-align: center;
-  vertical-align: top;
-  line-height: 40px;
-  color: white;
-  background-color: #529bd3; }
-
-.blue-button:hover,
-.blue-button:focus,
-.blue-button:active {
-  cursor: pointer;
-  background-color: #367397; }
-
-.bootstrap-row-shim-top-4 {
-  margin-top: 4px; }
-
-.bootstrap-row-shim-top-8 {
-  margin-top: 8px; }
-
-.bootstrap-row-shim-bottom-4 {
-  margin-bottom: 4px; }
-
-.bootstrap-row-shim-bottom-8 {
-  margin-bottom: 8px; }
-
 .hic-root {
   position: relative;
   left: 0;
