@@ -319,6 +319,9 @@ var hic = (function (hic) {
         }, function () {
             browser.$root.find('.color-scale-swatch-scroll-container').toggle();
         });
+
+        $scroll_container.draggable();
+
         $scroll_container.hide();
 
     }

@@ -247,7 +247,8 @@
     background-color: white;
     border-style: solid;
     border-width: thin;
-    border-color: #dddddd; }
+    border-color: #dddddd;
+    cursor: pointer; }
     .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container {
       display: flex;
       flex-direction: row;
