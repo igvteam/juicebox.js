@@ -282,11 +282,11 @@ var hic = (function (hic) {
 
         browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations', function () {
             return browser.tracks2D;
-        });
+        }, true);
 
         browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, '1D Annotations', function () {
             return browser.tracks();
-        });
+        }, false);
 
         browser.$menu = $menu;
 

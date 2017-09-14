@@ -23,7 +23,7 @@
 
 var hic = (function (hic) {
 
-    hic.AnnotationWidget = function (browser, $parent, title, trackRetrievalCallback) {
+    hic.AnnotationWidget = function (browser, $parent, title, trackRetrievalCallback, useLargeModal) {
 
         var self = this,
             modal_id,
@@ -39,7 +39,7 @@ var hic = (function (hic) {
 
         modalPresentationButton.call(this, modal_id, $container, title);
 
-        modal.call(this, modal_id, $('body'), title);
+        modal.call(this, modal_id, $('body'), title, useLargeModal);
 
         this.$modal.on('show.bs.modal', function () {
             browser.hideMenu();
@@ -51,13 +51,22 @@ var hic = (function (hic) {
     hic.AnnotationWidget.prototype.updateBody = function (tracks) {
 
         var self = this,
+            isTrack2D,
             zi;
 
         self.$annotation_modal_container.empty();
 
-        // Reverse list to present layers in "z" order.
-        for(zi = tracks.length - 1; zi >= 0; zi--) {
-            modalBodyRow.call(self, self.$annotation_modal_container, tracks[ zi ]);
+        isTrack2D = (_.first(tracks) instanceof hic.Track2D);
+
+        if (isTrack2D) {
+            // Reverse list to present layers in "z" order.
+            for(zi = tracks.length - 1; zi >= 0; zi--) {
+                modalBodyRow.call(self, self.$annotation_modal_container, tracks[ zi ]);
+            }
+        } else {
+            _.each(tracks, function (track) {
+                modalBodyRow.call(self, self.$annotation_modal_container, track);
+            });
         }
 
     };
@@ -247,8 +256,9 @@ var hic = (function (hic) {
 
     }
 
-    function modal(modal_id, $parent, title) {
-        var modal_label,
+    function modal(modal_id, $parent, title, useLargeModal) {
+        var str,
+            modal_label,
             $modal,
             $modal_dialog,
             $modal_content,
@@ -272,7 +282,8 @@ var hic = (function (hic) {
         $parent.append($modal);
 
         // modal-dialog
-        $modal_dialog = $('<div>', {class: 'modal-dialog modal-lg', role: 'document'});
+        str = (true === useLargeModal) ? 'modal-dialog modal-lg' : 'modal-dialog';
+        $modal_dialog = $('<div>', {class: str, role: 'document'});
         $modal.append($modal_dialog);
 
         // modal-content
