@@ -1,0 +1,91 @@
+<label for="modal-switch" class="btn btn-default btn-primary" role="button" data-toggle="modal" data-target="#myModal">Launch demo modal</label>
+<!-- Modal -->
+<div class="pure-css-bootstrap-modal">
+  <style>
+    .pure-css-bootstrap-modal {
+      position: absolute; /* Don't take any space. */
+    }
+    .pure-css-bootstrap-modal label.close {
+      /* Reset */
+      padding: 0;
+      margin: 0;
+    }
+    
+    #modal-switch {
+      display: none;
+    }
+
+    /* MODAL */
+    .modal {
+      display: block;
+    }
+    #modal-switch:not(:checked) ~ .modal {
+      /*
+      In Bootstrap Model is hidden by `display: none`.
+      Unfortunately I couldn't get this option to work with css transitions
+      (they are disabled when `display: none` is present).
+      We need other way to hide the modal, e.g. with `max-width`.
+      */
+      max-width: 0;
+    }
+    #modal-switch:checked ~ .fade,
+    #modal-switch:checked ~ .modal .fade
+    {
+      opacity: 1;
+    }
+
+    /* BACKDROP */
+    .modal-backdrop {
+      margin: 0;
+    }
+    #modal-switch:not(:checked) ~ .modal .modal-backdrop
+    {
+      display: none;
+    }
+    #modal-switch:checked ~ .modal .modal-backdrop
+    {
+      filter: alpha(opacity=50);
+      opacity: 0.5;
+    }
+
+    /* DIALOG */
+    #modal-switch ~ .modal .modal-dialog {
+      transition: transform .3s ease-out;
+      transform: translate(0, -50%);
+    }
+    #modal-switch:checked ~ .modal .modal-dialog {
+      transform: translate(0, 10%);
+      z-index: 1050;
+    }
+  </style>
+
+
+  <input type="checkbox" id="modal-switch"/>
+
+
+  <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <label class="modal-backdrop fade" for="modal-switch"></label>
+
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <label for="modal-switch" class="close" data-dismiss="modal" aria-label="Close" style="display: flex; align-items: center;">
+            <span aria-hidden="true">
+              &times;
+            </span>
+          </label>
+          <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+        </div>
+        <div class="modal-body">
+          ...
+        </div>
+        <div class="modal-footer">
+          <label for="modal-switch" class="btn btn-default" data-dismiss="modal">
+            Close
+          </label>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
