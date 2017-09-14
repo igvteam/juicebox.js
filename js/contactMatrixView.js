@@ -917,7 +917,7 @@ var hic = (function (hic) {
             var t = Date.now();
 
             if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-                console.log("Wheel " + t + "  " + lastWheelTime + "  " + (t - lastWheelTime));
+                
                 // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
                 var direction = e.deltaY < 0 ? 1 : -1,
                     coords = igv.translateMouseCoordinates(e, $viewport),

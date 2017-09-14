@@ -719,7 +719,7 @@ var hic = (function (hic) {
     }
 
     hic.HiCReader.prototype.readNormalizationVectorFile = function (url, chromosomes) {
-        
+
         return new Promise(function (fullfill, reject) {
 
             var options = igv.buildOptions({});    // Add oauth token, if any
@@ -837,6 +837,13 @@ var hic = (function (hic) {
         });
     }
 
+    Matrix.prototype.getZoomDataByIndex = function (index, unit) {
+        var zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
+        return zdArray[index];
+    };
+
+
+    // Legacy implementation, used only in tests.
     Matrix.prototype.getZoomData = function (zoom) {
 
         var zdArray = zoom.unit === "BP" ? this.bpZoomData : this.fragZoomData,

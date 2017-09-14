@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
     hic.State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
 
-        if(chr1) {
+        if(chr1 !== undefined) {
             if (chr1 <= chr2) {
                 this.chr1 = chr1;
                 this.chr2 = chr2;
