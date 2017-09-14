@@ -33,7 +33,7 @@ var hic = (function (hic) {
 
         return new Promise(function (fulfill, reject) {
 
-            igvxhr
+            igv.xhr
                 .loadString(config.url, {})
                 .then(function (data) {
 

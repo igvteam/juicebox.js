@@ -253,9 +253,9 @@ var site = (function (site) {
                 'Lab': '20%'
             };
 
-            encodeTableFormat = new encode.EncodeTableFormat({columnWidths: columnWidths});
+            encodeTableFormat = new igv.EncodeTableFormat({columnWidths: columnWidths});
 
-            encodeDataSource = new encode.EncodeDataSource({genomeID: genomeId}, encodeTableFormat);
+            encodeDataSource = new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat);
 
             encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
         }
@@ -277,7 +277,7 @@ var site = (function (site) {
         elements = [];
         elements.push('<option value=' + '-' + '>' + '-' + '</option>');
 
-        igvxhr
+        igv.xhr
             .loadString(url)
             .then(function (data) {
                 var lines = data ? data.splitLines() : [];

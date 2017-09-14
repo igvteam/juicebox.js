@@ -37,7 +37,7 @@ var hic = (function (hic) {
             // Hardcode this for now
             var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
 
-            igvxhr.loadString(searchServiceURL)
+            igv.xhr.loadString(searchServiceURL)
                 .then(function (data) {
 
                     var results = parseSearchResults(data);
