@@ -30,6 +30,7 @@ var hic = (function (hic) {
             $container;
 
         this.browser = browser;
+        this.trackRetrievalCallback = trackRetrievalCallback;
 
         $container = $("<div>", { class: 'hic-annotation-container' });
         $parent.append($container);
@@ -213,20 +214,23 @@ var hic = (function (hic) {
         $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
         $row.append($deleteTrack);
         $deleteTrack.on('click', function (e) {
-            var track,
-                index;
+            var index;
 
-            track = $row.data('track');
-            index = _.indexOf(self.browser.tracks2D, track);
+            if (isTrack2D) {
 
-            self.browser.tracks2D.splice(index, 1);
+                index = _.indexOf(self.browser.tracks2D, track);
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
+                self.browser.tracks2D.splice(index, 1);
 
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.update();
 
-            self.updateBody(self.browser.tracks2D);
+                self.browser.eventBus.post(hic.Event('TrackLoad2D', self.trackRetrievalCallback()));
+            } else {
+                self.browser.layoutController.removeTrackRendererPair(track.trackView.trackRenderPair);
+            }
+
+            self.updateBody(self.trackRetrievalCallback());
         });
 
     }
