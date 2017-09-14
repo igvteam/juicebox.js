@@ -22,7 +22,8 @@
  */
 
 var hic = (function (hic) {
-    hic.AnnotationWidget = function (browser, $parent, title) {
+
+    hic.AnnotationWidget = function (browser, $parent, title, trackRetrievalCallback) {
 
         var self = this,
             modal_id,
@@ -30,35 +31,32 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        $container = $("<div>", {class: 'hic-annotation-container'});
+        $container = $("<div>", { class: 'hic-annotation-container' });
         $parent.append($container);
 
-        modal_id = browser.id + '_' + 'modal';
+        modal_id = browser.id + '_' + _.uniqueId('annotation_modal_');
 
-        modalPresentationButton.call(this, modal_id, $container);
+        modalPresentationButton.call(this, modal_id, $container, title);
 
         modal.call(this, modal_id, $('body'), title);
 
         this.$modal.on('show.bs.modal', function () {
             browser.hideMenu();
-            self.updateBody(self.browser.tracks2D);
-        });
-
-        this.$modal.on('hidden.bs.modal', function () {
-            // do stuff
+            self.updateBody(trackRetrievalCallback());
         });
 
     };
 
-    hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
+    hic.AnnotationWidget.prototype.updateBody = function (tracks) {
 
-        var self = this, zi;
+        var self = this,
+            zi;
 
         self.$annotation_modal_container.empty();
 
         // Reverse list to present layers in "z" order.
-        for(zi = tracks2D.length-1; zi>= 0; zi--) {
-            modalBodyRow.call(self, self.$annotation_modal_container, tracks2D[ zi ]);
+        for(zi = tracks.length - 1; zi >= 0; zi--) {
+            modalBodyRow.call(self, self.$annotation_modal_container, tracks[ zi ]);
         }
 
     };
@@ -73,7 +71,11 @@ var hic = (function (hic) {
             $downTrack,
             $e,
             hidden_color = '#f7f7f7',
-            str;
+            str,
+            isTrack2D;
+
+
+        isTrack2D = (track instanceof hic.Track2D);
 
         // row container
         $row_container = $('<div>', {class: 'hic-annotation-row-container'});
@@ -83,8 +85,8 @@ var hic = (function (hic) {
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
         $row_container.append($row);
 
-        // track2D reference
-        $row.data('track2D', track);
+        // track reference
+        $row.data('track', track);
 
 
         // track name
@@ -94,28 +96,32 @@ var hic = (function (hic) {
 
 
         // track hide/show
-        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
-        $row.append($hideShowTrack);
-        $hideShowTrack.on('click', function (e) {
-            var track2D;
+        if (isTrack2D) {
 
-            track2D = $row.data('track2D');
+            str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+            $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
+            $row.append($hideShowTrack);
+            $hideShowTrack.on('click', function (e) {
+                var track;
 
-            if ($hideShowTrack.hasClass('fa-eye')) {
-                $hideShowTrack.addClass('fa-eye-slash');
-                $hideShowTrack.removeClass('fa-eye');
-                track2D.isVisible = false;
-            } else {
-                $hideShowTrack.addClass('fa-eye');
-                $hideShowTrack.removeClass('fa-eye-slash');
-                track2D.isVisible = true;
-            }
+                track = $row.data('track');
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
+                if ($hideShowTrack.hasClass('fa-eye')) {
+                    $hideShowTrack.addClass('fa-eye-slash');
+                    $hideShowTrack.removeClass('fa-eye');
+                    track.isVisible = false;
+                } else {
+                    $hideShowTrack.addClass('fa-eye');
+                    $hideShowTrack.removeClass('fa-eye-slash');
+                    track.isVisible = true;
+                }
 
-        });
+                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.update();
+
+            });
+
+        }
 
 
         // color swatch selector button
@@ -135,8 +141,13 @@ var hic = (function (hic) {
             $swatch = $row.find('.fa-square');
             $swatch.css({color: color});
 
-            track.color = color;
-            self.browser.eventBus.post(hic.Event("TrackState2D", track));
+            if (isTrack2D) {
+                track.color = color;
+                self.browser.eventBus.post(hic.Event('TrackState2D', track));
+            } else {
+                track.trackView.setColor(color);
+            }
+
         }, function () {
             $row.next('.hic-color-swatch-container').toggle();
         });
@@ -144,67 +155,69 @@ var hic = (function (hic) {
 
 
 
-        // track up/down
-        $e = $('<div>', {class: 'up-down-arrow-container'});
-        $row.append($e);
+        if (isTrack2D) {
+            // track up/down
+            $e = $('<div>', {class: 'up-down-arrow-container'});
+            $row.append($e);
 
-        $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
-        $e.append($upTrack);
+            $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
+            $e.append($upTrack);
 
-        $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
-        $e.append($downTrack);
+            $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
+            $e.append($downTrack);
 
-        if (1 === _.size(self.browser.tracks2D)) {
-            $upTrack.css('color', hidden_color);
-            $downTrack.css('color', hidden_color);
-        } else if (track === _.first(self.browser.tracks2D)) {
-            $downTrack.css('color', hidden_color);
-        } else if (track === _.last(self.browser.tracks2D)) {
-            $upTrack.css('color', hidden_color);
+            if (1 === _.size(self.browser.tracks2D)) {
+                $upTrack.css('color', hidden_color);
+                $downTrack.css('color', hidden_color);
+            } else if (track === _.first(self.browser.tracks2D)) {
+                $downTrack.css('color', hidden_color);
+            } else if (track === _.last(self.browser.tracks2D)) {
+                $upTrack.css('color', hidden_color);
+            }
+
+            $upTrack.on('click', function (e) {
+                var track,
+                    indexA,
+                    indexB;
+
+                indexA = _.indexOf(self.browser.tracks2D, $row.data('track'));
+                indexB = indexA + 1;
+
+                track = self.browser.tracks2D[indexB];
+                self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
+                self.browser.tracks2D[indexA] = track;
+
+                self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
+                self.updateBody(self.browser.tracks2D);
+            });
+
+            $downTrack.on('click', function (e) {
+                var track,
+                    indexA,
+                    indexB;
+
+                indexA = _.indexOf(self.browser.tracks2D, $row.data('track'));
+                indexB = indexA - 1;
+
+                track = self.browser.tracks2D[indexB];
+                self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
+                self.browser.tracks2D[indexA] = track;
+
+                self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
+                self.updateBody(self.browser.tracks2D);
+            });
         }
-
-        $upTrack.on('click', function (e) {
-            var track2D,
-                indexA,
-                indexB;
-
-            indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA + 1;
-
-            track2D = self.browser.tracks2D[indexB];
-            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-            self.browser.tracks2D[indexA] = track2D;
-
-            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-            self.updateBody(self.browser.tracks2D);
-        });
-
-        $downTrack.on('click', function (e) {
-            var track2D,
-                indexA,
-                indexB;
-
-            indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA - 1;
-
-            track2D = self.browser.tracks2D[indexB];
-            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-            self.browser.tracks2D[indexA] = track2D;
-
-            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-            self.updateBody(self.browser.tracks2D);
-        });
 
 
         // track delete
         $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
         $row.append($deleteTrack);
         $deleteTrack.on('click', function (e) {
-            var track2D,
+            var track,
                 index;
 
-            track2D = $row.data('track2D');
-            index = _.indexOf(self.browser.tracks2D, track2D);
+            track = $row.data('track');
+            index = _.indexOf(self.browser.tracks2D, track);
 
             self.browser.tracks2D.splice(index, 1);
 
@@ -218,14 +231,13 @@ var hic = (function (hic) {
 
     }
 
-    function modalPresentationButton(modal_id, $parent) {
+    function modalPresentationButton(modal_id, $parent, title) {
         var str,
             $e;
 
-        // annotation modal presentation button
         str = '#' + modal_id;
         $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
-        $e.text('2D Annotations');
+        $e.text(title);
 
         $parent.append($e);
 

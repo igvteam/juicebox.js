@@ -518,7 +518,6 @@ var hic = (function (hic) {
         }
     };
 
-
     stripUriParameters = function () {
 
         var href = window.location.href,
@@ -747,6 +746,17 @@ var hic = (function (hic) {
     hic.Browser.prototype.renderTrackXY = function (xy) {
         xy.x.repaint();
         xy.y.repaint();
+    };
+
+    hic.Browser.prototype.tracks = function () {
+
+        var ts;
+
+        ts = _.map(this.trackRenderers, function (trackRenderer) {
+            return trackRenderer.x.track;
+        });
+
+        return ts;
     };
 
     hic.Browser.prototype.loadHicFile = function (config) {

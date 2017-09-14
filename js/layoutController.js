@@ -280,7 +280,13 @@ var hic = (function (hic) {
             browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
         }
 
-        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
+        browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations', function () {
+            return browser.tracks2D;
+        });
+
+        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, '1D Annotations', function () {
+            return browser.tracks();
+        });
 
         browser.$menu = $menu;
 

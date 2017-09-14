@@ -28,7 +28,41 @@
 
 
 var hic = (function (hic) {
-    
+
+    hic.Track2D = function (config, features) {
+
+        var self = this;
+
+        this.config = config;
+        this.name = config.name;
+        this.featureMap = {};
+        this.featureCount = 0;
+        this.isVisible = true;
+        this.color = config.color === undefined ? features[0].color : config.color;
+
+        features.forEach(function (f) {
+
+            self.featureCount++;
+
+            var key = getKey(f.chr1, f.chr2),
+                list = self.featureMap[key];
+
+            if(!list) {
+                list = [];
+                self.featureMap[key] = list;
+            }
+            list.push(f);
+        });
+
+    };
+
+    hic.Track2D.prototype.getFeatures = function(chr1, chr2) {
+        var key = getKey(chr1, chr2),
+            features =  this.featureMap[key];
+
+        return features || this.featureMap[getAltKey(chr1, chr2)];
+    };
+
     hic.loadTrack2D = function (config) {
 
         return new Promise(function (fulfill, reject) {
@@ -39,12 +73,12 @@ var hic = (function (hic) {
 
                     var features = parseData(data);
 
-                    fulfill(new Track2D(config, features));
+                    fulfill(new hic.Track2D(config, features));
                 })
                 .catch(reject);
 
         })
-    }
+    };
 
     function parseData(data) {
 
@@ -83,7 +117,7 @@ var hic = (function (hic) {
         }
 
         return allFeatures;
-    };
+    }
 
     function getKey(chr1, chr2) {
         return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
@@ -93,40 +127,6 @@ var hic = (function (hic) {
         var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
             chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
         return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
-    }
-
-
-    function Track2D(config, features) {
-
-        var self = this;
-
-        this.config = config;
-        this.name = config.name;
-        this.featureMap = {};
-        this.featureCount = 0;
-        this.isVisible = true;
-        this.color = config.color === undefined ? features[0].color : config.color;
-
-        features.forEach(function (f) {
-
-            self.featureCount++;
-
-            var key = getKey(f.chr1, f.chr2),
-                list = self.featureMap[key];
-
-            if(!list) {
-                list = [];
-                self.featureMap[key] = list;
-            }
-            list.push(f);
-        });
-    }
-
-    Track2D.prototype.getFeatures = function(chr1, chr2) {
-        var key = getKey(chr1, chr2),
-            features =  this.featureMap[key];
-
-        return features || this.featureMap[getAltKey(chr1, chr2)];
     }
 
     return hic;
