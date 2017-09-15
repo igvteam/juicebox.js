@@ -729,17 +729,18 @@ var hic = (function (hic) {
 
         var self = this;
 
-        this.trackRenderers.forEach(function (xy) {
+        _.each(this.trackRenderers, function (xyTrackRenderPair, index) {
 
-            // sync canvas size with container div if needed
-            // jtr -- this is fragile, if "xy" contains any property other than track renderer it will blow up
-            _.each(xy, function (r) {
+            _.each(xyTrackRenderPair, function (trackRenderer) {
+
+                trackRenderer.$viewport.css({ order:index });
+
                 if (true === doSyncCanvas) {
-                    r.syncCanvas();
+                    trackRenderer.syncCanvas();
                 }
-            });
 
-            self.renderTrackXY(xy);
+                self.renderTrackXY(xyTrackRenderPair);
+            });
         });
     };
 
@@ -747,17 +748,6 @@ var hic = (function (hic) {
         xy.x.repaint();
         xy.y.repaint();
     };
-
-    // hic.Browser.prototype.tracks = function () {
-    //
-    //     var ts;
-    //
-    //     ts = _.map(this.trackRenderers, function (trackRenderer) {
-    //         return trackRenderer.x.track;
-    //     });
-    //
-    //     return ts;
-    // };
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
