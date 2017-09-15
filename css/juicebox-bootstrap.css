@@ -266,7 +266,8 @@
         height: 24px;
         border-bottom-style: solid;
         border-bottom-width: thin;
-        border-bottom-color: #dddddd; }
+        border-bottom-color: #dddddd;
+        background-color: #dddddd; }
         .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child i.fa {
           display: block;
           margin-right: 4px;
