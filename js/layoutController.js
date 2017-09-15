@@ -319,6 +319,7 @@ var hic = (function (hic) {
             browser.contactMatrixView.colorScale.highB = rgb.B;
 
             browser.contactMatrixView.updating = false;
+            browser.contactMatrixView.initialImage = undefined;
             browser.contactMatrixView.clearCaches();
             browser.contactMatrixView.colorScaleCache = {};
             browser.contactMatrixView.update();

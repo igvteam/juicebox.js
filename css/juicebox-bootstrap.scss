@@ -389,18 +389,6 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-top: 2 * $hic-menu-item-padding;
       margin-bottom: $hic-menu-item-padding;
 
-      // red chip
-      div {
-
-        display: block;
-        height: $nav-bar-widget-container-height - 6px;
-        width: $nav-bar-widget-container-height - 6px;
-
-        color: red;
-        background-color: red;
-      }
-
-      // input element
       @include navbar-color-scale-input;
 
       i.fa {

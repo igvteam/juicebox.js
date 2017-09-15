@@ -126,12 +126,6 @@
       width: 95%;
       margin-top: 16px;
       margin-bottom: 8px; }
-      .hic-root .hic-menu .hic-colorscale-widget-container div {
-        display: block;
-        height: 30px;
-        width: 30px;
-        color: red;
-        background-color: red; }
       .hic-root .hic-menu .hic-colorscale-widget-container input {
         display: block;
         margin-right: 4px;

@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <!--
   ~  The MIT License (MIT)
@@ -24,13 +22,14 @@
   ~
   -->
 
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
     <title>Juicebox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="https://aidenlab.org/favicon.ico">
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
     <!-- Shims for legacy browsers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
@@ -52,10 +51,10 @@
     <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
 
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="https://igv.org/web/jb/test/site/css/site.css">
+    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="https://igv.org/web/jb/test/dist/juicebox-bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="../../css/juicebox-bootstrap.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
@@ -69,9 +68,6 @@
     <!-- JQuery UI JS -->
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
-    <!-- Tether JS (Use with Alpha 4.0.0-alpha.6 Bootstrap) -->
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>-->
-
     <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
@@ -81,15 +77,18 @@
     <!-- DataTables JS -->
     <script src="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.js"></script>
 
-    <!-- IGV JS-->
-    <script src="https://igv.org/web/beta/igv-beta.min.js"></script>
+    <!-- IGV JS -->
+    <script src="http://igv.org/web/beta/igv-beta.js"></script>
+
+    <!-- Throbber JS -->
+    <script src="../../vendor/throbber.js"></script>
+    <script src="../../vendor/colors.js"></script>
 
     <!-- Site JS-->
     <script src="../site/js/site.js"></script>
     <script src="../../js/annotationWidget.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../../vendor/throbber.js"></script>
     <script src="../../js/genome.js"></script>
     <script src="../../js/hicUtils.js"></script>
     <script src="../../js/hicReader.js"></script>
