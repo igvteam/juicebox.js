@@ -285,7 +285,7 @@ var hic = (function (hic) {
         }, true);
 
         browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, 'Tracks', function () {
-            return browser.tracks();
+            return browser.trackRenderers;
         }, false);
 
         browser.$menu = $menu;

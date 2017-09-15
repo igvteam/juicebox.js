@@ -748,16 +748,16 @@ var hic = (function (hic) {
         xy.y.repaint();
     };
 
-    hic.Browser.prototype.tracks = function () {
-
-        var ts;
-
-        ts = _.map(this.trackRenderers, function (trackRenderer) {
-            return trackRenderer.x.track;
-        });
-
-        return ts;
-    };
+    // hic.Browser.prototype.tracks = function () {
+    //
+    //     var ts;
+    //
+    //     ts = _.map(this.trackRenderers, function (trackRenderer) {
+    //         return trackRenderer.x.track;
+    //     });
+    //
+    //     return ts;
+    // };
 
     hic.Browser.prototype.loadHicFile = function (config) {
 
