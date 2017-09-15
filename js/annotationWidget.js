@@ -86,7 +86,9 @@ var hic = (function (hic) {
             str,
             isTrack2D,
             trackList,
-            trackRender,
+            xyTrackRendererPair,
+            trackRenderer,
+            track1D,
             index,
             upTrackHandler,
             downTrackHandler;
@@ -94,9 +96,10 @@ var hic = (function (hic) {
         isTrack2D = (track instanceof hic.Track2D);
         trackList = this.trackListRetrievalCallback();
 
-        // To remain sane use trackRender rather then track for 1D tracks
         if (false === isTrack2D) {
-            trackRender = track;
+            xyTrackRendererPair = track;
+            track1D = xyTrackRendererPair.x.track;
+            trackRenderer = xyTrackRendererPair.x.track.trackView;
         }
 
         // row container
@@ -109,7 +112,7 @@ var hic = (function (hic) {
 
         // track name
         $e = $("<div>");
-        $e.text(isTrack2D ? track.config.name : trackRender.x.track.config.name);
+        $e.text(isTrack2D ? track.config.name : track1D.config.name);
         $row.append($e);
 
 
@@ -142,7 +145,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $e = hic.colorSwatch(isTrack2D ? track.color : trackRender.x.track.color);
+        $e = hic.colorSwatch(isTrack2D ? track.color : track1D.color);
         $row.append($e);
         $e.on('click', function (e) {
             $row.next('.hic-color-swatch-container').toggle();
@@ -162,7 +165,7 @@ var hic = (function (hic) {
                 track.color = color;
                 self.browser.eventBus.post(hic.Event('TrackState2D', track));
             } else {
-                trackRender.setColor(color);
+                trackRenderer.setColor(color);
             }
 
         }, function () {
@@ -193,7 +196,7 @@ var hic = (function (hic) {
             $e.css('color', hidden_color);
         }
 
-        index = _.indexOf(trackList, trackRender);
+        index = _.indexOf(trackList, xyTrackRendererPair);
 
         upTrackHandler = function (e) {
 
@@ -204,7 +207,8 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.layoutController.doLayoutTrackXYPairCount(trackList);
+                self.browser.layoutController.doLayoutTrackXYPairCount(_.size(trackList));
+                self.browser.updateLayout();
                 self.updateBody(trackList);
             }
         };
@@ -218,7 +222,8 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.layoutController.doLayoutTrackXYPairCount(trackList);
+                self.browser.layoutController.doLayoutTrackXYPairCount(_.size(trackList));
+                self.browser.updateLayout();
                 self.updateBody(trackList);
             }
         };
@@ -246,7 +251,7 @@ var hic = (function (hic) {
 
                 self.browser.eventBus.post(hic.Event('TrackLoad2D', trackList));
             } else {
-                self.browser.layoutController.removeTrackRendererPair(trackRender.trackRenderPair);
+                self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
             }
 
             self.updateBody(trackList);
