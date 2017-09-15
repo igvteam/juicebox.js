@@ -23,14 +23,14 @@
 
 var hic = (function (hic) {
 
-    hic.AnnotationWidget = function (browser, $parent, title, trackRetrievalCallback, useLargeModal) {
+    hic.AnnotationWidget = function (browser, $parent, title, trackListRetrievalCallback, useLargeModal) {
 
         var self = this,
             modal_id,
             $container;
 
         this.browser = browser;
-        this.trackRetrievalCallback = trackRetrievalCallback;
+        this.trackListRetrievalCallback = trackListRetrievalCallback;
 
         $container = $("<div>", { class: 'hic-annotation-container' });
         $parent.append($container);
@@ -43,7 +43,7 @@ var hic = (function (hic) {
 
         this.$modal.on('show.bs.modal', function () {
             browser.hideMenu();
-            self.updateBody(trackRetrievalCallback());
+            self.updateBody(trackListRetrievalCallback());
         });
 
     };
@@ -82,10 +82,13 @@ var hic = (function (hic) {
             $e,
             hidden_color = '#f7f7f7',
             str,
-            isTrack2D;
+            isTrack2D,
+            trackList,
+            index;
 
 
         isTrack2D = (track instanceof hic.Track2D);
+        trackList = this.trackListRetrievalCallback();
 
         // row container
         $row_container = $('<div>', {class: 'hic-annotation-row-container'});
@@ -112,9 +115,6 @@ var hic = (function (hic) {
             $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
             $row.append($hideShowTrack);
             $hideShowTrack.on('click', function (e) {
-                var track;
-
-                track = $row.data('track');
 
                 if ($hideShowTrack.hasClass('fa-eye')) {
                     $hideShowTrack.addClass('fa-eye-slash');
@@ -185,33 +185,21 @@ var hic = (function (hic) {
                 $upTrack.css('color', hidden_color);
             }
 
+            index = _.indexOf(self.browser.tracks2D, track);
+
             $upTrack.on('click', function (e) {
-                var track,
-                    indexA,
-                    indexB;
-
-                indexA = _.indexOf(self.browser.tracks2D, $row.data('track'));
-                indexB = indexA + 1;
-
-                track = self.browser.tracks2D[indexB];
-                self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-                self.browser.tracks2D[indexA] = track;
+                track = self.browser.tracks2D[(index + 1)];
+                self.browser.tracks2D[(index + 1)] = self.browser.tracks2D[index];
+                self.browser.tracks2D[index] = track;
 
                 self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
                 self.updateBody(self.browser.tracks2D);
             });
 
             $downTrack.on('click', function (e) {
-                var track,
-                    indexA,
-                    indexB;
-
-                indexA = _.indexOf(self.browser.tracks2D, $row.data('track'));
-                indexB = indexA - 1;
-
-                track = self.browser.tracks2D[indexB];
-                self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-                self.browser.tracks2D[indexA] = track;
+                track = self.browser.tracks2D[(index - 1)];
+                self.browser.tracks2D[(index - 1)] = self.browser.tracks2D[index];
+                self.browser.tracks2D[index] = track;
 
                 self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
                 self.updateBody(self.browser.tracks2D);
@@ -234,12 +222,12 @@ var hic = (function (hic) {
                 self.browser.contactMatrixView.clearCaches();
                 self.browser.contactMatrixView.update();
 
-                self.browser.eventBus.post(hic.Event('TrackLoad2D', self.trackRetrievalCallback()));
+                self.browser.eventBus.post(hic.Event('TrackLoad2D', trackList));
             } else {
                 self.browser.layoutController.removeTrackRendererPair(track.trackView.trackRenderPair);
             }
 
-            self.updateBody(self.trackRetrievalCallback());
+            self.updateBody(trackList);
         });
 
     }
