@@ -284,7 +284,7 @@ var hic = (function (hic) {
             return browser.tracks2D;
         }, true);
 
-        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, '1D Annotations', function () {
+        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, 'Tracks', function () {
             return browser.tracks();
         }, false);
 

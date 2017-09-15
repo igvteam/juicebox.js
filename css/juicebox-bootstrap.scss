@@ -190,10 +190,9 @@ $default-font-family: 'Open Sans', sans-serif;
   align-items: flex-start;
 
   width: 100%;
-  height: $hic-menu-item-height;
+  //height: $hic-menu-item-height;
 
   padding-left: $hic-menu-item-padding;
-  //padding-bottom: 4px;
 
   margin-top: $hic-menu-margin;
   margin-bottom: $hic-menu-margin;
@@ -334,8 +333,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      width: 100%;
-
       // label: 'Chromosome'
       div {
         padding-top:2px;
@@ -427,8 +424,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      width: 100%;
-
       @include navbar-select;
 
       select {
@@ -441,8 +436,6 @@ $default-font-family: 'Open Sans', sans-serif;
     .hic-resolution-selector-container {
 
       @include menu-item;
-
-      width: 100%;
 
       div#hic-resolution-label-container {
         display:flex;
@@ -479,9 +472,6 @@ $default-font-family: 'Open Sans', sans-serif;
     // annotations
     .hic-annotation-container {
       @include menu-item;
-
-      width: 100%;
-
     }
 
   }
