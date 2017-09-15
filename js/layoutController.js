@@ -357,22 +357,22 @@ var hic = (function (hic) {
 
     hic.LayoutController.prototype.receiveEvent = function(event) {
         var self = this,
-            trackRendererPair;
+            trackRendererPair,
+            rev;
 
         if ('TrackLoad' === event.type) {
 
-            _.each(event.data.trackXYPairs, function (trackPair) {
+            _.each(event.data.trackXYPairs, function (trackPair, index) {
 
                 var w,
                     h;
 
                 self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
 
-                // append tracks
                 trackRendererPair = {};
                 w = h = self.track_height;
-                trackRendererPair.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackRendererPair, trackPair, 'x');
-                trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y');
+                trackRendererPair.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackRendererPair, trackPair, 'x', index);
+                trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y', index);
 
                 self.browser.trackRenderers.push(trackRendererPair);
 

@@ -3,7 +3,7 @@
  */
 var hic = (function (hic) {
 
-    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis) {
+    hic.TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 
         this.browser = browser;
 
@@ -13,10 +13,10 @@ var hic = (function (hic) {
 
         this.id = _.uniqueId('trackRenderer_');
         this.axis = axis;
-        this.initializationHelper($container, size);
+        this.initializationHelper($container, size, order);
     };
 
-    hic.TrackRenderer.prototype.initializationHelper = function ($container, size) {
+    hic.TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
 
         var self = this,
             str,
@@ -33,6 +33,7 @@ var hic = (function (hic) {
             this.$viewport.height(size.height);
         }
         $container.append(this.$viewport);
+        this.$viewport.css( { order:order } );
 
         // canvas
         this.$canvas = $('<canvas>');

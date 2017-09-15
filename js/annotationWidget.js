@@ -207,7 +207,6 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.layoutController.doLayoutTrackXYPairCount(_.size(trackList));
                 self.browser.updateLayout();
                 self.updateBody(trackList);
             }
@@ -222,7 +221,6 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.layoutController.doLayoutTrackXYPairCount(_.size(trackList));
                 self.browser.updateLayout();
                 self.updateBody(trackList);
             }
