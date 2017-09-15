@@ -82,6 +82,7 @@ var hic = (function (hic) {
             $upTrack,
             $downTrack,
             $e,
+            $o,
             hidden_color = '#f7f7f7',
             str,
             isTrack2D,
@@ -90,8 +91,8 @@ var hic = (function (hic) {
             trackRenderer,
             track1D,
             index,
-            upTrackHandler,
-            downTrackHandler;
+            upp,
+            dwn;
 
         isTrack2D = (track instanceof hic.Track2D);
         trackList = this.trackListRetrievalCallback();
@@ -189,16 +190,16 @@ var hic = (function (hic) {
             $upTrack.css('color', hidden_color);
             $downTrack.css('color', hidden_color);
         } else if (track === _.first(trackList)) {
-            $e = (isTrack2D) ? $downTrack : $upTrack;
-            $e.css('color', hidden_color);
+            $o = isTrack2D ? $downTrack : $upTrack;
+            $o.css('color', hidden_color);
         } else if (track === _.last(trackList)) {
-            $e = (isTrack2D) ? $upTrack : $downTrack;
-            $e.css('color', hidden_color);
+            $o = isTrack2D ? $upTrack : $downTrack;
+            $o.css('color', hidden_color);
         }
 
-        index = _.indexOf(trackList, xyTrackRendererPair);
+        index = _.indexOf(trackList, track);
 
-        upTrackHandler = function (e) {
+        upp = function (e) {
 
             track = trackList[(index + 1)];
             trackList[(index + 1)] = trackList[index];
@@ -212,13 +213,13 @@ var hic = (function (hic) {
             }
         };
 
-        downTrackHandler = function (e) {
+        dwn = function (e) {
 
             track = trackList[(index - 1)];
             trackList[(index - 1)] = trackList[index];
             trackList[index] = track;
             if (isTrack2D) {
-                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
+                // self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
                 self.browser.updateLayout();
@@ -226,9 +227,9 @@ var hic = (function (hic) {
             }
         };
 
-        $upTrack.on('click', (isTrack2D) ? upTrackHandler : downTrackHandler);
+        $upTrack.on('click', isTrack2D ? upp : dwn);
 
-        $downTrack.on('click', (isTrack2D) ? downTrackHandler : upTrackHandler);
+        $downTrack.on('click', isTrack2D ? dwn : upp);
 
 
 
