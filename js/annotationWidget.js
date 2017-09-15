@@ -84,7 +84,10 @@ var hic = (function (hic) {
             str,
             isTrack2D,
             trackList,
-            index;
+            trackRender,
+            index,
+            upTrackHandler,
+            downTrackHandler;
 
 
         isTrack2D = (track instanceof hic.Track2D);
@@ -164,47 +167,74 @@ var hic = (function (hic) {
         $e.hide();
 
 
+        // track up/down
+        $e = $('<div>', {class: 'up-down-arrow-container'});
+        $row.append($e);
 
-        if (isTrack2D) {
-            // track up/down
-            $e = $('<div>', {class: 'up-down-arrow-container'});
-            $row.append($e);
+        $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
+        $e.append($upTrack);
 
-            $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
-            $e.append($upTrack);
+        $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
+        $e.append($downTrack);
 
-            $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
-            $e.append($downTrack);
+        if (1 === _.size(trackList)) {
+            $upTrack.css('color', hidden_color);
+            $downTrack.css('color', hidden_color);
+        } else if (track === _.first(trackList)) {
+            $e = (isTrack2D) ? $downTrack : $upTrack;
+            $e.css('color', hidden_color);
+        } else if (track === _.last(trackList)) {
+            $e = (isTrack2D) ? $upTrack : $downTrack;
+            $e.css('color', hidden_color);
+        }
 
-            if (1 === _.size(self.browser.tracks2D)) {
-                $upTrack.css('color', hidden_color);
-                $downTrack.css('color', hidden_color);
-            } else if (track === _.first(self.browser.tracks2D)) {
-                $downTrack.css('color', hidden_color);
-            } else if (track === _.last(self.browser.tracks2D)) {
-                $upTrack.css('color', hidden_color);
+        index = _.indexOf(trackList, track);
+
+        upTrackHandler = function (e) {
+
+            if (isTrack2D) {
+                track = trackList[(index + 1)];
+                trackList[(index + 1)] = trackList[index];
+                trackList[index] = track;
+                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
+                self.updateBody(trackList);
+            } else {
+                trackRender = self.browser.trackRenderers[(index + 1)];
+                self.browser.trackRenderers[(index + 1)] = self.browser.trackRenderers[index];
+                self.browser.trackRenderers[index] = trackRender;
+                self.browser.layoutController.doLayoutTrackXYPairCount(_.size(self.browser.trackRenderers));
+                self.updateBody(trackList);
             }
 
-            index = _.indexOf(self.browser.tracks2D, track);
+        };
 
-            $upTrack.on('click', function (e) {
-                track = self.browser.tracks2D[(index + 1)];
-                self.browser.tracks2D[(index + 1)] = self.browser.tracks2D[index];
-                self.browser.tracks2D[index] = track;
+        downTrackHandler = function (e) {
 
-                self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-                self.updateBody(self.browser.tracks2D);
-            });
+            if (isTrack2D) {
+                track = trackList[(index - 1)];
+                trackList[(index - 1)] = trackList[index];
+                trackList[index] = track;
+                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
+                self.updateBody(trackList);
+            } else {
 
-            $downTrack.on('click', function (e) {
-                track = self.browser.tracks2D[(index - 1)];
-                self.browser.tracks2D[(index - 1)] = self.browser.tracks2D[index];
-                self.browser.tracks2D[index] = track;
+                track = trackList[(index - 1)];
+                trackList[(index - 1)] = trackList[index];
+                trackList[index] = track;
+                self.updateBody(trackList);
 
-                self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-                self.updateBody(self.browser.tracks2D);
-            });
-        }
+                // trackRender = self.browser.trackRenderers[(index - 1)];
+                // self.browser.trackRenderers[(index - 1)] = self.browser.trackRenderers[index];
+                // self.browser.trackRenderers[index] = trackRender;
+                // self.browser.layoutController.doLayoutTrackXYPairCount(_.size(self.browser.trackRenderers));
+
+            }
+
+        };
+
+        $upTrack.on('click', (isTrack2D) ? upTrackHandler : downTrackHandler);
+
+        $downTrack.on('click', (isTrack2D) ? downTrackHandler : upTrackHandler);
 
 
         // track delete
@@ -229,7 +259,6 @@ var hic = (function (hic) {
 
             self.updateBody(trackList);
         });
-
     }
 
     function modalPresentationButton(modal_id, $parent, title) {
