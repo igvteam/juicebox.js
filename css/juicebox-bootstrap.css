@@ -32,46 +32,6 @@
   padding-bottom: 8px;
   color: white; }
 
-.blue-backdrop {
-  background-color: dodgerblue; }
-
-.red-backdrop {
-  background-color: orangered; }
-
-.green-backdrop {
-  background-color: greenyellow; }
-
-.green-box {
-  height: 40px;
-  color: white;
-  background-color: green; }
-
-.blue-button {
-  height: 40px;
-  text-align: center;
-  vertical-align: top;
-  line-height: 40px;
-  color: white;
-  background-color: #529bd3; }
-
-.blue-button:hover,
-.blue-button:focus,
-.blue-button:active {
-  cursor: pointer;
-  background-color: #367397; }
-
-.bootstrap-row-shim-top-4 {
-  margin-top: 4px; }
-
-.bootstrap-row-shim-top-8 {
-  margin-top: 8px; }
-
-.bootstrap-row-shim-bottom-4 {
-  margin-bottom: 4px; }
-
-.bootstrap-row-shim-bottom-8 {
-  margin-bottom: 8px; }
-
 .hic-root {
   position: relative;
   left: 0;
@@ -127,12 +87,10 @@
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      height: 64px;
       padding-left: 8px;
       margin-top: 8px;
       margin-bottom: 8px;
-      background-color: transparent;
-      width: 100%; }
+      background-color: transparent; }
       .hic-root .hic-menu .hic-chromosome-selector-widget-container div {
         padding-top: 2px;
         padding-bottom: 4px; }
@@ -168,12 +126,6 @@
       width: 95%;
       margin-top: 16px;
       margin-bottom: 8px; }
-      .hic-root .hic-menu .hic-colorscale-widget-container div {
-        display: block;
-        height: 30px;
-        width: 30px;
-        color: red;
-        background-color: red; }
       .hic-root .hic-menu .hic-colorscale-widget-container input {
         display: block;
         margin-right: 4px;
@@ -206,12 +158,10 @@
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      height: 64px;
       padding-left: 8px;
       margin-top: 8px;
       margin-bottom: 8px;
-      background-color: transparent;
-      width: 100%; }
+      background-color: transparent; }
       .hic-root .hic-menu .hic-normalization-selector-container select {
         display: block;
         height: 32px;
@@ -229,12 +179,10 @@
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      height: 64px;
       padding-left: 8px;
       margin-top: 8px;
       margin-bottom: 8px;
-      background-color: transparent;
-      width: 100%; }
+      background-color: transparent; }
       .hic-root .hic-menu .hic-resolution-selector-container div#hic-resolution-label-container {
         display: flex;
         flex-flow: row;
@@ -268,16 +216,53 @@
       justify-content: space-around;
       align-items: flex-start;
       width: 100%;
-      height: 64px;
       padding-left: 8px;
       margin-top: 8px;
       margin-bottom: 8px;
-      background-color: transparent;
-      width: 100%; }
+      background-color: transparent; }
   .hic-root .hic-menu > div:hover,
   .hic-root .hic-menu > div:focus,
   .hic-root .hic-menu > div:active {
     cursor: pointer; }
+  .hic-root .color-scale-swatch-scroll-container {
+    position: absolute;
+    top: 25%;
+    left: 15%;
+    width: 75%;
+    z-index: 5000;
+    background-color: white;
+    border-style: solid;
+    border-width: thin;
+    border-color: #dddddd;
+    cursor: pointer; }
+    .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%; }
+      .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child {
+        display: flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        align-items: center;
+        width: 100%;
+        height: 24px;
+        border-bottom-style: solid;
+        border-bottom-width: thin;
+        border-bottom-color: #dddddd;
+        background-color: #dddddd; }
+        .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child i.fa {
+          display: block;
+          margin-right: 4px;
+          color: #5f5f5f; }
+        .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child i.fa:hover,
+        .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child i.fa:focus,
+        .hic-root .color-scale-swatch-scroll-container .color-scale-swatch-container div:first-child i.fa:active {
+          cursor: pointer;
+          color: #0f0f0f; }
 
 .hic-root-selected {
   border-color: #df0000; }
@@ -292,6 +277,13 @@
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
   font-weight: 400; }
+  .hic-annotation-modal-container .hic-annotation-row-container {
+    display: flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%; }
   .hic-annotation-modal-container .hic-annotation-modal-row {
     display: flex;
     flex-flow: row;
@@ -314,18 +306,18 @@
       margin-left: 32px;
       margin-right: 32px;
       color: #5f5f5f; }
-    .hic-annotation-modal-container .hic-annotation-modal-row div {
+    .hic-annotation-modal-container .hic-annotation-modal-row .up-down-arrow-container {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-end;
       align-items: center; }
-      .hic-annotation-modal-container .hic-annotation-modal-row div i.fa:first-child {
+      .hic-annotation-modal-container .hic-annotation-modal-row .up-down-arrow-container i.fa:first-child {
         display: block;
         margin-left: 32px;
         margin-right: 8px;
         color: #5f5f5f; }
-      .hic-annotation-modal-container .hic-annotation-modal-row div i.fa:last-child {
+      .hic-annotation-modal-container .hic-annotation-modal-row .up-down-arrow-container i.fa:last-child {
         display: block;
         margin-left: 8px;
         margin-right: 32px;
@@ -334,6 +326,55 @@
   .hic-annotation-modal-container .hic-annotation-modal-row:focus,
   .hic-annotation-modal-container .hic-annotation-modal-row:active {
     background-color: #f7f7f7; }
+
+.hic-color-swatch-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%; }
+  .hic-color-swatch-container div:first-child {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    height: 24px; }
+    .hic-color-swatch-container div:first-child i.fa {
+      display: block;
+      margin-right: 4px;
+      color: #5f5f5f; }
+    .hic-color-swatch-container div:first-child i.fa:hover,
+    .hic-color-swatch-container div:first-child i.fa:focus,
+    .hic-color-swatch-container div:first-child i.fa:active {
+      cursor: pointer;
+      color: #0f0f0f; }
+
+.hic-color-swatch {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+  border-style: solid;
+  border-width: thin;
+  border-color: transparent; }
+  .hic-color-swatch i.fa {
+    display: block; }
+  .hic-color-swatch i.fa:hover,
+  .hic-color-swatch i.fa:focus,
+  .hic-color-swatch i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f; }
+
+.hic-color-swatch:hover,
+.hic-color-swatch:focus,
+.hic-color-swatch:active {
+  border-color: #dddddd; }
 
 .hic-navbar-container {
   display: flex;
@@ -431,22 +472,6 @@
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center; }
-  .hic-colorscale-widget-container div:nth-child(1) {
-    display: block;
-    height: 30px;
-    width: 30px;
-    margin-right: 6px;
-    color: red;
-    background-color: red; }
-  .hic-colorscale-widget-container div:nth-child(2) {
-    display: block;
-    font-size: 18px;
-    color: #5f5f5f;
-    text-align: center;
-    vertical-align: middle;
-    line-height: 30px;
-    height: 30px;
-    width: 30px; }
   .hic-colorscale-widget-container input {
     display: block;
     margin-right: 4px;
@@ -464,14 +489,24 @@
     background-color: white; }
   .hic-colorscale-widget-container input {
     width: 110px; }
-  .hic-colorscale-widget-container i.fa {
+  .hic-colorscale-widget-container i.fa-minus {
     display: block;
     margin-left: 4px;
     margin-right: 4px;
     color: #5f5f5f; }
-  .hic-colorscale-widget-container i.fa:hover,
-  .hic-colorscale-widget-container i.fa:focus,
-  .hic-colorscale-widget-container i.fa:active {
+  .hic-colorscale-widget-container i.fa-minus:hover,
+  .hic-colorscale-widget-container i.fa-minus:focus,
+  .hic-colorscale-widget-container i.fa-minus:active {
+    cursor: pointer;
+    color: #0f0f0f; }
+  .hic-colorscale-widget-container i.fa-plus {
+    display: block;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: #5f5f5f; }
+  .hic-colorscale-widget-container i.fa-plus:hover,
+  .hic-colorscale-widget-container i.fa-plus:focus,
+  .hic-colorscale-widget-container i.fa-plus:active {
     cursor: pointer;
     color: #0f0f0f; }
 

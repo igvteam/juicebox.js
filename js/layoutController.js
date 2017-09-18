@@ -11,8 +11,6 @@ var hic = (function (hic) {
 
         createAllContainers.call(this, browser, $root);
 
-
-
         this.scrollbar_height = 20;
         this.axis_height = 32;
 
@@ -48,6 +46,8 @@ var hic = (function (hic) {
             $upper_widget_container,
             $lower_widget_container,
             $navbar_shim,
+            $a,
+            $b,
             $e,
             $fa;
 
@@ -140,9 +140,7 @@ var hic = (function (hic) {
             // shim
             $navbar_shim = $('<div class="hic-nav-bar-shim">');
             $navbar_container.append($navbar_shim);
-
         }
-
 
     }
 
@@ -193,6 +191,12 @@ var hic = (function (hic) {
 
         // menu
         createMenu(browser, $root);
+
+        // ColorScale swatch selector
+        createColorScaleSwatchSelector(browser, $root);
+
+
+
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';
@@ -258,19 +262,6 @@ var hic = (function (hic) {
         });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
@@ -289,11 +280,56 @@ var hic = (function (hic) {
             browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
         }
 
-        browser.annotationWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations');
+        browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations', function () {
+            return browser.tracks2D;
+        }, true);
+
+        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, 'Tracks', function () {
+            return browser.trackRenderers;
+        }, false);
 
         browser.$menu = $menu;
 
         browser.$menu.hide();
+
+    }
+
+    function createColorScaleSwatchSelector(browser, $root) {
+
+        var $scroll_container,
+            $container;
+
+        // scroll container
+        $scroll_container = $('<div>', { class:'color-scale-swatch-scroll-container' });
+        $root.append($scroll_container);
+
+        // swatch container
+        $container = $('<div>', { class:'color-scale-swatch-container' });
+        $scroll_container.append($container);
+
+        hic.createColorSwatchSelector($container, function (colorName) {
+            var rgb;
+
+            rgb = Colors.name2rgb(colorName);
+
+            browser.colorscaleWidget.$button.find('.fa-square').css({ color: colorName });
+
+            browser.contactMatrixView.colorScale.highR = rgb.R;
+            browser.contactMatrixView.colorScale.highG = rgb.G;
+            browser.contactMatrixView.colorScale.highB = rgb.B;
+
+            browser.contactMatrixView.updating = false;
+            browser.contactMatrixView.initialImage = undefined;
+            browser.contactMatrixView.clearCaches();
+            browser.contactMatrixView.colorScaleCache = {};
+            browser.contactMatrixView.update();
+        }, function () {
+            browser.$root.find('.color-scale-swatch-scroll-container').toggle();
+        });
+
+        $scroll_container.draggable();
+
+        $scroll_container.hide();
 
     }
 
@@ -321,22 +357,22 @@ var hic = (function (hic) {
 
     hic.LayoutController.prototype.receiveEvent = function(event) {
         var self = this,
-            trackRendererPair;
+            trackRendererPair,
+            rev;
 
         if ('TrackLoad' === event.type) {
 
-            _.each(event.data.trackXYPairs, function (trackPair) {
+            _.each(event.data.trackXYPairs, function (trackPair, index) {
 
                 var w,
                     h;
 
                 self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
 
-                // append tracks
                 trackRendererPair = {};
                 w = h = self.track_height;
-                trackRendererPair.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackRendererPair, trackPair, 'x');
-                trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y');
+                trackRendererPair.x = new hic.TrackRenderer(self.browser, {width: undefined, height: h}, self.$x_tracks, trackRendererPair, trackPair, 'x', index);
+                trackRendererPair.y = new hic.TrackRenderer(self.browser, {width: w, height: undefined}, self.$y_tracks, trackRendererPair, trackPair, 'y', index);
 
                 self.browser.trackRenderers.push(trackRendererPair);
 

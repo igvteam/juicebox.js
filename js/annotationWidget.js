@@ -22,116 +22,162 @@
  */
 
 var hic = (function (hic) {
-    hic.AnnotationWidget = function (browser, $parent, title) {
+
+    hic.AnnotationWidget = function (browser, $parent, title, trackListRetrievalCallback, useLargeModal) {
 
         var self = this,
             modal_id,
             $container;
 
         this.browser = browser;
+        this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        $container = $("<div>", {class: 'hic-annotation-container'});
+        $container = $("<div>", { class: 'hic-annotation-container' });
         $parent.append($container);
 
-        modal_id = browser.id + '_' + 'modal';
+        modal_id = browser.id + '_' + _.uniqueId('annotation_modal_');
 
-        modalPresentationButton.call(this, modal_id, $container);
+        modalPresentationButton.call(this, modal_id, $container, title);
 
-        modal.call(this, modal_id, $('body'), title);
+        modal.call(this, modal_id, $('body'), title, useLargeModal);
 
         this.$modal.on('show.bs.modal', function () {
             browser.hideMenu();
-            self.updateBody(self.browser.tracks2D);
-        });
-
-        this.$modal.on('hidden.bs.modal', function () {
-            // do stuff
+            self.updateBody(trackListRetrievalCallback());
         });
 
     };
 
-    hic.AnnotationWidget.prototype.updateBody = function (tracks2D) {
+    hic.AnnotationWidget.prototype.updateBody = function (tracks) {
 
-        var self = this, zi;
+        var self = this,
+            trackRenderers,
+            isTrack2D,
+            zi;
 
         self.$annotation_modal_container.empty();
 
-        // Reverse list to present layers in "z" order.
-        for(zi = tracks2D.length-1; zi>= 0; zi--) {
-            modalBodyRow.call(self, self.$annotation_modal_container, tracks2D[ zi ]);
+        isTrack2D = (_.first(tracks) instanceof hic.Track2D);
+
+        if (isTrack2D) {
+            // Reverse list to present layers in "z" order.
+            for(zi = tracks.length - 1; zi >= 0; zi--) {
+                modalBodyRow.call(self, self.$annotation_modal_container, tracks[ zi ]);
+            }
+        } else {
+            trackRenderers = tracks;
+            _.each(trackRenderers, function (trackRenderer) {
+                modalBodyRow.call(self, self.$annotation_modal_container, trackRenderer);
+            });
         }
 
     };
 
     function modalBodyRow($container, track) {
         var self = this,
+            $row_container,
             $row,
-            $colorPicker,
             $hideShowTrack,
             $deleteTrack,
             $upTrack,
             $downTrack,
             $e,
+            $o,
             hidden_color = '#f7f7f7',
-            str;
+            str,
+            isTrack2D,
+            trackList,
+            xyTrackRendererPair,
+            trackRenderer,
+            track1D,
+            index,
+            upp,
+            dwn;
 
+        isTrack2D = (track instanceof hic.Track2D);
+        trackList = this.trackListRetrievalCallback();
+
+        if (false === isTrack2D) {
+            xyTrackRendererPair = track;
+            track1D = xyTrackRendererPair.x.track;
+            trackRenderer = xyTrackRendererPair.x.track.trackView;
+        }
+
+        // row container
+        $row_container = $('<div>', {class: 'hic-annotation-row-container'});
+        $container.append($row_container);
+
+        // one row
         $row = $('<div>', {class: 'hic-annotation-modal-row'});
-        $container.append($row);
-
-        $row.data('track2D', track);
+        $row_container.append($row);
 
         // track name
         $e = $("<div>");
-        $e.text(track.config.name);
+        $e.text(isTrack2D ? track.config.name : track1D.config.name);
         $row.append($e);
 
+
+
         // track hide/show
-        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
-        $row.append($hideShowTrack);
-        $hideShowTrack.on('click', function (e) {
-            var track2D;
+        if (isTrack2D) {
 
-            track2D = $row.data('track2D');
+            str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+            $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
+            $row.append($hideShowTrack);
+            $hideShowTrack.on('click', function (e) {
 
-            if ($hideShowTrack.hasClass('fa-eye')) {
-                $hideShowTrack.addClass('fa-eye-slash');
-                $hideShowTrack.removeClass('fa-eye');
-                track2D.isVisible = false;
+                if ($hideShowTrack.hasClass('fa-eye')) {
+                    $hideShowTrack.addClass('fa-eye-slash');
+                    $hideShowTrack.removeClass('fa-eye');
+                    track.isVisible = false;
+                } else {
+                    $hideShowTrack.addClass('fa-eye');
+                    $hideShowTrack.removeClass('fa-eye-slash');
+                    track.isVisible = true;
+                }
+
+                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.update();
+
+            });
+
+        }
+
+
+
+        // color swatch selector button
+        $e = hic.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $row.append($e);
+        $e.on('click', function (e) {
+            $row.next('.hic-color-swatch-container').toggle();
+        });
+
+        // color swatch selector
+        $e = $('<div>', { class: 'hic-color-swatch-container' });
+        $row_container.append($e);
+
+        hic.createColorSwatchSelector($e, function (color) {
+            var $swatch;
+
+            $swatch = $row.find('.fa-square');
+            $swatch.css({color: color});
+
+            if (isTrack2D) {
+                track.color = color;
+                self.browser.eventBus.post(hic.Event('TrackState2D', track));
             } else {
-                $hideShowTrack.addClass('fa-eye');
-                $hideShowTrack.removeClass('fa-eye-slash');
-                track2D.isVisible = true;
+                trackRenderer.setColor(color);
             }
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
-
+        }, function () {
+            $row.next('.hic-color-swatch-container').toggle();
         });
+        $e.hide();
 
-        // color
-
-        //
-        // if (inputTypeColorSupport()) {
-        //     $colorPicker = $("<input type='color' value='" + rgbToHex(track2D.color) + "'/>");
-        //     $colorPicker.on("change", function () {
-        //         var hexColor = $colorPicker.val(),
-        //             rgb = hexToRgb(hexColor);
-        //         track2D.color = rgb;
-        //         self.browser.eventBus.post(hic.Event("TrackState2D", track2D))
-        //     })
-        // } else {
-        $colorPicker = createGenericColorPicker(track.color, function (color) {
-            track.color = color;
-            self.browser.eventBus.post(hic.Event("TrackState2D", track));
-        });
-        //}
-
-        $row.append($colorPicker);
 
 
         // track up/down
-        $e = $('<div>');
+        $e = $('<div>', {class: 'up-down-arrow-container'});
         $row.append($e);
 
         $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
@@ -140,83 +186,92 @@ var hic = (function (hic) {
         $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
         $e.append($downTrack);
 
-        if (1 === _.size(self.browser.tracks2D)) {
+        if (1 === _.size(trackList)) {
             $upTrack.css('color', hidden_color);
             $downTrack.css('color', hidden_color);
-        } else if (track === _.first(self.browser.tracks2D)) {
-            $downTrack.css('color', hidden_color);
-        } else if (track === _.last(self.browser.tracks2D)) {
-            $upTrack.css('color', hidden_color);
+        } else if (track === _.first(trackList)) {
+            $o = isTrack2D ? $downTrack : $upTrack;
+            $o.css('color', hidden_color);
+        } else if (track === _.last(trackList)) {
+            $o = isTrack2D ? $upTrack : $downTrack;
+            $o.css('color', hidden_color);
         }
 
-        $upTrack.on('click', function (e) {
-            var track2D,
-                indexA,
-                indexB;
+        index = _.indexOf(trackList, track);
 
-            indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA + 1;
+        upp = function (e) {
 
-            track2D = self.browser.tracks2D[indexB];
-            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-            self.browser.tracks2D[indexA] = track2D;
+            track = trackList[(index + 1)];
+            trackList[(index + 1)] = trackList[index];
+            trackList[index] = track;
+            if (isTrack2D) {
+                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
+                self.updateBody(trackList);
+            } else {
+                self.browser.updateLayout();
+                self.updateBody(trackList);
+            }
+        };
 
-            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-            self.updateBody(self.browser.tracks2D);
-        });
+        dwn = function (e) {
 
-        $downTrack.on('click', function (e) {
-            var track2D,
-                indexA,
-                indexB;
+            track = trackList[(index - 1)];
+            trackList[(index - 1)] = trackList[index];
+            trackList[index] = track;
+            if (isTrack2D) {
+                // self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
+                self.updateBody(trackList);
+            } else {
+                self.browser.updateLayout();
+                self.updateBody(trackList);
+            }
+        };
 
-            indexA = _.indexOf(self.browser.tracks2D, $row.data('track2D'));
-            indexB = indexA - 1;
+        $upTrack.on('click', isTrack2D ? upp : dwn);
 
-            track2D = self.browser.tracks2D[indexB];
-            self.browser.tracks2D[indexB] = self.browser.tracks2D[indexA];
-            self.browser.tracks2D[indexA] = track2D;
+        $downTrack.on('click', isTrack2D ? dwn : upp);
 
-            self.browser.eventBus.post(hic.Event('TrackState2D', self.browser.tracks2D));
-            self.updateBody(self.browser.tracks2D);
-        });
 
 
         // track delete
         $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
         $row.append($deleteTrack);
         $deleteTrack.on('click', function (e) {
-            var track2D,
-                index;
+            var index;
 
-            track2D = $row.data('track2D');
-            index = _.indexOf(self.browser.tracks2D, track2D);
+            if (isTrack2D) {
 
-            self.browser.tracks2D.splice(index, 1);
+                index = _.indexOf(trackList, track);
 
-            self.browser.contactMatrixView.clearCaches();
-            self.browser.contactMatrixView.update();
+                trackList.splice(index, 1);
 
-            self.browser.eventBus.post(hic.Event('TrackLoad2D', self.browser.tracks2D));
+                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.update();
+
+                self.browser.eventBus.post(hic.Event('TrackLoad2D', trackList));
+            } else {
+                self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
+            }
+
+            self.updateBody(trackList);
         });
-
     }
 
-    function modalPresentationButton(modal_id, $parent) {
+    function modalPresentationButton(modal_id, $parent, title) {
         var str,
             $e;
 
-        // annotation modal presentation button
         str = '#' + modal_id;
         $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
-        $e.text('2D Annotations');
+        $e.text(title);
 
         $parent.append($e);
 
     }
 
-    function modal(modal_id, $parent, title) {
-        var modal_label,
+    function modal(modal_id, $parent, title, useLargeModal) {
+        var str,
+            modal_label,
             $modal,
             $modal_dialog,
             $modal_content,
@@ -240,7 +295,8 @@ var hic = (function (hic) {
         $parent.append($modal);
 
         // modal-dialog
-        $modal_dialog = $('<div>', {class: 'modal-dialog modal-lg', role: 'document'});
+        str = (true === useLargeModal) ? 'modal-dialog modal-lg' : 'modal-dialog';
+        $modal_dialog = $('<div>', {class: str, role: 'document'});
         $modal.append($modal_dialog);
 
         // modal-content
@@ -290,131 +346,6 @@ var hic = (function (hic) {
         this.$modal = $modal;
 
     }
-
-    // Some conversion functions for the color input element -- spec says hex must be used
-    function rgbToHex(rgb) {
-        rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-        return (rgb && rgb.length === 4) ? "#" +
-        ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
-        ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
-        ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
-    }
-
-    function hexToRgb(hex) {
-        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-        return "rgb(" +
-            parseInt(result[1], 16) + ", " +
-            parseInt(result[2], 16) + ", " +
-            parseInt(result[3], 16) + ")";
-    }
-
-    function inputTypeColorSupport() {
-        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
-            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
-            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
-        }
-        return inputTypeColorSupport._cachedResult;
-    }
-
-    function createGenericColorPicker(currentColor, callback) {
-
-        var $widget, $palletDiv, $buttonContainer, $showButton, $hideButton;
-
-        $widget = $('<div/>')
-
-        // Set position property to "fixed" to take it out of the page flow.  Otherwise it will move controls to the right
-        $palletDiv = $('<div style="width: 300px; display:none; border: 2px black; margin: 5px; position: fixed">');
-
-        $buttonContainer = $('<div style="width: 300px; display: flex; flex-wrap: wrap">');
-        $palletDiv.append($buttonContainer);
-
-        if(currentColor) {
-            $buttonContainer.append(createColorRow(currentColor));  // self color, might be duplicated in CSS_NAMES but we don't care
-        }
-
-        //if(!WEB_SAFE_COLORS) createWebSafeColorArray();
-        CSS_COLOR_NAMES.forEach(function (c) {
-            $buttonContainer.append(createColorRow(c));
-        });
-
-        $hideButton = $('<input/>', {
-            type: "button",
-            value: "Close",
-            style: "margin: 5px, border-radius: 5px"
-        });
-        $hideButton.click(function () {
-            $palletDiv.css("display", "none");
-        });
-        $palletDiv.append($hideButton);
-
-        $showButton = $('<button/>', {
-            style: "width: 20px; height: 20px; background-color: " + currentColor
-        });
-        $showButton.on("click", function () {
-            $palletDiv.css("display", "block");
-        });
-
-
-        $widget.append($showButton);
-        $widget.append($palletDiv);
-        return $widget;
-
-        function createColorRow(color) {
-
-            var $cell = $('<input>', {
-                type: "button",
-                style: "width: 20px; background-color:" + color + "; height: 20px",
-            })
-            $cell.click(function () {
-                $showButton.css("background-color", color);
-                $palletDiv.css("display", "none");
-                callback(color);
-
-            });
-            return $cell;
-        }
-
-        function createWebSafeColorArray() {
-
-            var safe = new Array('00', '33', '66', '99', 'CC', 'FF'),
-                color, r, g, b;
-
-            WEB_SAFE_COLORS = [];
-            for (r = 0; r <= 5; r++) {
-                for (g = 0; g <= 5; g++) {
-                    for (b = 0; b <= 5; b++) {
-                        color = "#" + safe[r] + safe[g] + safe[b];
-                        WEB_SAFE_COLORS.push(color);
-                    }
-
-                }
-            }
-        }
-
-
-    }
-
-    var WEB_SAFE_COLORS;
-
-    var CSS_COLOR_NAMES = ["Red", "Blue", "Green","AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure", "Beige",
-        "Bisque", "Black", "BlanchedAlmond",  "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse", "Chocolate",
-        "Coral", "CornflowerBlue", "Cornsilk", "Crimson", "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray",
-        "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed",
-        "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet",
-        "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue", "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia",
-        "Gainsboro", "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey", "GreenYellow", "HoneyDew", "HotPink",
-        "IndianRed", "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", "LawnGreen", "LemonChiffon", "LightBlue",
-        "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink",
-        "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey", "LightSteelBlue",
-        "LightYellow", "Lime", "LimeGreen", "Linen", "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue",
-        "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise",
-        "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin", "NavajoWhite", "Navy", "OldLace",
-        "Olive", "OliveDrab", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed",
-        "PapayaWhip", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "RosyBrown", "RoyalBlue",
-        "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue", "SlateBlue",
-        "SlateGray", "SlateGrey", "Snow", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise",
-        "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"];
-
 
     return hic;
 })(hic || {});

@@ -30,12 +30,18 @@ $hic-menu-margin: 8px;
 $hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
+$hic-color-swatch-size: 24px;
+
+$hic-annotation-modal-row-height: 40px;
+
 //
 $default-light-color: #f7f7f7;
 $default-medium-color: #a6a6a6;
 $default-dark-color: #5f5f5f;
-$default-hover-color: #0f0f0f;
 $default-dark-dark-color: #373737;
+
+$default-hover-color: #0f0f0f;
+
 $scrollbar-handle-color: #a5a5a5;
 $scrollbar-color: #efefef;
 
@@ -184,10 +190,9 @@ $default-font-family: 'Open Sans', sans-serif;
   align-items: flex-start;
 
   width: 100%;
-  height: $hic-menu-item-height;
+  //height: $hic-menu-item-height;
 
   padding-left: $hic-menu-item-padding;
-  //padding-bottom: 4px;
 
   margin-top: $hic-menu-margin;
   margin-bottom: $hic-menu-margin;
@@ -250,47 +255,6 @@ $default-font-family: 'Open Sans', sans-serif;
   color: white;
   //background-color: red;
 }
-
-.blue-backdrop {
-  background-color: dodgerblue;
-}
-
-.red-backdrop {
-  background-color: orangered;
-}
-
-.green-backdrop {
-  background-color: greenyellow;
-}
-
-.green-box {
-  height: 40px;
-  color: white;
-  background-color: green;
-}
-
-.blue-button {
-  height: 40px;
-
-  text-align: center;
-  vertical-align: top;
-  line-height: 40px;
-  color: white;
-  background-color: #529bd3;
-}
-
-.blue-button:hover,
-.blue-button:focus,
-.blue-button:active  {
-  cursor: pointer;
-  background-color: #367397;
-}
-
-.bootstrap-row-shim-top-4 { margin-top: 4px; }
-.bootstrap-row-shim-top-8 { margin-top: 8px; }
-
-.bootstrap-row-shim-bottom-4 { margin-bottom: 4px; }
-.bootstrap-row-shim-bottom-8 { margin-bottom: 8px; }
 
 // root
 .hic-root {
@@ -369,8 +333,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      width: 100%;
-
       // label: 'Chromosome'
       div {
         padding-top:2px;
@@ -427,18 +389,6 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-top: 2 * $hic-menu-item-padding;
       margin-bottom: $hic-menu-item-padding;
 
-      // red chip
-      div {
-
-        display: block;
-        height: $nav-bar-widget-container-height - 6px;
-        width: $nav-bar-widget-container-height - 6px;
-
-        color: red;
-        background-color: red;
-      }
-
-      // input element
       @include navbar-color-scale-input;
 
       i.fa {
@@ -462,8 +412,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
       @include menu-item;
 
-      width: 100%;
-
       @include navbar-select;
 
       select {
@@ -476,8 +424,6 @@ $default-font-family: 'Open Sans', sans-serif;
     .hic-resolution-selector-container {
 
       @include menu-item;
-
-      width: 100%;
 
       div#hic-resolution-label-container {
         display:flex;
@@ -514,9 +460,6 @@ $default-font-family: 'Open Sans', sans-serif;
     // annotations
     .hic-annotation-container {
       @include menu-item;
-
-      width: 100%;
-
     }
 
   }
@@ -526,6 +469,66 @@ $default-font-family: 'Open Sans', sans-serif;
   .hic-menu > div:active {
     cursor: pointer;
     //background-color: #dfdfdf;
+  }
+
+  .color-scale-swatch-scroll-container {
+
+    position:absolute;
+    top: 25%;
+    left: 15%;
+    width: 75%;
+    z-index: 5000;
+
+    background-color: white;
+
+    border-style: solid;
+    border-width: thin;
+    border-color: #dddddd;
+
+    cursor: pointer;
+
+    .color-scale-swatch-container {
+
+      display:flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: center;
+
+      width: 100%;
+
+      div:first-child {
+        display:flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        align-items: center;
+
+        width: 100%;
+        height: $hic-color-swatch-size;
+
+        border-bottom-style: solid;
+        border-bottom-width: thin;
+        border-bottom-color: #dddddd;
+
+        background-color: #dddddd;
+        
+        i.fa {
+          display: block;
+          margin-right: 4px;
+          color: $default-dark-color;
+        }
+
+        i.fa:hover,
+        i.fa:focus,
+        i.fa:active {
+          cursor: pointer;
+          color: $default-hover-color;
+        }
+      }
+
+    }
+
   }
 
 }
@@ -548,6 +551,18 @@ $default-font-family: 'Open Sans', sans-serif;
   font-size: 16px;
   font-weight: 400;
 
+  .hic-annotation-row-container {
+
+    display:flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    width: 100%;
+
+  }
+
   .hic-annotation-modal-row {
 
     display:flex;
@@ -569,7 +584,6 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-right: 4px;
       text-align: left;
       text-overflow: ellipsis;
-      //background-color: rgba(0, 191, 255, 0.5);
       width: 384px;
     }
 
@@ -580,7 +594,7 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-dark-color;
     }
 
-    div {
+    .up-down-arrow-container {
       display:flex;
       flex-flow: row;
       flex-wrap: nowrap;
@@ -603,13 +617,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     }
 
-    //i.fa:hover,
-    //i.fa:focus,
-    //i.fa:active {
-    //  cursor: pointer;
-    //  color: #0f0f0f;
-    //}
-
   }
 
   .hic-annotation-modal-row:hover,
@@ -618,6 +625,84 @@ $default-font-family: 'Open Sans', sans-serif;
     background-color: #f7f7f7;
   }
 
+}
+
+// color swatch selector
+.hic-color-swatch-container {
+
+  display:flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  width: 100%;
+
+  //border-style: solid;
+  //border-width: thin;
+  //border-color: #dddddd;
+
+  div:first-child {
+    display:flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    width: 100%;
+    height: $hic-color-swatch-size;
+
+    //border-bottom-style: solid;
+    //border-bottom-width: 1px;
+    //border-bottom-color: $default-dark-color;
+
+    i.fa {
+      display: block;
+      margin-right: 4px;
+      color: $default-dark-color;
+    }
+
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: $default-hover-color;
+    }
+  }
+
+}
+
+.hic-color-swatch {
+
+  display:flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+
+  width: $hic-color-swatch-size;
+  height: $hic-color-swatch-size;
+
+  border-style: solid;
+  border-width: thin;
+  border-color: transparent;
+
+  i.fa {
+    display: block;
+  }
+
+  i.fa:hover,
+  i.fa:focus,
+  i.fa:active {
+    cursor: pointer;
+    color: #0f0f0f;
+  }
+}
+
+.hic-color-swatch:hover,
+.hic-color-swatch:focus,
+.hic-color-swatch:active {
+  border-color: #dddddd;
 }
 
 // navbar
@@ -740,6 +825,7 @@ $default-font-family: 'Open Sans', sans-serif;
     height: $nav-bar-shim-height;
     background-color: transparent;
   }
+
 }
 
 // navbar - chromosome goto
@@ -757,53 +843,36 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: flex-start;
   align-items: center;
 
-  div:nth-child(1) {
-    display: block;
-
-    height: $nav-bar-widget-container-height - 6px;
-    width: $nav-bar-widget-container-height - 6px;
-
-    margin-right: 6px;
-
-    color: red;
-    background-color: red;
-
-  }
-
-  div:nth-child(2) {
-    display: block;
-
-    font-size: 18px;
-
-    color: $default-dark-color;
-
-    text-align: center;
-
-    vertical-align: middle;
-    line-height: $nav-bar-widget-container-height - 6px;
-
-    height: $nav-bar-widget-container-height - 6px;
-    width: $nav-bar-widget-container-height - 6px;
-
-    //background-color: yellow;
-  }
-
   @include navbar-color-scale-input;
 
   input {
     width: 110px;
   }
 
-  i.fa {
+  i.fa-minus {
     display: block;
     margin-left: 4px;
     margin-right: 4px;
     color: $default-dark-color;
   }
 
-  i.fa:hover,
-  i.fa:focus,
-  i.fa:active {
+  i.fa-minus:hover,
+  i.fa-minus:focus,
+  i.fa-minus:active {
+    cursor: pointer;
+    color: $default-hover-color;
+  }
+
+  i.fa-plus {
+    display: block;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: $default-dark-color;
+  }
+
+  i.fa-plus:hover,
+  i.fa-plus:focus,
+  i.fa-plus:active {
     cursor: pointer;
     color: $default-hover-color;
   }

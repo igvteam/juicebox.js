@@ -30,7 +30,6 @@ var hic = (function (hic) {
     hic.ColorScaleWidget = function (browser, $container) {
 
         var self = this,
-            $label,
             $fa,
             $e;
 
@@ -40,9 +39,11 @@ var hic = (function (hic) {
         $container.append(this.$container);
 
         // color chip
-        $e = $('<div>');
-        this.$container.append($e);
-        $e.html('X');
+        this.$button = hic.colorSwatch('red');
+        this.$container.append(this.$button);
+        this.$button.on('click', function (e) {
+            self.browser.$root.find('.color-scale-swatch-scroll-container').toggle();
+        });
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="high">');
