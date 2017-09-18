@@ -766,7 +766,8 @@ div[id$="content-container"] {
           color: #373737;
           font-family: "Open Sans", sans-serif;
           font-size: medium;
-          font-weight: 400; }
+          font-weight: 400;
+          white-space: nowrap; }
   div[id$="content-container"] div[id$="x-scrollbar-container"] {
     display: flex;
     flex-flow: row;
@@ -806,7 +807,8 @@ div[id$="content-container"] {
           color: #373737;
           font-family: "Open Sans", sans-serif;
           font-size: medium;
-          font-weight: 400; }
+          font-weight: 400;
+          white-space: nowrap; }
 
 .hic-track-menu {
   position: absolute;

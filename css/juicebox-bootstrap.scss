@@ -71,6 +71,8 @@ $default-font-family: 'Open Sans', sans-serif;
     font-size: medium;
     font-weight: 400;
 
+    white-space: nowrap;
+
   }
 }
 
@@ -99,6 +101,8 @@ $default-font-family: 'Open Sans', sans-serif;
     font-family: $default-font-family;
     font-size: medium;
     font-weight: 400;
+
+    white-space: nowrap;
 
   }
 }

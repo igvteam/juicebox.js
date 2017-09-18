@@ -125,9 +125,9 @@ var hic = (function (hic) {
             widthBin,
             heightBin,
             bins,
-
             percentage,
-            percentages;
+            percentages,
+            str;
 
         if (false === this.isDragging && event.type === "LocusChange") {
 
@@ -185,6 +185,10 @@ var hic = (function (hic) {
 
             this.$x_label.text( dataset.chromosomes[ state.chr1 ].name );
             this.$y_label.text( dataset.chromosomes[ state.chr2 ].name );
+
+            // str = 'under milkwood - dylan thomas';
+            // this.$x_label.text( str );
+            // this.$y_label.text( str );
 
         }
     };
