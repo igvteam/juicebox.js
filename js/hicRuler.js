@@ -157,7 +157,14 @@ var hic = (function (hic) {
     hic.Ruler.prototype.receiveEvent = function(event) {
 
         if ('LocusChange' === event.type) {
-            this.update();
+
+            if (0 === event.data.state.chr1 && event.data.state.chr1 === event.data.state.chr1) {
+                this.showWholeGenome();
+            } else {
+                this.hideWholeGenome();
+                this.update();
+            }
+
         } else if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.axis, event.data);
         }

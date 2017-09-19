@@ -56,25 +56,13 @@ var hic = (function (hic) {
 
         $doit.on('click', function (e) {
             var chr1Index,
-                chr2Index,
-                chr1,
-                chr2;
+                chr2Index;
 
             chr1Index = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
-            chr1 = self.browser.dataset.chromosomes[ chr1Index ];
-
             chr2Index = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
-            chr2 = self.browser.dataset.chromosomes[ chr2Index ];
 
             self.browser.setChromosomes(chr1Index, chr2Index);
 
-            if ('all' === chr1.name.toLowerCase() && chr1.name === chr2.name) {
-                self.browser.layoutController.xAxisRuler.showWholeGenome();
-                self.browser.layoutController.yAxisRuler.showWholeGenome();
-            } else {
-                self.browser.layoutController.xAxisRuler.hideWholeGenome();
-                self.browser.layoutController.yAxisRuler.hideWholeGenome();
-            }
         });
 
         this.dataLoadConfig = {
