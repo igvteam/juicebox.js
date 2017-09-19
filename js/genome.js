@@ -64,19 +64,19 @@ var hic = (function (hic) {
     hic.Genome.prototype.getChromosomeName = function (str) {
         var chr = this.chrAliasTable[str];
         return chr ? chr : str;
-    }
+    };
 
     hic.Genome.prototype.getChromosome = function (chr) {
         chr = this.getChromosomeName(chr);
         return this.chromosomes[chr];
-    }
+    };
 
     /**
      * Return the genome coordinate in kb for the give chromosome and position.
      */
     hic.Genome.prototype.getGenomeCoordinate = function (chr, bp) {
         return this.getCumulativeOffset(chr) + Math.floor(bp / 1000);
-    }
+    };
 
 
 
@@ -85,25 +85,36 @@ var hic = (function (hic) {
      */
     hic.Genome.prototype.getCumulativeOffset = function (chr) {
 
-        var self = this,
-            queryChr = this.getChromosomeName(chr);
+        var queryChr;
+
+        queryChr = this.getChromosomeName(chr);
+
         if (this.cumulativeOffsets === undefined) {
             computeCumulativeOffsets.call(this);
         }
-        return this.cumulativeOffsets[queryChr];
-    }
+        return this.cumulativeOffsets[ queryChr.name ];
+    };
 
     function computeCumulativeOffsets() {
         var self = this,
-            cumulativeOffsets = {},
-            offset = 0;
+            list,
+            cumulativeOffsets,
+            offset;
 
-        self.chromosomes.forEach(function (chromosome) {
-            var name = chromosome.name;
-            cumulativeOffsets[name] = Math.floor(offset);
-            var chromosome = self.getChromosome(name);
-            offset += (chromosome.size / 1000);   // Genome coordinates are in KB.  Beware 32-bit max value limit
+        list = _.filter(self.chromosomes, function (chromosome) {
+            return 'all' !== chromosome.name.toLowerCase();
         });
+
+        cumulativeOffsets = {};
+        offset = 0;
+        _.each(list, function (chromosome) {
+
+            cumulativeOffsets[ chromosome.name ] = Math.floor(offset);
+
+            // Genome coordinates are in KB.  Beware 32-bit max value limit
+            offset += (chromosome.size / 1000);
+        });
+
         self.cumulativeOffsets = cumulativeOffsets;
 
     }

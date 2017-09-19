@@ -28,20 +28,25 @@
 
 var hic = (function (hic) {
 
-    hic.Ruler = function (browser, $axis, whichAxis) {
+    hic.Ruler = function (browser, axis, $parent) {
+        var id;
 
         this.browser = browser;
-        this.$axis = $axis;
-        this.axis = whichAxis;
+        this.axis = axis;
+
+        id = browser.id + '_' + this.axis + '-axis';
+        this.$axis = $("<div>", { id:id });
+        $parent.append(this.$axis);
+
 
         this.$canvas = $('<canvas>');
-        $axis.append(this.$canvas);
+        this.$axis.append(this.$canvas);
 
-        this.$canvas.width(        $axis.width());
-        this.$canvas.attr('width', $axis.width());
+        this.$canvas.width(        this.$axis.width());
+        this.$canvas.attr('width', this.$axis.width());
 
-        this.$canvas.height(        $axis.height());
-        this.$canvas.attr('height', $axis.height());
+        this.$canvas.height(        this.$axis.height());
+        this.$canvas.attr('height', this.$axis.height());
 
         this.ctx = this.$canvas.get(0).getContext("2d");
 
@@ -50,13 +55,99 @@ var hic = (function (hic) {
             context.rotate(Math.PI/2.0);
         };
 
-        this.setAxis( whichAxis );
+        this.setAxisTransform(axis);
 
         this.browser.eventBus.subscribe('LocusChange', this);
+        this.browser.eventBus.subscribe('MapLoad', this);
 
     };
 
-    hic.Ruler.prototype.setAxis = function (axis) {
+    hic.Ruler.prototype.wholeGenomeLayout = function ($axis, axis, dataset) {
+
+        var self = this,
+            list,
+            dimen,
+            extent,
+            cumulativeOffset,
+            chrLast,
+            scraps,
+            $div,
+            $e;
+
+        // discard current tiles
+        $axis.find('div').remove();
+
+        list = _.filter(dataset.chromosomes, function (chr) {
+            return 'all' !== chr.name.toLowerCase();
+        });
+
+        chrLast = _.last(list);
+        cumulativeOffset = this.browser.genome.getCumulativeOffset(chrLast);
+        extent = Math.floor(chrLast.bpLength/1000) + cumulativeOffset;
+
+        dimen = 'x' === axis ? $axis.width() : $axis.height();
+        scraps = 0;
+        _.each(list, function (chr) {
+            var d,
+                percentage;
+
+            percentage = (chr.bpLength/1000)/extent;
+            if (percentage * dimen < 1.0) {
+                scraps += percentage;
+            } else {
+                $div = $('<div>');
+                $axis.append($div);
+
+                if ('x' === axis) {
+                    d = Math.floor(percentage * dimen);
+                    $div.width(d);
+                } else {
+                    d = Math.floor(percentage * dimen);
+                    $div.height(d);
+
+                }
+
+                $e = $('<span>');
+                $div.append($e);
+
+                $e.text(chr.name);
+
+            }
+
+        });
+
+        scraps *= dimen;
+        scraps = Math.floor(scraps);
+        if (scraps >= 1) {
+
+            $div = $('<div>');
+            $axis.append($div);
+
+            $div.width(scraps);
+
+            $e = $('<span>');
+            $div.append($e);
+
+            $e.text('-');
+
+        }
+
+        // initially hide
+        this.hideWholeGenome();
+
+    };
+
+    hic.Ruler.prototype.hideWholeGenome = function () {
+        this.$axis.find('div').hide();
+        this.$canvas.show();
+    };
+
+    hic.Ruler.prototype.showWholeGenome = function () {
+        this.$canvas.hide();
+        this.$axis.find('div').show();
+    };
+
+    hic.Ruler.prototype.setAxisTransform = function (axis) {
 
         this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
 
@@ -66,8 +157,10 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.receiveEvent = function(event) {
 
-        if (event.type === 'LocusChange') {
+        if ('LocusChange' === event.type) {
             this.update();
+        } else if ('MapLoad' === event.type) {
+            this.wholeGenomeLayout(this.$axis, this.axis, event.data);
         }
 
     };
