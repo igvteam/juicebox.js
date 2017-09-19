@@ -107,9 +107,8 @@ var hic = (function (hic) {
 
                 }
 
-                $e = $('<span>');
+                $e = $('<div>');
                 $div.append($e);
-
                 $e.text(chr.name);
 
             }

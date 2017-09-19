@@ -673,20 +673,23 @@ div[id$="content-container"] {
       margin-right: 20px;
       background-color: white; }
       div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
         font-family: "Open Sans", sans-serif;
         font-size: 8px;
         font-weight: 400;
         color: #444;
         height: 100%;
-        text-align: center;
         border-left-color: transparent;
         border-left-style: solid;
         border-left-width: thin;
         border-right-color: #bfbfbf;
         border-right-style: solid;
         border-right-width: thin; }
-        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div span {
-          vertical-align: middle;
+        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis; }
@@ -747,20 +750,23 @@ div[id$="content-container"] {
       margin-bottom: 20px;
       background-color: white; }
       div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
         font-family: "Open Sans", sans-serif;
         font-size: 8px;
         font-weight: 400;
         color: #444;
         width: 100%;
-        text-align: center;
         border-top-color: transparent;
         border-top-style: solid;
         border-top-width: thin;
         border-bottom-color: #bfbfbf;
         border-bottom-style: solid;
         border-bottom-width: thin; }
-        div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div span {
-          vertical-align: middle;
+        div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div div {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis; }
