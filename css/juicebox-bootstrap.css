@@ -769,7 +769,8 @@ div[id$="content-container"] {
         div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div div {
           white-space: nowrap;
           overflow: hidden;
-          text-overflow: ellipsis; }
+          text-overflow: ellipsis;
+          transform: rotate(-90deg); }
       div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div:last-child {
         border-bottom-color: transparent; }
     div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] {

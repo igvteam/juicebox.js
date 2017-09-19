@@ -1301,6 +1301,7 @@ div[id$="content-container"] {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          transform: rotate(-90deg);
         }
 
       }
