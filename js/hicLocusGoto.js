@@ -62,25 +62,29 @@ var hic = (function (hic) {
             chr1,
             chr2;
 
-        if (event.type === "LocusChange") { //} && !event.data.dragging || event.type === "DragStopped") {
+        if (event.type === "LocusChange") {
 
-            state = event.data.state || self.browser.state,
-            chr1 = self.browser.dataset.chromosomes[state.chr1];
-            chr2 = self.browser.dataset.chromosomes[state.chr2];
+            state = event.data.state || self.browser.state;
+            if (0 === state.chr1) {
+                xy = 'All';
+            } else {
+                chr1 = self.browser.dataset.chromosomes[state.chr1];
+                chr2 = self.browser.dataset.chromosomes[state.chr2];
 
-            bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-            dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-            pixelsPerBin = state.pixelSize;
+                bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
+                dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+                pixelsPerBin = state.pixelSize;
 
-            startBP1 = 1 + Math.round(state.x * bpPerBin);
-            startBP2 = 1 + Math.round(state.y * bpPerBin);
+                startBP1 = 1 + Math.round(state.x * bpPerBin);
+                startBP2 = 1 + Math.round(state.y * bpPerBin);
 
-            endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-            endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
+                endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
+                endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-            xy = chr1.name + ":" + igv.numberFormatter(startBP1) + "-" + igv.numberFormatter(endBP1) + " " +
-                chr2.name + ":" + igv.numberFormatter(startBP2) + "-" + igv.numberFormatter(endBP2);
+                xy = chr1.name + ":" + igv.numberFormatter(startBP1) + "-" + igv.numberFormatter(endBP1) + " " +
+                    chr2.name + ":" + igv.numberFormatter(startBP2) + "-" + igv.numberFormatter(endBP2);
 
+            }
 
             this.$resolution_selector.val(xy);
         }
