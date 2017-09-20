@@ -326,7 +326,11 @@ var hic = (function (hic) {
                 Promise.all(promises)
                     .then(function (blocks) {
                         var s = computePercentile(blocks, 95);
+
                         if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+
+                            if(0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
+
                             self.colorScale.high = s;
                             self.computeColorScale = false;
                             self.colorScaleCache[colorKey] = s;
@@ -917,7 +921,7 @@ var hic = (function (hic) {
             var t = Date.now();
 
             if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-                
+
                 // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
                 var direction = e.deltaY < 0 ? 1 : -1,
                     coords = igv.translateMouseCoordinates(e, $viewport),
