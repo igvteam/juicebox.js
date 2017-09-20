@@ -72,10 +72,10 @@ var hic = (function (hic) {
     };
 
     /**
-     * Return the genome coordinate in kb for the give chromosome and position.
+     * Return the genome coordinate for the give chromosome and position.
      */
     hic.Genome.prototype.getGenomeCoordinate = function (chr, bp) {
-        return this.getCumulativeOffset(chr) + Math.floor(bp / 1000);
+        return this.getCumulativeOffset(chr) + bp;
     };
 
 
