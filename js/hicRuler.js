@@ -180,6 +180,8 @@ var hic = (function (hic) {
         this.$canvas.width(        this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
 
+        this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
+
         this.update();
     };
 
@@ -187,6 +189,8 @@ var hic = (function (hic) {
 
         this.$canvas.height(        height);
         this.$canvas.attr('height', height);
+
+        this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
 
         this.update();
     };
