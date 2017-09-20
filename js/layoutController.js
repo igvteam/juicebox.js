@@ -202,7 +202,7 @@ var hic = (function (hic) {
         id = browser.id + '_' + 'x-axis-container';
         $container = $("<div>", { id:id });
         this.$content_container.append($container);
-        xAxis.call(this, browser, $container);
+        this.xAxisRuler = new hic.Ruler(browser, 'x', $container);
 
 
         // container: y-tracks | y-axis | viewport | y-scrollbar
@@ -221,7 +221,7 @@ var hic = (function (hic) {
         this.$y_tracks.append($e);
 
         // y-axis
-        yAxis.call(this, browser, $container);
+        this.yAxisRuler = new hic.Ruler(browser, 'y', $container);
 
         this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
         this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
@@ -331,28 +331,6 @@ var hic = (function (hic) {
 
         $scroll_container.hide();
 
-    }
-
-    function xAxis(browser, $container) {
-        var id,
-            $xAxis;
-
-        id = browser.id + '_' + 'x-axis';
-        $xAxis = $("<div>", { id:id });
-        $container.append($xAxis);
-
-        this.xAxisRuler = new hic.Ruler(browser, $xAxis, 'x');
-    }
-
-    function yAxis(browser, $container) {
-        var id,
-            $yAxis;
-
-        id = browser.id + '_' + 'y-axis';
-        $yAxis = $("<div>", { id:id });
-        $container.append($yAxis);
-
-        this.yAxisRuler = new hic.Ruler(browser, $yAxis, 'y');
     }
 
     hic.LayoutController.prototype.receiveEvent = function(event) {

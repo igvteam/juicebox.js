@@ -17,7 +17,7 @@ $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
 
 //
-$hic-viewport-width:  800px;
+$hic-viewport-width: 800px;
 $hic-viewport-height: 800px;
 $hic-viewport-spinner-size: 120px;
 
@@ -27,7 +27,7 @@ $hic-menu-item-padding: 8px;
 $hic-menu-margin: 8px;
 
 //
-$hic-root-width:  $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
+$hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 $hic-color-swatch-size: 24px;
@@ -56,11 +56,11 @@ $default-font-family: 'Open Sans', sans-serif;
     position: absolute;
     margin: auto;
 
-    left:0;
-    top:0;
+    left: 0;
+    top: 0;
 
-    right:0;
-    bottom:0;
+    right: 0;
+    bottom: 0;
 
     height: $hic-scrollbar-height;
     width: 100%;
@@ -68,7 +68,7 @@ $default-font-family: 'Open Sans', sans-serif;
     z-index: 512;
 
     vertical-align: middle;
-    text-align:center;
+    text-align: center;
     line-height: $hic-scrollbar-height;
 
     color: #373737;
@@ -90,7 +90,7 @@ $default-font-family: 'Open Sans', sans-serif;
     position: absolute;
     top: 50%;
     left: 50%;
-    transform:  translateX(-50%) translateY(-50%) rotate(-90deg);
+    transform: translateX(-50%) translateY(-50%) rotate(-90deg);
 
     //height: 100%;
     //width: $hic-scrollbar-height;
@@ -98,7 +98,7 @@ $default-font-family: 'Open Sans', sans-serif;
     z-index: 512;
 
     vertical-align: middle;
-    text-align:center;
+    text-align: center;
     line-height: $hic-scrollbar-height;
 
     color: #373737;
@@ -160,7 +160,7 @@ $default-font-family: 'Open Sans', sans-serif;
   input {
     display: block;
 
-    margin-right:4px;
+    margin-right: 4px;
     height: $nav-bar-widget-container-height - 4px;
     width: 96px;
     padding: 4px;
@@ -183,7 +183,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 @mixin menu-item {
 
-  display:flex;
+  display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: space-around;
@@ -220,7 +220,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 .juicebox-app-clone-container {
 
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -274,7 +274,7 @@ $default-font-family: 'Open Sans', sans-serif;
   border-color: #5f5f5f;
 
   .hic-menu {
-    position:absolute;
+    position: absolute;
 
     bottom: 0;
     left: 0;
@@ -289,7 +289,7 @@ $default-font-family: 'Open Sans', sans-serif;
     border-right-width: thin;
     border-right-color: $default-dark-color;
 
-    display:flex;
+    display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -298,7 +298,7 @@ $default-font-family: 'Open Sans', sans-serif;
     // menu close
     .hic-menu-close-button {
 
-      display:flex;
+      display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-end;
@@ -335,20 +335,20 @@ $default-font-family: 'Open Sans', sans-serif;
 
       // label: 'Chromosome'
       div {
-        padding-top:2px;
-        padding-bottom:4px;
+        padding-top: 2px;
+        padding-bottom: 4px;
       }
 
       // container: selector-container
       div {
-        display:flex;
+        display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
         justify-content: space-between;
         align-items: flex-start;
 
         select {
-          display:block;
+          display: block;
           cursor: pointer;
           width: 64px;
           height: $nav-bar-widget-height;
@@ -366,7 +366,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
         div:hover,
         div:focus,
-        div:active  {
+        div:active {
           cursor: pointer;
           background-image: url('img/circular-arrows-24-blue.png');
         }
@@ -378,7 +378,7 @@ $default-font-family: 'Open Sans', sans-serif;
     // colorscale
     .hic-colorscale-widget-container {
 
-      display:flex;
+      display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: space-around;
@@ -426,7 +426,7 @@ $default-font-family: 'Open Sans', sans-serif;
       @include menu-item;
 
       div#hic-resolution-label-container {
-        display:flex;
+        display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
         align-items: flex-start;
@@ -473,7 +473,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   .color-scale-swatch-scroll-container {
 
-    position:absolute;
+    position: absolute;
     top: 25%;
     left: 15%;
     width: 75%;
@@ -489,7 +489,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
     .color-scale-swatch-container {
 
-      display:flex;
+      display: flex;
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: flex-start;
@@ -498,7 +498,7 @@ $default-font-family: 'Open Sans', sans-serif;
       width: 100%;
 
       div:first-child {
-        display:flex;
+        display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
         justify-content: flex-end;
@@ -512,7 +512,7 @@ $default-font-family: 'Open Sans', sans-serif;
         border-bottom-color: #dddddd;
 
         background-color: #dddddd;
-        
+
         i.fa {
           display: block;
           margin-right: 4px;
@@ -533,13 +533,13 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.hic-root-selected  {
+.hic-root-selected {
   border-color: #df0000;
 }
 
 .hic-annotation-modal-container {
 
-  display:flex;
+  display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   align-items: flex-start;
@@ -553,7 +553,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   .hic-annotation-row-container {
 
-    display:flex;
+    display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -565,7 +565,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   .hic-annotation-modal-row {
 
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -595,7 +595,7 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     .up-down-arrow-container {
-      display:flex;
+      display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-end;
@@ -630,7 +630,7 @@ $default-font-family: 'Open Sans', sans-serif;
 // color swatch selector
 .hic-color-swatch-container {
 
-  display:flex;
+  display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -643,7 +643,7 @@ $default-font-family: 'Open Sans', sans-serif;
   //border-color: #dddddd;
 
   div:first-child {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
@@ -674,7 +674,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 .hic-color-swatch {
 
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: center;
@@ -708,7 +708,7 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar
 .hic-navbar-container {
 
-  display:flex;
+  display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: center;
@@ -732,7 +732,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   // container: contact map label | browser delete button
   div[id$="hic-nav-bar-contact-map-label-delete-button-container"] {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
@@ -807,7 +807,7 @@ $default-font-family: 'Open Sans', sans-serif;
   // nav-bar widgets
   div[id$="hic-nav-bar-widget-container"] {
 
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
@@ -837,7 +837,7 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - colorscale
 .hic-colorscale-widget-container {
 
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
@@ -882,7 +882,7 @@ $default-font-family: 'Open Sans', sans-serif;
 // normalization
 .hic-normalization-selector-container {
 
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
@@ -907,14 +907,14 @@ $default-font-family: 'Open Sans', sans-serif;
 // resolution
 .hic-resolution-selector-container {
 
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
 
   div#hic-resolution-label-container {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -936,7 +936,6 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-hover-color;
     }
 
-
   }
 
   @include navbar-select;
@@ -949,7 +948,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // container: track-shim | x-tracks
 div[id$="x-track-container"] {
-  display:flex;
+  display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
@@ -969,9 +968,9 @@ div[id$="x-track-container"] {
   // x-tracks
   div[id$="x-tracks"] {
 
-    position:relative;
+    position: relative;
 
-    display:flex;
+    display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -984,7 +983,7 @@ div[id$="x-track-container"] {
     div[id$="y-track-guide"] {
       position: absolute;
 
-      top:0;
+      top: 0;
       left: 50%;
 
       width: 1px;
@@ -1009,8 +1008,8 @@ div[id$="x-track-container"] {
       // reference point for child divs with position: absolute
       position: relative;
 
-      width:100%;
-      margin-right:0;
+      width: 100%;
+      margin-right: 0;
 
       // canvas inserted here
 
@@ -1067,10 +1066,10 @@ div[id$="x-track-container"] {
 
         display: inline-block;
 
-        top:  0;
+        top: 0;
         right: 0;
 
-        width:  $track-height;
+        width: $track-height;
         height: $track-height;
 
         font-size: 0.50 * $track-height;
@@ -1090,7 +1089,7 @@ div[id$="x-track-container"] {
 
       .x-track-menu-container:hover,
       .x-track-menu-container:focus,
-      .x-track-menu-container:active  {
+      .x-track-menu-container:active {
         cursor: pointer;
         color: $default-dark-dark-color;
       }
@@ -1103,12 +1102,12 @@ div[id$="x-track-container"] {
 
 // container : (container: x-axis) | (container: y-tracks | y-axis | viewport | y-scrollbar) | (container: x-scrollbar)
 div[id$="content-container"] {
-  display:flex;
+  display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: space-between;
 
-  width:  100%;
+  width: 100%;
 
   // Use for Bootstrap-ped site
   height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
@@ -1117,7 +1116,7 @@ div[id$="content-container"] {
 
   // container: x-axis
   div[id$="x-axis-container"] {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
@@ -1127,17 +1126,59 @@ div[id$="content-container"] {
 
     // x-axis
     div[id$="x-axis"] {
+
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
       margin-right: $hic-scrollbar-height;
       background-color: white;
+
+      // whole genome divs
+      div {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
+
+        font-family: $default-font-family;
+        font-size: 8px;
+        font-weight: 400;
+        color: #444;
+
+        height: 100%;
+
+        border-left-color: transparent;
+        border-left-style: solid;
+        border-left-width: thin;
+
+        border-right-color: #bfbfbf;
+        border-right-style: solid;
+        border-right-width: thin;
+
+        div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+      }
+
+      div:last-child {
+        border-right-color: transparent;
+      }
+
     }
 
   }
 
   // container: y-tracks | y-axis | viewport | y-scrollbar
   div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
@@ -1153,9 +1194,9 @@ div[id$="content-container"] {
     // y-tracks
     div[id$="y-tracks"] {
 
-      position:relative;
+      position: relative;
 
-      display:flex;
+      display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-start;
@@ -1169,7 +1210,7 @@ div[id$="content-container"] {
       div[id$="x-track-guide"] {
         position: absolute;
 
-        top:50%;
+        top: 50%;
         left: 0;
 
         width: 100%;
@@ -1222,20 +1263,63 @@ div[id$="content-container"] {
 
     // y-axis
     div[id$="y-axis"] {
+
+      display: flex;
+      flex-flow: column;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+
       width: $hic-axis-height;
       height: 100%;
       margin-bottom: $hic-scrollbar-height;
       background-color: white;
+
+      // whole genome divs
+      div {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
+
+        font-family: $default-font-family;
+        font-size: 8px;
+        font-weight: 400;
+        color: #444;
+
+        width: 100%;
+
+        border-top-color: transparent;
+        border-top-style: solid;
+        border-top-width: thin;
+
+        border-bottom-color: #bfbfbf;
+        border-bottom-style: solid;
+        border-bottom-width: thin;
+
+        div {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transform: rotate(-90deg);
+        }
+
+      }
+
+      div:last-child {
+        border-bottom-color: transparent;
+      }
+
     }
 
     // viewport
     div[id$="viewport"] {
-      display:block;
+      display: block;
 
       position: relative;
-      left:0;
+      left: 0;
       top: 0;
-      width:  calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
+      width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
 
       overflow-x: hidden;
@@ -1248,18 +1332,18 @@ div[id$="content-container"] {
         margin: auto;
 
         position: absolute;
-        top:25%;
+        top: 25%;
         //bottom:0;
 
-        left:0;
-        right:0;
+        left: 0;
+        right: 0;
 
         height: $hic-viewport-spinner-size;
         width: $hic-viewport-spinner-size;
 
         z-index: 512;
 
-        pointer-events:none;
+        pointer-events: none;
 
         background-color: rgba(255, 255, 255, 0);
 
@@ -1275,7 +1359,7 @@ div[id$="content-container"] {
         width: 1px;
         height: 1px;
 
-        z-index:512;
+        z-index: 512;
         background-color: rgba(68, 134, 247, 0.25);
       }
 
@@ -1306,7 +1390,7 @@ div[id$="content-container"] {
       div[id$="y-guide"] {
         position: absolute;
 
-        top:0;
+        top: 0;
         left: 50%;
 
         width: 1px;
@@ -1329,7 +1413,7 @@ div[id$="content-container"] {
 
     // y-scrollbar
     div[id$="y-axis-scrollbar-container"] {
-      display:block;
+      display: block;
       position: relative;
 
       width: $hic-scrollbar-height;
@@ -1357,7 +1441,7 @@ div[id$="content-container"] {
 
   // container: x-scrollbar
   div[id$="x-scrollbar-container"] {
-    display:flex;
+    display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
@@ -1367,7 +1451,7 @@ div[id$="content-container"] {
 
     // x-scrollbar
     div[id$="x-axis-scrollbar-container"] {
-      display:block;
+      display: block;
       position: relative;
 
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));

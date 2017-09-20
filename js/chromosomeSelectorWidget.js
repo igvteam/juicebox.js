@@ -55,13 +55,14 @@ var hic = (function (hic) {
         $selector_container.append($doit);
 
         $doit.on('click', function (e) {
-            var chr1,
-                chr2;
+            var chr1Index,
+                chr2Index;
 
-            chr1 = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
-            chr2 = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
+            chr1Index = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
+            chr2Index = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
 
-            self.browser.setChromosomes(chr1, chr2);
+            self.browser.setChromosomes(chr1Index, chr2Index);
+
         });
 
         this.dataLoadConfig = {
