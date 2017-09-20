@@ -79,7 +79,6 @@ var hic = (function (hic) {
     };
 
 
-
     /**
      * Return the offset in genome coordinates (kb) of the start of the given chromosome
      */
@@ -92,39 +91,38 @@ var hic = (function (hic) {
         if (this.cumulativeOffsets === undefined) {
             computeCumulativeOffsets.call(this);
         }
-        return this.cumulativeOffsets[ queryChr.name ];
+        return this.cumulativeOffsets[queryChr.name];
     };
 
     function computeCumulativeOffsets() {
         var self = this,
             list,
             cumulativeOffsets,
-            offset;
-
-        list = _.filter(self.chromosomes, function (chromosome) {
-            return 'all' !== chromosome.name.toLowerCase();
-        });
+            offset,
+            i,
+            chromosome;
 
         cumulativeOffsets = {};
         offset = 0;
-        _.each(list, function (chromosome) {
+        // Skip first chromosome (its chr all).
+        for (i = 1; i < self.chromosomes.length; i++) {
 
-            cumulativeOffsets[ chromosome.name ] = Math.floor(offset);
+            chromosome = self.chromosomes[i];
+            cumulativeOffsets[chromosome.name] = Math.floor(offset);
 
             // Genome coordinates are in KB.  Beware 32-bit max value limit
             offset += (chromosome.size); // / 1000);
-        });
-
+        }
         self.cumulativeOffsets = cumulativeOffsets;
 
     }
 
 
-    // this.sequence = sequence;
-    // this.chromosomeNames = sequence.chromosomeNames;
-    // this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
-    // this.ideograms = ideograms;
-    // this.wgChromosomeNames = wgChromosomeNames;
+// this.sequence = sequence;
+// this.chromosomeNames = sequence.chromosomeNames;
+// this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
+// this.ideograms = ideograms;
+// this.wgChromosomeNames = wgChromosomeNames;
 
     function constructWG(genome) {
 
@@ -145,5 +143,6 @@ var hic = (function (hic) {
 
     return hic;
 
-}) (hic || {});
+})
+(hic || {});
 
