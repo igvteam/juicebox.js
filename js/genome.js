@@ -112,7 +112,7 @@ var hic = (function (hic) {
             cumulativeOffsets[ chromosome.name ] = Math.floor(offset);
 
             // Genome coordinates are in KB.  Beware 32-bit max value limit
-            offset += (chromosome.size / 1000);
+            offset += (chromosome.size); // / 1000);
         });
 
         self.cumulativeOffsets = cumulativeOffsets;

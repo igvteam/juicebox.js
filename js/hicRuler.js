@@ -81,9 +81,9 @@ var hic = (function (hic) {
             return 'all' !== chr.name.toLowerCase();
         });
 
-        chrLast = _.last(list);
+        chrLast = _.last(dataset.chromosomes);
         cumulativeOffset = this.browser.genome.getCumulativeOffset(chrLast);
-        extent = Math.floor(chrLast.bpLength/1000) + cumulativeOffset;
+        extent = chrLast.bpLength + cumulativeOffset;
 
         dimen = 'x' === axis ? $axis.width() : $axis.height();
         scraps = 0;
@@ -91,7 +91,8 @@ var hic = (function (hic) {
             var d,
                 percentage;
 
-            percentage = (chr.bpLength/1000)/extent;
+            percentage = (chr.bpLength)/extent;
+
             if (percentage * dimen < 1.0) {
                 scraps += percentage;
             } else {
@@ -99,11 +100,12 @@ var hic = (function (hic) {
                 $axis.append($div);
 
                 if ('x' === axis) {
-                    d = Math.floor(percentage * dimen);
-                    $div.width(d);
+                    d = Math.round(percentage * dimen);
+                    //console.log(chr.name + "  " + chr.bpLength + "  " + percentage + " " + d + " " + dimen);
+                    $div.width(d - 2);
                 } else {
-                    d = Math.floor(percentage * dimen);
-                    $div.height(d);
+                    d = Math.round(percentage * dimen);
+                    $div.height(d - 2);
 
                 }
 
