@@ -92,9 +92,6 @@ $default-font-family: 'Open Sans', sans-serif;
     left: 50%;
     transform: translateX(-50%) translateY(-50%) rotate(-90deg);
 
-    //height: 100%;
-    //width: $hic-scrollbar-height;
-
     z-index: 512;
 
     vertical-align: middle;
@@ -102,7 +99,6 @@ $default-font-family: 'Open Sans', sans-serif;
     line-height: $hic-scrollbar-height;
 
     color: #373737;
-    //background-color: red;
 
     font-family: $default-font-family;
     font-size: medium;
@@ -190,7 +186,6 @@ $default-font-family: 'Open Sans', sans-serif;
   align-items: flex-start;
 
   width: 100%;
-  //height: $hic-menu-item-height;
 
   padding-left: $hic-menu-item-padding;
 
@@ -211,21 +206,16 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .site-widget {
-
   float: left;
   margin-left: 4px;
   margin-right: 32px;
-
 }
 
 .juicebox-app-clone-container {
-
   display: flex;
   flex-flow: row;
   flex-wrap: wrap;
   justify-content: flex-start;
-
-  //background-color: #efefef;
 }
 
 .juicebox-app-clone-button {
@@ -239,7 +229,6 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 
   margin-top: 10px;
-
 }
 
 .juicebox-app-clone-button:hover,
@@ -253,7 +242,6 @@ $default-font-family: 'Open Sans', sans-serif;
   padding-top: 4px;
   padding-bottom: 8px;
   color: white;
-  //background-color: red;
 }
 
 // root
@@ -468,7 +456,6 @@ $default-font-family: 'Open Sans', sans-serif;
   .hic-menu > div:focus,
   .hic-menu > div:active {
     cursor: pointer;
-    //background-color: #dfdfdf;
   }
 
   .color-scale-swatch-scroll-container {
@@ -638,10 +625,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
   width: 100%;
 
-  //border-style: solid;
-  //border-width: thin;
-  //border-color: #dddddd;
-
   div:first-child {
     display: flex;
     flex-flow: row;
@@ -651,10 +634,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     width: 100%;
     height: $hic-color-swatch-size;
-
-    //border-bottom-style: solid;
-    //border-bottom-width: 1px;
-    //border-bottom-color: $default-dark-color;
 
     i.fa {
       display: block;
@@ -893,7 +872,6 @@ $default-font-family: 'Open Sans', sans-serif;
   div {
     display: block;
     margin-right: 6px;
-    //background-color: red;
   }
 
   @include navbar-select;
@@ -1039,8 +1017,6 @@ div[id$="x-track-container"] {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-
-        //z-index: 512;
       }
 
       // x-track spinner container
@@ -1054,8 +1030,6 @@ div[id$="x-track-container"] {
         height: $track-height;
 
         margin-left: -($track-height/2);
-
-        //z-index: 512;
 
         background-color: rgba(255, 255, 255, 0);
       }
@@ -1074,17 +1048,10 @@ div[id$="x-track-container"] {
 
         font-size: 0.50 * $track-height;
         text-align: center;
-        //line-height: $track-height;
-        //vertical-align: middle;
-
-        //padding-top: 0;
-        //padding-bottom: 0;
 
         z-index: 1024;
 
         color: $default-dark-color;
-        //background-color: rgba(255, 255, 255, 0.75);
-
       }
 
       .x-track-menu-container:hover,
@@ -1185,8 +1152,6 @@ div[id$="content-container"] {
 
     width: 100%;
 
-    // THIS FIXES SAFARI AND FIREFOX LAYOUT INCOMPATIBILITY
-    //height: 100%;
     height: calc(100% - (#{$hic-axis-height} + #{$hic-scrollbar-height}));
 
     background-color: white;
@@ -1223,8 +1188,6 @@ div[id$="content-container"] {
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-
-        //background-color: red;
 
         z-index: 666;
       }
@@ -1381,8 +1344,6 @@ div[id$="content-container"] {
         -moz-user-select: none;
         -webkit-user-select: none;
 
-        //background-color: red;
-
         z-index: 555;
       }
 
@@ -1403,8 +1364,6 @@ div[id$="content-container"] {
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-
-        //background-color: blue;
 
         z-index: 666;
       }
