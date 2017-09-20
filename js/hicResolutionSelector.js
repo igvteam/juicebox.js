@@ -29,8 +29,7 @@ var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser, $parent) {
         var self = this,
-            $label,
-            $label_container;
+            $label;
 
         this.browser = browser;
 
@@ -38,18 +37,18 @@ var hic = (function (hic) {
         $parent.append(this.$container);
 
         // label container
-        $label_container = $('<div id="hic-resolution-label-container">');
-        this.$container.append($label_container);
+        this.$label_container = $('<div id="hic-resolution-label-container">');
+        this.$container.append(this.$label_container);
 
         // Resolution (kb)
         $label = $('<div>');
-        $label_container.append($label);
+        this.$label_container.append($label);
         $label.text('Resolution (kb)');
 
         // lock/unlock
         this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
-        $label_container.append(this.$resolution_lock);
-        $label_container.on('click', function (e) {
+        this.$label_container.append(this.$resolution_lock);
+        this.$label_container.on('click', function (e) {
             self.browser.resolutionLocked = !(self.browser.resolutionLocked);
             self.setResolutionLock(self.browser.resolutionLocked);
         });
@@ -76,7 +75,8 @@ var hic = (function (hic) {
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
-        var self = this;
+        var self = this,
+            status;
 
         if (event.type === "LocusChange") {
 
@@ -91,6 +91,15 @@ var hic = (function (hic) {
                     return index === event.data.state.zoom;
                 })
                 .prop('selected', true);
+
+            if (0 === event.data.state.chr1) {
+                this.$label_container.hide();
+                this.$resolution_selector.prop('disabled', true);
+            } else {
+                this.$label_container.show();
+                this.$resolution_selector.prop('disabled', false);
+            }
+
 
         } else if (event.type === "MapLoad") {
 
