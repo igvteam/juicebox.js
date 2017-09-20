@@ -134,61 +134,59 @@ var hic = (function (hic) {
             var state = event.data.state,
                 dataset = self.browser.dataset;
 
-            this.$x_axis_scrollbar_container.show();
-            this.$y_axis_scrollbar_container.show();
+            if (0 === state.chr1) {
+                this.$x_axis_scrollbar.hide();
+                this.$y_axis_scrollbar.hide();
+            } else {
 
-            chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
-                // bp / bp-per-bin -> bin
-                return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
-            });
+                this.$x_axis_scrollbar.show();
+                this.$y_axis_scrollbar.show();
 
-            chromosomeLengthsPixel = _.map(chromosomeLengthsBin, function (bin) {
-                // bin * pixel-per-bin -> pixel
-                return bin * state.pixelSize;
-            });
+                this.$x_axis_scrollbar_container.show();
+                this.$y_axis_scrollbar_container.show();
 
-            pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
+                chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
+                    // bp / bp-per-bin -> bin
+                    return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
+                });
 
-            // pixel / pixel-per-bin -> bin
-            bins = [ _.first(pixels)/state.pixelSize, _.last(pixels)/state.pixelSize ];
+                chromosomeLengthsPixel = _.map(chromosomeLengthsBin, function (bin) {
+                    // bin * pixel-per-bin -> pixel
+                    return bin * state.pixelSize;
+                });
 
-            // bin / bin -> percentage
-            percentages = _.map(bins, function(bin, i){
-                var binPercentage,
-                    pixelPercentage;
+                pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
 
-                binPercentage = Math.min(bin, chromosomeLengthsBin[ i ]) / chromosomeLengthsBin[ i ];
-                pixelPercentage = Math.min(chromosomeLengthsPixel[ i ], pixels[ i ])/pixels[ i ];
-                return Math.max(1, Math.round(100 * binPercentage * pixelPercentage));
-            });
-            this.$x_axis_scrollbar.css('width', (_.first(percentages).toString() + '%'));
-            this.$y_axis_scrollbar.css('height', (_.last(percentages).toString() + '%'));
+                // pixel / pixel-per-bin -> bin
+                bins = [ _.first(pixels)/state.pixelSize, _.last(pixels)/state.pixelSize ];
 
+                // bin / bin -> percentage
+                percentages = _.map(bins, function(bin, i){
+                    var binPercentage,
+                        pixelPercentage;
 
-
-
-
-
-
-
+                    binPercentage = Math.min(bin, chromosomeLengthsBin[ i ]) / chromosomeLengthsBin[ i ];
+                    pixelPercentage = Math.min(chromosomeLengthsPixel[ i ], pixels[ i ])/pixels[ i ];
+                    return Math.max(1, Math.round(100 * binPercentage * pixelPercentage));
+                });
+                this.$x_axis_scrollbar.css('width', (_.first(percentages).toString() + '%'));
+                this.$y_axis_scrollbar.css('height', (_.last(percentages).toString() + '%'));
 
 
-            // bin / bin -> percentage
-            percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
-            percentage = percentage.toString() + '%';
-            this.$x_axis_scrollbar.css('left', percentage);
+                // bin / bin -> percentage
+                percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
+                percentage = percentage.toString() + '%';
+                this.$x_axis_scrollbar.css('left', percentage);
 
-            // bin / bin -> percentage
-            percentage = Math.round(100 * state.y / _.last(chromosomeLengthsBin));
-            percentage = percentage.toString() + '%';
-            this.$y_axis_scrollbar.css('top', percentage);
+                // bin / bin -> percentage
+                percentage = Math.round(100 * state.y / _.last(chromosomeLengthsBin));
+                percentage = percentage.toString() + '%';
+                this.$y_axis_scrollbar.css('top', percentage);
 
-            this.$x_label.text( dataset.chromosomes[ state.chr1 ].name );
-            this.$y_label.text( dataset.chromosomes[ state.chr2 ].name );
+                this.$x_label.text( dataset.chromosomes[ state.chr1 ].name );
+                this.$y_label.text( dataset.chromosomes[ state.chr2 ].name );
 
-            // str = 'under milkwood - dylan thomas';
-            // this.$x_label.text( str );
-            // this.$y_label.text( str );
+            }
 
         }
     };
