@@ -35,7 +35,7 @@ var hic = (function (hic) {
 
         annotationPresentationButton.call(this, $container, title);
 
-        annotationPanel.call(this, this.browser.$root);
+        annotationPanel.call(this, this.browser.$root, title);
 
     };
 
@@ -79,10 +79,10 @@ var hic = (function (hic) {
         });
     }
 
-    function annotationPanel($parent) {
+    function annotationPanel($parent, title) {
 
         var self = this,
-            $close_container,
+            $panel_header,
             $div,
             $fa;
 
@@ -90,12 +90,17 @@ var hic = (function (hic) {
         $parent.append(this.$annotationPanel);
 
         // close button container
-        $close_container = $('<div>', { class:'hic-annotation-panel-header' });
-        this.$annotationPanel.append($close_container);
+        $panel_header = $('<div>', { class:'hic-annotation-panel-header' });
+        this.$annotationPanel.append($panel_header);
+
+        // panel title
+        $div = $('<div>');
+        $div.text(title);
+        $panel_header.append($div);
 
         // close button
         $div = $('<div>', { class:'hic-menu-close-button' });
-        $close_container.append($div);
+        $panel_header.append($div);
 
         $fa = $("<i>", { class:'fa fa-times' });
         $div.append($fa);
