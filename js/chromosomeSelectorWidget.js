@@ -51,6 +51,27 @@ var hic = (function (hic) {
         this.$y_axis_selector = $('<select name="y-axis-selector">');
         $selector_container.append(this.$y_axis_selector);
 
+        this.$x_axis_selector.on('change', function (e) {
+
+            if (0 === parseInt($(this).val(), 10)) {
+                self.$y_axis_selector.val( $(this).val() );
+            } else if (0 === parseInt(self.$y_axis_selector.val(), 10)) {
+                self.$y_axis_selector.val( $(this).val() );
+            }
+
+        });
+
+        this.$y_axis_selector.on('change', function (e) {
+
+            if (0 === parseInt($(this).val(), 10)) {
+                self.$x_axis_selector.val( $(this).val() );
+            } else if (0 === parseInt(self.$x_axis_selector.val(), 10)) {
+                self.$x_axis_selector.val( $(this).val() );
+            }
+
+        });
+
+
         $doit = $('<div>');
         $selector_container.append($doit);
 
@@ -90,8 +111,8 @@ var hic = (function (hic) {
 
         var elements,
             str,
-            foundX,
-            foundY;
+            $xFound,
+            $yFound;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
@@ -104,48 +125,53 @@ var hic = (function (hic) {
         this.$y_axis_selector.append(elements.join(''));
 
         str = 'option[value=' + this.browser.state.chr1.toString() + ']';
-        foundX = this.$x_axis_selector.find(str);
-        foundX.attr('selected', 'selected');
+        $xFound = this.$x_axis_selector.find(str);
+        $xFound.prop('selected', true);
 
         str = 'option[value=' + this.browser.state.chr2.toString() + ']';
-        foundY = this.$y_axis_selector.find(str);
-        foundY.attr('selected', 'selected');
+        $yFound = this.$y_axis_selector.find(str);
+        $yFound.prop('selected', true);
     };
 
     hic.ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function (state) {
         var self = this,
-            str,
-            findX,
-            findY,
+            ssx,
+            ssy,
+            $xFound,
+            $yFound,
             chr1,
             chr2;
 
-
-        findX = this.$x_axis_selector.find('option');
-        findY = this.$y_axis_selector.find('option');
+        $xFound = this.$x_axis_selector.find('option');
+        $yFound = this.$y_axis_selector.find('option');
 
         // this happens when the first dataset is loaded.
-        if (0 === _.size(findX) || 0 === _.size(findY)) {
+        if (0 === _.size($xFound) || 0 === _.size($yFound)) {
             return;
         }
 
-        findX = this.$x_axis_selector.find('option:selected');
-        findY = this.$y_axis_selector.find('option:selected');
+        $xFound = this.$x_axis_selector.find('option:selected');
+        $yFound = this.$y_axis_selector.find('option:selected');
 
-        chr1 = parseInt(findX.val(), 10);
-        chr2 = parseInt(findY.val(), 10);
+        $xFound.prop('selected', false);
+        $yFound.prop('selected', false);
 
-        // It is the pair of chromosomes that is important,  1-2 == 2-1,  so update only if the pair does not match
+        // chr1 = parseInt($xFound.val(), 10);
+        // chr2 = parseInt($yFound.val(), 10);
+        // // It is the pair of chromosomes that is important,  1-2 == 2-1,  so update only if the pair does not match
+        // if (false === ((chr1 === state.chr1 && chr2 === state.chr2) || (chr1 === state.chr2 && chr2 === state.chr1))) {
+        //     ssx = 'option[value=' + state.chr1.toString() + ']';
+        //     this.$x_axis_selector.find(ssx).attr('selected', 'selected');
+        //
+        //     ssx = 'option[value=' + state.chr2.toString() + ']';
+        //     this.$y_axis_selector.find(ssx).attr('selected', 'selected');
+        // }
 
-        if (!((chr1 === state.chr1 && chr2 === state.chr2) || (chr1 === state.chr2 && chr2 === state.chr1))) {
+        ssx = 'option[value=' + state.chr1.toString() + ']';
+        ssy = 'option[value=' + state.chr2.toString() + ']';
 
-            str = 'option[value=' + state.chr1.toString() + ']';
-            this.$x_axis_selector.find(str).attr('selected', 'selected');
-
-            str = 'option[value=' + state.chr2.toString() + ']';
-            this.$y_axis_selector.find(str).attr('selected', 'selected');
-
-        }
+        this.$x_axis_selector.find(ssx).prop('selected', true);
+        this.$y_axis_selector.find(ssy).prop('selected', true);
 
     };
 
