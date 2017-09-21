@@ -32,7 +32,7 @@ var hic = (function (hic) {
         this.browser = browser;
         this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        $container = $("<div>", { class: 'hic-annotation-container' });
+        $container = $("<div>", { class: 'hic-annotation-presentation-button-container' });
         $parent.append($container);
 
         modal_id = browser.id + '_' + _.uniqueId('annotation_modal_');

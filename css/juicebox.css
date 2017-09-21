@@ -209,7 +209,7 @@
         direction: rtl; }
       .hic-root .hic-menu .hic-resolution-selector-container select {
         width: 95%; }
-    .hic-root .hic-menu .hic-annotation-container {
+    .hic-root .hic-menu .hic-annotation-presentation-button-container {
       display: flex;
       flex-flow: column;
       flex-wrap: nowrap;
