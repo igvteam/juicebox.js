@@ -220,6 +220,22 @@
       margin-top: 8px;
       margin-bottom: 8px;
       background-color: transparent; }
+      .hic-root .hic-menu .hic-annotation-presentation-button-container button {
+        display: block;
+        width: 90%;
+        padding: 8px;
+        box-shadow: none;
+        border-radius: 0;
+        border-style: solid;
+        border-width: thin;
+        border-color: #a6a6a6;
+        background-color: transparent; }
+      .hic-root .hic-menu .hic-annotation-presentation-button-container button:hover,
+      .hic-root .hic-menu .hic-annotation-presentation-button-container button:active {
+        cursor: pointer;
+        background-color: #dfdfdf; }
+      .hic-root .hic-menu .hic-annotation-presentation-button-container button:focus {
+        outline: none; }
   .hic-root .hic-menu > div:hover,
   .hic-root .hic-menu > div:focus,
   .hic-root .hic-menu > div:active {

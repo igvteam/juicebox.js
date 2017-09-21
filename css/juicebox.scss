@@ -447,7 +447,39 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // annotations
     .hic-annotation-presentation-button-container {
+
       @include menu-item;
+
+      button {
+        display: block;
+
+        width: 90%;
+
+        padding: 8px;
+
+        box-shadow: none;
+
+        border-radius: 0;
+
+        border-style: solid;
+        border-width: thin;
+        border-color: $default-medium-color;
+
+        background-color: transparent;
+
+      }
+
+      button:hover,
+      button:active {
+        cursor: pointer;
+        background-color: #dfdfdf;
+      }
+
+      button:focus {
+        outline: none;
+      }
+
+
     }
 
   }

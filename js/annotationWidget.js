@@ -37,7 +37,7 @@ var hic = (function (hic) {
 
         modal_id = browser.id + '_' + _.uniqueId('annotation_modal_');
 
-        modalPresentationButton.call(this, modal_id, $container, title);
+        annotationPresentationButton.call(this, $container, title);
 
         modal.call(this, modal_id, $('body'), title, useLargeModal);
 
@@ -47,6 +47,14 @@ var hic = (function (hic) {
         });
 
     };
+
+    function annotationPresentationButton($parent, title) {
+        var $e;
+
+        $e = $('<button>', { type: 'button' });
+        $e.text(title);
+        $parent.append($e);
+    }
 
     hic.AnnotationWidget.prototype.updateBody = function (tracks) {
 
@@ -255,18 +263,6 @@ var hic = (function (hic) {
 
             self.updateBody(trackList);
         });
-    }
-
-    function modalPresentationButton(modal_id, $parent, title) {
-        var str,
-            $e;
-
-        str = '#' + modal_id;
-        $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
-        $e.text(title);
-
-        $parent.append($e);
-
     }
 
     function modal(modal_id, $parent, title, useLargeModal) {
