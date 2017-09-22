@@ -522,7 +522,7 @@ $default-font-family: 'Open Sans', sans-serif;
     top: 25%;
     left: 15%;
 
-    width: 800px;
+    width: 700px;
 
     border-style: solid;
     border-width: thin;
@@ -554,11 +554,21 @@ $default-font-family: 'Open Sans', sans-serif;
       background-color: #dddddd;
 
       div:first-child {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
+
+        display: block;
+        margin-top: 2px;
+        margin-left: 8px;
+        margin-right: 4px;
+        text-align: left;
+        text-overflow: ellipsis;
+
+
+
+        //display: flex;
+        //flex-flow: row;
+        //flex-wrap: nowrap;
+        //justify-content: center;
+        //align-items: center;
 
         width: 200px;
         height: 100%;
@@ -607,7 +617,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
       div:first-child {
         display: block;
-        margin-left: 4px;
+        margin-left: 8px;
         margin-right: 4px;
         text-align: left;
         text-overflow: ellipsis;

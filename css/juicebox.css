@@ -262,7 +262,7 @@
     position: absolute;
     top: 25%;
     left: 15%;
-    width: 800px;
+    width: 700px;
     border-style: solid;
     border-width: thin;
     border-color: #5f5f5f;
@@ -285,11 +285,12 @@
       border-bottom-color: #dddddd;
       background-color: #dddddd; }
       .hic-root .hic-annotation-panel-container .hic-annotation-panel-header div:first-child {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
+        display: block;
+        margin-top: 2px;
+        margin-left: 8px;
+        margin-right: 4px;
+        text-align: left;
+        text-overflow: ellipsis;
         width: 200px;
         height: 100%; }
       .hic-root .hic-annotation-panel-container .hic-annotation-panel-header i.fa {
@@ -320,7 +321,7 @@
       cursor: default; }
       .hic-root .hic-annotation-panel-container .hic-annotation-modal-row div:first-child {
         display: block;
-        margin-left: 4px;
+        margin-left: 8px;
         margin-right: 4px;
         text-align: left;
         text-overflow: ellipsis;
