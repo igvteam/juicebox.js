@@ -87,7 +87,7 @@ var hic = (function (hic) {
         });
         this.$container.append($fa);
 
-        colorSwatchSelector.call(this, browser);
+        createColorSwatchSelector.call(this, browser);
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
@@ -105,7 +105,7 @@ var hic = (function (hic) {
 
     };
 
-    function colorSwatchSelector(browser) {
+    function createColorSwatchSelector(browser) {
 
         var self = this,
             $scroll_container,
@@ -126,15 +126,17 @@ var hic = (function (hic) {
 
             self.$button.find('.fa-square').css({ color: colorName });
 
-            browser.contactMatrixView.colorScale.highR = rgb.R;
-            browser.contactMatrixView.colorScale.highG = rgb.G;
-            browser.contactMatrixView.colorScale.highB = rgb.B;
+            browser.updateColorScale({ highR:rgb.R, highG:rgb.G, highB:rgb.B });
 
-            browser.contactMatrixView.updating = false;
-            browser.contactMatrixView.initialImage = undefined;
-            browser.contactMatrixView.clearCaches();
-            browser.contactMatrixView.colorScaleCache = {};
-            browser.contactMatrixView.update();
+            // browser.contactMatrixView.colorScale.highR = rgb.R;
+            // browser.contactMatrixView.colorScale.highG = rgb.G;
+            // browser.contactMatrixView.colorScale.highB = rgb.B;
+            //
+            // browser.contactMatrixView.updating = false;
+            // browser.contactMatrixView.initialImage = undefined;
+            // browser.contactMatrixView.clearCaches();
+            // browser.contactMatrixView.colorScaleCache = {};
+            // browser.contactMatrixView.update();
         }, function () {
             $scroll_container.toggle();
         });

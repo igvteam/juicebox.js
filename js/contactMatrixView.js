@@ -114,8 +114,7 @@ var hic = (function (hic) {
             state: state.clone(),
             img: image
         }
-    }
-
+    };
 
     hic.ContactMatrixView.prototype.datasetUpdated = function () {
         // This should probably be an event
@@ -133,13 +132,19 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.setColorScale = function (config, state) {
 
+        var parts;
+
         if (!state) {
             state = this.browser.state;
         }
 
-        this.colorScale.high = config.high;
+        if (config.high) this.colorScale.high = config.high;
+        if (config.highR) this.colorScale.highR = config.highR;
+        if (config.highG) this.colorScale.highG = config.highG;
+        if (config.highB) this.colorScale.highB = config.highB;
+
         this.colorScaleCache[colorScaleKey(state)] = config.high;
-    }
+    };
 
     function colorScaleKey(state) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
@@ -951,7 +956,7 @@ var hic = (function (hic) {
 
     hic.ColorScale.prototype.equals = function (cs) {
         return JSON.stringify(this) === JSON.stringify(cs);
-    }
+    };
 
     hic.ColorScale.prototype.getColor = function (value) {
         var scale = this, r, g, b, frac, diff;
@@ -975,7 +980,7 @@ var hic = (function (hic) {
     };
 
     hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high;
+        return "" + this.high + '#' + this.highR + '#' + this.highG + '#' + this.highB;
     };
 
     function translateTouchCoordinates(e, target) {
@@ -989,7 +994,7 @@ var hic = (function (hic) {
         posy = e.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
-    };
+    }
 
     return hic;
 

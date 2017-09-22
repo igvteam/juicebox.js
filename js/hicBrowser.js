@@ -171,7 +171,14 @@ var hic = (function (hic) {
 
         }
         if (colorScale) {
-            config.colorScale = { high: parseFloat(colorScale, uriDecode) };
+            parts = colorScale.split('#');
+            config.colorScale =
+                {
+                    high:  parseFloat(parts[ 0 ], uriDecode),
+                    highR: parseFloat(parts[ 1 ], uriDecode),
+                    highG: parseFloat(parts[ 2 ], uriDecode),
+                    highB: parseFloat(parts[ 3 ], uriDecode)
+                };
         }
 
         if (trackString) {
@@ -872,7 +879,6 @@ var hic = (function (hic) {
             }
 
             if (config.colorScale) {
-                self.getColorScale().high = config.colorScale.high;
                 self.contactMatrixView.setColorScale(config.colorScale, self.state);
             }
 
