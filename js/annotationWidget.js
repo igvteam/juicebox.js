@@ -167,6 +167,7 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', track));
             } else {
                 trackRenderer.setColor(color);
+                self.browser.updateUriParameters();
             }
 
         }, function () {
