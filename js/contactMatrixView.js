@@ -131,14 +131,14 @@ var hic = (function (hic) {
         this.update();
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
+    hic.ContactMatrixView.prototype.setColorScale = function (config, state) {
 
         if (!state) {
             state = this.browser.state;
         }
 
-        this.colorScale.high = value;
-        this.colorScaleCache[colorScaleKey(state)] = value;
+        this.colorScale.high = config.high;
+        this.colorScaleCache[colorScaleKey(state)] = config.high;
     }
 
     function colorScaleKey(state) {
@@ -972,6 +972,10 @@ var hic = (function (hic) {
             blue: b,
             rgb: "rgb(" + r + "," + g + "," + b + ")"
         };
+    };
+
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high;
     };
 
     function translateTouchCoordinates(e, target) {

@@ -32,10 +32,10 @@ var hic = (function (hic) {
     var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
-    {
-        width: 640,
-        height: 640
-    };
+        {
+            width: 640,
+            height: 640
+        };
 
 
     var datasetCache = {};
@@ -46,12 +46,12 @@ var hic = (function (hic) {
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-        {
-            constants: {defaultColor: "rgb(0,0,150)"},
+            {
+                constants: {defaultColor: "rgb(0,0,150)"},
 
-            // Compatibility wit igv menus
-            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-        };
+                // Compatibility wit igv menus
+                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+            };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -149,14 +149,14 @@ var hic = (function (hic) {
         uriDecode = uri.includes('%2C');   // for backward compatibility, all old state values will have this
 
         if (query) {
-            hicUrl = query["hicUrl"],
-                name = query["name"],
-                stateString = query["state"],
-                colorScale = query["colorScale"],
-                trackString = query["tracks"],
-                selectedGene = query["selectedGene"],
-                nvi = query["nvi"],
-                normVectorString = query["normVectorFiles"];
+            hicUrl = query["hicUrl"];
+            name = query["name"];
+            stateString = query["state"];
+            colorScale = query["colorScale"];
+            trackString = query["tracks"];
+            selectedGene = query["selectedGene"];
+            nvi = query["nvi"];
+            normVectorString = query["normVectorFiles"];
         }
 
         if (hicUrl) {
@@ -171,7 +171,7 @@ var hic = (function (hic) {
 
         }
         if (colorScale) {
-            config.colorScale = parseFloat(colorScale, uriDecode);
+            config.colorScale = { high: parseFloat(colorScale, uriDecode) };
         }
 
         if (trackString) {
@@ -278,7 +278,7 @@ var hic = (function (hic) {
 
         this.state = config.state ? config.state : defaultState.clone();
 
-        if (config.colorScale && !isNaN(config.colorScale)) {
+        if (config.colorScale) {
             this.contactMatrixView.setColorScale(config.colorScale, this.state);
         }
 
@@ -444,7 +444,8 @@ var hic = (function (hic) {
 
         href = replaceURIParameter("state", (this.state.stringify()), href);
 
-        href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
+        // href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
+        href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
 
         if (igv.FeatureTrack.selectedGene) {
             href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
@@ -574,13 +575,12 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.getColorScale = function () {
-        var cs = this.contactMatrixView.colorScale;
-        return cs;
+        return this.contactMatrixView.colorScale;
     };
 
-    hic.Browser.prototype.updateColorScale = function (high) {
+    hic.Browser.prototype.updateColorScale = function (config) {
 
-        this.contactMatrixView.setColorScale(high);
+        this.contactMatrixView.setColorScale(config);
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
@@ -592,7 +592,7 @@ var hic = (function (hic) {
             .then(function (matrix) {
                 var zd = matrix.bpZoomData[state.zoom];
                 var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = high;
+                self.contactMatrixView.colorScaleCache[colorKey] = config;
                 self.contactMatrixView.update();
             })
             .catch(function (error) {
@@ -872,7 +872,7 @@ var hic = (function (hic) {
             }
 
             if (config.colorScale) {
-                self.getColorScale().high = config.colorScale;
+                self.getColorScale().high = config.colorScale.high;
                 self.contactMatrixView.setColorScale(config.colorScale, self.state);
             }
 
