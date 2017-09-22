@@ -171,14 +171,7 @@ var hic = (function (hic) {
 
         }
         if (colorScale) {
-            parts = colorScale.split('#');
-            config.colorScale =
-                {
-                    high:  parseFloat(parts[ 0 ], uriDecode),
-                    highR: parseFloat(parts[ 1 ], uriDecode),
-                    highG: parseFloat(parts[ 2 ], uriDecode),
-                    highB: parseFloat(parts[ 3 ], uriDecode)
-                };
+            config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (trackString) {
@@ -451,7 +444,6 @@ var hic = (function (hic) {
 
         href = replaceURIParameter("state", (this.state.stringify()), href);
 
-        // href = replaceURIParameter("colorScale", "" + this.contactMatrixView.colorScale.high, href);
         href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
 
         if (igv.FeatureTrack.selectedGene) {
