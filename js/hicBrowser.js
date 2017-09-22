@@ -579,25 +579,27 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.updateColorScale = function (config) {
 
+        var self = this,
+            state;
+
         this.contactMatrixView.setColorScale(config);
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
         this.updateUriParameters();
 
-        var self = this,
-            state = this.state;
+        state = this.state;
         this.dataset.getMatrix(state.chr1, state.chr2)
             .then(function (matrix) {
                 var zd = matrix.bpZoomData[state.zoom];
                 var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = config;
+                self.contactMatrixView.colorScaleCache[colorKey] = config.high;
                 self.contactMatrixView.update();
             })
             .catch(function (error) {
                 console.log(error);
                 alert(error);
-            })
+            });
     };
 
     hic.Browser.prototype.loadTrack = function (trackConfigurations) {
