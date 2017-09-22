@@ -87,32 +87,57 @@ var hic = (function (hic) {
 
     function destringifyTracks(trackString) {
 
-        var trackTokens = trackString.split("|||"),
+        var trackStringList = trackString.split("|||"),
             configList = [];
 
-        trackTokens.forEach(function (track) {
-            var tokens = track.split("|"),
-                url = tokens[0],
-                config = {url: url},
-                name, dataRangeString, color;
+        _.each(trackStringList, function (trackString) {
+            var parts,
+                tokens,
+                url,
+                config,
+                name,
+                dataRangeString,
+                color,
+                r;
+
+            parts = trackString.split("||");
+            if (2 === _.size(parts)) {
+                color = parts[ 1 ];
+            }
+
+            tokens = parts[ 0 ].split("|");
+
+            url = tokens[ 0 ];
+            config =
+                {
+                    url: url
+                };
 
             if (url.trim().length > 0) {
 
                 if (tokens.length > 1) name = tokens[1];
                 if (tokens.length > 2) dataRangeString = tokens[2];
-                if (tokens.length > 3) color = tokens[3];
 
-                if (name) config.name = name;
+                if (name) {
+                    config.name = name;
+                }
+
                 if (dataRangeString) {
-                    var r = dataRangeString.split("-");
+                    r = dataRangeString.split("-");
                     config.min = parseFloat(r[0]);
                     config.max = parseFloat(r[1])
                 }
-                if (color) config.color = color;
+
+                if (color) {
+                    config.color = color;
+                }
 
                 configList.push(config);
             }
+
+
         });
+
         return configList;
 
     }
