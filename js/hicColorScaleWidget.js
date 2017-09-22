@@ -59,7 +59,7 @@ var hic = (function (hic) {
 
             if (isNaN(numeric)) {
             } else {
-                browser.updateColorScale(parseInt(numeric, 10))
+                browser.updateColorScale({ high: parseInt(numeric, 10) })
             }
         });
 
@@ -70,7 +70,7 @@ var hic = (function (hic) {
 
             value = Math.floor(browser.getColorScale().high / 2.0);
             self.$high_colorscale_input.val(value);
-            browser.updateColorScale( value );
+            browser.updateColorScale({ high: value });
 
         });
         this.$container.append($fa);
@@ -82,10 +82,12 @@ var hic = (function (hic) {
 
             value = Math.floor(browser.getColorScale().high * 2.0);
             self.$high_colorscale_input.val(value);
-            browser.updateColorScale( value );
+            browser.updateColorScale({ high: value });
 
         });
         this.$container.append($fa);
+
+        createColorSwatchSelector.call(this, browser);
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
@@ -93,15 +95,64 @@ var hic = (function (hic) {
 
     hic.ColorScaleWidget.prototype.receiveEvent = function(event) {
 
-        var colorScale;
+        var colorScaleHigh;
         if (event.type === "MapLoad" || event.type === "ColorScale") {
 
-            colorScale = Math.round( this.browser.getColorScale().high );
+            colorScaleHigh = Math.round( this.browser.getColorScale().high );
 
-            this.$high_colorscale_input.val(igv.numberFormatter(colorScale));
+            this.$high_colorscale_input.val(igv.numberFormatter(colorScaleHigh));
         }
 
     };
+
+    function createColorSwatchSelector(browser) {
+
+        var self = this,
+            $scroll_container,
+            $container;
+
+        // scroll container
+        $scroll_container = $('<div>', { class:'color-scale-swatch-scroll-container' });
+        browser.$root.append($scroll_container);
+
+        // swatch container
+        $container = $('<div>', { class:'color-scale-swatch-container' });
+        $scroll_container.append($container);
+
+        hic.createColorSwatchSelector($container, function (colorName) {
+            var rgb;
+
+            rgb = Colors.name2rgb(colorName);
+
+            self.$button.find('.fa-square').css({ color: colorName });
+
+            // browser.updateColorScale(
+            //     {
+            //         high: parseInt(self.$high_colorscale_input.val(), 10),
+            //         highR:rgb.R,
+            //         highG:rgb.G,
+            //         highB:rgb.B
+            //     }
+            // );
+
+            browser.contactMatrixView.colorScale.highR = rgb.R;
+            browser.contactMatrixView.colorScale.highG = rgb.G;
+            browser.contactMatrixView.colorScale.highB = rgb.B;
+
+            browser.contactMatrixView.updating = false;
+            browser.contactMatrixView.initialImage = undefined;
+            browser.contactMatrixView.clearCaches();
+            browser.contactMatrixView.colorScaleCache = {};
+            browser.contactMatrixView.update();
+        }, function () {
+            $scroll_container.toggle();
+        });
+
+        $scroll_container.draggable();
+
+        $scroll_container.hide();
+
+    }
 
     return hic;
 

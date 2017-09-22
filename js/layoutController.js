@@ -192,11 +192,6 @@ var hic = (function (hic) {
         // menu
         createMenu(browser, $root);
 
-        // ColorScale swatch selector
-        createColorScaleSwatchSelector(browser, $root);
-
-
-
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';
@@ -291,45 +286,6 @@ var hic = (function (hic) {
         browser.$menu = $menu;
 
         browser.$menu.hide();
-
-    }
-
-    function createColorScaleSwatchSelector(browser, $root) {
-
-        var $scroll_container,
-            $container;
-
-        // scroll container
-        $scroll_container = $('<div>', { class:'color-scale-swatch-scroll-container' });
-        $root.append($scroll_container);
-
-        // swatch container
-        $container = $('<div>', { class:'color-scale-swatch-container' });
-        $scroll_container.append($container);
-
-        hic.createColorSwatchSelector($container, function (colorName) {
-            var rgb;
-
-            rgb = Colors.name2rgb(colorName);
-
-            browser.colorscaleWidget.$button.find('.fa-square').css({ color: colorName });
-
-            browser.contactMatrixView.colorScale.highR = rgb.R;
-            browser.contactMatrixView.colorScale.highG = rgb.G;
-            browser.contactMatrixView.colorScale.highB = rgb.B;
-
-            browser.contactMatrixView.updating = false;
-            browser.contactMatrixView.initialImage = undefined;
-            browser.contactMatrixView.clearCaches();
-            browser.contactMatrixView.colorScaleCache = {};
-            browser.contactMatrixView.update();
-        }, function () {
-            browser.$root.find('.color-scale-swatch-scroll-container').toggle();
-        });
-
-        $scroll_container.draggable();
-
-        $scroll_container.hide();
 
     }
 

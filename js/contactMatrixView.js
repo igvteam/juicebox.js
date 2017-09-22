@@ -32,6 +32,18 @@ var hic = (function (hic) {
     const DOUBLE_TAP_DIST_THRESHOLD = 20;
     const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
+    var defaultColorScaleInitializer =
+        {
+            low: 0,
+            lowR: 255,
+            lowG: 255,
+            lowB: 255,
+            high: 2000,
+            highR: 255,
+            highG: 0,
+            highB: 0
+        };
+
     hic.ContactMatrixView = function (browser, $container) {
         var id;
 
@@ -85,18 +97,7 @@ var hic = (function (hic) {
         // Cache at most 20 image tiles
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
 
-        this.colorScale = new hic.ColorScale(
-            {
-                low: 0,
-                lowR: 255,
-                lowG: 255,
-                lowB: 255,
-                high: 2000,
-                highR: 255,
-                highG: 0,
-                highB: 0
-            }
-        );
+        this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
 
         this.colorScaleCache = {};
 
@@ -114,8 +115,7 @@ var hic = (function (hic) {
             state: state.clone(),
             img: image
         }
-    }
-
+    };
 
     hic.ContactMatrixView.prototype.datasetUpdated = function () {
         // This should probably be an event
@@ -131,15 +131,18 @@ var hic = (function (hic) {
         this.update();
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (value, state) {
+    hic.ContactMatrixView.prototype.setColorScale = function (config, state) {
+
+        if (config.high) this.colorScale.high = config.high;
+        if (config.highR) this.colorScale.highR = config.highR;
+        if (config.highG) this.colorScale.highG = config.highG;
+        if (config.highB) this.colorScale.highB = config.highB;
 
         if (!state) {
             state = this.browser.state;
         }
-
-        this.colorScale.high = value;
-        this.colorScaleCache[colorScaleKey(state)] = value;
-    }
+        this.colorScaleCache[colorScaleKey(state)] = config.high;
+    };
 
     function colorScaleKey(state) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
@@ -180,8 +183,8 @@ var hic = (function (hic) {
         if (initialImage.state.equals(state)) return true;
 
         if (!(initialImage.state.chr1 === state.chr1 && initialImage.state.chr2 === state.chr2 &&
-            initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
-            initialImage.state.normalization === state.normalization)) return false;
+                initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
+                initialImage.state.normalization === state.normalization)) return false;
 
         // Now see if initial image fills view
         var offsetX = (initialImage.x - state.x) * state.pixelSize,
@@ -936,7 +939,6 @@ var hic = (function (hic) {
     }
 
     hic.ColorScale = function (scale) {
-
         this.low = scale.low;
         this.lowR = scale.lowR;
         this.lowG = scale.lowG;
@@ -945,13 +947,11 @@ var hic = (function (hic) {
         this.highR = scale.highR;
         this.highG = scale.highG;
         this.highB = scale.highB;
-
-
     };
 
     hic.ColorScale.prototype.equals = function (cs) {
         return JSON.stringify(this) === JSON.stringify(cs);
-    }
+    };
 
     hic.ColorScale.prototype.getColor = function (value) {
         var scale = this, r, g, b, frac, diff;
@@ -974,6 +974,27 @@ var hic = (function (hic) {
         };
     };
 
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
+    };
+
+    hic.destringifyColorScale = function (string) {
+
+        var cs,
+            tokens;
+
+        tokens = string.split(",");
+
+        cs = _.clone(defaultColorScaleInitializer);
+        cs.high = tokens[ 0 ];
+        cs.highR = tokens[ 1 ];
+        cs.highG = tokens[ 2 ];
+        cs.highB = tokens[ 3 ];
+
+        return new hic.ColorScale(cs);
+
+    };
+
     function translateTouchCoordinates(e, target) {
 
         var $target = $(target),
@@ -985,7 +1006,7 @@ var hic = (function (hic) {
         posy = e.pageY - $target.offset().top;
 
         return {x: posx, y: posy}
-    };
+    }
 
     return hic;
 
