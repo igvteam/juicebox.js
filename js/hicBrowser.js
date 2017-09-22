@@ -85,34 +85,79 @@ var hic = (function (hic) {
 
     }
 
-    function destringifyTracks(trackString) {
+    function destringifyTracks(tracks) {
 
-        var trackTokens = trackString.split("|||"),
+        var trackStringList = tracks.split("|||"),
             configList = [];
 
-        trackTokens.forEach(function (track) {
-            var tokens = track.split("|"),
-                url = tokens[0],
-                config = {url: url},
-                name, dataRangeString, color;
+        _.each(trackStringList, function (trackString) {
+            var tokens,
+                url,
+                config,
+                name,
+                dataRangeString,
+                color,
+                r;
+
+            tokens = trackString.split("|");
+            color = tokens.pop();
+
+            url = tokens[ 0 ];
+            config = { url: url };
 
             if (url.trim().length > 0) {
 
-                if (tokens.length > 1) name = tokens[1];
-                if (tokens.length > 2) dataRangeString = tokens[2];
-                if (tokens.length > 3) color = tokens[3];
+                if (tokens.length > 1) {
+                    name = tokens[1];
+                }
 
-                if (name) config.name = name;
+                if (tokens.length > 2) {
+                    dataRangeString = tokens[2];
+                }
+
+                if (name) {
+                    config.name = name;
+                }
+
                 if (dataRangeString) {
-                    var r = dataRangeString.split("-");
+                    r = dataRangeString.split("-");
                     config.min = parseFloat(r[0]);
                     config.max = parseFloat(r[1])
                 }
-                if (color) config.color = color;
+
+                if (color) {
+                    config.color = color;
+                }
 
                 configList.push(config);
             }
+
         });
+
+        // trackStringList.forEach(function (track) {
+        //     var tokens = track.split("|"),
+        //         url = tokens[0],
+        //         config = {url: url},
+        //         name, dataRangeString, color;
+        //
+        //     if (url.trim().length > 0) {
+        //
+        //         if (tokens.length > 1) name = tokens[1];
+        //         if (tokens.length > 2) dataRangeString = tokens[2];
+        //         if (tokens.length > 3) color = tokens[3];
+        //
+        //         if (name) config.name = name;
+        //         if (dataRangeString) {
+        //             var r = dataRangeString.split("-");
+        //             config.min = parseFloat(r[0]);
+        //             config.max = parseFloat(r[1])
+        //         }
+        //         if (color) config.color = color;
+        //
+        //         configList.push(config);
+        //     }
+        // });
+
         return configList;
 
     }
@@ -462,32 +507,28 @@ var hic = (function (hic) {
                 var track = trackRenderer.x.track,
                     config = track.config,
                     url = config.url,
-                    name = track.name,
-                    dataRange = track.dataRange,
-                    color = track.color;
+                    dataRange = track.dataRange;
 
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    trackString += "|" + (name ? name : "");
+                    trackString += "|" + (track.name | 'unnamed');
                     trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
-                    trackString += "|" + (color ? color : "");
+                    trackString += "|" + track.color;
                 }
             });
 
             this.tracks2D.forEach(function (track) {
 
                 var config = track.config,
-                    url = config.url,
-                    name = track.name,
-                    color = track.color;
+                    url = config.url;
 
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    trackString += "|" + (name ? name : "");
+                    trackString += "|" + (track.name | 'unnamed');
                     trackString += "|";   // Data range
-                    trackString += "|" + (color ? color : "");
+                    trackString += "|" + track.color;
                 }
             });
 
