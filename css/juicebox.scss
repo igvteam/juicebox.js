@@ -283,39 +283,6 @@ $default-font-family: 'Open Sans', sans-serif;
     justify-content: flex-start;
     align-items: center;
 
-    // menu close
-    .hic-menu-close-button {
-
-      display: flex;
-      flex-flow: row;
-      flex-wrap: nowrap;
-      justify-content: flex-end;
-      align-items: center;
-
-      width: 100%;
-      height: $hic-menu-item-height / 2;
-
-      margin-top: $hic-menu-margin / 2;
-      margin-bottom: $hic-menu-margin / 2;
-
-      padding-right: $hic-menu-margin;
-
-      i.fa {
-        display: block;
-        margin-left: 4px;
-        margin-right: 4px;
-        color: $default-dark-color;
-      }
-
-      i.fa:hover,
-      i.fa:focus,
-      i.fa:active {
-        cursor: pointer;
-        color: $default-hover-color;
-      }
-
-    }
-
     // container: chromosome-label | chromosome-selector-container
     .hic-chromosome-selector-widget-container {
 
@@ -446,16 +413,42 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // annotations
-    .hic-annotation-container {
+    .hic-annotation-presentation-button-container {
+
       @include menu-item;
+
+      button {
+        display: block;
+
+        width: 90%;
+
+        padding: 8px;
+
+        box-shadow: none;
+
+        border-radius: 0;
+
+        border-style: solid;
+        border-width: thin;
+        border-color: $default-medium-color;
+
+        background-color: transparent;
+
+      }
+
+      button:hover,
+      button:active {
+        cursor: pointer;
+        background-color: #dfdfdf;
+      }
+
+      button:focus {
+        outline: none;
+      }
+
+
     }
 
-  }
-
-  .hic-menu > div:hover,
-  .hic-menu > div:focus,
-  .hic-menu > div:active {
-    cursor: pointer;
   }
 
   .color-scale-swatch-scroll-container {
@@ -518,100 +511,202 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
-}
-
-.hic-root-selected {
-  border-color: #df0000;
-}
-
-.hic-annotation-modal-container {
-
-  display: flex;
-  flex-flow: column;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-
-  width: 100%;
-
-  color: $default-dark-color;
-  font-family: $default-font-family;
-  font-size: 16px;
-  font-weight: 400;
-
-  .hic-annotation-row-container {
+  .hic-annotation-panel-container {
 
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: center;
+    align-items: flex-start;
 
-    width: 100%;
+    position: absolute;
+    top: 25%;
+    left: 15%;
 
-  }
+    width: 700px;
 
-  .hic-annotation-modal-row {
-
-    display: flex;
-    flex-flow: row;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: center;
-
-    width: 100%;
-    height: 40px;
+    border-style: solid;
+    border-width: thin;
+    border-color: $default-dark-color;
 
     background-color: white;
 
-    cursor: default;
+    z-index: 5000;
 
-    div:first-child {
-      display: block;
-      margin-left: 4px;
-      margin-right: 4px;
-      text-align: left;
-      text-overflow: ellipsis;
-      width: 384px;
-    }
+    color: $default-dark-color;
+    font-family: $default-font-family;
+    font-size: 16px;
+    font-weight: 400;
 
-    i.fa {
-      display: block;
-      margin-left: 32px;
-      margin-right: 32px;
-      color: $default-dark-color;
-    }
-
-    .up-down-arrow-container {
+    .hic-annotation-panel-header {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
-      justify-content: flex-end;
+      justify-content: space-between;
       align-items: center;
 
-      i.fa:first-child {
+      width: 100%;
+      height: $hic-color-swatch-size;
+
+      border-bottom-style: solid;
+      border-bottom-width: thin;
+      border-bottom-color: #dddddd;
+
+      background-color: #dddddd;
+
+      div:first-child {
+
         display: block;
-        margin-left: 32px;
-        margin-right: 8px;
+        margin-top: 2px;
+        margin-left: 8px;
+        margin-right: 4px;
+        text-align: left;
+        text-overflow: ellipsis;
+
+
+
+        //display: flex;
+        //flex-flow: row;
+        //flex-wrap: nowrap;
+        //justify-content: center;
+        //align-items: center;
+
+        width: 200px;
+        height: 100%;
+      }
+
+      i.fa {
+        display: block;
+        margin-right: 4px;
         color: $default-dark-color;
       }
 
-      i.fa:last-child {
+      i.fa:hover,
+      i.fa:focus,
+      i.fa:active {
+        cursor: pointer;
+        color: $default-hover-color;
+      }
+    }
+
+    .hic-annotation-row-container {
+
+      display: flex;
+      flex-flow: column;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: center;
+
+      width: 100%;
+
+    }
+
+    .hic-annotation-modal-row {
+
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: center;
+
+      width: 100%;
+      height: 40px;
+
+      background-color: white;
+
+      cursor: default;
+
+      div:first-child {
         display: block;
         margin-left: 8px;
+        margin-right: 4px;
+        text-align: left;
+        text-overflow: ellipsis;
+        width: 384px;
+      }
+
+      i.fa {
+        display: block;
+        margin-left: 32px;
         margin-right: 32px;
         color: $default-dark-color;
       }
 
+      .up-down-arrow-container {
+        display: flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        align-items: center;
+
+        i.fa:first-child {
+          display: block;
+          margin-left: 32px;
+          margin-right: 8px;
+          color: $default-dark-color;
+        }
+
+        i.fa:last-child {
+          display: block;
+          margin-left: 8px;
+          margin-right: 32px;
+          color: $default-dark-color;
+        }
+
+      }
+
+    }
+
+    .hic-annotation-modal-row:hover,
+    .hic-annotation-modal-row:focus,
+    .hic-annotation-modal-row:active {
+      background-color: #f7f7f7;
     }
 
   }
 
-  .hic-annotation-modal-row:hover,
-  .hic-annotation-modal-row:focus,
-  .hic-annotation-modal-row:active {
-    background-color: #f7f7f7;
+}
+
+.hic-menu > div:hover,
+.hic-menu > div:focus,
+.hic-menu > div:active {
+  cursor: pointer;
+}
+
+// menu close
+.hic-menu-close-button {
+
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  align-items: center;
+
+  width: 100%;
+  height: $hic-menu-item-height / 2;
+
+  margin-top: $hic-menu-margin / 2;
+  margin-bottom: $hic-menu-margin / 2;
+
+  padding-right: $hic-menu-margin;
+
+  i.fa {
+    display: block;
+    margin-left: 4px;
+    margin-right: 4px;
+    color: $default-dark-color;
   }
 
+  i.fa:hover,
+  i.fa:focus,
+  i.fa:active {
+    cursor: pointer;
+    color: $default-hover-color;
+  }
+
+}
+
+.hic-root-selected {
+  border-color: #df0000;
 }
 
 // color swatch selector

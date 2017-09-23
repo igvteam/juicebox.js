@@ -23,28 +23,19 @@
 
 var hic = (function (hic) {
 
-    hic.AnnotationWidget = function (browser, $parent, title, trackListRetrievalCallback, useLargeModal) {
+    hic.AnnotationWidget = function (browser, $parent, title, trackListRetrievalCallback) {
 
-        var self = this,
-            modal_id,
-            $container;
+        var $container;
 
         this.browser = browser;
         this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        $container = $("<div>", { class: 'hic-annotation-container' });
+        $container = $("<div>", { class: 'hic-annotation-presentation-button-container' });
         $parent.append($container);
 
-        modal_id = browser.id + '_' + _.uniqueId('annotation_modal_');
+        annotationPresentationButton.call(this, $container, title);
 
-        modalPresentationButton.call(this, modal_id, $container, title);
-
-        modal.call(this, modal_id, $('body'), title, useLargeModal);
-
-        this.$modal.on('show.bs.modal', function () {
-            browser.hideMenu();
-            self.updateBody(trackListRetrievalCallback());
-        });
+        annotationPanel.call(this, this.browser.$root, title);
 
     };
 
@@ -55,25 +46,74 @@ var hic = (function (hic) {
             isTrack2D,
             zi;
 
-        self.$annotation_modal_container.empty();
+        self.$annotationPanel.find('.hic-annotation-row-container').remove();
 
         isTrack2D = (_.first(tracks) instanceof hic.Track2D);
 
         if (isTrack2D) {
             // Reverse list to present layers in "z" order.
             for(zi = tracks.length - 1; zi >= 0; zi--) {
-                modalBodyRow.call(self, self.$annotation_modal_container, tracks[ zi ]);
+                annotationPanelRow.call(self, self.$annotationPanel, tracks[ zi ]);
             }
         } else {
             trackRenderers = tracks;
             _.each(trackRenderers, function (trackRenderer) {
-                modalBodyRow.call(self, self.$annotation_modal_container, trackRenderer);
+                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
             });
         }
 
     };
 
-    function modalBodyRow($container, track) {
+    function annotationPresentationButton($parent, title) {
+        var self = this,
+            $button;
+
+        $button = $('<button>', { type: 'button' });
+        $button.text(title);
+        $parent.append($button);
+
+        $button.on('click', function () {
+            self.updateBody(self.trackListRetrievalCallback());
+            self.$annotationPanel.toggle();
+            self.browser.hideMenu();
+        });
+    }
+
+    function annotationPanel($parent, title) {
+
+        var self = this,
+            $panel_header,
+            $div,
+            $fa;
+
+        this.$annotationPanel = $('<div>', { class:'hic-annotation-panel-container' });
+        $parent.append(this.$annotationPanel);
+
+        // close button container
+        $panel_header = $('<div>', { class:'hic-annotation-panel-header' });
+        this.$annotationPanel.append($panel_header);
+
+        // panel title
+        $div = $('<div>');
+        $div.text(title);
+        $panel_header.append($div);
+
+        // close button
+        $div = $('<div>', { class:'hic-menu-close-button' });
+        $panel_header.append($div);
+
+        $fa = $("<i>", { class:'fa fa-times' });
+        $div.append($fa);
+
+        $fa.on('click', function (e) {
+            self.$annotationPanel.toggle();
+        });
+
+        this.$annotationPanel.draggable();
+        this.$annotationPanel.hide();
+    }
+
+    function annotationPanelRow($container, track) {
         var self = this,
             $row_container,
             $row,
@@ -255,96 +295,6 @@ var hic = (function (hic) {
 
             self.updateBody(trackList);
         });
-    }
-
-    function modalPresentationButton(modal_id, $parent, title) {
-        var str,
-            $e;
-
-        str = '#' + modal_id;
-        $e = $('<button>', {type: 'button', class: 'btn btn-default', 'data-toggle': 'modal', 'data-target': str});
-        $e.text(title);
-
-        $parent.append($e);
-
-    }
-
-    function modal(modal_id, $parent, title, useLargeModal) {
-        var str,
-            modal_label,
-            $modal,
-            $modal_dialog,
-            $modal_content,
-            $modal_header,
-            $modal_title,
-            $close,
-            $modal_body,
-            $modal_footer,
-            $e;
-
-        modal_label = modal_id + 'Label';
-        // modal
-        $modal = $('<div>', {
-            class: 'modal fade',
-            'id': modal_id,
-            tabindex: '-1',
-            role: 'dialog',
-            'aria-labelledby': modal_label,
-            'aria-hidden': 'true'
-        });
-        $parent.append($modal);
-
-        // modal-dialog
-        str = (true === useLargeModal) ? 'modal-dialog modal-lg' : 'modal-dialog';
-        $modal_dialog = $('<div>', {class: str, role: 'document'});
-        $modal.append($modal_dialog);
-
-        // modal-content
-        $modal_content = $('<div>', {class: 'modal-content'});
-        $modal_dialog.append($modal_content);
-
-        // modal-header
-        $modal_header = $('<div>', {class: 'modal-header', id: modal_label});
-        $modal_content.append($modal_header);
-
-        // modal-title
-        $modal_title = $('<h4>', {class: 'modal-title'});
-        $modal_title.text(title);
-        $modal_header.append($modal_title);
-
-        // close button
-        $close = $('<button>', {type: 'button', class: 'close', 'data-dismiss': 'modal', 'aria-label': 'Close'});
-        $e = $('<span>', {'aria-hidden': 'true'});
-        $e.html('&times;');
-        $close.append($e);
-        $modal_header.append($close);
-
-        // modal-body
-        $modal_body = $('<div>', {class: 'modal-body'});
-        $modal_content.append($modal_body);
-
-        // modal-body - annotation container
-        this.$annotation_modal_container = $("<div>", {class: 'hic-annotation-modal-container'});
-        $modal_body.append(this.$annotation_modal_container);
-
-
-        // modal-footer
-        $modal_footer = $('<div>', {class: 'modal-footer'});
-        $modal_content.append($modal_footer);
-
-        // modal footer - close
-        $e = $('<button>', {type: 'button', class: 'btn btn-secondary', 'data-dismiss': 'modal'});
-        $e.text('Close');
-        $modal_footer.append($e);
-
-        // modal footer - save changes
-        // $e = $('<button>', { type:'button', class:'btn btn-primary' });
-        // $e.text('Save changes');
-        // $modal_footer.append($e);
-
-        this.$modal_body = $modal_body;
-        this.$modal = $modal;
-
     }
 
     return hic;
