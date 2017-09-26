@@ -117,7 +117,7 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
 
-        this.tile = null;
+      //  this.tile = null;
 
         this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());
