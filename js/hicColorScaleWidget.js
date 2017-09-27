@@ -122,8 +122,6 @@ var hic = (function (hic) {
         hic.createColorSwatchSelector($container, function (colorName) {
             var rgb;
 
-            rgb = Colors.name2rgb(colorName);
-
             self.$button.find('.fa-square').css({ color: colorName });
 
             // browser.updateColorScale(
@@ -135,9 +133,13 @@ var hic = (function (hic) {
             //     }
             // );
 
-            browser.contactMatrixView.colorScale.highR = rgb.R;
-            browser.contactMatrixView.colorScale.highG = rgb.G;
-            browser.contactMatrixView.colorScale.highB = rgb.B;
+            rgb = _.map(colorName.split('(').pop().split(')').shift().split(','), function (str) {
+                return parseInt(str, 10);
+            });
+
+            browser.contactMatrixView.colorScale.highR = rgb[ 0 ];
+            browser.contactMatrixView.colorScale.highG = rgb[ 1 ];
+            browser.contactMatrixView.colorScale.highB = rgb[ 2 ];
 
             browser.contactMatrixView.updating = false;
             browser.contactMatrixView.initialImage = undefined;
