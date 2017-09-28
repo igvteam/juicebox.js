@@ -51,7 +51,7 @@ var site = (function (site) {
                 return hic.Browser.getCurrentBrowser();
             };
 
-            createEncodeTable(browserRetrievalFunction, $('#encodeModalBody'), event.data);
+            createEncodeTable(browserRetrievalFunction, event.data);
         }
     };
 
@@ -207,10 +207,10 @@ var site = (function (site) {
             // }
 
             config =
-            {
-                initFromUrl: false,
-                updateHref: false
-            };
+                {
+                    initFromUrl: false,
+                    updateHref: false
+                };
             browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -223,11 +223,11 @@ var site = (function (site) {
 
     };
 
-    function createEncodeTable(browser, $container, genomeId) {
+    function createEncodeTable(browserRetrievalFunction, genomeId) {
 
-        var columnWidths,
-            encodeTableFormat,
-            encodeDataSource;
+        var config,
+            columnWidths,
+            encodeTableFormat;
 
         if (undefined === hic.Browser.getCurrentBrowser()) {
             igv.presentAlert('ERROR: you must select a map panel.');
@@ -244,20 +244,31 @@ var site = (function (site) {
             }
 
             columnWidths =
-            {
-                'Assembly': '10%',
-                'Cell Type': '10%',
-                'Target': '10%',
-                'Assay Type': '20%',
-                'Output Type': '20%',
-                'Lab': '20%'
-            };
+                {
+                    'Assembly': '10%',
+                    'Cell Type': '10%',
+                    'Target': '10%',
+                    'Assay Type': '20%',
+                    'Output Type': '20%',
+                    'Lab': '20%'
+                };
 
-            encodeTableFormat = new igv.EncodeTableFormat({columnWidths: columnWidths});
+            encodeTableFormat = new igv.EncodeTableFormat({ columnWidths: columnWidths });
 
-            encodeDataSource = new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat);
+            config =
+                {
+                    $modal:$('#hicEncodeModal'),
+                    $modalBody:$('#encodeModalBody'),
+                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                    $modalGoButton: $('#encodeModalGoButton'),
+                    browserRetrievalFunction:browserRetrievalFunction,
+                    browserLoadFunction:'loadTrack',
+                    dataSource:new igv.EncodeDataSource({ genomeID: genomeId }, encodeTableFormat)
+                };
 
-            encodeTable = new igv.IGVModalTable($container, browser, 'loadTrack', encodeDataSource);
+            encodeTable = new igv.IGVModalTable(config);
+
         }
 
     }
