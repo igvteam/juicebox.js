@@ -24,49 +24,26 @@
 
 var hic = (function (hic) {
 
-    hic.createColorSwatchSelector = function ($color_swatch_container, callback, closeCallback) {
+    hic.createColorSwatchSelector = function ($parent, colorHandler, closeHandler) {
 
         var $div,
             $fa,
             $close_container,
-            cssColorNames, h, s, v, rgb;
-
-        cssColorNames =
-            [
-                // "Red", "Blue", "Green", "AliceBlue", "AntiqueWhite", "Aqua", "Aquamarine", "Azure", "Beige",
-                // "Bisque", "Black", "BlanchedAlmond", "BlueViolet", "Brown", "BurlyWood", "CadetBlue", "Chartreuse", "Chocolate",
-                // "Coral", "CornflowerBlue", "Cornsilk", "Crimson", "Cyan", "DarkBlue", "DarkCyan", "DarkGoldenRod", "DarkGray",
-                // "DarkGrey", "DarkGreen", "DarkKhaki", "DarkMagenta", "DarkOliveGreen", "Darkorange", "DarkOrchid", "DarkRed",
-                // "DarkSalmon", "DarkSeaGreen", "DarkSlateBlue", "DarkSlateGray", "DarkSlateGrey", "DarkTurquoise", "DarkViolet",
-                // "DeepPink", "DeepSkyBlue", "DimGray", "DimGrey", "DodgerBlue", "FireBrick", "FloralWhite", "ForestGreen", "Fuchsia",
-                // "Gainsboro", "GhostWhite", "Gold", "GoldenRod", "Gray", "Grey", "GreenYellow", "HoneyDew", "HotPink",
-                // "IndianRed", "Indigo", "Ivory", "Khaki", "Lavender", "LavenderBlush", "LawnGreen", "LemonChiffon", "LightBlue",
-                // "LightCoral", "LightCyan", "LightGoldenRodYellow", "LightGray", "LightGrey", "LightGreen", "LightPink",
-                // "LightSalmon", "LightSeaGreen", "LightSkyBlue", "LightSlateGray", "LightSlateGrey", "LightSteelBlue",
-                // "LightYellow", "Lime", "LimeGreen", "Linen", "Magenta", "Maroon", "MediumAquaMarine", "MediumBlue",
-                // "MediumOrchid", "MediumPurple", "MediumSeaGreen", "MediumSlateBlue", "MediumSpringGreen", "MediumTurquoise",
-                // "MediumVioletRed", "MidnightBlue", "MintCream", "MistyRose", "Moccasin", "NavajoWhite", "Navy", "OldLace",
-                // "Olive", "OliveDrab", "Orange", "OrangeRed", "Orchid", "PaleGoldenRod", "PaleGreen", "PaleTurquoise", "PaleVioletRed",
-                // "PapayaWhip", "PeachPuff", "Peru", "Pink", "Plum", "PowderBlue", "Purple", "RosyBrown", "RoyalBlue",
-                // "SaddleBrown", "Salmon", "SandyBrown", "SeaGreen", "SeaShell", "Sienna", "Silver", "SkyBlue", "SlateBlue",
-                // "SlateGray", "SlateGrey", "Snow", "SpringGreen", "SteelBlue", "Tan", "Teal", "Thistle", "Tomato", "Turquoise",
-                // "Violet", "Wheat", "White", "WhiteSmoke", "Yellow", "YellowGreen"
-            ];
+            rgbStrings,
+            s;
 
         s = 1;
-        v = 1;
-        for(v = 1; v>= 0.5; v -= .1) {
-            for (h = 0; h < 1; h += 1/28) {
-                rgb = "rgb(" + hsvToRgb(h, s, v).join(",") + ")"
-                cssColorNames.push(rgb);
+        rgbStrings = [];
+        for(var v = 1; v >= 0.5; v -= .1) {
+            for (var rgb, h = 0; h < 1; h += 1/28) {
+                rgb = "rgb(" + hsvToRgb(h, s, v).join(",") + ")";
+                rgbStrings.push(rgb);
             }
         }
 
-        // $color_swatch_container.hide();
-
         // close button container
         $close_container = $('<div>');
-        $color_swatch_container.append($close_container);
+        $parent.append($close_container);
 
         // close button
         $div = $('<div>', {class: 'hic-menu-close-button'});
@@ -76,35 +53,33 @@ var hic = (function (hic) {
         $div.append($fa);
 
         $fa.on('click', function (e) {
-            closeCallback();
+            closeHandler();
         });
 
-        cssColorNames.forEach(function (c) {
+        rgbStrings.forEach(function (rgbString) {
             var $swatch;
 
-            $swatch = hic.colorSwatch(c);
-            $color_swatch_container.append($swatch);
+            $swatch = hic.colorSwatch(rgbString);
+            $parent.append($swatch);
 
             $swatch.click(function () {
-                callback(c);
+                colorHandler(rgbString);
             });
 
         });
 
     };
 
-    hic.colorSwatch = function (color) {
+    hic.colorSwatch = function (rgbString) {
         var $swatch,
             $fa;
 
         $swatch = $('<div>', {class: 'hic-color-swatch'});
 
-        // $fa = $('<i>', { class: 'fa fa-circle fa-lg', 'aria-hidden': 'true' });
-        // $fa = $('<i>', { class: 'fa fa-square fa-2x', 'aria-hidden': 'true' });
         $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
         $swatch.append($fa);
 
-        $fa.css({color: color});
+        $fa.css({color: rgbString});
 
         return $swatch;
     };
@@ -115,7 +90,7 @@ var hic = (function (hic) {
         ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
         ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2) +
         ("0" + parseInt(rgb[3], 10).toString(16)).slice(-2) : '';
-    };
+    }
 
     function hexToRgb(hex) {
         var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -123,7 +98,7 @@ var hic = (function (hic) {
             parseInt(result[1], 16) + ", " +
             parseInt(result[2], 16) + ", " +
             parseInt(result[3], 16) + ")";
-    };
+    }
 
     /**
      * Converts an HSV color value to RGB. Conversion formula
@@ -187,7 +162,7 @@ var hic = (function (hic) {
     function hslToRgb(h, s, l) {
         var r, g, b;
 
-        if (s == 0) {
+        if (s === 0) {
             r = g = b = l; // achromatic
         } else {
             function hue2rgb(p, q, t) {
