@@ -274,8 +274,7 @@ var site = (function (site) {
     }
 
     function discardEncodeTable() {
-        encodeTable.unbindAllMouseHandlers();
-        $('#encodeModalBody').empty();
+        encodeTable.teardown();
         encodeTable = undefined;
     }
 
