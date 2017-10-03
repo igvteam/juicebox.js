@@ -67,18 +67,10 @@ var site = (function (site) {
 
     site.init = function () {
 
+        hic.createBrowser($('.juicebox-app-clone-container'), {});
+
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-        function loadHicFile(url, name) {
-            var synchState;
-
-            if (hic.allBrowsers.length > 1) {
-                synchState = hic.allBrowsers[0].getSyncState();
-            }
-
-            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
-        }
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -220,6 +212,16 @@ var site = (function (site) {
             hic.syncBrowsers(hic.allBrowsers);
 
         });
+
+        function loadHicFile(url, name) {
+            var synchState;
+
+            if (hic.allBrowsers.length > 1) {
+                synchState = hic.allBrowsers[0].getSyncState();
+            }
+
+            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+        }
 
     };
 
