@@ -85,82 +85,6 @@ var hic = (function (hic) {
 
     }
 
-    function destringifyTracks(tracks) {
-
-        var trackStringList = tracks.split("|||"),
-            configList = [];
-
-        _.each(trackStringList, function (trackString) {
-            var tokens,
-                url,
-                config,
-                name,
-                dataRangeString,
-                color,
-                r;
-
-            tokens = trackString.split("|");
-            color = tokens.pop();
-
-            url = tokens[ 0 ];
-            config = { url: url };
-
-            if (url.trim().length > 0) {
-
-                if (tokens.length > 1) {
-                    name = tokens[1];
-                }
-
-                if (tokens.length > 2) {
-                    dataRangeString = tokens[2];
-                }
-
-                if (name) {
-                    config.name = name;
-                }
-
-                if (dataRangeString) {
-                    r = dataRangeString.split("-");
-                    config.min = parseFloat(r[0]);
-                    config.max = parseFloat(r[1])
-                }
-
-                if (color) {
-                    config.color = color;
-                }
-
-                configList.push(config);
-            }
-
-        });
-
-        // trackStringList.forEach(function (track) {
-        //     var tokens = track.split("|"),
-        //         url = tokens[0],
-        //         config = {url: url},
-        //         name, dataRangeString, color;
-        //
-        //     if (url.trim().length > 0) {
-        //
-        //         if (tokens.length > 1) name = tokens[1];
-        //         if (tokens.length > 2) dataRangeString = tokens[2];
-        //         if (tokens.length > 3) color = tokens[3];
-        //
-        //         if (name) config.name = name;
-        //         if (dataRangeString) {
-        //             var r = dataRangeString.split("-");
-        //             config.min = parseFloat(r[0]);
-        //             config.max = parseFloat(r[1])
-        //         }
-        //         if (color) config.color = color;
-        //
-        //         configList.push(config);
-        //     }
-        // });
-
-        return configList;
-
-    }
 
     hic.createBrowser = function ($hic_container, config) {
 
@@ -470,101 +394,6 @@ var hic = (function (hic) {
 
             hic.Browser.currentBrowser = browser;
         }
-
-    };
-
-    hic.Browser.prototype.updateUriParameters = function (event) {
-
-        var href = window.location.href,
-            nviString, trackString;
-
-        if (event && event.type === "MapLoad") {
-            if (this.url) {
-                href = replaceURIParameter("hicUrl", this.url, href);
-            }
-            if (this.name) {
-                href = replaceURIParameter("name", this.name, href);
-            }
-        }
-
-        href = replaceURIParameter("state", (this.state.stringify()), href);
-
-        href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
-
-        if (igv.FeatureTrack.selectedGene) {
-            href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
-        }
-
-        nviString = getNviString(this.dataset, this.state);
-        if (nviString) {
-            href = replaceURIParameter("nvi", nviString, href);
-        }
-
-        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-            trackString = "";
-
-            this.trackRenderers.forEach(function (trackRenderer) {
-                var track = trackRenderer.x.track,
-                    config = track.config,
-                    url = config.url,
-                    dataRange = track.dataRange;
-
-                if (typeof url === "string") {
-                    if (trackString.length > 0) trackString += "|||";
-                    trackString += url;
-                    trackString += "|" + (track.name | 'unnamed');
-                    trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
-                    trackString += "|" + track.color;
-                }
-            });
-
-            this.tracks2D.forEach(function (track) {
-
-                var config = track.config,
-                    url = config.url;
-
-                if (typeof url === "string") {
-                    if (trackString.length > 0) trackString += "|||";
-                    trackString += url;
-                    trackString += "|" + (track.name | 'unnamed');
-                    trackString += "|";   // Data range
-                    trackString += "|" + track.color;
-                }
-            });
-
-            if (trackString.length > 0) {
-                href = replaceURIParameter("tracks", trackString, href);
-            }
-        }
-
-        if (this.normVectorFiles.length > 0) {
-
-            var normVectorString = "";
-            this.normVectorFiles.forEach(function (url) {
-
-                if (normVectorString.length > 0) normVectorString += "|||";
-                normVectorString += url;
-
-            });
-
-            href = replaceURIParameter("normVectorFiles", normVectorString, href);
-
-        }
-
-        if (this.config.updateHref === false) {
-            //         console.log(href);
-        }
-        else {
-            window.history.replaceState("", "juicebox", href);
-        }
-    };
-
-    stripUriParameters = function () {
-
-        var href = window.location.href,
-            idx = href.indexOf("?");
-
-        if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
 
     };
 
@@ -961,6 +790,15 @@ var hic = (function (hic) {
             hic.Browser.setCurrentBrowser(undefined);
 
         }
+
+        stripUriParameters = function () {
+
+            var href = window.location.href,
+                idx = href.indexOf("?");
+
+            if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
+
+        };
 
     };
 
@@ -1510,6 +1348,146 @@ var hic = (function (hic) {
         }
     }
 
+
+    hic.Browser.prototype.updateUriParameters = function (event) {
+
+        var href = window.location.href,
+            nviString, trackString;
+
+        if (event && event.type === "MapLoad") {
+            if (this.url) {
+                href = replaceURIParameter("hicUrl", this.url, href);
+            }
+            if (this.name) {
+                href = replaceURIParameter("name", this.name, href);
+            }
+        }
+
+        href = replaceURIParameter("state", (this.state.stringify()), href);
+
+        href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
+
+        if (igv.FeatureTrack.selectedGene) {
+            href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
+        }
+
+        nviString = getNviString(this.dataset, this.state);
+        if (nviString) {
+            href = replaceURIParameter("nvi", nviString, href);
+        }
+
+        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+            trackString = "";
+
+            this.trackRenderers.forEach(function (trackRenderer) {
+                var track = trackRenderer.x.track,
+                    config = track.config,
+                    url = config.url,
+                    dataRange = track.dataRange;
+
+                if (typeof url === "string") {
+                    if (trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (track.name | 'unnamed');
+                    trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
+                    trackString += "|" + track.color;
+                }
+            });
+
+            this.tracks2D.forEach(function (track) {
+
+                var config = track.config,
+                    url = config.url;
+
+                if (typeof url === "string") {
+                    if (trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (track.name | 'unnamed');
+                    trackString += "|";   // Data range
+                    trackString += "|" + track.color;
+                }
+            });
+
+            if (trackString.length > 0) {
+                href = replaceURIParameter("tracks", trackString, href);
+            }
+        }
+
+        if (this.normVectorFiles.length > 0) {
+
+            var normVectorString = "";
+            this.normVectorFiles.forEach(function (url) {
+
+                if (normVectorString.length > 0) normVectorString += "|||";
+                normVectorString += url;
+
+            });
+
+            href = replaceURIParameter("normVectorFiles", normVectorString, href);
+
+        }
+
+        if (this.config.updateHref === false) {
+            //         console.log(href);
+        }
+        else {
+            window.history.replaceState("", "juicebox", href);
+        }
+    };
+
+    function destringifyTracks(tracks) {
+
+        var trackStringList = tracks.split("|||"),
+            configList = [];
+
+        _.each(trackStringList, function (trackString) {
+            var tokens,
+                url,
+                config,
+                name,
+                dataRangeString,
+                color,
+                r;
+
+            tokens = trackString.split("|");
+            color = tokens.pop();
+
+            url = tokens[ 0 ];
+            config = { url: url };
+
+            if (url.trim().length > 0) {
+
+                if (tokens.length > 1) {
+                    name = tokens[1];
+                }
+
+                if (tokens.length > 2) {
+                    dataRangeString = tokens[2];
+                }
+
+                if (name) {
+                    config.name = name;
+                }
+
+                if (dataRangeString) {
+                    r = dataRangeString.split("-");
+                    config.min = parseFloat(r[0]);
+                    config.max = parseFloat(r[1])
+                }
+
+                if (color) {
+                    config.color = color;
+                }
+
+                configList.push(config);
+            }
+
+        });
+
+        return configList;
+
+    }
+
     function getNviString(dataset, state) {
 
         if (dataset.hicReader.normalizationVectorIndexRange) {
@@ -1582,13 +1560,13 @@ var hic = (function (hic) {
 
     /**
      * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
-     * to fully encode parameter values.
+     * to fully % encode parameter values (see RFC3986).
      *
      * @param str
      */
     function paramEncode(str) {
         var s = replaceAll(str, '&', '%26');
-        s = replaceAll(s, ' ', '%20');
+        s = replaceAll(s, ' ', '+');
         return s;
     }
 
@@ -1600,6 +1578,7 @@ var hic = (function (hic) {
         else {
             var s = replaceAll(str, '%26', '&');
             s = replaceAll(s, '%20', ' ');
+            s = replaceAll(s, '+', ' ');
             s = replaceAll(s, "%7C", "|");
             return s;
         }

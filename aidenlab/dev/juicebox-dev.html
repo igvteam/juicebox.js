@@ -35,39 +35,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
 
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.css"/>
-
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
-    <!-- JQuery UI CSS -->
-    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
-
     <!-- IGV CSS -->
-    <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
+    <link rel="stylesheet" type="text/css" href="../css/igv-beta.css">
     <!--<link rel="stylesheet" type="text/css" href="../../dist/igv.css">-->
 
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="../site/css/site.css">
+    <link rel="stylesheet" type="text/css" href="../css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../../css/juicebox.css">
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
-    <!-- Underscore JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-
     <!-- JQuery JS -->
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-
-    <!-- JQuery UI JS -->
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
 
     <!-- Bootstrap JS -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -75,19 +63,20 @@
     <!-- Bootstrap-Select Plugin JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
 
-    <!-- DataTables JS -->
-    <script src="https://cdn.datatables.net/v/dt/dt-1.10.15/sc-1.4.2/se-1.2.2/datatables.min.js"></script>
-
     <!-- IGV JS -->
-    <script src="https://igv.org/web/beta/igv-beta.js"></script>
-    <!--<script src="../../dist/igv.js"></script>-->
+    <script src="../js/igv-beta.min.js"></script>
 
-    <!-- Throbber JS -->
+    <!-- Vector JS -->
+    <script src="../../vendor/jquery-ui.js"></script>
+    <script src="../../vendor/underscore.js"></script>
     <script src="../../vendor/throbber.js"></script>
+    <script src="../../vendor/colors.js"></script>
 
     <!-- Site JS-->
-    <script src="../site/js/site.js"></script>
+    <script src="../js/site.js"></script>
     <script src="../../js/annotationWidget.js"></script>
+
+
 
     <!-- Juicebox JS -->
     <script src="../../js/genome.js"></script>
@@ -894,7 +883,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="juicebox-app-clone-container">
+            <div id="app-container" class="juicebox-app-clone-container">
             </div>
         </div>
     </div>
@@ -937,7 +926,9 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
+
         site.init();
+
     });
 
 </script>
