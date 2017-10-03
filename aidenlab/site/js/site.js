@@ -67,18 +67,10 @@ var site = (function (site) {
 
     site.init = function () {
 
+        hic.createBrowser($('.juicebox-app-clone-container'), {});
+
         // Listen for GenomeChange events for all browsers.
         hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-        function loadHicFile(url, name) {
-            var synchState;
-
-            if (hic.allBrowsers.length > 1) {
-                synchState = hic.allBrowsers[0].getSyncState();
-            }
-
-            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
-        }
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -221,6 +213,16 @@ var site = (function (site) {
 
         });
 
+        function loadHicFile(url, name) {
+            var synchState;
+
+            if (hic.allBrowsers.length > 1) {
+                synchState = hic.allBrowsers[0].getSyncState();
+            }
+
+            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+        }
+
     };
 
     function createEncodeTable(browserRetrievalFunction, genomeId) {
@@ -274,8 +276,7 @@ var site = (function (site) {
     }
 
     function discardEncodeTable() {
-        encodeTable.unbindAllMouseHandlers();
-        $('#encodeModalBody').empty();
+        encodeTable.teardown();
         encodeTable = undefined;
     }
 
