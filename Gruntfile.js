@@ -49,9 +49,8 @@ module.exports = function (grunt) {
             },
             img: {
                 expand: true,
-                cwd: 'img',
-                src: '**',
-                dest: 'dist/img/'
+                src: 'css/img/*',
+                dest: 'dist'
             }
         }
     });
