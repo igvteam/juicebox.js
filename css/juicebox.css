@@ -32,6 +32,10 @@
   padding-bottom: 8px;
   color: white; }
 
+.y-shim {
+  color: transparent;
+  background-color: transparent; }
+
 .hic-root {
   position: relative;
   left: 0;
@@ -89,13 +93,13 @@
         .hic-root .hic-menu .hic-chromosome-selector-widget-container div div {
           width: 24px;
           height: 24px;
-          background-image: url("img/circular-arrows-24-grey.png");
+          background-image: url("../img/circular-arrows-24-grey.png");
           background-repeat: no-repeat; }
         .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:hover,
         .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:focus,
         .hic-root .hic-menu .hic-chromosome-selector-widget-container div div:active {
           cursor: pointer;
-          background-image: url("img/circular-arrows-24-blue.png"); }
+          background-image: url("../img/circular-arrows-24-blue.png"); }
     .hic-root .hic-menu .hic-colorscale-widget-container {
       display: flex;
       flex-flow: row;
