@@ -268,10 +268,10 @@
     border-color: #5f5f5f;
     background-color: white;
     z-index: 5000;
-    color: #5f5f5f;
+    color: #0f0f0f;
     font-family: "Open Sans", sans-serif;
-    font-size: 16px;
-    font-weight: 400; }
+    font-size: 12px;
+    font-weight: 600; }
     .hic-root .hic-annotation-panel-container .hic-annotation-panel-header {
       display: flex;
       flex-flow: row;

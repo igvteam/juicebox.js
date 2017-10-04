@@ -532,10 +532,10 @@ $default-font-family: 'Open Sans', sans-serif;
 
     z-index: 5000;
 
-    color: $default-dark-color;
+    color: #0f0f0f;
     font-family: $default-font-family;
-    font-size: 16px;
-    font-weight: 400;
+    font-size: 12px;
+    font-weight: 600;
 
     .hic-annotation-panel-header {
       display: flex;
