@@ -92,15 +92,6 @@ var hic = (function (hic) {
             uri,
             parts,
             query,
-            uriDecode,
-            hicUrl,
-            name,
-            stateString,
-            colorScale,
-            trackString,
-            selectedGene,
-            nvi,
-            normVectorString,
             isMiniMode,
             initialImageImg,
             initialImageX,
@@ -115,49 +106,13 @@ var hic = (function (hic) {
         uri = config.href || (config.initFromUrl !== false && window.location.href) || "";
         parts = parseUri(uri);
         query = parts.queryKey;
-        uriDecode = uri.includes('%2C');   // for backward compatibility, all old state values will have this
 
         if (query) {
-            hicUrl = query["hicUrl"];
-            name = query["name"];
-            stateString = query["state"];
-            colorScale = query["colorScale"];
-            trackString = query["tracks"];
-            selectedGene = query["selectedGene"];
-            nvi = query["nvi"];
-            normVectorString = query["normVectorFiles"];
-        }
+            if (query.hasOwnProperty("juicebox")) {
 
-        if (hicUrl) {
-            config.url = paramDecode(hicUrl, uriDecode);
-        }
-        if (name) {
-            config.name = paramDecode(name, uriDecode);
-        }
-        if (stateString) {
-            stateString = paramDecode(stateString, uriDecode);
-            config.state = hic.destringifyState(stateString);
-
-        }
-        if (colorScale) {
-            config.colorScale = hic.destringifyColorScale(colorScale);
-        }
-
-        if (trackString) {
-            trackString = paramDecode(trackString, uriDecode);
-            config.tracks = destringifyTracks(trackString);
-        }
-
-        if (selectedGene) {
-            igv.FeatureTrack.selectedGene = selectedGene;
-        }
-
-        if (normVectorString) {
-            config.normVectorFiles = normVectorString.split("|||");
-        }
-
-        if (nvi) {
-            config.nvi = nvi;
+            } else {
+                decodeQueryV0(query, config);
+            }
         }
 
         browser = new hic.Browser($hic_container, config);
@@ -1455,7 +1410,7 @@ var hic = (function (hic) {
             url = tokens[ 0 ];
             config = { url: url };
 
-            if (url.trim().length > 0) {
+            if (url && url.trim().length > 0) {
 
                 if (tokens.length > 1) {
                     name = tokens[1];
@@ -1579,7 +1534,6 @@ var hic = (function (hic) {
             var s = replaceAll(str, '%26', '&');
             s = replaceAll(s, '%20', ' ');
             s = replaceAll(s, '+', ' ');
-            s = replaceAll(s, "%7C", "|");
             return s;
         }
     }
@@ -1587,6 +1541,168 @@ var hic = (function (hic) {
 
     function replaceAll(str, target, replacement) {
         return str.split(target).join(replacement);
+    }
+
+
+    /**
+     * Legacy URL decoding (pre version 1.0)
+     *
+     * @param query
+     * @param config
+     */
+    function decodeQueryV0(query, config, uriDecode) {
+
+        var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, uriDecode, defaultColorScaleInitializer;
+
+        defaultColorScaleInitializer =
+        {
+            low: 0,
+            lowR: 255,
+            lowG: 255,
+            lowB: 255,
+            high: 2000,
+            highR: 255,
+            highG: 0,
+            highB: 0
+        };
+
+        hicUrl = query["hicUrl"];
+        name = query["name"];
+        stateString = query["state"];
+        colorScale = query["colorScale"];
+        trackString = query["tracks"];
+        selectedGene = query["selectedGene"];
+        nvi = query["nvi"];
+        normVectorString = query["normVectorFiles"];
+
+        if (hicUrl) {
+            uriDecode = hicUrl.includes("%2F");
+            config.url = paramDecodeV0(hicUrl, uriDecode);
+        }
+        if (name) {
+            config.name = paramDecodeV0(name, uriDecode);
+        }
+        if (stateString) {
+            stateString = paramDecodeV0(stateString, uriDecode);
+            config.state = destringifyStateV0(stateString);
+
+        }
+        if (colorScale) {
+            config.colorScale = destringifyColorScaleV0(colorScale);
+        }
+
+        if (trackString) {
+            trackString = paramDecodeV0(trackString, uriDecode);
+            config.tracks = destringifyTracksV0(trackString);
+        }
+
+        if (selectedGene) {
+            igv.FeatureTrack.selectedGene = selectedGene;
+        }
+
+        if (normVectorString) {
+            config.normVectorFiles = normVectorString.split("|||");
+        }
+
+        if (nvi) {
+            config.nvi = nvi;
+        }
+
+        function destringifyStateV0(string) {
+            var tokens = string.split(",");
+            return new hic.State(
+                parseInt(tokens[0]),    // chr1
+                parseInt(tokens[1]),    // chr2
+                parseFloat(tokens[2]), // zoom
+                parseFloat(tokens[3]), // x
+                parseFloat(tokens[4]), // y
+                parseFloat(tokens[5]), // pixelSize
+                tokens.length > 6 ? tokens[6] : "NONE"   // normalization
+            )
+        }
+
+        function destringifyTracksV0(tracks) {
+
+            var trackStringList = tracks.split("|||"),
+                configList = [];
+
+            _.each(trackStringList, function (trackString) {
+                var tokens,
+                    url,
+                    config,
+                    name,
+                    dataRangeString,
+                    color,
+                    r;
+
+                tokens = trackString.split("|");
+                color = tokens.pop();
+
+                url = tokens[0];
+                config = {url: url};
+
+                if (url && url.trim().length > 0) {
+
+                    if (tokens.length > 1) {
+                        name = tokens[1];
+                    }
+
+                    if (tokens.length > 2) {
+                        dataRangeString = tokens[2];
+                    }
+
+                    if (name) {
+                        config.name = name;
+                    }
+
+                    if (dataRangeString) {
+                        r = dataRangeString.split("-");
+                        config.min = parseFloat(r[0]);
+                        config.max = parseFloat(r[1])
+                    }
+
+                    if (color) {
+                        config.color = color;
+                    }
+
+                    configList.push(config);
+                }
+
+            });
+
+            return configList;
+
+        }
+
+        function destringifyColorScaleV0(string) {
+
+            var cs,
+                tokens;
+
+            tokens = string.split(",");
+
+            cs = _.clone(defaultColorScaleInitializer);
+            cs.high = tokens[0];
+            cs.highR = tokens[1];
+            cs.highG = tokens[2];
+            cs.highB = tokens[3];
+
+            return new hic.ColorScale(cs);
+        };
+
+        function paramDecodeV0(str, uriDecode) {
+
+            if (uriDecode) {
+                return decodeURIComponent(str);   // Still more backward compatibility
+            }
+            else {
+                var s = replaceAll(str, '%26', '&');
+                s = replaceAll(s, '%20', ' ');
+                s = replaceAll(s, '+', ' ');
+                s = replaceAll(s, "%7C", "|");
+                return s;
+            }
+        }
     }
 
     return hic;
