@@ -45,11 +45,10 @@ module.exports = function (grunt) {
                 expand: true,
                 flatten: true,
                 src: ['css/juicebox.css'],
-                dest: 'dist'
+                dest: 'dist/css'
             },
             img: {
                 expand: true,
-                // cwd: 'css/img',
                 cwd: 'img',
                 src: '**',
                 dest: 'dist/img/'

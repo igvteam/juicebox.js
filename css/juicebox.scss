@@ -315,7 +315,7 @@ $default-font-family: 'Open Sans', sans-serif;
         div {
           width: 24px;
           height: 24px;
-          background-image: url('img/circular-arrows-24-grey.png');
+          background-image: url('../img/circular-arrows-24-grey.png');
           background-repeat: no-repeat;
         }
 
@@ -323,7 +323,7 @@ $default-font-family: 'Open Sans', sans-serif;
         div:focus,
         div:active {
           cursor: pointer;
-          background-image: url('img/circular-arrows-24-blue.png');
+          background-image: url('../img/circular-arrows-24-blue.png');
         }
 
       }
