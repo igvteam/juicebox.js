@@ -1343,7 +1343,7 @@ var hic = (function (hic) {
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    trackString += "|" + (track.name | 'unnamed');
+                    trackString += "|" + (track.name ?  replaceAll(track.name, "|", "$") : '');
                     trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
                     trackString += "|" + track.color;
                 }
@@ -1357,7 +1357,7 @@ var hic = (function (hic) {
                 if (typeof url === "string") {
                     if (trackString.length > 0) trackString += "|||";
                     trackString += url;
-                    trackString += "|" + (track.name | 'unnamed');
+                    trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
                     trackString += "|";   // Data range
                     trackString += "|" + track.color;
                 }
@@ -1652,7 +1652,7 @@ var hic = (function (hic) {
                     }
 
                     if (name) {
-                        config.name = name;
+                        config.name = replaceAll(name, "$", "|");
                     }
 
                     if (dataRangeString) {
