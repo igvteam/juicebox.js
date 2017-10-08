@@ -310,7 +310,7 @@ var hic = (function (hic) {
 
                 self.browser.trackRenderers.push(trackRendererPair);
 
-                self.browser.updateUriParameters();
+                self.browser.updateUriParametersV0();
             });
 
             this.browser.updateLayout();
@@ -351,7 +351,7 @@ var hic = (function (hic) {
             self.doLayoutTrackXYPairCount( _.size(self.browser.trackRenderers) );
         });
 
-        this.browser.updateUriParameters();
+        this.browser.updateUriParametersV0();
 
         // this.browser.updateLayout();
     };
@@ -378,7 +378,7 @@ var hic = (function (hic) {
 
             this.browser.updateLayout();
 
-            this.browser.updateUriParameters();
+            this.browser.updateUriParametersV0();
 
         } else {
             console.log('No more tracks.');
@@ -407,7 +407,7 @@ var hic = (function (hic) {
 
             this.browser.updateLayout();
 
-            this.browser.updateUriParameters();
+            this.browser.updateUriParametersV0();
 
         } else {
             console.log('No more tracks.');

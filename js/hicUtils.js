@@ -30,7 +30,7 @@ var hic = (function (hic) {
 
         var idx = urlString.lastIndexOf("/");
 
-        if(idx > 0) {
+        if (idx > 0) {
             return urlString.substring(idx + 1);
         }
         else {
@@ -40,7 +40,7 @@ var hic = (function (hic) {
     };
 
     hic.igvSupports = function (path) {
-        var config = { url: path };
+        var config = {url: path};
         igv.inferTrackTypes(config);
         return config.type !== undefined;
     };
@@ -92,12 +92,12 @@ var hic = (function (hic) {
 
     hic.Math = {
 
-        mean: function(array) {
+        mean: function (array) {
 
-            var t = 0, n=0,
+            var t = 0, n = 0,
                 i;
-            for(i=0; i<array.length; i++) {
-                if(!isNaN(array[i])) {
+            for (i = 0; i < array.length; i++) {
+                if (!isNaN(array[i])) {
                     t += array[i];
                     n++;
                 }
@@ -107,11 +107,13 @@ var hic = (function (hic) {
 
         percentile: function (array, p) {
 
-            if(array.length === 0) return undefined;
+            if (array.length === 0) return undefined;
 
             var k = Math.floor(array.length * ((100 - p) / 100));
-            if(k == 0) {
-                array.sort(function (a,b) {return b-a});
+            if (k == 0) {
+                array.sort(function (a, b) {
+                    return b - a
+                });
                 return array[0];
             }
 
@@ -144,19 +146,47 @@ var hic = (function (hic) {
         }
     };
 
-    function BinaryHeap(){
+    hic.extractQuery = function (uri) {
+        var i1, i2, i, j, s, query, tokens;
+
+        query = {};
+        i1 = uri.indexOf("?");
+        i2 = uri.lastIndexOf("#");
+
+        if (i1 >= 0) {
+            if (i2 < 0) i2 = uri.length;
+
+            for (i = i1 + 1; i < i2;) {
+
+                j = uri.indexOf("&", i);
+                if (j < 0) j = i2;
+
+                s = uri.substring(i, j);
+                tokens = s.split("=", 2);
+                if (tokens.length === 2) {
+                    query[tokens[0]] = tokens[1];
+                }
+
+                i = j + 1;
+            }
+        }
+        return query;
+    }
+
+
+    function BinaryHeap() {
         this.content = [];
     }
 
     BinaryHeap.prototype = {
-        push: function(element) {
+        push: function (element) {
             // Add the new element to the end of the array.
             this.content.push(element);
             // Allow it to bubble up.
             this.bubbleUp(this.content.length - 1);
         },
 
-        pop: function() {
+        pop: function () {
             // Store the first element so we can return it later.
             var result = this.content[0];
             // Get the element at the end of the array.
@@ -170,7 +200,7 @@ var hic = (function (hic) {
             return result;
         },
 
-        remove: function(node) {
+        remove: function (node) {
             var length = this.content.length;
             // To remove a value, we must search through the array to find
             // it.
@@ -191,11 +221,11 @@ var hic = (function (hic) {
             }
         },
 
-        size: function() {
+        size: function () {
             return this.content.length;
         },
 
-        bubbleUp: function(n) {
+        bubbleUp: function (n) {
             // Fetch the element that has to be moved.
             var element = this.content[n], score = element;
             // When at 0, an element can not go up any further.
@@ -216,13 +246,13 @@ var hic = (function (hic) {
             }
         },
 
-        sinkDown: function(n) {
+        sinkDown: function (n) {
             // Look up the target element and its score.
             var length = this.content.length,
                 element = this.content[n],
                 elemScore = element;
 
-            while(true) {
+            while (true) {
                 // Compute the indices of the child elements.
                 var child2N = (n + 1) * 2, child1N = child2N - 1;
                 // This is used to store the new position of the element,

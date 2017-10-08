@@ -28,7 +28,7 @@
 
 var hic = (function (hic) {
 
-    var apiKey = "AIzaSyB5gNpOFZkvlzfs8u2FmaunlSJIHRsHxfs";
+    var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
 
 
     hic.shortenURL = function (url) {
@@ -38,15 +38,16 @@ var hic = (function (hic) {
         endpoint = "https://www.googleapis.com/urlshortener/v1/url?key=" + apiKey;
         body = {"longUrl": url}
 
-        igv.xhr.loadJson(endpoint,
-            {
-                sendData: JSON.stringify(body),
-                contentType: "application/json",
-            }).then(function (json) {
-
-            console.log(json.id);
-
-        })
+        return new Promise(function (fulfill, reject) {
+            igv.xhr.loadJson(endpoint,
+                {
+                    sendData: JSON.stringify(body),
+                    contentType: "application/json",
+                })
+                .then(function (json) {
+                    fulfill(json.id);
+            })
+        });
 
     }
 

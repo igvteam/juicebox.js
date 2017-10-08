@@ -67,10 +67,30 @@ var site = (function (site) {
 
     site.init = function () {
 
-        hic.createBrowser($('.juicebox-app-clone-container'), {});
+        var query, parts, q, browser;
+        
+        query = hic.extractQuery(window.location.href);
+
+        if (query && query.hasOwnProperty("juicebox")) {
+            q = query["juicebox"];
+            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+            parts = q.split("},{");
+            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(parts[0])});
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+        } else {
+            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {});
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+        }
+
+        if(parts && parts.length > 1) {
+            parts.forEach(function (p) {
+                browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(p)});
+                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            })
+        }
 
         // Listen for GenomeChange events for all browsers.
-        hic.Browser.getCurrentBrowser().eventBus.subscribe("GenomeChange", genomeChangeListener);
+
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -192,38 +212,67 @@ var site = (function (site) {
             var browser,
                 config;
 
-            // If this is the first invocation strep href of parameters and turn off href updating
-            // if(hic.allBrowsers.length === 1) {
-            //     hic.allBrowsers[0].updateHref = false;
-            //     hic.allBrowsers[0].stripUriParameters();
-            // }
-
             config =
-                {
-                    initFromUrl: false,
-                    updateHref: false
-                };
-            browser = hic.createBrowser($('.juicebox-app-clone-container'), config);
+            {
+                initFromUrl: false,
+                updateHref: false
+            };
+            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-            // hic.Browser.setCurrentBrowser(browser);
 
             hic.syncBrowsers(hic.allBrowsers);
 
         });
 
-        function loadHicFile(url, name) {
-            var synchState;
+        $('#hic-share-button').on('click', function (e) {
 
-            if (hic.allBrowsers.length > 1) {
-                synchState = hic.allBrowsers[0].getSyncState();
-            }
+            var queryString, href, idx;
 
-            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+            href = window.location.href.trim();    // Purpose of trim is really to make a copy
+            // This js is specific to the aidenlab site, and we know we have only juicebox parameters.
+            // Strip href of current parameters, if any, to avoid duplicates.
+            var idx = href.indexOf("?");
+            if (idx > 0) href = href.substring(0, idx);
+
+            href = href + "?juicebox={"
+
+            hic.allBrowsers.forEach(function (browser, index) {
+                queryString = browser.getQueryString();
+                href = href + encodeURIComponent(queryString);
+                href = href + (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+            });
+
+            hic.shortenURL(href)
+                .then(function (shortURL) {
+                    $('#hic-share-url').val(shortURL);
+                    $('#hic-share-url')[0].select();
+                });
+        });
+
+
+        $('#hic-copy-link').on('click', function (e) {
+            $('#hic-share-url')[0].select();
+            var success = document.execCommand('copy');
+             if(success) {
+                 $('#hic-share-url-modal').modal('hide');
+             }
+            else {
+                 alert("Copy not successful");
+             }
+        });
+
+    }
+
+    function loadHicFile(url, name) {
+        var synchState;
+
+        if (hic.allBrowsers.length > 1) {
+            synchState = hic.allBrowsers[0].getSyncState();
         }
 
-    };
+        hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+    }
 
     function createEncodeTable(browserRetrievalFunction, genomeId) {
 
@@ -246,28 +295,28 @@ var site = (function (site) {
             }
 
             columnWidths =
-                {
-                    'Assembly': '10%',
-                    'Cell Type': '10%',
-                    'Target': '10%',
-                    'Assay Type': '20%',
-                    'Output Type': '20%',
-                    'Lab': '20%'
-                };
+            {
+                'Assembly': '10%',
+                'Cell Type': '10%',
+                'Target': '10%',
+                'Assay Type': '20%',
+                'Output Type': '20%',
+                'Lab': '20%'
+            };
 
-            encodeTableFormat = new igv.EncodeTableFormat({ columnWidths: columnWidths });
+            encodeTableFormat = new igv.EncodeTableFormat({columnWidths: columnWidths});
 
             config =
-                {
-                    $modal:$('#hicEncodeModal'),
-                    $modalBody:$('#encodeModalBody'),
-                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                    $modalGoButton: $('#encodeModalGoButton'),
-                    browserRetrievalFunction:browserRetrievalFunction,
-                    browserLoadFunction:'loadTrack',
-                    dataSource:new igv.EncodeDataSource({ genomeID: genomeId }, encodeTableFormat)
-                };
+            {
+                $modal: $('#hicEncodeModal'),
+                $modalBody: $('#encodeModalBody'),
+                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                $modalGoButton: $('#encodeModalGoButton'),
+                browserRetrievalFunction: browserRetrievalFunction,
+                browserLoadFunction: 'loadTrack',
+                dataSource: new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat)
+            };
 
             encodeTable = new igv.IGVModalTable(config);
 
@@ -295,7 +344,7 @@ var site = (function (site) {
                 var lines = data ? data.splitLines() : [];
                 lines.forEach(function (line) {
                     var tokens = line.split('\t');
-                    if (tokens.length > 1 && ("2D" === type|| igvSupports(tokens[1]))) {
+                    if (tokens.length > 1 && ("2D" === type || igvSupports(tokens[1]))) {
                         elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
                     }
                 });

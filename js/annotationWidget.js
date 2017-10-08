@@ -207,7 +207,7 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', track));
             } else {
                 trackRenderer.setColor(color);
-                self.browser.updateUriParameters();
+                self.browser.updateUriParametersV0();
             }
 
         }, function () {
@@ -249,7 +249,7 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.updateUriParameters();
+                self.browser.updateUriParametersV0();
                 self.browser.updateLayout();
                 self.updateBody(trackList);
             }
@@ -264,7 +264,7 @@ var hic = (function (hic) {
                 self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
                 self.updateBody(trackList);
             } else {
-                self.browser.updateUriParameters();
+                self.browser.updateUriParametersV0();
                 self.browser.updateLayout();
                 self.updateBody(trackList);
             }

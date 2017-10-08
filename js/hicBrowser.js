@@ -32,10 +32,10 @@ var hic = (function (hic) {
     var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
-        {
-            width: 640,
-            height: 640
-        };
+    {
+        width: 640,
+        height: 640
+    };
 
 
     var datasetCache = {};
@@ -46,12 +46,12 @@ var hic = (function (hic) {
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-            {
-                constants: {defaultColor: "rgb(0,0,150)"},
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
 
-                // Compatibility wit igv menus
-                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-            };
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -86,16 +86,18 @@ var hic = (function (hic) {
     }
 
 
-    hic.createBrowser = function ($hic_container, config) {
+    hic.createBrowser = function (hic_container, config) {
 
         var browser,
             uri,
-            parts,
             query,
             isMiniMode,
             initialImageImg,
             initialImageX,
-            initialImageY;
+            initialImageY,
+            $hic_container;
+
+        $hic_container = $(hic_container);
 
         setDefaults(config);
 
@@ -103,15 +105,16 @@ var hic = (function (hic) {
             config.href = "?" + config.href;
         }
 
-        uri = config.href || (config.initFromUrl !== false && window.location.href) || "";
-        parts = parseUri(uri);
-        query = parts.queryKey;
+        uri = config.href ||   
+            (config.initFromUrl !== false && window.location.href) || "";
+
+        query = hic.extractQuery(uri);
 
         if (query) {
             if (query.hasOwnProperty("juicebox")) {
-
+                // Handled elsewhere
             } else {
-                decodeQueryV0(query, config);
+                decodeQuery(query, config);
             }
         }
 
@@ -172,7 +175,7 @@ var hic = (function (hic) {
         this.figureMode = config.miniMode;
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
-        this.updateHref = config.updateHref === undefined ? true : config.updateHref;
+        this.updateHref = false; //config.updateHref === undefined ? true : config.updateHref;
         this.updateHref_ = this.updateHref;   // Need to remember this to restore state on map load (after local file)
 
         this.id = _.uniqueId('browser_');
@@ -215,6 +218,7 @@ var hic = (function (hic) {
         this.eventBus.subscribe("TrackLoad", this);
         this.eventBus.subscribe("TrackState2D", this);
         this.eventBus.subscribe("GenomeChange", this);
+        this.eventBus.subscribe("NormVectorIndexLoad", this);
 
         function configureHover($e) {
 
@@ -411,7 +415,7 @@ var hic = (function (hic) {
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
-        this.updateUriParameters();
+        this.updateUriParametersV0();
 
         state = this.state;
         this.dataset.getMatrix(state.chr1, state.chr2)
@@ -444,7 +448,7 @@ var hic = (function (hic) {
                 self.loadNormalizationFile(config.url);
                 if (isLocal === false) {
                     self.normVectorFiles.push(config.url);
-                    self.updateUriParameters();
+                    self.updateUriParametersV0();
                 }
                 return;
             }
@@ -559,7 +563,7 @@ var hic = (function (hic) {
 
             _.each(xyTrackRenderPair, function (trackRenderer) {
 
-                trackRenderer.$viewport.css({ order:index });
+                trackRenderer.$viewport.css({order: index});
 
                 if (true === doSyncCanvas) {
                     trackRenderer.syncCanvas();
@@ -1254,11 +1258,11 @@ var hic = (function (hic) {
         if (event.dragging) return;
 
         if (this.updateHref) {
-            this.updateUriParameters(event);
+            this.updateUriParametersV0(event);
         }
 
-        if (event.type === "TrackState2D") {
-            this.updateUriParameters(event);
+        if (event.type === "TrackState2D" || event.type === "NormVectorIndexLoad") {
+            this.updateUriParametersV0(event);
         }
     };
 
@@ -1301,146 +1305,6 @@ var hic = (function (hic) {
             }
 
         }
-    }
-
-
-    hic.Browser.prototype.updateUriParameters = function (event) {
-
-        var href = window.location.href,
-            nviString, trackString;
-
-        if (event && event.type === "MapLoad") {
-            if (this.url) {
-                href = replaceURIParameter("hicUrl", this.url, href);
-            }
-            if (this.name) {
-                href = replaceURIParameter("name", this.name, href);
-            }
-        }
-
-        href = replaceURIParameter("state", (this.state.stringify()), href);
-
-        href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
-
-        if (igv.FeatureTrack.selectedGene) {
-            href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
-        }
-
-        nviString = getNviString(this.dataset, this.state);
-        if (nviString) {
-            href = replaceURIParameter("nvi", nviString, href);
-        }
-
-        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-            trackString = "";
-
-            this.trackRenderers.forEach(function (trackRenderer) {
-                var track = trackRenderer.x.track,
-                    config = track.config,
-                    url = config.url,
-                    dataRange = track.dataRange;
-
-                if (typeof url === "string") {
-                    if (trackString.length > 0) trackString += "|||";
-                    trackString += url;
-                    trackString += "|" + (track.name ?  replaceAll(track.name, "|", "$") : '');
-                    trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
-                    trackString += "|" + track.color;
-                }
-            });
-
-            this.tracks2D.forEach(function (track) {
-
-                var config = track.config,
-                    url = config.url;
-
-                if (typeof url === "string") {
-                    if (trackString.length > 0) trackString += "|||";
-                    trackString += url;
-                    trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
-                    trackString += "|";   // Data range
-                    trackString += "|" + track.color;
-                }
-            });
-
-            if (trackString.length > 0) {
-                href = replaceURIParameter("tracks", trackString, href);
-            }
-        }
-
-        if (this.normVectorFiles.length > 0) {
-
-            var normVectorString = "";
-            this.normVectorFiles.forEach(function (url) {
-
-                if (normVectorString.length > 0) normVectorString += "|||";
-                normVectorString += url;
-
-            });
-
-            href = replaceURIParameter("normVectorFiles", normVectorString, href);
-
-        }
-
-        if (this.config.updateHref === false) {
-            //         console.log(href);
-        }
-        else {
-            window.history.replaceState("", "juicebox", href);
-        }
-    };
-
-    function destringifyTracks(tracks) {
-
-        var trackStringList = tracks.split("|||"),
-            configList = [];
-
-        _.each(trackStringList, function (trackString) {
-            var tokens,
-                url,
-                config,
-                name,
-                dataRangeString,
-                color,
-                r;
-
-            tokens = trackString.split("|");
-            color = tokens.pop();
-
-            url = tokens[ 0 ];
-            config = { url: url };
-
-            if (url && url.trim().length > 0) {
-
-                if (tokens.length > 1) {
-                    name = tokens[1];
-                }
-
-                if (tokens.length > 2) {
-                    dataRangeString = tokens[2];
-                }
-
-                if (name) {
-                    config.name = name;
-                }
-
-                if (dataRangeString) {
-                    r = dataRangeString.split("-");
-                    config.min = parseFloat(r[0]);
-                    config.max = parseFloat(r[1])
-                }
-
-                if (color) {
-                    config.color = color;
-                }
-
-                configList.push(config);
-            }
-
-        });
-
-        return configList;
-
     }
 
     function getNviString(dataset, state) {
@@ -1500,49 +1364,250 @@ var hic = (function (hic) {
             return results[1];
     }
 
-    function replaceURIParameter(key, newValue, href) {
-        var oldValue = gup(href, key);
-        if (oldValue) {
-            href = href.replace(key + "=" + oldValue, key + "=" + paramEncode(newValue));
-        }
-        else {
-            var delim = href.includes("?") ? "&" : "?";
-            href += delim + key + "=" + paramEncode(newValue);
-        }
-
-        return href;
-    }
-
-    /**
-     * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
-     * to fully % encode parameter values (see RFC3986).
-     *
-     * @param str
-     */
-    function paramEncode(str) {
-        var s = replaceAll(str, '&', '%26');
-        s = replaceAll(s, ' ', '+');
-        return s;
-    }
-
-    function paramDecode(str, uriDecode) {
-
-        if (uriDecode) {
-            return decodeURIComponent(str);   // Backward compatibility
-        }
-        else {
-            var s = replaceAll(str, '%26', '&');
-            s = replaceAll(s, '%20', ' ');
-            s = replaceAll(s, '+', ' ');
-            return s;
-        }
-    }
-
 
     function replaceAll(str, target, replacement) {
         return str.split(target).join(replacement);
     }
 
+
+    var urlShortcuts = {
+        "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
+        "*s3/": "https://hicfiles.s3.amazonaws.com/",
+        "*s3e_/": "http://hicfiles.s3.amazonaws.com/external/",
+        "*s3_/": "http://hicfiles.s3.amazonaws.com/",
+        "*enc/": "https://www.encodeproject.org/files/"
+    }
+
+
+    hic.Browser.prototype.getQueryString = function () {
+
+        var queryString, nviString, trackString;
+
+        queryString = [];
+
+        queryString.push(paramString("hicUrl", this.url));
+
+        if (this.name) {
+            queryString.push(paramString("name", this.name));
+        }
+
+        queryString.push(paramString("state", this.state.stringify()));
+
+        queryString.push(paramString("colorScale", this.contactMatrixView.colorScale.stringify()));
+
+        if (igv.FeatureTrack.selectedGene) {
+            queryString.push(paramString("selectedGene", igv.FeatureTrack.selectedGene));
+        }
+
+        nviString = getNviString(this.dataset, this.state);
+        if (nviString) {
+            queryString.push(paramString("nvi", nviString));
+        }
+
+        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+            trackString = "";
+
+            this.trackRenderers.forEach(function (trackRenderer) {
+                var track = trackRenderer.x.track,
+                    config = track.config,
+                    url = config.url,
+                    dataRange = track.dataRange;
+
+                if (typeof url === "string") {
+                    if (trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
+                    trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
+                    trackString += "|" + track.color;
+                }
+            });
+
+            this.tracks2D.forEach(function (track) {
+
+                var config = track.config,
+                    url = config.url;
+
+                if (typeof url === "string") {
+                    if (trackString.length > 0) trackString += "|||";
+                    trackString += url;
+                    trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
+                    trackString += "|";   // Data range
+                    trackString += "|" + track.color;
+                }
+            });
+
+            if (trackString.length > 0) {
+                queryString.push(paramString("tracks", trackString));
+            }
+        }
+
+        if (this.normVectorFiles.length > 0) {
+
+            var normVectorString = "";
+            this.normVectorFiles.forEach(function (url) {
+
+                if (normVectorString.length > 0) normVectorString += "|||";
+                normVectorString += url;
+
+            });
+
+            queryString.push(paramString("normVectorFiles", normVectorString));
+
+        }
+
+        return queryString.join("&");
+
+        function paramString(key, value) {
+            return key + "=" + paramEncode(value)
+        }
+
+
+        /**
+         * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
+         * to fully % encode parameter values (see RFC3986).
+         *
+         * @param str
+         */
+        function paramEncode(str) {
+            var s = replaceAll(str, '&', '%26');
+            s = replaceAll(s, ' ', '+');
+            s = replaceAll(s, "#", "%23");
+
+            return s;
+        }
+
+    };
+
+    /**
+     *
+     * @param event
+     */
+    hic.Browser.prototype.updateUriParametersV0 = function (event) {
+
+        var tmp;
+
+        console.log(this.getQueryString());
+
+        var href = window.location.href,
+            nviString, trackString;
+
+        if (event && event.type === "MapLoad") {
+            if (this.url) {
+                tmp = this.url;
+                Object.keys(urlShortcuts).forEach(function (key) {
+                    var value = urlShortcuts[key];
+                    if (tmp.startsWith(value)) tmp = tmp.replace(value, key);
+                });
+                href = replaceURIParameter("hicUrl", tmp, href);
+            }
+            if (this.name) {
+                href = replaceURIParameter("name", this.name, href);
+            }
+        }
+
+        href = replaceURIParameter("state", (this.state.stringify()), href);
+
+        href = replaceURIParameter("colorScale", (this.contactMatrixView.colorScale.stringify()), href);
+
+        if (igv.FeatureTrack.selectedGene) {
+            href = replaceURIParameter("selectedGene", igv.FeatureTrack.selectedGene, href);
+        }
+
+        nviString = getNviString(this.dataset, this.state);
+        if (nviString) {
+            href = replaceURIParameter("nvi", nviString, href);
+        }
+
+        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+            trackString = "";
+
+            this.trackRenderers.forEach(function (trackRenderer) {
+                var track = trackRenderer.x.track;
+                if (trackString.length > 0) trackString += "|||";
+                trackString += stringifyTrack(track);
+            });
+
+            this.tracks2D.forEach(function (track) {
+                if (trackString.length > 0) trackString += "|||";
+                trackString += stringifyTrack(track);
+            });
+
+            if (trackString.length > 0) {
+                href = replaceURIParameter("tracks", trackString, href);
+            }
+        }
+
+        if (this.normVectorFiles.length > 0) {
+
+            var normVectorString = "";
+            this.normVectorFiles.forEach(function (url) {
+
+                if (normVectorString.length > 0) normVectorString += "|||";
+                normVectorString += url;
+
+            });
+
+            href = replaceURIParameter("normVectorFiles", normVectorString, href);
+
+        }
+
+        if (this.config.updateHref === false) {
+            //         console.log(href);
+        }
+        else {
+            window.history.replaceState("", "juicebox", href);
+        }
+
+        function stringifyTrack(track) {
+            var url = track.config.url,
+                dataRange = track.dataRange,
+                trackString;
+
+            if (typeof url === "string") {
+
+                Object.keys(urlShortcuts).forEach(function (key) {
+                    var value = urlShortcuts[key];
+                    if (url.startsWith(value)) url = url.replace(value, key);
+                });
+
+                trackString = url;
+                trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
+                trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
+                trackString += "|" + track.color;
+            }
+            return trackString;
+        }
+
+        function replaceURIParameter(key, newValue, href) {
+            var oldValue = gup(href, key);
+            if (oldValue) {
+                href = href.replace(key + "=" + oldValue, key + "=" + paramEncode(newValue));
+            }
+            else {
+                var delim = href.includes("?") ? "&" : "?";
+                href += delim + key + "=" + paramEncode(newValue);
+            }
+
+            return href;
+        }
+
+        /**
+         * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
+         * to fully % encode parameter values (see RFC3986).
+         *
+         * @param str
+         */
+        function paramEncode(str) {
+
+            return encodeURIComponent(str);
+
+            /*var s = replaceAll(str, '&', '%26');
+             s = replaceAll(s, ' ', '+');
+             s = replaceAll(s, "#", "%23");
+             return s;*/
+        }
+
+    };
 
     /**
      * Legacy URL decoding (pre version 1.0)
@@ -1550,7 +1615,7 @@ var hic = (function (hic) {
      * @param query
      * @param config
      */
-    function decodeQueryV0(query, config, uriDecode) {
+    function decodeQuery(query, config) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, uriDecode, defaultColorScaleInitializer;
 
@@ -1577,7 +1642,16 @@ var hic = (function (hic) {
 
         if (hicUrl) {
             uriDecode = hicUrl.includes("%2F");
-            config.url = paramDecodeV0(hicUrl, uriDecode);
+
+            hicUrl = paramDecodeV0(hicUrl, uriDecode);
+
+            Object.keys(urlShortcuts).forEach(function (key) {
+                var value = urlShortcuts[key];
+                if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
+            });
+
+
+            config.url = hicUrl;
         }
         if (name) {
             config.name = paramDecodeV0(name, uriDecode);
@@ -1588,6 +1662,7 @@ var hic = (function (hic) {
 
         }
         if (colorScale) {
+            colorScale = paramDecodeV0(colorScale, uriDecode);
             config.colorScale = destringifyColorScaleV0(colorScale);
         }
 
@@ -1624,7 +1699,7 @@ var hic = (function (hic) {
         function destringifyTracksV0(tracks) {
 
             var trackStringList = tracks.split("|||"),
-                configList = [];
+                configList = [], keys, key, i, len;
 
             _.each(trackStringList, function (trackString) {
                 var tokens,
@@ -1639,9 +1714,19 @@ var hic = (function (hic) {
                 color = tokens.pop();
 
                 url = tokens[0];
-                config = {url: url};
 
                 if (url && url.trim().length > 0) {
+
+                    keys = Object.keys(urlShortcuts);
+                    for (i = 0, len = keys.length; i < len; i++) {
+                        key = keys[i];
+                        var value = urlShortcuts[key];
+                        if (url.startsWith(key)) {
+                            url = url.replace(key, value);
+                            break;
+                        }
+                    }
+                    config = {url: url};
 
                     if (tokens.length > 1) {
                         name = tokens[1];
@@ -1700,6 +1785,7 @@ var hic = (function (hic) {
                 s = replaceAll(s, '%20', ' ');
                 s = replaceAll(s, '+', ' ');
                 s = replaceAll(s, "%7C", "|");
+                s = replaceAll(s, "%23", "#");
                 return s;
             }
         }
