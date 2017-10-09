@@ -31,7 +31,8 @@ var site = (function (site) {
 
     var encodeTable,
         genomeChangeListener,
-        browserListener;
+        browserListener,
+        lastGenomeId;
 
     genomeChangeListener = {
 
@@ -41,17 +42,22 @@ var site = (function (site) {
                 tracksURL,
                 annotations2dURL;
 
-            tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
-            annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
+            if(lastGenomeId !== genomeId) {
 
-            loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
-            loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
+                lastGenomeId = genomeId;
 
-            browserRetrievalFunction = function () {
-                return hic.Browser.getCurrentBrowser();
-            };
+                tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
+                annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
 
-            createEncodeTable(browserRetrievalFunction, event.data);
+                loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
+                loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
+
+                browserRetrievalFunction = function () {
+                    return hic.Browser.getCurrentBrowser();
+                };
+
+                createEncodeTable(browserRetrievalFunction, event.data);
+            }
         }
     };
 
@@ -67,8 +73,8 @@ var site = (function (site) {
 
     site.init = function () {
 
-        var query, parts, q, browser;
-        
+        var query, parts, q, browser, i;
+
         query = hic.extractQuery(window.location.href);
 
         if (query && query.hasOwnProperty("juicebox")) {
@@ -83,10 +89,10 @@ var site = (function (site) {
         }
 
         if(parts && parts.length > 1) {
-            parts.forEach(function (p) {
-                browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(p)});
+            for(i=1; i<parts.length; i++) {
+                browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(parts[i])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            })
+            }
         }
 
         // Listen for GenomeChange events for all browsers.
@@ -280,14 +286,8 @@ var site = (function (site) {
             columnWidths,
             encodeTableFormat;
 
-        if (undefined === hic.Browser.getCurrentBrowser()) {
-            igv.presentAlert('ERROR: you must select a map panel.');
-            return;
-        }
-
         if (encodeTable && genomeId === encodeTable.genomeID()) {
             // do nothing
-            console.log('nuthin');
         } else {
 
             if (encodeTable) {
