@@ -67,7 +67,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
 
     <!-- IGV JS -->
-    <script src="../aidenlab/js/igv-beta.min.js"></script>
+    <!--<script src="../aidenlab/js/igv-beta.min.js"></script>-->
+    <script src="../dist/igv.js"></script>
 
     <!-- Vector JS -->
     <script src="../vendor/jquery-ui.js"></script>
@@ -149,7 +150,7 @@
 
 </div>
 
-<!-- Annotation Select Modal -->
+<!-- Genome Annotations Modal -->
 <div id="hic-annotation-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-annotation-select-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -159,7 +160,7 @@
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
+                <h4 class="modal-title" id="hic-annotation-select-modal-label">Genome Annotations</h4>
             </div>
 
             <div class="modal-body">
@@ -874,35 +875,35 @@
 
                 <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
 
-                    <li role="presentation"><!-- Select ENCODE -->
+                    <li role="presentation"><!-- ENCODE -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
                             ENCODE
                         </a>
-                    </li><!-- Select ENCODE -->
+                    </li>
 
-                    <li role="presentation"><!-- Select Annotations -->
+                    <li role="presentation"><!-- Genome Annotations -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">
                             Genome Annotations
                         </a>
-                    </li><!-- Select Annotations -->
+                    </li>
 
-                    <li role="presentation"><!-- Select Annotations -->
+                    <li role="presentation"><!-- 2D Annotations -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">
                             2D Annotations
                         </a>
-                    </li><!-- Select 2D Annotations -->
+                    </li>
 
                     <li role="presentation"><!-- Local Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
                             Local Track File
                         </a>
-                    </li><!-- Local Track File -->
+                    </li>
 
                     <li role="presentation"><!-- Track URL -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
                             Track URL
                         </a>
-                    </li><!-- Track URL -->
+                    </li>
 
                 </ul>
 

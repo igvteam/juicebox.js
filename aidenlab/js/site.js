@@ -99,6 +99,8 @@ var site = (function (site) {
         // Listen for GenomeChange events for all browsers.
 
 
+        $('.selectpicker').selectpicker();
+
         $('#dataset_selector').on('change', function (e) {
             var $selected,
                 url,
@@ -128,18 +130,16 @@ var site = (function (site) {
             } else {
 
                 file = _.first($(this).get(0).files);
-
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
-
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
                 }
-
-                $(this).val("");
-                $('#hic-load-local-file-modal').modal('hide');
             }
+
+            $(this).val("");
+            $('#hic-load-local-file-modal').modal('hide');
 
         });
 
@@ -164,15 +164,11 @@ var site = (function (site) {
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
                 }
-
-                $(this).val("");
-                $('#hic-load-url-modal').modal('hide');
-
             }
 
+            $(this).val("");
+            $('#hic-load-url-modal').modal('hide');
         });
-
-        $('.selectpicker').selectpicker();
 
         $('#annotation-selector').on('change', function (e) {
             var path,
@@ -181,17 +177,13 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                $('#hic-annotation-select-modal').modal('hide');
-
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
-
-                // deselect all
-                $(this).find('option').removeAttr("selected");
-
                 hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
             }
 
+            $(this).find('option').removeAttr("selected");
+            $('#hic-annotation-select-modal').modal('hide');
         });
 
         $('#annotation-2D-selector').on('change', function (e) {
@@ -201,16 +193,14 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                $('#hic-annotation-2D-select-modal').modal('hide');
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
-
-                // deselect all
-                $(this).find('option').removeAttr("selected");
-
                 hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
             }
+
+            $('#hic-annotation-2D-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
 
         });
 
