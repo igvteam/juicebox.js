@@ -93,6 +93,7 @@ var site = (function (site) {
                 browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(parts[i])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
+            hic.syncBrowsers(hic.allBrowsers);
         }
 
         // Listen for GenomeChange events for all browsers.
