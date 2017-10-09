@@ -71,7 +71,7 @@ var site = (function (site) {
         }
     };
 
-    site.init = function () {
+    site.init = function ($container) {
 
         var query, parts, q, browser, i;
 
@@ -81,16 +81,16 @@ var site = (function (site) {
             q = query["juicebox"];
             q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
             parts = q.split("},{");
-            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(parts[0])});
+            browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
         } else {
-            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {});
+            browser = hic.createBrowser($container.get(0), {});
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
         }
 
         if(parts && parts.length > 1) {
             for(i=1; i<parts.length; i++) {
-                browser = hic.createBrowser($('.juicebox-app-clone-container')[0], {href: decodeURIComponent(parts[i])});
+                browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
             hic.syncBrowsers(hic.allBrowsers);
@@ -224,7 +224,7 @@ var site = (function (site) {
                 initFromUrl: false,
                 updateHref: false
             };
-            browser = hic.createBrowser($('.juicebox-app-clone-container')[0], config);
+            browser = hic.createBrowser($container.get(0), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
