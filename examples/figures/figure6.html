@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!--
+  ~  The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2016-2017 The Regents of the University of California
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  ~ associated documentation files (the "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+  ~ following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all copies or substantial
+  ~ portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+  ~ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  ~ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ~ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  ~
+  -->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Juicebox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
+
+    <!-- Shims for legacy browsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <!-- JQuery UI CSS -->
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.1/themes/redmond/jquery-ui.css"/>
+
+    <!-- IGV CSS -->
+    <link rel="stylesheet" type="text/css" href="https://igv.org/web/beta/igv-beta.css">
+
+    <!-- Juicebox CSS-->
+    <link rel="stylesheet" type="text/css" href="../../dist/css/juicebox.css">
+
+    <!-- Bootstrap-Select Plugin CSS -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+
+    <!-- JQuery JS -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- IGV JS -->
+    <script src="https://igv.org/web/beta/igv-beta.js"></script>
+
+    <!-- Juicebox JS -->
+    <script src="../../dist/juicebox.js"></script>
+
+
+</head>
+
+<body style="margin:30px">
+
+<h1 style="text-align: center; font:Helvetica Neue;font-size:36px;line-height: 40px; color: #333333
+">Figure 6</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div>
+            <p style="font-size:30px" class="panelID">A</p>
+        </div>
+        <br>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-4">
+                <div>
+                    <img class="img-responsive"
+                         src="https://theaidenlab.github.io/figures/css/img/figure2_static_components/Fig2A_untreated_header.png"
+                         alt="Untreated" width="300">
+                </div>
+                <br>
+            </div>
+        </div>
+        <div>
+            <img src="https://theaidenlab.github.io/figures/css/img/figure6_static_components/6A_extrusion_sim.png"
+                 alt="with extrusion sim" width="600">
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-4">
+                <div>
+                    <img class="img-responsive"
+                         src="https://theaidenlab.github.io/figures/css/img/figure2_static_components/Fig2A_treated_header.png"
+                         alt="6hr Auxin Treated" width="300">
+                </div>
+                <br>
+            </div>
+        </div>
+        <div>
+            <img src="https://theaidenlab.github.io/figures/css/img/figure6_static_components/6A_noextrusion_sim.png"
+                 alt="no extrusion sim" width="600">
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-2">
+                <div id="app-container-1">
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-2">
+                <div id="app-container-2">
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div>
+            <p style="font-size:30px" class="panelID">B</p>
+        </div>
+        <br>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-2">
+                <div>
+                    <img src="https://theaidenlab.github.io/figures/css/img/figure6_static_components/6B_extrusion_globule.png"
+                         alt="extrusion globule" width="400">
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-md-10 col-md-offset-2">
+                <div>
+                    <img src="https://theaidenlab.github.io/figures/css/img/figure6_static_components/6B_noextrusion_globule.png"
+                         alt="no extrusion globule" width="400">
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+<br>
+<div>
+    <p class="legend">(A) We use loop extrusion and compartmentalization to simulate a 2.1 Mb region on chromosome 3 in
+        HCT-116 RAD21-mAC cells before (left) and after (right) auxin treatment. CTCF and SMC1 ChIP-Seq signals are
+        normalized and converted into binding probabilities for the simulated extrusion complex (first and second rows).
+        Each peak is assigned a forward (green) or reverse (red) orientation based on the corresponding CTCF motif.
+        ChIP-Seq data for 9 histone modifications were used to classify loci into two compartments (red and blue, fifth
+        row). Histone modification data for H3K36me3 and H3K4me1 is shown, illustrating the correspondence between the
+        classification tracks and the underlying ChIP-Seq signals (third and fourth rows). The simulations yield an
+        ensemble of polymer configurations. We show contact maps from the simulated ensemble (top) and from the
+        corresponding Hi-C experiments (bottom). The simulations accurately capture the positions of loops and domains,
+        as well as the loss of loop domains after the depletion of cohesin. In addition, our simulation accurately
+        captures compartmentalization patterns seen before and after auxin treatment.</p>
+</div>
+<div>
+    <p class="legend">(B) Examples of globules from simulations of compartmentalization with extrusion (left) and
+        without (right). Notably, the globule without extrusion shows stronger segregation of compartment types.</p>
+</div>
+<br>
+
+<style type="text/css">
+
+    .row {
+        display: flex;
+    }
+
+    .legend {
+        text-align: left;
+        font: Helvetica Neue;
+        font-size: 36;
+        px color: #333333;
+    }
+
+    .col-md-2 {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        var browser1, browser2;
+        var windowSize = 445;
+
+        hic.loadDataset({
+            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic",
+            nvi: "30439217680%2C36479"
+        })
+                .then(function (dataset) {
+
+                    browser1 = hic.createBrowser($('#app-container-1'), {
+                        figureMode: true,
+                        width: windowSize,
+                        height: windowSize,
+                        dataset: dataset,
+                        state: {
+                            chr1: 3,
+                            chr2: 3,
+                            x: 19215,
+                            y: 19215,
+                            zoom: 7,
+                            pixelSize: 1.55,
+                            normalization: "KR"
+                        },
+                        colorScale: {"low": 0, "lowR": 255, "lowG": 255, "lowB": 255, "high": "72"},
+                        tracks: [{
+                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K36me3_FE.bw",
+                            name: "Untreated H3K36me3",
+                            min: 0,
+                            max: 3,
+                            color: "rgb(0,150,0)"
+                        }, {
+                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K4me1_FE.bw",
+                            name: "Untreated H3K4me1",
+                            min: 0,
+                            max: 7,
+                            color: "rgb(0,150,0)"
+                        }]
+                    });
+                    if (browser2) hic.syncBrowsers([browser1, browser2]);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+        hic.loadDataset({
+            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic",
+            nvi: "33255540403%2C36479"
+        })
+                .then(function (dataset) {
+                    browser2 = hic.createBrowser($('#app-container-2'), {
+                        figureMode: true,
+                        width: windowSize,
+                        height: windowSize,
+                        dataset: dataset,
+                        state: {
+                            chr1: 3,
+                            chr2: 3,
+                            x: 19215,
+                            y: 19215,
+                            zoom: 7,
+                            pixelSize: 1.55,
+                            normalization: "KR"
+                        },
+                        colorScale: {"low": 0, "lowR": 255, "lowG": 255, "lowB": 255, "high": "31"},
+                        tracks: [{
+                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K36me3_FE.bw",
+                            name: "6hr Treated H3K36me3",
+                            min: 0,
+                            max: 3,
+                            color: "rgb(0,150,0)"
+                        }, {
+                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K4me1_FE.bw",
+                            name: "6hr Treated H3K4me1",
+                            min: 0,
+                            max: 7,
+                            color: "rgb(0,150,0)"
+                        }]
+                    });
+                    if (browser1) hic.syncBrowsers([browser1, browser2]);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+    });
+</script>
+
+</body>
+
+</html>
+

@@ -89,7 +89,7 @@ var hic = (function (hic) {
                 function () {
                     popover.hide();
                     self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
-                    self.browser.updateUriParametersV0();
+                    self.browser.updateUriParameters();
                 },
                 true));
 

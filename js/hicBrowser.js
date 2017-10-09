@@ -89,33 +89,31 @@ var hic = (function (hic) {
     hic.createBrowser = function (hic_container, config) {
 
         var browser,
-            uri,
+            queryString,
             query,
-            isMiniMode,
+            isFigureMode,
             initialImageImg,
             initialImageX,
             initialImageY,
-            $hic_container;
+            $hic_container,
+            uriDecode;
 
         $hic_container = $(hic_container);
 
         setDefaults(config);
 
-        if (config.href && !config.href.includes("?")) {
-            config.href = "?" + config.href;
+        queryString = config.queryString || config.href;   // href for backward compatibility
+        if (queryString === undefined && config.initFromUrl !== false) {
+            queryString = window.location.href;
         }
 
-        uri = config.href ||   
-            (config.initFromUrl !== false && window.location.href) || "";
-
-        query = hic.extractQuery(uri);
-
-        if (query) {
-            if (query.hasOwnProperty("juicebox")) {
-                // Handled elsewhere
-            } else {
-                decodeQuery(query, config);
+        if (queryString) {
+            if (!queryString.includes("?")) {
+                queryString = "?" + queryString;
             }
+            query = hic.extractQuery(queryString);
+            uriDecode = queryString.includes("%2C");
+            decodeQuery(query, config, uriDecode);
         }
 
         browser = new hic.Browser($hic_container, config);
@@ -124,8 +122,8 @@ var hic = (function (hic) {
 
         hic.Browser.setCurrentBrowser(browser);
 
-        isMiniMode = (config.miniMode && true === config.miniMode);
-        if (!isMiniMode && _.size(hic.allBrowsers) > 1) {
+        isFigureMode = (config.figureMode && true === config.figureMode);
+        if (!isFigureMode && _.size(hic.allBrowsers) > 1) {
             $('.hic-nav-bar-delete-button').show();
         }
 
@@ -169,10 +167,8 @@ var hic = (function (hic) {
 
     hic.Browser = function ($app_container, config) {
 
-        var self = this;
-
         this.config = config;
-        this.figureMode = config.miniMode;
+        this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus(this);
         this.updateHref = false; //config.updateHref === undefined ? true : config.updateHref;
@@ -193,7 +189,7 @@ var hic = (function (hic) {
             this.$root.css("width", String(config.width));
         }
         if (config.height) {
-            this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.miniMode)));
+            this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.figureMode)));
         }
 
 
@@ -415,7 +411,7 @@ var hic = (function (hic) {
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
-        this.updateUriParametersV0();
+        this.updateUriParameters();
 
         state = this.state;
         this.dataset.getMatrix(state.chr1, state.chr2)
@@ -448,7 +444,7 @@ var hic = (function (hic) {
                 self.loadNormalizationFile(config.url);
                 if (isLocal === false) {
                     self.normVectorFiles.push(config.url);
-                    self.updateUriParametersV0();
+                    self.updateUriParameters();
                 }
                 return;
             }
@@ -1258,11 +1254,7 @@ var hic = (function (hic) {
         if (event.dragging) return;
 
         if (this.updateHref) {
-            this.updateUriParametersV0(event);
-        }
-
-        if (event.type === "TrackState2D" || event.type === "NormVectorIndexLoad") {
-            this.updateUriParametersV0(event);
+            this.updateUriParameters(event);
         }
     };
 
@@ -1278,7 +1270,7 @@ var hic = (function (hic) {
         defaultPixelSize = 1;
         defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
 
-        if (config.miniMode === true) {
+        if (config.figureMode === true) {
             config.showLocusGoto = false;
             config.showHicContactMapLabel = false;
             config.showChromosomeSelector = false;
@@ -1303,7 +1295,12 @@ var hic = (function (hic) {
             if (undefined === config.showChromosomeSelector) {
                 config.showChromosomeSelector = true
             }
+        }
 
+        if (config.state) {
+            // convert to state object
+            config.state = new hic.State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
+                config.state.y, config.state.pixelSize, config.state.normalization)
         }
     }
 
@@ -1482,11 +1479,12 @@ var hic = (function (hic) {
      *
      * @param event
      */
-    hic.Browser.prototype.updateUriParametersV0 = function (event) {
+    hic.Browser.prototype.updateUriParameters = function (event) {
+
+
+        if(!this.updateHref) return;
 
         var tmp;
-
-        console.log(this.getQueryString());
 
         var href = window.location.href,
             nviString, trackString;
@@ -1551,12 +1549,9 @@ var hic = (function (hic) {
 
         }
 
-        if (this.config.updateHref === false) {
-            //         console.log(href);
-        }
-        else {
-            window.history.replaceState("", "juicebox", href);
-        }
+
+        window.history.replaceState("", "juicebox", href);
+
 
         function stringifyTrack(track) {
             var url = track.config.url,
@@ -1615,9 +1610,9 @@ var hic = (function (hic) {
      * @param query
      * @param config
      */
-    function decodeQuery(query, config) {
+    function decodeQuery(query, config, uriDecode) {
 
-        var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, uriDecode, defaultColorScaleInitializer;
+        var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, defaultColorScaleInitializer;
 
         defaultColorScaleInitializer =
         {
@@ -1641,7 +1636,6 @@ var hic = (function (hic) {
         normVectorString = query["normVectorFiles"];
 
         if (hicUrl) {
-            uriDecode = hicUrl.includes("%2F");
 
             hicUrl = paramDecodeV0(hicUrl, uriDecode);
 
@@ -1649,7 +1643,6 @@ var hic = (function (hic) {
                 var value = urlShortcuts[key];
                 if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
             });
-
 
             config.url = hicUrl;
         }

@@ -27,9 +27,9 @@ var hic = (function (hic) {
     hic.LayoutController.nav_bar_widget_container_height = 36;
     hic.LayoutController.nav_bar_shim_height = 4;
 
-    hic.LayoutController.navbarHeight = function (miniMode) {
+    hic.LayoutController.navbarHeight = function (figureMode) {
         var height;
-        if (true === miniMode) {
+        if (true === figureMode) {
             height =  hic.LayoutController.nav_bar_label_height;
         } else {
             height  = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height +  hic.LayoutController.nav_bar_label_height;
@@ -54,8 +54,8 @@ var hic = (function (hic) {
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
-        if(true === browser.config.miniMode) {
-            $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.miniMode));
+        if(true === browser.config.figureMode) {
+            $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.figureMode));
         } else {
 
             $navbar_container.on('click', function (e) {
@@ -117,7 +117,7 @@ var hic = (function (hic) {
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
-        if(true === browser.config.miniMode) {
+        if(true === browser.config.figureMode) {
             browser.$contactMaplabel.addClass('hidden-text');
             $upper_widget_container.hide();
         } else {
@@ -179,8 +179,8 @@ var hic = (function (hic) {
 
         // If we are in mini-mode we must recalculate the content container height
         // to coinside with the root browser container height
-        if(true === browser.config.miniMode) {
-            tokens = _.map([ hic.LayoutController.navbarHeight(browser.config.miniMode) ], function(number){
+        if(true === browser.config.figureMode) {
+            tokens = _.map([ hic.LayoutController.navbarHeight(browser.config.figureMode) ], function(number){
                 return number.toString() + 'px';
             });
             height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -260,7 +260,7 @@ var hic = (function (hic) {
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
-        if(true === browser.config.miniMode) {
+        if(true === browser.config.figureMode) {
 
             browser.chromosomeSelector.$container.hide();
 
@@ -310,7 +310,7 @@ var hic = (function (hic) {
 
                 self.browser.trackRenderers.push(trackRendererPair);
 
-                self.browser.updateUriParametersV0();
+                self.browser.updateUriParameters();
             });
 
             this.browser.updateLayout();
@@ -351,7 +351,7 @@ var hic = (function (hic) {
             self.doLayoutTrackXYPairCount( _.size(self.browser.trackRenderers) );
         });
 
-        this.browser.updateUriParametersV0();
+        this.browser.updateUriParameters();
 
         // this.browser.updateLayout();
     };
@@ -378,7 +378,7 @@ var hic = (function (hic) {
 
             this.browser.updateLayout();
 
-            this.browser.updateUriParametersV0();
+            this.browser.updateUriParameters();
 
         } else {
             console.log('No more tracks.');
@@ -407,7 +407,7 @@ var hic = (function (hic) {
 
             this.browser.updateLayout();
 
-            this.browser.updateUriParametersV0();
+            this.browser.updateUriParameters();
 
         } else {
             console.log('No more tracks.');
@@ -425,7 +425,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * this.track_height;
 
-        tokens = _.map([ hic.LayoutController.navbarHeight(this.browser.config.miniMode), track_aggregate_height ], function(number){
+        tokens = _.map([ hic.LayoutController.navbarHeight(this.browser.config.figureMode), track_aggregate_height ], function(number){
             return number.toString() + 'px';
         });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -470,7 +470,7 @@ var hic = (function (hic) {
         var count;
 
         this.browser.$root.width(size.width);
-        this.browser.$root.height(size.height + hic.LayoutController.navbarHeight(this.browser.config.miniMode));
+        this.browser.$root.height(size.height + hic.LayoutController.navbarHeight(this.browser.config.figureMode));
 
         count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
         this.doLayoutTrackXYPairCount(count);
