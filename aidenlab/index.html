@@ -721,6 +721,31 @@
     </div>
 </div>
 
+<!-- Track URL Modal  -- exact copy of hic load url modal, but need to distinguish -->
+<div id="track-load-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="track-load-url-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="track-load-url-modal-label" class="modal-title">Load URL</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="form-group">
+                    <input id="track-load-url" type="text" class="form-control" placeholder="Enter URL">
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!-- Share URL Modal -->
 <div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label" aria-hidden="true">
     <div class="modal-dialog">
@@ -873,7 +898,7 @@
                     </li><!-- Local Track File -->
 
                     <li role="presentation"><!-- Track URL -->
-                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#track-load-url-modal">
                             Track URL
                         </a>
                     </li><!-- Track URL -->

@@ -29,6 +29,8 @@
  */
 var site = (function (site) {
 
+    var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
+
     var encodeTable,
         genomeChangeListener,
         browserListener,
@@ -42,7 +44,7 @@ var site = (function (site) {
                 tracksURL,
                 annotations2dURL;
 
-            if(lastGenomeId !== genomeId) {
+            if (lastGenomeId !== genomeId) {
 
                 lastGenomeId = genomeId;
 
@@ -75,6 +77,8 @@ var site = (function (site) {
 
         var query, parts, q, browser, i;
 
+        if (apiKey) igv.setApiKey(apiKey);
+
         query = hic.extractQuery(window.location.href);
 
         if (query && query.hasOwnProperty("juicebox")) {
@@ -88,8 +92,8 @@ var site = (function (site) {
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
         }
 
-        if(parts && parts.length > 1) {
-            for(i=1; i<parts.length; i++) {
+        if (parts && parts.length > 1) {
+            for (i = 1; i < parts.length; i++) {
                 browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
@@ -157,19 +161,34 @@ var site = (function (site) {
                 paramIdx = url.indexOf("?");
                 path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
-                suffix = path.substr(path.lastIndexOf('.') + 1);
-
-                if ('hic' === suffix) {
-                    loadHicFile(url, hic.extractFilename(path));
-                } else {
-                    hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
-                }
+                loadHicFile(url, hic.extractFilename(path));
 
                 $(this).val("");
                 $('#hic-load-url-modal').modal('hide');
 
             }
+        });
 
+        $('#track-load-url').on('change', function (e) {
+            var url,
+                suffix,
+                paramIdx,
+                path;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                url = $(this).val();
+
+                paramIdx = url.indexOf("?");
+                path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
+
+                $(this).val("");
+                $('#hic-load-url-modal').modal('hide');
+
+            }
         });
 
         $('.selectpicker').selectpicker();
@@ -261,12 +280,12 @@ var site = (function (site) {
         $('#hic-copy-link').on('click', function (e) {
             $('#hic-share-url')[0].select();
             var success = document.execCommand('copy');
-             if(success) {
-                 $('#hic-share-url-modal').modal('hide');
-             }
+            if (success) {
+                $('#hic-share-url-modal').modal('hide');
+            }
             else {
-                 alert("Copy not successful");
-             }
+                alert("Copy not successful");
+            }
         });
 
     }
