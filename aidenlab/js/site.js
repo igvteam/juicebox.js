@@ -289,6 +289,7 @@ var site = (function (site) {
                     emailContainer.empty();
                     emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
 
+                 //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
                 });
         });
 
