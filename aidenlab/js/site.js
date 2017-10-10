@@ -122,6 +122,8 @@ var site = (function (site) {
 
         });
 
+        $('.selectpicker').selectpicker();
+
         $('#hic-load-local-file').on('change', function (e) {
 
             var file,
@@ -140,10 +142,10 @@ var site = (function (site) {
                 } else {
                     hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
                 }
-
-                $(this).val("");
-                $('#hic-load-local-file-modal').modal('hide');
             }
+
+            $(this).val("");
+            $('#hic-load-local-file-modal').modal('hide');
 
         });
 
@@ -162,11 +164,11 @@ var site = (function (site) {
                 path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
                 loadHicFile(url, hic.extractFilename(path));
-
-                $(this).val("");
-                $('#hic-load-url-modal').modal('hide');
-
             }
+
+            $(this).val("");
+            $('#hic-load-url-modal').modal('hide');
+
         });
 
         $('#track-load-url').on('change', function (e) {
@@ -184,14 +186,12 @@ var site = (function (site) {
                 path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
                 hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
-
-                $(this).val("");
-                $('#hic-load-url-modal').modal('hide');
-
             }
-        });
 
-        $('.selectpicker').selectpicker();
+            $(this).val("");
+            $('#hic-load-url-modal').modal('hide');
+
+        });
 
         $('#annotation-selector').on('change', function (e) {
             var path,
@@ -200,16 +200,15 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                $('#hic-annotation-select-modal').modal('hide');
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                // deselect all
-                $(this).find('option').removeAttr("selected");
-
                 hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
             }
+
+            $('#hic-annotation-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
 
         });
 
@@ -220,17 +219,15 @@ var site = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-                $('#hic-annotation-2D-select-modal').modal('hide');
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                // deselect all
-                $(this).find('option').removeAttr("selected");
-
                 hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
             }
 
+            $('#hic-annotation-2D-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
         });
 
         $('.juicebox-app-clone-button').on('click', function (e) {
