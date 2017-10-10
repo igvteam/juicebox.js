@@ -268,8 +268,27 @@ var site = (function (site) {
 
             hic.shortenURL(href)
                 .then(function (shortURL) {
+
+                    var tweetContainer, emailContainer;
+
                     $('#hic-share-url').val(shortURL);
                     $('#hic-share-url')[0].select();
+
+                    tweetContainer = $('#tweetButtonContainer');
+                    tweetContainer.empty();
+                    twttr.widgets.createShareButton(
+                        shortURL,
+                        tweetContainer.get(0),
+                        {
+                        }
+                    ).then(function (el) {
+                        console.log("Tweet button updated");
+                    })
+
+                    emailContainer = $('#emailButtonContainer');
+                    emailContainer.empty();
+                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
+
                 });
         });
 
