@@ -83,8 +83,14 @@ var site = (function (site) {
 
         if (query && query.hasOwnProperty("juicebox")) {
             q = query["juicebox"];
+
+            if(q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+
             q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
             parts = q.split("},{");
+            console.log(parts[0]);
             browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
         } else {
