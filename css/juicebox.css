@@ -1,6 +1,15 @@
 .modal-backdrop {
   background-color: transparent; }
 
+#hic-share-url-modal .modal-body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400; }
+#hic-share-url-modal .modal-footer {
+  font-family: "Open Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 400; }
+
 .hidden-text {
   color: transparent; }
 

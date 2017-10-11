@@ -49,7 +49,7 @@
     <link rel="stylesheet" type="text/css" href="../aidenlab/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../aidenlab/css/juicebox.css">
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet"
@@ -1735,28 +1735,30 @@
 </div>
 
 <!-- Share URL Modal -->
-<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
-     aria-hidden="true">
+<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div id="tweetButtonContainer">
-                    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
-                       data-show-count="false">Tweet</a>
-                </div>
-                <div id="emailButtonContainer">
-                    <a href="mailto:?body=https://aidenlab.org/juicebox">Email</a>
-                </div>
                 <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
-                <h5 id="hic-share-url-modal-label" class="modal-title"></h5>
+                <h4 id="hic-share-url-modal-label" class="modal-title">
+                    Share
+                </h4>
             </div>
 
             <div class="modal-body">
                 <div class="container-fluid">
+                    <div class="row">
+                        <div id="tweetButtonContainer" class="col-md-offset-8 col-md-2">
+                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a>
+                        </div>
+                        <div id="emailButtonContainer" class="col-md-2">
+                            <a href="mailto:?body=https://aidenlab.org/juicebox">EMAIL</a>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-md-9">
                             <div class="form-group">
@@ -1770,7 +1772,16 @@
                         </div>
 
                     </div>
+                </div>
+            </div>
 
+            <div class="modal-footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div id="embedButtonContainer" class="col-md-offset-9 col-md-2">
+                            EMBED
+                        </div>
+                    </div>
                 </div>
             </div>
 
