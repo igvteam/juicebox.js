@@ -75,35 +75,52 @@ var site = (function (site) {
 
     site.init = function ($container) {
 
-        var query, parts, q, browser, i;
+        var query;
 
         if (apiKey) igv.setApiKey(apiKey);
 
         query = hic.extractQuery(window.location.href);
 
-        if (query && query.hasOwnProperty("juicebox")) {
-            q = query["juicebox"];
+        if (query && query.hasOwnProperty("juiceboxURL")) {
 
-            if(q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
-            }
+            expandURL(query["juiceboxURL"])
+                .then(function (jbURL) {
 
-            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-            parts = q.split("},{");
-            console.log(parts[0]);
-            browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-        } else {
-            browser = hic.createBrowser($container.get(0), {});
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                    query = hic.extractQuery(jbURL);
+                    createBrowsers(query);
+
+                });
+        }
+        else {
+            createBrowsers(query);
         }
 
-        if (parts && parts.length > 1) {
-            for (i = 1; i < parts.length; i++) {
-                browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
+        function createBrowsers(query) {
+
+            var query, parts, q, browser, i;
+
+            if (query && query.hasOwnProperty("juicebox")) {
+                q = query["juicebox"];
+
+                if (q.startsWith("%7B")) {
+                    q = decodeURIComponent(q);
+                }
+
+                q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+                parts = q.split("},{");
+                browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
+                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                if (parts && parts.length > 1) {
+                    for (i = 1; i < parts.length; i++) {
+                        browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
+                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                    }
+                    hic.syncBrowsers(hic.allBrowsers);
+                }
+            } else {
+                browser = hic.createBrowser($container.get(0), {});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
-            hic.syncBrowsers(hic.allBrowsers);
         }
 
         // Listen for GenomeChange events for all browsers.
@@ -264,15 +281,17 @@ var site = (function (site) {
             var idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            href = href + "?juicebox={"
+            href = href + "?juicebox="
 
+            queryString = "{"
             hic.allBrowsers.forEach(function (browser, index) {
-                queryString = browser.getQueryString();
-                href = href + encodeURIComponent(queryString);
-                href = href + (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+                queryString += encodeURIComponent(browser.getQueryString());
+                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
             });
 
-            hic.shortenURL(href)
+            href = href + encodeURIComponent(queryString);
+
+            shortenURL(href)
                 .then(function (shortURL) {
 
                     var tweetContainer, emailContainer;
@@ -285,8 +304,7 @@ var site = (function (site) {
                     twttr.widgets.createShareButton(
                         shortURL,
                         tweetContainer.get(0),
-                        {
-                        }
+                        {}
                     ).then(function (el) {
                         console.log("Tweet button updated");
                     })
@@ -295,7 +313,7 @@ var site = (function (site) {
                     emailContainer.empty();
                     emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
 
-                 //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+                    //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
                 });
         });
 
@@ -403,6 +421,51 @@ var site = (function (site) {
         var config = {url: path};
         igv.inferTrackTypes(config);
         return config.type !== undefined;
+
+    }
+
+    function shortenURL(url) {
+
+        var endpoint, body;
+
+        endpoint = "https://www.googleapis.com/urlshortener/v1/url?key=" + apiKey;
+        body = {"longUrl": url}
+
+        return new Promise(function (fulfill, reject) {
+            igv.xhr.loadJson(endpoint,
+                {
+                    sendData: JSON.stringify(body),
+                    contentType: "application/json",
+                })
+                .then(function (json) {
+                    fulfill(json.id);
+                })
+        });
+    }
+
+    function expandURL(url) {
+
+        var endpoint, body;
+
+        if (url.includes("goo.gl")) {
+
+            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url +
+                "&key=" + apiKey;
+
+            return new Promise(function (fulfill, reject) {
+                igv.xhr.loadJson(endpoint,
+                    {
+                        contentType: "application/json"
+                    })
+                    .then(function (json) {
+                        fulfill(json.longUrl);
+                    })
+            });
+        }
+        else {
+            // Not a google url
+            return Promise.resolve(url);
+        }
 
     }
 
