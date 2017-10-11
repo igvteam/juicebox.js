@@ -128,13 +128,9 @@ var site = (function (site) {
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
-                url,
-                name;
-
-            $('#hic-contact-map-select-modal').modal('hide');
+                url;
 
             url = $(this).val();
-
             $selected = $(this).find('option:selected');
 
             if (undefined === hic.Browser.getCurrentBrowser()) {
@@ -142,6 +138,9 @@ var site = (function (site) {
             } else {
                 loadHicFile(url, $selected.text());
             }
+
+            $('#hic-contact-map-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
 
         });
 
@@ -317,7 +316,6 @@ var site = (function (site) {
                 });
         });
 
-
         $('#hic-copy-link').on('click', function (e) {
             $('#hic-share-url')[0].select();
             var success = document.execCommand('copy');
@@ -329,7 +327,7 @@ var site = (function (site) {
             }
         });
 
-    }
+    };
 
     function loadHicFile(url, name) {
         var synchState;
