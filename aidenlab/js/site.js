@@ -440,12 +440,31 @@ var site = (function (site) {
                 })
                 .then(function (json) {
 
-                    var url = json.id;
+                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
+                    // the expanded url (after a redirect) being over the browser limit.
 
-                    // Testing embeddable
-                    console.log(embeddableSnippet(url));
+                    var idx, href, base, url;
 
-                    fulfill(url);
+                    href = window.location.href;
+                    idx = href.indexOf("?");
+                    if(idx > 0) {
+                        href = href.substr(0, idx);
+                    }
+
+                    url = href + "?juiceboxURL=" + json.id;
+                    body = {"longUrl": url};
+
+                    igv.xhr.loadJson(endpoint,
+                        {
+                            sendData: JSON.stringify(body),
+                            contentType: "application/json"
+                        })
+                        .then(function (json) {
+
+                            fulfill(json.id);
+
+                        })
+
                 })
         });
     }
