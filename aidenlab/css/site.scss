@@ -6,15 +6,19 @@ $default-font-family: 'Open Sans', sans-serif;
         font-family: $default-font-family;
         font-size: 16px;
         font-weight: 400;
-        background-color: #00bfff;
+        //background-color: #00bfff;
     }
 
     .modal-footer {
         font-family: $default-font-family;
         font-size: 16px;
         font-weight: 400;
-        background-color: #00e526;
+        //background-color: #00e526;
     }
+}
+
+#hic-embed-container {
+    display:none;
 }
 
 .site-container {

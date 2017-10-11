@@ -128,6 +128,64 @@ var site = (function (site) {
 
         // Listen for GenomeChange events for all browsers.
 
+        $('#hic-share-button').on('click', function (e) {
+
+            var queryString,
+                href,
+                idx,
+                $hic_share_url;
+
+            href = window.location.href.trim();    // Purpose of trim is really to make a copy
+            // This js is specific to the aidenlab site, and we know we have only juicebox parameters.
+            // Strip href of current parameters, if any, to avoid duplicates.
+            idx = href.indexOf("?");
+            if (idx > 0) href = href.substring(0, idx);
+
+            href = href + "?juicebox=";
+
+            queryString = "{";
+            hic.allBrowsers.forEach(function (browser, index) {
+                queryString += encodeURIComponent(browser.getQueryString());
+                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+            });
+
+            href = href + encodeURIComponent(queryString);
+
+            $hic_share_url = $('#hic-share-url');
+
+            shortenURL(href)
+                .then(function (shortURL) {
+
+                    var tweetContainer, emailContainer;
+
+                    $hic_share_url.val(shortURL);
+                    $hic_share_url[0].select();
+
+                    tweetContainer = $('#tweetButtonContainer');
+                    tweetContainer.empty();
+                    twttr.widgets.createShareButton(
+                        shortURL,
+                        tweetContainer.get(0),
+                        {}
+                    ).then(function (el) {
+                        console.log("Tweet button updated");
+                    });
+
+                    emailContainer = $('#emailButtonContainer');
+                    emailContainer.empty();
+                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
+
+                    //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+                });
+        });
+
+        $('#hic-share-url-modal').on('hidden.bs.modal', function (e) {
+            $('#hic-embed-container').hide();
+        });
+
+        $('#hic-embed-button').on('click', function (e) {
+            $('#hic-embed-container').show();
+        });
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
@@ -271,52 +329,6 @@ var site = (function (site) {
 
             hic.syncBrowsers(hic.allBrowsers);
 
-        });
-
-        $('#hic-share-button').on('click', function (e) {
-
-            var queryString, href, idx;
-
-            href = window.location.href.trim();    // Purpose of trim is really to make a copy
-            // This js is specific to the aidenlab site, and we know we have only juicebox parameters.
-            // Strip href of current parameters, if any, to avoid duplicates.
-            var idx = href.indexOf("?");
-            if (idx > 0) href = href.substring(0, idx);
-
-            href = href + "?juicebox="
-
-            queryString = "{"
-            hic.allBrowsers.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
-            });
-
-            href = href + encodeURIComponent(queryString);
-
-            shortenURL(href)
-                .then(function (shortURL) {
-
-                    var tweetContainer, emailContainer;
-
-                    $('#hic-share-url').val(shortURL);
-                    $('#hic-share-url')[0].select();
-
-                    tweetContainer = $('#tweetButtonContainer');
-                    tweetContainer.empty();
-                    twttr.widgets.createShareButton(
-                        shortURL,
-                        tweetContainer.get(0),
-                        {}
-                    ).then(function (el) {
-                        console.log("Tweet button updated");
-                    })
-
-                    emailContainer = $('#emailButtonContainer');
-                    emailContainer.empty();
-                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
-
-                    //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
-                });
         });
 
         $('#hic-copy-link').on('click', function (e) {

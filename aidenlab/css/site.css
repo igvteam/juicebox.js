@@ -1,13 +1,14 @@
 #hic-share-url-modal .modal-body {
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
-  font-weight: 400;
-  background-color: #00bfff; }
+  font-weight: 400; }
 #hic-share-url-modal .modal-footer {
   font-family: "Open Sans", sans-serif;
   font-size: 16px;
-  font-weight: 400;
-  background-color: #00e526; }
+  font-weight: 400; }
+
+#hic-embed-container {
+  display: none; }
 
 .site-container {
   font-family: 'Open Sans', sans-serif;

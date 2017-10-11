@@ -118,7 +118,7 @@
         <div class="modal-content">
 
             <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">
+                <button id="hic-share-url-modal-close-button" type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
                     <span class="sr-only">Close</span>
                 </button>
@@ -150,10 +150,15 @@
                         </div>
 
                     </div>
-                    <div id="hic-embed-link" class="row">
-                        <div class="col-md-12">
+                    <div id="hic-embed-container" class="row">
+                        <form>
+                            <div class="form-group">
+                                <label for="hic-embed"></label>
+                                <textarea id="hic-embed" class="form-control" rows="4">
 
-                        </div>
+                                </textarea>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -162,7 +167,7 @@
                 <div class="container-fluid">
                     <div class="row">
                         <div class="col-md-offset-9 col-md-2">
-                            <button id="hic-embed-widget" type="button" class="btn btn-default">EMBED</button>
+                            <button id="hic-embed-button" type="button" class="btn btn-default">EMBED</button>
                         </div>
                     </div>
                 </div>
@@ -1927,8 +1932,7 @@
 
             <!-- Share (generate URL) -->
             <div class="site-widget" title="Share">
-                <button id="hic-share-button" class="btn btn-default" type="button" data-toggle="modal"
-                        data-target="#hic-share-url-modal">
+                <button id="hic-share-button" class="btn btn-default" type="button" data-toggle="modal" data-target="#hic-share-url-modal">
                     Share
                 </button>
             </div>
