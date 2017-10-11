@@ -76,7 +76,8 @@ var site = (function (site) {
 
     site.init = function ($container) {
 
-        var query;
+        var query,
+            $hic_share_url_modal;
 
         $appContainer = $container;
 
@@ -128,7 +129,8 @@ var site = (function (site) {
 
         // Listen for GenomeChange events for all browsers.
 
-        $('#hic-share-button').on('click', function (e) {
+        $hic_share_url_modal  = $('#hic-share-url-modal');
+        /*$('#hic-share-button')*/$hic_share_url_modal.on(/*'click'*/'show.bs.modal', function (e) {
 
             var queryString,
                 href,
@@ -159,7 +161,7 @@ var site = (function (site) {
                     var tweetContainer, emailContainer;
 
                     $hic_share_url.val(shortURL);
-                    $hic_share_url[0].select();
+                    $hic_share_url.get(0).select();
 
                     tweetContainer = $('#tweetButtonContainer');
                     tweetContainer.empty();
@@ -173,13 +175,13 @@ var site = (function (site) {
 
                     emailContainer = $('#emailButtonContainer');
                     emailContainer.empty();
-                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">Email</a>'));
+                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">EMAIL</a>'));
 
                     //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
                 });
         });
 
-        $('#hic-share-url-modal').on('hidden.bs.modal', function (e) {
+        $hic_share_url_modal.on('hidden.bs.modal', function (e) {
             $('#hic-embed-container').hide();
         });
 
