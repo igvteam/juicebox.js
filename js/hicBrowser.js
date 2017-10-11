@@ -36,10 +36,7 @@ var hic = (function (hic) {
         width: 640,
         height: 640
     };
-
-
-    var datasetCache = {};
-
+    
     hic.allBrowsers = [];
 
     // mock igv browser objects for igv.js compatibility
@@ -95,7 +92,6 @@ var hic = (function (hic) {
             initialImageImg,
             initialImageX,
             initialImageY,
-            $hic_container,
             uriDecode;
 
         $hic_container = $(hic_container);

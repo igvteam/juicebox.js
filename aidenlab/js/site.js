@@ -34,7 +34,8 @@ var site = (function (site) {
     var encodeTable,
         genomeChangeListener,
         browserListener,
-        lastGenomeId;
+        lastGenomeId,
+        $appContainer;
 
     genomeChangeListener = {
 
@@ -76,6 +77,8 @@ var site = (function (site) {
     site.init = function ($container) {
 
         var query;
+
+        $appContainer = $container;
 
         if (apiKey) igv.setApiKey(apiKey);
 
@@ -433,10 +436,16 @@ var site = (function (site) {
             igv.xhr.loadJson(endpoint,
                 {
                     sendData: JSON.stringify(body),
-                    contentType: "application/json",
+                    contentType: "application/json"
                 })
                 .then(function (json) {
-                    fulfill(json.id);
+
+                    var url = json.id;
+
+                    // Testing embeddable
+                    console.log(embeddableSnippet(url));
+
+                    fulfill(url);
                 })
         });
     }
@@ -465,6 +474,14 @@ var site = (function (site) {
             return Promise.resolve(url);
         }
 
+    }
+
+    function embeddableSnippet(url) {
+        var width, height;
+
+        width = $appContainer.width();
+        height = $appContainer.height();
+        return '<iframe src="' + url + '"width="' + width + '" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>';
     }
 
     return site;

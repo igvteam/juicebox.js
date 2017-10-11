@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  ~  The MIT License (MIT)
+  ~
+  ~ Copyright (c) 2016-2017 The Regents of the University of California
+  ~
+  ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+  ~ associated documentation files (the "Software"), to deal in the Software without restriction, including
+  ~ without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  ~ copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+  ~ following conditions:
+  ~
+  ~ The above copyright notice and this permission notice shall be included in all copies or substantial
+  ~ portions of the Software.
+  ~
+  ~ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+  ~ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+  ~ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  ~ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+  ~ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  ~ THE SOFTWARE.
+  ~
+  -->
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Juicebox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
+
+
+    <!-- Shims for legacy browsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
+
+    <!-- MS polyfill (pointer -> touch -->
+    <script src="https://igv.org/web/jb/release/current/touchpolyfill.min.js"></script>
+
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Bootstrap-Select Plugin CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css"/>
+
+    <!-- IGV CSS -->
+    <link rel="stylesheet" type="text/css" href="css/igv-beta.css">
+    <!--<link rel="stylesheet" type="text/css" href="../../dist/igv.css">-->
+
+    <!-- site CSS -->
+    <link rel="stylesheet" type="text/css" href="css/site.css">
+
+    <!-- Juicebox CSS-->
+    <link rel="stylesheet" type="text/css" href="css/juicebox.css">
+
+
+    <!-- JQuery JS -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap-Select Plugin JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+
+    <!-- IGV JS -->
+    <script src="js/igv-beta.min.js"></script>
+
+    <!-- Site JS-->
+    <script src="js/embed.js"></script>
+
+    <!-- Juicebox JS -->
+    <script src="js/juicebox.min.js"></script>
+
+
+
+</head>
+
+<body id="portfolio">
+
+
+<div class="container-fluid">
+
+    <div class="row">
+        <div class="col-md-12">
+            <div id="app-container" class="juicebox-app-clone-container">
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+        site.init($('#app-container'));
+
+    });
+
+</script>
+
+</body>
+
+</html>
