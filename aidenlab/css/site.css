@@ -10,6 +10,21 @@
 #hic-embed-container {
   display: none; }
 
+#emailButtonContainer {
+  text-decoration: none; }
+
+#emailButtonContainer:hover,
+#emailButtonContainer:focus,
+#emailButtonContainer:active {
+  cursor: pointer;
+  font-weight: 700; }
+
+#hic-embed-button:hover,
+#hic-embed-button:focus,
+#hic-embed-button:active {
+  cursor: pointer;
+  font-weight: 700; }
+
 .site-container {
   font-family: 'Open Sans', sans-serif;
   font-weight: 400;

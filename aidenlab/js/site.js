@@ -158,20 +158,25 @@ var site = (function (site) {
             shortenURL(href)
                 .then(function (shortURL) {
 
-                    var tweetContainer, emailContainer;
+                    var tweetContainer,
+                        emailContainer,
+                        config;
 
                     $hic_share_url.val(shortURL);
                     $hic_share_url.get(0).select();
 
                     tweetContainer = $('#tweetButtonContainer');
                     tweetContainer.empty();
-                    twttr.widgets.createShareButton(
-                        shortURL,
-                        tweetContainer.get(0),
-                        {}
-                    ).then(function (el) {
-                        console.log("Tweet button updated");
-                    });
+                    config =
+                        {
+                          size:'large',
+                          text:'TWEET'
+                        };
+                    window.twttr.widgets
+                        .createShareButton(shortURL, tweetContainer.get(0), config)
+                        .then(function (el) {
+                            console.log("Tweet button updated");
+                        });
 
                     emailContainer = $('#emailButtonContainer');
                     emailContainer.empty();
@@ -321,10 +326,10 @@ var site = (function (site) {
                 config;
 
             config =
-            {
-                initFromUrl: false,
-                updateHref: false
-            };
+                {
+                    initFromUrl: false,
+                    updateHref: false
+                };
             browser = hic.createBrowser($container.get(0), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -371,28 +376,28 @@ var site = (function (site) {
             }
 
             columnWidths =
-            {
-                'Assembly': '10%',
-                'Cell Type': '10%',
-                'Target': '10%',
-                'Assay Type': '20%',
-                'Output Type': '20%',
-                'Lab': '20%'
-            };
+                {
+                    'Assembly': '10%',
+                    'Cell Type': '10%',
+                    'Target': '10%',
+                    'Assay Type': '20%',
+                    'Output Type': '20%',
+                    'Lab': '20%'
+                };
 
             encodeTableFormat = new igv.EncodeTableFormat({columnWidths: columnWidths});
 
             config =
-            {
-                $modal: $('#hicEncodeModal'),
-                $modalBody: $('#encodeModalBody'),
-                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                $modalGoButton: $('#encodeModalGoButton'),
-                browserRetrievalFunction: browserRetrievalFunction,
-                browserLoadFunction: 'loadTrack',
-                dataSource: new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat)
-            };
+                {
+                    $modal: $('#hicEncodeModal'),
+                    $modalBody: $('#encodeModalBody'),
+                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                    $modalGoButton: $('#encodeModalGoButton'),
+                    browserRetrievalFunction: browserRetrievalFunction,
+                    browserLoadFunction: 'loadTrack',
+                    dataSource: new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat)
+                };
 
             encodeTable = new igv.IGVModalTable(config);
 
