@@ -43,13 +43,12 @@
 
     <!-- IGV CSS -->
     <link rel="stylesheet" type="text/css" href="../aidenlab/css/igv-beta.css">
-    <!--<link rel="stylesheet" type="text/css" href="../../dist/igv.css">-->
 
     <!-- site CSS -->
     <link rel="stylesheet" type="text/css" href="../aidenlab/css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../aidenlab/css/juicebox.css">
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
     <link rel="stylesheet"
@@ -113,13 +112,92 @@
 
 <body>
 
+<!-- Share URL Modal -->
+<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button id="hic-share-url-modal-close-button" type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 id="hic-share-url-modal-label" class="modal-title">
+                    Share
+                </h4>
+            </div>
+
+            <div class="modal-body">
+                <div class="container-fluid">
+
+                    <!-- copy url -->
+                    <div class="row">
+                        <div class="col-md-9">
+                            <div class="form-group">
+                                <input id="hic-share-url" type="text" class="form-control" placeholder="">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button id="hic-copy-link" type="button" class="btn btn-default">
+                                COPY
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- social buttons -->
+                    <div class="row">
+
+                        <div class="col-md-9">
+                            <div class="row">
+
+                                <div id="emailButtonContainer" class="col-md-offset-2 col-md-3">
+                                    <a href="mailto:?body=https://aidenlab.org/juicebox">
+                                        <span>EMAIL</span>
+                                    </a>
+                                </div>
+
+                                <div id="tweetButtonContainer" class="col-md-3">
+                                    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
+                                       data-size="large" data-show-count="false">TWEET</a>
+                                </div>
+
+                                <div id="hic-embed-button" class="col-md-3">
+                                    <span>EMBED</span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- embed widget -->
+                    <div id="hic-embed-container" class="row">
+                        <div class="col-md-9 form-group">
+                            <textarea id="hic-embed" class="form-control" rows="4">
+                            </textarea>
+                        </div>
+                        <div class="col-md-3">
+                            <button id="hic-embed-copy-link" type="button" class="btn btn-default">
+                                COPY
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <!-- ENCODE Modal -->
 <div id="hicEncodeModal" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog"
      aria-labelledby="encodeModalLabel" aria-hidden="true">
 
-    <div class="modal-dialog modal-lg"><!-- modal dialog -->
+    <div class="modal-dialog modal-lg">
 
-        <div class="modal-content"><!-- modal content -->
+        <div class="modal-content">
 
             <div class="modal-header"><!-- modal header -->
 
@@ -133,22 +211,20 @@
             </div>
 
             <div id="encodeModalBody" class="modal-body"><!-- modal body -->
-            </div><!-- modal body -->
+            </div>
 
-            <div class="modal-footer"><!-- modal footer -->
+            <div class="modal-footer">
                 <button id="encodeModalBottomCloseButton" type="button" class="btn btn-default" data-dismiss="modal">
                     Close
                 </button>
-                <!-- close -->
                 <button id="encodeModalGoButton" type="button" class="btn btn-primary" data-dismiss="modal">Go</button>
-                <!-- Go -->
             </div>
-            <!-- modal footer -->
+
 
         </div>
-        <!-- modal content -->
 
-    </div><!-- modal dialog -->
+    </div>
+    <
 
 </div>
 
@@ -1734,50 +1810,6 @@
     </div>
 </div>
 
-<!-- Share URL Modal -->
-<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
-     aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div id="tweetButtonContainer">
-                    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
-                       data-show-count="false">Tweet</a>
-                </div>
-                <div id="emailButtonContainer">
-                    <a href="mailto:?body=https://aidenlab.org/juicebox">Email</a>
-                </div>
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                    <span class="sr-only">Close</span>
-                </button>
-                <h5 id="hic-share-url-modal-label" class="modal-title"></h5>
-            </div>
-
-            <div class="modal-body">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-9">
-                            <div class="form-group">
-                                <input id="hic-share-url" type="text" class="form-control" placeholder="">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <button id="hic-copy-link" type="button" class="btn btn-default">
-                                Copy Link
-                            </button>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
@@ -1817,13 +1849,14 @@
 
 <div class="container-fluid">
 
+    <!-- Empty row (a shim, basically) -->
     <div class="row">
         <div class="col-md-12">
             <h1>&nbsp;</h1>
-            <!--<p>You can also download a full-fledged <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of Juicebox</a>.</p>-->
         </div>
     </div>
 
+    <!-- Modal presentation buttons -->
     <div class="row">
 
         <div class="col-md-12">
@@ -1929,6 +1962,7 @@
 
     </div>
 
+    <!-- App container -->
     <div class="row">
         <div class="col-md-12">
             <div id="app-container" class="juicebox-app-clone-container">
@@ -1983,7 +2017,22 @@
 
     $(document).ready(function () {
 
-        site.init($('#app-container'));
+        aidenlabSite.init($('#app-container'), {
+            embedTarget: getEmbedTarget()
+        });
+
+
+        // For development purposes only, this is not a general method
+        function getEmbedTarget() {
+
+            var href, idx;
+            href = window.location.href.trim();   // Purpose of trim is to make a copy
+            idx = href.indexOf("?");
+            if (idx > 0) href = href.substring(0, idx);
+            return href.replace("dev/aidenlab-dev.html", "aidenlab/embed.html");
+
+        }
+
 
     });
 
