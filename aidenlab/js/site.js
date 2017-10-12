@@ -132,7 +132,7 @@ var aidenlabSite = (function (site) {
 
         $hic_share_url_modal = $('#hic-share-url-modal');
 
-        $('#hic-share-button').on('click', function (e) {
+        $hic_share_url_modal.on('show.bs.modal', function (e) {
             // $hic_share_url_modal.on('show.bs.modal', function (e) {
 
             var queryString,
@@ -190,7 +190,7 @@ var aidenlabSite = (function (site) {
 
                             emailContainer = $('#emailButtonContainer');
                             emailContainer.empty();
-                            emailContainer.append($('<a href="mailto:?body=' + shortURL + '">EMAIL</a>'));
+                            emailContainer.append($('<a id="emailButton" href="mailto:?body=' + shortURL + '">EMAIL</a>'));
 
                             //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
                         });

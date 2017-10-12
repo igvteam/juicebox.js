@@ -1,23 +1,23 @@
-#hic-share-url-modal .modal-body {
-  font-family: "Open Sans", sans-serif;
-  font-size: 16px;
-  font-weight: 400; }
-#hic-share-url-modal .modal-footer {
-  font-family: "Open Sans", sans-serif;
-  font-size: 16px;
-  font-weight: 400; }
+#hic-share-url-modal {
+  color: #5f5f5f; }
+  #hic-share-url-modal .modal-body {
+    font-family: "Open Sans", sans-serif;
+    font-size: 16px;
+    font-weight: 400; }
 
 #hic-embed-container {
   display: none; }
 
-#emailButtonContainer {
+a#emailButton {
+  color: #5f5f5f;
   text-decoration: none; }
 
-#emailButtonContainer:hover,
-#emailButtonContainer:focus,
-#emailButtonContainer:active {
+a#emailButton:hover,
+a#emailButton:focus,
+a#emailButton:active {
   cursor: pointer;
-  font-weight: 700; }
+  font-weight: 700;
+  text-decoration: none; }
 
 #hic-embed-button:hover,
 #hic-embed-button:focus,
