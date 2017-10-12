@@ -27,7 +27,7 @@
  * Page (site specific) code for the example pages.
  *
  */
-var site = (function (site) {
+var aidenlabSite = (function (site) {
 
     var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
 
@@ -74,10 +74,13 @@ var site = (function (site) {
         }
     };
 
-    site.init = function ($container) {
+
+    site.init = function ($container, config) {
 
         var query,
             $hic_share_url_modal;
+
+        config = config || {};
 
         $appContainer = $container;
 
@@ -127,62 +130,70 @@ var site = (function (site) {
             }
         }
 
-        // Listen for GenomeChange events for all browsers.
+        $hic_share_url_modal = $('#hic-share-url-modal');
 
-        $hic_share_url_modal  = $('#hic-share-url-modal');
-        /*$('#hic-share-button')*/$hic_share_url_modal.on(/*'click'*/'show.bs.modal', function (e) {
+        $('#hic-share-button').on('click', function (e) {
+            // $hic_share_url_modal.on('show.bs.modal', function (e) {
 
             var queryString,
                 href,
-                idx,
-                $hic_share_url;
+                idx;
 
-            href = window.location.href.trim();    // Purpose of trim is really to make a copy
-            // This js is specific to the aidenlab site, and we know we have only juicebox parameters.
-            // Strip href of current parameters, if any, to avoid duplicates.
+            href = new String(window.location.href);
+
+            // This js file is specific to the aidenlab site, and we know we have only juicebox parameters.
+            // Strip href of current parameters, if any
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            href = href + "?juicebox=";
+            shortJuiceboxURL(href)
 
-            queryString = "{";
-            hic.allBrowsers.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
-            });
+                .then(function (jbUrl) {
 
-            href = href + encodeURIComponent(queryString);
+                    getEmbeddableSnippet(jbUrl)
+                        .then(function (embedSnippet) {
+                            var $hic_embed_url;
 
-            $hic_share_url = $('#hic-share-url');
-
-            shortenURL(href)
-                .then(function (shortURL) {
-
-                    var tweetContainer,
-                        emailContainer,
-                        config;
-
-                    $hic_share_url.val(shortURL);
-                    $hic_share_url.get(0).select();
-
-                    tweetContainer = $('#tweetButtonContainer');
-                    tweetContainer.empty();
-                    config =
-                        {
-                          size:'large',
-                          text:'TWEET'
-                        };
-                    window.twttr.widgets
-                        .createShareButton(shortURL, tweetContainer.get(0), config)
-                        .then(function (el) {
-                            console.log("Tweet button updated");
+                            $hic_embed_url = $('#hic-embed');
+                            $hic_embed_url.val(embedSnippet);
+                            $hic_embed_url.get(0).select();
                         });
 
-                    emailContainer = $('#emailButtonContainer');
-                    emailContainer.empty();
-                    emailContainer.append($('<a href="mailto:?body=' + shortURL + '">EMAIL</a>'));
+                    shortenURL(jbUrl)
 
-                    //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+                        .then(function (shortURL) {
+
+                            // Shorten second time
+                            // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
+
+                            var tweetContainer,
+                                emailContainer,
+                                config,
+                                $hic_share_url;
+
+                            $hic_share_url = $('#hic-share-url');
+                            $hic_share_url.val(shortURL);
+                            $hic_share_url.get(0).select();
+
+                            tweetContainer = $('#tweetButtonContainer');
+                            tweetContainer.empty();
+                            config =
+                            {
+                                size: 'large',
+                                text: 'Contact map'
+                            };
+                            window.twttr.widgets
+                                .createShareButton(shortURL, tweetContainer.get(0), config)
+                                .then(function (el) {
+                                    console.log("Tweet button updated");
+                                });
+
+                            emailContainer = $('#emailButtonContainer');
+                            emailContainer.empty();
+                            emailContainer.append($('<a href="mailto:?body=' + shortURL + '">EMAIL</a>'));
+
+                            //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+                        });
                 });
         });
 
@@ -326,10 +337,10 @@ var site = (function (site) {
                 config;
 
             config =
-                {
-                    initFromUrl: false,
-                    updateHref: false
-                };
+            {
+                initFromUrl: false,
+                updateHref: false
+            };
             browser = hic.createBrowser($container.get(0), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -348,6 +359,53 @@ var site = (function (site) {
                 alert("Copy not successful");
             }
         });
+
+        $('#hic-embed-copy-link').on('click', function (e) {
+            $('#hic-embed')[0].select();
+            var success = document.execCommand('copy');
+            if (success) {
+                // Hide modal?
+            }
+            else {
+                alert("Copy not successful");
+            }
+        });
+
+
+        function getEmbeddableSnippet(jbUrl) {
+
+            return new Promise(function (fulfill, reject) {
+                var idx, embedUrl, params, width, height;
+
+                idx = jbUrl.indexOf("?");
+                params = jbUrl.substring(idx);
+                embedUrl = (config.embedTarget || getEmbedTarget()) + params;
+                width = $appContainer.width() + 50;
+                height = $appContainer.height();
+
+                shortenURL(embedUrl)
+                    .then(function (shortURL) {
+                        fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
+                    });
+            });
+
+        }
+
+        /**
+         * Get the default embed html target.  Assumes an "embed.html" file in same directory as this page
+         */
+        function getEmbedTarget() {
+
+            var href, idx;
+            href = new String(window.location.href);
+
+            idx = href.indexOf("?");
+            if (idx > 0) href = href.substring(0, idx);
+
+            idx = href.lastIndexOf("/");
+            return href.substring(0, idx) + "/embed.html"
+
+        }
 
     };
 
@@ -376,28 +434,28 @@ var site = (function (site) {
             }
 
             columnWidths =
-                {
-                    'Assembly': '10%',
-                    'Cell Type': '10%',
-                    'Target': '10%',
-                    'Assay Type': '20%',
-                    'Output Type': '20%',
-                    'Lab': '20%'
-                };
+            {
+                'Assembly': '10%',
+                'Cell Type': '10%',
+                'Target': '10%',
+                'Assay Type': '20%',
+                'Output Type': '20%',
+                'Lab': '20%'
+            };
 
             encodeTableFormat = new igv.EncodeTableFormat({columnWidths: columnWidths});
 
             config =
-                {
-                    $modal: $('#hicEncodeModal'),
-                    $modalBody: $('#encodeModalBody'),
-                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                    $modalGoButton: $('#encodeModalGoButton'),
-                    browserRetrievalFunction: browserRetrievalFunction,
-                    browserLoadFunction: 'loadTrack',
-                    dataSource: new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat)
-                };
+            {
+                $modal: $('#hicEncodeModal'),
+                $modalBody: $('#encodeModalBody'),
+                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                $modalGoButton: $('#encodeModalGoButton'),
+                browserRetrievalFunction: browserRetrievalFunction,
+                browserLoadFunction: 'loadTrack',
+                dataSource: new igv.EncodeDataSource({genomeID: genomeId}, encodeTableFormat)
+            };
 
             encodeTable = new igv.IGVModalTable(config);
 
@@ -444,58 +502,71 @@ var site = (function (site) {
 
     }
 
-    function shortenURL(url) {
-
-        var endpoint, body;
-
-        endpoint = "https://www.googleapis.com/urlshortener/v1/url?key=" + apiKey;
-        body = {"longUrl": url}
+    function shortJuiceboxURL(base) {
 
         return new Promise(function (fulfill, reject) {
-            igv.xhr.loadJson(endpoint,
-                {
-                    sendData: JSON.stringify(body),
-                    contentType: "application/json"
-                })
-                .then(function (json) {
+
+            var endpoint, body, url, queryString;
+
+            url = base + "?juicebox=";
+
+            queryString = "{";
+            hic.allBrowsers.forEach(function (browser, index) {
+                queryString += encodeURIComponent(browser.getQueryString());
+                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+            });
+
+            url = url + encodeURIComponent(queryString);
+
+            shortenURL(url)
+
+                .then(function (shortURL) {
+
 
                     // Now shorten a second time, with short url as a parameter.  This solves the problem of
                     // the expanded url (after a redirect) being over the browser limit.
 
-                    var idx, href, base, url;
+                    var idx, href, url;
 
                     href = window.location.href;
                     idx = href.indexOf("?");
-                    if(idx > 0) {
+                    if (idx > 0) {
                         href = href.substr(0, idx);
                     }
 
-                    url = href + "?juiceboxURL=" + json.id;
-                    body = {"longUrl": url};
 
-                    igv.xhr.loadJson(endpoint,
-                        {
-                            sendData: JSON.stringify(body),
-                            contentType: "application/json"
-                        })
-                        .then(function (json) {
+                    url = href + "?juiceboxURL=" + shortURL;
 
-                            fulfill(json.id);
+                    fulfill(url);
 
-                        })
+                })
+        });
 
+    }
+
+    function shortenURL(url) {
+
+        var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
+
+        return new Promise(function (fulfill, reject) {
+            igv.xhr.loadJson(endpoint,
+                {
+                    sendData: JSON.stringify({"longUrl": url}),
+                    contentType: "application/json"
+                })
+                .then(function (json) {
+                    fulfill(json.id);
                 })
         });
     }
 
     function expandURL(url) {
 
-        var endpoint, body;
+        var endpoint;
 
         if (url.includes("goo.gl")) {
 
-            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url +
-                "&key=" + apiKey;
+            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
 
             return new Promise(function (fulfill, reject) {
                 igv.xhr.loadJson(endpoint,
@@ -514,15 +585,8 @@ var site = (function (site) {
 
     }
 
-    function embeddableSnippet(url) {
-        var width, height;
-
-        width = $appContainer.width();
-        height = $appContainer.height();
-        return '<iframe src="' + url + '"width="' + width + '" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>';
-    }
 
     return site;
 
-})(site || {});
+})({});
 

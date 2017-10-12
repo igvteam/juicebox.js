@@ -113,7 +113,8 @@
 <body>
 
 <!-- Share URL Modal -->
-<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label" aria-hidden="true">
+<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -157,7 +158,8 @@
                                 </div>
 
                                 <div id="tweetButtonContainer" class="col-md-3">
-                                    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-size="large" data-show-count="false">TWEET</a>
+                                    <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
+                                       data-size="large" data-show-count="false">TWEET</a>
                                 </div>
 
                                 <div id="hic-embed-button" class="col-md-3">
@@ -221,7 +223,8 @@
 
         </div>
 
-    </div><
+    </div>
+    <
 
 </div>
 
@@ -1944,7 +1947,8 @@
 
             <!-- Share (generate URL) -->
             <div class="site-widget" title="Share">
-                <button id="hic-share-button" class="btn btn-default" type="button" data-toggle="modal" data-target="#hic-share-url-modal">
+                <button id="hic-share-button" class="btn btn-default" type="button" data-toggle="modal"
+                        data-target="#hic-share-url-modal">
                     Share
                 </button>
             </div>
@@ -2013,7 +2017,22 @@
 
     $(document).ready(function () {
 
-        site.init($('#app-container'));
+        aidenlabSite.init($('#app-container'), {
+            embedTarget: getEmbedTarget()
+        });
+
+
+        // For development purposes only, this is not a general method
+        function getEmbedTarget() {
+
+            var href, idx;
+            href = window.location.href.trim();   // Purpose of trim is to make a copy
+            idx = href.indexOf("?");
+            if (idx > 0) href = href.substring(0, idx);
+            return href.replace("dev/aidenlab-dev.html", "aidenlab/embed.html");
+
+        }
+
 
     });
 
