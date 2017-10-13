@@ -350,8 +350,9 @@ var aidenlabSite = (function (site) {
         });
 
         $('#hic-copy-link').on('click', function (e) {
+            var success;
             $('#hic-share-url')[0].select();
-            var success = document.execCommand('copy');
+            success = document.execCommand('copy');
             if (success) {
                 $('#hic-share-url-modal').modal('hide');
             }
@@ -361,10 +362,11 @@ var aidenlabSite = (function (site) {
         });
 
         $('#hic-embed-copy-link').on('click', function (e) {
+            var success;
             $('#hic-embed')[0].select();
-            var success = document.execCommand('copy');
+            success = document.execCommand('copy');
             if (success) {
-                // Hide modal?
+                $('#hic-share-url-modal').modal('hide');
             }
             else {
                 alert("Copy not successful");
