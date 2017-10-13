@@ -29,7 +29,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
-
     <!-- Shims for legacy browsers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
@@ -40,39 +39,17 @@
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-
-    <!-- Bootstrap-Select Plugin CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css"/>
-
     <!-- IGV CSS -->
     <link rel="stylesheet" type="text/css" href="../css/igv-beta.css">
-    <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="../css/site.css">
 
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
-
-    <!-- JQuery JS -->
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-    <!-- Bootstrap-Select Plugin JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
 
     <!-- IGV JS -->
     <script src="../js/igv-beta.min.js"></script>
 
     <!-- Juicebox JS -->
     <script src="../js/juicebox.min.js"></script>
-
-
 
 </head>
 
@@ -92,15 +69,14 @@
 </div>
 
 
-
 <script type="text/javascript">
 
 
-    $(document).ready(function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
         var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
         var query = hic.extractQuery(window.location.href);
-        var $container = $("#app-container");
+        var container = document.getElementById("app-container");
 
         if (query && query.hasOwnProperty("juiceboxURL")) {
 
@@ -118,7 +94,7 @@
 
         function createBrowsers(query) {
 
-            var query, parts, q, browser, i;
+            var parts, q, browser, i;
 
             if (query && query.hasOwnProperty("juicebox")) {
                 q = query["juicebox"];
@@ -129,20 +105,18 @@
 
                 q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
                 parts = q.split("},{");
-                browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
+                hic.createBrowser(container, {href: decodeURIComponent(parts[0])});
 
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
-                        browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
+                        hic.createBrowser(container, {href: decodeURIComponent(parts[i])});
                     }
                     hic.syncBrowsers(hic.allBrowsers);
                 }
             } else {
-                browser = hic.createBrowser($container.get(0), {});
-                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                hic.createBrowser(container, {});
             }
         }
-
 
 
         function loadHicFile(url, name) {
