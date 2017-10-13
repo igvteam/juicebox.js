@@ -36,6 +36,30 @@ a#emailButton:active  {
     font-weight: 700;
 }
 
+.hic-social-button-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    height: 40px;
+
+    div {
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
+    div:first-child {
+        margin-top:4px;
+    }
+
+    margin-bottom: 10px;
+}
+
+.hic-social-button {
+    float: left;
+}
 
 .site-container {
 
