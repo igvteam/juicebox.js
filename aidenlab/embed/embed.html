@@ -50,15 +50,12 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css"/>
 
     <!-- IGV CSS -->
-    <link rel="stylesheet" type="text/css" href="css/igv-beta.css">
-    <!--<link rel="stylesheet" type="text/css" href="../../dist/igv.css">-->
-
+    <link rel="stylesheet" type="text/css" href="../css/igv-beta.css">
     <!-- site CSS -->
-    <link rel="stylesheet" type="text/css" href="css/site.css">
+    <link rel="stylesheet" type="text/css" href="../css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="css/juicebox.css">
-
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
     <!-- JQuery JS -->
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -70,10 +67,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
 
     <!-- IGV JS -->
-    <script src="js/igv-beta.min.js"></script>
+    <script src="../js/igv-beta.min.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="js/juicebox.min.js"></script>
+    <script src="../js/juicebox.min.js"></script>
 
 
 
@@ -137,7 +134,6 @@
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
                         browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
-                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                     }
                     hic.syncBrowsers(hic.allBrowsers);
                 }

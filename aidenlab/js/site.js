@@ -403,7 +403,7 @@ var aidenlabSite = (function (site) {
             if (idx > 0) href = href.substring(0, idx);
 
             idx = href.lastIndexOf("/");
-            return href.substring(0, idx) + "/embed.html"
+            return href.substring(0, idx) + "/embed/embed.html"
 
         }
 

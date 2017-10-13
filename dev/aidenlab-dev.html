@@ -1079,20 +1079,10 @@
     $(document).ready(function () {
 
         aidenlabSite.init($('#app-container'), {
-            embedTarget: getEmbedTarget()
+            embedTarget: "https://igv.org/web/jb/test/embed/embed.html"
         });
 
 
-        // For development purposes only, this is not a general method
-        function getEmbedTarget() {
-
-            var href, idx;
-            href = window.location.href.trim();   // Purpose of trim is to make a copy
-            idx = href.indexOf("?");
-            if (idx > 0) href = href.substring(0, idx);
-            return href.replace("dev/aidenlab-dev.html", "aidenlab/embed.html");
-
-        }
 
 
     });
