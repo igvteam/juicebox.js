@@ -36,7 +36,7 @@ var hic = (function (hic) {
         width: 640,
         height: 640
     };
-    
+
     hic.allBrowsers = [];
 
     // mock igv browser objects for igv.js compatibility
@@ -1374,6 +1374,8 @@ var hic = (function (hic) {
     hic.Browser.prototype.getQueryString = function () {
 
         var queryString, nviString, trackString;
+
+        if(!this.url) return "";   // URL is required
 
         queryString = [];
 

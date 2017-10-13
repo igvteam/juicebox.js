@@ -27,15 +27,18 @@
  * Page (site specific) code for the example pages.
  *
  */
-var aidenlabSite = (function (site) {
+var aidenlabSite = (function (site, config) {
 
-    var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
-
-    var encodeTable,
+    var apiKey,
+        encodeTable,
         genomeChangeListener,
         browserListener,
         lastGenomeId,
         $appContainer;
+
+    config = config || {};
+
+    apiKey = config.apiKey || "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
 
     genomeChangeListener = {
 
@@ -188,11 +191,7 @@ var aidenlabSite = (function (site) {
                                     console.log("Tweet button updated");
                                 });
 
-                            emailContainer = $('#emailButtonContainer');
-                            emailContainer.empty();
-                            emailContainer.append($('<a id="emailButton" href="mailto:?body=' + shortURL + '">EMAIL</a>'));
-
-                            //<iframe src="" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>
+                            $('#emailButton').attr('href', 'mailto:?body=' + shortURL);
                         });
                 });
         });
@@ -548,25 +547,30 @@ var aidenlabSite = (function (site) {
 
     function shortenURL(url) {
 
-        var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
+        if(undefined === apiKey) {
+            return Promise.resolve(url);
+        }
+        else {
+            var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
 
-        return new Promise(function (fulfill, reject) {
-            igv.xhr.loadJson(endpoint,
-                {
-                    sendData: JSON.stringify({"longUrl": url}),
-                    contentType: "application/json"
-                })
-                .then(function (json) {
-                    fulfill(json.id);
-                })
-        });
+            return new Promise(function (fulfill, reject) {
+                igv.xhr.loadJson(endpoint,
+                    {
+                        sendData: JSON.stringify({"longUrl": url}),
+                        contentType: "application/json"
+                    })
+                    .then(function (json) {
+                        fulfill(json.id);
+                    })
+            });
+        }
     }
 
     function expandURL(url) {
 
         var endpoint;
 
-        if (url.includes("goo.gl")) {
+        if (apiKey && url.includes("goo.gl")) {
 
             endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
 
@@ -581,7 +585,7 @@ var aidenlabSite = (function (site) {
             });
         }
         else {
-            // Not a google url
+            // Not a google url or no api key
             return Promise.resolve(url);
         }
 
