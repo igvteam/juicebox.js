@@ -588,7 +588,6 @@ var hic = (function (hic) {
             if (config.url instanceof File) {
                 this.url = config.url;
                 this.updateHref = false;
-                stripUriParameters();
             } else {
                 this.updateHref = this.updateHref_;
                 queryIdx = config.url.indexOf("?");
