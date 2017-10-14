@@ -6,6 +6,8 @@ layout: default
 
 ## Developers
 
+[Embedding](embedding)
+
 ### Integrating
 
 ### API
