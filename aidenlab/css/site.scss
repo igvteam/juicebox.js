@@ -46,14 +46,13 @@ a#emailButton:active  {
     height: 40px;
 
     div {
-        height: 100%;
-        width: 96px;
         margin-left: 8px;
         margin-right: 8px;
         //background-color: red;
     }
 
     div:first-child {
+        width:65px;
         margin-top:4px;
     }
 

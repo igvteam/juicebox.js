@@ -34,11 +34,11 @@ a#emailButton:active {
   height: 40px;
   margin-bottom: 10px; }
   .hic-social-button-container div {
-    height: 100%;
-    width: 96px;
     margin-left: 8px;
-    margin-right: 8px; }
+    margin-right: 8px;
+    }
   .hic-social-button-container div:first-child {
+    width:65px;
     margin-top: 4px; }
 
 .hic-social-button {
