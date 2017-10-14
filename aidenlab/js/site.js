@@ -35,11 +35,7 @@ var aidenlabSite = (function (site, config) {
         browserListener,
         lastGenomeId,
         $appContainer;
-
-    config = config || {};
-
-    apiKey = config.apiKey || "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
-
+    
     genomeChangeListener = {
 
         receiveEvent: function (event) {
@@ -84,10 +80,11 @@ var aidenlabSite = (function (site, config) {
             $hic_share_url_modal;
 
         config = config || {};
-
+        
         $appContainer = $container;
 
-        if (apiKey) igv.setApiKey(apiKey);
+        apiKey = config.apiKey || "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
+        igv.setApiKey(apiKey);
 
         query = hic.extractQuery(window.location.href);
 
@@ -118,11 +115,11 @@ var aidenlabSite = (function (site, config) {
 
                 q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
                 parts = q.split("},{");
-                browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[0])});
+                browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
-                        browser = hic.createBrowser($container.get(0), {href: decodeURIComponent(parts[i])});
+                        browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
                         browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                     }
                     hic.syncBrowsers(hic.allBrowsers);

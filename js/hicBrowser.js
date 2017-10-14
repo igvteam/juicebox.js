@@ -1432,21 +1432,6 @@ var hic = (function (hic) {
             return key + "=" + paramEncode(value)
         }
 
-
-        /**
-         * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
-         * to fully % encode parameter values (see RFC3986).
-         *
-         * @param str
-         */
-        function paramEncode(str) {
-            var s = replaceAll(str, '&', '%26');
-            s = replaceAll(s, ' ', '+');
-            s = replaceAll(s, "#", "%23");
-
-            return s;
-        }
-
     };
 
     /**
@@ -1613,21 +1598,41 @@ var hic = (function (hic) {
             return new hic.ColorScale(cs);
         };
 
-        function paramDecodeV0(str, uriDecode) {
+    }
 
-            if (uriDecode) {
-                return decodeURIComponent(str);   // Still more backward compatibility
-            }
-            else {
-                var s = replaceAll(str, '%26', '&');
-                s = replaceAll(s, '%20', ' ');
-                s = replaceAll(s, '+', ' ');
-                s = replaceAll(s, "%7C", "|");
-                s = replaceAll(s, "%23", "#");
-                return s;
-            }
+    /**
+     * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
+     * to fully % encode parameter values (see RFC3986).
+     *
+     * @param str
+     */
+    function paramEncode(str) {
+        var s = replaceAll(str, '&', '%26');
+        s = replaceAll(s, ' ', '+');
+        s = replaceAll(s, "#", "%23");
+        s = replaceAll(s, "?", "%3F");
+        s = replaceAll(s, "=", "%3D");
+        return s;
+    }
+
+    function paramDecodeV0(str, uriDecode) {
+
+        if (uriDecode) {
+            return decodeURIComponent(str);   // Still more backward compatibility
+        }
+        else {
+            var s = replaceAll(str, '%26', '&');
+            s = replaceAll(s, '%20', ' ');
+            s = replaceAll(s, '+', ' ');
+            s = replaceAll(s, "%7C", "|");
+            s = replaceAll(s, "%23", "#");
+            s = replaceAll(s, "%3F", "?");
+            s = replaceAll(s, "%3D", "=");
+            return s;
         }
     }
+
+
 
     return hic;
 
