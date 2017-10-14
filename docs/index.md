@@ -1,9 +1,13 @@
-#juicebox.js
+---
+layout: default
+---
 
-##Developers
+# juicebox.js
 
-###Integrating
+## Developers
 
-###API
+### Integrating
+
+### API
 
 
