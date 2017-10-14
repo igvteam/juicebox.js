@@ -182,11 +182,10 @@ var aidenlabSite = (function (site, config) {
                             tweetContainer.empty();
                             config =
                             {
-                                size: 'large',
-                                text: 'Contact map'
+                                size: 'large'
                             };
                             window.twttr.widgets
-                                .createShareButton(shortURL, tweetContainer.get(0), config)
+                                .createShareButton(shortURL, tweetContainer.get(0), {})
                                 .then(function (el) {
                                     console.log("Tweet button updated");
                                 });
