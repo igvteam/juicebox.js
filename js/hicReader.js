@@ -149,7 +149,7 @@ var hic = (function (hic) {
     hic.HiCReader.prototype.readFooter = function (dataset) {
 
         var self = this,
-            range = {start: this.masterIndexPos, size: 20000};
+            range = {start: self.masterIndexPos, size: 4};
 
         return new Promise(function (fulfill, reject) {
 
@@ -161,31 +161,46 @@ var hic = (function (hic) {
                 })
                 .then(function (data) {
 
-                    var key, pos, size;
+                    var key, pos, size, binaryParser, nBytes;
 
                     if (!data) {
                         fulfill(null);
                         return;
                     }
 
-                    var binaryParser = new igv.BinaryParser(new DataView(data));
+                    binaryParser = new igv.BinaryParser(new DataView(data));
+                    nBytes = binaryParser.getInt();
+                    range = {start: self.masterIndexPos + 4, size: nBytes};
 
-                    var nBytes = binaryParser.getInt();
+                    igv.xhr.loadArrayBuffer(self.path,
+                        {
+                            headers: self.config.headers,
+                            range: range,
+                            withCredentials: self.config.withCredentials
+                        })
+                        .then(function (data) {
+
+                            if (!data) {
+                                fulfill(null);
+                                return;
+                            }
+
+                            var binaryParser = new igv.BinaryParser(new DataView(data));
+                            self.masterIndex = {};
+                            var nEntries = binaryParser.getInt();
+
+                            while (nEntries-- > 0) {
+                                key = binaryParser.getString();
+                                pos = binaryParser.getLong();
+                                size = binaryParser.getInt();
+                                self.masterIndex[key] = {start: pos, size: size};
+                            }
 
 
-                    self.masterIndex = {};
-                    var nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
-                        key = binaryParser.getString();
-                        pos = binaryParser.getLong();
-                        size = binaryParser.getInt();
-                        self.masterIndex[key] = {start: pos, size: size};
-                    }
+                            self.expectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
 
-                    self.expectedValueVectorsPosition = self.masterIndexPos + binaryParser.position;
-
-                    fulfill(self);
-
+                            fulfill(self);
+                        })
                 })
                 .catch(function (error) {
                     reject(error);
