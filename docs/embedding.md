@@ -1,11 +1,14 @@
 ### Dependencies
-These are the CSS and Javascript files JuiceboxJS depends on:
+Juicebox dependencies.  
 
-```JavaScript
+```html
 <!-- CSS -->
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 <link rel="stylesheet" href="https://igv.org/web/beta/igv-beta.css">
 <link rel="stylesheet" href="http://igv.org/web/jb/test/dist/juicebox.css">
+
+<!-- Google fonts -- omit if using Bootstrap -->
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
 <!-- Javascript -->
 <script src="https://igv.org/web/beta/igv-beta.min.js"></script>
@@ -14,15 +17,15 @@ These are the CSS and Javascript files JuiceboxJS depends on:
 ### Usage
 Create a `div` container with `id=app-container`:
 
-```JavaScript
+```html
 <div id="app-container">
 <!-- Juicebox app will appear here -->
 </div>
 ```
 
-Add the following script
+Add the following script in the page body
 
-```JavaScript
+```js
 <script type="text/javascript">
      document.addEventListener("DOMContentLoaded", function () {
         var appContainer = document.getElementById("app-container);
