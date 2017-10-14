@@ -2,14 +2,10 @@
 layout: default
 ---
 
-# juicebox.js
-
-## Developers
 
 [Embedding](embedding)
+[URL structure](url)
 
-### Integrating
 
-### API
 
 
