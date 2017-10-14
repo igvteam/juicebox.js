@@ -196,8 +196,33 @@ var hic = (function (hic) {
                                 self.masterIndex[key] = {start: pos, size: size};
                             }
 
+                            dataset.expectedValueVectors = {};
 
-                            self.expectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
+                            nEntries = binaryParser.getInt();
+
+                            // while (nEntries-- > 0) {
+                            //     type = "NONE";
+                            //     unit = binaryParser.getString();
+                            //     binSize = binaryParser.getInt();
+                            //     nValues = binaryParser.getInt();
+                            //     values = [];
+                            //     while (nValues-- > 0) {
+                            //         values.push(binaryParser.getDouble());
+                            //     }
+                            //
+                            //     nChrScaleFactors = binaryParser.getInt();
+                            //     normFactors = {};
+                            //     while (nChrScaleFactors-- > 0) {
+                            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                            //     }
+                            //
+                            //     // key = unit + "_" + binSize + "_" + type;
+                            //     //  NOT USED YET SO DON'T STORE
+                            //     //  dataset.expectedValueVectors[key] =
+                            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                            // }
+
+                            self.normExpectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
 
                             fulfill(self);
                         })
@@ -216,9 +241,9 @@ var hic = (function (hic) {
      * @param dataset
      * @returns {Promise}
      */
-    hic.HiCReader.prototype.readExpectedValuesAndNormVectorIndex = function (dataset) {
+    hic.HiCReader.prototype.readNormExpectedValuesAndNormVectorIndex = function (dataset) {
 
-        if (this.expectedValueVectorsPosition === undefined) {
+        if (this.normExpectedValueVectorsPosition === undefined) {
             Promise.resolve();
         }
 
@@ -227,7 +252,7 @@ var hic = (function (hic) {
         }
 
         var self = this,
-            range = {start: this.expectedValueVectorsPosition, size: 60000000};
+            range = {start: this.normExpectedValueVectorsPosition, size: 60000000};
 
         return new Promise(function (fulfill, reject) {
 
@@ -249,39 +274,10 @@ var hic = (function (hic) {
 
                     var binaryParser = new igv.BinaryParser(new DataView(data));
 
-                    dataset.expectedValueVectors = {};
-
-                    nEntries = binaryParser.getInt();
-
-                    while (nEntries-- > 0) {
-                        type = "NONE";
-                        unit = binaryParser.getString();
-                        binSize = binaryParser.getInt();
-                        nValues = binaryParser.getInt();
-                        values = [];
-                        while (nValues-- > 0) {
-                            values.push(binaryParser.getDouble());
-                        }
-
-                        nChrScaleFactors = binaryParser.getInt();
-                        normFactors = {};
-                        while (nChrScaleFactors-- > 0) {
-                            normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                        }
-
-                        // key = unit + "_" + binSize + "_" + type;
-                        //  NOT USED YET SO DON'T STORE
-                        //  dataset.expectedValueVectors[key] =
-                        //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                    }
-
-
                     dataset.normalizedExpectedValueVectors = {};
 
                     try {
                         nEntries = binaryParser.getInt();
-
-
                         while (nEntries-- > 0) {
 
                             type = binaryParser.getString();

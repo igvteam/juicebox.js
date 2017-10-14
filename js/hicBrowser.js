@@ -725,7 +725,7 @@ var hic = (function (hic) {
                     self.eventBus.post(hic.Event("MapLoad", dataset));
 
                     // Load norm vector index in the background
-                    dataset.hicReader.readExpectedValuesAndNormVectorIndex(dataset)
+                    dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
                             self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                         })

@@ -47,7 +47,7 @@ function runHicReaderTests() {
 
             .then(function (dataset) {
 
-                hicReader.readExpectedValuesAndNormVectorIndex(dataset)
+                hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                     .then(function (ignore) {
 
                         equal("HIC", hicReader.magic);
