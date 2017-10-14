@@ -35,10 +35,9 @@ a#emailButton:active {
   margin-bottom: 10px; }
   .hic-social-button-container div {
     margin-left: 8px;
-    margin-right: 8px;
-    }
+    margin-right: 8px; }
   .hic-social-button-container div:first-child {
-    width:65px;
+    width: 65px;
     margin-top: 4px; }
 
 .hic-social-button {

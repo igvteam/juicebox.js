@@ -51,6 +51,27 @@ module.exports = function (grunt) {
                 expand: true,
                 src: 'css/img/*',
                 dest: 'dist'
+            },
+            aidenlabcss: {
+                expand: true,
+                flatten: true,
+                src: ['css/juicebox.css'],
+                dest: 'aidenlab/css'
+            },
+            aidenlabimg: {
+                expand: true,
+                src: 'css/img/*',
+                dest: 'aidelan/css/img'
+            },
+            aidenlabijs: {
+                expand: true,
+                src: 'dist/juicebox.min.js',
+                dest: 'aidelan/js'
+            },
+            aidenlabimap: {
+                expand: true,
+                src: 'dist/juicebox.min.map',
+                dest: 'aidelan/js'
             }
         }
     });
