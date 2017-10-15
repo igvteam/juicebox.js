@@ -285,7 +285,7 @@ var aidenlabSite = (function (site, config) {
             }
 
             $(this).val("");
-            $('#hic-load-url-modal').modal('hide');
+            $('#track-load-url-modal').modal('hide');
 
         });
 
