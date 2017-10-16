@@ -35,7 +35,7 @@ var aidenlabSite = (function (site, config) {
         browserListener,
         lastGenomeId,
         $appContainer;
-    
+
     genomeChangeListener = {
 
         receiveEvent: function (event) {
@@ -80,7 +80,7 @@ var aidenlabSite = (function (site, config) {
             $hic_share_url_modal;
 
         config = config || {};
-        
+
         $appContainer = $container;
 
         apiKey = config.apiKey || "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
@@ -379,11 +379,13 @@ var aidenlabSite = (function (site, config) {
                 embedUrl = (config.embedTarget || getEmbedTarget()) + params;
                 width = $appContainer.width() + 50;
                 height = $appContainer.height();
+                fulfill('<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
 
-                shortenURL(embedUrl)
-                    .then(function (shortURL) {
-                        fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
-                    });
+                // Disable shortening the embedUrl for now -- we don't want to bake in the embedTarget
+                // shortenURL(embedUrl)
+                //     .then(function (shortURL) {
+                //         fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
+                //     });
             });
 
         }
