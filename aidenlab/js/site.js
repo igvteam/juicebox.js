@@ -229,7 +229,7 @@ var aidenlabSite = (function (site, config) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
-                file = _.first($(this).get(0).files);
+                file = ($(this).get(0).files)[0];
 
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
