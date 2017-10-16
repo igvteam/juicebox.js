@@ -64,10 +64,6 @@ var hic = (function (hic) {
         // Popover object -- singleton shared by all components
         igv.popover = new igv.Popover($hic_container);
 
-        // ColorPicker object -- singleton shared by all components
-        igv.colorPicker = new igv.ColorPicker($hic_container, undefined);
-        igv.colorPicker.hide();
-
         // Dialog object -- singleton shared by all components
         igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
         igv.dialog.hide();
