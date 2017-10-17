@@ -152,7 +152,7 @@ var igv = (function (igv) {
 
         this.$dataTables = this.$modalTable.dataTable({
             data: dataSource.tableData(),
-            paging: true,
+            paging: false,
             scrollX: false,
             scrollY: '400px',
             scrollCollapse: false,
