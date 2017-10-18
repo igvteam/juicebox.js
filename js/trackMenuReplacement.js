@@ -57,7 +57,8 @@ var hic = (function (hic) {
                     var alphanumeric = parseAlphanumeric(igv.dialog.$dialogInput.val());
 
                     if (undefined !== alphanumeric) {
-                        trackRenderer.$label.text(alphanumeric);
+                        trackRenderer.track.name = alphanumeric;
+                        trackRenderer.$label.text(trackRenderer.track.name);
                     }
 
                     function parseAlphanumeric(value) {
