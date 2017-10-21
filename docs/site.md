@@ -1,4 +1,4 @@
-The top-level folder "site" contains  prototype of a website hosting a juicebox instance.
+The examples/site folder contains a prototype website hosting a juicebox instance.
 To use this code to jumpstart your own page simply copy and optionally
 supply a Google apiKey (see below).  <TODO -- TRACK LOADING WIDGET> For an example of a production instance using
 this pattern see http://aidenlab.org/juicebox.
