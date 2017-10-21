@@ -60,29 +60,29 @@ module.exports = function (grunt) {
                 src: 'css/img/*',
                 dest: 'dist'
             },
-            aidenlabcss: {
+            sitecss: {
                 expand: true,
                 flatten: true,
                 src: 'css/juicebox.css',
-                dest: 'aidenlab/css'
+                dest: 'examples/site/css'
             },
-            aidenlabimg: {
+            siteimg: {
                 expand: true,
                 flatten: true,
                 src: 'css/img/*',
-                dest: 'aidenlab/css/img'
+                dest: 'examples/site/css/img'
             },
-            aidenlabjs: {
+            sitejs: {
                 expand: true,
                 flatten: true,
                 src: 'dist/juicebox.min.js',
-                dest: 'aidenlab/js'
+                dest: 'examples/site/js'
             },
-            aidenlabmap: {
+            sitemap: {
                 expand: true,
                 flatten: true,
                 src: 'dist/juicebox.min.map',
-                dest: 'aidenlab/js'
+                dest: 'examples/site/js'
             }
         }
     });

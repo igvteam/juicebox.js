@@ -27,7 +27,7 @@
  * Page (site specific) code for the example pages.
  *
  */
-var aidenlabSite = (function (site, config) {
+var juicebox = (function (site) {
 
     var apiKey,
         encodeTable,
@@ -40,19 +40,12 @@ var aidenlabSite = (function (site, config) {
 
         receiveEvent: function (event) {
             var browserRetrievalFunction,
-                genomeId = event.data,
-                tracksURL,
-                annotations2dURL;
+                genomeId = event.data;
 
             if (lastGenomeId !== genomeId) {
 
                 lastGenomeId = genomeId;
 
-                tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
-                annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
-
-                loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
-                loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
 
                 browserRetrievalFunction = function () {
                     return hic.Browser.getCurrentBrowser();
@@ -63,17 +56,6 @@ var aidenlabSite = (function (site, config) {
         }
     };
 
-    browserListener = {
-        receiveEvent: function (event) {
-
-            if (encodeTable) {
-                encodeTable.browser = event.data;
-            }
-
-        }
-    };
-
-
     site.init = function ($container, config) {
 
         var query,
@@ -83,8 +65,13 @@ var aidenlabSite = (function (site, config) {
 
         $appContainer = $container;
 
-        apiKey = config.apiKey || "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
-        igv.setApiKey(apiKey);
+        apiKey = config.apiKey;
+        if (apiKey) {
+            igv.setApiKey(apiKey);
+        }
+        else {
+            $("#hic-share-button").hide();
+        }
 
         query = hic.extractQuery(window.location.href);
 
@@ -102,32 +89,8 @@ var aidenlabSite = (function (site, config) {
             createBrowsers(query);
         }
 
-        function createBrowsers(query) {
-
-            var query, parts, q, browser, i;
-
-            if (query && query.hasOwnProperty("juicebox")) {
-                q = query["juicebox"];
-
-                if (q.startsWith("%7B")) {
-                    q = decodeURIComponent(q);
-                }
-
-                q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-                parts = q.split("},{");
-                browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])});
-                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                if (parts && parts.length > 1) {
-                    for (i = 1; i < parts.length; i++) {
-                        browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
-                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                    }
-                    hic.syncBrowsers(hic.allBrowsers);
-                }
-            } else {
-                browser = hic.createBrowser($container.get(0), {});
-                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            }
+        if (config.mapMenu) {
+            populatePulldown(config.mapMenu);
         }
 
         $hic_share_url_modal = $('#hic-share-url-modal');
@@ -289,42 +252,6 @@ var aidenlabSite = (function (site, config) {
 
         });
 
-        $('#annotation-selector').on('change', function (e) {
-            var path,
-                name;
-
-            if (undefined === hic.Browser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
-            } else {
-
-                path = $(this).val();
-                name = $(this).find('option:selected').text();
-
-                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
-            }
-
-            $('#hic-annotation-select-modal').modal('hide');
-            $(this).find('option').removeAttr("selected");
-
-        });
-
-        $('#annotation-2D-selector').on('change', function (e) {
-            var path,
-                name;
-
-            if (undefined === hic.Browser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
-            } else {
-
-                path = $(this).val();
-                name = $(this).find('option:selected').text();
-
-                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
-            }
-
-            $('#hic-annotation-2D-select-modal').modal('hide');
-            $(this).find('option').removeAttr("selected");
-        });
 
         $('.juicebox-app-clone-button').on('click', function (e) {
 
@@ -404,6 +331,62 @@ var aidenlabSite = (function (site, config) {
             idx = href.lastIndexOf("/");
             return href.substring(0, idx) + "/embed/embed.html"
 
+        }
+
+        function createBrowsers(query) {
+
+            var parts, q, browser, i;
+
+            if (query && query.hasOwnProperty("juicebox")) {
+                q = query["juicebox"];
+
+                if (q.startsWith("%7B")) {
+                    q = decodeURIComponent(q);
+                }
+
+                q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+                parts = q.split("},{");
+                browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])});
+                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                if (parts && parts.length > 1) {
+                    for (i = 1; i < parts.length; i++) {
+                        browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
+                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                    }
+                    hic.syncBrowsers(hic.allBrowsers);
+                }
+            } else {
+                browser = hic.createBrowser($container.get(0), {});
+                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            }
+        }
+
+        function populatePulldown(menu) {
+
+            var parent;
+
+            parent = $("#" + menu.id);
+
+            igv.xhr.loadString(menu.items)
+
+                .then(function (data) {
+                    var lines = data.splitLines(),
+                        len = lines.length,
+                        tokens,
+                        i;
+
+                    for (i = 0; i < len; i++) {
+                        tokens = lines[i].split('\t');
+                        if (tokens.length > 1) {
+                            parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
+                        }
+
+                    }
+                    parent.selectpicker("refresh");
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
         }
 
     };
@@ -545,7 +528,7 @@ var aidenlabSite = (function (site, config) {
 
     function shortenURL(url) {
 
-        if(undefined === apiKey) {
+        if (undefined === apiKey) {
             return Promise.resolve(url);
         }
         else {
