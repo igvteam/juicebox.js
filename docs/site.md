@@ -1,3 +1,5 @@
+# Prototype juicebox.js site
+
 The examples/site folder contains a prototype website hosting a juicebox instance.
 To use this code to jumpstart your own page copy the folder, edit the file
 data/mapMenuData.txt to customize the load menu, and optionally
