@@ -12575,7 +12575,7 @@ var igv = (function (igv) {
         this.samplingWindowSize = samplingWindowSize === undefined ? 100 : samplingWindowSize;
         this.samplingDepth = samplingDepth === undefined ? 50 : samplingDepth;
 
-        this.pairsSupported = pairsSupported;
+        this.pairsSupported = pairsSupported === undefined ? true : pairsSupported;
         this.paired = false;  // false until proven otherwise
         this.pairsCache = {};  // working cache of paired alignments by read name
 
@@ -13920,6 +13920,8 @@ var igv = (function (igv) {
             this.bamReader = new igv.Ga4ghAlignmentReader(config);
         } else if ("pysam" === config.sourceType) {
             this.bamReader = new igv.BamWebserviceReader(config)
+        } else if("htsget" === config.sourceType) {
+            this.bamReader = new igv.HtsgetReader(config);
         } else {
             this.bamReader = new igv.BamReader(config);
         }
@@ -15221,7 +15223,6 @@ var igv = (function (igv) {
     var MATE_STRAND_FLAG = 0x20;
 
 
-
     igv.BamUtils = {
 
         readHeader: function (url, options, genome) {
@@ -15232,9 +15233,12 @@ var igv = (function (igv) {
 
                     .then(function (compressedBuffer) {
 
-                        var header;
+                        var header, unc, uncba;
 
-                        header = igv.BamUtils.decodeBamHeader(compressedBuffer, genome);
+                        unc = igv.unbgzf(compressedBuffer);
+                        uncba = new Uint8Array(unc);
+
+                        header = igv.BamUtils.decodeBamHeader(uncba, genome);
 
                         fulfill(header);
 
@@ -15246,21 +15250,25 @@ var igv = (function (igv) {
             });
         },
 
-        decodeBamHeader: function (compressedBuffer, genome) {
+        /**
+         *
+         * @param ba  bytes to decode as a UInt8Array
+         * @param genome  optional igv genome object
+         * @returns {{chrNames: Array, chrToIndex: ({}|*), chrAliasTable: ({}|*)}}
+         */
+        decodeBamHeader: function (ba, genome) {
 
-            var unc, uncba, magic, samHeaderLen, samHeader, chrToIndex, chrNames, chrAliasTable, alias;
+            var magic, samHeaderLen, samHeader, chrToIndex, chrNames, chrAliasTable, alias;
 
-            unc = igv.unbgzf(compressedBuffer);
-            uncba = new Uint8Array(unc);
-            magic = readInt(uncba, 0);
-            samHeaderLen = readInt(uncba, 4);
+            magic = readInt(ba, 0);
+            samHeaderLen = readInt(ba, 4);
             samHeader = '';
 
             for (var i = 0; i < samHeaderLen; ++i) {
-                samHeader += String.fromCharCode(uncba[i + 8]);
+                samHeader += String.fromCharCode(ba[i + 8]);
             }
 
-            var nRef = readInt(uncba, samHeaderLen + 8);
+            var nRef = readInt(ba, samHeaderLen + 8);
             var p = samHeaderLen + 12;
 
             chrToIndex = {};
@@ -15268,12 +15276,12 @@ var igv = (function (igv) {
             chrAliasTable = {};
 
             for (var i = 0; i < nRef; ++i) {
-                var lName = readInt(uncba, p);
+                var lName = readInt(ba, p);
                 var name = '';
                 for (var j = 0; j < lName - 1; ++j) {
-                    name += String.fromCharCode(uncba[p + 4 + j]);
+                    name += String.fromCharCode(ba[p + 4 + j]);
                 }
-                var lRef = readInt(uncba, p + lName + 4);
+                var lRef = readInt(ba, p + lName + 4);
                 //dlog(name + ': ' + lRef);
 
                 chrToIndex[name] = i;
@@ -15288,6 +15296,7 @@ var igv = (function (igv) {
             }
 
             return {
+                size: p,
                 chrNames: chrNames,
                 chrToIndex: chrToIndex,
                 chrAliasTable: chrAliasTable
@@ -15295,6 +15304,62 @@ var igv = (function (igv) {
 
         },
 
+        bam_tag2cigar: function(ba, block_end, seq_offset, lseq, al, cigarArray) {
+
+            function type2size(x) {
+                if (x == 'C' || x == 'c' || x == 'A') return 1;
+                else if (x == 'S' || x == 's') return 2;
+                else if (x == 'I' || x == 'i' || x == 'f') return 4;
+                else return 0;
+            }
+
+            // test if the real CIGAR is encoded in a CG:B,I tag
+            if (cigarArray.length != 1 || al.start < 0) return false;
+            var p = seq_offset + ((lseq + 1) >> 1) + lseq;
+            while (p + 4 < block_end) {
+                var tag = String.fromCharCode(ba[p]) + String.fromCharCode(ba[p+1]);
+                if (tag == "CG") break;
+                var type = String.fromCharCode(ba[p+2]);
+                if (type == 'B') { // the binary array type
+                    type = String.fromCharCode(ba[p+3]);
+                    var size = type2size(type);
+                    var len = readInt(ba, p+4);
+                    p += 8 + size * len;
+                } else if (type == 'Z' || type == 'H') { // 0-terminated string
+                    p += 3;
+                    while (ba[p++] != 0) {}
+                } else { // other atomic types
+                    p += 3 + type2size(type);
+                }
+            }
+            if (p >= block_end) return false; // no CG tag
+            if (String.fromCharCode(ba[p+2]) != 'B' || String.fromCharCode(ba[p+3]) != 'I') return false; // not of type B,I
+
+            // now we know the real CIGAR length and its offset in the binary array
+            var cigar_len = readInt(ba, p+4);
+            var cigar_offset = p + 8; // 4 for "CGBI" and 4 for length
+            if (cigar_offset + cigar_len * 4 > block_end) return false; // out of bound
+
+            // decode CIGAR
+            var cigar = "";
+            var lengthOnRef = 0;
+            cigarArray.length = 0; // empty the old array
+            p = cigar_offset;
+            for (var k = 0; k < cigar_len; ++k, p += 4) {
+                var cigop = readInt(ba, p);
+                var opLen = (cigop >> 4);
+                var opLtr = CIGAR_DECODER[cigop & 0xf];
+                if (opLtr == 'M' || opLtr == 'EQ' || opLtr == 'X' || opLtr == 'D' || opLtr == 'N' || opLtr == '=')
+                    lengthOnRef += opLen;
+                cigar = cigar + opLen + opLtr;
+                cigarArray.push({len: opLen, ltr: opLtr});
+            }
+
+            // update alignment record. We are not updating bin, as apparently it is not used.
+            al.cigar = cigar;
+            al.lengthOnRef = lengthOnRef;
+            return true;
+        },
 
         /**
          *
@@ -15376,10 +15441,13 @@ var igv = (function (igv) {
                 alignment.start = pos;
                 alignment.flags = flag;
                 alignment.strand = !(flag & READ_STRAND_FLAG);
-                alignment.readName = readName;               alignment.cigar = cigar;
+                alignment.readName = readName;
+                alignment.cigar = cigar;
                 alignment.lengthOnRef = lengthOnRef;
                 alignment.fragmentLength = tlen;
                 alignment.mq = mq;
+
+                igv.BamUtils.bam_tag2cigar(ba, blockEnd, p, lseq, alignment, cigarArray);
 
                 if (alignment.start + alignment.lengthOnRef < min) {
                     offset = blockEnd;
@@ -15396,7 +15464,6 @@ var igv = (function (igv) {
                 }
                 seq = seq.slice(0, lseq).join('');  // seq might have one extra character (if lseq is an odd number)
                 p += seqBytes;
-
 
 
                 if (lseq === 1 && String.fromCharCode(ba[p + j] + 33) === "*") {
@@ -15479,6 +15546,7 @@ var igv = (function (igv) {
                         lengthOnRef += opLen;
                 });
                 alignment.lengthOnRef = lengthOnRef;
+                // TODO for lh3: parse the CG:B,I tag in SAM here
 
                 if (alignment.start + lengthOnRef < min) {
                     continue;    // To the left, skip and continue
@@ -15487,7 +15555,7 @@ var igv = (function (igv) {
 
                 qualString = tokens[10];
                 alignment.qual = [];
-                for(j=0; j < qualString.length; j++) {
+                for (j = 0; j < qualString.length; j++) {
                     alignment.qual[j] = qualString.charCodeAt(j) - 33;
                 }
                 alignment.tagDict = tokens.length < 11 ? {} : decodeSamTags(tokens.slice(11));
@@ -16044,6 +16112,217 @@ var igv = (function (igv) {
 
     return igv;
 
+})(igv || {});
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var igv = (function (igv) {
+
+    igv.HtsgetReader = function (config) {
+        this.config = config;
+    };
+
+    igv.HtsgetReader.prototype.readAlignments = function (chr, start, end) {
+
+        var self = this;
+
+        return new Promise(function (fulfill, reject) {
+
+            getHeader()
+
+                .then(function (header) {
+
+                    var queryChr, url;
+
+                    queryChr = header.chrAliasTable.hasOwnProperty(chr) ? header.chrAliasTable[chr] : chr;
+
+                    url = self.config.url + self.config.id +
+                        '?referenceName=' + queryChr +
+                        '&start=' + start +
+                        '&end=' + end;
+
+
+                    igv.xhr.loadJson(url, self.config)
+
+                        .then(function (data) {
+
+                            if (data && data.htsget && data.htsget.urls) {
+
+                                loadUrls(data.htsget.urls)
+
+                                    .then(function (dataArr) {
+
+                                        var compressedData, unc, ba, alignmentContainer, chrIdx;
+
+                                        compressedData = concatArrays(dataArr);  // In essence a complete bam file
+                                        unc = igv.unbgzf(compressedData.buffer);
+                                        ba = new Uint8Array(unc);
+
+
+                                        chrIdx = self.header.chrToIndex[chr];
+                                        alignmentContainer = new igv.AlignmentContainer(chr, start, end);
+                                        igv.BamUtils.decodeBamRecords(ba, header.size, alignmentContainer, start, end, chrIdx, header.chrNames);
+                                        alignmentContainer.finish()
+                                        fulfill(alignmentContainer);
+                                    })
+                                    .catch(function (error) {
+                                        reject(error);
+                                    });
+                            } else {
+                                fulfill(null);
+                            }
+                        })
+                        .catch(function (error) {
+                            reject(error);
+                        });
+                });
+
+            function getHeader() {
+
+                if (self.header) {
+                    return Promise.resolve(self.header);
+                }
+                else {
+                    return new Promise(function (fulfill, reject) {
+
+                        // htsget does not specify a method to get the header alone.  specify a non-sensical range
+                        // to return just the header
+
+                        var url = self.config.url + self.config.id + '?referenceName=noSuchReference';
+
+                        igv.xhr.loadJson(url, self.config)
+
+                            .then(function (data) {
+
+                                var genome = igv.browser ? igv.browser.genome : undefined;
+
+                                if (data && data.htsget && data.htsget.urls) {
+
+                                    loadUrls(data.htsget.urls)
+
+                                        .then(function (dataArr) {
+
+                                            var compressedData, unc, ba, alignmentContainer, chrIdx;
+
+                                            compressedData = concatArrays(dataArr);  // In essence a complete bam file
+                                            unc = igv.unbgzf(compressedData.buffer);
+                                            ba = new Uint8Array(unc);
+
+                                            self.header = igv.BamUtils.decodeBamHeader(ba, genome);
+
+                                            fulfill(self.header);
+                                        });
+                                }
+                                else {
+                                    reject("Error querying htsget: " + headerUrl);
+                                }
+                            });
+
+                    })
+                }
+
+            }
+        });
+    }
+
+
+    function loadUrls(urls) {
+        var promiseArray = [];
+        urls.forEach(function (urlData) {
+            if (urlData.url.startsWith('data:')) {
+                // this is a data-uri
+                promiseArray.push(Promise.resolve(dataUriToBlob(urlData.url)));
+            } else {
+                var options = {};
+
+                if (urlData.headers) {
+                    options.headers = urlData.headers;
+                    if(options.headers.hasOwnProperty("referer")) {
+                        delete options.headers["referer"];
+                    }
+                }
+
+                promiseArray.push(new Promise(function (fulfill, reject) {
+                    igv.xhr.loadArrayBuffer(urlData.url, options)
+                        .then(function (buffer) {
+                            fulfill(new Uint8Array(buffer));
+                        });
+                }));
+            }
+        });
+        return Promise.all(promiseArray);
+    }
+
+    /**
+     * Concatenate a list of Uint8Arrays
+     * @param arrays
+     */
+    function concatArrays(arrays) {
+
+        var len, newArray, offset;
+        len = 0;
+        arrays.forEach(function (a) {
+            len += a.length;
+        });
+
+        offset = 0;
+        newArray = new Uint8Array(len);
+        arrays.forEach(function (a) {
+            newArray.set(a, offset);
+            offset += a.length;
+        });
+
+        return newArray;
+
+    }
+
+    function dataUriToBlob(dataUri) {
+        var bytes,
+            split = dataUri.split(','),
+            info = split[0].split(':')[1],
+            dataString = split[1];
+
+        if (info.indexOf('base64') >= 0) {
+            dataString = atob(dataString);
+        } else {
+            dataString = decodeURI(dataString);
+        }
+
+        bytes = new Uint8Array(dataString.length);
+        for (var i = 0; i < dataString.length; i++) {
+            bytes[i] = dataString.charCodeAt(i);
+        }
+
+        return bytes;
+        //return new Blob([bytes], {type: 'application/octet-stream'});
+    }
+
+
+    return igv;
 })(igv || {});
 
 /*
@@ -19263,13 +19542,9 @@ var igv = (function (igv) {
  */
 var igv = (function (igv) {
 
-    /**
-     * @param config      dataSource configuration
-     * @param tableFormat table formatting object (see for example EncodeTableFormat)
-     */
-    igv.EncodeDataSource = function (config, tableFormat) {
+    igv.EncodeDataSource = function (config, columnFormat) {
         this.config = config;
-        this.tableFormat = tableFormat;
+        this.columnFormat = columnFormat;
     };
 
     igv.EncodeDataSource.prototype.retrieveData = function (continuation) {
@@ -19306,8 +19581,7 @@ var igv = (function (igv) {
             .loadJson(query, {})
             .then(function (json) {
 
-                var rows,
-                    obj;
+                var rows;
 
                 rows = [];
                 _.each(json["@graph"], function (record) {
@@ -19360,65 +19634,93 @@ var igv = (function (igv) {
 
                 });
 
-                rows.sort(function (a, b) {
-                    var a1 = a["Assembly"],
-                        a2 = b["Assembly"],
-                        ct1 = a["Cell Type"],
-                        ct2 = b["Cell Type"],
-                        t1 = a["Target"],
-                        t2 = b["Target"];
+                // insert placeholders for missing data
+                self.data = _.map(rows, function (row) {
+                    return _.mapObject(row, function (val) {
+                        return (undefined === val || '' === val) ? '-' : val;
+                    });
+                });
 
-                    if (a1 === a2) {
-                        if (ct1 === ct2) {
-                            if (t1 === t2) {
+                self.data.sort(function (a, b) {
+                    var aa1,
+                        aa2,
+                        cc1,
+                        cc2,
+                        tt1,
+                        tt2;
+
+                    aa1 = a['Assembly' ]; aa2 = b['Assembly' ];
+                    cc1 = a['Cell Type']; cc2 = b['Cell Type'];
+                    tt1 = a['Target'   ]; tt2 = b['Target'   ];
+
+                    if (aa1 === aa2) {
+                        if (cc1 === cc2) {
+                            if (tt1 === tt2) {
                                 return 0;
-                            }
-                            else if (t1 < t2) {
+                            } else if (tt1 < tt2) {
                                 return -1;
-                            }
-                            else {
+                            } else {
                                 return 1;
                             }
-                        }
-                        else if (ct1 < ct2) {
+                        } else if (cc1 < cc2) {
                             return -1;
-                        }
-                        else {
+                        } else {
                             return 1;
                         }
-                    }
-                    else {
-                        if (a1 < a2) {
+                    } else {
+                        if (aa1 < aa2) {
                             return -1;
-                        }
-                        else {
+                        } else {
                             return 1;
                         }
                     }
                 });
 
-                obj = {
-                    columns: [ 'Assembly', 'Cell Type', 'Target', 'Assay Type', 'Output Type', 'Lab' ],
-                    rows: rows
-                };
-
-                ingestData(obj, function (json) {
-                    continuation(json);
-                });
-
+                continuation(true);
 
             })
             .catch(function (e) {
-                continuation(undefined);
+                continuation(false);
             });
 
+    };
+
+    igv.EncodeDataSource.prototype.tableData = function () {
+        var self = this,
+            mapped;
+
+        mapped = _.map(this.data, function (row) {
+
+            // Isolate the subset of the data for display in the table
+            return _.values(_.pick(row, _.map(self.columnFormat, function (column) {
+                return _.first(_.keys(column));
+            })));
+        });
+
+        return mapped;
+    };
+
+    igv.EncodeDataSource.prototype.tableColumns = function () {
+
+        var columns;
+
+        columns = _.map(this.columnFormat, function (obj) {
+            var key,
+                val;
+
+            key = _.first(_.keys(obj));
+            val = _.first(_.values(obj));
+            return { title: key, width: val }
+        });
+
+        return columns;
     };
 
     igv.EncodeDataSource.prototype.dataAtRowIndex = function (index) {
         var row,
             obj;
 
-        row =  this.jSON.rows[ index ];
+        row =  this.data[ index ];
 
         obj =
             {
@@ -19426,6 +19728,8 @@ var igv = (function (igv) {
                 color: encodeAntibodyColor(row[ 'Target' ]),
                 name: row['Name']
             };
+
+        return obj;
 
         function encodeAntibodyColor (antibody) {
 
@@ -19454,172 +19758,9 @@ var igv = (function (igv) {
             return colors[ key ];
 
         }
-
-        return obj;
-    };
-
-    igv.EncodeDataSource.prototype.tableData = function () {
-        return this.tableFormat.tableData(this.jSON);
-    };
-
-    igv.EncodeDataSource.prototype.tableColumns = function () {
-        return this.tableFormat.tableColumns(this.jSON);
-    };
-
-    function ingestData(data, continuation) {
-
-        if (data instanceof File) {
-            getFile.call(this, data, continuation);
-        } else if (data instanceof Object) {
-            getJSON.call(this, data, continuation);
-        }
-
-        function getJSON(json, continuation) {
-
-            json.rows.forEach(function(row, i){
-
-                Object.keys(row).forEach(function(key){
-                    var item = row[ key ];
-                    json.rows[ i ][ key ] = (undefined === item || "" === item) ? "-" : item;
-                });
-
-            });
-
-            continuation(json);
-        }
-
-        function getFile(file, continuation) {
-
-            var json;
-
-            json = {};
-            igv.xhr.loadString(file).then(function (data) {
-
-                var lines = data.splitLines(),
-                    item;
-
-                // Raw data items order:
-                // path | cell | dataType | antibody | view | replicate | type | lab | hub
-                //
-                // Reorder to match desired order. Discard hub item.
-                //
-                json.columns = lines[0].split("\t");
-                json.columns.pop();
-                item = json.columns.shift();
-                json.columns.push(item);
-
-                json.rows = [];
-
-                lines.slice(1, lines.length - 1).forEach(function (line) {
-
-                    var tokens,
-                        row;
-
-                    tokens = line.split("\t");
-                    tokens.pop();
-                    item = tokens.shift();
-                    tokens.push(item);
-
-                    row = {};
-                    tokens.forEach(function (t, i, ts) {
-                        var key = json.columns[ i ];
-                        row[ key ] = (undefined === t || "" === t) ? "-" : t;
-                    });
-
-                    json.rows.push(row);
-
-                });
-
-                continuation(json);
-            });
-
-        }
-
-    }
-
-    return igv;
-
-})(igv || {});
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- * Author: Jim Robinson
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-var igv = (function (igv) {
-
-    /**
-     * @param config tableFormat configuration
-     */
-    igv.EncodeTableFormat = function (config) {
-        this.config = config;
-    };
-
-    /**
-     * @param jSON data object passed from EncodeDataSource instance
-     */
-    igv.EncodeTableFormat.prototype.tableData = function (jSON) {
-
-        var result;
-
-        result = _.map(jSON.rows, function (row, index) {
-
-            var rr;
-
-            rr = _.map(jSON.columns, function (key) {
-                return row[key];
-            });
-
-            // rr.unshift(index);
-
-            return rr;
-
-        });
-
-        return result;
-    };
-
-    /**
-     * @param jSON data object passed from EncodeDataSource instance
-     */
-    igv.EncodeTableFormat.prototype.tableColumns = function (jSON) {
-
-        var self = this,
-            columns;
-
-        columns = _.map(jSON.columns, function (heading) {
-            return {title: heading, width: self.config.columnWidths[heading]}
-        });
-
-        // columns.unshift({ title:'index', width:'10%' });
-
-        return columns;
-
     };
 
     return igv;
-
 
 })(igv || {});
 
@@ -36896,7 +37037,9 @@ var igv = (function (igv) {
 
         this.$container.append(this.$header);
 
-        igv.makeDraggable(this.$container, this.$header);
+        if (igv.colorPicker) {
+            igv.makeDraggable(this.$container, this.$header);
+        }
 
         // color palette
         for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
@@ -37286,9 +37429,9 @@ var igv = (function (igv) {
         self.container.append(doLayout());
 
         self.container.append(doOKCancel());
-
-        igv.makeDraggable(this.container, this.header);
-
+        if (igv.colorPicker) {
+            igv.makeDraggable(this.container, this.header);
+        }
 
         function doOKCancel() {
 
@@ -37497,7 +37640,9 @@ var igv = (function (igv) {
 
         constructorHelper(this);
 
-        igv.makeDraggable(this.$container, $header);
+        if (igv.colorPicker) {
+            igv.makeDraggable(this.$container, $header);
+        }
 
         igv.attachDialogCloseHandlerWithParent($header, function () {
             self.hide();
@@ -37792,7 +37937,9 @@ var igv = (function (igv) {
 
         this.$popover.append(this.$popoverContent);
 
-        igv.makeDraggable(this.$popover, $popoverHeader);
+        if (igv.colorPicker) {
+            igv.makeDraggable(this.$popover, $popoverHeader);
+        }
 
         return $parent;
 
