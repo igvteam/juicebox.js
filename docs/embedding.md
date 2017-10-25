@@ -9,7 +9,8 @@ complete with load menus and an embedded map click [here](site).
 
 ### Summary
 
-1. Create an empty div element into which Juicebox will embed itself.  In the examples below the div has the id `juicebox-container`.
+1. Create an empty div element into which juicebox will embed itself.  In the examples
+below the div has the id `juicebox-container`.
 
 2. Execute JavaScript after the document has loaded to create a juicebox browser object and embed itself into the container created in step 1.   This is usually
 executed from a document `DOMContentLoaded` event listener or, if using
@@ -73,11 +74,11 @@ The second argument to `hic.createBrowser` is an optional configuration object. 
 
 Name  | Description
 :------------- | :-------------
-url  | URL to a .hic file
-name| Name of the initial dataset specified in the URL property
-state| String encoding the intial state  (see below)
-colorScale | string encoding the initial color scale (see below)
-tracks | Array of track configuration objects.  See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the track config object.
+**url**  | URL to a .hic file
+**name**| Name of the initial dataset specified in the URL property
+**state**| String encoding the intial state  (see below)
+**colorScale** | String encoding the initial color scale (see below)
+**tracks** | Array of track configuration objects.  See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the track config object.
 
 **state** string (comma delimited list):
 
