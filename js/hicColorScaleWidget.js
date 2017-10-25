@@ -46,7 +46,7 @@ var hic = (function (hic) {
         });
 
         // input
-        this.$high_colorscale_input = $('<input type="text" placeholder="high">');
+        this.$high_colorscale_input = $('<input type="text" placeholder="">');
         this.$container.append(this.$high_colorscale_input);
 
         this.$high_colorscale_input.on('change', function(e){
