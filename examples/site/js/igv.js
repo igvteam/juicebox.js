@@ -13821,15 +13821,12 @@ var igv = (function (igv) {
 
                     var len = index.firstAlignmentBlock + MAX_GZIP_BLOCK_SIZE,   // Insure we get the complete compressed block containing the header
                         options = igv.buildOptions(self.config, {range: {start: 0, size: len}}),
-                        genome = igv.browser ? igv.browser.genome : null,
-                        header;
+                        genome = igv.browser ? igv.browser.genome : null;
 
-                    igv.BamUtils.readHeader(self.bamPath, options, genome)
-                        .then(function (header) {
-                            fulfill(header);
-                        })
-                        .catch(reject);
-
+                    return igv.BamUtils.readHeader(self.bamPath, options, genome)
+                })
+                .then(function (header) {
+                    fulfill(header);
                 })
                 .catch(reject);
         });
@@ -16152,101 +16149,91 @@ var igv = (function (igv) {
 
         return new Promise(function (fulfill, reject) {
 
-            getHeader()
+                getHeader()
 
-                .then(function (header) {
+                    .then(function (header) {
 
-                    var queryChr, url;
+                        var queryChr, url;
 
-                    queryChr = header.chrAliasTable.hasOwnProperty(chr) ? header.chrAliasTable[chr] : chr;
+                        queryChr = header.chrAliasTable.hasOwnProperty(chr) ? header.chrAliasTable[chr] : chr;
 
-                    url = self.config.url + self.config.id +
-                        '?referenceName=' + queryChr +
-                        '&start=' + start +
-                        '&end=' + end;
+                        url = self.config.endpoint + '/reads/' + self.config.id +
+                            '?referenceName=' + queryChr +
+                            '&start=' + start +
+                            '&end=' + end;
 
-
-                    igv.xhr.loadJson(url, self.config)
-
-                        .then(function (data) {
-
-                            if (data && data.htsget && data.htsget.urls) {
-
-                                loadUrls(data.htsget.urls)
-
-                                    .then(function (dataArr) {
-
-                                        var compressedData, unc, ba, alignmentContainer, chrIdx;
-
-                                        compressedData = concatArrays(dataArr);  // In essence a complete bam file
-                                        unc = igv.unbgzf(compressedData.buffer);
-                                        ba = new Uint8Array(unc);
-
-
-                                        chrIdx = self.header.chrToIndex[chr];
-                                        alignmentContainer = new igv.AlignmentContainer(chr, start, end);
-                                        igv.BamUtils.decodeBamRecords(ba, header.size, alignmentContainer, start, end, chrIdx, header.chrNames);
-                                        alignmentContainer.finish()
-                                        fulfill(alignmentContainer);
-                                    })
-                                    .catch(function (error) {
-                                        reject(error);
-                                    });
-                            } else {
-                                fulfill(null);
-                            }
-                        })
-                        .catch(function (error) {
-                            reject(error);
-                        });
-                });
-
-            function getHeader() {
-
-                if (self.header) {
-                    return Promise.resolve(self.header);
-                }
-                else {
-                    return new Promise(function (fulfill, reject) {
-
-                        // htsget does not specify a method to get the header alone.  specify a non-sensical range
-                        // to return just the header
-
-                        var url = self.config.url + self.config.id + '?referenceName=noSuchReference';
-
-                        igv.xhr.loadJson(url, self.config)
-
-                            .then(function (data) {
-
-                                var genome = igv.browser ? igv.browser.genome : undefined;
-
-                                if (data && data.htsget && data.htsget.urls) {
-
-                                    loadUrls(data.htsget.urls)
-
-                                        .then(function (dataArr) {
-
-                                            var compressedData, unc, ba, alignmentContainer, chrIdx;
-
-                                            compressedData = concatArrays(dataArr);  // In essence a complete bam file
-                                            unc = igv.unbgzf(compressedData.buffer);
-                                            ba = new Uint8Array(unc);
-
-                                            self.header = igv.BamUtils.decodeBamHeader(ba, genome);
-
-                                            fulfill(self.header);
-                                        });
-                                }
-                                else {
-                                    reject("Error querying htsget: " + headerUrl);
-                                }
-                            });
-
+                        return igv.xhr.loadJson(url, self.config)
                     })
-                }
+                    .then(function (data) {
+                        return loadUrls(data.htsget.urls)
+                    })
+                    .then(function (dataArr) {
 
+                        var compressedData, unc, ba, alignmentContainer, chrIdx;
+
+                        compressedData = concatArrays(dataArr);  // In essence a complete bam file
+                        unc = igv.unbgzf(compressedData.buffer);
+                        ba = new Uint8Array(unc);
+
+
+                        chrIdx = self.header.chrToIndex[chr];
+                        alignmentContainer = new igv.AlignmentContainer(chr, start, end);
+                        igv.BamUtils.decodeBamRecords(ba, self.header.size, alignmentContainer, start, end, chrIdx, self.header.chrNames);
+                        alignmentContainer.finish()
+                        fulfill(alignmentContainer);
+                    })
+                    .catch(function (error) {
+                        reject(error);
+                    });
+
+
+                function getHeader() {
+
+                    if (self.header) {
+                        return Promise.resolve(self.header);
+                    }
+                    else {
+                        return new Promise(function (fulfill, reject) {
+
+                            // htsget does not specify a method to get the header alone.  specify a non-sensical range
+                            // to return just the header
+
+                            var url = self.config.endpoint + '/reads/' + self.config.id + '?referenceName=noSuchReference';
+
+                            igv.xhr.loadJson(url, self.config)
+
+                                .then(function (data) {
+
+                                    var genome = igv.browser ? igv.browser.genome : undefined;
+
+                                    if (data && data.htsget && data.htsget.urls) {
+
+                                        loadUrls(data.htsget.urls)
+
+                                            .then(function (dataArr) {
+
+                                                var compressedData, unc, ba, alignmentContainer, chrIdx;
+
+                                                compressedData = concatArrays(dataArr);  // In essence a complete bam file
+                                                unc = igv.unbgzf(compressedData.buffer);
+                                                ba = new Uint8Array(unc);
+
+                                                self.header = igv.BamUtils.decodeBamHeader(ba, genome);
+
+                                                fulfill(self.header);
+                                            });
+                                    }
+                                    else {
+                                        reject("Error querying htsget: " + headerUrl);
+                                    }
+                                });
+
+                        })
+                    }
+
+                }
             }
-        });
+        );
     }
 
 
@@ -16261,7 +16248,7 @@ var igv = (function (igv) {
 
                 if (urlData.headers) {
                     options.headers = urlData.headers;
-                    if(options.headers.hasOwnProperty("referer")) {
+                    if (options.headers.hasOwnProperty("referer")) {
                         delete options.headers["referer"];
                     }
                 }
@@ -16323,7 +16310,8 @@ var igv = (function (igv) {
 
 
     return igv;
-})(igv || {});
+})
+(igv || {});
 
 /*
  * The MIT License (MIT)
@@ -16565,10 +16553,11 @@ var igv = (function (igv) {
 
                 igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: loadRange}))
                     .then(function (arrayBuffer) {
-                    self.data = arrayBuffer;
-                    self.range = loadRange;
-                    subbuffer(self, requestedRange, asUint8);
-                }).catch(reject);
+                        self.data = arrayBuffer;
+                        self.range = loadRange;
+                        subbuffer(self, requestedRange, asUint8);
+                    })
+                    .catch(reject);
 
             }
 
@@ -16756,10 +16745,13 @@ var igv = (function (igv) {
             var rootNodeOffset = self.fileOffset + RPTREE_HEADER_SIZE,
                 bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
 
-            self.readNode(rootNodeOffset, bufferedReader).then(function (node) {
-                self.rootNode = node;
-                fulfill(self);
-            }).catch(reject);
+            self.readNode(rootNodeOffset, bufferedReader)
+
+                .then(function (node) {
+                    self.rootNode = node;
+                    fulfill(self);
+                })
+                .catch(reject);
         });
     }
 
@@ -16768,22 +16760,30 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
+        return new Promise(function (resolve, reject) {
 
-            bufferedReader.dataViewForRange({start: filePosition, size: 4}, false).then(function (dataView) {
-                var binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
+            var count, isLeaf;
 
-                var type = binaryParser.getByte();
-                var isLeaf = (type === 1) ? true : false;
-                var reserved = binaryParser.getByte();
-                var count = binaryParser.getUShort();
+            bufferedReader.dataViewForRange({start: filePosition, size: 4}, false)
 
-                filePosition += 4;
+                .then(function (dataView) {
+                    var binaryParser, type, reserved;
 
-                var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
-                var range2 = {start: filePosition, size: bytesRequired};
+                    binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
+                    type = binaryParser.getByte();
+                    isLeaf = (type === 1) ? true : false;
+                    reserved = binaryParser.getByte();
+                    count = binaryParser.getUShort();
 
-                bufferedReader.dataViewForRange(range2, false).then(function (dataView) {
+                    filePosition += 4;
+
+                    var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
+                    var range2 = {start: filePosition, size: bytesRequired};
+
+                    return bufferedReader.dataViewForRange(range2, false);
+                })
+
+                .then(function (dataView) {
 
                     var i,
                         items = new Array(count),
@@ -16803,7 +16803,7 @@ var igv = (function (igv) {
                             items[i] = item;
 
                         }
-                        fulfill(new RPTreeNode(items));
+                        resolve(new RPTreeNode(items));
                     }
                     else { // non-leaf
                         for (i = 0; i < count; i++) {
@@ -16820,10 +16820,11 @@ var igv = (function (igv) {
 
                         }
 
-                        fulfill(new RPTreeNode(items));
+                        resolve(new RPTreeNode(items));
                     }
-                }).catch(reject);
-            }).catch(reject);
+                })
+                .catch(reject);
+
         });
     }
 
@@ -16861,10 +16862,13 @@ var igv = (function (igv) {
                                 }
                                 else {
                                     processing.add(item.childOffset);  // Represent node to-be-loaded by its file position
-                                    self.readNode(item.childOffset, bufferedReader).then(function (node) {
-                                        item.childNode = node;
-                                        findLeafItems(node, item.childOffset);
-                                    }).catch(reject);
+                                    
+                                    self.readNode(item.childOffset, bufferedReader)
+                                        .then(function (node) {
+                                            item.childNode = node;
+                                            findLeafItems(node, item.childOffset);
+                                        })
+                                        .catch(reject);
                                 }
                             }
                         }
@@ -16981,149 +16985,145 @@ var igv = (function (igv) {
         this.config = config;
     };
 
-    igv.BWReader.prototype.getZoomHeaders = function () {
-
-        var self = this;
-
-        return new Promise(function (fulfill, reject) {
-            if (self.zoomLevelHeaders) {
-                fulfill(self.zoomLevelHeaders);
-            }
-            else {
-                self.loadHeader().then(function () {
-                    fulfill(self.zoomLevelHeaders);
-                }).catch(function (error) {
-                    reject(error);
-                });
-            }
-        });
-    }
-
     igv.BWReader.prototype.loadHeader = function () {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
-            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: 0, size: BBFILE_HEADER_SIZE}}))
+        return new Promise(function (resolve, reject) {
+            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+                range: {
+                    start: 0,
+                    size: BBFILE_HEADER_SIZE
+                }
+            }))
                 .then(function (data) {
 
-                if (!data) return;
+                    var header = {};
 
-                // Assume low-to-high unless proven otherwise
-                self.littleEndian = true;
+                    // Assume low-to-high unless proven otherwise
+                    self.littleEndian = true;
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
+                    var binaryParser = new igv.BinaryParser(new DataView(data));
 
-                var magic = binaryParser.getUInt();
-
-                if (magic === BIGWIG_MAGIC_LTH) {
-                    self.type = "BigWig";
-                }
-                else if (magic == BIGBED_MAGIC_LTH) {
-                    self.type = "BigBed";
-                }
-                else {
-                    //Try big endian order
-                    self.littleEndian = false;
-
-                    binaryParser.littleEndian = false;
-                    binaryParser.position = 0;
                     var magic = binaryParser.getUInt();
 
-                    if (magic === BIGWIG_MAGIC_HTL) {
+                    if (magic === BIGWIG_MAGIC_LTH) {
                         self.type = "BigWig";
                     }
-                    else if (magic == BIGBED_MAGIC_HTL) {
+                    else if (magic == BIGBED_MAGIC_LTH) {
                         self.type = "BigBed";
                     }
                     else {
-                        // TODO -- error, unknown file type  or BE
+                        //Try big endian order
+                        self.littleEndian = false;
+
+                        binaryParser.littleEndian = false;
+                        binaryParser.position = 0;
+                        var magic = binaryParser.getUInt();
+
+                        if (magic === BIGWIG_MAGIC_HTL) {
+                            self.type = "BigWig";
+                        }
+                        else if (magic == BIGBED_MAGIC_HTL) {
+                            self.type = "BigBed";
+                        }
+                        else {
+                            // TODO -- error, unknown file type  or BE
+                        }
                     }
+                    // Table 5  "Common header for BigWig and BigBed files"
+                    header = {};
+                    header.bwVersion = binaryParser.getUShort();
+                    header.nZoomLevels = binaryParser.getUShort();
+                    header.chromTreeOffset = binaryParser.getLong();
+                    header.fullDataOffset = binaryParser.getLong();
+                    header.fullIndexOffset = binaryParser.getLong();
+                    header.fieldCount = binaryParser.getUShort();
+                    header.definedFieldCount = binaryParser.getUShort();
+                    header.autoSqlOffset = binaryParser.getLong();
+                    header.totalSummaryOffset = binaryParser.getLong();
+                    header.uncompressBuffSize = binaryParser.getInt();
+                    header.reserved = binaryParser.getLong();
 
-                }
-                // Table 5  "Common header for BigWig and BigBed files"
-                self.header = {};
-                self.header.bwVersion = binaryParser.getUShort();
-                self.header.nZoomLevels = binaryParser.getUShort();
-                self.header.chromTreeOffset = binaryParser.getLong();
-                self.header.fullDataOffset = binaryParser.getLong();
-                self.header.fullIndexOffset = binaryParser.getLong();
-                self.header.fieldCount = binaryParser.getUShort();
-                self.header.definedFieldCount = binaryParser.getUShort();
-                self.header.autoSqlOffset = binaryParser.getLong();
-                self.header.totalSummaryOffset = binaryParser.getLong();
-                self.header.uncompressBuffSize = binaryParser.getInt();
-                self.header.reserved = binaryParser.getLong();
+                    return header;
 
-                loadZoomHeadersAndChrTree.call(self).then(fulfill).catch(reject);
-            }).catch(function (error) {
-                    reject(error);
+                })
+
+                .then(function (header) {
+
+                    self.header = header;
+
+                    return loadZoomHeadersAndChrTree.call(self);
+
+                })
+                .then(function (header) {
+                    resolve(header);
+                })
+                .catch(reject);
+
+
+            function loadZoomHeadersAndChrTree() {
+
+                var startOffset = BBFILE_HEADER_SIZE,
+                    self = this;
+
+                return new Promise(function (fulfill, reject) {
+
+                    var range = {start: startOffset, size: (self.header.fullDataOffset - startOffset + 5)};
+
+                    igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                        .then(function (data) {
+
+                            var nZooms = self.header.nZoomLevels,
+                                binaryParser = new igv.BinaryParser(new DataView(data)),
+                                i,
+                                len,
+                                zoomNumber,
+                                zlh;
+
+                            self.zoomLevelHeaders = [];
+
+                            self.firstZoomDataOffset = Number.MAX_VALUE;
+                            for (i = 1; i <= nZooms; i++) {
+                                zoomNumber = nZooms - i;
+                                zlh = new ZoomLevelHeader(zoomNumber, binaryParser);
+                                self.firstZoomDataOffset = Math.min(zlh.dataOffset, self.firstZoomDataOffset);
+                                self.zoomLevelHeaders[zoomNumber] = zlh;
+                            }
+
+                            // Autosql
+                            if (self.header.autoSqlOffset > 0) {
+                                binaryParser.position = self.header.autoSqlOffset - startOffset;
+                                self.autoSql = binaryParser.getString();
+                            }
+
+                            // Total summary
+                            if (self.header.totalSummaryOffset > 0) {
+                                binaryParser.position = self.header.totalSummaryOffset - startOffset;
+                                self.totalSummary = new igv.BWTotalSummary(binaryParser);
+                            }
+
+                            // Chrom data index
+                            if (self.header.chromTreeOffset > 0) {
+                                binaryParser.position = self.header.chromTreeOffset - startOffset;
+                                self.chromTree = new igv.BPTree(binaryParser, startOffset);
+                            }
+                            else {
+                                // TODO -- this is an error, not expected
+                            }
+
+                            //Finally total data count
+                            binaryParser.position = self.header.fullDataOffset - startOffset;
+                            self.dataCount = binaryParser.getInt();
+
+                            fulfill(self.header);
+
+                        }).catch(reject);
                 });
-
+            }
         });
     }
 
-
-    function loadZoomHeadersAndChrTree() {
-
-
-        var startOffset = BBFILE_HEADER_SIZE,
-            self = this;
-
-        return new Promise(function (fulfill, reject) {
-            
-            var range = {start: startOffset, size: (self.header.fullDataOffset - startOffset + 5)};
-
-            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
-                .then(function (data) {
-
-                var nZooms = self.header.nZoomLevels,
-                    binaryParser = new igv.BinaryParser(new DataView(data)),
-                    i,
-                    len,
-                    zoomNumber,
-                    zlh;
-
-                self.zoomLevelHeaders = [];
-
-                self.firstZoomDataOffset = Number.MAX_VALUE;
-                for (i = 1; i <= nZooms; i++) {
-                    zoomNumber = nZooms - i;
-                    zlh = new ZoomLevelHeader(zoomNumber, binaryParser);
-                    self.firstZoomDataOffset = Math.min(zlh.dataOffset, self.firstZoomDataOffset);
-                    self.zoomLevelHeaders[zoomNumber] = zlh;
-                }
-
-                // Autosql
-                if (self.header.autoSqlOffset > 0) {
-                    binaryParser.position = self.header.autoSqlOffset - startOffset;
-                    self.autoSql = binaryParser.getString();
-                }
-
-                // Total summary
-                if (self.header.totalSummaryOffset > 0) {
-                    binaryParser.position = self.header.totalSummaryOffset - startOffset;
-                    self.totalSummary = new igv.BWTotalSummary(binaryParser);
-                }
-
-                // Chrom data index
-                if (self.header.chromTreeOffset > 0) {
-                    binaryParser.position = self.header.chromTreeOffset - startOffset;
-                    self.chromTree = new igv.BPTree(binaryParser, startOffset);
-                }
-                else {
-                    // TODO -- this is an error, not expected
-                }
-
-                //Finally total data count
-                binaryParser.position = self.header.fullDataOffset - startOffset;
-                self.dataCount = binaryParser.getInt();
-
-                fulfill();
-
-            }).catch(reject);
-        });
-    }
 
     igv.BWReader.prototype.loadRPTree = function (offset) {
 
@@ -17136,10 +17136,14 @@ var igv = (function (igv) {
             }
             else {
                 rpTree = new igv.RPTree(offset, self.contentLength, self.config, self.littleEndian);
+
                 self.rpTreeCache[offset] = rpTree;
-                rpTree.load().then(function () {
-                    fulfill(rpTree);
-                }).catch(reject);
+
+                rpTree.load()
+                    .then(function () {
+                        fulfill(rpTree);
+                    })
+                    .catch(reject);
             }
         });
     }
@@ -17200,101 +17204,144 @@ var igv = (function (igv) {
 
     igv.BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
-        var self = this;
+        var self = this,
+            chrIdx;
 
-        return new Promise(function (fulfill, reject) {
+        return new Promise(function (resolve, reject) {
 
-            self.reader.getZoomHeaders().then(function (zoomLevelHeaders) {
+            var decodeFunction;
 
-                // Select a biwig "zoom level" appropriate for the current resolution
-                var bwReader = self.reader,
-                    bufferedReader = self.bufferedReader,
-                    zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
-                    treeOffset,
-                    decodeFunction;
+            self.getZoomHeaders()
 
-                if (zoomLevelHeader) {
-                    treeOffset = zoomLevelHeader.indexOffset;
-                    decodeFunction = decodeZoomData;
-                } else {
-                    treeOffset = bwReader.header.fullIndexOffset;
-                    if (bwReader.type === "BigWig") {
-                        decodeFunction = decodeWigData;
+                .then(function (zoomLevelHeaders) {
+
+                    // Select a biwig "zoom level" appropriate for the current resolution
+                    var bwReader = self.reader,
+                        zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
+                        treeOffset;
+
+                    if (zoomLevelHeader) {
+                        treeOffset = zoomLevelHeader.indexOffset;
+                        decodeFunction = decodeZoomData;
+                    } else {
+                        treeOffset = bwReader.header.fullIndexOffset;
+                        if (bwReader.type === "BigWig") {
+                            decodeFunction = decodeWigData;
+                        }
+                        else {
+                            decodeFunction = decodeBedData;
+                        }
                     }
-                    else {
-                        decodeFunction = decodeBedData;
-                    }
-                }
 
-                bwReader.loadRPTree(treeOffset).then(function (rpTree) {
+                    return bwReader.loadRPTree(treeOffset)
+                })
 
-                    var chrIdx = self.reader.chromTree.dictionary[chr];
+                .then(function (rpTree) {
+
+                    chrIdx = self.reader.chromTree.dictionary[chr];
+
                     if (chrIdx === undefined) {
-                        fulfill(null);
+                        return [];
                     }
                     else {
-
-                        rpTree.findLeafItemsOverlapping(chrIdx, bpStart, bpEnd).then(function (leafItems) {
-
-                            var promises = [];
-
-                            if (!leafItems || leafItems.length == 0) fulfill([]);
-
-                            leafItems.forEach(function (item) {
-
-                                promises.push(new Promise(function (fulfill, reject) {
-                                    var features = [];
-
-                                    bufferedReader.dataViewForRange({
-                                        start: item.dataOffset,
-                                        size: item.dataSize
-                                    }, true).then(function (uint8Array) {
-
-                                        var inflate = new Zlib.Inflate(uint8Array);
-                                        var plain = inflate.decompress();
-                                        decodeFunction(new DataView(plain.buffer), chr, chrIdx, bpStart, bpEnd, features);
-
-                                        fulfill(features);
-
-                                    }).catch(reject);
-                                }));
-                            });
-
-
-                            Promise.all(promises).then(function (featureArrays) {
-
-                                var i, allFeatures = featureArrays[0];
-                                if(featureArrays.length > 1) {
-                                   for(i=1; i<featureArrays.length; i++) {
-                                       allFeatures = allFeatures.concat(featureArrays[i]);
-                                   }
-                                }  
-                                allFeatures.sort(function (a, b) {
-                                    return a.start - b.start;
-                                })
-
-                                fulfill(allFeatures)
-                            }).catch(reject);
-
-                        }).catch(reject);
+                        return rpTree.findLeafItemsOverlapping(chrIdx, bpStart, bpEnd)
                     }
-                }).catch(reject);
-            }).catch(reject);
+
+                })
+
+                .then(function (leafItems) {
+
+                    var promises = [],
+                        bufferedReader = self.bufferedReader;
+
+                    if (!leafItems || leafItems.length == 0) {
+                        return [];
+                    }
+
+                    else {
+                        leafItems.forEach(function (item) {
+
+                            promises.push(new Promise(function (fulfill, reject) {
+                                var features = [];
+
+                                bufferedReader.dataViewForRange({
+                                    start: item.dataOffset,
+                                    size: item.dataSize
+                                }, true).then(function (uint8Array) {
+
+                                    var inflate = new Zlib.Inflate(uint8Array);
+                                    var plain = inflate.decompress();
+                                    decodeFunction(new DataView(plain.buffer), chr, chrIdx, bpStart, bpEnd, features);
+
+                                    fulfill(features);
+
+                                })
+                            }));
+                        });
+                        return Promise.all(promises);
+                    }
+                })
+
+                .then(function (featureArrays) {
+
+                    var i, allFeatures;
+
+                    if (featureArrays.length == 0) {
+                        resolve([]);
+                    }
+                    else {
+                        allFeatures = featureArrays[0];
+
+
+                        if (featureArrays.length > 1) {
+                            for (i = 1; i < featureArrays.length; i++) {
+                                allFeatures = allFeatures.concat(featureArrays[i]);
+                            }
+                        }
+                        allFeatures.sort(function (a, b) {
+                            return a.start - b.start;
+                        });
+
+                        resolve(allFeatures);
+                    }
+                })
+                .catch(reject);
 
 
         });
+
     }
-    
-    
+
+
     igv.BWSource.prototype.getDefaultRange = function () {
-        
-        if(this.reader.totalSummary != undefined) {
+
+        if (this.reader.totalSummary != undefined) {
             return this.reader.totalSummary.defaultRange;
         }
         else {
             return undefined;
         }
-        
+
+    }
+
+
+    igv.BWSource.prototype.getZoomHeaders = function () {
+
+        var self = this;
+
+        if (self.reader.zoomLevelHeaders) {
+            return Promise.resolve(self.reader.zoomLevelHeaders)
+        }
+        else {
+            return new Promise(function (fulfill, reject) {
+
+                self.reader.loadHeader().then(function () {
+                    fulfill(self.reader.zoomLevelHeaders);
+                }).catch(function (error) {
+                    reject(error);
+                });
+            });
+        }
     }
 
 
@@ -17401,7 +17448,7 @@ var igv = (function (igv) {
         }
 
     }
-    
+
     function decodeBedData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
 
         var binaryParser = new igv.BinaryParser(data),
