@@ -65,7 +65,6 @@ See the Browser API section below for configuration options
         window.juiceboxBrowser = hic.createBrowser(appContainer, config);
     });
 </script>
-
 ```
 
 
@@ -100,31 +99,27 @@ The second argument to hic.createBrowser is an optional configuration object.  A
 
 #### To load a .hic map file
 
-```JavaScript
-  
-  juiceboxBrowser.loadHicFile({
-         url: url,    //  url string or File object
-         name: name   //  display name for the map.  Optional, defaults to url
-  }
+```js 
+juiceboxBrowser.loadHicFile({
+    url: url,    //  url string or File object
+    name: name   //  display name for the map.  Optional, defaults to url
+})
 
 ```
 
 
 #### To load a track
 
-```JavaScript
-  
-  juiceboxBroswer.loadTrack(config);
+```js  
+juiceboxBroswer.loadTrack(config);
 
 ```
 
-See https://github.com/igvteam/igv.js/wiki/Tracks for a description of the track config object.  The simplest possible track config contains a single property, the url.  For example
+See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the track config object.  The simplest possible track config contains a single property, the URL.  For example
 
-```JavaScript
-  
+```js 
   juicboxBowser.loadTrack({
      url: "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig"
   });
-
 ```
 
