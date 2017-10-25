@@ -1,8 +1,7 @@
 # Embedding juicebox.js
 
-juicebox.js is an embeddable javascript component for visualization of contact maps
-in the .hic format.  This page describes steps for embedding a map in a
-web page.  The embedded map has an API for loading maps and tracks but
+juicebox.js is an embeddable JavaScript component for visualization of contact maps in the .hic format.  This page describes steps for embedding a map in a
+web page.  The embedded map has an API for loading maps and tracks, but
 does not contain menus to load these tracks.   For a prototype web page
 complete with load menus and an embedded map click [here](site).
 
@@ -10,20 +9,18 @@ complete with load menus and an embedded map click [here](site).
 
 ### Summary
 
-1. Create an empty div element into which juicebox will embed itself.  In the examples
-below the div has the id "juicebox-container"
+1. Create an empty div element into which Juicebox will embed itself.  In the examples below the div has the id `juicebox-container`.
 
-2. Execute javascript after the document has loaded to create a juicebox "browser"
-object and embed itself into the container created in step 1.   This is usually
-executed from a document "DOMContentLoaded" event lister or, if using
-jQuery,  a $.ready() function.
+2. Execute JavaScript after the document has loaded to create a juicebox browser object and embed itself into the container created in step 1.   This is usually
+executed from a document `DOMContentLoaded` event listener or, if using
+jQuery,  a `$.ready()` function.
 
-3. Use the browser object API to load .maps and tracks
+3. Use the browser object API to load maps and tracks.
 
 
 ### Dependencies
 
-Juicebox dependencies are listed below.   The exact urls to igv and juicebox
+Juicebox dependencies are listed below.   The exact URLs to IGV and Juicebox
 will vary depending on the version you are using.
 
 ```html
@@ -42,7 +39,7 @@ will vary depending on the version you are using.
 
 ### Usage
 
-Create a `div` container for the juicebox appliction.
+Create a `div` container for the Juicebox appliction.
 
 ```html
 <div id="juicebox-container">
@@ -50,9 +47,9 @@ Create a `div` container for the juicebox appliction.
 </div>
 ```
 
-Add the following script in the page body.  In this example the juicebox browser
-is attached to the window object (global scope) but this is not required.
-See the Browser API section below for configuration options
+Add the following script in the page body.  In this example the Juicebox browser
+is attached to the `window` object (global scope) but this is not required.
+See the Browser API section below for configuration options.
 
 ```js
 <script type="text/javascript">
@@ -72,29 +69,35 @@ See the Browser API section below for configuration options
 
 #### Browser configuration options
 
-The second argument to hic.createBrowser is an optional configuration object.  All properties are optional.
+The second argument to `hic.createBrowser` is an optional configuration object.  All properties are optional.
 
-    url:  url to a .hic file
-    name:   name of the initial dataset specified in the url property
-    state:  string encoding the intial state  (see below)
-    colorScale:  string encoding the initial color scalle (see below)
-    tracks:  array of track configuration objects.  See https://github.com/igvteam/igv.js/wiki/Tracks for a description of the track config object.
+Name  | Description
+:------------- | :-------------
+url  | URL to a .hic file
+name| Name of the initial dataset specified in the URL property
+state| String encoding the intial state  (see below)
+colorScale | string encoding the initial color scale (see below)
+tracks | Array of track configuration objects.  See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the track config object.
 
-    state string -- comma delimited list
-    index of chromosome 1
-    index of chromosome 2
-    index of resolution
-    x (left) position of map origin in bin coordinates
-    y (top) position map origin in bin coordinates
-    pixelSize  size of each map bin in screen pixels
-    normlization
+**state** string (comma delimited list):
 
-    color scale string  -- comma delimited list
-    contact count at maximum intensity
-    red component at maximum intensity
-    green commponent at maximum intensity
-    blue component at maximum intensity
+```
+index of chromosome 1,
+index of chromosome 2,
+index of resolution,
+x (left), [position of map origin in bin coordinates]
+y (top), [position map origin in bin coordinates]
+pixelSize, [size of each map bin in screen pixels]
+normlization
+```
+**colorScale** string (comma delimited list):
 
+```
+contact count at maximum intensity,
+red component at maximum intensity,
+green commponent at maximum intensity,
+blue component at maximum intensity
+```
 
 
 #### To load a .hic map file
