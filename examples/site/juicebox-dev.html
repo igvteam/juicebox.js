@@ -48,13 +48,13 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/sc-1.4.3/datatables.min.css"/>
 
     <!-- IGV CSS -->
-    <link rel="stylesheet" href="../examples/site/css/igv.css">
+    <link rel="stylesheet" href="css/igv.css">
 
     <!-- site CSS -->
-    <link rel="stylesheet" href="../examples/site/css/site.css">
+    <link rel="stylesheet" href="css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" href="../css/juicebox.css">
+    <link rel="stylesheet" href="../../css/juicebox.css">
 
     <!-- JQuery JS -->
     <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -75,43 +75,46 @@
     <script src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
     <!-- IGV JS -->
-    <script src="../examples/site/js/igv.min.js"></script>
-
-    <!-- Vector JS -->
-    <script src="../vendor/jquery-ui.js"></script>
-    <script src="../vendor/underscore.js"></script>
-    <script src="../vendor/throbber.js"></script>
-    <script src="../vendor/colors.js"></script>
+    <script src="js/igv.js"></script>
 
     <!-- Site JS-->
-    <script src="../examples/site/js/site.js"></script>
-    <script src="../examples/site/js/modalTable.js"></script>
+    <script src="js/site.js"></script>
+    <script src="js/modalTable.js"></script>
+
+    <!-- Vendor JS -->
+    <script src="../../vendor/jquery-ui.js"></script>
+    <script src="../../vendor/underscore.js"></script>
+    <script src="../../vendor/throbber.js"></script>
+    <script src="../../vendor/colors.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../js/annotationWidget.js"></script>
-    <script src="../js/genome.js"></script>
-    <script src="../js/hicUtils.js"></script>
-    <script src="../js/hicReader.js"></script>
-    <script src="../js/hicColorScaleWidget.js"></script>
-    <script src="../js/hicLocusGoto.js"></script>
-    <script src="../js/hicResolutionSelector.js"></script>
-    <script src="../js/hicBrowser.js"></script>
-    <script src="../js/contactMatrixView.js"></script>
-    <script src="../js/hicRuler.js"></script>
-    <script src="../js/eventBus.js"></script>
-    <script src="../js/scrollbarWidget.js"></script>
-    <script src="../js/sweepZoom.js"></script>
-    <script src="../js/hicState.js"></script>
-    <script src="../js/hicDataset.js"></script>
-    <script src="../js/normalizationVector.js"></script>
-    <script src="../js/normalizationWidget.js"></script>
-    <script src="../js/chromosomeSelectorWidget.js"></script>
-    <script src="../js/layoutController.js"></script>
-    <script src="../js/trackRenderer.js"></script>
-    <script src="../js/trackMenuReplacement.js"></script>
-    <script src="../js/geneSearch.js"></script>
-    <script src="../js/hicTrack2D.js"></script>
-    <script src="../js/jbColor.js"></script>
+
+    <script src="../../js/annotationWidget.js"></script>
+    <script src="../../js/genome.js"></script>
+    <script src="../../js/hicUtils.js"></script>
+    <script src="../../js/hicReader.js"></script>
+    <script src="../../js/hicColorScaleWidget.js"></script>
+    <script src="../../js/hicLocusGoto.js"></script>
+    <script src="../../js/hicResolutionSelector.js"></script>
+    <script src="../../js/hicBrowser.js"></script>
+    <script src="../../js/contactMatrixView.js"></script>
+    <script src="../../js/hicRuler.js"></script>
+    <script src="../../js/eventBus.js"></script>
+    <script src="../../js/scrollbarWidget.js"></script>
+    <script src="../../js/sweepZoom.js"></script>
+    <script src="../../js/hicState.js"></script>
+    <script src="../../js/hicDataset.js"></script>
+    <script src="../../js/normalizationVector.js"></script>
+    <script src="../../js/normalizationWidget.js"></script>
+    <script src="../../js/chromosomeSelectorWidget.js"></script>
+    <script src="../../js/layoutController.js"></script>
+    <script src="../../js/trackRenderer.js"></script>
+    <script src="../../js/trackMenuReplacement.js"></script>
+    <script src="../../js/geneSearch.js"></script>
+    <script src="../../js/hicTrack2D.js"></script>
+    <script src="../../js/jbColor.js"></script>
+
+
 </head>
 
 <body>
@@ -591,7 +594,7 @@
         var config = {
             mapMenu: {
                 id: 'dataset_selector',
-                items: '../examples/site/data/mapMenuData.txt'
+                items: 'data/mapMenuData.txt'
             },
             apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",
             embedTarget: "http://aidenlab.org/juicebox/embed/embed.html"

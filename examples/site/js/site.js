@@ -46,6 +46,11 @@ var juicebox = (function (site) {
 
                 lastGenomeId = genomeId;
 
+                var tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
+                var annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
+
+                loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
+                loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
 
                 browserRetrievalFunction = function () {
                     return hic.Browser.getCurrentBrowser();
