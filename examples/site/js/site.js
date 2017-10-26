@@ -264,6 +264,42 @@ var juicebox = (function (site) {
 
         });
 
+        $('#annotation-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
+            $('#hic-annotation-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+
+        });
+
+        $('#annotation-2D-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
+            $('#hic-annotation-2D-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+        });
 
         $('.juicebox-app-clone-button').on('click', function (e) {
 
