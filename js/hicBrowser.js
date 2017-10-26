@@ -821,10 +821,10 @@ var hic = (function (hic) {
         parts = locus.trim().split(':');
 
         chromosomeNames = _.map(self.dataset.chromosomes, function (chr) {
-            return chr.name;
+            return chr.name.toLowerCase();
         });
 
-        chrName = this.genome.getChromosomeName(parts[0]);
+        chrName = this.genome.getChromosomeName(_.first(parts).toLowerCase());
 
         if (!_.contains(chromosomeNames, chrName)) {
             return undefined;
