@@ -39,10 +39,10 @@ var hic = (function (hic) {
         $container.append(this.$container);
 
         // color chip
-        this.$button = hic.colorSwatch('red');
+        this.$button = igv.colorSwatch('red');
         this.$container.append(this.$button);
         this.$button.on('click', function (e) {
-            self.browser.$root.find('.color-scale-swatch-scroll-container').toggle();
+            self.browser.$root.find('.igv-colorpicker-container').toggle();
         });
 
         // input
@@ -108,18 +108,13 @@ var hic = (function (hic) {
     function createColorSwatchSelector(browser) {
 
         var self = this,
-            $scroll_container,
-            $container;
+            $scroll_container;
 
-        // scroll container
-        $scroll_container = $('<div>', { class:'color-scale-swatch-scroll-container' });
+        // swatch scroll container
+        $scroll_container = $('<div>', { class:'igv-colorpicker-container' });
         browser.$root.append($scroll_container);
 
-        // swatch container
-        $container = $('<div>', { class:'color-scale-swatch-container' });
-        $scroll_container.append($container);
-
-        hic.createColorSwatchSelector($container, function (colorName) {
+        igv.createColorSwatchSelector($scroll_container, function (colorName) {
             var rgb;
 
             self.$button.find('.fa-square').css({color: colorName});
