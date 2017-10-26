@@ -28,43 +28,50 @@
  *
  */
 var juicebox = (function (site) {
-
     var apiKey,
-        encodeTable,
-        genomeChangeListener,
-        browserListener,
-        lastGenomeId,
-        $appContainer;
+        encodeTable;
 
-    genomeChangeListener = {
 
-        receiveEvent: function (event) {
-            var browserRetrievalFunction,
-                genomeId = event.data;
-
-            if (lastGenomeId !== genomeId) {
-
-                lastGenomeId = genomeId;
-
-                var tracksURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_" + genomeId + ".txt";
-                var annotations2dURL = "https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D." + genomeId + ".txt";
-
-                loadAnnotationSelector($('#annotation-selector'), tracksURL, "1D");
-                loadAnnotationSelector($('#annotation-2D-selector'), annotations2dURL, "2D");
-
-                browserRetrievalFunction = function () {
-                    return hic.Browser.getCurrentBrowser();
-                };
-
-                createEncodeTable(browserRetrievalFunction, event.data);
-            }
-        }
-    };
 
     site.init = function ($container, config) {
 
+        var apiKey,
+            genomeChangeListener,
+            lastGenomeId,
+            $appContainer;
+
         var query,
             $hic_share_url_modal;
+
+        genomeChangeListener = {
+
+            receiveEvent: function (event) {
+                var browserRetrievalFunction,
+                    genomeId = event.data;
+
+                if (lastGenomeId !== genomeId) {
+
+                    lastGenomeId = genomeId;
+
+                    if(config.trackMenu) {
+                        var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
+                        loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
+                    }
+
+                    if(config.trackMenu2D) {
+                        var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
+                        loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
+                    }
+
+                    browserRetrievalFunction = function () {
+                        return hic.Browser.getCurrentBrowser();
+                    };
+
+                    createEncodeTable(browserRetrievalFunction, event.data);
+                }
+            }
+        };
+
 
         config = config || {};
 
