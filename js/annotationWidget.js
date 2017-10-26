@@ -186,7 +186,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $e = hic.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $e = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
         $row.append($e);
         $e.on('click', function (e) {
             $row.next('.hic-color-swatch-container').toggle();

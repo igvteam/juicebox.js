@@ -1,4 +1,7 @@
 //
+$hic-color-swatch-size: 24px;
+
+//
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
 $nav-bar-shim-height: 4px;
@@ -30,7 +33,6 @@ $hic-menu-margin: 8px;
 $hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
-$hic-color-swatch-size: 24px;
 
 $hic-annotation-modal-row-height: 40px;
 
@@ -451,66 +453,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
-  .color-scale-swatch-scroll-container {
-
-    position: absolute;
-    top: 25%;
-    left: 15%;
-    width: 75%;
-    z-index: 5000;
-
-    background-color: white;
-
-    border-style: solid;
-    border-width: thin;
-    border-color: #dddddd;
-
-    cursor: pointer;
-
-    .color-scale-swatch-container {
-
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      align-items: center;
-
-      width: 100%;
-
-      div:first-child {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        justify-content: flex-end;
-        align-items: center;
-
-        width: 100%;
-        height: $hic-color-swatch-size;
-
-        border-bottom-style: solid;
-        border-bottom-width: thin;
-        border-bottom-color: #dddddd;
-
-        background-color: #dddddd;
-
-        i.fa {
-          display: block;
-          margin-right: 4px;
-          color: $default-dark-color;
-        }
-
-        i.fa:hover,
-        i.fa:focus,
-        i.fa:active {
-          cursor: pointer;
-          color: $default-hover-color;
-        }
-      }
-
-    }
-
-  }
-
   .hic-annotation-panel-container {
 
     display: flex;
@@ -744,39 +686,6 @@ $default-font-family: 'Open Sans', sans-serif;
     }
   }
 
-}
-
-.hic-color-swatch {
-
-  display: flex;
-  flex-flow: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
-
-  width: $hic-color-swatch-size;
-  height: $hic-color-swatch-size;
-
-  border-style: solid;
-  border-width: thin;
-  border-color: transparent;
-
-  i.fa {
-    display: block;
-  }
-
-  i.fa:hover,
-  i.fa:focus,
-  i.fa:active {
-    cursor: pointer;
-    color: #0f0f0f;
-  }
-}
-
-.hic-color-swatch:hover,
-.hic-color-swatch:focus,
-.hic-color-swatch:active {
-  border-color: #dddddd;
 }
 
 // navbar
