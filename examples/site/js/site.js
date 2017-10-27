@@ -28,38 +28,50 @@
  *
  */
 var juicebox = (function (site) {
-
     var apiKey,
-        encodeTable,
-        genomeChangeListener,
-        browserListener,
-        lastGenomeId,
-        $appContainer;
-
-    genomeChangeListener = {
-
-        receiveEvent: function (event) {
-            var browserRetrievalFunction,
-                genomeId = event.data;
-
-            if (lastGenomeId !== genomeId) {
-
-                lastGenomeId = genomeId;
+        encodeTable;
 
 
-                browserRetrievalFunction = function () {
-                    return hic.Browser.getCurrentBrowser();
-                };
-
-                createEncodeTable(browserRetrievalFunction, event.data);
-            }
-        }
-    };
 
     site.init = function ($container, config) {
 
+        var apiKey,
+            genomeChangeListener,
+            lastGenomeId,
+            $appContainer;
+
         var query,
             $hic_share_url_modal;
+
+        genomeChangeListener = {
+
+            receiveEvent: function (event) {
+                var browserRetrievalFunction,
+                    genomeId = event.data;
+
+                if (lastGenomeId !== genomeId) {
+
+                    lastGenomeId = genomeId;
+
+                    if(config.trackMenu) {
+                        var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
+                        loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
+                    }
+
+                    if(config.trackMenu2D) {
+                        var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
+                        loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
+                    }
+
+                    browserRetrievalFunction = function () {
+                        return hic.Browser.getCurrentBrowser();
+                    };
+
+                    createEncodeTable(browserRetrievalFunction, event.data);
+                }
+            }
+        };
+
 
         config = config || {};
 
@@ -252,6 +264,42 @@ var juicebox = (function (site) {
 
         });
 
+        $('#annotation-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
+            $('#hic-annotation-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+
+        });
+
+        $('#annotation-2D-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+            }
+
+            $('#hic-annotation-2D-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+        });
 
         $('.juicebox-app-clone-button').on('click', function (e) {
 
