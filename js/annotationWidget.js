@@ -196,7 +196,7 @@ var hic = (function (hic) {
         $e = $('<div>', { class: 'hic-color-swatch-container' });
         $row_container.append($e);
 
-        hic.createColorSwatchSelector($e, function (color) {
+        igv.createColorSwatchSelector($e, function (color) {
             var $swatch;
 
             $swatch = $row.find('.fa-square');

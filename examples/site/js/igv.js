@@ -13737,99 +13737,90 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
 
-            getChrIndex(self)
+        return getChrIndex(self)
 
-                .then(function (chrToIndex) {
+            .then(function (chrToIndex) {
 
-                    var chrId, queryChr, alignmentContainer;
+                var chrId, queryChr, alignmentContainer;
 
-                    queryChr = self.chrAliasTable.hasOwnProperty(chr) ? self.chrAliasTable[chr] : chr;
+                queryChr = self.chrAliasTable.hasOwnProperty(chr) ? self.chrAliasTable[chr] : chr;
 
-                    chrId = chrToIndex[queryChr];
+                chrId = chrToIndex[queryChr];
 
-                    alignmentContainer = new igv.AlignmentContainer(chr, bpStart, bpEnd, self.samplingWindowSize, self.samplingDepth, self.pairsSupported);
+                alignmentContainer = new igv.AlignmentContainer(chr, bpStart, bpEnd, self.samplingWindowSize, self.samplingDepth, self.pairsSupported);
 
-                    if (chrId === undefined) {
-                        fulfill(alignmentContainer);
-                    } else {
+                if (chrId === undefined) {
+                    return Promise.resolve(alignmentContainer);
 
-                        getIndex(self)
-                            .then(function (bamIndex) {
+                } else {
 
-                                var chunks = bamIndex.blocksForRange(chrId, bpStart, bpEnd),
-                                    promises = [];
+                    return getIndex(self)
+                        .then(function (bamIndex) {
 
-
-                                if (!chunks) {
-                                    fulfill(null);
-                                    reject("Error reading bam index");
-                                    return;
-                                }
-                                if (chunks.length === 0) {
-                                    fulfill(alignmentContainer);
-                                    return;
-                                }
-
-                                chunks.forEach(function (c) {
-
-                                    promises.push(new Promise(function (fulfill, reject) {
-
-                                        var fetchMin = c.minv.block,
-                                            fetchMax = c.maxv.block + 65000,   // Make sure we get the whole block.
-                                            range = {start: fetchMin, size: fetchMax - fetchMin + 1};
-
-                                        igv.xhr.loadArrayBuffer(self.bamPath, igv.buildOptions(self.config, {range: range}))
-                                            .then(function (compressed) {
-
-                                                var ba = new Uint8Array(igv.unbgzf(compressed)); //new Uint8Array(igv.unbgzf(compressed)); //, c.maxv.block - c.minv.block + 1));
-                                                igv.BamUtils.decodeBamRecords(ba, c.minv.offset, alignmentContainer, bpStart, bpEnd, chrId, self.indexToChr, self.filter);
-
-                                                fulfill(alignmentContainer);
-
-                                            }).catch(function (obj) {
-                                            reject(obj);
-                                        });
-
-                                    }))
-                                });
+                            var chunks = bamIndex.blocksForRange(chrId, bpStart, bpEnd),
+                                promises = [];
 
 
-                                Promise.all(promises).then(function (ignored) {
-                                    alignmentContainer.finish();
-                                    fulfill(alignmentContainer);
-                                }).catch(function (obj) {
-                                    reject(obj);
-                                });
-                            }).catch(reject);
-                    }
-                }).catch(reject);
-        });
+                            if (!chunks) {
+                                fulfill(null);
+                                reject("Error reading bam index");
+                                return;
+                            }
+                            if (chunks.length === 0) {
+                                fulfill(alignmentContainer);
+                                return;
+                            }
 
+                            chunks.forEach(function (c) {
+
+                                promises.push(new Promise(function (fulfill, reject) {
+
+                                    var fetchMin = c.minv.block,
+                                        fetchMax = c.maxv.block + 65000,   // Make sure we get the whole block.
+                                        range = {start: fetchMin, size: fetchMax - fetchMin + 1};
+
+                                    igv.xhr.loadArrayBuffer(self.bamPath, igv.buildOptions(self.config, {range: range}))
+                                        .then(function (compressed) {
+
+                                            var ba = new Uint8Array(igv.unbgzf(compressed)); //new Uint8Array(igv.unbgzf(compressed)); //, c.maxv.block - c.minv.block + 1));
+                                            igv.BamUtils.decodeBamRecords(ba, c.minv.offset, alignmentContainer, bpStart, bpEnd, chrId, self.indexToChr, self.filter);
+
+                                            fulfill(alignmentContainer);
+
+                                        })
+                                        .catch(reject);
+
+                                }))
+                            });
+
+                            return Promise.all(promises);
+                        })
+                        .then(function (ignored) {
+                            alignmentContainer.finish();
+                            return alignmentContainer;
+                        })
+                }
+            })
     }
 
     igv.BamReader.prototype.readHeader = function () {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
+        return getIndex(self)
 
-            getIndex(self)
+            .then(function (index) {
 
-                .then(function (index) {
+                var len = index.firstAlignmentBlock + MAX_GZIP_BLOCK_SIZE,   // Insure we get the complete compressed block containing the header
+                    options = igv.buildOptions(self.config, {range: {start: 0, size: len}}),
+                    genome = igv.browser ? igv.browser.genome : null;
 
-                    var len = index.firstAlignmentBlock + MAX_GZIP_BLOCK_SIZE,   // Insure we get the complete compressed block containing the header
-                        options = igv.buildOptions(self.config, {range: {start: 0, size: len}}),
-                        genome = igv.browser ? igv.browser.genome : null;
-
-                    return igv.BamUtils.readHeader(self.bamPath, options, genome)
-                })
-                .then(function (header) {
-                    fulfill(header);
-                })
-                .catch(reject);
-        });
+                return igv.BamUtils.readHeader(self.bamPath, options, genome)
+            })
+            .then(function (header) {
+                return header;
+            })
     }
 
     function getIndex(bam) {
@@ -13838,18 +13829,11 @@ var igv = (function (igv) {
             return Promise.resolve(bam.index);
         }
         else {
-
-            return new Promise(function (fulfill, reject) {
-
-                igv
-                    .loadBamIndex(bam.baiPath, bam.config)
-                    .then(function (index) {
-                        bam.index = index;
-                        fulfill(bam.index);
-                    })
-                    .catch(reject);
-
-            });
+            return igv.loadBamIndex(bam.baiPath, bam.config)
+                .then(function (index) {
+                    bam.index = index;
+                    return bam.index;
+                })
         }
     }
 
@@ -13859,16 +13843,12 @@ var igv = (function (igv) {
             return Promise.resolve(bam.chrToIndex);
         }
         else {
-            return new Promise(function (fulfill, reject) {
-
-                bam.readHeader().then(function (header) {
-                    bam.chrToIndex = header.chrToIndex;
-                    bam.indexToChr = header.chrNames;
-                    bam.chrAliasTable = header.chrAliasTable;
-                    fulfill(bam.chrToIndex);
-                }).catch(reject);
-
-            });
+            return bam.readHeader().then(function (header) {
+                bam.chrToIndex = header.chrToIndex;
+                bam.indexToChr = header.chrNames;
+                bam.chrAliasTable = header.chrAliasTable;
+                return bam.chrToIndex;
+            })
         }
     }
 
@@ -16538,47 +16518,44 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
-            var hasData = (self.data && (self.range.start <= requestedRange.start) &&
-                ((self.range.start + self.range.size) >= (requestedRange.start + requestedRange.size))),
-                bufferSize,
-                loadRange;
+        var hasData = (self.data && (self.range.start <= requestedRange.start) &&
+            ((self.range.start + self.range.size) >= (requestedRange.start + requestedRange.size))),
+            bufferSize,
+            loadRange;
 
-            if (hasData) {
-                subbuffer(self, requestedRange, asUint8);
+        if (hasData) {
+            return Promise.resolve(subbuffer(self, requestedRange, asUint8));
+        }
+        else {
+            // Expand buffer size if needed, but not beyond content length
+            bufferSize = Math.max(self.bufferSize, requestedRange.size);
+
+            if (self.contentLength > 0 && requestedRange.start + bufferSize > self.contentLength) {
+                loadRange = {start: requestedRange.start};
             }
             else {
-                // Expand buffer size if needed, but not beyond content length
-                bufferSize = Math.max(self.bufferSize, requestedRange.size);
-
-                if (self.contentLength > 0 && requestedRange.start + bufferSize > self.contentLength) {
-                    loadRange = {start: requestedRange.start};
-                }
-                else {
-                    loadRange = {start: requestedRange.start, size: bufferSize};
-                }
-
-                igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: loadRange}))
-                    .then(function (arrayBuffer) {
-                        self.data = arrayBuffer;
-                        self.range = loadRange;
-                        subbuffer(self, requestedRange, asUint8);
-                    })
-                    .catch(reject);
-
+                loadRange = {start: requestedRange.start, size: bufferSize};
             }
 
+            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: loadRange}))
+                .then(function (arrayBuffer) {
+                    self.data = arrayBuffer;
+                    self.range = loadRange;
+                    return subbuffer(self, requestedRange, asUint8);
+                })
+        }
 
-            function subbuffer(bufferedReader, requestedRange, asUint8) {
 
-                var len = bufferedReader.data.byteLength,
-                    bufferStart = requestedRange.start - bufferedReader.range.start,
-                    result = asUint8 ?
-                        new Uint8Array(bufferedReader.data, bufferStart, len - bufferStart) :
-                        new DataView(bufferedReader.data, bufferStart, len - bufferStart);
-                fulfill(result);
-            }
-        });
+        function subbuffer(bufferedReader, requestedRange, asUint8) {
+
+            var len = bufferedReader.data.byteLength,
+                bufferStart = requestedRange.start - bufferedReader.range.start,
+                result = asUint8 ?
+                    new Uint8Array(bufferedReader.data, bufferStart, len - bufferStart) :
+                    new DataView(bufferedReader.data, bufferStart, len - bufferStart);
+            return result;
+        }
+
 
     }
 
@@ -16748,18 +16725,15 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
-            var rootNodeOffset = self.fileOffset + RPTREE_HEADER_SIZE,
-                bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
+        var rootNodeOffset = self.fileOffset + RPTREE_HEADER_SIZE,
+            bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
 
-            self.readNode(rootNodeOffset, bufferedReader)
+        return self.readNode(rootNodeOffset, bufferedReader)
 
-                .then(function (node) {
-                    self.rootNode = node;
-                    fulfill(self);
-                })
-                .catch(reject);
-        });
+            .then(function (node) {
+                self.rootNode = node;
+                return self;
+            })
     }
 
 
@@ -16767,72 +16741,68 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (resolve, reject) {
 
-            var count, isLeaf;
+        var count, isLeaf;
 
-            bufferedReader.dataViewForRange({start: filePosition, size: 4}, false)
+        return bufferedReader.dataViewForRange({start: filePosition, size: 4}, false)
 
-                .then(function (dataView) {
-                    var binaryParser, type, reserved;
+            .then(function (dataView) {
+                var binaryParser, type, reserved;
 
-                    binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
-                    type = binaryParser.getByte();
-                    isLeaf = (type === 1) ? true : false;
-                    reserved = binaryParser.getByte();
-                    count = binaryParser.getUShort();
+                binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
+                type = binaryParser.getByte();
+                isLeaf = (type === 1) ? true : false;
+                reserved = binaryParser.getByte();
+                count = binaryParser.getUShort();
 
-                    filePosition += 4;
+                filePosition += 4;
 
-                    var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
-                    var range2 = {start: filePosition, size: bytesRequired};
+                var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
+                var range2 = {start: filePosition, size: bytesRequired};
 
-                    return bufferedReader.dataViewForRange(range2, false);
-                })
+                return bufferedReader.dataViewForRange(range2, false);
+            })
 
-                .then(function (dataView) {
+            .then(function (dataView) {
 
-                    var i,
-                        items = new Array(count),
-                        binaryParser = new igv.BinaryParser(dataView);
+                var i,
+                    items = new Array(count),
+                    binaryParser = new igv.BinaryParser(dataView);
 
-                    if (isLeaf) {
-                        for (i = 0; i < count; i++) {
-                            var item = {
-                                isLeaf: true,
-                                startChrom: binaryParser.getInt(),
-                                startBase: binaryParser.getInt(),
-                                endChrom: binaryParser.getInt(),
-                                endBase: binaryParser.getInt(),
-                                dataOffset: binaryParser.getLong(),
-                                dataSize: binaryParser.getLong()
-                            };
-                            items[i] = item;
+                if (isLeaf) {
+                    for (i = 0; i < count; i++) {
+                        var item = {
+                            isLeaf: true,
+                            startChrom: binaryParser.getInt(),
+                            startBase: binaryParser.getInt(),
+                            endChrom: binaryParser.getInt(),
+                            endBase: binaryParser.getInt(),
+                            dataOffset: binaryParser.getLong(),
+                            dataSize: binaryParser.getLong()
+                        };
+                        items[i] = item;
 
-                        }
-                        resolve(new RPTreeNode(items));
                     }
-                    else { // non-leaf
-                        for (i = 0; i < count; i++) {
+                    return new RPTreeNode(items);
+                }
+                else { // non-leaf
+                    for (i = 0; i < count; i++) {
 
-                            var item = {
-                                isLeaf: false,
-                                startChrom: binaryParser.getInt(),
-                                startBase: binaryParser.getInt(),
-                                endChrom: binaryParser.getInt(),
-                                endBase: binaryParser.getInt(),
-                                childOffset: binaryParser.getLong()
-                            };
-                            items[i] = item;
+                        var item = {
+                            isLeaf: false,
+                            startChrom: binaryParser.getInt(),
+                            startBase: binaryParser.getInt(),
+                            endChrom: binaryParser.getInt(),
+                            endBase: binaryParser.getInt(),
+                            childOffset: binaryParser.getLong()
+                        };
+                        items[i] = item;
 
-                        }
-
-                        resolve(new RPTreeNode(items));
                     }
-                })
-                .catch(reject);
 
-        });
+                    return new RPTreeNode(items);
+                }
+            })
     }
 
 
@@ -16869,7 +16839,7 @@ var igv = (function (igv) {
                                 }
                                 else {
                                     processing.add(item.childOffset);  // Represent node to-be-loaded by its file position
-                                    
+
                                     self.readNode(item.childOffset, bufferedReader)
                                         .then(function (node) {
                                             item.childNode = node;
@@ -16996,139 +16966,131 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (resolve, reject) {
-            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
-                range: {
-                    start: 0,
-                    size: BBFILE_HEADER_SIZE
+        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+            range: {
+                start: 0,
+                size: BBFILE_HEADER_SIZE
+            }
+        }))
+            .then(function (data) {
+
+                var header = {};
+
+                // Assume low-to-high unless proven otherwise
+                self.littleEndian = true;
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
+
+                var magic = binaryParser.getUInt();
+
+                if (magic === BIGWIG_MAGIC_LTH) {
+                    self.type = "BigWig";
                 }
-            }))
-                .then(function (data) {
+                else if (magic == BIGBED_MAGIC_LTH) {
+                    self.type = "BigBed";
+                }
+                else {
+                    //Try big endian order
+                    self.littleEndian = false;
 
-                    var header = {};
-
-                    // Assume low-to-high unless proven otherwise
-                    self.littleEndian = true;
-
-                    var binaryParser = new igv.BinaryParser(new DataView(data));
-
+                    binaryParser.littleEndian = false;
+                    binaryParser.position = 0;
                     var magic = binaryParser.getUInt();
 
-                    if (magic === BIGWIG_MAGIC_LTH) {
+                    if (magic === BIGWIG_MAGIC_HTL) {
                         self.type = "BigWig";
                     }
-                    else if (magic == BIGBED_MAGIC_LTH) {
+                    else if (magic == BIGBED_MAGIC_HTL) {
                         self.type = "BigBed";
                     }
                     else {
-                        //Try big endian order
-                        self.littleEndian = false;
-
-                        binaryParser.littleEndian = false;
-                        binaryParser.position = 0;
-                        var magic = binaryParser.getUInt();
-
-                        if (magic === BIGWIG_MAGIC_HTL) {
-                            self.type = "BigWig";
-                        }
-                        else if (magic == BIGBED_MAGIC_HTL) {
-                            self.type = "BigBed";
-                        }
-                        else {
-                            // TODO -- error, unknown file type  or BE
-                        }
+                        // TODO -- error, unknown file type  or BE
                     }
-                    // Table 5  "Common header for BigWig and BigBed files"
-                    header = {};
-                    header.bwVersion = binaryParser.getUShort();
-                    header.nZoomLevels = binaryParser.getUShort();
-                    header.chromTreeOffset = binaryParser.getLong();
-                    header.fullDataOffset = binaryParser.getLong();
-                    header.fullIndexOffset = binaryParser.getLong();
-                    header.fieldCount = binaryParser.getUShort();
-                    header.definedFieldCount = binaryParser.getUShort();
-                    header.autoSqlOffset = binaryParser.getLong();
-                    header.totalSummaryOffset = binaryParser.getLong();
-                    header.uncompressBuffSize = binaryParser.getInt();
-                    header.reserved = binaryParser.getLong();
+                }
+                // Table 5  "Common header for BigWig and BigBed files"
+                header = {};
+                header.bwVersion = binaryParser.getUShort();
+                header.nZoomLevels = binaryParser.getUShort();
+                header.chromTreeOffset = binaryParser.getLong();
+                header.fullDataOffset = binaryParser.getLong();
+                header.fullIndexOffset = binaryParser.getLong();
+                header.fieldCount = binaryParser.getUShort();
+                header.definedFieldCount = binaryParser.getUShort();
+                header.autoSqlOffset = binaryParser.getLong();
+                header.totalSummaryOffset = binaryParser.getLong();
+                header.uncompressBuffSize = binaryParser.getInt();
+                header.reserved = binaryParser.getLong();
 
-                    return header;
+                return header;
+
+            })
+
+            .then(function (header) {
+
+                self.header = header;
+
+                return loadZoomHeadersAndChrTree.call(self);
+
+            })
+
+
+        function loadZoomHeadersAndChrTree() {
+
+            var startOffset = BBFILE_HEADER_SIZE,
+                self = this;
+
+            var range = {start: startOffset, size: (self.header.fullDataOffset - startOffset + 5)};
+
+            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                .then(function (data) {
+
+                    var nZooms = self.header.nZoomLevels,
+                        binaryParser = new igv.BinaryParser(new DataView(data)),
+                        i,
+                        len,
+                        zoomNumber,
+                        zlh;
+
+                    self.zoomLevelHeaders = [];
+
+                    self.firstZoomDataOffset = Number.MAX_VALUE;
+                    for (i = 1; i <= nZooms; i++) {
+                        zoomNumber = nZooms - i;
+                        zlh = new ZoomLevelHeader(zoomNumber, binaryParser);
+                        self.firstZoomDataOffset = Math.min(zlh.dataOffset, self.firstZoomDataOffset);
+                        self.zoomLevelHeaders[zoomNumber] = zlh;
+                    }
+
+                    // Autosql
+                    if (self.header.autoSqlOffset > 0) {
+                        binaryParser.position = self.header.autoSqlOffset - startOffset;
+                        self.autoSql = binaryParser.getString();
+                    }
+
+                    // Total summary
+                    if (self.header.totalSummaryOffset > 0) {
+                        binaryParser.position = self.header.totalSummaryOffset - startOffset;
+                        self.totalSummary = new igv.BWTotalSummary(binaryParser);
+                    }
+
+                    // Chrom data index
+                    if (self.header.chromTreeOffset > 0) {
+                        binaryParser.position = self.header.chromTreeOffset - startOffset;
+                        self.chromTree = new igv.BPTree(binaryParser, startOffset);
+                    }
+                    else {
+                        // TODO -- this is an error, not expected
+                    }
+
+                    //Finally total data count
+                    binaryParser.position = self.header.fullDataOffset - startOffset;
+                    self.dataCount = binaryParser.getInt();
+
+                    return self.header;
 
                 })
+        }
 
-                .then(function (header) {
-
-                    self.header = header;
-
-                    return loadZoomHeadersAndChrTree.call(self);
-
-                })
-                .then(function (header) {
-                    resolve(header);
-                })
-                .catch(reject);
-
-
-            function loadZoomHeadersAndChrTree() {
-
-                var startOffset = BBFILE_HEADER_SIZE,
-                    self = this;
-
-                return new Promise(function (fulfill, reject) {
-
-                    var range = {start: startOffset, size: (self.header.fullDataOffset - startOffset + 5)};
-
-                    igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
-                        .then(function (data) {
-
-                            var nZooms = self.header.nZoomLevels,
-                                binaryParser = new igv.BinaryParser(new DataView(data)),
-                                i,
-                                len,
-                                zoomNumber,
-                                zlh;
-
-                            self.zoomLevelHeaders = [];
-
-                            self.firstZoomDataOffset = Number.MAX_VALUE;
-                            for (i = 1; i <= nZooms; i++) {
-                                zoomNumber = nZooms - i;
-                                zlh = new ZoomLevelHeader(zoomNumber, binaryParser);
-                                self.firstZoomDataOffset = Math.min(zlh.dataOffset, self.firstZoomDataOffset);
-                                self.zoomLevelHeaders[zoomNumber] = zlh;
-                            }
-
-                            // Autosql
-                            if (self.header.autoSqlOffset > 0) {
-                                binaryParser.position = self.header.autoSqlOffset - startOffset;
-                                self.autoSql = binaryParser.getString();
-                            }
-
-                            // Total summary
-                            if (self.header.totalSummaryOffset > 0) {
-                                binaryParser.position = self.header.totalSummaryOffset - startOffset;
-                                self.totalSummary = new igv.BWTotalSummary(binaryParser);
-                            }
-
-                            // Chrom data index
-                            if (self.header.chromTreeOffset > 0) {
-                                binaryParser.position = self.header.chromTreeOffset - startOffset;
-                                self.chromTree = new igv.BPTree(binaryParser, startOffset);
-                            }
-                            else {
-                                // TODO -- this is an error, not expected
-                            }
-
-                            //Finally total data count
-                            binaryParser.position = self.header.fullDataOffset - startOffset;
-                            self.dataCount = binaryParser.getInt();
-
-                            fulfill(self.header);
-
-                        }).catch(reject);
-                });
-            }
-        });
     }
 
 
@@ -17136,23 +17098,15 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
-            var rpTree = self.rpTreeCache[offset];
-            if (rpTree) {
-                fulfill(rpTree);
-            }
-            else {
-                rpTree = new igv.RPTree(offset, self.contentLength, self.config, self.littleEndian);
-
-                self.rpTreeCache[offset] = rpTree;
-
-                rpTree.load()
-                    .then(function () {
-                        fulfill(rpTree);
-                    })
-                    .catch(reject);
-            }
-        });
+        var rpTree = self.rpTreeCache[offset];
+        if (rpTree) {
+            return Promise.resolve(rpTree);
+        }
+        else {
+            rpTree = new igv.RPTree(offset, self.contentLength, self.config, self.littleEndian);
+            self.rpTreeCache[offset] = rpTree;
+            return rpTree.load();
+        }
     }
 
 
@@ -17214,108 +17168,103 @@ var igv = (function (igv) {
         var self = this,
             chrIdx;
 
-        return new Promise(function (resolve, reject) {
 
-            var decodeFunction;
+        var decodeFunction;
 
-            self.getZoomHeaders()
+        return self.getZoomHeaders()
 
-                .then(function (zoomLevelHeaders) {
+            .then(function (zoomLevelHeaders) {
 
-                    // Select a biwig "zoom level" appropriate for the current resolution
-                    var bwReader = self.reader,
-                        zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
-                        treeOffset;
+                // Select a biwig "zoom level" appropriate for the current resolution
+                var bwReader = self.reader,
+                    zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
+                    treeOffset;
 
-                    if (zoomLevelHeader) {
-                        treeOffset = zoomLevelHeader.indexOffset;
-                        decodeFunction = decodeZoomData;
-                    } else {
-                        treeOffset = bwReader.header.fullIndexOffset;
-                        if (bwReader.type === "BigWig") {
-                            decodeFunction = decodeWigData;
-                        }
-                        else {
-                            decodeFunction = decodeBedData;
-                        }
-                    }
-
-                    return bwReader.loadRPTree(treeOffset)
-                })
-
-                .then(function (rpTree) {
-
-                    chrIdx = self.reader.chromTree.dictionary[chr];
-
-                    if (chrIdx === undefined) {
-                        return [];
+                if (zoomLevelHeader) {
+                    treeOffset = zoomLevelHeader.indexOffset;
+                    decodeFunction = decodeZoomData;
+                } else {
+                    treeOffset = bwReader.header.fullIndexOffset;
+                    if (bwReader.type === "BigWig") {
+                        decodeFunction = decodeWigData;
                     }
                     else {
-                        return rpTree.findLeafItemsOverlapping(chrIdx, bpStart, bpEnd)
+                        decodeFunction = decodeBedData;
                     }
+                }
 
-                })
+                return bwReader.loadRPTree(treeOffset)
+            })
 
-                .then(function (leafItems) {
+            .then(function (rpTree) {
 
-                    var promises = [],
-                        bufferedReader = self.bufferedReader;
+                chrIdx = self.reader.chromTree.dictionary[chr];
 
-                    if (!leafItems || leafItems.length == 0) {
-                        return [];
-                    }
+                if (chrIdx === undefined) {
+                    return [];
+                }
+                else {
+                    return rpTree.findLeafItemsOverlapping(chrIdx, bpStart, bpEnd)
+                }
 
-                    else {
-                        leafItems.forEach(function (item) {
+            })
 
-                            promises.push(new Promise(function (fulfill, reject) {
-                                var features = [];
+            .then(function (leafItems) {
 
-                                bufferedReader.dataViewForRange({
-                                    start: item.dataOffset,
-                                    size: item.dataSize
-                                }, true).then(function (uint8Array) {
+                var promises = [],
+                    bufferedReader = self.bufferedReader;
 
-                                    var inflate = new Zlib.Inflate(uint8Array);
-                                    var plain = inflate.decompress();
-                                    decodeFunction(new DataView(plain.buffer), chr, chrIdx, bpStart, bpEnd, features);
+                if (!leafItems || leafItems.length == 0) {
+                    return [];
+                }
 
-                                    fulfill(features);
+                else {
+                    leafItems.forEach(function (item) {
 
-                                })
-                            }));
-                        });
-                        return Promise.all(promises);
-                    }
-                })
+                        promises.push(new Promise(function (fulfill, reject) {
+                            var features = [];
 
-                .then(function (featureArrays) {
+                            bufferedReader.dataViewForRange({
+                                start: item.dataOffset,
+                                size: item.dataSize
+                            }, true).then(function (uint8Array) {
 
-                    var i, allFeatures;
+                                var inflate = new Zlib.Inflate(uint8Array);
+                                var plain = inflate.decompress();
+                                decodeFunction(new DataView(plain.buffer), chr, chrIdx, bpStart, bpEnd, features);
 
-                    if (featureArrays.length == 0) {
-                        resolve([]);
-                    }
-                    else {
-                        allFeatures = featureArrays[0];
+                                fulfill(features);
+
+                            })
+                        }));
+                    });
+                    return Promise.all(promises);
+                }
+            })
+
+            .then(function (featureArrays) {
+
+                var i, allFeatures;
+
+                if (featureArrays.length == 0) {
+                    return [];
+                }
+                else {
+                    allFeatures = featureArrays[0];
 
 
-                        if (featureArrays.length > 1) {
-                            for (i = 1; i < featureArrays.length; i++) {
-                                allFeatures = allFeatures.concat(featureArrays[i]);
-                            }
+                    if (featureArrays.length > 1) {
+                        for (i = 1; i < featureArrays.length; i++) {
+                            allFeatures = allFeatures.concat(featureArrays[i]);
                         }
-                        allFeatures.sort(function (a, b) {
-                            return a.start - b.start;
-                        });
-
-                        resolve(allFeatures);
                     }
-                })
-                .catch(reject);
+                    allFeatures.sort(function (a, b) {
+                        return a.start - b.start;
+                    });
 
-
-        });
+                    return allFeatures;
+                }
+            })
 
     }
 
@@ -17340,14 +17289,10 @@ var igv = (function (igv) {
             return Promise.resolve(self.reader.zoomLevelHeaders)
         }
         else {
-            return new Promise(function (fulfill, reject) {
-
-                self.reader.loadHeader().then(function () {
-                    fulfill(self.reader.zoomLevelHeaders);
-                }).catch(function (error) {
-                    reject(error);
-                });
-            });
+            return self.reader.loadHeader()
+                .then(function () {
+                    return self.reader.zoomLevelHeaders;
+                })
         }
     }
 
@@ -34638,15 +34583,9 @@ var igv = (function (igv) {
             return Promise.resolve(this);   // Already read
         }
 
-        return new Promise(function (fulfill, reject) {
+        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: 0, size: 64000}}))
 
-            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: 0, size: 64000}}))
-                .then(function (data) {
-
-                if (!data) {
-                    reject("no data");
-                    return;
-                }
+            .then(function (data) {
 
                 var binaryParser = new igv.BinaryParser(new DataView(data));
 
@@ -34680,56 +34619,52 @@ var igv = (function (igv) {
                 self.compressed = (self.flags & GZIP_FLAG) != 0;
 
                 // Now read index
-                igv.xhr.loadArrayBuffer(self.path,igv.buildOptions(self.config, {range: {start: self.indexPos, size: self.indexSize}}))
-                    .then(function (data) {
-
-
-                    if (!data) {
-                        reject("no data");
-                        return;
+                return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+                    range: {
+                        start: self.indexPos,
+                        size: self.indexSize
                     }
+                }))
+            })
+            .then(function (data) {
 
-                    binaryParser = new igv.BinaryParser(new DataView(data));
+                binaryParser = new igv.BinaryParser(new DataView(data));
 
-                    self.datasetIndex = {};
-                    var nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
-                        var name = binaryParser.getString();
-                        var pos = binaryParser.getLong();
-                        var size = binaryParser.getInt();
-                        self.datasetIndex[name] = {position: pos, size: size};
-                    }
+                self.datasetIndex = {};
+                var nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    var name = binaryParser.getString();
+                    var pos = binaryParser.getLong();
+                    var size = binaryParser.getInt();
+                    self.datasetIndex[name] = {position: pos, size: size};
+                }
 
-                    self.groupIndex = {};
-                    nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
-                        name = binaryParser.getString();
-                        pos = binaryParser.getLong();
-                        size = binaryParser.getInt();
-                        self.groupIndex[name] = {position: pos, size: size};
-                    }
+                self.groupIndex = {};
+                nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    name = binaryParser.getString();
+                    pos = binaryParser.getLong();
+                    size = binaryParser.getInt();
+                    self.groupIndex[name] = {position: pos, size: size};
+                }
 
-                    fulfill(self);
+                return self;   // The header data is stored in "self"
 
-                }).catch(reject);
+            })
 
-            }).catch(reject)
-
-        });
     }
 
-    igv.TDFReader.prototype.readDataset = function (chr, windowFunction,  zoom) {
+    igv.TDFReader.prototype.readDataset = function (chr, windowFunction, zoom) {
 
-        var self = this;
+        var self = this,
+            dsName;
 
-        return new Promise(function (fulfill, reject) {
+        return self.readHeader()
 
-
-            self.readHeader().then(function (reader) {
+            .then(function (ignore) {
 
                 var wf = (self.version < 2) ? "" : "/" + windowFunction,
                     zoomString = (chr.toLowerCase() === "all" || zoom === undefined) ? "0" : zoom.toString(),
-                    dsName,
                     indexEntry;
 
                 if (windowFunction === "raw") {
@@ -34741,50 +34676,53 @@ var igv = (function (igv) {
                 indexEntry = self.datasetIndex[dsName];
 
                 if (indexEntry === undefined) {
-                    fulfill(null);
+                    return undefined;
                 }
                 else {
 
-
-                    igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: indexEntry.position, size: indexEntry.size}}))
-                        .then(function (data) {
-
-                        if (!data) {
-                            reject("no data");
-                            return;
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+                        range: {
+                            start: indexEntry.position,
+                            size: indexEntry.size
                         }
-
-                        var binaryParser = new igv.BinaryParser(new DataView(data));
-
-                        var nAttributes = binaryParser.getInt();
-                        var attributes = {};
-                        while (nAttributes-- > 0) {
-                            attributes[binaryParser.getString()] = binaryParser.getString();
-                        }
-
-                        var dataType = binaryParser.getString();
-                        var tileWidth = binaryParser.getFloat();
-
-                        var nTiles = binaryParser.getInt();
-                        var tiles = [];
-                        while (nTiles-- > 0) {
-                            tiles.push({position: binaryParser.getLong(), size: binaryParser.getInt()});
-                        }
-
-                        var dataset = {
-                            name: dsName,
-                            attributes: attributes,
-                            dataType: dataType,
-                            tileWidth: tileWidth,
-                            tiles: tiles
-                        };
-
-                        fulfill(dataset);
-
-                    }).catch(reject);
+                    }))
                 }
-            }).catch(reject);
-        });
+            })
+            .then(function (data) {
+
+                if (!data) {
+                    return undefined;
+                }
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
+
+                var nAttributes = binaryParser.getInt();
+                var attributes = {};
+                while (nAttributes-- > 0) {
+                    attributes[binaryParser.getString()] = binaryParser.getString();
+                }
+
+                var dataType = binaryParser.getString();
+                var tileWidth = binaryParser.getFloat();
+
+                var nTiles = binaryParser.getInt();
+                var tiles = [];
+                while (nTiles-- > 0) {
+                    tiles.push({position: binaryParser.getLong(), size: binaryParser.getInt()});
+                }
+
+                var dataset = {
+                    name: dsName,
+                    attributes: attributes,
+                    dataType: dataType,
+                    tileWidth: tileWidth,
+                    tiles: tiles
+                };
+
+                return dataset;
+
+            })
+
     }
 
     igv.TDFReader.prototype.readRootGroup = function () {
@@ -34796,85 +34734,78 @@ var igv = (function (igv) {
             return Promise.resolve(rootGroup);
         }
         else {
-            return new Promise(function (fulfill, reject) {
+            return self.readGroup("/").then(function (group) {
 
-                self.readGroup("/").then(function (group) {
+                var genome = igv.browser.genome,
+                    names = group["chromosomes"],
+                    maxZoomString = group["maxZoom"];
 
-                    var genome = igv.browser.genome,
-                        names = group["chromosomes"],
-                        maxZoomString = group["maxZoom"];
+                // Now parse out interesting attributes.  This is a side effect, and bad bad bad,  but the alternative is messy as well.
+                if (maxZoomString) {
+                    self.maxZoom = Number(maxZoomString);
+                }
 
-                    // Now parse out interesting attributes.  This is a side effect, and bad bad bad,  but the alternative is messy as well.
-                    if(maxZoomString) {
-                        self.maxZoom = Number(maxZoomString);
-                    }
-
-                    // Chromosome names
-                    self.chrAliasTable = {};
-                    if(names) {
-                        _.each(names.split(","), function (chr) {
-                            var canonicalName = genome.getChromosomeName(chr);
-                            self.chrAliasTable[canonicalName] = chr;
-                        })
-                    }
-
-                    fulfill(group);
-
-
-                }).catch(reject);
-            });
-
+                // Chromosome names
+                self.chrAliasTable = {};
+                if (names) {
+                    names.split(",").forEach(function (chr) {
+                        var canonicalName = genome.getChromosomeName(chr);
+                        self.chrAliasTable[canonicalName] = chr;
+                    })
+                }
+                return group;
+            })
         }
     }
 
     igv.TDFReader.prototype.readGroup = function (name) {
 
-        var self = this;
+        var self = this, group;
 
-        return new Promise(function (fulfill, reject) {
+        var group = self.groupCache[name];
+        if (group) {
+            return Promise.resolve(group);
+        }
+        else {
 
+            return self.readHeader()
+                .then(function (reader) {
 
-            self.readHeader().then(function (reader) {
+                    var indexEntry = self.groupIndex[name];
 
-                var group = self.groupCache[name],
-                    indexEntry = self.groupIndex[name];
+                    if (indexEntry === undefined) {
+                        return undefined;
+                    }
+                    else {
 
-                if (group) {
-                    fulfill(group);
-                }
-                else if (indexEntry === undefined) {
-                    return fulfill(null);
-                }
-                else {
+                        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+                            range: {
+                                start: indexEntry.position,
+                                size: indexEntry.size
+                            }
+                        }))
+                    }
+                })
+                .then(function (data) {
 
+                    if (!data) {
+                        return undefined;
+                    }
 
-                    igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: indexEntry.position, size: indexEntry.size}}))
-                        .then(function (data) {
+                    var binaryParser = new igv.BinaryParser(new DataView(data));
 
-                        if (!data) {
-                            reject("no data");
-                            return;
-                        }
+                    var nAttributes = binaryParser.getInt();
+                    var group = {name: name};
+                    while (nAttributes-- > 0) {
+                        group[binaryParser.getString()] = binaryParser.getString();
+                    }
 
-                        var binaryParser = new igv.BinaryParser(new DataView(data));
+                    self.groupCache[name] = group;
 
-                        var nAttributes = binaryParser.getInt();
-                        var group = {name: name};
-                        while (nAttributes-- > 0) {
-                            group[binaryParser.getString()] = binaryParser.getString();
-                        }
-
-                        self.groupCache[name] = group;
-
-                        fulfill(group);
-
-                    }).catch(reject);
-                }
-            }).catch(reject);
-        });
+                    return group;
+                })
+        }
     }
-
-
 
 
     function createFixedStep(binaryParser, nTracks) {
@@ -35000,15 +34931,13 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
-
-            igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: indexEntry.position, size: indexEntry.size}}))
-                .then(function (data) {
-
-                if (!data) {
-                    reject("no data");
-                    return;
-                }
+        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {
+            range: {
+                start: indexEntry.position,
+                size: indexEntry.size
+            }
+        }))
+            .then(function (data) {
 
                 if (self.compressed) {
                     var inflate = new Zlib.Inflate(new Uint8Array(data));
@@ -35022,23 +34951,19 @@ var igv = (function (igv) {
 
                 switch (type) {
                     case "fixedStep":
-                        fulfill(createFixedStep(binaryParser, nTracks));
+                        return createFixedStep(binaryParser, nTracks);
                         break;
                     case "variableStep":
-                        fulfill(createVariableStep(binaryParser, nTracks));
+                        return createVariableStep(binaryParser, nTracks);
                         break;
                     case "bed":
                     case "bedWithName":
-                        fulfill(createBed(binaryParser, nTracks, type));
+                        return createBed(binaryParser, nTracks, type);
                         break;
                     default:
-                        reject("Unknown tile type: " + type);
+                        throw "Unknown tile type: " + type;
                 }
-
-
-            }).catch(reject);
-
-        });
+            });
 
     }
 
@@ -35090,9 +35015,9 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
+        return self.reader.readRootGroup()
 
-            self.reader.readRootGroup().then(function (group) {
+            .then(function (group) {
 
                 var zoom = zoomLevelForScale(chr, bpPerPixel),
                     queryChr = self.reader.chrAliasTable[chr],
@@ -35105,52 +35030,51 @@ var igv = (function (igv) {
 
                 wf = zoom > maxZoom ? "raw" : self.windowFunction;
 
-                self.reader.readDataset(queryChr, wf, zoom).then(function (dataset) {
-
-                    if(dataset == null) {
-                        fulfill(null);
-                        return;
-                    }
-
-                    var tileWidth = dataset.tileWidth,
-                        startTile = Math.floor(bpStart / tileWidth),
-                        endTile = Math.floor(bpEnd / tileWidth),
-                        i,
-                        p = [],
-                        NTRACKS = 1;   // TODO read this
-
-                    for (i = startTile; i <= endTile; i++) {
-                        if(dataset.tiles[i] !== undefined) {
-                            p.push(self.reader.readTile(dataset.tiles[i], NTRACKS));
-                        }
-                    }
-
-                    Promise.all(p).then(function (tiles) {
-                        var features = [];
-                        _.each(tiles, function (tile) {
-                            switch (tile.type) {
-                                case "bed":
-                                    decodeBedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
-                                    break;
-                                case "variableStep":
-                                    decodeVaryTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
-                                    break;
-                                case "fixedStep":
-                                    decodeFixedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
-                                    break;
-                                default:
-                                    reject("Unknown tile type: " + tile.type);
-                                    return;
-                            }
-                        })
-                        fulfill(features);
-
-                    }).catch(reject)
-
-
-                }).catch(reject)
+                return self.reader.readDataset(queryChr, wf, zoom)
             })
-        });
+            .then(function (dataset) {
+
+                if (dataset == null) {
+                    fulfill([]);
+                    return;
+                }
+
+                var tileWidth = dataset.tileWidth,
+                    startTile = Math.floor(bpStart / tileWidth),
+                    endTile = Math.floor(bpEnd / tileWidth),
+                    i,
+                    p = [],
+                    NTRACKS = 1;   // TODO read this
+
+                for (i = startTile; i <= endTile; i++) {
+                    if (dataset.tiles[i] !== undefined) {
+                        p.push(self.reader.readTile(dataset.tiles[i], NTRACKS));
+                    }
+                }
+                return Promise.all(p)
+            })
+
+            .then(function (tiles) {
+
+                var features = [];
+                tiles.forEach(function (tile) {
+                    switch (tile.type) {
+                        case "bed":
+                            decodeBedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
+                            break;
+                        case "variableStep":
+                            decodeVaryTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
+                            break;
+                        case "fixedStep":
+                            decodeFixedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
+                            break;
+                        default:
+                            reject("Unknown tile type: " + tile.type);
+                            return;
+                    }
+                });
+                return features;
+            })
     }
 
     function decodeBedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features) {
@@ -35216,7 +35140,7 @@ var igv = (function (igv) {
             if (e < bpStart) continue;
             if (s > bpEnd) break;
 
-            if(!Number.isNaN(data[i])) {
+            if (!Number.isNaN(data[i])) {
                 features.push({
                     start: s,
                     end: e,
