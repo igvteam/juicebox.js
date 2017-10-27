@@ -510,8 +510,16 @@
 
         var config = {
             mapMenu: {
-                id: 'dataset_selector',            // ID of a <select> element to insert option items
+                id: 'dataset_selector',
                 items: 'data/mapMenuData.txt'
+            },
+            trackMenu: {
+                id: 'annotation-selector',
+                items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_$GENOME_ID.txt'
+            },
+            trackMenu2D: {
+                id: 'annotation-2D-selector',
+                items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
             apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",
             embedTarget: "http://aidenlab.org/juicebox/embed/embed.html"
@@ -519,7 +527,7 @@
 
         juicebox.init($('#app-container'), config);
 
-    });
+    }); 
 
 </script>
 
