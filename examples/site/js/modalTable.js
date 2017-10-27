@@ -151,7 +151,7 @@ var igv = (function (igv) {
             {
                 data: tableData,
                 columns: tableColumns,
-                paging: true,
+                paging: false,
                 scrollX: false,
                 scrollY: '400px',
                 scrollCollapse: false,
