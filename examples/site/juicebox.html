@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Juicebox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-   <!--  <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico"> -->
+    <!--  <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico"> -->
 
     <!-- Shims for legacy browsers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
@@ -22,7 +22,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css"/>
@@ -67,6 +68,7 @@
 
 <body id="portfolio">
 
+
 <!-- Share URL Modal -->
 <div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
      aria-hidden="true">
@@ -104,7 +106,8 @@
                     <div class="hic-social-button-container">
 
                         <div id="tweetButtonContainer">
-                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">TWEET</a>
+                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
+                               data-show-count="false">TWEET</a>
                         </div>
 
                         <div id="emailButtonContainer">
@@ -231,7 +234,8 @@
 </div>
 
 <!-- Contact Map Select Modal -->
-<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
+<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -245,7 +249,8 @@
 
             <div class="modal-body">
                 <div class="form-group">
-                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
+                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker"
+                            data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
                     </select>
                 </div>
             </div>
@@ -332,7 +337,6 @@
     </div>
 </div>
 
-<!--
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
@@ -369,7 +373,6 @@
         </nav>
     </div>
 </nav>
--->
 
 <div class="container-fluid">
 
@@ -437,6 +440,19 @@
                         </a>
                     </li><!-- Select ENCODE -->
 
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-annotation-select-modal">
+                            Genome Annotations
+                        </a>
+                    </li><!-- Select Annotations -->
+
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-annotation-2D-select-modal">
+                            2D Annotations
+                        </a>
+                    </li><!-- Select 2D Annotations -->
 
                     <li role="presentation"><!-- Local Track File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
@@ -481,7 +497,6 @@
         </div>
     </div>
 
-    <!--
     <div class="row header">
         <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
             <br>
@@ -499,9 +514,30 @@
                     unlimited zoom."</em> <i>Cell Systems</i> 3(1), 2016.</h4><br><br>
         </div>
     </div>
-    -->
 
+</div>
 
+<div id="footer-white" style="background:#414B5B;">
+    <div class="container">
+        <div class="row" align="center">
+            <div class="newsletter" style="width:60%;">
+                <div class="signup clearfix">
+                    <p style="text-align:center;">
+                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+                    </p>
+                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+                        <input type="text" name="email" class="form-control" placeholder="Your email address">
+                        <input type="submit" name="submit" value="Sign up">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row credits">
+            <div class="col-md-12">
+                Copyright © 2017. Aiden Lab
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -527,7 +563,7 @@
 
         juicebox.init($('#app-container'), config);
 
-    }); 
+    });
 
 </script>
 
