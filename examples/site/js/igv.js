@@ -14328,6 +14328,10 @@ var igv = (function (igv) {
             tagLabel,
             selected;
 
+        if (igv.colorPicker) {
+            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
+        }
+
         // sort by genomic location
         menuItems.push(sortMenuItem(popover));
 
@@ -22861,6 +22865,10 @@ var igv = (function (igv) {
             });
             menuItems = menuItems.concat(colorByItems);
         }
+        if (igv.colorPicker) {
+            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
+        }
+
 
         mapped = (["COLLAPSED", "SQUISHED", "EXPANDED"]).map(function (displayMode, index) {
             return {
@@ -24692,6 +24700,10 @@ var igv = (function (igv) {
 
         var self = this,
             menuItems = [];
+
+        if (igv.colorPicker) {
+            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
+        }
 
         menuItems.push(igv.dataRangeMenuItem(popover, this.trackView));
 
@@ -35629,7 +35641,7 @@ var igv = (function (igv) {
         }
 
 
-    };
+    }
 
     igv.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
@@ -35778,10 +35790,6 @@ var igv = (function (igv) {
 
         }, undefined));
 
-        if (igv.doProvideColoSwatchWidget(trackView.track)) {
-            menuItems.push(igv.colorPickerMenuItem(popover, trackView))
-        }
-
         all = [];
         if (trackView.track.menuItemList) {
             all = menuItems.concat(igv.trackMenuItemListHelper(trackView.track.menuItemList(popover)));
@@ -35802,10 +35810,6 @@ var igv = (function (igv) {
         }
 
         return all;
-    };
-
-    igv.doProvideColoSwatchWidget = function (track) {
-        return igv.colorPicker && (track instanceof igv.BAMTrack || track instanceof igv.FeatureTrack || track instanceof igv.VariantTrack || track instanceof igv.WIGTrack);
     };
 
     igv.trackMenuItemListHelper = function (itemList) {
@@ -35895,17 +35899,43 @@ var igv = (function (igv) {
     };
 
     igv.colorPickerMenuItem = function (popover, trackView) {
-        var $e;
+        var $e,
+            clickHandler;
+
 
         $e = $('<div>');
         $e.text('Set track color');
 
-        $e.click(function () {
-            trackView.$colorpicker_container.toggle();
-            popover.hide();
-        });
+        clickHandler = function () {
+            var defaultColor,
+                color,
+                offset,
+                colorUpdateHandler;
 
-        return { object: $e };
+            color = trackView.track.color;
+
+            defaultColor = trackView.track.config.color || igv.browser.constants.defaultColor;
+
+            offset =
+            {
+                left: ($(trackView.trackDiv).offset().left + $(trackView.trackDiv).width()) - igv.colorPicker.$container.width(),
+                top: $(trackView.trackDiv).offset().top
+            };
+
+            colorUpdateHandler = function (color) {
+                trackView.setColor(color)
+            };
+
+            igv.colorPicker.configure(trackView, color, defaultColor, offset, colorUpdateHandler);
+
+            igv.colorPicker.presentAtOffset(offset);
+
+            popover.hide();
+        };
+
+        $e.click(clickHandler);
+
+        return {object: $e, init: undefined};
 
     };
 
@@ -36614,14 +36644,12 @@ var igv = (function (igv) {
     igv.TrackView = function (browser, $container, track) {
 
         var self = this,
-            element,
-            $track;
+            element;
 
         this.browser = browser;
 
-        $track = $('<div class="igv-track-div">');
-        this.trackDiv = $track.get(0);
-        $container.append($track);
+        this.trackDiv = $('<div class="igv-track-div">')[0];
+        $container.append(this.trackDiv);
 
         this.track = track;
         track.trackView = this;
@@ -36659,21 +36687,6 @@ var igv = (function (igv) {
 
         // Track order repositioning widget
         this.attachDragWidget();
-
-        if (igv.doProvideColoSwatchWidget(this.track)) {
-
-            this.$colorpicker_container = $('<div>', { class:'igv-colorpicker-container' });
-            $track.append(this.$colorpicker_container);
-
-            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgbString) {
-                self.setColor(rgbString);
-            }, function () {
-                self.$colorpicker_container.toggle();
-            });
-
-            igv.makeDraggable(this.$colorpicker_container, this.$colorpicker_container);
-            this.$colorpicker_container.hide();
-        }
 
     };
 
@@ -39600,6 +39613,10 @@ var igv = (function (igv) {
             menuItems = [],
             mapped, $color, colorClickHandler;
 
+        if (igv.colorPicker) {
+            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
+        }
+
         mapped = _.map(["COLLAPSED", "SQUISHED", "EXPANDED"], function (displayMode, index) {
             return {
                 object: $(displayModeMarkup(index, displayMode, self.displayMode)),
@@ -39676,6 +39693,43 @@ var igv = (function (igv) {
         return menuItems;
 
     };
+
+
+    //      igv.VariantTrack.prototype.menuItemList = function (popover) {
+    //
+    //     var myself = this,
+    //         menuItems = [],
+    //         lut = {"COLLAPSED": "Collapse", "SQUISHED": "Squish", "EXPANDED": "Expand"},
+    //         checkMark = '<i class="fa fa-check fa-check-shim"></i>',
+    //         checkMarkNone = '<i class="fa fa-check fa-check-shim fa-check-hidden"></i>',
+    //         trackMenuItem = '<div class=\"igv-track-menu-item\">',
+    //         trackMenuItemFirst = '<div class=\"igv-track-menu-item igv-track-menu-border-top\">';
+    //
+    //     menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
+    //
+    //     ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode, index) {
+    //
+    //         var chosen,
+    //             str;
+    //
+    //         chosen = (0 === index) ? trackMenuItemFirst : trackMenuItem;
+    //         str = (displayMode === myself.displayMode) ? chosen + checkMark + lut[displayMode] + '</div>' : chosen + checkMarkNone + lut[displayMode] + '</div>';
+    //
+    //         menuItems.push({
+    //             object: $(str),
+    //             click: function () {
+    //                 popover.hide();
+    //                 myself.displayMode = displayMode;
+    //                 myself.trackView.update();
+    //             }
+    //         });
+    //
+    //     });
+    //
+    //     return menuItems;
+    //
+    // };
+
 
     return igv;
 
