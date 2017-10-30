@@ -14328,10 +14328,6 @@ var igv = (function (igv) {
             tagLabel,
             selected;
 
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
-
         // sort by genomic location
         menuItems.push(sortMenuItem(popover));
 
@@ -16596,364 +16592,16 @@ var igv = (function (igv) {
 
 var igv = (function (igv) {
 
-    var BPTREE_MAGIC_LTH = 0x78CA8C91;
-    var BPTREE_MAGIC_HTL = 0x918CCA78;
-    var BPTREE_HEADER_SIZE = 32;
-
-
-    igv.BPTree = function (binaryParser, startOffset) {
-
-        var self = this,
-            genome = igv.browser ? igv.browser.genome : null;
-
-        this.header = {};
-        this.header.magic = binaryParser.getInt();
-        this.header.blockSize = binaryParser.getInt();
-        this.header.keySize = binaryParser.getInt();
-        this.header.valSize = binaryParser.getInt();
-        this.header.itemCount = binaryParser.getLong();
-        this.header.reserved = binaryParser.getLong();
-
-        this.dictionary = {};
-
-        // Recursively walk tree to populate dictionary
-        readTreeNode(binaryParser, -1, this.header.keySize, this.dictionary);
-
-        var itemSize = 8 + this.header.keySize;
-        var minSize = 4 + itemSize;   // Bytes for a node with 1 item
-
-        function readTreeNode(byteBuffer, offset, keySize, dictionary) {
-
-            if (offset >= 0) byteBuffer.position = offset;
-
-            var type = byteBuffer.getByte(),
-                reserved = byteBuffer.getByte(),
-                count = byteBuffer.getUShort(),
-                i,
-                key,
-                chromId,
-                chromSize,
-                childOffset,
-                bufferOffset,
-                currOffset;
-
-
-            if (type == 1) {
-
-                for (i = 0; i < count; i++) {
-
-                    key = byteBuffer.getFixedLengthTrimmedString(keySize);
-                    chromId = byteBuffer.getInt();
-                    chromSize = byteBuffer.getInt();
-
-                    if(genome) key = genome.getChromosomeName(key);  // Translate to canonical chr name
-                    dictionary[key] = chromId;
-
-                }
-            }
-            else { // non-leaf
-
-                for (i = 0; i < count; i++) {
-
-                    key = byteBuffer.getFixedLengthTrimmedString(keySize);
-                    childOffset = byteBuffer.getLong();
-                    bufferOffset = childOffset - startOffset;
-                    currOffset = byteBuffer.position;
-                    readTreeNode(byteBuffer, bufferOffset, keySize, dictionary);
-                    byteBuffer.position = currOffset;
-                }
-            }
-
-        }
-    }
-
-
-    return igv;
-
-})(igv || {});
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * Created by jrobinso on 4/7/14.
- */
-
-
-var igv = (function (igv) {
-
-    var RPTREE_MAGIC_LTH = 0x2468ACE0;
-    var RPTREE_MAGIC_HTL = 0xE0AC6824;
-    var RPTREE_HEADER_SIZE = 48;
-    var RPTREE_NODE_LEAF_ITEM_SIZE = 32;   // leaf item size
-    var RPTREE_NODE_CHILD_ITEM_SIZE = 24;  // child item size
-    var BUFFER_SIZE = 512000;     //  buffer
-
-    igv.RPTree = function (fileOffset, contentLength, config, littleEndian) {
-
-        this.config = config;
-        this.filesize = contentLength;
-        this.fileOffset = fileOffset; // File offset to beginning of tree
-        this.path = config.url;
-        this.littleEndian = littleEndian;
-    }
-
-
-    igv.RPTree.prototype.load = function () {
-
-        var self = this;
-
-        var rootNodeOffset = self.fileOffset + RPTREE_HEADER_SIZE,
-            bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
-
-        return self.readNode(rootNodeOffset, bufferedReader)
-
-            .then(function (node) {
-                self.rootNode = node;
-                return self;
-            })
-    }
-
-
-    igv.RPTree.prototype.readNode = function (filePosition, bufferedReader) {
-
-        var self = this;
-
-
-        var count, isLeaf;
-
-        return bufferedReader.dataViewForRange({start: filePosition, size: 4}, false)
-
-            .then(function (dataView) {
-                var binaryParser, type, reserved;
-
-                binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
-                type = binaryParser.getByte();
-                isLeaf = (type === 1) ? true : false;
-                reserved = binaryParser.getByte();
-                count = binaryParser.getUShort();
-
-                filePosition += 4;
-
-                var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
-                var range2 = {start: filePosition, size: bytesRequired};
-
-                return bufferedReader.dataViewForRange(range2, false);
-            })
-
-            .then(function (dataView) {
-
-                var i,
-                    items = new Array(count),
-                    binaryParser = new igv.BinaryParser(dataView);
-
-                if (isLeaf) {
-                    for (i = 0; i < count; i++) {
-                        var item = {
-                            isLeaf: true,
-                            startChrom: binaryParser.getInt(),
-                            startBase: binaryParser.getInt(),
-                            endChrom: binaryParser.getInt(),
-                            endBase: binaryParser.getInt(),
-                            dataOffset: binaryParser.getLong(),
-                            dataSize: binaryParser.getLong()
-                        };
-                        items[i] = item;
-
-                    }
-                    return new RPTreeNode(items);
-                }
-                else { // non-leaf
-                    for (i = 0; i < count; i++) {
-
-                        var item = {
-                            isLeaf: false,
-                            startChrom: binaryParser.getInt(),
-                            startBase: binaryParser.getInt(),
-                            endChrom: binaryParser.getInt(),
-                            endBase: binaryParser.getInt(),
-                            childOffset: binaryParser.getLong()
-                        };
-                        items[i] = item;
-
-                    }
-
-                    return new RPTreeNode(items);
-                }
-            })
-    }
-
-
-    igv.RPTree.prototype.findLeafItemsOverlapping = function (chrIdx, startBase, endBase) {
-
-        var self = this;
-
-        return new Promise(function (fulfill, reject) {
-
-            var leafItems = [],
-                processing = new Set(),
-                bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
-
-            processing.add(0);  // Zero represents the root node
-            findLeafItems(self.rootNode, 0);
-
-            function findLeafItems(node, nodeId) {
-
-                if (overlaps(node, chrIdx, startBase, endBase)) {
-
-                    var items = node.items;
-
-                    items.forEach(function (item) {
-
-                        if (overlaps(item, chrIdx, startBase, endBase)) {
-
-                            if (item.isLeaf) {
-                                leafItems.push(item);
-                            }
-
-                            else {
-                                if (item.childNode) {
-                                    findLeafItems(item.childNode);
-                                }
-                                else {
-                                    processing.add(item.childOffset);  // Represent node to-be-loaded by its file position
-
-                                    self.readNode(item.childOffset, bufferedReader)
-                                        .then(function (node) {
-                                            item.childNode = node;
-                                            findLeafItems(node, item.childOffset);
-                                        })
-                                        .catch(reject);
-                                }
-                            }
-                        }
-                    });
-
-                }
-
-                if (nodeId != undefined) processing.delete(nodeId);
-
-                // Wait until all nodes are processed
-                if (processing.size === 0) {
-                    fulfill(leafItems);
-                }
-            }
-        });
-    }
-
-
-    function RPTreeNode(items) {
-
-
-        this.items = items;
-
-        var minChromId = Number.MAX_VALUE,
-            maxChromId = 0,
-            minStartBase = Number.MAX_VALUE,
-            maxEndBase = 0,
-            i,
-            item;
-
-        for (i = 0; i < items.length; i++) {
-            item = items[i];
-            minChromId = Math.min(minChromId, item.startChrom);
-            maxChromId = Math.max(maxChromId, item.endChrom);
-            minStartBase = Math.min(minStartBase, item.startBase);
-            maxEndBase = Math.max(maxEndBase, item.endBase);
-        }
-
-        this.startChrom = minChromId;
-        this.endChrom = maxChromId;
-        this.startBase = minStartBase;
-        this.endBase = maxEndBase;
-
-    }
-
-    /**
-     * Return true if {chrIdx:startBase-endBase} overlaps item's interval
-     * @returns {boolean}
-     */
-    function overlaps(item, chrIdx, startBase, endBase) {
-
-        //  if (chrIdx > item.endChrom || chrIdx < item.startChrom) return false;
-
-        if (!item) {
-            console.log("null item");
-            return false;
-        }
-
-        return ((chrIdx > item.startChrom) || (chrIdx == item.startChrom && endBase >= item.startBase)) &&
-            ((chrIdx < item.endChrom) || (chrIdx == item.endChrom && startBase < item.endBase));
-
-
-    }
-
-
-    return igv;
-
-
-})(igv || {});
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * Created by jrobinso on 4/7/14.
- */
-
-
-var igv = (function (igv) {
-
     var BIGWIG_MAGIC_LTH = 0x888FFC26; // BigWig Magic Low to High
     var BIGWIG_MAGIC_HTL = 0x26FC8F66; // BigWig Magic High to Low
     var BIGBED_MAGIC_LTH = 0x8789F2EB; // BigBed Magic Low to High
     var BIGBED_MAGIC_HTL = 0xEBF28987; // BigBed Magic High to Low
     var BBFILE_HEADER_SIZE = 64;
-
+    var RPTREE_HEADER_SIZE = 48;
+    var RPTREE_NODE_LEAF_ITEM_SIZE = 32;   // leaf item size
+    var RPTREE_NODE_CHILD_ITEM_SIZE = 24;  // child item size
+    var BUFFER_SIZE = 512000;     //  buffer
+    var BPTREE_HEADER_SIZE = 32;
 
     igv.BWReader = function (config) {
         this.path = config.url;
@@ -16961,6 +16609,131 @@ var igv = (function (igv) {
         this.rpTreeCache = {};
         this.config = config;
     };
+
+    igv.BWReader.prototype.readWGFeatures = function (genome, bpPerPixel) {
+
+        var self = this;
+        return self.getZoomHeaders()
+            .then(function (zoomLevelHeaders) {
+                var chrIdx1, chrIdx2, chr1, chr2;
+
+                chrIdx1 = 0;
+                chrIdx2 = self.chromTree.idToChrom.length - 1;
+                chr1 = self.chromTree.idToChrom[chrIdx1];
+                chr2 = self.chromTree.idToChrom[chrIdx2];
+
+                return self.readFeatures(chr1, 0, chr2, Number.MAX_VALUE, bpPerPixel);
+            });
+
+    }
+
+    igv.BWReader.prototype.readFeatures = function (chr1, bpStart, chr2, bpEnd, bpPerPixel) {
+
+        var self = this,
+            decodeFunction,
+            chrIdx1,
+            chrIdx2,
+            bufferedReader = new igv.BufferedReader(self.config);
+
+        return self.getZoomHeaders()
+
+            .then(function (zoomLevelHeaders) {
+
+                // Select a biwig "zoom level" appropriate for the current resolution
+                var zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
+                    treeOffset;
+
+                if (zoomLevelHeader) {
+                    treeOffset = zoomLevelHeader.indexOffset;
+                    decodeFunction = decodeZoomData;
+                } else {
+                    treeOffset = self.header.fullIndexOffset;
+                    if (self.type === "BigWig") {
+                        decodeFunction = decodeWigData;
+                    }
+                    else {
+                        decodeFunction = decodeBedData;
+                    }
+                }
+
+                return self.loadRPTree(treeOffset);
+            })
+
+            .then(function (rpTree) {
+
+                chrIdx1 = self.chromTree.chromToID[chr1];
+                chrIdx2 = self.chromTree.chromToID[chr2];
+                if (chrIdx1 === undefined || chrIdx2 === undefined) {
+                    return undefined;
+                }
+                else {
+                    return rpTree.findLeafItemsOverlapping(chrIdx1, bpStart, chrIdx2, bpEnd)
+                }
+            })
+
+            .then(function (leafItems) {
+
+                var promises = [];
+
+                if (!leafItems || leafItems.length == 0) {
+                    return [];
+                }
+                else {
+                    leafItems.forEach(function (item) {
+
+                        promises.push(
+                            bufferedReader.dataViewForRange({
+                                start: item.dataOffset,
+                                size: item.dataSize
+                            }, true)
+                                .then(function (uint8Array) {
+                                    var features = [];
+                                    var inflate = new Zlib.Inflate(uint8Array);
+                                    var plain = inflate.decompress();
+                                    decodeFunction(new DataView(plain.buffer), chrIdx1, bpStart, chrIdx2, bpEnd, features, self.chromTree.idToChrom);
+                                    return features;
+                                })
+                        )
+                    });
+
+                    return Promise.all(promises);
+                }
+            })
+
+            .then(function (featureArrays) {
+
+                var i, allFeatures = [];
+
+
+                allFeatures = allFeatures.concat.apply(allFeatures, featureArrays);
+
+                // for (i = 0; i < featureArrays.length; i++) {
+                //     allFeatures = allFeatures.concat(featureArrays[i]);
+                // }
+
+                allFeatures.sort(function (a, b) {
+                    return a.start - b.start;
+                });
+
+                return allFeatures;
+            })
+    }
+
+    igv.BWReader.prototype.getZoomHeaders = function () {
+
+        var self = this;
+
+        if (self.zoomLevelHeaders) {
+            return Promise.resolve(self.zoomLevelHeaders);
+        }
+        else {
+            return self.loadHeader()
+                .then(function () {
+                    return self.zoomLevelHeaders;
+                })
+        }
+
+    }
 
     igv.BWReader.prototype.loadHeader = function () {
 
@@ -16974,7 +16747,7 @@ var igv = (function (igv) {
         }))
             .then(function (data) {
 
-                var header = {};
+                var header;
 
                 // Assume low-to-high unless proven otherwise
                 self.littleEndian = true;
@@ -17070,13 +16843,13 @@ var igv = (function (igv) {
                     // Total summary
                     if (self.header.totalSummaryOffset > 0) {
                         binaryParser.position = self.header.totalSummaryOffset - startOffset;
-                        self.totalSummary = new igv.BWTotalSummary(binaryParser);
+                        self.totalSummary = new BWTotalSummary(binaryParser);
                     }
 
                     // Chrom data index
                     if (self.header.chromTreeOffset > 0) {
                         binaryParser.position = self.header.chromTreeOffset - startOffset;
-                        self.chromTree = new igv.BPTree(binaryParser, startOffset);
+                        self.chromTree = new BPTree(binaryParser, startOffset);
                     }
                     else {
                         // TODO -- this is an error, not expected
@@ -17093,7 +16866,6 @@ var igv = (function (igv) {
 
     }
 
-
     igv.BWReader.prototype.loadRPTree = function (offset) {
 
         var self = this;
@@ -17103,14 +16875,13 @@ var igv = (function (igv) {
             return Promise.resolve(rpTree);
         }
         else {
-            rpTree = new igv.RPTree(offset, self.contentLength, self.config, self.littleEndian);
+            rpTree = new RPTree(offset, self.contentLength, self.config, self.littleEndian);
             self.rpTreeCache[offset] = rpTree;
             return rpTree.load();
         }
     }
 
-
-    var ZoomLevelHeader = function (index, byteBuffer) {
+    function ZoomLevelHeader(index, byteBuffer) {
         this.index = index;
         this.reductionLevel = byteBuffer.getInt();
         this.reserved = byteBuffer.getInt();
@@ -17119,8 +16890,500 @@ var igv = (function (igv) {
 
     }
 
+    function RPTree(fileOffset, contentLength, config, littleEndian) {
+
+        this.config = config;
+        this.filesize = contentLength;
+        this.fileOffset = fileOffset; // File offset to beginning of tree
+        this.path = config.url;
+        this.littleEndian = littleEndian;
+    }
+
+    RPTree.prototype.load = function () {
+
+        var self = this;
+
+        var rootNodeOffset = self.fileOffset + RPTREE_HEADER_SIZE,
+            bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
+
+        return self.readNode(rootNodeOffset, bufferedReader)
+
+            .then(function (node) {
+                self.rootNode = node;
+                return self;
+            })
+    }
+
+    RPTree.prototype.readNode = function (filePosition, bufferedReader) {
+
+        var self = this;
+
+
+        var count, isLeaf;
+
+        return bufferedReader.dataViewForRange({start: filePosition, size: 4}, false)
+
+            .then(function (dataView) {
+                var binaryParser, type, reserved;
+
+                binaryParser = new igv.BinaryParser(dataView, self.littleEndian);
+                type = binaryParser.getByte();
+                isLeaf = (type === 1) ? true : false;
+                reserved = binaryParser.getByte();
+                count = binaryParser.getUShort();
+
+                filePosition += 4;
+
+                var bytesRequired = count * (isLeaf ? RPTREE_NODE_LEAF_ITEM_SIZE : RPTREE_NODE_CHILD_ITEM_SIZE);
+                var range2 = {start: filePosition, size: bytesRequired};
+
+                return bufferedReader.dataViewForRange(range2, false);
+            })
+
+            .then(function (dataView) {
+
+                var i,
+                    items = new Array(count),
+                    binaryParser = new igv.BinaryParser(dataView);
+
+                if (isLeaf) {
+                    for (i = 0; i < count; i++) {
+                        var item = {
+                            isLeaf: true,
+                            startChrom: binaryParser.getInt(),
+                            startBase: binaryParser.getInt(),
+                            endChrom: binaryParser.getInt(),
+                            endBase: binaryParser.getInt(),
+                            dataOffset: binaryParser.getLong(),
+                            dataSize: binaryParser.getLong()
+                        };
+                        items[i] = item;
+
+                    }
+                    return new RPTreeNode(items);
+                }
+                else { // non-leaf
+                    for (i = 0; i < count; i++) {
+
+                        var item = {
+                            isLeaf: false,
+                            startChrom: binaryParser.getInt(),
+                            startBase: binaryParser.getInt(),
+                            endChrom: binaryParser.getInt(),
+                            endBase: binaryParser.getInt(),
+                            childOffset: binaryParser.getLong()
+                        };
+                        items[i] = item;
+
+                    }
+
+                    return new RPTreeNode(items);
+                }
+            })
+    }
+
+    RPTree.prototype.findLeafItemsOverlapping = function (chrIdx1, startBase, chrIdx2, endBase) {
+
+        var self = this;
+
+        return new Promise(function (fulfill, reject) {
+
+            var leafItems = [],
+                processing = new Set(),
+                bufferedReader = new igv.BufferedReader(self.config, self.filesize, BUFFER_SIZE);
+
+            processing.add(0);  // Zero represents the root node
+            findLeafItems(self.rootNode, 0);
+
+            function findLeafItems(node, nodeId) {
+
+                if (overlaps(node, chrIdx1, startBase, chrIdx2, endBase)) {
+
+                    var items = node.items;
+
+                    items.forEach(function (item) {
+
+                        if (overlaps(item, chrIdx1, startBase, chrIdx2, endBase)) {
+
+                            if (item.isLeaf) {
+                                leafItems.push(item);
+                            }
+
+                            else {
+                                if (item.childNode) {
+                                    findLeafItems(item.childNode);
+                                }
+                                else {
+                                    processing.add(item.childOffset);  // Represent node to-be-loaded by its file position
+
+                                    self.readNode(item.childOffset, bufferedReader)
+                                        .then(function (node) {
+                                            item.childNode = node;
+                                            findLeafItems(node, item.childOffset);
+                                        })
+                                        .catch(reject);
+                                }
+                            }
+                        }
+                    });
+
+                }
+
+                if (nodeId != undefined) processing.delete(nodeId);
+
+                // Wait until all nodes are processed
+                if (processing.size === 0) {
+                    fulfill(leafItems);
+                }
+            }
+        });
+    }
+
+    function RPTreeNode(items) {
+
+
+        this.items = items;
+
+        var minChromId = Number.MAX_VALUE,
+            maxChromId = 0,
+            minStartBase = Number.MAX_VALUE,
+            maxEndBase = 0,
+            i,
+            item;
+
+        for (i = 0; i < items.length; i++) {
+            item = items[i];
+            minChromId = Math.min(minChromId, item.startChrom);
+            maxChromId = Math.max(maxChromId, item.endChrom);
+            minStartBase = Math.min(minStartBase, item.startBase);
+            maxEndBase = Math.max(maxEndBase, item.endBase);
+        }
+
+        this.startChrom = minChromId;
+        this.endChrom = maxChromId;
+        this.startBase = minStartBase;
+        this.endBase = maxEndBase;
+
+    }
+
+    function BPTree(binaryParser, startOffset) {
+
+        var self = this,
+            genome = igv.browser ? igv.browser.genome : null;
+
+        var magic = binaryParser.getInt();
+        var blockSize = binaryParser.getInt();
+        var keySize = binaryParser.getInt();
+        var valSize = binaryParser.getInt();
+        var itemCount = binaryParser.getLong();
+        var reserved = binaryParser.getLong();
+        var chromToId = {};
+        var idToChrom = [];
+
+        this.chromToID = chromToId;
+        this.idToChrom = idToChrom;
+
+        // Recursively walk tree to populate dictionary
+        readTreeNode(binaryParser, -1);
+
+
+        function readTreeNode(byteBuffer, offset) {
+
+            if (offset >= 0) byteBuffer.position = offset;
+
+            var type = byteBuffer.getByte(),
+                reserved = byteBuffer.getByte(),
+                count = byteBuffer.getUShort(),
+                i,
+                key,
+                chromId,
+                chromSize,
+                childOffset,
+                bufferOffset,
+                currOffset;
+
+
+            if (type == 1) {
+
+                for (i = 0; i < count; i++) {
+
+                    key = byteBuffer.getFixedLengthTrimmedString(keySize);
+                    chromId = byteBuffer.getInt();
+                    chromSize = byteBuffer.getInt();
+
+                    if (genome) key = genome.getChromosomeName(key);  // Translate to canonical chr name
+                    chromToId[key] = chromId;
+                    idToChrom[chromId] = key;
+
+                }
+            }
+            else { // non-leaf
+
+                for (i = 0; i < count; i++) {
+
+                    key = byteBuffer.getFixedLengthTrimmedString(keySize);
+                    childOffset = byteBuffer.getLong();
+                    bufferOffset = childOffset - startOffset;
+                    currOffset = byteBuffer.position;
+                    readTreeNode(byteBuffer, bufferOffset);
+                    byteBuffer.position = currOffset;
+                }
+            }
+
+        }
+    }
+
+    /**
+     * Return true if {chrIdx1:startBase-chrIdx2:endBase} overlaps item's interval
+     * @returns {boolean}
+     */
+    function overlaps(item, chrIdx1, startBase, chrIdx2, endBase) {
+
+        if (!item) {
+            console.log("null item");
+            return false;
+        }
+
+        return ((chrIdx2 > item.startChrom) || (chrIdx2 == item.startChrom && endBase >= item.startBase)) &&
+            ((chrIdx1 < item.endChrom) || (chrIdx1 == item.endChrom && startBase <= item.endBase));
+
+
+    }
+
+    function BWTotalSummary(byteBuffer) {
+
+        if (byteBuffer) {
+
+            this.basesCovered = byteBuffer.getLong();
+            this.minVal = byteBuffer.getDouble();
+            this.maxVal = byteBuffer.getDouble();
+            this.sumData = byteBuffer.getDouble();
+            this.sumSquares = byteBuffer.getDouble();
+
+            computeStats.call(this);
+        }
+        else {
+            this.basesCovered = 0;
+            this.minVal = 0;
+            this.maxVal = 0;
+            this.sumData = 0;
+            this.sumSquares = 0;
+            this.mean = 0;
+            this.stddev = 0;
+        }
+    }
+
+
+    BWTotalSummary.prototype.updateStats = function (stats) {
+
+        this.basesCovered += stats.count;
+        this.sumData += status.sumData;
+        this.sumSquares += sumSquares;
+        this.minVal = MIN(_minVal, min);
+        this.maxVal = MAX(_maxVal, max);
+
+        computeStats.call(this);
+
+    }
+
+    function computeStats() {
+        var n = this.basesCovered;
+        if (n > 0) {
+            this.mean = this.sumData / n;
+            this.stddev = Math.sqrt(this.sumSquares / (n - 1));
+
+            var min = this.minVal < 0 ? this.mean - 2 * this.stddev : 0,
+                max = this.maxVal > 0 ? this.mean + 2 * this.stddev : 0;
+
+            this.defaultRange = {
+                min: 0,
+                max: this.mean + 3 * this.stddev
+            }
+        }
+    }
+
+    function zoomLevelForScale(bpPerPixel, zoomLevelHeaders) {
+
+        var level = null, i, zl;
+
+        for (i = 0; i < zoomLevelHeaders.length; i++) {
+
+            zl = zoomLevelHeaders[i];
+
+            if (zl.reductionLevel < bpPerPixel) {
+                level = zl;
+                break;
+            }
+        }
+
+        return level;
+    }
+
+    function decodeWigData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, chrDict) {
+
+        var binaryParser = new igv.BinaryParser(data),
+            chromId = binaryParser.getInt(),
+            chromStart = binaryParser.getInt(),
+            chromEnd = binaryParser.getInt(),
+            itemStep = binaryParser.getInt(),
+            itemSpan = binaryParser.getInt(),
+            type = binaryParser.getByte(),
+            reserved = binaryParser.getByte(),
+            itemCount = binaryParser.getUShort(),
+            value,
+            chr;
+
+        if (chromId >= chrIdx1 && chromId <= chrIdx2) {
+
+            while (itemCount-- > 0) {
+
+                switch (type) {
+                    case 1:
+                        chromStart = binaryParser.getInt();
+                        chromEnd = binaryParser.getInt();
+                        value = binaryParser.getFloat();
+                        break;
+                    case 2:
+                        chromStart = binaryParser.getInt();
+                        value = binaryParser.getFloat();
+                        chromEnd = chromStart + itemSpan;
+                        break;
+                    case 3:  // Fixed step
+                        value = binaryParser.getFloat();
+                        chromEnd = chromStart + itemSpan;
+                        chromStart += itemStep;
+                        break;
+
+                }
+
+                if (chromId < chrIdx1 || (chromId === chrIdx1 && chromEnd < bpStart)) continue;
+                else if (chromId > chrIdx2 || (chromId === chrIdx2 && chromStart >= bpEnd))  break;
+
+                if (Number.isFinite(value)) {
+                    chr = chrDict[chromId];
+                    featureArray.push({chr: chr, start: chromStart, end: chromEnd, value: value});
+
+                }
+            }
+        }
+
+    }
+
+
+    function decodeBedData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, chrDict) {
+
+        var binaryParser = new igv.BinaryParser(data),
+            minSize = 3 * 4 + 1,   // Minimum # of bytes required for a bed record
+            chromId,
+            chromStart,
+            chromEnd,
+            rest,
+            tokens,
+            feature,
+            exonCount, exonSizes, exonStarts, exons, eStart, eEnd, chr;
+
+
+        while (binaryParser.remLength() >= minSize) {
+
+            chromId = binaryParser.getInt();
+            chr = chrDict[chromId];
+            chromStart = binaryParser.getInt();
+            chromEnd = binaryParser.getInt();
+            rest = binaryParser.getString();
+
+            if (chromId < chrIdx1 || (chromId === chrIdx1 && chromEnd < bpStart)) continue;
+            else if (chromId > chrIdx2 || (chromId === chrIdx2 && chromStart >= bpEnd))  break;
+
+
+            feature = {chr: chr, start: chromStart, end: chromEnd};
+
+            featureArray.push(feature);
+
+            tokens = rest.split("\t");
+
+            if (tokens.length > 0) {
+                feature.name = tokens[0];
+            }
+
+            if (tokens.length > 1) {
+                feature.score = parseFloat(tokens[1]);
+            }
+            if (tokens.length > 2) {
+                feature.strand = tokens[2];
+            }
+            if (tokens.length > 3) {
+                feature.cdStart = parseInt(tokens[3]);
+            }
+            if (tokens.length > 4) {
+                feature.cdEnd = parseInt(tokens[4]);
+            }
+            if (tokens.length > 5) {
+                if (tokens[5] !== "." && tokens[5] !== "0")
+                    feature.color = igv.createColorString(tokens[5]);
+            }
+            if (tokens.length > 8) {
+                exonCount = parseInt(tokens[6]);
+                exonSizes = tokens[7].split(',');
+                exonStarts = tokens[8].split(',');
+                exons = [];
+
+                for (var i = 0; i < exonCount; i++) {
+                    eStart = start + parseInt(exonStarts[i]);
+                    eEnd = eStart + parseInt(exonSizes[i]);
+                    exons.push({start: eStart, end: eEnd});
+                }
+
+                feature.exons = exons;
+            }
+
+        }
+
+    }
+
+
+    function decodeZoomData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, chrDict) {
+
+        var binaryParser = new igv.BinaryParser(data),
+            minSize = 8 * 4,   // Minimum # of bytes required for a zoom record
+            chromId,
+            chromStart,
+            chromEnd,
+            validCount,
+            minVal,
+            maxVal,
+            sumData,
+            sumSquares,
+            value,
+            chr;
+
+        while (binaryParser.remLength() >= minSize) {
+
+            chromId = binaryParser.getInt();
+            chr = chrDict[chromId];
+            chromStart = binaryParser.getInt();
+            chromEnd = binaryParser.getInt();
+
+            if (chromId < chrIdx1 || (chromId === chrIdx1 && chromEnd < bpStart)) continue;
+            if (chromId > chrIdx2 || (chromId === chrIdx2 && chromStart >= bpEnd)) break;
+
+
+            validCount = binaryParser.getInt();
+            minVal = binaryParser.getFloat();
+            maxVal = binaryParser.getFloat();
+            sumData = binaryParser.getFloat();
+            sumSquares = binaryParser.getFloat();
+            value = validCount == 0 ? 0 : sumData / validCount;
+
+            if (Number.isFinite(value)) {
+                featureArray.push({chr: chr, start: chromStart, end: chromEnd, value: value});
+
+
+            }
+        }
+    }
 
     return igv;
+
 
 })
 (igv || {});
@@ -17160,114 +17423,38 @@ var igv = (function (igv) {
     igv.BWSource = function (config) {
 
         this.reader = new igv.BWReader(config);
-        this.bufferedReader = new igv.BufferedReader(config);
     };
 
-    igv.BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
+    igv.BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel, cache) {
 
         var self = this,
-            chrIdx;
+            featureCache = self.featureCache,
+            genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
 
+        if (undefined === cache) cache = true;
 
-        var decodeFunction;
+        genomicInterval.bpPerPixel = bpPerPixel;
 
-        return self.getZoomHeaders()
+        if (chr.toLowerCase() === "all") {
+            return self.getWGValues();
+        }
+        else if (featureCache && featureCache.range.bpPerPixel === bpPerPixel && featureCache.range.containsRange(genomicInterval)) {
+            return Promise.resolve(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
+        }
+        else {
 
-            .then(function (zoomLevelHeaders) {
+            return self.reader.readFeatures(chr, bpStart, chr, bpEnd, bpPerPixel)
 
-                // Select a biwig "zoom level" appropriate for the current resolution
-                var bwReader = self.reader,
-                    zoomLevelHeader = zoomLevelForScale(bpPerPixel, zoomLevelHeaders),
-                    treeOffset;
+                .then(function (features) {
 
-                if (zoomLevelHeader) {
-                    treeOffset = zoomLevelHeader.indexOffset;
-                    decodeFunction = decodeZoomData;
-                } else {
-                    treeOffset = bwReader.header.fullIndexOffset;
-                    if (bwReader.type === "BigWig") {
-                        decodeFunction = decodeWigData;
-                    }
-                    else {
-                        decodeFunction = decodeBedData;
-                    }
-                }
+                    // Note -- replacing feature cache
+                    if (cache) self.featureCache = new igv.FeatureCache(features, genomicInterval);
 
-                return bwReader.loadRPTree(treeOffset)
-            })
+                    return features;
+                })
 
-            .then(function (rpTree) {
-
-                chrIdx = self.reader.chromTree.dictionary[chr];
-
-                if (chrIdx === undefined) {
-                    return [];
-                }
-                else {
-                    return rpTree.findLeafItemsOverlapping(chrIdx, bpStart, bpEnd)
-                }
-
-            })
-
-            .then(function (leafItems) {
-
-                var promises = [],
-                    bufferedReader = self.bufferedReader;
-
-                if (!leafItems || leafItems.length == 0) {
-                    return [];
-                }
-
-                else {
-                    leafItems.forEach(function (item) {
-
-                        promises.push(new Promise(function (fulfill, reject) {
-                            var features = [];
-
-                            bufferedReader.dataViewForRange({
-                                start: item.dataOffset,
-                                size: item.dataSize
-                            }, true).then(function (uint8Array) {
-
-                                var inflate = new Zlib.Inflate(uint8Array);
-                                var plain = inflate.decompress();
-                                decodeFunction(new DataView(plain.buffer), chr, chrIdx, bpStart, bpEnd, features);
-
-                                fulfill(features);
-
-                            })
-                        }));
-                    });
-                    return Promise.all(promises);
-                }
-            })
-
-            .then(function (featureArrays) {
-
-                var i, allFeatures;
-
-                if (featureArrays.length == 0) {
-                    return [];
-                }
-                else {
-                    allFeatures = featureArrays[0];
-
-
-                    if (featureArrays.length > 1) {
-                        for (i = 1; i < featureArrays.length; i++) {
-                            allFeatures = allFeatures.concat(featureArrays[i]);
-                        }
-                    }
-                    allFeatures.sort(function (a, b) {
-                        return a.start - b.start;
-                    });
-
-                    return allFeatures;
-                }
-            })
-
+        }
     }
-
 
     igv.BWSource.prototype.getDefaultRange = function () {
 
@@ -17280,193 +17467,45 @@ var igv = (function (igv) {
 
     }
 
+    igv.BWSource.prototype.getWGValues = function () {
+        var self = this,
+            bpPerPixel,
+            nominalScreenWidth = 500;      // This doesn't need to be precise
 
-    igv.BWSource.prototype.getZoomHeaders = function () {
-
-        var self = this;
-
-        if (self.reader.zoomLevelHeaders) {
-            return Promise.resolve(self.reader.zoomLevelHeaders)
+        if (self.wgValues) {
+            return Promise.resolve(self.wgValues);
         }
         else {
-            return self.reader.loadHeader()
-                .then(function () {
-                    return self.reader.zoomLevelHeaders;
+
+            bpPerPixel = igv.browser.genome.getGenomeLength() / nominalScreenWidth;
+
+            return self.reader.readWGFeatures(igv.browser.genome, bpPerPixel)
+
+                .then(function (features) {
+
+                    var wgValues = [];
+
+                    features.forEach(function (f) {
+
+                        var wgFeature, offset, chr;
+
+                        chr = f.chr;
+                        offset = igv.browser.genome.getCumulativeOffset(chr);
+
+                        wgFeature = Object.assign({}, f);
+                        wgFeature.chr = "all";
+                        wgFeature.start = offset + f.start;
+                        wgFeature.end = offset + f.end;
+                        wgValues.push(wgFeature);
+                    })
+
+                    self.wgValues = wgValues;
+
+                    return wgValues;
+
                 })
+
         }
-    }
-
-
-    function zoomLevelForScale(bpPerPixel, zoomLevelHeaders) {
-
-        var level = null, i, zl;
-
-        for (i = 0; i < zoomLevelHeaders.length; i++) {
-
-            zl = zoomLevelHeaders[i];
-
-            if (zl.reductionLevel < bpPerPixel) {
-                level = zl;
-                break;
-            }
-        }
-
-        return level;
-    }
-
-    function decodeWigData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
-
-        var binaryParser = new igv.BinaryParser(data),
-            chromId = binaryParser.getInt(),
-            chromStart = binaryParser.getInt(),
-            chromEnd = binaryParser.getInt(),
-            itemStep = binaryParser.getInt(),
-            itemSpan = binaryParser.getInt(),
-            type = binaryParser.getByte(),
-            reserved = binaryParser.getByte(),
-            itemCount = binaryParser.getUShort(),
-            value;
-
-        if (chromId === chrIdx) {
-
-            while (itemCount-- > 0) {
-
-                switch (type) {
-                    case 1:
-                        chromStart = binaryParser.getInt();
-                        chromEnd = binaryParser.getInt();
-                        value = binaryParser.getFloat();
-                        break;
-                    case 2:
-                        chromStart = binaryParser.getInt();
-                        value = binaryParser.getFloat();
-                        chromEnd = chromStart + itemSpan;
-                        break;
-                    case 3:  // Fixed step
-                        value = binaryParser.getFloat();
-                        chromEnd = chromStart + itemSpan;
-                        chromStart += itemStep;
-                        break;
-
-                }
-
-                if (chromStart >= bpEnd) {
-                    break; // Out of interval
-                } else if (chromEnd > bpStart && Number.isFinite(value)) {
-                    featureArray.push({chr: chr, start: chromStart, end: chromEnd, value: value});
-                }
-
-
-            }
-        }
-
-    }
-
-    function decodeZoomData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
-
-        var binaryParser = new igv.BinaryParser(data),
-            minSize = 8 * 4,   // Minimum # of bytes required for a zoom record
-            chromId,
-            chromStart,
-            chromEnd,
-            validCount,
-            minVal,
-            maxVal,
-            sumData,
-            sumSquares,
-            value;
-
-        while (binaryParser.remLength() >= minSize) {
-            chromId = binaryParser.getInt();
-            if (chromId === chrIdx) {
-
-                chromStart = binaryParser.getInt();
-                chromEnd = binaryParser.getInt();
-                validCount = binaryParser.getInt();
-                minVal = binaryParser.getFloat();
-                maxVal = binaryParser.getFloat();
-                sumData = binaryParser.getFloat();
-                sumSquares = binaryParser.getFloat();
-                value = validCount == 0 ? 0 : sumData / validCount;
-
-                if (chromStart >= bpEnd) {
-                    break; // Out of interval
-
-                } else if (chromEnd > bpStart && Number.isFinite(value)) {
-                    featureArray.push({chr: chr, start: chromStart, end: chromEnd, value: value});
-                }
-
-            }
-        }
-
-    }
-
-    function decodeBedData(data, chr, chrIdx, bpStart, bpEnd, featureArray) {
-
-        var binaryParser = new igv.BinaryParser(data),
-            minSize = 3 * 4 + 1,   // Minimum # of bytes required for a bed record
-            chromId,
-            chromStart,
-            chromEnd,
-            rest,
-            tokens,
-            feature,
-            exonCount, exonSizes, exonStarts, exons, eStart, eEnd;
-
-
-        while (binaryParser.remLength() >= minSize) {
-
-            chromId = binaryParser.getInt();
-            if (chromId != chrIdx) continue;
-
-            chromStart = binaryParser.getInt();
-            chromEnd = binaryParser.getInt();
-            rest = binaryParser.getString();
-
-            feature = {chr: chr, start: chromStart, end: chromEnd};
-
-            if (chromStart < bpEnd && chromEnd >= bpStart) {
-                featureArray.push(feature);
-
-                tokens = rest.split("\t");
-
-                if (tokens.length > 0) {
-                    feature.name = tokens[0];
-                }
-
-                if (tokens.length > 1) {
-                    feature.score = parseFloat(tokens[1]);
-                }
-                if (tokens.length > 2) {
-                    feature.strand = tokens[2];
-                }
-                if (tokens.length > 3) {
-                    feature.cdStart = parseInt(tokens[3]);
-                }
-                if (tokens.length > 4) {
-                    feature.cdEnd = parseInt(tokens[4]);
-                }
-                if (tokens.length > 5) {
-                    if (tokens[5] !== "." && tokens[5] !== "0")
-                        feature.color = igv.createColorString(tokens[5]);
-                }
-                if (tokens.length > 8) {
-                    exonCount = parseInt(tokens[6]);
-                    exonSizes = tokens[7].split(',');
-                    exonStarts = tokens[8].split(',');
-                    exons = [];
-
-                    for (var i = 0; i < exonCount; i++) {
-                        eStart = start + parseInt(exonStarts[i]);
-                        eEnd = eStart + parseInt(exonSizes[i]);
-                        exons.push({start: eStart, end: eEnd});
-                    }
-
-                    feature.exons = exons;
-                }
-            }
-        }
-
     }
 
 
@@ -17475,96 +17514,6 @@ var igv = (function (igv) {
 
 })
 (igv || {});
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * Created by jrobinso on 4/7/14.
- */
-
-
-var igv = (function (igv) {
-
-
-    igv.BWTotalSummary = function (byteBuffer) {
-
-        if (byteBuffer) {
-
-            this.basesCovered = byteBuffer.getLong();
-            this.minVal = byteBuffer.getDouble();
-            this.maxVal = byteBuffer.getDouble();
-            this.sumData = byteBuffer.getDouble();
-            this.sumSquares = byteBuffer.getDouble();
-
-            computeStats.call(this);
-        }
-        else {
-            this.basesCovered = 0;
-            this.minVal = 0;
-            this.maxVal = 0;
-            this.sumData = 0;
-            this.sumSquares = 0;
-            this.mean = 0;
-            this.stddev = 0;
-        }
-    }
-
-
-    function computeStats() {
-        var n = this.basesCovered;
-        if (n > 0) {
-            this.mean = this.sumData / n;
-            this.stddev = Math.sqrt(this.sumSquares / (n - 1));
-
-            var min = this.minVal < 0 ? this.mean - 2 * this.stddev : 0,
-                max = this.maxVal > 0 ? this.mean + 2 * this.stddev : 0;
-
-            this.defaultRange = {
-                min: 0,
-                max: this.mean + 3 * this.stddev
-            }
-        }
-    }
-
-    igv.BWTotalSummary.prototype.updateStats = function (stats) {
-
-        this.basesCovered += stats.count;
-        this.sumData += status.sumData;
-        this.sumSquares += sumSquares;
-        this.minVal = MIN(_minVal, min);
-        this.maxVal = MAX(_maxVal, max);
-
-        computeStats.call(this);
-
-    }
-
-
-    return igv;
-
-})(igv || {});
 
 /*
  * The MIT License (MIT)
@@ -17884,7 +17833,6 @@ var igv = (function (igv) {
         });
 
 
-
     };
 
     function initialize(options) {
@@ -17953,7 +17901,7 @@ var igv = (function (igv) {
 
         if (_.size(genomicStateList) > 1 || 'all' === (_.first(genomicStateList)).locusSearchString.toLowerCase()) {
 
-            if(this.$cursorTrackingGuide.is(":visible")) {
+            if (this.$cursorTrackingGuide.is(":visible")) {
                 this.$cursorTrackingGuideToggle.click();
             }
 
@@ -17968,7 +17916,7 @@ var igv = (function (igv) {
 
         if (_.size(genomicStateList) > 1 || 'all' === (_.first(genomicStateList)).locusSearchString.toLowerCase()) {
 
-            if(this.centerGuide.$container.is(":visible")) {
+            if (this.centerGuide.$container.is(":visible")) {
                 this.centerGuide.$centerGuideToggle.click();
             }
 
@@ -17987,7 +17935,7 @@ var igv = (function (igv) {
         _.each(configList, function (config) {
             var track = self.loadTrack(config);
             if (track) {
-                loadedTracks.push( track );
+                loadedTracks.push(track);
             }
         });
 
@@ -18222,11 +18170,11 @@ var igv = (function (igv) {
 
         if (true === resizeWillExceedChromosomeLength(this.trackViews)) {
 
-            viewport = _.first( (_.first(this.trackViews)).viewports );
+            viewport = _.first((_.first(this.trackViews)).viewports);
             this.parseSearchInput(viewport.genomicState.chromosome.name);
         } else {
 
-            _.each(_.union([this.ideoPanel, this.karyoPanel, this.centerGuide], this.trackViews), function(renderable){
+            _.each(_.union([this.ideoPanel, this.karyoPanel, this.centerGuide], this.trackViews), function (renderable) {
                 if (renderable) {
                     renderable.resize();
                 }
@@ -18270,7 +18218,7 @@ var igv = (function (igv) {
 
     igv.Browser.prototype.repaint = function () {
 
-        _.each(_.union([this.ideoPanel, this.karyoPanel, this.centerGuide], this.trackViews), function(renderable){
+        _.each(_.union([this.ideoPanel, this.karyoPanel, this.centerGuide], this.trackViews), function (renderable) {
             if (renderable) {
                 renderable.repaint();
             }
@@ -18285,7 +18233,7 @@ var igv = (function (igv) {
         }
 
         if (this.ideoPanel) {
-            igv.IdeoPanel.repaintPanel( this.ideoPanel.panelWithLocusIndex(locusIndex) );
+            igv.IdeoPanel.repaintPanel(this.ideoPanel.panelWithLocusIndex(locusIndex));
         }
 
         _.each(igv.Viewport.viewportsWithLocusIndex(locusIndex), function (viewport) {
@@ -18300,13 +18248,13 @@ var igv = (function (igv) {
 
         this.windowSizePanel.updateWithGenomicState(_.first(this.genomicStateList));
 
-        _.each([this.ideoPanel, this.karyoPanel, this.centerGuide], function(renderable){
+        _.each([this.ideoPanel, this.karyoPanel, this.centerGuide], function (renderable) {
             if (renderable) {
                 renderable.repaint();
             }
         });
 
-        _.each(this.trackViews, function(trackView){
+        _.each(this.trackViews, function (trackView) {
             trackView.update();
         });
 
@@ -18317,11 +18265,11 @@ var igv = (function (igv) {
         igv.browser.updateLocusSearchWithGenomicState(_.first(this.genomicStateList));
 
         if (0 === locusIndex) {
-            this.windowSizePanel.updateWithGenomicState(this.genomicStateList[ locusIndex ]);
+            this.windowSizePanel.updateWithGenomicState(this.genomicStateList[locusIndex]);
         }
 
         if (this.ideoPanel) {
-            igv.IdeoPanel.repaintPanel( this.ideoPanel.panelWithLocusIndex(locusIndex) );
+            igv.IdeoPanel.repaintPanel(this.ideoPanel.panelWithLocusIndex(locusIndex));
         }
 
         if (this.karyoPanel) {
@@ -18343,7 +18291,7 @@ var igv = (function (igv) {
         var anyTrackViewIsLoading;
 
         anyTrackViewIsLoading = false;
-        _.each(this.trackViews, function(t) {
+        _.each(this.trackViews, function (t) {
             if (false === anyTrackViewIsLoading) {
                 anyTrackViewIsLoading = t.isLoading();
             }
@@ -18375,10 +18323,10 @@ var igv = (function (igv) {
 
                 if (this.$searchInput) {
 
-                    end = referenceFrame.start + referenceFrame.bpPerPixel * (self.viewportContainerWidth()/genomicState.locusCount);
+                    end = referenceFrame.start + referenceFrame.bpPerPixel * (self.viewportContainerWidth() / genomicState.locusCount);
 
                     if (this.genome) {
-                        chromosome = this.genome.getChromosome( referenceFrame.chrName );
+                        chromosome = this.genome.getChromosome(referenceFrame.chrName);
                         if (chromosome) {
                             end = Math.min(end, chromosome.bpLength);
                         }
@@ -18412,11 +18360,11 @@ var igv = (function (igv) {
         $track.append($viewportContainer);
 
         rect =
-            {
-                position: $viewportContainer.position(),
-                width: $viewportContainer.width(),
-                height: $viewportContainer.height()
-            };
+        {
+            position: $viewportContainer.position(),
+            width: $viewportContainer.width(),
+            height: $viewportContainer.height()
+        };
 
         // rect.position = $viewportContainer.position();
         // rect.width = $viewportContainer.width();
@@ -18435,7 +18383,7 @@ var igv = (function (igv) {
      * Return the visible width of a track.  All tracks should have the same width.
      */
     igv.Browser.prototype.viewportContainerWidth = function () {
-        return (this.trackViews && this.trackViews.length > 0) ? this.trackViews[ 0 ].$viewportContainer.width() : this.syntheticViewportContainerWidth();
+        return (this.trackViews && this.trackViews.length > 0) ? this.trackViews[0].$viewportContainer.width() : this.syntheticViewportContainerWidth();
     };
 
     igv.Browser.prototype.minimumBasesExtent = function () {
@@ -18462,7 +18410,7 @@ var igv = (function (igv) {
 
         genomicState = _.first(this.genomicStateList);
         genomicState.chromosome = this.genome.getChromosome(chrName);
-        viewportWidth = igv.browser.viewportContainerWidth()/genomicState.locusCount;
+        viewportWidth = igv.browser.viewportContainerWidth() / genomicState.locusCount;
 
         referenceFrame = genomicState.referenceFrame;
         referenceFrame.chrName = genomicState.chromosome.name;
@@ -18472,7 +18420,7 @@ var igv = (function (igv) {
             width = Math.round(viewportWidth * referenceFrame.bpPerPixel / 2);
             start = Math.max(0, start - width);
         } else {
-            referenceFrame.bpPerPixel = (end - start)/viewportWidth;
+            referenceFrame.bpPerPixel = (end - start) / viewportWidth;
         }
 
         if (!genomicState.chromosome) {
@@ -18515,37 +18463,37 @@ var igv = (function (igv) {
             return;
         }
 
-        _.each(_.range(_.size(this.genomicStateList)), function(locusIndex){
+        _.each(_.range(_.size(this.genomicStateList)), function (locusIndex) {
             zoomInWithLocusIndex(self, locusIndex);
         });
 
         function zoomInWithLocusIndex(browser, locusIndex) {
 
-            var genomicState = browser.genomicStateList[ locusIndex ],
+            var genomicState = browser.genomicStateList[locusIndex],
                 referenceFrame = genomicState.referenceFrame,
-                viewportWidth = Math.floor(browser.viewportContainerWidth()/genomicState.locusCount),
+                viewportWidth = Math.floor(browser.viewportContainerWidth() / genomicState.locusCount),
                 centerBP,
                 mbe,
                 be;
 
             // Have we reached the zoom-in threshold yet? If so, bail.
             mbe = browser.minimumBasesExtent();
-            be = basesExtent(viewportWidth, referenceFrame.bpPerPixel/2.0);
+            be = basesExtent(viewportWidth, referenceFrame.bpPerPixel / 2.0);
             if (mbe > be) {
                 return;
             }
 
             // window center (base-pair units)
-            centerBP = referenceFrame.start + referenceFrame.bpPerPixel * (viewportWidth/2);
+            centerBP = referenceFrame.start + referenceFrame.bpPerPixel * (viewportWidth / 2);
 
             // derive scaled (zoomed in) start location (base-pair units) by multiplying half-width by halve'd bases-per-pixel
             // which results in base-pair units
-            referenceFrame.start = centerBP - (viewportWidth/2) * (referenceFrame.bpPerPixel/2.0);
+            referenceFrame.start = centerBP - (viewportWidth / 2) * (referenceFrame.bpPerPixel / 2.0);
 
             // halve the bases-per-pixel
             referenceFrame.bpPerPixel /= 2.0;
 
-            browser.updateWithLocusIndex( locusIndex );
+            browser.updateWithLocusIndex(locusIndex);
 
             function basesExtent(width, bpp) {
                 return Math.floor(width * bpp);
@@ -18563,15 +18511,15 @@ var igv = (function (igv) {
             return;
         }
 
-        _.each(_.range(_.size(this.genomicStateList)), function(locusIndex){
+        _.each(_.range(_.size(this.genomicStateList)), function (locusIndex) {
             zoomOutWithLocusIndex(self, locusIndex);
         });
 
         function zoomOutWithLocusIndex(browser, locusIndex) {
 
-            var genomicState = igv.browser.genomicStateList[ locusIndex ],
+            var genomicState = igv.browser.genomicStateList[locusIndex],
                 referenceFrame = genomicState.referenceFrame,
-                viewportWidth = Math.floor( browser.viewportContainerWidth()/genomicState.locusCount ),
+                viewportWidth = Math.floor(browser.viewportContainerWidth() / genomicState.locusCount),
                 chromosome,
                 newScale,
                 maxScale,
@@ -18592,10 +18540,10 @@ var igv = (function (igv) {
                 newScale = maxScale;
             }
 
-            centerBP = referenceFrame.start + referenceFrame.bpPerPixel * viewportWidth/2;
+            centerBP = referenceFrame.start + referenceFrame.bpPerPixel * viewportWidth / 2;
             widthBP = newScale * viewportWidth;
 
-            referenceFrame.start = Math.round(centerBP - widthBP/2);
+            referenceFrame.start = Math.round(centerBP - widthBP / 2);
 
             if (referenceFrame.start < 0) {
                 referenceFrame.start = 0;
@@ -18605,12 +18553,12 @@ var igv = (function (igv) {
 
             referenceFrame.bpPerPixel = newScale;
 
-            browser.updateWithLocusIndex( locusIndex );
+            browser.updateWithLocusIndex(locusIndex);
 
         }
     };
 
-    igv.Browser.prototype.selectMultiLocusPanelWithGenomicState = function(genomicState) {
+    igv.Browser.prototype.selectMultiLocusPanelWithGenomicState = function (genomicState) {
 
         this.multiLocusPanelLayoutWithTruthFunction(function (candidate) {
             return _.isEqual(candidate, genomicState);
@@ -18618,7 +18566,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.Browser.prototype.closeMultiLocusPanelWithGenomicState = function(genomicState) {
+    igv.Browser.prototype.closeMultiLocusPanelWithGenomicState = function (genomicState) {
 
         this.multiLocusPanelLayoutWithTruthFunction(function (candidate) {
             return !_.isEqual(candidate, genomicState);
@@ -18638,14 +18586,14 @@ var igv = (function (igv) {
 
         this.emptyViewportContainers();
 
-        filtered = _.filter(_.clone(this.genomicStateList), function(gs) {
+        filtered = _.filter(_.clone(this.genomicStateList), function (gs) {
             return filterFunction(gs);
         });
 
-        this.genomicStateList = _.map(filtered, function(f, i, list){
+        this.genomicStateList = _.map(filtered, function (f, i, list) {
             f.locusIndex = i;
             f.locusCount = _.size(list);
-            f.referenceFrame.bpPerPixel = (f.end - f.start) / (self.viewportContainerWidth()/f.locusCount);
+            f.referenceFrame.bpPerPixel = (f.end - f.start) / (self.viewportContainerWidth() / f.locusCount);
             return f;
         });
 
@@ -18671,12 +18619,12 @@ var igv = (function (igv) {
         $('.igv-viewport-div').remove();
         $('.igv-ruler-sweeper-div').remove();
 
-        _.each(this.trackViews, function(trackView){
+        _.each(this.trackViews, function (trackView) {
             trackView.viewports = [];
             trackView.scrollbar = undefined;
 
             _.each(_.keys(trackView.track.rulerSweepers), function (key) {
-                trackView.track.rulerSweepers[ key ] = undefined;
+                trackView.track.rulerSweepers[key] = undefined;
             });
 
             trackView.track.rulerSweepers = undefined;
@@ -18686,9 +18634,9 @@ var igv = (function (igv) {
 
     igv.Browser.prototype.buildViewportsWithGenomicStateList = function (genomicStateList) {
 
-        _.each(this.trackViews, function(trackView){
+        _.each(this.trackViews, function (trackView) {
 
-            _.each(genomicStateList, function(genomicState, i) {
+            _.each(genomicStateList, function (genomicState, i) {
 
                 trackView.viewports.push(new igv.Viewport(trackView, trackView.$viewportContainer, i));
 
@@ -18703,12 +18651,13 @@ var igv = (function (igv) {
 
     };
 
-    igv.Browser.prototype.parseSearchInput = function(string) {
+    igv.Browser.prototype.parseSearchInput = function (string) {
 
         var self = this,
             loci = string.split(' ');
 
-        this.getGenomicStateList(loci, this.viewportContainerWidth(), function (genomicStateList) {
+        this.getGenomicStateList(loci, this.viewportContainerWidth())
+            .then(function (genomicStateList) {
 
             var found,
                 errorString,
@@ -18721,7 +18670,7 @@ var igv = (function (igv) {
                     genomicState.locusIndex = index;
                     genomicState.locusCount = _.size(genomicStateList);
 
-                    genomicState.referenceFrame = new igv.ReferenceFrame(genomicState.chromosome.name, genomicState.start, (genomicState.end - genomicState.start) / (self.viewportContainerWidth()/genomicState.locusCount));
+                    genomicState.referenceFrame = new igv.ReferenceFrame(genomicState.chromosome.name, genomicState.start, (genomicState.end - genomicState.start) / (self.viewportContainerWidth() / genomicState.locusCount));
                     genomicState.initialReferenceFrame = JSON.parse(JSON.stringify(genomicState.referenceFrame));
                 });
 
@@ -18787,11 +18736,11 @@ var igv = (function (igv) {
             featureDBGenomicStates,
             survivors,
             paths,
-        promises;
+            promises;
 
         chrStartEndLoci = [];
 
-        _.each(loci, function(locus) {
+        loci.forEach(function (locus) {
 
             locusGenomicState = {};
             if (igv.Browser.isLocusChrNameStartEnd(locus, self.genome, locusGenomicState)) {
@@ -18808,20 +18757,20 @@ var igv = (function (igv) {
         geneNameLoci = _.difference(loci, chrStartEndLoci);
 
         // parse gene names
-        if (_.size(geneNameLoci) > 0) {
+        if (geneNameLoci.length > 0) {
 
             survivors = [];
             featureDBGenomicStates = [];
-            _.each(geneNameLoci, function(locus){
+            geneNameLoci.forEach(function (locus) {
                 var result,
                     genomicState;
 
-                result = self.featureDB[ locus.toUpperCase() ];
+                result = self.featureDB[locus.toUpperCase()];
                 if (result) {
                     genomicState = createFeatureDBGenomicState(result);
                     if (genomicState) {
                         genomicState.locusSearchString = locus;
-                        featureDBGenomicStates.push( genomicState );
+                        featureDBGenomicStates.push(genomicState);
                     } else {
                         survivors.push(locus);
                     }
@@ -18830,9 +18779,9 @@ var igv = (function (igv) {
                 }
             });
 
-            if (_.size(survivors) > 0) {
+            if (survivors.length > 0) {
 
-                promises = _.map(survivors, function(locus){
+                promises = survivors.map(function (locus) {
 
                     var path = searchConfig.url.replace("$FEATURE$", locus);
 
@@ -18843,34 +18792,30 @@ var igv = (function (igv) {
                     return igv.xhr.loadString(path);
                 });
 
-                Promise
-                    .all(promises)
+                return Promise .all(promises)
+                    
                     .then(function (response) {
                         var filtered,
                             geneNameGenomicStates;
 
-                        filtered = _.filter(response, function(geneNameLookupResult){
+                        filtered = _.filter(response, function (geneNameLookupResult) {
                             return geneNameLookupResult !== "";
                         });
 
-                        geneNameGenomicStates = _.filter(_.map(filtered, createGeneNameGenomicState), function(genomicState){
+                        geneNameGenomicStates = _.filter(_.map(filtered, createGeneNameGenomicState), function (genomicState) {
                             return undefined !== genomicState;
                         });
 
-                        continuation(_.union(locusGenomicStates, featureDBGenomicStates, geneNameGenomicStates));
-                        return;
+                        return _.union(locusGenomicStates, featureDBGenomicStates, geneNameGenomicStates);
                     });
 
             } else {
-                continuation(_.union(locusGenomicStates, featureDBGenomicStates));
-                return;
+                return Promise.resolve(_.union(locusGenomicStates, featureDBGenomicStates));
             }
 
         } else {
-            continuation(locusGenomicStates);
-            return;
+            return Promise.resolve(locusGenomicStates);
         }
-
 
 
         function createFeatureDBGenomicState(featureDBLookupResult) {
@@ -18891,7 +18836,7 @@ var igv = (function (igv) {
 
             geneNameLocusObject = {};
             if (igv.Browser.isLocusChrNameStartEnd(locusString, self.genome, geneNameLocusObject)) {
-                geneNameLocusObject.selection = new igv.GtexSelection({ gene: featureDBLookupResult.name });
+                geneNameLocusObject.selection = new igv.GtexSelection({gene: featureDBLookupResult.name});
                 return geneNameLocusObject;
             } else {
                 return undefined;
@@ -18922,9 +18867,9 @@ var igv = (function (igv) {
 
                 result = _.first(results);
 
-                chr = result[ searchConfig.chromosomeField ];
-                start = result[ searchConfig.startField ] - searchConfig.coords;
-                end = result[ searchConfig.endField ];
+                chr = result[searchConfig.chromosomeField];
+                start = result[searchConfig.startField] - searchConfig.coords;
+                end = result[searchConfig.endField];
 
                 if (undefined === end) {
                     end = start + 1;
@@ -18943,7 +18888,7 @@ var igv = (function (igv) {
                     type = result["featureType"] || result["type"];
 
                     geneNameLocusObject.locusSearchString = _.first(geneNameLookupResponse.split('\t'));
-                    geneNameLocusObject.selection = new igv.GtexSelection('gtex' === type || 'snp' === type ? { snp: result.gene } : { gene: result.gene });
+                    geneNameLocusObject.selection = new igv.GtexSelection('gtex' === type || 'snp' === type ? {snp: result.gene} : {gene: result.gene});
                     return geneNameLocusObject;
                 } else {
                     return undefined;
@@ -18978,12 +18923,12 @@ var igv = (function (igv) {
         var scope,
             results;
 
-        if (undefined === this.eventHandlers[ eventName ]) {
+        if (undefined === this.eventHandlers[eventName]) {
             return undefined;
         }
 
         scope = thisObj || window;
-        results = _.map(this.eventHandlers[ eventName ], function(event){
+        results = _.map(this.eventHandlers[eventName], function (event) {
             return event.apply(scope, args);
         });
 
@@ -18991,12 +18936,12 @@ var igv = (function (igv) {
 
     };
 
-    igv.Browser.prototype.loadSampleInformation = function(url) {
+    igv.Browser.prototype.loadSampleInformation = function (url) {
         var name = url;
         if (url instanceof File) {
             name = url.name;
         }
-        var ext = name.substr(name.lastIndexOf('.')+1);
+        var ext = name.substr(name.lastIndexOf('.') + 1);
         if (ext === 'fam') {
             igv.sampleInformation.loadPlinkFile(url);
         }
@@ -19010,7 +18955,7 @@ var igv = (function (igv) {
             success;
 
         a = locus.split(':');
-        if ( undefined === genome.getChromosome(_.first(a)) ) {
+        if (undefined === genome.getChromosome(_.first(a))) {
             return false;
         } else if (locusObject) {
 
@@ -19030,7 +18975,7 @@ var igv = (function (igv) {
                 return false;
             } else if (1 === _.size(b)) {
 
-                numeric = _.first(b).replace(/\,/g,'');
+                numeric = _.first(b).replace(/\,/g, '');
                 success = !isNaN(numeric);
                 if (true === success && locusObject) {
                     locusObject.start = parseInt(numeric, 10);
@@ -19040,13 +18985,13 @@ var igv = (function (igv) {
             } else if (2 === _.size(b)) {
 
                 success = true;
-                _.each(b, function(bb, index) {
+                _.each(b, function (bb, index) {
 
                     if (true === success) {
-                        numeric = bb.replace(/\,/g,'');
+                        numeric = bb.replace(/\,/g, '');
                         success = !isNaN(numeric);
                         if (true === success && locusObject) {
-                            locusObject[ 0 === index ? 'start' : 'end' ] = parseInt(numeric, 10);
+                            locusObject[0 === index ? 'start' : 'end'] = parseInt(numeric, 10);
                         }
                     }
                 });
@@ -19071,7 +19016,7 @@ var igv = (function (igv) {
 
         if (undefined === ee) {
 
-            ss -= igv.browser.minimumBasesExtent()/2;
+            ss -= igv.browser.minimumBasesExtent() / 2;
             ee = ss + igv.browser.minimumBasesExtent();
 
             if (ee > chromosome.bpLength) {
@@ -19084,15 +19029,15 @@ var igv = (function (igv) {
 
         } else if (ee - ss < igv.browser.minimumBasesExtent()) {
 
-            center = (ee + ss)/2;
-            if (center - igv.browser.minimumBasesExtent()/2 < 0) {
+            center = (ee + ss) / 2;
+            if (center - igv.browser.minimumBasesExtent() / 2 < 0) {
                 ss = 0;
                 ee = ss + igv.browser.minimumBasesExtent();
-            } else if (center + igv.browser.minimumBasesExtent()/2 > chromosome.bpLength) {
+            } else if (center + igv.browser.minimumBasesExtent() / 2 > chromosome.bpLength) {
                 ee = chromosome.bpLength;
                 ss = ee - igv.browser.minimumBasesExtent();
             } else {
-                ss = center - igv.browser.minimumBasesExtent()/2;
+                ss = center - igv.browser.minimumBasesExtent() / 2;
                 ee = ss + igv.browser.minimumBasesExtent();
             }
         }
@@ -19136,7 +19081,7 @@ var igv = (function (igv) {
                 source = tokens[2].trim();
 
                 results.push({
-                    gene: tokens[ 0 ],
+                    gene: tokens[0],
                     chromosome: igv.browser.genome.getChromosomeName(locusTokens[0].trim()),
                     start: parseInt(rangeTokens[0].replace(/,/g, '')),
                     end: parseInt(rangeTokens[1].replace(/,/g, '')),
@@ -19192,11 +19137,11 @@ var igv = (function (igv) {
             mouseDownX = lastMouseX = coords.x;
 
             // viewport object we are panning
-            viewport = igv.Viewport.viewportWithID( $viewport.data('viewport') );
+            viewport = igv.Viewport.viewportWithID($viewport.data('viewport'));
             referenceFrame = viewport.genomicState.referenceFrame;
 
             // list of all viewports in the locus 'column' containing the panning viewport
-            viewports = igv.Viewport.viewportsWithLocusIndex( $viewport.data('locusindex') );
+            viewports = igv.Viewport.viewportsWithLocusIndex($viewport.data('locusindex'));
 
         });
 
@@ -19299,12 +19244,6 @@ var igv = (function (igv) {
     }
 
 
-
-
-
-
-
-
     ////////////////////////////////// legacy ///////////////////////////////////////////
 
     /**
@@ -19333,7 +19272,7 @@ var igv = (function (igv) {
 
         if (igv.Browser.isLocusChrNameStartEnd(feature, this.genome, undefined)) {
 
-            var success =  igv.gotoLocusFeature(feature, this.genome, this);
+            var success = igv.gotoLocusFeature(feature, this.genome, this);
 
             if ((force || true === success) && callback) {
                 callback();
@@ -19430,7 +19369,7 @@ var igv = (function (igv) {
                 }
             }
 
-            obj = { start: start, end: end };
+            obj = {start: start, end: end};
             igv.Browser.validateLocusExtent(chr, obj);
 
             start = obj.start;
@@ -19480,7 +19419,7 @@ var igv = (function (igv) {
 
     function handleSearchResult(name, chr, start, end, type) {
 
-        igv.browser.selection = new igv.GtexSelection('gtex' === type || 'snp' === type ? { snp: name } : { gene: name });
+        igv.browser.selection = new igv.GtexSelection('gtex' === type || 'snp' === type ? {snp: name} : {gene: name});
 
         if (end === undefined) {
             end = start + 1;
@@ -20888,44 +20827,48 @@ var igv = (function (igv) {
 
     igv.CustomServiceReader = function (config) {
         this.config = config;
-        
+
         this.supportsWholeGenome = true;
     }
 
     igv.CustomServiceReader.prototype.readFeatures = function (chr, start, end) {
 
 
-        var self = this;
+        var self = this,
+            url = self.config.url,
+            body = self.config.body;
 
-        return new Promise(function (fulfill, reject) {
+        if (chr.toLowerCase() !== "all") {
 
-            var url = self.config.url,
-                body = self.config.body;
+            url = url
+                .replace("$CHR", chr)
+                .replace("$START", start)
+                .replace("$END", end);
 
-            if(body !== undefined && chr.toLowerCase() !== "all") {
-                self.config.body = self.config.body.replace("$CHR", chr);
+            if (body !== undefined) {
+                self.config.body =
+                    self.config.body
+                        .replace("$CHR", chr)
+                        .replace("$START", start)
+                        .replace("$END", end);
+            }
+        }
+
+        return igv.xhr.load(url, self.config).then(function (data) {
+
+            if (data) {
+
+                var results = (typeof self.config.parser === "function") ? self.config.parser(data) : data;
+
+                return results;
+
+            }
+            else {
+                return null;
             }
 
-            igv.xhr.load(url, self.config).then(function (data) {
-
-                if (data) {
-
-                    var results = (typeof self.config.parser === "function") ? self.config.parser(data) : data;
-
-                    fulfill(results);
-
-                }
-                else {
-                    fulfill(null);
-                }
-
-            }).catch(function (error) {
-                reject(error);
-            });
-
-        });
+        })
     }
-
 
 
     return igv;
@@ -21174,83 +21117,50 @@ var igv = (function (igv) {
      */
     igv.FeatureFileReader.prototype.readFeatures = function (chr, start, end) {
 
-        var self = this;
-
-        return new Promise(function (fullfill, reject) {
-
-            if (self.index) {
-                self
-                    .loadFeaturesWithIndex(chr, start, end)
-                    .then(packFeatures)
-                    .catch(reject);
-            } else {
-                self
-                    .loadFeaturesNoIndex()
-                    .then(packFeatures)
-                    .catch(reject);
-            }
-
-            function packFeatures(features) {
-                // TODO pack
-                fullfill(features);
-            }
-
-        });
+        if (this.index) {
+            return this.loadFeaturesWithIndex(chr, start, end);
+        } else {
+            return this.loadFeaturesNoIndex()
+        }
     };
 
     igv.FeatureFileReader.prototype.readHeader = function () {
 
         var self = this;
 
-        return new Promise(function (fullfill, reject) {
 
-            if (self.header) {
-                fullfill(self.header);
-            } else {
-                self
-                    .getIndex()
-                    .then(function (index) {
+        if (self.header) {
+            return Promise.resolve(self.header);
+        } else {
+            return self.getIndex()
+                .then(function (index) {
 
-                        var options,
-                            success;
+                    var options,
+                        success;
 
-                        if (index) {
+                    if (index) {
 
-                            // Load the file header (not HTTP header) for an indexed file.
-                            // TODO -- note this will fail if the file header is > 65kb in size
-                            options = igv.buildOptions(self.config, {bgz: index.tabix, range: {start: 0, size: 65000}});
+                        // Load the file header (not HTTP header) for an indexed file.
+                        // TODO -- note this will fail if the file header is > 65kb in size
+                        options = igv.buildOptions(self.config, {bgz: index.tabix, range: {start: 0, size: 65000}});
 
-                            success = function (data) {
+                        return igv.xhr.loadString(self.config.url, options)
+                            .then(function (data) {
                                 self.header = self.parser.parseHeader(data);
-                                fullfill(self.header);
-                            };
+                                return self.header
+                            });
 
-                            igv.xhr
-                                .loadString(self.config.url, options)
-                                .then(success)
-                                .catch(function (error) {
-                                    reject(error);
-                                });
-
-                        } else {
-                            // If this is a non-indexed file we will load all features in advance
-                            self
-                                .loadFeaturesNoIndex()
-                                .then(function (features) {
-                                    var header = self.header || {};
-                                    header.features = features;
-                                    fullfill(header);
-                                })
-                                .catch(function (error) {
-                                    reject(error);
-                                });
-                        }
-                    })
-                    .catch(function (error) {
-                        reject(error);
-                    });
-            }
-        });
+                    } else {
+                        // If this is a non-indexed file we will load all features in advance
+                        return self.loadFeaturesNoIndex()
+                            .then(function (features) {
+                                var header = self.header || {};
+                                header.features = features;
+                                return header;
+                            })
+                    }
+                })
+        }
 
     };
 
@@ -21301,24 +21211,17 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fullfill, reject) {
-         
-            var options = igv.buildOptions(self.config);    // Add oauth token, if any
+        var options = igv.buildOptions(self.config);    // Add oauth token, if any
 
-            function parseData(data) {
+        return igv.xhr.loadString(self.config.url, options)
+            .then(function (data) {
                 self.header = self.parser.parseHeader(data);
                 if (self.header instanceof String && self.header.startsWith("##gff-version 3")) {
                     self.format = 'gff3';
                 }
-                fullfill(self.parser.parseFeatures(data));   // <= PARSING DONE HERE
-            }
+                return self.parser.parseFeatures(data);   // <= PARSING DONE HERE
+            })
 
-            igv.xhr
-                .loadString(self.config.url, options)
-                .then(parseData)
-                .catch(reject);
-
-        });
     };
 
     igv.FeatureFileReader.prototype.loadFeaturesWithIndex = function (chr, start, end) {
@@ -21326,115 +21229,111 @@ var igv = (function (igv) {
         //console.log("Using index");
         var self = this;
 
-        return new Promise(function (fullfill, reject) {
 
-            var blocks,
-                tabix = self.index && self.index.tabix,
-                refId = tabix ? self.index.sequenceIndexMap[chr] : chr,
-                promises = [];
+        var blocks,
+            tabix = self.index && self.index.tabix,
+            refId = tabix ? self.index.sequenceIndexMap[chr] : chr,
+            promises = [];
 
-            blocks = self.index.blocksForRange(refId, start, end);
+        blocks = self.index.blocksForRange(refId, start, end);
 
-            if (!blocks || blocks.length === 0) {
-                fullfill(null);       // TODO -- is this correct?  Should it return an empty array?
-            } else {
+        if (!blocks || blocks.length === 0) {
+            return Promise.resolve([]);
+        } else {
 
-                blocks.forEach(function (block) {
+            blocks.forEach(function (block) {
 
-                    promises.push(new Promise(function (fullfill, reject) {
+                promises.push(new Promise(function (fullfill, reject) {
 
-                        var startPos = block.minv.block,
-                            startOffset = block.minv.offset,
-                            endPos,
-                            options,
-                            success;
+                    var startPos = block.minv.block,
+                        startOffset = block.minv.offset,
+                        endPos,
+                        options,
+                        success;
 
-                        endPos = endPos = block.maxv.block + MAX_GZIP_BLOCK_SIZE;
+                    endPos = endPos = block.maxv.block + MAX_GZIP_BLOCK_SIZE;
 
-                        options = igv.buildOptions(self.config, {
-                            range: {
-                                start: startPos,
-                                size: endPos - startPos + 1
-                            }
-                        });
+                    options = igv.buildOptions(self.config, {
+                        range: {
+                            start: startPos,
+                            size: endPos - startPos + 1
+                        }
+                    });
 
-                        success = function (data) {
+                    success = function (data) {
 
-                            var inflated,
-                                slicedData,
-                                slicedFeatures,
-                                filteredFeatures,
-                                f,
-                                i;
+                        var inflated,
+                            slicedData,
+                            slicedFeatures,
+                            filteredFeatures,
+                            f,
+                            i;
 
-                            if (self.index.tabix) {
-
-                                inflated = igv.xhr.arrayBufferToString(igv.unbgzf(data));
-                                // need to decompress data
-                            } else {
-                                inflated = data;
-                            }
-
-                            slicedData = startOffset ? inflated.slice(startOffset) : inflated;
-                            slicedFeatures = self.parser.parseFeatures(slicedData);
-
-                            // Filter features not in requested range.  Pity to waste these, but they weren't requested
-                            // We use an old-fashioned for loop to take advantage of known sort order (can break)
-                            filteredFeatures = [];
-                            for(i=0; i<slicedFeatures.length; i++) {
-                                f = slicedFeatures[i];
-                                if(f.start > end) break;
-                                if(f.end >= start && f.start <= end) {
-                                    filteredFeatures.push(f);
-                                }
-                            }
-
-                            fullfill(filteredFeatures);
-                        };
-
-
-                        // Async load
                         if (self.index.tabix) {
-                            igv.xhr
-                                .loadArrayBuffer(self.config.url, options)
-                                .then(success)
-                                .catch(reject);
+
+                            inflated = igv.xhr.arrayBufferToString(igv.unbgzf(data));
+                            // need to decompress data
                         } else {
-                            igv.xhr
-                                .loadString(self.config.url, options)
-                                .then(success)
-                                .catch(reject);
+                            inflated = data;
                         }
 
-                    }))
-                });
+                        slicedData = startOffset ? inflated.slice(startOffset) : inflated;
+                        slicedFeatures = self.parser.parseFeatures(slicedData);
 
-                Promise
-                    .all(promises)
-                    .then(function (featureArrays) {
-
-                        var i,
-                            allFeatures;
-
-                        if (featureArrays.length === 1) {
-                            allFeatures = featureArrays[0];
-                        } else {
-                            allFeatures = featureArrays[0];
-
-                            for (i = 1; i < featureArrays.length; i++) {
-                                allFeatures = allFeatures.concat(featureArrays[i]);
+                        // Filter features not in requested range.  Pity to waste these, but they weren't requested
+                        // We use an old-fashioned for loop to take advantage of known sort order (can break)
+                        filteredFeatures = [];
+                        for (i = 0; i < slicedFeatures.length; i++) {
+                            f = slicedFeatures[i];
+                            if (f.start > end) break;
+                            if (f.end >= start && f.start <= end) {
+                                filteredFeatures.push(f);
                             }
-
-                            allFeatures.sort(function (a, b) {
-                                return a.start - b.start;
-                            });
                         }
 
-                        fullfill(allFeatures)
-                    })
-                    .catch(reject);
-            }
-        });
+                        fullfill(filteredFeatures);
+                    };
+
+
+                    // Async load
+                    if (self.index.tabix) {
+                        igv.xhr
+                            .loadArrayBuffer(self.config.url, options)
+                            .then(success)
+                            .catch(reject);
+                    } else {
+                        igv.xhr
+                            .loadString(self.config.url, options)
+                            .then(success)
+                            .catch(reject);
+                    }
+
+                }))
+            });
+
+            return Promise.all(promises)
+                .then(function (featureArrays) {
+
+                    var i,
+                        allFeatures;
+
+                    if (featureArrays.length === 1) {
+                        allFeatures = featureArrays[0];
+                    } else {
+                        allFeatures = featureArrays[0];
+
+                        for (i = 1; i < featureArrays.length; i++) {
+                            allFeatures = allFeatures.concat(featureArrays[i]);
+                        }
+
+                        allFeatures.sort(function (a, b) {
+                            return a.start - b.start;
+                        });
+                    }
+
+                    return allFeatures;
+                })
+        }
 
     };
 
@@ -21444,35 +21343,31 @@ var igv = (function (igv) {
         if (self.index !== undefined || self.config.indexed === false) {
             return Promise.resolve(self.index);
         }
-        return new Promise(function (fullfill, reject) {
 
-            if (self.isIndexable()) {
-                self
-                    .loadIndex()
-                    .then(function (indexOrUndefined) {
-                        if (indexOrUndefined) {
-                            self.index = indexOrUndefined;
-                            self.indexed = true;
-                        } else {
-                            self.indexed = false;
-                        }
-                        fullfill(self.index);
-                    })
-                    .catch(function (error) {
+        if (self.isIndexable()) {
+            return self.loadIndex()
+                .then(function (indexOrUndefined) {
+                    if (indexOrUndefined) {
+                        self.index = indexOrUndefined;
+                        self.indexed = true;
+                    } else {
                         self.indexed = false;
-                        if (error.message === '404' && self.config.indexURL === undefined) {
-                            // This is an expected condition -- ignore
-                            fullfill(undefined);
-                        } else {
-                            reject(error);
-                        }
-                    });
-            } else {
-                self.indexed = false;
-                fullfill(undefined);
-            }
-
-        });
+                    }
+                    return self.index;
+                })
+                .catch(function (error) {
+                    self.indexed = false;
+                    if (error.message === '404' && self.config.indexURL === undefined) {
+                        // This is an expected condition -- ignore
+                        return undefined;
+                    } else {
+                        throw error;
+                    }
+                });
+        } else {
+            self.indexed = false;
+            return Promise.resolve(undefined);
+        }
     };
 
     return igv;
@@ -22363,7 +22258,7 @@ var igv = (function (igv) {
             this.reader = new igv.BigQueryFeatureReader(config);
         } else if (config.sourceType === 'ucscservice') {
             this.reader = new igv.UCSCServiceReader(config.source);
-        } else if (config.source !== undefined) {
+        } else if (config.sourceType === 'custom' || config.source !== undefined) {    // Second test for backward compatibility
             this.reader = new igv.CustomServiceReader(config.source);
         }
         else {
@@ -22379,18 +22274,24 @@ var igv = (function (igv) {
         var self = this,
             maxRows = this.config.maxRows || 500;
 
-        return new Promise(function (fulfill, reject) {
 
-            if (self.header) {
-                fulfill(self.header);
-            } else {
-                if (typeof self.reader.readHeader === "function") {
+        if (self.header) {
+            return Promise.resolve(self.header);
+        } else {
+            if (typeof self.reader.readHeader === "function") {
 
-                    self.reader.readHeader().then(function (header) {
+                return self.reader.readHeader()
+
+                    .then(function (header) {
+
                         // Non-indexed readers will return features as a side effect.  This is an important,
                         // if unfortunate, performance hack
                         if (header) {
+
+                            self.header = header;
+
                             var features = header.features;
+
                             if (features) {
 
                                 if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
@@ -22398,7 +22299,6 @@ var igv = (function (igv) {
                                 }
 
                                 // Assign overlapping features to rows
-
                                 packFeatures(features, maxRows);
                                 self.featureCache = new igv.FeatureCache(features);
 
@@ -22413,27 +22313,25 @@ var igv = (function (igv) {
                             self.config.format = header.format;
                         }
 
-                        fulfill(header);
-                    }).catch(reject);
-                }
-                else {
-                    fulfill(null);
-                }
+                        return header;
+                    })
             }
-        });
+            else {
+                self.header = {};
+                return Promise.resolve(self.header);
+            }
+        }
+
     };
 
     function addFeaturesToDB(featureList) {
-        var echo = [];
+
         featureList.forEach(function (feature) {
             if (feature.name) {
                 igv.browser.featureDB[feature.name.toUpperCase()] = feature;
             }
         });
-        // _.each(igv.browser.featureDB, function(item){
-        //     console.log('name ' + item.name);
-        // });
-        // console.log('yo');
+
     }
 
 
@@ -22451,27 +22349,29 @@ var igv = (function (igv) {
     igv.FeatureSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
         var self = this;
-        return new Promise(function (fulfill, reject) {
 
-            var genomicInterval,
-                featureCache,
-                maxRows,
-                str;
 
-            genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
-            featureCache = self.featureCache;
-            maxRows = self.config.maxRows || 500;
-            str = chr.toLowerCase();
+        var genomicInterval,
+            featureCache,
+            maxRows,
+            str;
 
-            if ("all" === str) {
-                if (self.reader.supportsWholeGenome) {
-                    if (featureCache && featureCache.range === undefined) {
-                        fulfill(getWGFeatures(featureCache.allFeatures()));
-                    }
-                    else {
-                        self.reader
-                            .readFeatures(chr)
-                            .then(function (featureList) {
+        genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
+        featureCache = self.featureCache;
+        maxRows = self.config.maxRows || 500;
+        str = chr.toLowerCase();
+
+        if ("all" === str) {
+
+            if (self.reader.supportsWholeGenome) {
+                if (featureCache && featureCache.range === undefined) {
+                    return Promise.resolve(getWGFeatures(featureCache.allFeatures()));
+                }
+                else {
+                    return self.reader.readFeatures(chr)
+
+                        .then(function (featureList) {
+
                             if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
                                 if ("gtf" === self.config.format || "gff3" === self.config.format || "gff" === self.config.format) {
                                     featureList = (new igv.GFFHelper(self.config.format)).combineFeatures(featureList);
@@ -22481,28 +22381,29 @@ var igv = (function (igv) {
                                 // Assign overlapping features to rows
                                 packFeatures(featureList, maxRows);
                             }
-                            fulfill(getWGFeatures(self.featureCache.allFeatures()));
+                            return (getWGFeatures(self.featureCache.allFeatures()));
                         });
-                    }
-                } else {
-                    fulfill(null);
                 }
+            } else {
+                return Promise.resolve(null);
+            }
+        }
+
+        else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
+            return Promise.resolve(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
+        }
+        else {
+            // TODO -- reuse cached features that overelap new region
+
+            if (self.sourceType === 'file' && (self.visibilityWindow === undefined || self.visibilityWindow <= 0)) {
+                // Expand genomic interval to grab entire chromosome
+                genomicInterval.start = 0;
+                var chromosome = igv.browser ? igv.browser.genome.getChromosome(chr) : undefined;
+                genomicInterval.end = (chromosome === undefined ? Number.MAX_VALUE : chromosome.bpLength);
             }
 
-            else if (featureCache && (featureCache.range === undefined || featureCache.range.containsRange(genomicInterval))) {
-                fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
-            }
-            else {
-                // TODO -- reuse cached features that overelap new region
-
-                if (self.sourceType === 'file' && (self.visibilityWindow === undefined || self.visibilityWindow <= 0)) {
-                    // Expand genomic interval to grab entire chromosome
-                    genomicInterval.start = 0;
-                    var chromosome = igv.browser ? igv.browser.genome.getChromosome(chr) : undefined;
-                    genomicInterval.end = (chromosome === undefined ? Number.MAX_VALUE : chromosome.bpLength);
-                }
-
-                self.reader.readFeatures(chr, genomicInterval.start, genomicInterval.end).then(
+            return self.reader.readFeatures(chr, genomicInterval.start, genomicInterval.end)
+                .then(
                     function (featureList) {
 
                         if (featureList && typeof featureList.forEach === 'function') {  // Have result AND its an array type
@@ -22527,15 +22428,15 @@ var igv = (function (igv) {
                             }
 
                             // Finally pass features for query interval to continuation
-                            fulfill(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
+                            return self.featureCache.queryFeatures(chr, bpStart, bpEnd);
                         }
                         else {
-                            fulfill(null);
+                            return null;
                         }
 
-                    }).catch(reject);
-            }
-        });
+                    })
+        }
+
     };
 
 
@@ -22606,37 +22507,35 @@ var igv = (function (igv) {
     }
 
 
+    // TODO -- filter by pixel size
     function getWGFeatures(features) {
 
-        var wgFeatures;
+        var wgFeatures,
+            wgChromosomeNames,
+            genome;
 
-        wgFeatures = _.map(features, function(f) {
+        genome = igv.browser.genome;
 
-            var wg;
+        wgChromosomeNames = new Set(genome.wgChromosomeNames);
 
-            wg = (JSON.parse(JSON.stringify(f)));
-            wg.start = igv.browser.genome.getGenomeCoordinate(f.chr, f.start);
-            wg.end = igv.browser.genome.getGenomeCoordinate(f.chr, f.end);
+        wgFeatures = [];
 
-            return wg;
+        features.forEach(function (f) {
 
+            var wg,
+                queryChr;
+
+            queryChr = genome.getChromosomeName(f.chr);
+            if (wgChromosomeNames.has(queryChr)) {
+
+                wg = Object.assign({}, f);
+                wg.start = igv.browser.genome.getGenomeCoordinate(f.chr, f.start);
+                wg.end = igv.browser.genome.getGenomeCoordinate(f.chr, f.end);
+
+                wgFeatures.push(wg);
+            }
         });
 
-        // features.forEach(function (f) {
-        //     var wgStart,
-        //         wgEnd,
-        //         wgFeature;
-        //
-        //     wgStart = igv.browser.genome.getGenomeCoordinate(f.chr, f.start);
-        //     wgEnd = igv.browser.genome.getGenomeCoordinate(f.chr, f.end);
-        //
-        //     wgFeature = (JSON.parse(JSON.stringify(f)));
-        //
-        //     wgFeature.start = wgStart;
-        //     wgFeature.end = wgEnd;
-        //
-        //     wgFeatures.push(wgFeature);
-        // });
 
         return wgFeatures;
     }
@@ -22732,44 +22631,39 @@ var igv = (function (igv) {
     };
 
     igv.FeatureTrack.prototype.getFileHeader = function () {
+
         var self = this;
-        return new Promise(function (fulfill, reject) {
-            if (typeof self.featureSource.getFileHeader === "function") {
-                self.featureSource
-                    .getFileHeader()
-                    .then(function (header) {
 
-                        if (header) {
-                            // Header (from track line).  Set properties,unless set in the config (config takes precedence)
-                            if (header.name && !self.config.name) {
-                                self.name = header.name;
-                            }
-                            if (header.color && !self.config.color) {
-                                self.color = "rgb(" + header.color + ")";
-                            }
+        if (typeof self.featureSource.getFileHeader === "function") {
+
+            return self.featureSource.getFileHeader()
+
+                .then(function (header) {
+
+                    if (header) {
+                        // Header (from track line).  Set properties,unless set in the config (config takes precedence)
+                        if (header.name && !self.config.name) {
+                            self.name = header.name;
                         }
-                        fulfill(header);
+                        if (header.color && !self.config.color) {
+                            self.color = "rgb(" + header.color + ")";
+                        }
+                    }
+                    return header;
 
-                    })
-                    .catch(function (error) {
-                        reject(error);
-                    });
-            }
-            else {
-                fulfill(null);
-            }
-        });
+                })
+        }
+        else {
+            return null;
+        }
+
+
     };
 
     igv.FeatureTrack.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
-        var self = this;
+        return this.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel);
 
-        return new Promise(function (fulfill, reject) {
-
-            self.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel).then(fulfill).catch(reject);
-
-        });
     };
 
 
@@ -22882,7 +22776,7 @@ var igv = (function (igv) {
             featureList = this.featureSource.featureCache.queryFeatures(referenceFrame.chrName, ss, ee);
 
             if ('COLLAPSED' !== this.displayMode) {
-                row = 'SQUISHED' === this.displayMode ? Math.floor((yOffset - 2)/this.expandedCallHeight) : Math.floor((yOffset - 5)/this.squishedCallHeight);
+                row = 'SQUISHED' === this.displayMode ? Math.floor((yOffset - 2) / this.expandedCallHeight) : Math.floor((yOffset - 5) / this.squishedCallHeight);
             }
 
             if (featureList && featureList.length > 0) {
@@ -22955,10 +22849,10 @@ var igv = (function (igv) {
             mapped;
 
         if (this.render === renderSnp) {
-            var colorByItems = _.map(["function", "class"], function(colorScheme, index) {
+            var colorByItems = (["function", "class"]).map( function (colorScheme, index) {
                 return {
                     object: $(colorSchemeMarkup(colorScheme, index, self.colorBy)),
-                    click: function() {
+                    click: function () {
                         popover.hide();
                         self.colorBy = colorScheme;
                         self.trackView.update();
@@ -22966,12 +22860,9 @@ var igv = (function (igv) {
                 }
             });
             menuItems = menuItems.concat(colorByItems);
-        } if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
         }
 
-
-        mapped = _.map(["COLLAPSED", "SQUISHED", "EXPANDED"], function (displayMode, index) {
+        mapped = (["COLLAPSED", "SQUISHED", "EXPANDED"]).map(function (displayMode, index) {
             return {
                 object: $(markupStringified(displayMode, index, self.displayMode)),
                 click: function () {
@@ -22990,11 +22881,11 @@ var igv = (function (igv) {
                 chosen;
 
             lut =
-                {
-                    "COLLAPSED": "Collapse",
-                    "SQUISHED": "Squish",
-                    "EXPANDED": "Expand"
-                };
+            {
+                "COLLAPSED": "Collapse",
+                "SQUISHED": "Squish",
+                "EXPANDED": "Expand"
+            };
 
             chosen = (0 === index) ? '<div class="igv-track-menu-border-top">' : '<div>';
             if (displayMode === selfDisplayMode) {
@@ -23019,20 +22910,20 @@ var igv = (function (igv) {
     };
 
 
-    igv.FeatureTrack.prototype.popupMenuItemList = function(config) {
+    igv.FeatureTrack.prototype.popupMenuItemList = function (config) {
         if (this.render === renderSnp) {
 
             var menuItems = [], self = this;
 
             menuItems.push({
                 name: 'Color by function',
-                click: function() {
+                click: function () {
                     setColorBy('function');
                 }
             });
             menuItems.push({
                 name: 'Color by class',
-                click: function() {
+                click: function () {
                     setColorBy('class');
                 }
             });
@@ -23047,7 +22938,7 @@ var igv = (function (igv) {
         }
     };
 
-    igv.FeatureTrack.prototype.description = function() {
+    igv.FeatureTrack.prototype.description = function () {
 
         var desc;
 
@@ -23418,7 +23309,7 @@ var igv = (function (igv) {
             colorArrLength = this.snpColors.length,
             colorPriority;
 
-        switch(this.colorBy) {
+        switch (this.colorBy) {
             case 'function':
                 colorPriority = colorByFunc(snp.func);
                 break;
@@ -23442,7 +23333,7 @@ var igv = (function (igv) {
             // locusSet = new Set(['near-gene-3', 'near-gene-5']);
             // intronSet = new Set(['intron']);
 
-            priorities = funcArray.map(function(func) {
+            priorities = funcArray.map(function (func) {
                 if (codingNonSynonSet.has(func) || spliceSiteSet.has(func)) {
                     return colorArrLength - 1;
                 } else if (codingSynonSet.has(func)) {
@@ -23454,8 +23345,8 @@ var igv = (function (igv) {
                 }
             });
 
-            return priorities.reduce(function(a,b) {
-                return Math.max(a,b);
+            return priorities.reduce(function (a, b) {
+                return Math.max(a, b);
             });
         }
 
@@ -23472,20 +23363,20 @@ var igv = (function (igv) {
         }
     }
 
-    igv.FeatureTrack.prototype.popupMenuItemList = function(config) {
+    igv.FeatureTrack.prototype.popupMenuItemList = function (config) {
         if (this.render === renderSnp) {
 
             var menuItems = [], self = this;
 
             menuItems.push({
                 name: 'Color by function',
-                click: function() {
+                click: function () {
                     setColorBy('function');
                 }
             });
             menuItems.push({
                 name: 'Color by class',
-                click: function() {
+                click: function () {
                     setColorBy('class');
                 }
             });
@@ -24202,22 +24093,28 @@ var igv = (function (igv) {
     igv.SegTrack.prototype.getFeatures = function (chr, bpStart, bpEnd) {
 
         var self = this;
-        return new Promise(function (fulfill, reject) {
-            // If no samples are defined, optionally query feature source.  This step was added to support the TCGA BigQuery
-            if (self.sampleCount === 0 && (typeof self.featureSource.reader.allSamples == "function")) {
-                self.featureSource.reader.allSamples().then(function (samples) {
+
+
+        // If no samples are defined, optionally query feature source.  This step was added to support the TCGA BigQuery
+        if (self.sampleCount === 0 && (typeof self.featureSource.reader.allSamples == "function")) {
+
+            return self.featureSource.reader.allSamples()
+
+                .then(function (samples) {
+
                     samples.forEach(function (sample) {
                         self.samples[sample] = self.sampleCount;
                         self.sampleNames.push(sample);
                         self.sampleCount++;
                     })
-                    self.featureSource.getFeatures(chr, bpStart, bpEnd).then(fulfill).catch(reject);
-                }).catch(reject);
-            }
-            else {
-                self.featureSource.getFeatures(chr, bpStart, bpEnd).then(fulfill).catch(reject);
-            }
-        });
+
+                    return self.featureSource.getFeatures(chr, bpStart, bpEnd);
+                });
+        }
+        else {
+            return self.featureSource.getFeatures(chr, bpStart, bpEnd);
+        }
+
     };
 
     igv.SegTrack.prototype.draw = function (options) {
@@ -24339,64 +24236,63 @@ var igv = (function (igv) {
         var self = this,
             d2 = (direction === "ASC" ? 1 : -1);
 
-        this.featureSource.getFeatures(chr, bpStart, bpEnd).then(function (featureList) {
+        this.featureSource.getFeatures(chr, bpStart, bpEnd)
+            .then(function (featureList) {
 
-            var segment,
-                min,
-                max,
-                f,
-                i,
-                s,
-                sampleNames,
-                scores = {},
-                bpLength = bpEnd - bpStart + 1;
+                var segment,
+                    min,
+                    max,
+                    f,
+                    i,
+                    s,
+                    sampleNames,
+                    scores = {},
+                    bpLength = bpEnd - bpStart + 1;
 
-            // Compute weighted average score for each sample
-            for (i = 0; i < featureList.length; i++) {
+                // Compute weighted average score for each sample
+                for (i = 0; i < featureList.length; i++) {
 
-                segment = featureList[i];
+                    segment = featureList[i];
 
-                if (segment.end < bpStart) continue;
-                if (segment.start > bpEnd) break;
+                    if (segment.end < bpStart) continue;
+                    if (segment.start > bpEnd) break;
 
-                min = Math.max(bpStart, segment.start);
-                max = Math.min(bpEnd, segment.end);
-                f = (max - min) / bpLength;
+                    min = Math.max(bpStart, segment.start);
+                    max = Math.min(bpEnd, segment.end);
+                    f = (max - min) / bpLength;
 
-                s = scores[segment.sample];
-                if (!s) s = 0;
-                scores[segment.sample] = s + f * segment.value;
+                    s = scores[segment.sample];
+                    if (!s) s = 0;
+                    scores[segment.sample] = s + f * segment.value;
 
-            }
+                }
 
-            // Now sort sample names by score
-            sampleNames = Object.keys(self.samples);
-            sampleNames.sort(function (a, b) {
+                // Now sort sample names by score
+                sampleNames = Object.keys(self.samples);
+                sampleNames.sort(function (a, b) {
 
-                var s1 = scores[a];
-                var s2 = scores[b];
-                if (!s1) s1 = Number.MAX_VALUE;
-                if (!s2) s2 = Number.MAX_VALUE;
+                    var s1 = scores[a];
+                    var s2 = scores[b];
+                    if (!s1) s1 = Number.MAX_VALUE;
+                    if (!s2) s2 = Number.MAX_VALUE;
 
-                if (s1 == s2) return 0;
-                else if (s1 > s2) return d2;
-                else return d2 * -1;
+                    if (s1 == s2) return 0;
+                    else if (s1 > s2) return d2;
+                    else return d2 * -1;
 
-            });
+                });
 
-            // Finally update sample hash
-            for (i = 0; i < sampleNames.length; i++) {
-                self.samples[sampleNames[i]] = i;
-            }
-            self.sampleNames = sampleNames;
+                // Finally update sample hash
+                for (i = 0; i < sampleNames.length; i++) {
+                    self.samples[sampleNames[i]] = i;
+                }
+                self.sampleNames = sampleNames;
 
-            self.trackView.update();
-            // self.trackView.$viewport.scrollTop(0);
+                self.trackView.update();
+                // self.trackView.$viewport.scrollTop(0);
 
 
-        }).catch(function(error) {
-            console.log(error);
-        });
+            })
     };
 
     /**
@@ -24472,7 +24368,7 @@ var igv = (function (igv) {
 
         };
 
-        return [{ name: undefined, object: $e, click: clickHandler, init: undefined }];
+        return [{name: undefined, object: $e, click: clickHandler, init: undefined}];
 
     };
 
@@ -24682,26 +24578,21 @@ var igv = (function (igv) {
         var self = this,
             url = this.config.url + '&table=' + this.config.tableName + '&chr=' + chr + '&start=' + start + '&end=' + end;
 
-        return new Promise(function (fulfill, reject) {
-            igv.xhr.loadJson(url, self.config)
-                .then(function (data) {
-                    if (data) {
-                        data.forEach(function(sample) {
-                            if (sample.hasOwnProperty('exonStarts') && sample.hasOwnProperty('exonEnds') && sample.hasOwnProperty('exonCount')
-                                && sample.hasOwnProperty('cdsStart') && sample.hasOwnProperty('cdsEnd')) {
+        return igv.xhr.loadJson(url, self.config)
+            .then(function (data) {
+                if (data) {
+                    data.forEach(function (sample) {
+                        if (sample.hasOwnProperty('exonStarts') && sample.hasOwnProperty('exonEnds') && sample.hasOwnProperty('exonCount')
+                            && sample.hasOwnProperty('cdsStart') && sample.hasOwnProperty('cdsEnd')) {
 
-                                addExons(sample);
-                            }
-                        });
-                        fulfill(data);
-                    } else {
-                        fulfill(null);
-                    }
-                })
-                .catch(function (error) {
-                    reject(error);
-                });
-        });
+                            addExons(sample);
+                        }
+                    });
+                    return data;
+                } else {
+                    return null;
+                }
+            })
     };
 
     function addExons(sample) {
@@ -24777,15 +24668,16 @@ var igv = (function (igv) {
             this.featureSource = new igv.FeatureSource(config);
         }
 
+        //this.autoscale = config.autoscale;
         // Min and max values.  No defaults for these, if they aren't set track will autoscale.
-        this.autoscale = config.autoscale;
-
-        if(config.max) {
+        if (config.max !== undefined) {
             this.dataRange = {
                 min: config.min || 0,
                 max: config.max
             }
-        };
+        } else {
+            this.autoscale = true;
+        }
 
         this.paintAxis = igv.paintAxis;
 
@@ -24793,20 +24685,13 @@ var igv = (function (igv) {
 
     igv.WIGTrack.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
-        var self = this;
-        return new Promise(function (fulfill, reject) {
-            self.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel).then(fulfill).catch(reject);
-        });
+        return this.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel);
     };
 
     igv.WIGTrack.prototype.menuItemList = function (popover) {
 
         var self = this,
             menuItems = [];
-
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
 
         menuItems.push(igv.dataRangeMenuItem(popover, this.trackView));
 
@@ -24848,28 +24733,29 @@ var igv = (function (igv) {
     igv.WIGTrack.prototype.getFileHeader = function () {
 
         var self = this;
-        return new Promise(function (fulfill, reject) {
-            if (typeof self.featureSource.getFileHeader === "function") {
 
-                self.featureSource.getFileHeader().then(function (header) {
+        if (typeof self.featureSource.getFileHeader === "function") {
 
-                    if (header) {
-                        // Header (from track line).  Set properties,unless set in the config (config takes precedence)
-                        if (header.name && !self.config.name) {
-                            self.name = header.name;
-                        }
-                        if (header.color && !self.config.color) {
-                            self.color = "rgb(" + header.color + ")";
-                        }
+            return self.featureSource.getFileHeader()
+                .then(function (header) {
+
+                if (header) {
+                    // Header (from track line).  Set properties,unless set in the config (config takes precedence)
+                    if (header.name && !self.config.name) {
+                        self.name = header.name;
                     }
-                    fulfill(header);
+                    if (header.color && !self.config.color) {
+                        self.color = "rgb(" + header.color + ")";
+                    }
+                }
+                return header;
 
-                }).catch(reject);
-            }
-            else {
-                fulfill(null);
-            }
-        });
+            })
+        }
+        else {
+            return Promise.resolve(null);
+        }
+
     };
 
     igv.WIGTrack.prototype.draw = function (options) {
@@ -24889,12 +24775,12 @@ var igv = (function (igv) {
 
 
         if (features && features.length > 0) {
-            if(self.autoscale === undefined && self.dataRange === undefined && (typeof self.featureSource.getDefaultRange === "function")) {
-                defaultRange = self.featureSource.getDefaultRange();
-                if(!isNaN(defaultRange.min) && !isNaN(defaultRange.max)) {
-                    self.dataRange = defaultRange;
-                }
-            }
+            // if (self.autoscale === undefined && self.dataRange === undefined && (typeof self.featureSource.getDefaultRange === "function")) {
+            //     defaultRange = self.featureSource.getDefaultRange();
+            //     if (!isNaN(defaultRange.min) && !isNaN(defaultRange.max)) {
+            //         self.dataRange = defaultRange;
+            //     }
+            // }
             if (self.autoscale || self.dataRange === undefined) {
                 var s = autoscale(features);
                 featureValueMinimum = self.config.min || s.min;      // If min is explicitly set use it
@@ -24915,7 +24801,7 @@ var igv = (function (igv) {
 
             // Max can be less than min if config.min is set but max left to autoscale.   If that's the case there is
             // nothing to paint.
-            if(featureValueMaximum > featureValueMinimum) {
+            if (featureValueMaximum > featureValueMinimum) {
                 featureValueRange = featureValueMaximum - featureValueMinimum;
                 features.forEach(renderFeature);
             }
@@ -24976,7 +24862,7 @@ var igv = (function (igv) {
             max = -Number.MAX_VALUE;
 
         features.forEach(function (f) {
-            if(!Number.isNaN(f.value)) {
+            if (!Number.isNaN(f.value)) {
                 min = Math.min(min, f.value);
                 max = Math.max(max, f.value);
             }
@@ -26389,6 +26275,48 @@ var igv = (function (igv) {
 
 var igv = (function (igv) {
 
+
+    igv.loadGenome = function (reference) {
+
+        var cytobandUrl = reference.cytobandURL,
+            cytobands,
+            aliasURL = reference.aliasURL,
+            chrNames,
+            chromosomes = {},
+            sequence;
+
+        sequence = new igv.FastaSequence(reference);
+
+        return sequence.init().then(function () {
+
+            var order = 0;
+
+            chrNames = sequence.chromosomeNames;
+            chromosomes = sequence.chromosomes;
+
+        }).then(function (ignore) {
+            if (cytobandUrl) {
+                return loadCytobands(cytobandUrl, sequence.config);
+            } else {
+                return undefined
+            }
+        }).then(function (c) {
+
+            cytobands = c;
+
+            if (aliasURL) {
+                return loadAliases(aliasURL, sequence.config);
+            }
+            else {
+                return undefined;
+            }
+        }).then(function (aliases) {
+            return new igv.Genome(sequence, cytobands, aliases);
+
+        })
+    }
+
+
     igv.Genome = function (sequence, ideograms, aliases) {
 
         this.sequence = sequence;
@@ -26419,7 +26347,7 @@ var igv = (function (igv) {
             aliases.forEach(function (array) {
                 // Find the official chr name
                 var defName, i;
-                
+
                 for (i = 0; i < array.length; i++) {
                     if (self.chromosomes[array[i]]) {
                         defName = array[i];
@@ -26478,9 +26406,14 @@ var igv = (function (igv) {
 
     /**
      * Return the genome coordinate in kb for the give chromosome and position.
+     * NOTE: This might return undefined if the chr is filtered from whole genome view.
      */
     igv.Genome.prototype.getGenomeCoordinate = function (chr, bp) {
-        return this.getCumulativeOffset(chr) + Math.floor(bp / 1000);
+
+        var offset = this.getCumulativeOffset(chr);
+        if (offset === undefined) return undefined;
+
+        return offset + bp;
     }
 
     /**
@@ -26492,16 +26425,18 @@ var igv = (function (igv) {
             lastChr,
             lastCoord,
             i,
-            name;
+            name,
+            cumulativeOffset;
 
         if (this.cumulativeOffsets === undefined) computeCumulativeOffsets.call(this);
 
         // Use a for loop, not a forEach, so we can break (return)
-        for (i = 0; i < this.chromosomeNames.length; i++) {
-            name = this.chromosomeNames[i];
-            var cumulativeOffset = self.cumulativeOffsets[name];
+        for (i = 0; i < this.wgChromosomeNames.length; i++) {
+            name = this.wgChromosomeNames[i];
+            cumulativeOffset = self.cumulativeOffsets[name];
+
             if (cumulativeOffset > genomeCoordinate) {
-                var position = Math.floor((genomeCoordinate - lastCoord) / 1000);
+                var position = genomeCoordinate - lastCoord;
                 return {chr: lastChr, position: position};
             }
             lastChr = name;
@@ -26516,29 +26451,38 @@ var igv = (function (igv) {
 
     /**
      * Return the offset in genome coordinates (kb) of the start of the given chromosome
+     * NOTE:  This might return undefined if the chromosome is filtered from whole genome view.
      */
     igv.Genome.prototype.getCumulativeOffset = function (chr) {
 
         var self = this,
             queryChr = this.getChromosomeName(chr);
+
         if (this.cumulativeOffsets === undefined) {
             computeCumulativeOffsets.call(this);
         }
         return this.cumulativeOffsets[queryChr];
+
+        function computeCumulativeOffsets() {
+            var cumulativeOffsets = {},
+                offset = 0;
+
+            self.wgChromosomeNames.forEach(function (name) {
+                cumulativeOffsets[name] = Math.floor(offset);
+                var chromosome = self.getChromosome(name);
+                offset += chromosome.bpLength;
+            });
+            self.cumulativeOffsets = cumulativeOffsets;
+        }
     }
 
-    function computeCumulativeOffsets() {
-        var self = this,
-            cumulativeOffsets = {},
-            offset = 0;
-
-        self.chromosomeNames.forEach(function (name) {
-            cumulativeOffsets[name] = Math.floor(offset);
-            var chromosome = self.getChromosome(name);
-            offset += (chromosome.bpLength / 1000);   // Genome coordinates are in KB.  Beware 32-bit max value limit
-        });
-        self.cumulativeOffsets = cumulativeOffsets;
-
+    /**
+     * Return the genome length in kb
+     */
+    igv.Genome.prototype.getGenomeLength = function () {
+        var lastChr, offset;
+        lastChr = _.last(this.wgChromosomeNames);
+        return this.getCumulativeOffset(lastChr) + this.getChromosome(lastChr).bpLength;
     }
 
     igv.Chromosome = function (name, order, bpLength) {
@@ -26583,165 +26527,107 @@ var igv = (function (igv) {
             this.end >= range.end;
     }
 
-    igv.loadGenome = function (reference) {
+    function loadCytobands(cytobandUrl, config) {
 
-        return new Promise(function (fulfill, reject) {
-
-            var cytobandUrl = reference.cytobandURL,
-                cytobands,
-                aliasURL = reference.aliasURL,
-                aliases,
-                chrNames,
-                chromosome,
-                chromosomes = {},
-                sequence,
-                l,
-                avgL;
-
-            sequence = new igv.FastaSequence(reference);
-
-            sequence.init().then(function () {
-
-                var order = 0;
-
-                chrNames = sequence.chromosomeNames;
-                chromosomes = sequence.chromosomes;
-
-                if (cytobandUrl) {
-                    loadCytobands(cytobandUrl, sequence.config, function (result) {
-                        cytobands = result;
-                        checkReady();
-                    });
-                }
-
-                if (aliasURL) {
-                    loadAliases(aliasURL, sequence.config, function (result) {
-                        aliases = result;
-                        checkReady();
-                    });
-                }
-
-
-                checkReady();
-
-            }).catch(function (err) {
-                reject(err);
-            });
-
-            function checkReady() {
-
-                var isReady = (cytobandUrl === undefined || cytobands !== undefined) &&
-                    (aliasURL === undefined || aliases !== undefined);
-                if (isReady) {
-                    fulfill(new igv.Genome(sequence, cytobands, aliases));
-                }
-            }
-
-        });
-    }
-
-    function loadCytobands(cytobandUrl, config, continuation) {
-
-        igv.xhr.loadString(cytobandUrl, igv.buildOptions(config))
+        return igv.xhr.loadString(cytobandUrl, igv.buildOptions(config))
             .then(function (data) {
 
-            var bands = [],
-                lastChr,
-                n = 0,
-                c = 1,
-                lines = data.splitLines(),
-                len = lines.length,
-                cytobands = {};
+                var bands = [],
+                    lastChr,
+                    n = 0,
+                    c = 1,
+                    lines = data.splitLines(),
+                    len = lines.length,
+                    cytobands = {};
 
-            for (var i = 0; i < len; i++) {
-                var tokens = lines[i].split("\t");
-                var chr = tokens[0];
-                if (!lastChr) lastChr = chr;
-
-                if (chr != lastChr) {
-
-                    cytobands[lastChr] = bands;
-                    bands = [];
-                    lastChr = chr;
-                    n = 0;
-                    c++;
-                }
-
-                if (tokens.length == 5) {
-                    //10	0	3000000	p15.3	gneg
+                for (var i = 0; i < len; i++) {
+                    var tokens = lines[i].split("\t");
                     var chr = tokens[0];
-                    var start = parseInt(tokens[1]);
-                    var end = parseInt(tokens[2]);
-                    var name = tokens[3];
-                    var stain = tokens[4];
-                    bands[n++] = new igv.Cytoband(start, end, name, stain);
-                }
-            }
+                    if (!lastChr) lastChr = chr;
 
-            continuation(cytobands);
-        });
+                    if (chr != lastChr) {
+
+                        cytobands[lastChr] = bands;
+                        bands = [];
+                        lastChr = chr;
+                        n = 0;
+                        c++;
+                    }
+
+                    if (tokens.length == 5) {
+                        //10	0	3000000	p15.3	gneg
+                        var chr = tokens[0];
+                        var start = parseInt(tokens[1]);
+                        var end = parseInt(tokens[2]);
+                        var name = tokens[3];
+                        var stain = tokens[4];
+                        bands[n++] = new igv.Cytoband(start, end, name, stain);
+                    }
+                }
+
+                return cytobands;
+            });
     }
 
-    function loadAliases(aliasURL, config, continuation) {
+    function loadAliases(aliasURL, config) {
 
         igv.xhr.loadString(aliasURL, igv.buildOptions(config))
 
             .then(function (data) {
 
-            var lines = data.splitLines(),
-                aliases = [];
+                var lines = data.splitLines(),
+                    aliases = [];
 
-            lines.forEach(function (line) {
-                if (!line.startsWith("#") & line.length > 0) aliases.push(line.split("\t"));
+                lines.forEach(function (line) {
+                    if (!line.startsWith("#") & line.length > 0) aliases.push(line.split("\t"));
+                });
+
+                return aliases;
             });
-
-            continuation(aliases);
-        });
 
     }
 
-    // this.sequence = sequence;
-    // this.chromosomeNames = sequence.chromosomeNames;
-    // this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
-    // this.ideograms = ideograms;
-    // this.wgChromosomeNames = wgChromosomeNames;
 
     function constructWG(genome) {
 
-        var l, avgL;
+        var l, lengths, mean, threshold;
 
-        // Construct the whole-genome "chromosome"
-        l = 0;
-        _.each(genome.chromosomes, function (chromosome) {
-            l += Math.floor((chromosome.bpLength / 1000));  // wg length is in kb.  bp would overflow maximum number limit
-        });
 
-        // Now trim chromosomes.  If ideograms are defined use those, otherwise trim chromosomes < 1/10 average length
+        // Now trim chromosomes.  If ideograms are defined use those, otherwise trim chromosomes < 1/50 average length
         genome.wgChromosomeNames = [];
 
         if (genome.ideograms) {
-            _.each(genome.chromosomeNames, function (chrName) {
+            genome.chromosomeNames.forEach(function (chrName) {
                 var ideo = genome.ideograms[chrName];
-                if(ideo && ideo.length > 0) {
+                if (ideo && ideo.length > 0) {
                     genome.wgChromosomeNames.push(chrName);
                 }
             });
         }
         else {
-            avgL = (l / genome.chromosomeNames.length) * 200;   // i.e.  (divided by 5) times 1000 bp/kbp  TODO USE MEDIAN
-            l = 0;
-            _.each(genome.chromosomeNames, function (chrName) {
-                var chromosome = genome.chromosomes[chrName];
-                if (chromosome.bpLength > avgL) {
-                    genome.wgChromosomeNames.push(chrName);
-                }
+
+            lengths = Object.keys(genome.chromosomes).map(function (key) {
+                return genome.chromosomes[key].bpLength;
+            });
+
+            mean = igv.Math.mean(lengths);
+            threshold = mean / 50;
+
+            genome.wgChromosomeNames = genome.chromosomeNames.filter(function (key) {
+                return genome.chromosomes[key].bpLength > threshold;
             });
         }
+
+        l = 0;
+        genome.wgChromosomeNames.forEach(function (key) {
+            l += genome.chromosomes[key].bpLength;
+        });
 
         genome.chromosomes["all"] = {
             name: "all",
             bpLength: l
         };
+
     }
 
     return igv;
@@ -29857,6 +29743,7 @@ var igv = (function (igv) {
 
         setDefaults(config);
 
+
         // Set track order explicitly. Otherwise they will be ordered randomly as each completes its async load
         setTrackOrder(config);
 
@@ -29906,33 +29793,43 @@ var igv = (function (igv) {
             $header.append($('<div class="igv-logo-nonav">'));
         }
 
-        if(config.apiKey) igv.setApiKey(config.apiKey);
-        if(config.oauthToken) igv.setOauthToken(config.oauthToken);
+        if (config.apiKey) igv.setApiKey(config.apiKey);
+        if (config.oauthToken) igv.setOauthToken(config.oauthToken);
 
         // Deal with legacy genome definition options
         setReferenceConfiguration(config);
 
-        igv.loadGenome(config.reference).then(function (genome) {
 
-            var width;
+        // Potentially load a session file
+        var width;
+        loadSessionFile(config)
 
-            igv.browser.genome = genome;
-            igv.browser.genome.id = config.reference.genomeId;
+            .then(function (ignore) {
+                return igv.loadGenome(config.reference);
+            })
 
-            igv.browser.chromosomeSelectWidget.update(igv.browser.genome);
+            .then(function (genome) {
 
-            width = igv.browser.viewportContainerWidth();
-            igv.browser.getGenomicStateList(lociWithConfiguration(config), width, function (genomicStateList) {
 
-                var errorString,
-                    found,
-                    gs;
+                igv.browser.genome = genome;
+                igv.browser.genome.id = config.reference.genomeId;
 
-                if (_.size(genomicStateList) > 0) {
+                igv.browser.chromosomeSelectWidget.update(igv.browser.genome);
 
-                    igv.browser.genomicStateList = _.map(genomicStateList, function (genomicState, index) {
+                width = igv.browser.viewportContainerWidth();
+
+                return igv.browser.getGenomicStateList(lociWithConfiguration(config), width)
+            })
+
+            .then(function (genomicStateList) {
+
+                var errorString;
+
+                if (genomicStateList.length > 0) {
+
+                    igv.browser.genomicStateList = genomicStateList.map(function (genomicState, index) {
                         genomicState.locusIndex = index;
-                        genomicState.locusCount = _.size(genomicStateList);
+                        genomicState.locusCount = genomicStateList.length;
                         genomicState.referenceFrame = new igv.ReferenceFrame(genomicState.chromosome.name, genomicState.start, (genomicState.end - genomicState.start) / (width / genomicState.locusCount));
                         genomicState.initialReferenceFrame = new igv.ReferenceFrame(genomicState.chromosome.name, genomicState.start, (genomicState.end - genomicState.start) / (width / genomicState.locusCount));
                         return genomicState;
@@ -29968,54 +29865,30 @@ var igv = (function (igv) {
 
                     if (config.tracks) {
                         igv.browser.loadTracksWithConfigList(config.tracks);
-
-                        igv.browser.windowSizePanel.updateWithGenomicState(_.first(igv.browser.genomicStateList));
                     }
 
+                    igv.browser.windowSizePanel.updateWithGenomicState(_.first(igv.browser.genomicStateList));
+
                 } else {
-                    errorString = 'Unrecognized locus ' + lociWithConfiguration(config);
+                    errorString = 'Unrecognized locus ' + configuration.locus;
                     igv.presentAlert(errorString);
                 }
 
+            })
+            .catch(function (error) {
+                igv.presentAlert(error);
+                console.log(error);
             });
-
-            function lociWithConfiguration(configuration) {
-
-                var loci = [];
-
-                if (configuration.locus) {
-
-                    if (Array.isArray(configuration.locus)) {
-                        _.each(configuration.locus, function (l) {
-                            loci.push(l);
-                        });
-
-                    } else {
-                        loci.push(configuration.locus);
-                    }
-                }
-
-                if (0 === _.size(loci)) {
-                    loci.push(_.first(igv.browser.genome.chromosomeNames));
-                }
-
-                return loci;
-            }
-
-        }).catch(function (error) {
-            igv.presentAlert(error);
-            console.log(error);
-        });
 
         return browser;
 
     };
 
-    igv.setApiKey = function(key) {
+    igv.setApiKey = function (key) {
         oauth.google.apiKey = key;
     }
 
-    igv.setOauthToken = function(token) {
+    igv.setOauthToken = function (token) {
         oauth.google.access_token = token;
     }
 
@@ -30256,10 +30129,6 @@ var igv = (function (igv) {
 
     function setDefaults(config) {
 
-        if (undefined === config.showChromosomeWidget) {
-            config.showChromosomeWidget = false;
-        }
-
         if (undefined === config.showLoadFileWidget) {
             config.showLoadFileWidget = false;
         }
@@ -30330,6 +30199,87 @@ var igv = (function (igv) {
         $(".igv-grid-container-colorpicker").remove();
         $(".igv-grid-container-dialog").remove();
         // $(".igv-grid-container-dialog").remove();
+    }
+
+
+    function lociWithConfiguration(configuration) {
+
+        var loci = [];
+
+        if (configuration.locus) {
+
+            if (Array.isArray(configuration.locus)) {
+                loci = configuration.locus;
+
+            } else {
+                loci.push(configuration.locus);
+            }
+        }
+        else {
+            if(igv.browser.genome.hasOwnProperty("all")) {
+                loci.push("all");
+            }
+            else {
+                loci.push(igv.browser.genome.chromosomeNames[0]);
+            }
+        }
+
+        return loci;
+    }
+
+
+    function extractQuery(uri) {
+        var i1, i2, i, j, s, query, tokens;
+
+        query = {};
+        i1 = uri.indexOf("?");
+        i2 = uri.lastIndexOf("#");
+
+        if (i1 >= 0) {
+            if (i2 < 0) i2 = uri.length;
+
+            for (i = i1 + 1; i < i2;) {
+
+                j = uri.indexOf("&", i);
+                if (j < 0) j = i2;
+
+                s = uri.substring(i, j);
+                tokens = s.split("=", 2);
+                if (tokens.length === 2) {
+                    query[tokens[0]] = tokens[1];
+                }
+
+                i = j + 1;
+            }
+        }
+        return query;
+    }
+
+    function loadSessionFile(config) {
+
+
+        var query = extractQuery(window.location.href);
+        if (query.hasOwnProperty("igvSessionXML")) {
+
+            var igvSession = decodeURIComponent(query["igvSessionXML"]);
+
+            return igv.xhr.loadString(igvSession)
+
+                .then(function (string) {
+
+                    var session = new igv.XMLSession(string);
+
+                    config.tracks = session.tracks;    // TODO -- replace or append?
+
+                    return config;
+
+                })
+
+        }
+        else {
+            return Promise.resolve(config);
+        }
+
     }
 
 
@@ -30637,29 +30587,84 @@ if (!Array.isArray) {
  */
 var igv = (function (igv) {
 
-    igv.rectWithCenterAndSize = function (center, size) {
-        var halfSize = igv.sizeMake(size.width/2.0, size.height/2.0);
+    igv.Math = {
 
-        return igv.rectMake(center.x - halfSize.width, center.y - halfSize.height, size.width, size.height);
+        mean: function (array) {
+
+            var t = 0, n = 0,
+                i;
+            for (i = 0; i < array.length; i++) {
+                if (!isNaN(array[i])) {
+                    t += array[i];
+                    n++;
+                }
+            }
+            return n > 0 ? t / n : 0;
+        },
+
+        meanAndStdev: function (array) {
+
+            var v, t = 0, t2 = 0, n = 0, i;
+
+            for (i = 0; i < array.length; i++) {
+
+                v = array[i];
+
+                if (!isNaN(v)) {
+                    t += v;
+                    t2 += v*v;
+                    n++;
+                }
+            }
+
+            return n > 0 ? {mean: t / n, stdev: Math.sqrt(t2 - t*t / n)} : {mean: 0, stdev: 0};
+        },
+
+        // Fast percentile function
+        percentile: function (array, p) {
+
+            if (array.length === 0) return undefined;
+
+            var k = Math.floor(array.length * ((100 - p) / 100));
+            if (k === 0) {
+                array.sort(function (a, b) {
+                    return b - a
+                });
+                return array[k];
+            }
+
+            return selectElement(array, k);
+
+        }
     };
 
-    igv.rectMake = function(x, y, width, height) {
-        var rect = { origin:{}, size:{} };
 
-        rect.origin.x = x;
-        rect.origin.y = y;
+    function selectElement(array, k) {
 
-        rect.size.width = width;
-        rect.size.height = height;
+        // Credit Steve Hanov http://stevehanov.ca/blog/index.php?id=122
+        var heap = new BinaryHeap(),
+            i;
 
-        return rect;
-    };
+        for (i = 0; i < array.length; i++) {
 
-    igv.sizeMake = function(width, height) {
-        return { width:width, height:height };
-    };
+            var item = array[i];
+
+            // If we have not yet found k items, or the current item is larger than
+            // the smallest item on the heap, add current item
+            if (heap.content.length < k || item > heap.content[0]) {
+                // If the heap is full, remove the smallest element on the heap.
+                if (heap.content.length === k) {
+                    var r = heap.pop();
+                }
+                heap.push(item)
+            }
+        }
+
+        return heap.content[0];
+    }
 
     return igv;
+
 })(igv || {});
 
 /*
@@ -33155,17 +33160,19 @@ var igv = (function (igv) {
             $div,
             $e;
 
-        nameLast = _.last(igv.browser.genome.chromosomeNames);
+        nameLast = _.last(igv.browser.genome.wgChromosomeNames);
+
         chrLast = igv.browser.genome.getChromosome(nameLast);
+
         extent = Math.floor(chrLast.bpLength/1000) + igv.browser.genome.getCumulativeOffset(nameLast);
 
         viewportWidth = this.$viewport.width();
         scraps = 0;
-        _.each(igv.browser.genome.chromosomeNames, function (name) {
+        _.each(igv.browser.genome.wgChromosomeNames, function (name) {
             var w,
                 percentage;
 
-            percentage = (igv.browser.genome.getChromosome(name).bpLength/1000)/extent;
+            percentage = (igv.browser.genome.getChromosome(name).bpLength)/extent;
             if (percentage * viewportWidth < 1.0) {
                 scraps += percentage;
             } else {
@@ -33387,7 +33394,9 @@ var igv = (function (igv) {
             1e1
         ].reverse();
 
-    tickKeys = _.map(tickNumbers, function (number) { return number.toString() });
+    tickKeys = _.map(tickNumbers, function (number) {
+        return number.toString()
+    });
     tickDivisors = createTickDivisiors();
     tickUnits = createTickUnits();
     tickValues = createTickValues();
@@ -33414,7 +33423,7 @@ var igv = (function (igv) {
             this.rulerSweepers = {};
         }
 
-        this.rulerSweepers[ genomicState.locusIndex.toString() ] = new igv.RulerSweeper(viewport, $viewport, $viewportContent, genomicState);
+        this.rulerSweepers[genomicState.locusIndex.toString()] = new igv.RulerSweeper(viewport, $viewport, $viewportContent, genomicState);
     };
 
     igv.RulerTrack.prototype.locusLabelWithViewport = function (viewport) {
@@ -33463,7 +33472,7 @@ var igv = (function (igv) {
             bp;
 
 
-        rulerSweeper = this.rulerSweepers[ options.genomicState.locusIndex.toString() ];
+        rulerSweeper = this.rulerSweepers[options.genomicState.locusIndex.toString()];
 
         if ('all' === options.referenceFrame.chrName.toLowerCase()) {
 
@@ -33480,7 +33489,7 @@ var igv = (function (igv) {
 
             index = 0;
             for (var i = 0; i < _.size(tickKeys); i++) {
-                tickSeparationPixel = options.referenceFrame.toPixels( tickValues[ tickKeys[ i ] ] );
+                tickSeparationPixel = options.referenceFrame.toPixels(tickValues[tickKeys[i]]);
                 if (tickSeparationPixel > TickSeparationThreshold) {
                     index = i;
                     break;
@@ -33491,20 +33500,20 @@ var igv = (function (igv) {
             tickHeight = 6;
             bp = options.bpStart + options.referenceFrame.toBP(options.pixelWidth);
             bp = Math.min(options.genomicState.chromosome.bpLength, bp);
-            maximumLabelWidthPixel = options.context.measureText( tickLabelString(bp, index) ).width;
+            maximumLabelWidthPixel = options.context.measureText(tickLabelString(bp, index)).width;
             // console.log('width metric ' + Math.round(maximumLabelWidthPixel) + ' width ' + Math.round(tickSeparationPixel));
-            for (pixel = 0, toggle = 0, tickLabelNumber = options.bpStart; pixel < options.pixelWidth; pixel += tickSeparationPixel, toggle++, tickLabelNumber += tickValues[ tickKeys[ index ] ]) {
+            for (pixel = 0, toggle = 0, tickLabelNumber = options.bpStart; pixel < options.pixelWidth; pixel += tickSeparationPixel, toggle++, tickLabelNumber += tickValues[tickKeys[index]]) {
 
                 if (0 === toggle % 2 || maximumLabelWidthPixel < tickSeparationPixel) {
 
                     tickLabelText = tickLabelString(tickLabelNumber, index);
 
-                    center = { x:Math.round(pixel), y:self.height - (tickHeight / 0.75) };
-                    size = { width:options.context.measureText(tickLabelText).width, height:2 };
+                    center = {x: Math.round(pixel), y: self.height - (tickHeight / 0.75)};
+                    size = {width: options.context.measureText(tickLabelText).width, height: 2};
 
-                    rect = igv.rectWithCenterAndSize(center, size);
+                    rect = rectWithCenterAndSize(center, size);
 
-                    igv.graphics.fillText(options.context, tickLabelText, Math.round(pixel - rect.size.width/2), self.height - (tickHeight / 0.75));
+                    igv.graphics.fillText(options.context, tickLabelText, Math.round(pixel - rect.size.width / 2), self.height - (tickHeight / 0.75));
                 }
 
                 igv.graphics.strokeLine(options.context, Math.round(pixel), this.height - tickHeight, Math.round(pixel), this.height - shim);
@@ -33522,8 +33531,8 @@ var igv = (function (igv) {
             string,
             number;
 
-        tickUnit = tickUnits[ tickKeys[ index ] ];
-        tickDivisor = tickDivisors[ tickKeys[ index ] ];
+        tickUnit = tickUnits[tickKeys[index]];
+        tickDivisor = tickDivisors[tickKeys[index]];
 
         number = Math.round(tickLabelNumber / tickDivisor);
         string = igv.numberFormatter(number) + tickUnit;
@@ -33531,58 +33540,58 @@ var igv = (function (igv) {
         return string;
     }
 
-    function createTickDivisiors () {
+    function createTickDivisiors() {
         var tickDivisiors = {};
-        tickDivisiors[ 1e8.toString() ] = 1e6;
-        tickDivisiors[ 5e7.toString() ] = 1e6;
-        tickDivisiors[ 1e7.toString() ] = 1e6;
-        tickDivisiors[ 5e6.toString() ] = 1e6;
-        tickDivisiors[ 1e6.toString() ] = 1e6;
+        tickDivisiors[1e8.toString()] = 1e6;
+        tickDivisiors[5e7.toString()] = 1e6;
+        tickDivisiors[1e7.toString()] = 1e6;
+        tickDivisiors[5e6.toString()] = 1e6;
+        tickDivisiors[1e6.toString()] = 1e6;
 
-        tickDivisiors[ 5e5.toString() ] = 1e3;
-        tickDivisiors[ 1e5.toString() ] = 1e3;
-        tickDivisiors[ 5e4.toString() ] = 1e3;
-        tickDivisiors[ 1e4.toString() ] = 1e3;
-        tickDivisiors[ 5e3.toString() ] = 1e3;
-        tickDivisiors[ 1e3.toString() ] = 1e3;
+        tickDivisiors[5e5.toString()] = 1e3;
+        tickDivisiors[1e5.toString()] = 1e3;
+        tickDivisiors[5e4.toString()] = 1e3;
+        tickDivisiors[1e4.toString()] = 1e3;
+        tickDivisiors[5e3.toString()] = 1e3;
+        tickDivisiors[1e3.toString()] = 1e3;
 
-        tickDivisiors[ 5e2.toString() ] = 1;
-        tickDivisiors[ 1e2.toString() ] = 1;
-        tickDivisiors[ 5e1.toString() ] = 1;
-        tickDivisiors[ 1e1.toString() ] = 1;
+        tickDivisiors[5e2.toString()] = 1;
+        tickDivisiors[1e2.toString()] = 1;
+        tickDivisiors[5e1.toString()] = 1;
+        tickDivisiors[1e1.toString()] = 1;
 
         return tickDivisiors;
     }
 
-    function createTickValues  () {
+    function createTickValues() {
         var tickValues = {};
 
         _.each(tickNumbers, function (number) {
-            tickValues[ number.toString() ] = number;
+            tickValues[number.toString()] = number;
         });
 
         return tickValues;
     }
 
-    function createTickUnits () {
+    function createTickUnits() {
         var tickUnits = {};
-        tickUnits[ 1e8.toString() ] = 'mb';
-        tickUnits[ 5e7.toString() ] = 'mb';
-        tickUnits[ 1e7.toString() ] = 'mb';
-        tickUnits[ 5e6.toString() ] = 'mb';
-        tickUnits[ 1e6.toString() ] = 'mb';
+        tickUnits[1e8.toString()] = 'mb';
+        tickUnits[5e7.toString()] = 'mb';
+        tickUnits[1e7.toString()] = 'mb';
+        tickUnits[5e6.toString()] = 'mb';
+        tickUnits[1e6.toString()] = 'mb';
 
-        tickUnits[ 5e5.toString() ] = 'kb';
-        tickUnits[ 1e5.toString() ] = 'kb';
-        tickUnits[ 5e4.toString() ] = 'kb';
-        tickUnits[ 1e4.toString() ] = 'kb';
-        tickUnits[ 5e3.toString() ] = 'kb';
-        tickUnits[ 1e3.toString() ] = 'kb';
+        tickUnits[5e5.toString()] = 'kb';
+        tickUnits[1e5.toString()] = 'kb';
+        tickUnits[5e4.toString()] = 'kb';
+        tickUnits[1e4.toString()] = 'kb';
+        tickUnits[5e3.toString()] = 'kb';
+        tickUnits[1e3.toString()] = 'kb';
 
-        tickUnits[ 5e2.toString() ] = 'b';
-        tickUnits[ 1e2.toString() ] = 'b';
-        tickUnits[ 5e1.toString() ] = 'b';
-        tickUnits[ 1e1.toString() ] = 'b';
+        tickUnits[5e2.toString()] = 'b';
+        tickUnits[1e2.toString()] = 'b';
+        tickUnits[5e1.toString()] = 'b';
+        tickUnits[1e1.toString()] = 'b';
 
         return tickUnits;
     }
@@ -33590,6 +33599,29 @@ var igv = (function (igv) {
     function updateLocusLabelWithGenomicState($label, state) {
         $label.text(state.locusSearchString);
     }
+
+    function rectWithCenterAndSize(center, size) {
+        var halfSize = sizeMake(size.width / 2.0, size.height / 2.0);
+        return rectMake(center.x - halfSize.width, center.y - halfSize.height, size.width, size.height);
+    };
+
+    function rectMake(x, y, width, height) {
+        var rect = {origin: {}, size: {}};
+
+        rect.origin.x = x;
+        rect.origin.y = y;
+
+        rect.size.width = width;
+        rect.size.height = height;
+
+        return rect;
+    };
+
+
+    function sizeMake(width, height) {
+        return {width: width, height: height};
+    };
+
 
     return igv;
 })(igv || {});
@@ -33813,6 +33845,117 @@ var igv = (function (igv) {
 
 
 
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+/**
+ * Minimal support for the legacy IGV desktop session format.
+ */
+
+var igv = (function (igv) {
+
+    var stringAttributes = ["name"],
+        colorAttributes = ["color", "altColor"],
+        intAttributes = ["height", "featureVisibilityWindow"],
+        booleanAttributes = ["autoScale"];
+
+    igv.XMLSession = function (xmlString) {
+
+        var self = this,
+            parser = new DOMParser(),
+            xmlDoc = parser.parseFromString(xmlString, "text/xml"),
+            elements = xmlDoc.getElementsByTagName("Resource");
+
+        self.tracks = [];
+
+        var resourceMap = {};
+
+
+        Array.from(elements).forEach(function (res, idx) {
+
+            var res = {
+                url: res.getAttribute("path"),
+                order: idx
+            };
+            self.tracks.push(res);
+            resourceMap[res.url] = res;
+        });
+
+        elements = xmlDoc.getElementsByTagName("Track");
+        Array.from(elements).forEach(function (track) {
+
+            var id, res, color, height, autoScale, altColor, dataRange, dataRangeCltn;
+
+            id = track.getAttribute("id"),
+                res = resourceMap[id];
+
+            if (res) {
+
+                res.name = track.getAttribute("name");
+                color = track.getAttribute("color");
+                if(color) {
+                    res.color = "rgb(" + color + ")";
+                }
+                altColor = track.getAttribute("altColor");
+                if(color) {
+                    res.altColor = "rgb(" + altColor + ")";
+                }
+                height = track.getAttribute("height");
+                if(height) {
+                    res.height = parseInt(height);
+                }
+                autoScale = track.getAttribute("autoScale");
+                if(autoScale) {
+                    res.autoScale = (autoScale === "true");
+                }
+
+                dataRangeCltn = track.getElementsByTagName("DataRange");
+                if(dataRangeCltn.length > 0) {
+                    dataRange = dataRangeCltn.item(0);
+                    if(!autoScale) {
+                        res.min = parseInt(dataRange.getAttribute("minimum"));
+                        res.max = parseInt(dataRange.getAttribute("maximum"));
+                    }
+                    res.logScale = dataRange.getAttribute("type") === "LOG";
+                }
+
+
+            }
+        })
+
+
+    };
+
+
+    return igv;
+
+})
+(igv || {});
 
 /*
  * Copyright - unknown
@@ -35013,7 +35156,15 @@ var igv = (function (igv) {
 
     igv.TDFSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
-        var self = this;
+        var self = this,
+            featureCache = self.featureCache,
+            genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
+
+        genomicInterval.bpPerPixel = bpPerPixel;
+
+        if (featureCache && featureCache.range.bpPerPixel === bpPerPixel && featureCache.range.containsRange(genomicInterval)) {
+            return Promise.resolve(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
+        }
 
         return self.reader.readRootGroup()
 
@@ -35022,21 +35173,20 @@ var igv = (function (igv) {
                 var zoom = zoomLevelForScale(chr, bpPerPixel),
                     queryChr = self.reader.chrAliasTable[chr],
                     maxZoom = self.reader.maxZoom,
-                    wf,
-                    dataset;
+                    wf;
 
                 if (queryChr === undefined) queryChr = chr;
                 if (maxZoom === undefined) maxZoom = -1;
 
                 wf = zoom > maxZoom ? "raw" : self.windowFunction;
 
-                return self.reader.readDataset(queryChr, wf, zoom)
+                return self.reader.readDataset(queryChr, wf, zoom);
             })
+
             .then(function (dataset) {
 
                 if (dataset == null) {
-                    fulfill([]);
-                    return;
+                    return [];
                 }
 
                 var tileWidth = dataset.tileWidth,
@@ -35051,13 +35201,15 @@ var igv = (function (igv) {
                         p.push(self.reader.readTile(dataset.tiles[i], NTRACKS));
                     }
                 }
-                return Promise.all(p)
+
+                return Promise.all(p);
             })
 
             .then(function (tiles) {
 
                 var features = [];
-                tiles.forEach(function (tile) {
+
+                tiles.forEach( function (tile) {
                     switch (tile.type) {
                         case "bed":
                             decodeBedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
@@ -35072,8 +35224,13 @@ var igv = (function (igv) {
                             reject("Unknown tile type: " + tile.type);
                             return;
                     }
-                });
+                })
+
+                // Note -- replacing feature cache
+                self.featureCache = new igv.FeatureCache(features, genomicInterval);
+
                 return features;
+
             })
     }
 
@@ -35472,7 +35629,7 @@ var igv = (function (igv) {
         }
 
 
-    }
+    };
 
     igv.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
@@ -35621,6 +35778,10 @@ var igv = (function (igv) {
 
         }, undefined));
 
+        if (igv.doProvideColoSwatchWidget(trackView.track)) {
+            menuItems.push(igv.colorPickerMenuItem(popover, trackView))
+        }
+
         all = [];
         if (trackView.track.menuItemList) {
             all = menuItems.concat(igv.trackMenuItemListHelper(trackView.track.menuItemList(popover)));
@@ -35641,6 +35802,10 @@ var igv = (function (igv) {
         }
 
         return all;
+    };
+
+    igv.doProvideColoSwatchWidget = function (track) {
+        return igv.colorPicker && (track instanceof igv.BAMTrack || track instanceof igv.FeatureTrack || track instanceof igv.VariantTrack || track instanceof igv.WIGTrack);
     };
 
     igv.trackMenuItemListHelper = function (itemList) {
@@ -35730,43 +35895,17 @@ var igv = (function (igv) {
     };
 
     igv.colorPickerMenuItem = function (popover, trackView) {
-        var $e,
-            clickHandler;
-
+        var $e;
 
         $e = $('<div>');
         $e.text('Set track color');
 
-        clickHandler = function () {
-            var defaultColor,
-                color,
-                offset,
-                colorUpdateHandler;
-
-            color = trackView.track.color;
-
-            defaultColor = trackView.track.config.color || igv.browser.constants.defaultColor;
-
-            offset =
-            {
-                left: ($(trackView.trackDiv).offset().left + $(trackView.trackDiv).width()) - igv.colorPicker.$container.width(),
-                top: $(trackView.trackDiv).offset().top
-            };
-
-            colorUpdateHandler = function (color) {
-                trackView.setColor(color)
-            };
-
-            igv.colorPicker.configure(trackView, color, defaultColor, offset, colorUpdateHandler);
-
-            igv.colorPicker.presentAtOffset(offset);
-
+        $e.click(function () {
+            trackView.$colorpicker_container.toggle();
             popover.hide();
-        };
+        });
 
-        $e.click(clickHandler);
-
-        return {object: $e, init: undefined};
+        return { object: $e };
 
     };
 
@@ -36475,12 +36614,14 @@ var igv = (function (igv) {
     igv.TrackView = function (browser, $container, track) {
 
         var self = this,
-            element;
+            element,
+            $track;
 
         this.browser = browser;
 
-        this.trackDiv = $('<div class="igv-track-div">')[0];
-        $container.append(this.trackDiv);
+        $track = $('<div class="igv-track-div">');
+        this.trackDiv = $track.get(0);
+        $container.append($track);
 
         this.track = track;
         track.trackView = this;
@@ -36518,6 +36659,21 @@ var igv = (function (igv) {
 
         // Track order repositioning widget
         this.attachDragWidget();
+
+        if (igv.doProvideColoSwatchWidget(this.track)) {
+
+            this.$colorpicker_container = $('<div>', { class:'igv-colorpicker-container' });
+            $track.append(this.$colorpicker_container);
+
+            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgbString) {
+                self.setColor(rgbString);
+            }, function () {
+                self.$colorpicker_container.toggle();
+            });
+
+            igv.makeDraggable(this.$colorpicker_container, this.$colorpicker_container);
+            this.$colorpicker_container.hide();
+        }
 
     };
 
@@ -39444,10 +39600,6 @@ var igv = (function (igv) {
             menuItems = [],
             mapped, $color, colorClickHandler;
 
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
-
         mapped = _.map(["COLLAPSED", "SQUISHED", "EXPANDED"], function (displayMode, index) {
             return {
                 object: $(displayModeMarkup(index, displayMode, self.displayMode)),
@@ -39524,43 +39676,6 @@ var igv = (function (igv) {
         return menuItems;
 
     };
-
-
-    //      igv.VariantTrack.prototype.menuItemList = function (popover) {
-    //
-    //     var myself = this,
-    //         menuItems = [],
-    //         lut = {"COLLAPSED": "Collapse", "SQUISHED": "Squish", "EXPANDED": "Expand"},
-    //         checkMark = '<i class="fa fa-check fa-check-shim"></i>',
-    //         checkMarkNone = '<i class="fa fa-check fa-check-shim fa-check-hidden"></i>',
-    //         trackMenuItem = '<div class=\"igv-track-menu-item\">',
-    //         trackMenuItemFirst = '<div class=\"igv-track-menu-item igv-track-menu-border-top\">';
-    //
-    //     menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-    //
-    //     ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode, index) {
-    //
-    //         var chosen,
-    //             str;
-    //
-    //         chosen = (0 === index) ? trackMenuItemFirst : trackMenuItem;
-    //         str = (displayMode === myself.displayMode) ? chosen + checkMark + lut[displayMode] + '</div>' : chosen + checkMarkNone + lut[displayMode] + '</div>';
-    //
-    //         menuItems.push({
-    //             object: $(str),
-    //             click: function () {
-    //                 popover.hide();
-    //                 myself.displayMode = displayMode;
-    //                 myself.trackView.update();
-    //             }
-    //         });
-    //
-    //     });
-    //
-    //     return menuItems;
-    //
-    // };
-
 
     return igv;
 
@@ -40268,7 +40383,8 @@ var igv = (function (igv) {
             chr,
             refFrameStart,
             refFrameEnd,
-            drawConfiguration;
+            drawConfiguration,
+            buffer;
 
         if (!(viewIsReady.call(this))) {
             return;
@@ -40296,13 +40412,19 @@ var igv = (function (igv) {
         if (this.tile && this.tile.containsRange(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel)) {
             // console.log('paint pre-existing canvas');
             this.paintImageWithReferenceFrame(referenceFrame);
+
         } else {
 
-            // Expand the requested range so we can pan a bit without reloading
+            // Expand the requested range so we can pan a bit without reloading.  But not beyond chromosome bounds
+            var chrLength = igv.browser.genome.getChromosome(chr).bpLength;
+
             pixelWidth = 3 * this.canvas.width;
             bpWidth = Math.round(referenceFrame.toBP(pixelWidth));
             bpStart = Math.max(0, Math.round(referenceFrame.start - bpWidth / 3));
-            bpEnd = bpStart + bpWidth;
+            bpEnd = Math.min(chrLength, bpStart + bpWidth);
+
+            // Adjust pixel width in case bounds were clamped
+            pixelWidth = (bpEnd - bpStart) / referenceFrame.bpPerPixel;
 
             if (self.loading && self.loading.start === bpStart && self.loading.end === bpEnd) {
                 return;
@@ -40313,12 +40435,11 @@ var igv = (function (igv) {
             self.startSpinner();
 
             // console.log('get features');
-            this.trackView.track
-                .getFeatures(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel)
+            this.trackView.track.getFeatures(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel)
+
                 .then(function (features) {
 
-                    var buffer,
-                        requiredHeight,
+                    var requiredHeight,
                         roiPromises;
 
                     // self.loading = false;
@@ -40365,56 +40486,38 @@ var igv = (function (igv) {
                         if (doRenderControlCanvas(genomicState, self.trackView)) {
                             renderControlCanvasWithTrackView(self.trackView);
                         }
-
                     }
 
                     if (igv.browser.roi) {
-
-                        // Defer tile creation and image paint until ROI features are loaded and drawn
                         roiPromises = [];
                         igv.browser.roi.forEach(function (r) {
                             roiPromises.push(r.getFeatures(referenceFrame.chrName, bpStart, bpEnd))
                         });
 
-                        Promise.all(roiPromises)
-                            .then(function (featureArray) {
-                                var i, len;
-                                for (i = 0, len = igv.browser.roi.length; i < len; i++) {
-                                    drawConfiguration.features = featureArray[i];
-                                    igv.browser.roi[i].draw(drawConfiguration);
-                                }
-                                self.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, buffer);
-                                self.paintImageWithReferenceFrame(referenceFrame);
-                            })
-                            .catch(function (error) {
-                                console.log("Error drawing ROIs " + error);
-                            })
-
-
-                    } else {
-                        // No ROI overlays
-
-                        self.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, buffer);
-                        self.paintImageWithReferenceFrame(referenceFrame);
+                        return Promise.all(roiPromises)
                     }
-
-                    function renderControlCanvasWithTrackView(trackView) {
-                        var buffer2;
-
-                        buffer2 = document.createElement('canvas');
-                        buffer2.width = trackView.controlCanvas.width;
-                        buffer2.height = trackView.controlCanvas.height;
-
-                        trackView.track.paintAxis(buffer2.getContext('2d'), buffer2.width, buffer2.height);
-
-                        trackView.controlCtx.drawImage(buffer2, 0, 0);
-
-                    }
-
-                    function doRenderControlCanvas(genomicState, trackView) {
-                        return (/*0 === genomicState.locusIndex &&*/ trackView.track.paintAxis && trackView.controlCanvas.width > 0 && trackView.controlCanvas.height > 0);
+                    else {
+                        return undefined;   // No regions of interest
                     }
                 })
+
+                .then(function (roiArray) {
+
+                    if(roiArray) {
+                        var i, len;
+                        for (i = 0, len = roiArray.length; i < len; i++) {
+                            drawConfiguration.features = roiArray[i];
+                            igv.browser.roi[i].draw(drawConfiguration);
+                        }
+                    }
+                })
+
+                .then(function (ignore) {
+
+                    self.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, buffer);
+                    self.paintImageWithReferenceFrame(referenceFrame);
+                })
+                
                 .catch(function (error) {
 
                     self.stopSpinner();
@@ -40427,6 +40530,25 @@ var igv = (function (igv) {
                         igv.presentAlert(error);
                     }
                 });
+
+            function renderControlCanvasWithTrackView(trackView) {
+                var buffer2;
+
+                buffer2 = document.createElement('canvas');
+                buffer2.width = trackView.controlCanvas.width;
+                buffer2.height = trackView.controlCanvas.height;
+
+                trackView.track.paintAxis(buffer2.getContext('2d'), buffer2.width, buffer2.height);
+
+                trackView.controlCtx.drawImage(buffer2, 0, 0);
+
+            }
+
+            function doRenderControlCanvas(genomicState, trackView) {
+                return (/*0 === genomicState.locusIndex &&*/ trackView.track.paintAxis && trackView.controlCanvas.width > 0 && trackView.controlCanvas.height > 0);
+            }
+
+
         }
 
         function viewIsReady() {
