@@ -13693,7 +13693,7 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const MAX_GZIP_BLOCK_SIZE = 65536;   //  APPARENTLY.  Where is this documented???
+    const MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
     const DEFAULT_SAMPLING_WINDOW_SIZE = 100;
     const DEFAULT_SAMPLING_DEPTH = 50;
     const MAXIMUM_SAMPLING_DEPTH = 2500;
@@ -13791,7 +13791,7 @@ var igv = (function (igv) {
                                         })
                                         .catch(reject);
 
-                                }))
+                                }));
                             });
 
                             return Promise.all(promises);
@@ -13799,10 +13799,10 @@ var igv = (function (igv) {
                         .then(function (ignored) {
                             alignmentContainer.finish();
                             return alignmentContainer;
-                        })
+                        });
                 }
-            })
-    }
+            });
+    };
 
     igv.BamReader.prototype.readHeader = function () {
 
@@ -13816,12 +13816,12 @@ var igv = (function (igv) {
                     options = igv.buildOptions(self.config, {range: {start: 0, size: len}}),
                     genome = igv.browser ? igv.browser.genome : null;
 
-                return igv.BamUtils.readHeader(self.bamPath, options, genome)
+                return igv.BamUtils.readHeader(self.bamPath, options, genome);
             })
             .then(function (header) {
                 return header;
-            })
-    }
+            });
+    };
 
     function getIndex(bam) {
 
@@ -13833,7 +13833,7 @@ var igv = (function (igv) {
                 .then(function (index) {
                     bam.index = index;
                     return bam.index;
-                })
+                });
         }
     }
 
@@ -13848,7 +13848,7 @@ var igv = (function (igv) {
                 bam.indexToChr = header.chrNames;
                 bam.chrAliasTable = header.chrAliasTable;
                 return bam.chrToIndex;
-            })
+            });
         }
     }
 
@@ -14327,10 +14327,6 @@ var igv = (function (igv) {
             colorByMenuItems = [],
             tagLabel,
             selected;
-
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
 
         // sort by genomic location
         menuItems.push(sortMenuItem(popover));
@@ -15241,7 +15237,7 @@ var igv = (function (igv) {
 
             magic = readInt(ba, 0);
             if (magic !== BAM1_MAGIC_NUMBER) {
-                throw new Error("BAM header contains an invalid BAM magic");
+                throw new Error('BAM header contains an invalid BAM magic');
             }
 
             samHeaderLen = readInt(ba, 4);
@@ -15258,7 +15254,7 @@ var igv = (function (igv) {
             chrNames = [];
             chrAliasTable = {};
 
-            for (var i = 0; i < nRef; ++i) {
+            for (i = 0; i < nRef; ++i) {
                 var lName = readInt(ba, p);
                 var name = '';
                 for (var j = 0; j < lName - 1; ++j) {
@@ -15284,7 +15280,7 @@ var igv = (function (igv) {
                 chrNames: chrNames,
                 chrToIndex: chrToIndex,
                 chrAliasTable: chrAliasTable
-            }
+            };
 
         },
 
@@ -15302,7 +15298,7 @@ var igv = (function (igv) {
             var p = seq_offset + ((lseq + 1) >> 1) + lseq;
             while (p + 4 < block_end) {
                 var tag = String.fromCharCode(ba[p]) + String.fromCharCode(ba[p+1]);
-                if (tag == "CG") break;
+                if (tag == 'CG') break;
                 var type = String.fromCharCode(ba[p+2]);
                 if (type == 'B') { // the binary array type
                     type = String.fromCharCode(ba[p+3]);
@@ -15325,7 +15321,7 @@ var igv = (function (igv) {
             if (cigar_offset + cigar_len * 4 > block_end) return false; // out of bound
 
             // decode CIGAR
-            var cigar = "";
+            var cigar = '';
             var lengthOnRef = 0;
             cigarArray.length = 0; // empty the old array
             p = cigar_offset;
@@ -15450,7 +15446,7 @@ var igv = (function (igv) {
                 p += seqBytes;
 
 
-                if (lseq === 1 && String.fromCharCode(ba[p + j] + 33) === "*") {
+                if (lseq === 1 && String.fromCharCode(ba[p + j] + 33) === '*') {
                     // TODO == how to represent this?
                 } else {
                     qualArray = [];
@@ -15471,7 +15467,7 @@ var igv = (function (igv) {
 
                 alignment.seq = seq;
                 alignment.qual = qualArray;
-                alignment.tagBA = new Uint8Array(ba.buffer.slice(p, blockEnd));  // decode thiese on demand
+                alignment.tagBA = new Uint8Array(ba.buffer.slice(p, blockEnd));  // decode these on demand
 
                 if (!min || alignment.start <= max &&
                     alignment.start + alignment.lengthOnRef >= min &&
@@ -15506,13 +15502,13 @@ var igv = (function (igv) {
                 alignment.start = Number.parseInt(tokens[3]) - 1;
                 alignment.flags = Number.parseInt(tokens[1]);
                 alignment.readName = tokens[0];
-                alignment.strand = !(alignment.flags & READ_STRAND_FLAG)
+                alignment.strand = !(alignment.flags & READ_STRAND_FLAG);
                 alignment.mq = Number.parseInt(tokens[4]);
                 alignment.cigar = tokens[5];
                 alignment.fragmentLength = Number.parseInt(tokens[8]);
                 alignment.seq = tokens[9];
 
-                if (alignment.chr === "*" || !alignment.isMapped()) continue;  // Unmapped
+                if (alignment.chr === '*' || !alignment.isMapped()) continue;  // Unmapped
 
                 if (alignment.chr !== chr) {
                     if (started) break; // Off the right edge, we're done
@@ -15547,7 +15543,7 @@ var igv = (function (igv) {
                 if (alignment.isMateMapped()) {
                     rnext = tokens[6];
                     alignment.mate = {
-                        chr: (rnext === "=") ? alignment.chr : rnext,
+                        chr: (rnext === '=') ? alignment.chr : rnext,
                         position: Number.parseInt(tokens[7]),
                         strand: !(alignment.flags & MATE_STRAND_FLAG)
                     };
@@ -15561,7 +15557,7 @@ var igv = (function (igv) {
                 }
             }
         }
-    }
+    };
 
 
     /**
@@ -15611,7 +15607,7 @@ var igv = (function (igv) {
                     gapType = 'D';
                     break;
                 case 'I' :
-                    blockSeq = record.seq === "*" ? "*" : record.seq.substr(seqOffset, c.len);
+                    blockSeq = record.seq === '*' ? '*' : record.seq.substr(seqOffset, c.len);
                     blockQuals = record.qual ? record.qual.slice(seqOffset, c.len) : undefined;
                     if (insertions === undefined) insertions = [];
                     insertions.push({start: pos, len: c.len, seq: blockSeq, qual: blockQuals});
@@ -15622,7 +15618,7 @@ var igv = (function (igv) {
                 case '=' :
                 case 'X' :
 
-                    blockSeq = record.seq === "*" ? "*" : record.seq.substr(seqOffset, c.len);
+                    blockSeq = record.seq === '*' ? '*' : record.seq.substr(seqOffset, c.len);
                     blockQuals = record.qual ? record.qual.slice(seqOffset, c.len) : undefined;
                     blocks.push({start: pos, len: c.len, seq: blockSeq, qual: blockQuals, gapType: gapType});
                     seqOffset += c.len;
@@ -15631,7 +15627,7 @@ var igv = (function (igv) {
                     break;
 
                 default :
-                    console.log("Error processing cigar element: " + c.len + c.ltr);
+                    console.log('Error processing cigar element: ' + c.len + c.ltr);
             }
         }
 
@@ -15694,7 +15690,7 @@ var igv = (function (igv) {
 
         var tagDict = {};
         tags.forEach(function (tag) {
-            var tokens = tag.split(":");
+            var tokens = tag.split(':');
             tagDict[tokens[0]] = tokens[2];
         });
 
@@ -15739,7 +15735,7 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const MAX_GZIP_BLOCK_SIZE = 65536;   //  APPARENTLY.  Where is this documented???
+    const MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
     const DEFAULT_SAMPLING_WINDOW_SIZE = 100;
     const DEFAULT_SAMPLING_DEPTH = 50;
     const MAXIMUM_SAMPLING_DEPTH = 2500;
@@ -22865,10 +22861,6 @@ var igv = (function (igv) {
             });
             menuItems = menuItems.concat(colorByItems);
         }
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
-
 
         mapped = (["COLLAPSED", "SQUISHED", "EXPANDED"]).map(function (displayMode, index) {
             return {
@@ -24700,10 +24692,6 @@ var igv = (function (igv) {
 
         var self = this,
             menuItems = [];
-
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
 
         menuItems.push(igv.dataRangeMenuItem(popover, this.trackView));
 
@@ -35263,6 +35251,7 @@ var igv = (function (igv) {
             if (s > bpEnd) break;
 
             features.push({
+                chr: chr,
                 start: s,
                 end: e,
                 value: data[i]
@@ -35287,6 +35276,7 @@ var igv = (function (igv) {
             if (s > bpEnd) break;
 
             features.push({
+                chr: chr,
                 start: s,
                 end: e,
                 value: data[i]
@@ -35311,6 +35301,7 @@ var igv = (function (igv) {
 
             if (!Number.isNaN(data[i])) {
                 features.push({
+                    chr: chr,
                     start: s,
                     end: e,
                     value: data[i]
@@ -35641,7 +35632,7 @@ var igv = (function (igv) {
         }
 
 
-    }
+    };
 
     igv.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
@@ -35790,6 +35781,10 @@ var igv = (function (igv) {
 
         }, undefined));
 
+        if (igv.doProvideColoSwatchWidget(trackView.track)) {
+            menuItems.push(igv.colorPickerMenuItem(popover, trackView))
+        }
+
         all = [];
         if (trackView.track.menuItemList) {
             all = menuItems.concat(igv.trackMenuItemListHelper(trackView.track.menuItemList(popover)));
@@ -35810,6 +35805,10 @@ var igv = (function (igv) {
         }
 
         return all;
+    };
+
+    igv.doProvideColoSwatchWidget = function (track) {
+        return igv.colorPicker && (track instanceof igv.BAMTrack || track instanceof igv.FeatureTrack || track instanceof igv.VariantTrack || track instanceof igv.WIGTrack);
     };
 
     igv.trackMenuItemListHelper = function (itemList) {
@@ -35899,43 +35898,17 @@ var igv = (function (igv) {
     };
 
     igv.colorPickerMenuItem = function (popover, trackView) {
-        var $e,
-            clickHandler;
-
+        var $e;
 
         $e = $('<div>');
         $e.text('Set track color');
 
-        clickHandler = function () {
-            var defaultColor,
-                color,
-                offset,
-                colorUpdateHandler;
-
-            color = trackView.track.color;
-
-            defaultColor = trackView.track.config.color || igv.browser.constants.defaultColor;
-
-            offset =
-            {
-                left: ($(trackView.trackDiv).offset().left + $(trackView.trackDiv).width()) - igv.colorPicker.$container.width(),
-                top: $(trackView.trackDiv).offset().top
-            };
-
-            colorUpdateHandler = function (color) {
-                trackView.setColor(color)
-            };
-
-            igv.colorPicker.configure(trackView, color, defaultColor, offset, colorUpdateHandler);
-
-            igv.colorPicker.presentAtOffset(offset);
-
+        $e.click(function () {
+            trackView.$colorpicker_container.toggle();
             popover.hide();
-        };
+        });
 
-        $e.click(clickHandler);
-
-        return {object: $e, init: undefined};
+        return { object: $e };
 
     };
 
@@ -36644,12 +36617,14 @@ var igv = (function (igv) {
     igv.TrackView = function (browser, $container, track) {
 
         var self = this,
-            element;
+            element,
+            $track;
 
         this.browser = browser;
 
-        this.trackDiv = $('<div class="igv-track-div">')[0];
-        $container.append(this.trackDiv);
+        $track = $('<div class="igv-track-div">');
+        this.trackDiv = $track.get(0);
+        $container.append($track);
 
         this.track = track;
         track.trackView = this;
@@ -36687,6 +36662,21 @@ var igv = (function (igv) {
 
         // Track order repositioning widget
         this.attachDragWidget();
+
+        if (igv.doProvideColoSwatchWidget(this.track)) {
+
+            this.$colorpicker_container = $('<div>', { class:'igv-colorpicker-container' });
+            $track.append(this.$colorpicker_container);
+
+            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgbString) {
+                self.setColor(rgbString);
+            }, function () {
+                self.$colorpicker_container.toggle();
+            });
+
+            igv.makeDraggable(this.$colorpicker_container, this.$colorpicker_container);
+            this.$colorpicker_container.hide();
+        }
 
     };
 
@@ -39613,10 +39603,6 @@ var igv = (function (igv) {
             menuItems = [],
             mapped, $color, colorClickHandler;
 
-        if (igv.colorPicker) {
-            menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-        }
-
         mapped = _.map(["COLLAPSED", "SQUISHED", "EXPANDED"], function (displayMode, index) {
             return {
                 object: $(displayModeMarkup(index, displayMode, self.displayMode)),
@@ -39693,43 +39679,6 @@ var igv = (function (igv) {
         return menuItems;
 
     };
-
-
-    //      igv.VariantTrack.prototype.menuItemList = function (popover) {
-    //
-    //     var myself = this,
-    //         menuItems = [],
-    //         lut = {"COLLAPSED": "Collapse", "SQUISHED": "Squish", "EXPANDED": "Expand"},
-    //         checkMark = '<i class="fa fa-check fa-check-shim"></i>',
-    //         checkMarkNone = '<i class="fa fa-check fa-check-shim fa-check-hidden"></i>',
-    //         trackMenuItem = '<div class=\"igv-track-menu-item\">',
-    //         trackMenuItemFirst = '<div class=\"igv-track-menu-item igv-track-menu-border-top\">';
-    //
-    //     menuItems.push(igv.colorPickerMenuItem(popover, this.trackView));
-    //
-    //     ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode, index) {
-    //
-    //         var chosen,
-    //             str;
-    //
-    //         chosen = (0 === index) ? trackMenuItemFirst : trackMenuItem;
-    //         str = (displayMode === myself.displayMode) ? chosen + checkMark + lut[displayMode] + '</div>' : chosen + checkMarkNone + lut[displayMode] + '</div>';
-    //
-    //         menuItems.push({
-    //             object: $(str),
-    //             click: function () {
-    //                 popover.hide();
-    //                 myself.displayMode = displayMode;
-    //                 myself.trackView.update();
-    //             }
-    //         });
-    //
-    //     });
-    //
-    //     return menuItems;
-    //
-    // };
-
 
     return igv;
 
