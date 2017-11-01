@@ -16610,7 +16610,7 @@ var igv = (function (igv) {
         this.config = config;
     };
 
-    igv.BWReader.prototype.readWGFeatures = function (genome, bpPerPixel) {
+    igv.BWReader.prototype.readWGFeatures = function (genome, bpPerPixel, windowFunction) {
 
         var self = this;
         return self.getZoomHeaders()
@@ -16622,12 +16622,12 @@ var igv = (function (igv) {
                 chr1 = self.chromTree.idToChrom[chrIdx1];
                 chr2 = self.chromTree.idToChrom[chrIdx2];
 
-                return self.readFeatures(chr1, 0, chr2, Number.MAX_VALUE, bpPerPixel);
+                return self.readFeatures(chr1, 0, chr2, Number.MAX_VALUE, bpPerPixel, windowFunction);
             });
 
     }
 
-    igv.BWReader.prototype.readFeatures = function (chr1, bpStart, chr2, bpEnd, bpPerPixel) {
+    igv.BWReader.prototype.readFeatures = function (chr1, bpStart, chr2, bpEnd, bpPerPixel, windowFunction) {
 
         var self = this,
             decodeFunction,
@@ -16690,7 +16690,7 @@ var igv = (function (igv) {
                                     var features = [];
                                     var inflate = new Zlib.Inflate(uint8Array);
                                     var plain = inflate.decompress();
-                                    decodeFunction(new DataView(plain.buffer), chrIdx1, bpStart, chrIdx2, bpEnd, features, self.chromTree.idToChrom);
+                                    decodeFunction(new DataView(plain.buffer), chrIdx1, bpStart, chrIdx2, bpEnd, features, self.chromTree.idToChrom, windowFunction);
                                     return features;
                                 })
                         )
@@ -17341,7 +17341,7 @@ var igv = (function (igv) {
     }
 
 
-    function decodeZoomData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, chrDict) {
+    function decodeZoomData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, chrDict, windowFunction) {
 
         var binaryParser = new igv.BinaryParser(data),
             minSize = 8 * 4,   // Minimum # of bytes required for a zoom record
@@ -17372,7 +17372,17 @@ var igv = (function (igv) {
             maxVal = binaryParser.getFloat();
             sumData = binaryParser.getFloat();
             sumSquares = binaryParser.getFloat();
-            value = validCount == 0 ? 0 : sumData / validCount;
+            switch (windowFunction) {
+                case "min":
+                    value = minVal;
+                    break;
+                case "max":
+                    value = maxVal;
+                    break;
+                default:
+                    value = validCount == 0 ? 0 : sumData / validCount;
+            }
+
 
             if (Number.isFinite(value)) {
                 featureArray.push({chr: chr, start: chromStart, end: chromEnd, value: value});
@@ -17421,34 +17431,33 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
     igv.BWSource = function (config) {
-
         this.reader = new igv.BWReader(config);
+        this.cache = true;
+        this.wgValues = {};
     };
 
-    igv.BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel, cache) {
+    igv.BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel, windowFunction) {
 
         var self = this,
             featureCache = self.featureCache,
             genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
 
-        if (undefined === cache) cache = true;
-
         genomicInterval.bpPerPixel = bpPerPixel;
 
         if (chr.toLowerCase() === "all") {
-            return self.getWGValues();
+            return self.getWGValues(windowFunction);
         }
         else if (featureCache && featureCache.range.bpPerPixel === bpPerPixel && featureCache.range.containsRange(genomicInterval)) {
             return Promise.resolve(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
         }
         else {
 
-            return self.reader.readFeatures(chr, bpStart, chr, bpEnd, bpPerPixel)
+            return self.reader.readFeatures(chr, bpStart, chr, bpEnd, bpPerPixel, windowFunction)
 
                 .then(function (features) {
 
                     // Note -- replacing feature cache
-                    if (cache) self.featureCache = new igv.FeatureCache(features, genomicInterval);
+                    if (self.cache) self.featureCache = new igv.FeatureCache(features, genomicInterval);
 
                     return features;
                 })
@@ -17467,19 +17476,19 @@ var igv = (function (igv) {
 
     }
 
-    igv.BWSource.prototype.getWGValues = function () {
+    igv.BWSource.prototype.getWGValues = function (windowFunction) {
         var self = this,
             bpPerPixel,
             nominalScreenWidth = 500;      // This doesn't need to be precise
 
-        if (self.wgValues) {
-            return Promise.resolve(self.wgValues);
+        if (self.wgValues[windowFunction]) {
+            return Promise.resolve(self.wgValues[windowFunction]);
         }
         else {
 
             bpPerPixel = igv.browser.genome.getGenomeLength() / nominalScreenWidth;
 
-            return self.reader.readWGFeatures(igv.browser.genome, bpPerPixel)
+            return self.reader.readWGFeatures(igv.browser.genome, bpPerPixel, windowFunction)
 
                 .then(function (features) {
 
@@ -17499,7 +17508,7 @@ var igv = (function (igv) {
                         wgValues.push(wgFeature);
                     })
 
-                    self.wgValues = wgValues;
+                    self.wgValues[windowFunction] = wgValues;
 
                     return wgValues;
 
@@ -17969,7 +17978,7 @@ var igv = (function (igv) {
             }
         }
 
-        newTrack = igv.createTrackWithConfiguration(config);
+        newTrack = igv.createTrack(config);
 
         if (undefined === newTrack) {
             igv.presentAlert("Unknown file type: " + config.url);
@@ -18793,7 +18802,7 @@ var igv = (function (igv) {
                 });
 
                 return Promise .all(promises)
-                    
+
                     .then(function (response) {
                         var filtered,
                             geneNameGenomicStates;
@@ -18952,21 +18961,26 @@ var igv = (function (igv) {
         var a,
             b,
             numeric,
-            success;
+            success,
+            chr;
 
         a = locus.split(':');
-        if (undefined === genome.getChromosome(_.first(a))) {
+
+        chr = a[0];
+        if(chr.toLowerCase() === 'all') chr = 'all';
+
+        if (undefined === genome.getChromosome(chr)) {
             return false;
         } else if (locusObject) {
 
             // start and end will get overridden if explicit start AND end exits
-            locusObject.chromosome = genome.getChromosome(_.first(a));
+            locusObject.chromosome = genome.getChromosome(chr);
             locusObject.start = 0;
             locusObject.end = locusObject.chromosome.bpLength;
         }
 
         // if just a chromosome name we are done
-        if (1 === _.size(a)) {
+        if (1 === a.length) {
             return true;
         } else {
 
@@ -18979,6 +18993,8 @@ var igv = (function (igv) {
                 success = !isNaN(numeric);
                 if (true === success && locusObject) {
                     locusObject.start = parseInt(numeric, 10);
+                    locusObject.start -= 1;
+
                     locusObject.end = undefined;
                 }
 
@@ -18991,7 +19007,12 @@ var igv = (function (igv) {
                         numeric = bb.replace(/\,/g, '');
                         success = !isNaN(numeric);
                         if (true === success && locusObject) {
-                            locusObject[0 === index ? 'start' : 'end'] = parseInt(numeric, 10);
+                            if (0 === index) {
+                                locusObject.start = parseInt(numeric, 10) - 1;
+                            } else {
+                                locusObject.end = parseInt(numeric, 10);
+                            }
+
                         }
                     }
                 });
@@ -19487,17 +19508,41 @@ var igv = (function (igv) {
         this.columnFormat = columnFormat;
     };
 
-    igv.EncodeDataSource.prototype.retrieveData = function (continuation) {
+    igv.EncodeDataSource.prototype.retrieveData = function () {
 
         var self = this,
             fileFormat,
-            assembly,
-            query;
+            assembly;
 
+        fileFormat = 'bigWig';
         assembly = this.config.genomeID;
-        fileFormat = "bigWig";
 
-        query = "https://www.encodeproject.org/search/?" +
+        return igv.xhr
+            .loadJson(urlString(assembly, fileFormat), {})
+            .then(function(json){
+                return parseJSONData(json, assembly, fileFormat);
+            })
+            .then(function (data) {
+                data.sort(encodeSort);
+                return Promise.resolve(data);
+            })
+            .catch(function (e) {
+                var str;
+                str = e.toString() + ' unable to access Encode Project with assembly ' + self.config.genomeID;
+                igv.presentAlert(str);
+                continuation(undefined);
+
+            });
+    };
+
+    function urlString (assembly, fileFormat) {
+
+        var str;
+
+        // TODO - Test Error Handling with this URL.
+        // str = "https://www.encodeproject.org/search/?type=experiment&assembly=/work/ea14/juicer/references/genome_collection/Hs2-HiC.chrom.sizes&files.file_format=bigWig&format=json&field=lab.title&field=biosample_term_name&field=assay_term_name&field=target.label&field=files.file_format&field=files.output_type&field=files.href&field=files.replicate.technical_replicate_number&field=files.replicate.biological_replicate_number&field=files.assembly&limit=all";
+
+        str = "https://www.encodeproject.org/search/?" +
             "type=experiment&" +
             "assembly=" + assembly + "&" +
             "files.file_format=" + fileFormat + "&" +
@@ -19514,122 +19559,111 @@ var igv = (function (igv) {
             "field=files.assembly&" +
             "limit=all";
 
-        // TODO - Test Error Handling with this URL.
-        // query = "https://www.encodeproject.org/search/?type=experiment&assembly=/work/ea14/juicer/references/genome_collection/Hs2-HiC.chrom.sizes&files.file_format=bigWig&format=json&field=lab.title&field=biosample_term_name&field=assay_term_name&field=target.label&field=files.file_format&field=files.output_type&field=files.href&field=files.replicate.technical_replicate_number&field=files.replicate.biological_replicate_number&field=files.assembly&limit=all";
+        return str;
+    }
 
-        igv.xhr
-            .loadJson(query, {})
-            .then(function (json) {
+    function parseJSONData(json, assembly, fileFormat) {
+        var rows;
 
-                var rows;
+        rows = [];
+        _.each(json["@graph"], function (record) {
 
-                rows = [];
-                _.each(json["@graph"], function (record) {
+            var cellType,
+                target,
+                filtered,
+                mapped;
 
-                    var cellType,
-                        target,
-                        filtered,
-                        mapped;
+            cellType = record["biosample_term_name"] || '';
 
-                    cellType = record["biosample_term_name"] || '';
+            target = record.target ? record.target.label : '';
 
-                    target = record.target ? record.target.label : '';
-
-                    filtered = _.filter(record.files, function (file) {
-                        return fileFormat === file.file_format && assembly === file.assembly;
-                    });
-
-                    mapped = _.map(filtered, function (file) {
-
-                        var bioRep = file.replicate ? file.replicate.bioligcal_replicate_number : undefined,
-                            techRep = file.replicate ? file.replicate.technical_replicate_number : undefined,
-                            name = cellType + " " + target;
-
-                        if (bioRep) {
-                            name += " " + bioRep;
-                        }
-
-                        if (techRep) {
-                            name += (bioRep ? ":" : "0:") + techRep;
-                        }
-
-                        return {
-                            "Assembly": file.assembly,
-                            "ExperimentID": record['@id'],
-                            "Cell Type": cellType,
-                            "Assay Type": record.assay_term_name,
-                            "Target": target,
-                            "Lab": record.lab ? record.lab.title : "",
-                            "Format": file.file_format,
-                            "Output Type": file.output_type,
-                            "url": "https://www.encodeproject.org" + file.href,
-                            "Bio Rep": bioRep,
-                            "Tech Rep": techRep,
-                            "Name": name
-                        };
-
-                    });
-
-                    Array.prototype.push.apply(rows, mapped);
-
-                });
-
-                // insert placeholders for missing data
-                self.data = _.map(rows, function (row) {
-                    return _.mapObject(row, function (val) {
-                        return (undefined === val || '' === val) ? '-' : val;
-                    });
-                });
-
-                self.data.sort(function (a, b) {
-                    var aa1,
-                        aa2,
-                        cc1,
-                        cc2,
-                        tt1,
-                        tt2;
-
-                    aa1 = a['Assembly' ]; aa2 = b['Assembly' ];
-                    cc1 = a['Cell Type']; cc2 = b['Cell Type'];
-                    tt1 = a['Target'   ]; tt2 = b['Target'   ];
-
-                    if (aa1 === aa2) {
-                        if (cc1 === cc2) {
-                            if (tt1 === tt2) {
-                                return 0;
-                            } else if (tt1 < tt2) {
-                                return -1;
-                            } else {
-                                return 1;
-                            }
-                        } else if (cc1 < cc2) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    } else {
-                        if (aa1 < aa2) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    }
-                });
-
-                continuation(true);
-
-            })
-            .catch(function (e) {
-                continuation(false);
+            filtered = _.filter(record.files, function (file) {
+                return fileFormat === file.file_format && assembly === file.assembly;
             });
 
-    };
+            mapped = _.map(filtered, function (file) {
 
-    igv.EncodeDataSource.prototype.tableData = function () {
+                var bioRep = file.replicate ? file.replicate.bioligcal_replicate_number : undefined,
+                    techRep = file.replicate ? file.replicate.technical_replicate_number : undefined,
+                    name = cellType + " " + target;
+
+                if (bioRep) {
+                    name += " " + bioRep;
+                }
+
+                if (techRep) {
+                    name += (bioRep ? ":" : "0:") + techRep;
+                }
+
+                return {
+                    "Assembly": file.assembly,
+                    "ExperimentID": record['@id'],
+                    "Cell Type": cellType,
+                    "Assay Type": record.assay_term_name,
+                    "Target": target,
+                    "Lab": record.lab ? record.lab.title : "",
+                    "Format": file.file_format,
+                    "Output Type": file.output_type,
+                    "url": "https://www.encodeproject.org" + file.href,
+                    "Bio Rep": bioRep,
+                    "Tech Rep": techRep,
+                    "Name": name
+                };
+
+            });
+
+            Array.prototype.push.apply(rows, mapped);
+
+        });
+
+        return _.map(rows, function (row) {
+            return _.mapObject(row, function (val) {
+                return (undefined === val || '' === val) ? '-' : val;
+            });
+        });
+
+    }
+
+    function encodeSort(a, b) {
+        var aa1,
+            aa2,
+            cc1,
+            cc2,
+            tt1,
+            tt2;
+
+        aa1 = a['Assembly' ]; aa2 = b['Assembly' ];
+        cc1 = a['Cell Type']; cc2 = b['Cell Type'];
+        tt1 = a['Target'   ]; tt2 = b['Target'   ];
+
+        if (aa1 === aa2) {
+            if (cc1 === cc2) {
+                if (tt1 === tt2) {
+                    return 0;
+                } else if (tt1 < tt2) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else if (cc1 < cc2) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            if (aa1 < aa2) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    }
+
+    igv.EncodeDataSource.prototype.tableData = function (data) {
         var self = this,
             mapped;
 
-        mapped = _.map(this.data, function (row) {
+        mapped = _.map(data, function (row) {
 
             // Isolate the subset of the data for display in the table
             return _.values(_.pick(row, _.map(self.columnFormat, function (column) {
@@ -19656,11 +19690,11 @@ var igv = (function (igv) {
         return columns;
     };
 
-    igv.EncodeDataSource.prototype.dataAtRowIndex = function (index) {
+    igv.EncodeDataSource.prototype.dataAtRowIndex = function (data, index) {
         var row,
             obj;
 
-        row =  this.data[ index ];
+        row =  data[ index ];
 
         obj =
             {
@@ -22573,6 +22607,14 @@ var igv = (function (igv) {
 
     igv.FeatureTrack = function (config) {
 
+        if(config.height === undefined) {
+            config.height = 50;
+        }
+        // Set maxRows -- protects against pathological feature packing cases (# of rows of overlapping feaures)
+        if (config.maxRows === undefined) {
+            config.maxRows = 500;
+        }
+
         igv.configTrack(this, config);
 
         this.displayMode = config.displayMode || "COLLAPSED";    // COLLAPSED | EXPANDED | SQUISHED
@@ -22584,10 +22626,7 @@ var igv = (function (igv) {
 
         this.featureHeight = config.featureHeight || 14;
 
-        // Set maxRows -- protects against pathological feature packing cases (# of rows of overlapping feaures)
-        if (config.maxRows === undefined) {
-            config.maxRows = 500;
-        }
+
         this.maxRows = config.maxRows;
 
         if (config.url &&
@@ -23879,6 +23918,137 @@ var igv = (function (igv) {
 /*
  * The MIT License (MIT)
  *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ * Author: Jim Robinson
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+/**
+ * Created by turner on 2/11/14.
+ */
+var igv = (function (igv) {
+
+    igv.MergedTrack = function (config) {
+
+        var self = this;
+
+        if (!config.tracks) {
+            console.log("Error: not tracks defined for merged track. " + config);
+            return;
+        }
+
+        if(config.height === undefined) {
+            config.height = 50;
+        }
+
+        igv.configTrack(this, config);
+
+        this.tracks = [];
+        config.tracks.forEach(function (tconf) {
+
+            if(!tconf.type) igv.inferTrackTypes(tconf);
+
+            var t = igv.createTrack(tconf);
+
+            if (t) {
+                t.autoscale = false;     // Scaling done from merged track
+                self.tracks.push(t);
+            }
+            else {
+                console.log("Could not create track " + tconf);
+            }
+        });
+
+    }
+
+    igv.MergedTrack.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
+
+        var promises = this.tracks.map(function (t) {
+            return t.getFeatures(chr, bpStart, bpEnd, bpPerPixel);
+        })
+        return Promise.all(promises);
+
+    }
+
+
+    igv.MergedTrack.prototype.draw = function (options) {
+
+        var i, len, mergedFeatures, trackOptions, dataRange;
+
+        mergedFeatures = options.features;    // Array of feature arrays, 1 for each track
+
+        dataRange = autoscale(options.genomicState.chromosome.name, mergedFeatures);
+
+        for (i = 0, len = this.tracks.length; i < len; i++) {
+
+            trackOptions = Object.assign({}, options);
+            trackOptions.features = mergedFeatures[i];
+            this.tracks[i].dataRange = dataRange;
+            this.tracks[i].draw(trackOptions);
+        }
+
+    }
+
+    function autoscale(chr, featureArrays) {
+
+
+        var min = 0,
+            max = -Number.MAX_VALUE,
+            allValues;
+
+        // if (chr === 'all') {
+        //     allValues = [];
+        //     featureArrays.forEach(function (features) {
+        //         features.forEach(function (f) {
+        //             if (!Number.isNaN(f.value)) {
+        //                 allValues.push(f.value);
+        //             }
+        //         });
+        //     });
+        //
+        //     min = Math.min(0, igv.Math.percentile(allValues, .1));
+        //     max = igv.Math.percentile(allValues, 99.9);
+        //
+        // }
+        // else {
+            featureArrays.forEach(function (features) {
+                features.forEach(function (f) {
+                    if (!Number.isNaN(f.value)) {
+                        min = Math.min(min, f.value);
+                        max = Math.max(max, f.value);
+                    }
+                });
+            });
+      //  }
+
+        return {min: min, max: max};
+    }
+
+    return igv;
+
+})(igv || {});
+
+/*
+ * The MIT License (MIT)
+ *
  * Copyright (c) 2014 Broad Institute
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24656,7 +24826,12 @@ var igv = (function (igv) {
         this.config = config;
         this.url = config.url;
 
-        if (config.color === undefined) config.color = "rgb(150,150,150)";   // Hack -- should set a default color per track type
+        if (config.color === undefined) {
+            config.color = "rgb(150,150,150)";
+        }
+        if(config.height === undefined) {
+            config.height = 50;
+        }
 
         igv.configTrack(this, config);
 
@@ -24678,14 +24853,14 @@ var igv = (function (igv) {
         } else {
             this.autoscale = true;
         }
+        this.windowFunction = config.windowFunction || "mean";
 
         this.paintAxis = igv.paintAxis;
 
     };
 
     igv.WIGTrack.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
-
-        return this.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel);
+        return this.featureSource.getFeatures(chr, bpStart, bpEnd, bpPerPixel, this.windowFunction);
     };
 
     igv.WIGTrack.prototype.menuItemList = function (popover) {
@@ -24869,7 +25044,6 @@ var igv = (function (igv) {
         });
 
         return {min: min, max: max};
-
     }
 
     function signsDiffer(a, b) {
@@ -26339,7 +26513,7 @@ var igv = (function (igv) {
             var alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
             chrAliasTable[alias] = name;
             if (name === "chrM") chrAliasTable["MT"] = "chrM";
-            if (name === "MT") chrAliasTable["chrmM"] = "MT";
+            if (name === "MT") chrAliasTable["chrM"] = "MT";
         });
 
         // Custom mappings
@@ -26628,6 +26802,41 @@ var igv = (function (igv) {
             bpLength: l
         };
 
+    }
+
+    // Static definition of known genome identifiers
+    igv.Genome.KnownGenomes = {
+        "hg18": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg18/hg18.fasta",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg18/cytoBand.txt.gz"
+        },
+        "GRCh38": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/cytoBandIdeo.txt"
+        },
+        "hg38": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/cytoBandIdeo.txt"
+        },
+        "hg19": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/cytoBand.txt"
+        },
+        "GRCh37": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/cytoBand.txt"
+        },
+
+        "mm10": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa",
+            indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa.fai",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/mm10/cytoBandIdeo.txt.gz"
+        },
+        "GRCm38": {
+            fastaURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa",
+            indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa.fai",
+            cytobandURL: "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/mm10/cytoBandIdeo.txt.gz"
+        }
     }
 
     return igv;
@@ -29741,6 +29950,8 @@ var igv = (function (igv) {
             igv.removeBrowser();
         }
 
+        if(undefined === config) config = {};
+
         setDefaults(config);
 
 
@@ -29796,16 +30007,27 @@ var igv = (function (igv) {
         if (config.apiKey) igv.setApiKey(config.apiKey);
         if (config.oauthToken) igv.setOauthToken(config.oauthToken);
 
-        // Deal with legacy genome definition options
-        setReferenceConfiguration(config);
-
 
         // Potentially load a session file
         var width;
-        loadSessionFile(config)
+        loadSessionFile()
 
-            .then(function (ignore) {
+            .then(function (session) {
+
+                if (session) {
+                    config = Object.assign(config, session);
+                }
+
+                // Deal with legacy genome definition options
+                setReferenceConfiguration(config);
+
+                return config;
+            })
+
+            .then(function (config) {
+
                 return igv.loadGenome(config.reference);
+
             })
 
             .then(function (genome) {
@@ -29818,7 +30040,7 @@ var igv = (function (igv) {
 
                 width = igv.browser.viewportContainerWidth();
 
-                return igv.browser.getGenomicStateList(lociWithConfiguration(config), width)
+                return igv.browser.getGenomicStateList(getInitialLocus(config), width)
             })
 
             .then(function (genomicStateList) {
@@ -29870,7 +30092,7 @@ var igv = (function (igv) {
                     igv.browser.windowSizePanel.updateWithGenomicState(_.first(igv.browser.genomicStateList));
 
                 } else {
-                    errorString = 'Unrecognized locus ' + configuration.locus;
+                    errorString = 'Unrecognized locus ' + config.locus;
                     igv.presentAlert(errorString);
                 }
 
@@ -29936,33 +30158,10 @@ var igv = (function (igv) {
          */
         function expandGenome(genomeId) {
 
-            var reference = {id: genomeId};
+            var reference = igv.Genome.KnownGenomes[genomeId];
 
-            switch (genomeId) {
+            if (!reference)igv.presentAlert("Uknown genome id: " + genomeId);
 
-                case "hg18":
-                    reference.fastaURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg18/hg18.fasta";
-                    reference.cytobandURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg18/cytoBand.txt.gz";
-                    break;
-                case "GRCh38":
-                case "hg38":
-                    reference.fastaURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa";
-                    reference.cytobandURL = "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg38/cytoBandIdeo.txt";
-                    break;
-                case "hg19":
-                case "GRCh37":
-                    reference.fastaURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta";
-                    reference.cytobandURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/cytoBand.txt";
-                    break;
-                case "mm10":
-                case "GRCm38":
-                    reference.fastaURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa";
-                    reference.indexURL = "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/mm10/mm10.fa.fai";
-                    reference.cytobandURL = "https://s3.amazonaws.com/igv.broadinstitute.org/annotations/mm10/cytoBandIdeo.txt.gz";
-                    break;
-                default:
-                    igv.presentAlert("Uknown genome id: " + genomeId);
-            }
             return reference;
         }
 
@@ -30020,37 +30219,31 @@ var igv = (function (igv) {
 
             // search container
             $searchContainer = $('<div class="igv-search-container">');
+            $navigation.append($searchContainer);
 
             browser.$searchInput = $('<input type="text" placeholder="Locus Search">');
+            $searchContainer.append(browser.$searchInput);
 
             browser.$searchInput.change(function (e) {
-                var value;
-
-                value = $(e.target).val();
-                browser.parseSearchInput(value);
+                browser.parseSearchInput($(this).val());
             });
 
             $faSearch = $('<i class="fa fa-search">');
+            $searchContainer.append($faSearch);
 
             $faSearch.click(function () {
                 browser.parseSearchInput(browser.$searchInput.val());
             });
 
-            $searchContainer.append(browser.$searchInput);
-            $searchContainer.append($faSearch);
 
             // search results presented in table
             browser.$searchResults = $('<div class="igv-search-results">');
-            browser.$searchResultsTable = $('<table>');
-
-            browser.$searchResults.append(browser.$searchResultsTable.get(0));
-
             $searchContainer.append(browser.$searchResults.get(0));
 
+            browser.$searchResultsTable = $('<table>');
+            browser.$searchResults.append(browser.$searchResultsTable.get(0));
+
             browser.$searchResults.hide();
-
-            $navigation.append($searchContainer);
-
 
             // window size panel
             browser.windowSizePanel = new igv.WindowSizePanel($navigation);
@@ -30202,21 +30395,20 @@ var igv = (function (igv) {
     }
 
 
-    function lociWithConfiguration(configuration) {
+    function getInitialLocus(config) {
 
         var loci = [];
 
-        if (configuration.locus) {
-
-            if (Array.isArray(configuration.locus)) {
-                loci = configuration.locus;
+        if (config.locus) {
+            if (Array.isArray(config.locus)) {
+                loci = config.locus;
 
             } else {
-                loci.push(configuration.locus);
+                loci.push(config.locus);
             }
         }
         else {
-            if(igv.browser.genome.hasOwnProperty("all")) {
+            if (igv.browser.genome.hasOwnProperty("all")) {
                 loci.push("all");
             }
             else {
@@ -30255,7 +30447,7 @@ var igv = (function (igv) {
         return query;
     }
 
-    function loadSessionFile(config) {
+    function loadSessionFile() {
 
 
         var query = extractQuery(window.location.href);
@@ -30264,20 +30456,13 @@ var igv = (function (igv) {
             var igvSession = decodeURIComponent(query["igvSessionXML"]);
 
             return igv.xhr.loadString(igvSession)
-
                 .then(function (string) {
-
-                    var session = new igv.XMLSession(string);
-
-                    config.tracks = session.tracks;    // TODO -- replace or append?
-
-                    return config;
-
+                    return new igv.XMLSession(string);
                 })
 
         }
         else {
-            return Promise.resolve(config);
+            return Promise.resolve(undefined);
         }
 
     }
@@ -30662,6 +30847,120 @@ var igv = (function (igv) {
 
         return heap.content[0];
     }
+
+
+
+    function BinaryHeap() {
+        this.content = [];
+    }
+
+    BinaryHeap.prototype = {
+        push: function (element) {
+            // Add the new element to the end of the array.
+            this.content.push(element);
+            // Allow it to bubble up.
+            this.bubbleUp(this.content.length - 1);
+        },
+
+        pop: function () {
+            // Store the first element so we can return it later.
+            var result = this.content[0];
+            // Get the element at the end of the array.
+            var end = this.content.pop();
+            // If there are any elements left, put the end element at the
+            // start, and let it sink down.
+            if (this.content.length > 0) {
+                this.content[0] = end;
+                this.sinkDown(0);
+            }
+            return result;
+        },
+
+        remove: function (node) {
+            var length = this.content.length;
+            // To remove a value, we must search through the array to find
+            // it.
+            for (var i = 0; i < length; i++) {
+                if (this.content[i] != node) continue;
+                // When it is found, the process seen in 'pop' is repeated
+                // to fill up the hole.
+                var end = this.content.pop();
+                // If the element we popped was the one we needed to remove,
+                // we're done.
+                if (i == length - 1) break;
+                // Otherwise, we replace the removed element with the popped
+                // one, and allow it to float up or sink down as appropriate.
+                this.content[i] = end;
+                this.bubbleUp(i);
+                this.sinkDown(i);
+                break;
+            }
+        },
+
+        size: function () {
+            return this.content.length;
+        },
+
+        bubbleUp: function (n) {
+            // Fetch the element that has to be moved.
+            var element = this.content[n], score = element;
+            // When at 0, an element can not go up any further.
+            while (n > 0) {
+                // Compute the parent element's index, and fetch it.
+                var parentN = Math.floor((n + 1) / 2) - 1,
+                    parent = this.content[parentN];
+                // If the parent has a lesser score, things are in order and we
+                // are done.
+                if (score >= parent)
+                    break;
+
+                // Otherwise, swap the parent with the current element and
+                // continue.
+                this.content[parentN] = element;
+                this.content[n] = parent;
+                n = parentN;
+            }
+        },
+
+        sinkDown: function (n) {
+            // Look up the target element and its score.
+            var length = this.content.length,
+                element = this.content[n],
+                elemScore = element;
+
+            while (true) {
+                // Compute the indices of the child elements.
+                var child2N = (n + 1) * 2, child1N = child2N - 1;
+                // This is used to store the new position of the element,
+                // if any.
+                var swap = null;
+                // If the first child exists (is inside the array)...
+                if (child1N < length) {
+                    // Look it up and compute its score.
+                    var child1 = this.content[child1N],
+                        child1Score = child1;
+                    // If the score is less than our element's, we need to swap.
+                    if (child1Score < elemScore)
+                        swap = child1N;
+                }
+                // Do the same checks for the other child.
+                if (child2N < length) {
+                    var child2 = this.content[child2N],
+                        child2Score = child2;
+                    if (child2Score < (swap == null ? elemScore : child1Score))
+                        swap = child2N;
+                }
+
+                // No need to swap further, we are done.
+                if (swap == null) break;
+
+                // Otherwise, swap and continue.
+                this.content[n] = this.content[swap];
+                this.content[swap] = element;
+                n = swap;
+            }
+        }
+    };
 
     return igv;
 
@@ -31464,15 +31763,17 @@ var igv = (function (igv) {
 
         return new Promise(function (fullfill, reject) {
 
-            igv.xhr.load(url, options).then(
-                function (result) {
+            igv.xhr
+                .load(url, options)
+                .then(function (result) {
                     if (result) {
                         fullfill(JSON.parse(result));
                     }
                     else {
                         fullfill(result);
                     }
-                }).catch(reject);
+                })
+                .catch(reject);
         })
     };
 
@@ -33886,18 +34187,19 @@ var igv = (function (igv) {
 
     igv.XMLSession = function (xmlString) {
 
-        var self = this,
-            parser = new DOMParser(),
-            xmlDoc = parser.parseFromString(xmlString, "text/xml"),
-            elements = xmlDoc.getElementsByTagName("Resource");
+        var self = this, parser, xmlDoc, elements;
+
+        parser = new DOMParser();
+        xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+        processRootNode();
+
+        elements = xmlDoc.getElementsByTagName("Resource");
 
         self.tracks = [];
 
         var resourceMap = {};
-
-
         Array.from(elements).forEach(function (res, idx) {
-
             var res = {
                 url: res.getAttribute("path"),
                 order: idx
@@ -33906,47 +34208,120 @@ var igv = (function (igv) {
             resourceMap[res.url] = res;
         });
 
+        // Check for optional Track section
         elements = xmlDoc.getElementsByTagName("Track");
-        Array.from(elements).forEach(function (track) {
+        if (elements && elements.length > 0) {
 
-            var id, res, color, height, autoScale, altColor, dataRange, dataRangeCltn;
+            // Track order is defined by elements, reset
+            self.tracks = [];
 
-            id = track.getAttribute("id"),
-                res = resourceMap[id];
+            Array.from(elements).forEach(function (track) {
 
-            if (res) {
+                var id, res, claszz, subtracks, mergedTrack;
 
-                res.name = track.getAttribute("name");
-                color = track.getAttribute("color");
-                if(color) {
-                    res.color = "rgb(" + color + ")";
+                subtracks = track.getElementsByTagName("Track");
+
+                if (subtracks && subtracks.length > 0) {
+
+                    mergedTrack = {
+                        type: 'merged',
+                        tracks: []
+                    };
+                    extractTrackAttributes(track, mergedTrack);
+
+                    self.tracks.push(mergedTrack);
+
+                    Array.from(subtracks).forEach(function (t) {
+
+                        t.processed = true;
+
+                        var id, res;
+
+                        id = t.getAttribute("id");
+                        res = resourceMap[id];
+
+                        if (res) {
+                            mergedTrack.tracks.push(res);
+                            extractTrackAttributes(t, res);
+                            res.autoscale = false;
+                            mergedTrack.height = res.height;      //
+                        }
+                    })
                 }
-                altColor = track.getAttribute("altColor");
-                if(color) {
-                    res.altColor = "rgb(" + altColor + ")";
-                }
-                height = track.getAttribute("height");
-                if(height) {
-                    res.height = parseInt(height);
-                }
-                autoScale = track.getAttribute("autoScale");
-                if(autoScale) {
-                    res.autoScale = (autoScale === "true");
-                }
-
-                dataRangeCltn = track.getElementsByTagName("DataRange");
-                if(dataRangeCltn.length > 0) {
-                    dataRange = dataRangeCltn.item(0);
-                    if(!autoScale) {
-                        res.min = parseInt(dataRange.getAttribute("minimum"));
-                        res.max = parseInt(dataRange.getAttribute("maximum"));
+                else if (!track.processed) {
+                    id = track.getAttribute("id");
+                    res = resourceMap[id];
+                    if (res) {
+                        self.tracks.push(res);
+                        extractTrackAttributes(track, res);
                     }
-                    res.logScale = dataRange.getAttribute("type") === "LOG";
+
                 }
+            })
+        }
 
+        function extractTrackAttributes(track, config) {
 
+            var color, height, autoScale, altColor, dataRange, dataRangeCltn, windowFunction;
+
+            config.name = track.getAttribute("name");
+            color = track.getAttribute("color");
+            if (color) {
+                config.color = "rgb(" + color + ")";
             }
-        })
+            altColor = track.getAttribute("altColor");
+            if (color) {
+                config.altColor = "rgb(" + altColor + ")";
+            }
+            height = track.getAttribute("height");
+            if (height) {
+                config.height = parseInt(height);
+            }
+            autoScale = track.getAttribute("autoScale");
+            if (autoScale) {
+                config.autoScale = (autoScale === "true");
+            }
+            windowFunction = track.getAttribute("windowFunction");
+            if (windowFunction) {
+                config.windowFunction = windowFunction;
+            }
+
+            dataRangeCltn = track.getElementsByTagName("DataRange");
+            if (dataRangeCltn.length > 0) {
+                dataRange = dataRangeCltn.item(0);
+                if (!autoScale) {
+                    config.min = parseInt(dataRange.getAttribute("minimum"));
+                    config.max = parseInt(dataRange.getAttribute("maximum"));
+                }
+                config.logScale = dataRange.getAttribute("type") === "LOG";
+            }
+
+        }
+
+        function processRootNode() {
+            var elements, session, genome, locus;
+
+            elements = xmlDoc.getElementsByTagName("Session");
+            if (!elements || elements.length === 0) {
+                //TODO throw error
+            }
+            session = elements.item(0);
+            genome = session.getAttribute("genome");
+            locus = session.getAttribute("locus");
+
+            if (igv.Genome.KnownGenomes.hasOwnProperty(genome)) {
+                self.reference = {
+                    id: genome
+                }
+            } else {
+                self.reference = {
+                    fastaURL: genome
+                }
+            }
+            if (locus) {
+                self.locus = locus;
+            }
+        }
 
 
     };
@@ -35377,7 +35752,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.createTrackWithConfiguration = function (conf) {
+    igv.createTrack = function (conf) {
 
         var type = (undefined === conf.type) ? 'unknown_type' : conf.type.toLowerCase();
 
@@ -35422,7 +35797,10 @@ var igv = (function (igv) {
             case "aneu":
                 return new igv.AneuTrack(conf);
                 break;
-            
+
+            case "merged":
+                return new igv.MergedTrack(conf);
+
             default:
                 return undefined;
         }
@@ -35585,7 +35963,7 @@ var igv = (function (igv) {
 
         track.removable = config.removable === undefined ? true : config.removable;      // Defaults to true
 
-        track.height = config.height || ('wig' === config.type ? 50 : 100);
+        track.height = config.height || 100;
 
         if (config.autoHeight === undefined)  config.autoHeight = config.autoheight; // Some case confusion in the initial releasae
 
@@ -40367,6 +40745,8 @@ var igv = (function (igv) {
 
     igv.Viewport.prototype.update = function () {
 
+        //console.trace();
+
         this.tile = null;
 
         this.repaint();
@@ -40393,9 +40773,11 @@ var igv = (function (igv) {
             return;
         }
 
+        // TODO -- show whole genome zoom in notice here
         if (this.$zoomInNotice && this.trackView.track.visibilityWindow !== undefined && this.trackView.track.visibilityWindow > 0) {
             if ((referenceFrame.bpPerPixel * this.$viewport.width() > this.trackView.track.visibilityWindow) ||
                 (referenceFrame.chrName.toLowerCase() === "all" && !this.trackView.track.supportsWholeGenome)) {
+
                 this.tile = null;
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -40520,7 +40902,7 @@ var igv = (function (igv) {
                     self.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, buffer);
                     self.paintImageWithReferenceFrame(referenceFrame);
                 })
-                
+
                 .catch(function (error) {
 
                     self.stopSpinner();
