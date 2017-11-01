@@ -493,7 +493,6 @@ var juicebox = (function (site) {
     }
 
     function discardEncodeTable() {
-        encodeTable.teardown();
         encodeTable = undefined;
     }
 
