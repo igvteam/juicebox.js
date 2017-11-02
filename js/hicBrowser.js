@@ -488,7 +488,7 @@ var hic = (function (hic) {
 
             var newTrack;
 
-            newTrack = igv.createTrackWithConfiguration(config);
+            newTrack = igv.createTrack(config);
 
             if (undefined === newTrack) {
                 reject(new Error('Could not create track'));
