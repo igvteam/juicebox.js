@@ -33,7 +33,6 @@ $hic-menu-margin: 8px;
 $hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
-
 $hic-annotation-modal-row-height: 40px;
 
 //
@@ -198,55 +197,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-// remove modal backdrop scrim
-.modal-backdrop {
-  background-color: transparent;
-}
-
-.hidden-text {
-  color: transparent;
-}
-
-.site-widget {
-  float: left;
-  margin-left: 4px;
-  margin-right: 32px;
-}
-
-.juicebox-app-clone-container {
-  display: flex;
-  flex-flow: row;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-}
-
-.juicebox-app-clone-button {
-
-  cursor: pointer;
-
-  color: $default-dark-color;
-
-  i.fa-plus-circle {
-    float: left;
-  }
-
-  margin-top: 10px;
-}
-
-.juicebox-app-clone-button:hover,
-.juicebox-app-clone-button:focus,
-.juicebox-app-clone-button:active {
-  color: $default-hover-color;
-}
-
-.juicebox-widget-container {
-  //height: 40px;
-  padding-top: 4px;
-  padding-bottom: 8px;
-  color: white;
-}
-
-// root
 .hic-root {
   position: relative;
 
@@ -263,263 +213,140 @@ $default-font-family: 'Open Sans', sans-serif;
   border-width: 2px;
   border-color: #5f5f5f;
 
-  .hic-menu {
-    position: absolute;
+}
 
-    bottom: 0;
-    left: 0;
-    width: 200px;
-    height: 100%;
+.hic-menu {
+  position: absolute;
 
-    z-index: 4096;
+  bottom: 0;
+  left: 0;
+  width: 200px;
+  height: 100%;
 
-    background-color: $scrollbar-color;
+  z-index: 4096;
 
-    border-right-style: solid;
-    border-right-width: thin;
-    border-right-color: $default-dark-color;
+  background-color: $scrollbar-color;
 
-    display: flex;
-    flex-flow: column;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: center;
+  border-right-style: solid;
+  border-right-width: thin;
+  border-right-color: $default-dark-color;
 
-    // container: chromosome-label | chromosome-selector-container
-    .hic-chromosome-selector-widget-container {
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
 
-      @include menu-item;
+  // container: chromosome-label | chromosome-selector-container
+  .hic-chromosome-selector-widget-container {
 
-      // label: 'Chromosome'
-      div {
-        padding-top: 2px;
-        padding-bottom: 4px;
-      }
+    @include menu-item;
 
-      // container: selector-container
-      div {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        align-items: flex-start;
-
-        select {
-          display: block;
-          cursor: pointer;
-          width: 64px;
-          height: $nav-bar-widget-height;
-
-          margin-right: 8px;
-          direction: rtl;
-        }
-
-        div {
-          width: 24px;
-          height: 24px;
-          background-image: url('img/circular-arrows-24-grey.png');
-          background-repeat: no-repeat;
-        }
-
-        div:hover,
-        div:focus,
-        div:active {
-          cursor: pointer;
-          background-image: url('img/circular-arrows-24-blue.png');
-        }
-
-      }
-
+    // label: 'Chromosome'
+    div {
+      padding-top: 2px;
+      padding-bottom: 4px;
     }
 
-    // colorscale
-    .hic-colorscale-widget-container {
-
+    // container: selector-container
+    div {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
-      justify-content: space-around;
-      align-items: center;
-
-      width: 95%;
-
-      margin-top: 2 * $hic-menu-item-padding;
-      margin-bottom: $hic-menu-item-padding;
-
-      @include navbar-color-scale-input;
-
-      i.fa {
-        display: block;
-        margin-left: 4px;
-        margin-right: 4px;
-        color: $default-dark-color;
-      }
-
-      i.fa:hover,
-      i.fa:focus,
-      i.fa:active {
-        cursor: pointer;
-        color: $default-hover-color;
-      }
-
-    }
-
-    // normalization
-    .hic-normalization-selector-container {
-
-      @include menu-item;
-
-      @include navbar-select;
+      justify-content: space-between;
+      align-items: flex-start;
 
       select {
-        width: 95%;
-      }
-
-    }
-
-    // resolution
-    .hic-resolution-selector-container {
-
-      @include menu-item;
-
-      div#hic-resolution-label-container {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        align-items: flex-start;
-
-        cursor: pointer;
-
-        i.fa#hic-resolution-lock {
-          display: block;
-          font-size: 12px;
-          padding-top: 4px;
-          padding-left: 5px;
-        }
-
-        i.fa:hover,
-        i.fa:focus,
-        i.fa:active {
-          cursor: pointer;
-          color: $default-hover-color;
-        }
-
-      }
-
-      @include navbar-select;
-
-      select {
-        width: 95%;
-      }
-
-    }
-
-    // annotations
-    .hic-annotation-presentation-button-container {
-
-      @include menu-item;
-
-      button {
         display: block;
-
-        width: 90%;
-
-        padding: 8px;
-
-        box-shadow: none;
-
-        border-radius: 0;
-
-        border-style: solid;
-        border-width: thin;
-        border-color: $default-medium-color;
-
-        background-color: transparent;
-
-      }
-
-      button:hover,
-      button:active {
         cursor: pointer;
-        background-color: #dfdfdf;
+        width: 64px;
+        height: $nav-bar-widget-height;
+
+        margin-right: 8px;
+        direction: rtl;
       }
 
-      button:focus {
-        outline: none;
+      div {
+        width: 24px;
+        height: 24px;
+        background-image: url('img/circular-arrows-24-grey.png');
+        background-repeat: no-repeat;
       }
 
+      div:hover,
+      div:focus,
+      div:active {
+        cursor: pointer;
+        background-image: url('img/circular-arrows-24-blue.png');
+      }
 
     }
 
   }
 
-  .hic-annotation-panel-container {
+  // colorscale
+  .hic-colorscale-widget-container {
 
     display: flex;
-    flex-flow: column;
+    flex-flow: row;
     flex-wrap: nowrap;
-    align-items: flex-start;
+    justify-content: space-around;
+    align-items: center;
 
-    position: absolute;
-    top: 25%;
-    left: 15%;
+    width: 95%;
 
-    width: 700px;
+    margin-top: 2 * $hic-menu-item-padding;
+    margin-bottom: $hic-menu-item-padding;
 
-    border-style: solid;
-    border-width: thin;
-    border-color: $default-dark-color;
+    @include navbar-color-scale-input;
 
-    background-color: white;
+    i.fa {
+      display: block;
+      margin-left: 4px;
+      margin-right: 4px;
+      color: $default-dark-color;
+    }
 
-    z-index: 5000;
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: $default-hover-color;
+    }
 
-    color: #0f0f0f;
-    font-family: $default-font-family;
-    font-size: 12px;
-    font-weight: 600;
+  }
 
-    .hic-annotation-panel-header {
+  // normalization
+  .hic-normalization-selector-container {
+
+    @include menu-item;
+
+    @include navbar-select;
+
+    select {
+      width: 95%;
+    }
+
+  }
+
+  // resolution
+  .hic-resolution-selector-container {
+
+    @include menu-item;
+
+    div#hic-resolution-label-container {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
-      justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
 
-      width: 100%;
-      height: $hic-color-swatch-size;
+      cursor: pointer;
 
-      border-bottom-style: solid;
-      border-bottom-width: thin;
-      border-bottom-color: #dddddd;
-
-      background-color: #dddddd;
-
-      div:first-child {
-
+      i.fa#hic-resolution-lock {
         display: block;
-        margin-top: 2px;
-        margin-left: 8px;
-        margin-right: 4px;
-        text-align: left;
-        text-overflow: ellipsis;
-
-
-
-        //display: flex;
-        //flex-flow: row;
-        //flex-wrap: nowrap;
-        //justify-content: center;
-        //align-items: center;
-
-        width: 200px;
-        height: 100%;
-      }
-
-      i.fa {
-        display: block;
-        margin-right: 4px;
-        color: $default-dark-color;
+        font-size: 12px;
+        padding-top: 4px;
+        padding-left: 5px;
       }
 
       i.fa:hover,
@@ -528,81 +355,51 @@ $default-font-family: 'Open Sans', sans-serif;
         cursor: pointer;
         color: $default-hover-color;
       }
-    }
-
-    .hic-annotation-row-container {
-
-      display: flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      align-items: center;
-
-      width: 100%;
 
     }
 
-    .hic-annotation-modal-row {
+    @include navbar-select;
 
-      display: flex;
-      flex-flow: row;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      align-items: center;
+    select {
+      width: 95%;
+    }
 
-      width: 100%;
-      height: 40px;
+  }
 
-      background-color: white;
+  // annotations
+  .hic-annotation-presentation-button-container {
 
-      cursor: default;
+    @include menu-item;
 
-      div:first-child {
-        display: block;
-        margin-left: 8px;
-        margin-right: 4px;
-        text-align: left;
-        text-overflow: ellipsis;
-        width: 384px;
-      }
+    button {
+      display: block;
 
-      i.fa {
-        display: block;
-        margin-left: 32px;
-        margin-right: 32px;
-        color: $default-dark-color;
-      }
+      width: 90%;
 
-      .up-down-arrow-container {
-        display: flex;
-        flex-flow: row;
-        flex-wrap: nowrap;
-        justify-content: flex-end;
-        align-items: center;
+      padding: 8px;
 
-        i.fa:first-child {
-          display: block;
-          margin-left: 32px;
-          margin-right: 8px;
-          color: $default-dark-color;
-        }
+      box-shadow: none;
 
-        i.fa:last-child {
-          display: block;
-          margin-left: 8px;
-          margin-right: 32px;
-          color: $default-dark-color;
-        }
+      border-radius: 0;
 
-      }
+      border-style: solid;
+      border-width: thin;
+      border-color: $default-medium-color;
+
+      background-color: transparent;
 
     }
 
-    .hic-annotation-modal-row:hover,
-    .hic-annotation-modal-row:focus,
-    .hic-annotation-modal-row:active {
-      background-color: #f7f7f7;
+    button:hover,
+    button:active {
+      cursor: pointer;
+      background-color: #dfdfdf;
     }
+
+    button:focus {
+      outline: none;
+    }
+
 
   }
 
@@ -647,11 +444,160 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.hic-root-selected {
-  border-color: #df0000;
+.hic-annotation-panel-container {
+
+  display: flex;
+  flex-flow: column;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+
+  position: absolute;
+  top: 25%;
+  left: 15%;
+
+  width: 700px;
+
+  border-style: solid;
+  border-width: thin;
+  border-color: $default-dark-color;
+
+  background-color: white;
+
+  z-index: 5000;
+
+  color: #0f0f0f;
+  font-family: $default-font-family;
+  font-size: 12px;
+  font-weight: 600;
+
+  .hic-annotation-panel-header {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+    height: $hic-color-swatch-size;
+
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: #dddddd;
+
+    background-color: #dddddd;
+
+    div:first-child {
+
+      display: block;
+      margin-top: 2px;
+      margin-left: 8px;
+      margin-right: 4px;
+      text-align: left;
+      text-overflow: ellipsis;
+
+
+
+      //display: flex;
+      //flex-flow: row;
+      //flex-wrap: nowrap;
+      //justify-content: center;
+      //align-items: center;
+
+      width: 200px;
+      height: 100%;
+    }
+
+    i.fa {
+      display: block;
+      margin-right: 4px;
+      color: $default-dark-color;
+    }
+
+    i.fa:hover,
+    i.fa:focus,
+    i.fa:active {
+      cursor: pointer;
+      color: $default-hover-color;
+    }
+  }
+
+  .hic-annotation-row-container {
+
+    display: flex;
+    flex-flow: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    width: 100%;
+
+  }
+
+  .hic-annotation-modal-row {
+
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+
+    width: 100%;
+    height: 40px;
+
+    background-color: white;
+
+    cursor: default;
+
+    div:first-child {
+      display: block;
+      margin-left: 8px;
+      margin-right: 4px;
+      text-align: left;
+      text-overflow: ellipsis;
+      width: 384px;
+    }
+
+    i.fa {
+      display: block;
+      margin-left: 32px;
+      margin-right: 32px;
+      color: $default-dark-color;
+    }
+
+    .up-down-arrow-container {
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
+
+      i.fa:first-child {
+        display: block;
+        margin-left: 32px;
+        margin-right: 8px;
+        color: $default-dark-color;
+      }
+
+      i.fa:last-child {
+        display: block;
+        margin-left: 8px;
+        margin-right: 32px;
+        color: $default-dark-color;
+      }
+
+    }
+
+  }
+
+  .hic-annotation-modal-row:hover,
+  .hic-annotation-modal-row:focus,
+  .hic-annotation-modal-row:active {
+    background-color: #f7f7f7;
+  }
+
 }
 
-// color swatch selector
+// menu - annotation panel - color picker
 .hic-color-swatch-container {
 
   display: flex;
@@ -862,7 +808,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-// normalization
+// navbar - normalization
 .hic-normalization-selector-container {
 
   display: flex;
@@ -886,7 +832,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-// resolution
+// navbar - resolution
 .hic-resolution-selector-container {
 
   display: flex;
@@ -1449,10 +1395,55 @@ div[id$="content-container"] {
   background-color: #3a8ab4;
 }
 
+.juicebox-app-clone-container {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.juicebox-app-clone-button {
+
+  cursor: pointer;
+
+  color: $default-dark-color;
+
+  i.fa-plus-circle {
+    float: left;
+  }
+
+  margin-top: 10px;
+}
+
+.juicebox-app-clone-button:hover,
+.juicebox-app-clone-button:focus,
+.juicebox-app-clone-button:active {
+  color: $default-hover-color;
+}
+
+.hic-root-selected {
+  border-color: #df0000;
+}
+
 .unselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+// remove modal backdrop scrim
+.modal-backdrop {
+  background-color: transparent;
+}
+
+.hidden-text {
+  color: transparent;
+}
+
+.site-widget {
+  float: left;
+  margin-left: 4px;
+  margin-right: 32px;
 }
