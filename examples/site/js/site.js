@@ -35,8 +35,7 @@ var juicebox = (function (site) {
 
     site.init = function ($container, config) {
 
-        var apiKey,
-            genomeChangeListener,
+        var genomeChangeListener,
             lastGenomeId,
             $appContainer;
 
