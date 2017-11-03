@@ -108,11 +108,16 @@ var hic = (function (hic) {
     function colorSwatchSelectorConstructor(browser) {
 
         var self = this,
-            $scroll_container;
+            config;
 
-        // swatch scroll container
-        // width = (29 * swatch-width) + border-width + border-width
-        this.$colorpicker = igv.genericContainer(browser.$root, { width: ((29 * 24) + 1 + 1) }, function () {
+        config =
+            {
+                // width = (29 * swatch-width) + border-width + border-width
+                width: ((29 * 24) + 1 + 1),
+                classes: [ 'igv-position-absolute' ]
+            };
+
+        this.$colorpicker = igv.genericContainer(browser.$root, config, function () {
             self.$colorpicker.toggle();
         });
 
