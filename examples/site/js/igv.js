@@ -29428,46 +29428,28 @@ var igv = (function (igv) {
  */
 var igv = (function (igv) {
 
-    igv.createColorSwatchSelector = function ($parent, colorHandler, closeHandler) {
+    igv.createColorSwatchSelector = function ($genericContainer, colorHandler) {
 
-        var $div,
-            $fa,
-            $close_container,
-            rgbStrings,
+        var rgbs,
             s;
 
         s = 1;
-        rgbStrings = [];
+        rgbs = [];
         for(var v = 1; v >= 0.5; v -= .1) {
-            for (var rgb, h = 0; h < 1; h += 1/28) {
-                rgb = "rgb(" + hsvToRgb(h, s, v).join(",") + ")";
-                rgbStrings.push(rgb);
+            for (var r, h = 0; h < 1; h += 1/28) {
+                r = "rgb(" + hsvToRgb(h, s, v).join(",") + ")";
+                rgbs.push(r);
             }
         }
 
-        // close button container
-        $close_container = $('<div>');
-        $parent.append($close_container);
-
-        // close button
-        $div = $('<div>', { class: 'igv-colorpicker-menu-close-button' });
-        $close_container.append($div);
-
-        $fa = $("<i>", {class: 'fa fa-times'});
-        $div.append($fa);
-
-        $fa.on('click', function (e) {
-            closeHandler();
-        });
-
-        rgbStrings.forEach(function (rgbString) {
+        rgbs.forEach(function (rgb) {
             var $swatch;
 
-            $swatch = igv.colorSwatch(rgbString);
-            $parent.append($swatch);
+            $swatch = igv.colorSwatch(rgb);
+            $genericContainer.append($swatch);
 
             $swatch.click(function () {
-                colorHandler(rgbString);
+                colorHandler(rgb);
             });
 
         });
@@ -30988,6 +30970,40 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
     var self = this;
+
+    igv.genericContainer = function ($parent, config, closeHandler) {
+
+        var $generic_container,
+            $header,
+            $fa;
+
+        $generic_container = $('<div>', { class:'igv-generic-container' });
+        $parent.append($generic_container);
+
+        // width
+        if (config && config.width) {
+            $generic_container.width(config.width);
+        }
+
+        // height
+        if (config && config.height) {
+            $generic_container.height(config.height);
+        }
+
+        // header
+        $header = $('<div>');
+        $generic_container.append($header);
+
+        // close button
+        $fa = $("<i>", { class:'fa fa-times' });
+        $header.append($fa);
+
+        $fa.on('click', function (e) {
+            closeHandler();
+        });
+
+        return $generic_container;
+    };
 
     igv.makeDraggable = function ($target, $handle) {
         $handle.on('mousedown', function (event) {
@@ -37037,13 +37053,13 @@ var igv = (function (igv) {
 
         if (igv.doProvideColoSwatchWidget(this.track)) {
 
-            this.$colorpicker_container = $('<div>', { class:'igv-colorpicker-container' });
-            $track.append(this.$colorpicker_container);
-
-            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgbString) {
-                self.setColor(rgbString);
-            }, function () {
+            // width = (29 * swatch-width) + border-width + border-width
+            this.$colorpicker_container = igv.genericContainer($track, { width: ((29 * 24) + 1 + 1) }, function () {
                 self.$colorpicker_container.toggle();
+            });
+
+            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgb) {
+                self.setColor(rgb);
             });
 
             igv.makeDraggable(this.$colorpicker_container, this.$colorpicker_container);

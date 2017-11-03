@@ -42,7 +42,7 @@ var hic = (function (hic) {
         this.$button = igv.colorSwatch('red');
         this.$container.append(this.$button);
         this.$button.on('click', function (e) {
-            self.browser.$root.find('.igv-colorpicker-container').toggle();
+            self.$colorpicker.toggle();
         });
 
         // input
@@ -87,7 +87,7 @@ var hic = (function (hic) {
         });
         this.$container.append($fa);
 
-        createColorSwatchSelector.call(this, browser);
+        colorSwatchSelectorConstructor.call(this, browser);
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
@@ -105,16 +105,18 @@ var hic = (function (hic) {
 
     };
 
-    function createColorSwatchSelector(browser) {
+    function colorSwatchSelectorConstructor(browser) {
 
         var self = this,
             $scroll_container;
 
         // swatch scroll container
-        $scroll_container = $('<div>', { class:'igv-colorpicker-container' });
-        browser.$root.append($scroll_container);
+        // width = (29 * swatch-width) + border-width + border-width
+        this.$colorpicker = igv.genericContainer(browser.$root, { width: ((29 * 24) + 1 + 1) }, function () {
+            self.$colorpicker.toggle();
+        });
 
-        igv.createColorSwatchSelector($scroll_container, function (colorName) {
+        igv.createColorSwatchSelector(this.$colorpicker, function (colorName) {
             var rgb;
 
             self.$button.find('.fa-square').css({color: colorName});
@@ -141,13 +143,11 @@ var hic = (function (hic) {
             browser.contactMatrixView.clearCaches();
             browser.contactMatrixView.colorScaleCache = {};
             browser.contactMatrixView.update();
-        }, function () {
-            $scroll_container.toggle();
         });
 
-        $scroll_container.draggable();
+        // this.$colorpicker.draggable();
 
-        $scroll_container.hide();
+        this.$colorpicker.hide();
 
     }
 
