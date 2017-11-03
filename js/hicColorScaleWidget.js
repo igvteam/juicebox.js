@@ -150,7 +150,7 @@ var hic = (function (hic) {
             browser.contactMatrixView.update();
         });
 
-        // igv.makeDraggable(this.$colorpicker, this.$colorpicker);
+        // this.$colorpicker.draggable();
         this.$colorpicker.hide();
 
     }
