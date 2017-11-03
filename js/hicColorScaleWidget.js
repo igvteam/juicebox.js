@@ -145,8 +145,7 @@ var hic = (function (hic) {
             browser.contactMatrixView.update();
         });
 
-        // this.$colorpicker.draggable();
-
+        // igv.makeDraggable(this.$colorpicker, this.$colorpicker);
         this.$colorpicker.hide();
 
     }

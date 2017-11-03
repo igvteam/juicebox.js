@@ -115,6 +115,9 @@ var hic = (function (hic) {
 
     function annotationPanelRow($container, track) {
         var self = this,
+            $colorpickerContainer,
+            $colorpickerButton,
+            $colorpicker,
             $row_container,
             $row,
             $hideShowTrack,
@@ -186,21 +189,25 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $e = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
-        $row.append($e);
-        $e.on('click', function (e) {
+        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $row.append($colorpickerButton);
+
+        // color swatch selector
+        $colorpickerContainer = colorSwatchContainer($row_container, { width: ((29 * 24) + 1 + 1) }, function () {
             $row.next('.hic-color-swatch-container').toggle();
         });
 
-        // color swatch selector
-        $e = $('<div>', { class: 'hic-color-swatch-container' });
-        $row_container.append($e);
+        $colorpickerButton.on('click', function (e) {
+            $row.next('.hic-color-swatch-container').toggle();
+        });
 
-        igv.createColorSwatchSelector($e, function (color) {
+        $colorpickerContainer.hide();
+
+        igv.createColorSwatchSelector($colorpickerContainer, function (color) {
             var $swatch;
 
             $swatch = $row.find('.fa-square');
-            $swatch.css({color: color});
+            $swatch.css({ 'color': color });
 
             if (isTrack2D) {
                 track.color = color;
@@ -209,11 +216,7 @@ var hic = (function (hic) {
                 trackRenderer.setColor(color);
             }
 
-        }, function () {
-            $row.next('.hic-color-swatch-container').toggle();
         });
-        $e.hide();
-
 
 
         // track up/down
@@ -295,6 +298,40 @@ var hic = (function (hic) {
 
             self.updateBody(trackList);
         });
+    }
+
+    function colorSwatchContainer($parent, config, closeHandler) {
+
+        var $container,
+            $header,
+            $fa;
+
+        $container = $('<div>', { class:'hic-color-swatch-container' });
+        $parent.append($container);
+
+        // width
+        if (config && config.width) {
+            $container.width(config.width);
+        }
+
+        // height
+        if (config && config.height) {
+            $container.height(config.height);
+        }
+
+        // header
+        $header = $('<div>');
+        $container.append($header);
+
+        // close button
+        $fa = $("<i>", { class:'fa fa-times' });
+        $header.append($fa);
+
+        $fa.on('click', function (e) {
+            closeHandler();
+        });
+
+        return $container;
     }
 
     return hic;
