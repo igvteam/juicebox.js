@@ -193,7 +193,7 @@ var hic = (function (hic) {
         $row.append($colorpickerButton);
 
         // color swatch selector
-        $colorpickerContainer = colorSwatchContainer($row_container, { width: ((29 * 24) + 1 + 1) }, function () {
+        $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
             $row.next('.hic-color-swatch-container').toggle();
         });
 
@@ -300,7 +300,7 @@ var hic = (function (hic) {
         });
     }
 
-    function colorSwatchContainer($parent, config, closeHandler) {
+    function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
 
         var $container,
             $header,

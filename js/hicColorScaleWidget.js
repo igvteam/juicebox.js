@@ -41,9 +41,6 @@ var hic = (function (hic) {
         // color chip
         this.$button = igv.colorSwatch('red');
         this.$container.append(this.$button);
-        this.$button.on('click', function (e) {
-            self.$colorpicker.toggle();
-        });
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
@@ -87,7 +84,14 @@ var hic = (function (hic) {
         });
         this.$container.append($fa);
 
-        colorSwatchSelectorConstructor.call(this, browser);
+        this.$colorpicker = createColorpicker.call(this, browser);
+
+        this.$colorpicker.draggable();
+        this.$colorpicker.hide();
+
+        this.$button.on('click', function (e) {
+            self.$colorpicker.toggle();
+        });
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
@@ -105,9 +109,10 @@ var hic = (function (hic) {
 
     };
 
-    function colorSwatchSelectorConstructor(browser) {
+    function createColorpicker(browser) {
 
         var self = this,
+            $colorpicker,
             config;
 
         config =
@@ -117,11 +122,11 @@ var hic = (function (hic) {
                 classes: [ 'igv-position-absolute' ]
             };
 
-        this.$colorpicker = igv.genericContainer(browser.$root, config, function () {
-            self.$colorpicker.toggle();
+        $colorpicker = createPlainOleContainer(browser.$root, config, function () {
+            $colorpicker.toggle();
         });
 
-        igv.createColorSwatchSelector(this.$colorpicker, function (colorName) {
+        igv.createColorSwatchSelector($colorpicker, function (colorName) {
             var rgb;
 
             self.$button.find('.fa-square').css({color: colorName});
@@ -150,10 +155,49 @@ var hic = (function (hic) {
             browser.contactMatrixView.update();
         });
 
-        // this.$colorpicker.draggable();
-        this.$colorpicker.hide();
+        return $colorpicker;
 
     }
+
+    function createPlainOleContainer($parent, config, closeHandler) {
+
+        var $plainOleContainer,
+            $header,
+            $fa;
+
+        $plainOleContainer = $('<div>', { class:'igv-generic-container' });
+        $parent.append($plainOleContainer);
+
+        // width
+        if (config && config.width) {
+            $plainOleContainer.width(config.width);
+        }
+
+        // height
+        if (config && config.height) {
+            $plainOleContainer.height(config.height);
+        }
+
+        // height
+        if (config && config.classes) {
+            $plainOleContainer.addClass( config.classes.join(' ') );
+        }
+
+        // header
+        $header = $('<div>');
+        $plainOleContainer.append($header);
+
+        // close button
+        $fa = $("<i>", { class:'fa fa-times' });
+        $header.append($fa);
+
+        $fa.on('click', function (e) {
+            closeHandler();
+        });
+
+        return $plainOleContainer;
+    }
+
 
     return hic;
 
