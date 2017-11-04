@@ -19941,47 +19941,43 @@ var igv = (function (igv) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
+
+        return igv.xhr.load(self.file, igv.buildOptions(self.config)).then(parseFasta)
+
+        function parseFasta(data) {
+
             self.chromosomeNames = [];
             self.chromosomes = {};
             self.sequences = {};
 
-            igv.xhr.load(self.file, igv.buildOptions(self.config))
-                .then(function (data) {
-
-                    var lines = data.splitLines(),
-                        len = lines.length,
-                        lineNo = 0,
-                        nextLine,
-                        currentSeq = "",
-                        currentChr,
-                        order = 0;
+            var lines = data.splitLines(),
+                len = lines.length,
+                lineNo = 0,
+                nextLine,
+                currentSeq = "",
+                currentChr,
+                order = 0;
 
 
-                    while (lineNo < len) {
-                        nextLine = lines[lineNo++].trim();
-                        if (nextLine.startsWith("#") || nextLine.length === 0) {
-                            continue;
-                        }
-                        else if (nextLine.startsWith(">")) {
-                            if (currentSeq) {
-                                self.chromosomeNames.push(currentChr);
-                                self.sequences[currentChr] = currentSeq;
-                                self.chromosomes[currentChr] = new igv.Chromosome(currentChr, order++, currentSeq.length);
-                            }
-                            currentChr = nextLine.substr(1).split("\\s+")[0];
-                            currentSeq = "";
-                        }
-                        else {
-                            currentSeq += nextLine;
-                        }
+            while (lineNo < len) {
+                nextLine = lines[lineNo++].trim();
+                if (nextLine.startsWith("#") || nextLine.length === 0) {
+                    continue;
+                }
+                else if (nextLine.startsWith(">")) {
+                    if (currentSeq) {
+                        self.chromosomeNames.push(currentChr);
+                        self.sequences[currentChr] = currentSeq;
+                        self.chromosomes[currentChr] = new igv.Chromosome(currentChr, order++, currentSeq.length);
                     }
-
-                    fulfill();
-
-                })
-                .catch(reject);
-        });
+                    currentChr = nextLine.substr(1).split("\\s+")[0];
+                    currentSeq = "";
+                }
+                else {
+                    currentSeq += nextLine;
+                }
+            }
+        }
     }
 
     igv.FastaSequence.prototype.readSequence = function (chr, qstart, qend) {
@@ -29432,46 +29428,28 @@ var igv = (function (igv) {
  */
 var igv = (function (igv) {
 
-    igv.createColorSwatchSelector = function ($parent, colorHandler, closeHandler) {
+    igv.createColorSwatchSelector = function ($genericContainer, colorHandler) {
 
-        var $div,
-            $fa,
-            $close_container,
-            rgbStrings,
+        var rgbs,
             s;
 
         s = 1;
-        rgbStrings = [];
+        rgbs = [];
         for(var v = 1; v >= 0.5; v -= .1) {
-            for (var rgb, h = 0; h < 1; h += 1/28) {
-                rgb = "rgb(" + hsvToRgb(h, s, v).join(",") + ")";
-                rgbStrings.push(rgb);
+            for (var r, h = 0; h < 1; h += 1/28) {
+                r = "rgb(" + hsvToRgb(h, s, v).join(",") + ")";
+                rgbs.push(r);
             }
         }
 
-        // close button container
-        $close_container = $('<div>');
-        $parent.append($close_container);
-
-        // close button
-        $div = $('<div>', { class: 'igv-colorpicker-menu-close-button' });
-        $close_container.append($div);
-
-        $fa = $("<i>", {class: 'fa fa-times'});
-        $div.append($fa);
-
-        $fa.on('click', function (e) {
-            closeHandler();
-        });
-
-        rgbStrings.forEach(function (rgbString) {
+        rgbs.forEach(function (rgb) {
             var $swatch;
 
-            $swatch = igv.colorSwatch(rgbString);
-            $parent.append($swatch);
+            $swatch = igv.colorSwatch(rgb);
+            $genericContainer.append($swatch);
 
             $swatch.click(function () {
-                colorHandler(rgbString);
+                colorHandler(rgb);
             });
 
         });
@@ -29984,9 +29962,8 @@ var igv = (function (igv) {
         // Popover object -- singleton shared by all components
         igv.popover = new igv.Popover($content);
 
-        // ColorPicker object -- singleton shared by all components
-        igv.colorPicker = new igv.ColorPicker(browser.$root, config.palette);
-        igv.colorPicker.hide();
+        // ColorPicker dummy object
+        igv.colorPicker = {};
 
         // alert object -- singleton shared by all components
         igv.alert = new igv.AlertDialog(browser.$root, "igv-alert");
@@ -30389,10 +30366,9 @@ var igv = (function (igv) {
 
     igv.removeBrowser = function () {
         igv.browser.$root.remove();
-        $(".igv-grid-container-colorpicker").remove();
         $(".igv-grid-container-dialog").remove();
         // $(".igv-grid-container-dialog").remove();
-    }
+    };
 
 
     function getInitialLocus(config) {
@@ -30994,6 +30970,45 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
     var self = this;
+
+    igv.genericContainer = function ($parent, config, closeHandler) {
+
+        var $generic_container,
+            $header,
+            $fa;
+
+        $generic_container = $('<div>', { class:'igv-generic-container' });
+        $parent.append($generic_container);
+
+        // width
+        if (config && config.width) {
+            $generic_container.width(config.width);
+        }
+
+        // height
+        if (config && config.height) {
+            $generic_container.height(config.height);
+        }
+
+        // height
+        if (config && config.classes) {
+            $generic_container.addClass( config.classes.join(' ') );
+        }
+
+        // header
+        $header = $('<div>');
+        $generic_container.append($header);
+
+        // close button
+        $fa = $("<i>", { class:'fa fa-times' });
+        $header.append($fa);
+
+        $fa.on('click', function (e) {
+            closeHandler();
+        });
+
+        return $generic_container;
+    };
 
     igv.makeDraggable = function ($target, $handle) {
         $handle.on('mousedown', function (event) {
@@ -36996,7 +37011,8 @@ var igv = (function (igv) {
 
         var self = this,
             element,
-            $track;
+            $track,
+            config;
 
         this.browser = browser;
 
@@ -37043,13 +37059,20 @@ var igv = (function (igv) {
 
         if (igv.doProvideColoSwatchWidget(this.track)) {
 
-            this.$colorpicker_container = $('<div>', { class:'igv-colorpicker-container' });
-            $track.append(this.$colorpicker_container);
+            config =
+                {
+                    // width = (29 * swatch-width) + border-width + border-width
+                    width: ((29 * 24) + 1 + 1),
+                    classes: [ 'igv-position-absolute' ]
+                };
 
-            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgbString) {
-                self.setColor(rgbString);
-            }, function () {
+
+            this.$colorpicker_container = igv.genericContainer($track, config, function () {
                 self.$colorpicker_container.toggle();
+            });
+
+            igv.createColorSwatchSelector(this.$colorpicker_container, function (rgb) {
+                self.setColor(rgb);
             });
 
             igv.makeDraggable(this.$colorpicker_container, this.$colorpicker_container);
@@ -37738,404 +37761,6 @@ var igv = (function (igv) {
 
 })(igv || {});
 
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-/**
- * Created by turner on 4/15/15.
- */
-var igv = (function (igv) {
-
-    var columnCount = 8;
-
-    igv.ColorPicker = function ($parent, userPalette) {
-
-        var self = this,
-            palette = userPalette || ["#666666", "#0000cc", "#009900", "#cc0000", "#ffcc00", "#9900cc", "#00ccff", "#ff6600", "#ff6600"],
-            rowCount = Math.ceil(palette.length / columnCount),
-            rowIndex;
-
-        this.rgb_re = /^\s*(0|[1-9]\d?|1\d\d?|2[0-4]\d|25[0-5])\s*,\s*(0|[1-9]\d?|1\d\d?|2[0-4]\d|25[0-5])\s*,\s*(0|[1-9]\d?|1\d\d?|2[0-4]\d|25[0-5])\s*$/;
-        this.hex_re = new RegExp('^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$');
-
-        this.$container = $('<div class="igv-grid-container-colorpicker">');
-        $parent.append(this.$container);
-
-
-        this.$header = $('<div class="igv-grid-header">');
-        this.$headerBlurb = $('<div class="igv-grid-header-blurb">');
-
-        this.$header.append(this.$headerBlurb);
-
-        igv.attachDialogCloseHandlerWithParent(this.$header, function () {
-            self.hide();
-        });
-
-        this.$container.append(this.$header);
-
-        if (igv.colorPicker) {
-            igv.makeDraggable(this.$container, this.$header);
-        }
-
-        // color palette
-        for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
-            self.$container.append(makeRow(palette.slice(rowIndex * columnCount)));
-        }
-
-        // dividing line
-        self.$container.append($('<hr class="igv-grid-dividing-line">'));
-
-        // user colors
-        self.$container.append(rowOfUserColors());
-
-        //// dividing line
-        //self.$container.append($('<hr class="igv-grid-dividing-line">')[ 0 ]);
-
-        // initial track color
-        self.$container.append(rowOfPreviousColor());
-
-        //// dividing line
-        //self.$container.append($('<hr class="igv-grid-dividing-line">')[ 0 ]);
-
-        // initial track color
-        self.$container.append(rowOfDefaultColor());
-
-        function rowOfUserColors() {
-
-            var $rowContainer,
-                $row,
-                $column,
-                $userColorInput,
-                digit;
-
-            self.userColors = [];
-
-            // Provide 5 rows of user color pallete real estate
-            for (digit = 0; digit < 5; digit++) {
-
-                $row = rowHidden(digit);
-                self.userColors.push($row);
-                self.$container.append( $row[ 0 ] );
-
-                $row.find('.igv-col-filler-no-color').addClass("igv-grid-rect-hidden");
-            }
-
-            self.userColorsIndex = undefined;
-            self.userColorsRowIndex = 0;
-
-            $row = $('<div class="igv-grid-colorpicker">');
-
-            // color input
-            $column = $('<div class="igv-col igv-col-7-8">');
-            $userColorInput = $('<input class="igv-user-input-colorpicker" type="text" placeholder="Ex: #ff0000 or 255,0,0">');
-            $userColorInput.change(function () {
-
-                var parsed = parseColor($(this).val());
-
-                if (parsed) {
-
-                    // self.trackView.setColor( parsed );
-                    self.colorUpdateHandler(parsed);
-
-                    addUserColor(parsed);
-
-                    $(this).val("");
-                    $(this).attr("placeholder", "Ex: #ff0000 or 255,0,0");
-
-                    self.$userColorFeeback.css("background-color", "white");
-                    self.$userColorFeeback.hide();
-
-                } else {
-                    self.$userError.show();
-                }
-
-            });
-
-            $userColorInput.mousedown(function () {
-                $(this).attr("placeholder", "");
-            });
-
-            $userColorInput.keyup(function () {
-
-                var parsed;
-
-                if ("" === $(this).val()) {
-                    self.$userError.hide();
-                    $(this).attr("placeholder", "Ex: #ff0000 or 255,0,0");
-                }
-
-                parsed = parseColor($(this).val());
-
-                if (undefined !== parsed) {
-                    self.$userColorFeeback.css("background-color", parsed);
-                    self.$userColorFeeback.show();
-                } else {
-                    self.$userColorFeeback.css("background-color", "white");
-                    self.$userColorFeeback.hide();
-                }
-
-            });
-
-            $column.append($userColorInput);
-            $row.append($column);
-
-
-            // color feedback chip
-            $column = makeColumn(null);
-            self.$userColorFeeback = $column.find("div").first();
-            $row.append($column);
-            self.$userColorFeeback.hide();
-
-            $rowContainer = $('<div class="igv-grid-rect">');
-            $rowContainer.append($row);
-
-
-
-            // user feedback
-            self.$userError = $('<span>');
-            self.$userError.text("ERROR.    Ex: #ff0000 or 255,0,0");
-            self.$userError.hide();
-
-            $row = $('<div class="igv-grid-colorpicker-user-error">');
-            $row.append(self.$userError);
-            $rowContainer.append($row);
-
-            function parseColor(value) {
-
-                var rgb,
-                    hex;
-
-                rgb = self.rgb_re.exec(value);
-                if (null !== rgb) {
-
-                    return "rgb(" + rgb[0] + ")";
-                } else {
-
-                    hex = self.hex_re.exec(value);
-                    if (null !== hex) {
-
-                        return igv.hex2Color(hex[0]);
-                    }
-                }
-
-                return undefined;
-            }
-
-            function addUserColor(color) {
-
-                if (undefined === self.userColorsIndex) {
-
-                    self.userColorsIndex = 0;
-                    self.userColorsRowIndex = 0;
-                } else if (columnCount === self.userColorsRowIndex) {
-
-                    self.userColorsRowIndex = 0;
-                    self.userColorsIndex = (1 + self.userColorsIndex) % self.userColors.length;
-                }
-
-                presentUserColor(color, self.userColorsIndex, self.userColorsRowIndex);
-
-                ++(self.userColorsRowIndex);
-
-            }
-
-            function presentUserColor(color, c, r) {
-
-                var $rowContainer,
-                    $filler;
-
-                $rowContainer = self.userColors[ c ];
-                $rowContainer.removeClass("igv-grid-rect-hidden");
-                $rowContainer.addClass("igv-grid-rect");
-
-                $filler = $rowContainer.find(".igv-grid-colorpicker").find(".igv-col").find("div").eq( r );
-
-                $filler.removeClass("igv-col-filler-no-color");
-                $filler.removeClass("igv-grid-rect-hidden");
-
-                $filler.addClass("igv-col-filler");
-
-                $filler.css("background-color", color);
-
-                $filler.click(function () {
-                    // self.trackView.setColor( $(this).css("background-color") );
-                    self.colorUpdateHandler($(this).css("background-color"));
-                });
-
-            }
-
-            return $rowContainer;
-
-        }
-
-        function rowOfDefaultColor() {
-
-            var $rowContainer,
-                $row,
-                $column;
-
-            $row = $('<div class="igv-grid-colorpicker">');
-
-            // initial color tile
-            self.$defaultColor = $('<div class="igv-col-filler">');
-            self.$defaultColor.css("background-color", "#eee");
-
-            $column = $('<div class="igv-col igv-col-1-8">');
-            $column.append(self.$defaultColor);
-
-            $column.click(function () {
-                // self.trackView.setColor( $(this).find(".igv-col-filler").css("background-color") );
-                self.colorUpdateHandler( $(this).find(".igv-col-filler").css("background-color") );
-            });
-
-            $row.append($column);
-
-
-            // default color label
-            $column = $('<div class="igv-col igv-col-7-8 igv-col-label">');
-            $column.text("Default Color");
-            $row.append($column);
-
-
-            $rowContainer = $('<div class="igv-grid-rect">');
-            $rowContainer.append($row);
-
-            return $rowContainer;
-        }
-
-        function rowOfPreviousColor() {
-
-            var $rowContainer,
-                $row,
-                $column;
-
-            $row = $('<div class="igv-grid-colorpicker">');
-
-            // initial color tile
-            self.$previousColor = $('<div class="igv-col-filler">');
-            self.$previousColor.css("background-color", "#eee");
-
-            $column = $('<div class="igv-col igv-col-1-8">');
-            $column.append(self.$previousColor);
-
-            $column.click(function () {
-                // self.trackView.setColor( $(this).find(".igv-col-filler").css("background-color") );
-                self.colorUpdateHandler( $(this).find(".igv-col-filler").css("background-color") );
-            });
-
-            $row.append($column);
-
-
-            // initial color label
-            $column = $('<div class="igv-col igv-col-7-8 igv-col-label">');
-            $column.text("Previous Color");
-            $row.append($column);
-
-
-            $rowContainer = $('<div class="igv-grid-rect">');
-            $rowContainer.append($row);
-
-            return $rowContainer;
-        }
-
-        function rowHidden(rowIndex) {
-
-            var $rowContainer = $('<div class="igv-grid-rect-hidden">'),
-                $row = $('<div class="igv-grid-colorpicker">'),
-                columnIndex;
-
-            for (columnIndex = 0; columnIndex < columnCount; columnIndex++) {
-                $row.append(makeColumn(null));
-            }
-
-            $rowContainer.append($row);
-            return $rowContainer;
-        }
-
-        function makeRow(colors) {
-
-            var $rowContainer = $('<div class="igv-grid-rect">'),
-                $row = $('<div class="igv-grid-colorpicker">'),
-                i;
-
-            for (i = 0; i < Math.min(columnCount, colors.length); i++) {
-                $row.append(makeColumn(colors[i]));
-            }
-
-            $rowContainer.append($row);
-            return $rowContainer;
-        }
-
-        function makeColumn(colorOrNull) {
-
-            var $column = $('<div class="igv-col igv-col-1-8">'),
-                $filler = $('<div>');
-
-            $column.append($filler);
-
-            if (null !== colorOrNull) {
-
-                $filler.addClass("igv-col-filler");
-                $filler.css("background-color", colorOrNull);
-
-                $filler.click(function () {
-                    // self.trackView.setColor( $(this).css("background-color") );
-                    self.colorUpdateHandler( $(this).css("background-color") );
-                });
-
-            } else {
-                $filler.addClass("igv-col-filler-no-color");
-                $filler.css("background-color", "white");
-            }
-
-            return $column;
-        }
-
-    };
-
-    igv.ColorPicker.prototype.configure = function (trackView, trackColor, trackDefaultColor, offset, colorUpdateHandler) {
-        this.$previousColor.css("background-color", trackColor);
-        this.$defaultColor.css("background-color", trackDefaultColor);
-        $(this.$container).offset(offset);
-        this.colorUpdateHandler = colorUpdateHandler;
-    };
-
-    igv.ColorPicker.prototype.hide = function () {
-        $(this.$container).offset({left: 0, top: 0});
-        this.$container.hide();
-    };
-
-    igv.ColorPicker.prototype.presentAtOffset = function (offset) {
-        this.$container.show();
-        this.$userError.hide();
-    };
-
-    return igv;
-
-})(igv || {});
 
 /*
  * The MIT License (MIT)
@@ -40746,9 +40371,7 @@ var igv = (function (igv) {
     igv.Viewport.prototype.update = function () {
 
         //console.trace();
-
-        this.tile = null;
-
+        if (this.tile) this.tile.invalidate = true;
         this.repaint();
 
     };
@@ -40794,18 +40417,19 @@ var igv = (function (igv) {
         refFrameStart = referenceFrame.start;
         refFrameEnd = refFrameStart + referenceFrame.toBP(this.canvas.width);
 
-        if (this.tile && this.tile.containsRange(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel)) {
-            // console.log('paint pre-existing canvas');
-            this.paintImageWithReferenceFrame(referenceFrame);
+        //  if (this.tile && this.tile.containsRange(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel)) {
+        // console.log('paint pre-existing canvas');
+        this.paintImage(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel);
 
-        } else {
+        if (!this.tile ||
+            this.tile.invalidate || !this.tile.containsRange(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel)) {
 
             // Expand the requested range so we can pan a bit without reloading.  But not beyond chromosome bounds
             var chrLength = igv.browser.genome.getChromosome(chr).bpLength;
 
             pixelWidth = 3 * this.canvas.width;
-            bpWidth = Math.round(referenceFrame.toBP(pixelWidth));
-            bpStart = Math.max(0, Math.round(referenceFrame.start - bpWidth / 3));
+            bpWidth = referenceFrame.toBP(pixelWidth);
+            bpStart = Math.max(0, referenceFrame.start - bpWidth / 3);
             bpEnd = Math.min(chrLength, bpStart + bpWidth);
 
             // Adjust pixel width in case bounds were clamped
@@ -40888,7 +40512,7 @@ var igv = (function (igv) {
 
                 .then(function (roiArray) {
 
-                    if(roiArray) {
+                    if (roiArray) {
                         var i, len;
                         for (i = 0, len = roiArray.length; i < len; i++) {
                             drawConfiguration.features = roiArray[i];
@@ -40900,7 +40524,7 @@ var igv = (function (igv) {
                 .then(function (ignore) {
 
                     self.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, buffer);
-                    self.paintImageWithReferenceFrame(referenceFrame);
+                    self.paintImage(chr, refFrameStart, refFrameEnd, referenceFrame.bpPerPixel);
                 })
 
                 .catch(function (error) {
@@ -40971,17 +40595,45 @@ var igv = (function (igv) {
 
     };
 
-    igv.Viewport.prototype.paintImageWithReferenceFrame = function (referenceFrame) {
+    igv.Viewport.prototype.paintImage = function (chr, start, end, bpPerPixel) {
+
+        var offset, sx, dx, scale, sWidth, dWidth, iHeight,
+            tile = this.tile;
 
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        if (this.tile) {
-            this.xOffset = Math.round(this.genomicState.referenceFrame.toPixels(this.tile.startBP - this.genomicState.referenceFrame.start));
-            this.ctx.drawImage(this.tile.image, this.xOffset, 0);
+        if (tile && tile.containsRange(chr, start, end, bpPerPixel)) {
+            this.xOffset = Math.round((tile.startBP - start) / tile.bpPerPixel);
+            this.ctx.drawImage(tile.image, this.xOffset, 0);
+            this.ctx.save();
+            this.ctx.restore();
+        } else if (tile && tile.overlapsRange(chr, start, end)) {
+
+            var offset = Math.round((start - tile.startBP) / tile.bpPerPixel);
+            if (offset > 0) {
+                sx = offset;
+                dx = 0;
+            } else {
+                sx = 0;
+                dx = -offset;
+            }
+
+            dWidth = tile.image.width;
+            if (bpPerPixel === tile.bpPerPixel) {
+                sWidth = dWidth;
+            } else {
+                scale = bpPerPixel / tile.bpPerPixel;
+                sWidth = Math.round(scale * dWidth);
+
+            }
+
+            iHeight = tile.image.height;
+
+            this.ctx.drawImage(tile.image, sx, 0, sWidth, iHeight, dx, 0, dWidth, iHeight);
             this.ctx.save();
             this.ctx.restore();
         }
-    };
+    }
 
     igv.Viewport.prototype.isLoading = function () {
         return !(undefined === this.loading);
@@ -41027,17 +40679,21 @@ var igv = (function (igv) {
         return result;
     };
 
-    Tile = function (chr, tileStart, tileEnd, scale, image) {
+    Tile = function (chr, tileStart, tileEnd, bpPerPixel, image) {
         this.chr = chr;
         this.startBP = tileStart;
         this.endBP = tileEnd;
-        this.scale = scale;
+        this.bpPerPixel = bpPerPixel;
         this.image = image;
     };
 
-    Tile.prototype.containsRange = function (chr, start, end, scale) {
-        return this.scale === scale && start >= this.startBP && end <= this.endBP && chr === this.chr;
+    Tile.prototype.containsRange = function (chr, start, end, bpPerPixel) {
+        return this.bpPerPixel === bpPerPixel && start >= this.startBP && end <= this.endBP && chr === this.chr;
     };
+
+    Tile.prototype.overlapsRange = function (chr, start, end) {
+        return this.chr === chr && end >= this.startBP && start <= this.endBP;
+    }
 
     // TODO: dat - Called from BAMTrack.altClick. Change call to redrawTile(viewPort, features)
     igv.Viewport.prototype.redrawTile = function (features) {
@@ -41056,14 +40712,14 @@ var igv = (function (igv) {
             features: features,
             context: buffer.getContext('2d'),
             bpStart: this.tile.startBP,
-            bpPerPixel: this.tile.scale,
+            bpPerPixel: this.tile.bpPerPixel,
             pixelWidth: buffer.width,
             pixelHeight: buffer.height
         });
 
 
-        this.tile = new Tile(this.tile.chr, this.tile.startBP, this.tile.endBP, this.tile.scale, buffer);
-        this.paintImageWithReferenceFrame(this.genomicState.referenceFrame);
+        this.tile = new Tile(this.tile.chr, this.tile.startBP, this.tile.endBP, this.tile.bpPerPixel, buffer);
+        this.paintImage(this.genomicState.referenceFrame);
     };
 
     return igv;
