@@ -122,7 +122,7 @@ var hic = (function (hic) {
                 classes: [ 'igv-position-absolute' ]
             };
 
-        $colorpicker = createPlainOleContainer(browser.$root, config, function () {
+        $colorpicker = igv.genericContainer(browser.$root, config, function () {
             $colorpicker.toggle();
         });
 
@@ -158,46 +158,6 @@ var hic = (function (hic) {
         return $colorpicker;
 
     }
-
-    function createPlainOleContainer($parent, config, closeHandler) {
-
-        var $plainOleContainer,
-            $header,
-            $fa;
-
-        $plainOleContainer = $('<div>', { class:'igv-generic-container' });
-        $parent.append($plainOleContainer);
-
-        // width
-        if (config && config.width) {
-            $plainOleContainer.width(config.width);
-        }
-
-        // height
-        if (config && config.height) {
-            $plainOleContainer.height(config.height);
-        }
-
-        // height
-        if (config && config.classes) {
-            $plainOleContainer.addClass( config.classes.join(' ') );
-        }
-
-        // header
-        $header = $('<div>');
-        $plainOleContainer.append($header);
-
-        // close button
-        $fa = $("<i>", { class:'fa fa-times' });
-        $header.append($fa);
-
-        $fa.on('click', function (e) {
-            closeHandler();
-        });
-
-        return $plainOleContainer;
-    }
-
 
     return hic;
 
