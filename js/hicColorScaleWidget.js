@@ -41,9 +41,6 @@ var hic = (function (hic) {
         // color chip
         this.$button = igv.colorSwatch('red');
         this.$container.append(this.$button);
-        this.$button.on('click', function (e) {
-            self.browser.$root.find('.igv-colorpicker-container').toggle();
-        });
 
         // input
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
@@ -87,7 +84,14 @@ var hic = (function (hic) {
         });
         this.$container.append($fa);
 
-        createColorSwatchSelector.call(this, browser);
+        this.$colorpicker = createColorpicker.call(this, browser);
+
+        this.$colorpicker.draggable();
+        this.$colorpicker.hide();
+
+        this.$button.on('click', function (e) {
+            self.$colorpicker.toggle();
+        });
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
@@ -105,16 +109,24 @@ var hic = (function (hic) {
 
     };
 
-    function createColorSwatchSelector(browser) {
+    function createColorpicker(browser) {
 
         var self = this,
-            $scroll_container;
+            $colorpicker,
+            config;
 
-        // swatch scroll container
-        $scroll_container = $('<div>', { class:'igv-colorpicker-container' });
-        browser.$root.append($scroll_container);
+        config =
+            {
+                // width = (29 * swatch-width) + border-width + border-width
+                width: ((29 * 24) + 1 + 1),
+                classes: [ 'igv-position-absolute' ]
+            };
 
-        igv.createColorSwatchSelector($scroll_container, function (colorName) {
+        $colorpicker = igv.genericContainer(browser.$root, config, function () {
+            $colorpicker.toggle();
+        });
+
+        igv.createColorSwatchSelector($colorpicker, function (colorName) {
             var rgb;
 
             self.$button.find('.fa-square').css({color: colorName});
@@ -141,13 +153,9 @@ var hic = (function (hic) {
             browser.contactMatrixView.clearCaches();
             browser.contactMatrixView.colorScaleCache = {};
             browser.contactMatrixView.update();
-        }, function () {
-            $scroll_container.toggle();
         });
 
-        $scroll_container.draggable();
-
-        $scroll_container.hide();
+        return $colorpicker;
 
     }
 
