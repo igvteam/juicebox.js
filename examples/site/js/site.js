@@ -452,9 +452,11 @@ var juicebox = (function (site) {
 
         var config,
             columnFormat,
-            encodeDatasource;
+            encodeDatasource,
+            browser;
 
-        if (encodeTable && genomeId === encodeTable.genomeID()) {
+        browser = browserRetrievalFunction();
+        if (encodeTable && genomeId === browser.genome.id) {
             // do nothing
         } else {
 
@@ -472,7 +474,7 @@ var juicebox = (function (site) {
                     {         'Lab': '20%' }
                 ];
 
-            encodeDatasource = new igv.EncodeDataSource({ genomeID: genomeId }, columnFormat);
+            encodeDatasource = new igv.EncodeDataSource(columnFormat);
 
             config =
                 {
@@ -486,6 +488,8 @@ var juicebox = (function (site) {
                 };
 
             encodeTable = new igv.ModalTable(config, encodeDatasource);
+
+            encodeTable.loadData();
 
         }
 
