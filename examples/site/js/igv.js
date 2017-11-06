@@ -32342,9 +32342,6 @@ var igv = (function (igv) {
         browser.userFeedback = new igv.UserFeedback($content);
         browser.userFeedback.hide();
 
-        // TODO: Hack! ColorPicker dummy object.
-        igv.colorPicker = {};
-
         // Popover object -- singleton shared by all components
         igv.popover = new igv.Popover($content);
 
@@ -38752,7 +38749,7 @@ var igv = (function (igv) {
     };
 
     igv.doProvideColoSwatchWidget = function (track) {
-        return igv.colorPicker && (track instanceof igv.BAMTrack || track instanceof igv.FeatureTrack || track instanceof igv.VariantTrack || track instanceof igv.WIGTrack);
+        return (track instanceof igv.BAMTrack || track instanceof igv.FeatureTrack || track instanceof igv.VariantTrack || track instanceof igv.WIGTrack);
     };
 
     igv.trackMenuItemListHelper = function (itemList) {
@@ -40366,10 +40363,8 @@ var igv = (function (igv) {
         self.container.append(doLayout());
 
         self.container.append(doOKCancel());
-        if (igv.colorPicker) {
-            // igv.makeDraggable(this.container, this.header);
-            this.container.draggable({ handle:this.header.get(0) });
-        }
+
+        this.container.draggable({ handle:this.header.get(0) });
 
         function doOKCancel() {
 
@@ -40578,10 +40573,7 @@ var igv = (function (igv) {
 
         constructorHelper(this);
 
-        if (igv.colorPicker) {
-            // igv.makeDraggable(this.$container, $header);
-            this.$container.draggable({ handle:$header.get(0) });
-        }
+        this.$container.draggable({ handle:$header.get(0) });
 
         igv.attachDialogCloseHandlerWithParent($header, function () {
             self.hide();
@@ -40876,10 +40868,7 @@ var igv = (function (igv) {
 
         this.$popover.append(this.$popoverContent);
 
-        if (igv.colorPicker) {
-            // igv.makeDraggable(this.$popover, $popoverHeader);
-            this.$popover.draggable({ handle:$popoverHeader.get(0) });
-        }
+        this.$popover.draggable({ handle:$popoverHeader.get(0) });
 
         return $parent;
 
