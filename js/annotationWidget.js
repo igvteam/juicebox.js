@@ -83,6 +83,7 @@ var hic = (function (hic) {
 
         var self = this,
             $panel_header,
+            $load_container,
             $div,
             $fa;
 
@@ -108,6 +109,10 @@ var hic = (function (hic) {
         $fa.on('click', function (e) {
             self.$annotationPanel.toggle();
         });
+
+        // load container
+        $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
+        this.$annotationPanel.append($load_container);
 
         this.$annotationPanel.draggable();
         this.$annotationPanel.hide();

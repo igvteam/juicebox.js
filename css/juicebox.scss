@@ -521,6 +521,24 @@ $default-font-family: 'Open Sans', sans-serif;
     }
   }
 
+  .hic-annotation-panel-load-container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+    height: $hic-annotation-modal-row-height;
+
+    border-bottom-style: solid;
+    border-bottom-width: thin;
+    border-bottom-color: #dddddd;
+
+    background-color: rgba(173, 255, 47, 0.51);
+
+  }
+
   .hic-annotation-row-container {
 
     display: flex;
