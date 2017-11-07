@@ -154,6 +154,10 @@ var hic = (function (hic) {
 
     };
 
+    hic.TrackRenderer.prototype.update = function () {
+        this.repaint();
+    };
+
     hic.TrackRenderer.prototype.repaint = function () {
 
         var self = this,
@@ -208,10 +212,10 @@ var hic = (function (hic) {
             } else {
 
                 self.loading =
-                {
-                    start: startBP,
-                    end: endBP
-                };
+                    {
+                        start: startBP,
+                        end: endBP
+                    };
 
                 self.startSpinner();
                 self.track
@@ -235,27 +239,27 @@ var hic = (function (hic) {
                             self.canvasTransform(ctx);
 
                             self.drawConfiguration =
-                            {
-                                features: features,
+                                {
+                                    features: features,
 
-                                context: ctx,
+                                    context: ctx,
 
-                                pixelWidth: lengthPixel,
-                                pixelHeight: Math.min(buffer.width, buffer.height),
+                                    pixelWidth: lengthPixel,
+                                    pixelHeight: Math.min(buffer.width, buffer.height),
 
-                                bpStart: startBP,
-                                bpEnd: endBP,
+                                    bpStart: startBP,
+                                    bpEnd: endBP,
 
-                                bpPerPixel: genomicState.bpp,
+                                    bpPerPixel: genomicState.bpp,
 
-                                genomicState: genomicState,
+                                    genomicState: genomicState,
 
-                                viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
+                                    viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
 
-                                viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
+                                    viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
 
-                                labelTransform: self.labelReflectionTransform
-                            };
+                                    labelTransform: self.labelReflectionTransform
+                                };
 
                             self.track.draw(self.drawConfiguration);
 
