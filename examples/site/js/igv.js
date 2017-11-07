@@ -10999,15 +10999,10 @@ var $, jQuery;
 * Copyright jQuery Foundation and other contributors; Licensed MIT */
 
 (function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define([ "jquery" ], factory );
-	} else {
 
 		// Browser globals
 		factory( jQuery );
-	}
+
 }(function( $ ) {
 
 $.ui = $.ui || {};
@@ -13326,6 +13321,7 @@ var widgetsDraggable = $.ui.draggable;
 
 
 }));
+
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
 //     (c) 2009-2015 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
@@ -20210,7 +20206,7 @@ var igv = (function (igv) {
             this.searchConfig = {
                 // Legacy support -- deprecated
                 type: "plain",
-                url: igv.geneNameLookupPathTemplate(genomeId),
+                url:'https://portals.broadinstitute.org/webservices/igv/locus?genome=$GENOME$&name=$FEATURE$',
                 coords: 0,
                 chromosomeField: "chromosome",
                 startField: "start",
@@ -21126,7 +21122,7 @@ var igv = (function (igv) {
                     var path = searchConfig.url.replace("$FEATURE$", locus);
 
                     if (path.indexOf("$GENOME$") > -1) {
-                        path.replace("$GENOME$", (self.genome.id ? self.genome.id : "hg19"));
+                       path = path.replace("$GENOME$", (self.genome.id ? self.genome.id : "hg19"));
                     }
 
                     return igv.xhr.loadString(path);
@@ -21611,7 +21607,8 @@ var igv = (function (igv) {
             end,
             searchConfig,
             url,
-            result;
+            result,
+            genomeID;
 
         // See if we're ready to respond to a search, if not just queue it up and return
         if (igv.browser === undefined || igv.browser.genome === undefined) {
@@ -21639,6 +21636,7 @@ var igv = (function (igv) {
                 handleSearchResult(result.name, result.chrName, result.start, result.end, "");
 
             } else if (this.searchConfig) {
+
                 url = this.searchConfig.url.replace("$FEATURE$", feature);
                 searchConfig = this.searchConfig;
 
@@ -28862,14 +28860,15 @@ var igv = (function (igv) {
                 return undefined;
             }
         }).then(function (aliases) {
-            return new igv.Genome(sequence, cytobands, aliases);
+            return new igv.Genome(reference.id, sequence, cytobands, aliases);
 
         })
     }
 
 
-    igv.Genome = function (sequence, ideograms, aliases) {
+    igv.Genome = function (id, sequence, ideograms, aliases) {
 
+        this.id = id;
         this.sequence = sequence;
         this.chromosomeNames = sequence.chromosomeNames;
         this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
@@ -33464,29 +33463,7 @@ var igv = (function (igv) {
 
         return index < 0 ? filename : filename.substr(1 + index);
     };
-
-    igv.geneNameLookupPathTemplate = function (genomeId) {
-
-        var path;
-
-        path = 'https://portals.broadinstitute.org/webservices/igv/locus?genome=' + genomeId + '&name=$FEATURE$';
-
-        return path;
-    };
-
-    igv.geneNameLookupServicePromise = function (name, genomeId) {
-
-        var pathTemplate,
-            path;
-
-        pathTemplate = igv.geneNameLookupPathTemplate(genomeId);
-
-        path = pathTemplate.replace("$FEATURE$", name);
-
-        return igv.xhr.loadString(path);
-
-    };
-
+    
     igv.filenameOrURLHasSuffix = function  (fileOrURL, suffix) {
         var str = (fileOrURL instanceof File) ? fileOrURL.name : fileOrURL;
         return str.toLowerCase().endsWith( suffix )
@@ -36868,7 +36845,7 @@ var igv = (function (igv) {
         }
 
         function processRootNode() {
-            var elements, session, genome, locus;
+            var elements, session, genome, locus, ucscID;
 
             elements = xmlDoc.getElementsByTagName("Session");
             if (!elements || elements.length === 0) {
@@ -36877,6 +36854,7 @@ var igv = (function (igv) {
             session = elements.item(0);
             genome = session.getAttribute("genome");
             locus = session.getAttribute("locus");
+            ucscID = session.getAttribute("ucscID");
 
             if (igv.Genome.KnownGenomes.hasOwnProperty(genome)) {
                 self.reference = {
@@ -36889,6 +36867,9 @@ var igv = (function (igv) {
             }
             if (locus) {
                 self.locus = locus;
+            }
+            if(ucscID) {
+                self.reference.id = ucscID;
             }
         }
 
