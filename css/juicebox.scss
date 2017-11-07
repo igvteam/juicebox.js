@@ -525,7 +525,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
 
     width: 100%;
@@ -535,7 +535,28 @@ $default-font-family: 'Open Sans', sans-serif;
     border-bottom-width: thin;
     border-bottom-color: #dddddd;
 
-    background-color: rgba(173, 255, 47, 0.51);
+    //background-color: rgba(173, 255, 47, 0.51);
+
+    font-size: 14px;
+    font-weight: 400;
+
+    div {
+      margin-left: 8px;
+      background-color: rgba(94, 219, 255, 0.51);
+    }
+
+    //div:first-child {
+    //  margin-left: 2px;
+    //  margin-right: 2px;
+    //  background-color: rgba(173, 255, 47, 0.51);
+    //}
+    //
+    //div:last-child {
+    //  margin-left: 2px;
+    //  margin-right: 2px;
+    //  background-color: rgba(255, 0, 0, 0.51);
+    //}
+
 
   }
 

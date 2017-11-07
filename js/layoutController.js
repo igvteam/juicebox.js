@@ -238,7 +238,8 @@ var hic = (function (hic) {
 
         var $menu,
             $div,
-            $fa;
+            $fa,
+            config;
 
         // menu
         $menu = $('<div>', { class:'hic-menu' });
@@ -275,11 +276,22 @@ var hic = (function (hic) {
             browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
         }
 
-        browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, '2D Annotations', function () {
+        config =
+            {
+              title: '2D Annotations',
+              loadTitle:'Load:'
+            };
+        browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
             return browser.tracks2D;
         });
 
-        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, 'Tracks', function () {
+        config =
+            {
+                title: 'Tracks',
+                loadTitle:'Load Tracks:'
+            };
+
+        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
             return browser.trackRenderers;
         });
 

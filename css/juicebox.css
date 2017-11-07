@@ -262,14 +262,18 @@
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     width: 100%;
     height: 40px;
     border-bottom-style: solid;
     border-bottom-width: thin;
     border-bottom-color: #dddddd;
-    background-color: rgba(173, 255, 47, 0.51); }
+    font-size: 14px;
+    font-weight: 400; }
+    .hic-annotation-panel-container .hic-annotation-panel-load-container div {
+      margin-left: 8px;
+      background-color: rgba(94, 219, 255, 0.51); }
   .hic-annotation-panel-container .hic-annotation-row-container {
     display: flex;
     flex-flow: column;
