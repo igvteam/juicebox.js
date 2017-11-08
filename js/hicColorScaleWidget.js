@@ -39,7 +39,7 @@ var hic = (function (hic) {
         $container.append(this.$container);
 
         // color chip
-        this.$button = igv.colorSwatch('red');
+        this.$button = igv.colorSwatch(browser.config.colorScale ? igv.Color.rgbColor(browser.config.colorScale.highR, browser.config.colorScale.highG, browser.config.colorScale.highB) : 'red');
         this.$container.append(this.$button);
 
         // input

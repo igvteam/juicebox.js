@@ -1054,7 +1054,7 @@ var hic = (function (hic) {
     };
 
     /**
-     * Set the matrix state.  Used ot restore state from a bookmark
+     * Set the matrix state.  Used to restore state from a bookmark
      * @param state  browser state
      */
     hic.Browser.prototype.setState = function (state) {
