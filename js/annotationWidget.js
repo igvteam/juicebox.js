@@ -23,7 +23,7 @@
 
 var hic = (function (hic) {
 
-    hic.AnnotationWidget = function (browser, $parent, title, trackListRetrievalCallback) {
+    hic.AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 
         var $container;
 
@@ -33,9 +33,9 @@ var hic = (function (hic) {
         $container = $("<div>", { class: 'hic-annotation-presentation-button-container' });
         $parent.append($container);
 
-        annotationPresentationButton.call(this, $container, title);
+        annotationPresentationButton.call(this, $container, config.title);
 
-        annotationPanel.call(this, this.browser.$root, title);
+        annotationPanel.call(this, this.browser.$root, config.title);
 
     };
 
@@ -83,6 +83,7 @@ var hic = (function (hic) {
 
         var self = this,
             $panel_header,
+            $load_container,
             $div,
             $fa;
 
@@ -108,6 +109,21 @@ var hic = (function (hic) {
         $fa.on('click', function (e) {
             self.$annotationPanel.toggle();
         });
+
+        // TODO: Continue changes for load functions added to side panel
+        // load container
+        // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
+        // this.$annotationPanel.append($load_container);
+        //
+        // // Load
+        // $div = $('<div>');
+        // $load_container.append($div);
+        // $div.text('Load:');
+        //
+        // // Blah
+        // $div = $('<div>');
+        // $load_container.append($div);
+        // $div.text('Blah');
 
         this.$annotationPanel.draggable();
         this.$annotationPanel.hide();

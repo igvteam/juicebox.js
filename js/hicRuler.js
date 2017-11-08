@@ -204,14 +204,14 @@ var hic = (function (hic) {
             browser = this.browser;
 
         identityTransformWithContext(this.ctx);
-        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.rgbColor(255, 255, 255) });
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.Color.rgbColor(255, 255, 255) });
 
         this.canvasTransform(this.ctx);
 
         w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
         h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
 
-        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.rgbColor(255, 255, 255) });
+        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.Color.rgbColor(255, 255, 255) });
 
         config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
 
@@ -255,7 +255,7 @@ var hic = (function (hic) {
             // drawAll.call(this);
         } else {
 
-            igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, { fillStyle: igv.rgbColor(255, 255, 255) });
+            igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, { fillStyle: igv.Color.rgbColor(255, 255, 255) });
 
             fontStyle = {
                 textAlign: 'center',
