@@ -110,19 +110,20 @@ var hic = (function (hic) {
             self.$annotationPanel.toggle();
         });
 
+        // TODO: Continue changes for load functions added to side panel
         // load container
-        $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
-        this.$annotationPanel.append($load_container);
-
-        // Load
-        $div = $('<div>');
-        $load_container.append($div);
-        $div.text('Load:');
-
-        // Blah
-        $div = $('<div>');
-        $load_container.append($div);
-        $div.text('Blah');
+        // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
+        // this.$annotationPanel.append($load_container);
+        //
+        // // Load
+        // $div = $('<div>');
+        // $load_container.append($div);
+        // $div.text('Load:');
+        //
+        // // Blah
+        // $div = $('<div>');
+        // $load_container.append($div);
+        // $div.text('Blah');
 
         this.$annotationPanel.draggable();
         this.$annotationPanel.hide();
