@@ -215,6 +215,16 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+.hic-root-interaction-shield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(99, 99, 99, 0.25);
+  z-index: 1024;
+}
+
 .hic-menu {
   position: absolute;
 
@@ -1293,7 +1303,7 @@ div[id$="content-container"] {
         height: $hic-viewport-spinner-size;
         width: $hic-viewport-spinner-size;
 
-        z-index: 512;
+        z-index: 2048;
 
         pointer-events: none;
 
@@ -1485,4 +1495,9 @@ div[id$="content-container"] {
   float: left;
   margin-left: 4px;
   margin-right: 32px;
+
+  ul {
+    z-index: 2048;
+  }
+
 }
