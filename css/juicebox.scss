@@ -215,13 +215,14 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
-.hic-root-interaction-shield {
+.hic-root-prevent-interaction {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(99, 99, 99, 0.25);
+  //background-color: rgba(99, 99, 99, 0.25);
+  background-color: rgba(255, 0, 0, 0.25);
   z-index: 1024;
 }
 
