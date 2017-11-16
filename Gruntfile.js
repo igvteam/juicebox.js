@@ -26,6 +26,7 @@ module.exports = function (grunt) {
                     'wrapper/header.js',
                     'vendor/jquery-1.12.4.js',
                     'vendor/jquery-ui.js',
+                    'vendor/zlib_and_gzip.js',
                     'vendor/underscore.js',
                     'vendor/throbber.js',
                     'vendor/colors.js',
