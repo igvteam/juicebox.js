@@ -415,17 +415,19 @@ var hic = (function (hic) {
         promises = [];
         promises2D = [];
 
-        _.each(trackConfigurations, function (config) {
+        trackConfigurations.forEach( function (config) {
 
             var isLocal = config.url instanceof File,
                 fn = isLocal ? config.url.name : config.url;
-            if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
-                self.loadNormalizationFile(config.url);
-                if (isLocal === false) {
-                    self.normVectorFiles.push(config.url);
-                }
-                return;
-            }
+            
+            //  Dropping support for this, never used
+            // if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+            //     self.loadNormalizationFile(config.url);
+            //     if (isLocal === false) {
+            //         self.normVectorFiles.push(config.url);
+            //     }
+            //     return;
+            // }
 
 
             igv.inferTrackTypes(config);

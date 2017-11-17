@@ -32,7 +32,6 @@ var juicebox = (function (site) {
         encodeTable;
 
 
-
     site.init = function ($container, config) {
 
         var genomeChangeListener,
@@ -52,12 +51,12 @@ var juicebox = (function (site) {
 
                     lastGenomeId = genomeId;
 
-                    if(config.trackMenu) {
+                    if (config.trackMenu) {
                         var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
                         loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
                     }
 
-                    if(config.trackMenu2D) {
+                    if (config.trackMenu2D) {
                         var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
                         loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
                     }
@@ -152,9 +151,9 @@ var juicebox = (function (site) {
                             tweetContainer = $('#tweetButtonContainer');
                             tweetContainer.empty();
                             config =
-                                {
-                                    text: 'Contact map: '
-                                };
+                            {
+                                text: 'Contact map: '
+                            };
                             window.twttr.widgets
                                 .createShareButton(shortURL, tweetContainer.get(0), config)
                                 .then(function (el) {
@@ -233,7 +232,20 @@ var juicebox = (function (site) {
                 paramIdx = url.indexOf("?");
                 path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
-                loadHicFile(url, hic.extractFilename(path));
+                if (url.includes("drive.google.com")) {
+                    var tmp = hic.extractQuery(url);
+                    var id = tmp["id"];
+                    igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                        .then(function (json) {
+                            var fileName = json.originalFilename;
+                            loadHicFile(url, fileName);
+                        })
+
+                }
+                else {
+
+                    loadHicFile(url, hic.extractFilename(path));
+                }
             }
 
             $(this).val("");
@@ -255,7 +267,26 @@ var juicebox = (function (site) {
                 paramIdx = url.indexOf("?");
                 path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
 
-                hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
+                if (url.includes("drive.google.com")) {
+                    var tmp = hic.extractQuery(url);
+                    var id = tmp["id"];
+                    igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                        .then(function (json) {
+                            // Create a config object to infer track types
+                            var config = {
+                                url: json.originalFilename
+                            };
+                            igv.inferTrackTypes(config);
+
+                            config.url = url;
+                            config.name = json.originalFilename;
+                            hic.Browser.getCurrentBrowser().loadTrack([config]);
+                        })
+
+                }
+                else {
+                    hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
+                }
             }
 
             $(this).val("");
@@ -306,10 +337,10 @@ var juicebox = (function (site) {
                 config;
 
             config =
-                {
-                    initFromUrl: false,
-                    updateHref: false
-                };
+            {
+                initFromUrl: false,
+                updateHref: false
+            };
             browser = hic.createBrowser($container.get(0), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -466,26 +497,26 @@ var juicebox = (function (site) {
 
             columnFormat =
                 [
-                    {    'Assembly': '10%' },
-                    {   'Cell Type': '10%' },
-                    {      'Target': '10%' },
-                    {  'Assay Type': '20%' },
-                    { 'Output Type': '20%' },
-                    {         'Lab': '20%' }
+                    {'Assembly': '10%'},
+                    {'Cell Type': '10%'},
+                    {'Target': '10%'},
+                    {'Assay Type': '20%'},
+                    {'Output Type': '20%'},
+                    {'Lab': '20%'}
                 ];
 
             encodeDatasource = new igv.EncodeDataSource(columnFormat);
 
             config =
-                {
-                    $modal: $('#hicEncodeModal'),
-                    $modalBody: $('#encodeModalBody'),
-                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                    $modalGoButton: $('#encodeModalGoButton'),
-                    browserRetrievalFunction: browserRetrievalFunction,
-                    browserLoadFunction: 'loadTrack'
-                };
+            {
+                $modal: $('#hicEncodeModal'),
+                $modalBody: $('#encodeModalBody'),
+                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                $modalGoButton: $('#encodeModalGoButton'),
+                browserRetrievalFunction: browserRetrievalFunction,
+                browserLoadFunction: 'loadTrack'
+            };
 
             encodeTable = new igv.ModalTable(config, encodeDatasource);
 
