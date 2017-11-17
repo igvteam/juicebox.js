@@ -601,7 +601,11 @@ var hic = (function (hic) {
     }
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
-        // console.log("Start spinner");
+
+        if (this.browser.$user_interaction_shield) {
+            this.browser.$user_interaction_shield.show();
+        }
+
         if (this.$spinner.is(':visible') !== true) {
             this.$spinner.show();
             this.throbber.start();
@@ -609,7 +613,11 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-        //  console.log("Stop spinner");
+
+        if (this.browser.$user_interaction_shield) {
+            this.browser.$user_interaction_shield.hide();
+        }
+
         this.throbber.stop();
         this.$spinner.hide();
     };

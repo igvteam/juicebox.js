@@ -182,10 +182,15 @@ var hic = (function (hic) {
             this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.figureMode)));
         }
 
-
         $app_container.append(this.$root);
 
         this.layoutController = new hic.LayoutController(this, this.$root);
+
+        // prevent user interaction during lengthy data loads
+        this.$user_interaction_shield = $('<div>', { class:'hic-root-prevent-interaction' });
+        this.$root.append(this.$user_interaction_shield);
+        this.$user_interaction_shield.hide();
+
 
         this.hideCrosshairs();
 
@@ -626,7 +631,7 @@ var hic = (function (hic) {
 
                         config.normVectorFiles.forEach(function (f) {
                             promises.push(dataset.readNormalizationVectorFile(f));
-                        })
+                        });
 
                         self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
 

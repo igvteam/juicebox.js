@@ -175,7 +175,8 @@ var juicebox = (function (site) {
 
         $('#dataset_selector').on('change', function (e) {
             var $selected,
-                url;
+                url,
+                browser;
 
             url = $(this).val();
             $selected = $(this).find('option:selected');
@@ -183,6 +184,7 @@ var juicebox = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
+
                 loadHicFile(url, $selected.text());
             }
 

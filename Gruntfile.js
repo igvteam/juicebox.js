@@ -30,6 +30,7 @@ module.exports = function (grunt) {
                     'vendor/underscore.js',
                     'vendor/throbber.js',
                     'vendor/colors.js',
+                    'vendor/zlib_and_gzip.js',
                     'js/**/*.js',
                     'wrapper/footer.js'
                 ],
