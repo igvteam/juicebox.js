@@ -1,1 +1,1 @@
-Example of an "interactive figure".   From
+Example of an "interactive figure".

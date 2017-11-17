@@ -66,25 +66,25 @@ module.exports = function (grunt) {
                 expand: true,
                 flatten: true,
                 src: 'css/juicebox.css',
-                dest: 'examples/site/css'
+                dest: 'examples/website/css'
             },
             siteimg: {
                 expand: true,
                 flatten: true,
                 src: 'css/img/*',
-                dest: 'examples/site/css/img'
+                dest: 'examples/website/css/img'
             },
             sitejs: {
                 expand: true,
                 flatten: true,
                 src: 'dist/juicebox.min.js',
-                dest: 'examples/site/js'
+                dest: 'examples/website/js'
             },
             sitemap: {
                 expand: true,
                 flatten: true,
                 src: 'dist/juicebox.min.map',
-                dest: 'examples/site/js'
+                dest: 'examples/website/js'
             }
         }
     });
