@@ -112,12 +112,11 @@ juiceboxBrowser.loadHicFile({
 ```
 
 
-#### To load a track
+#### To load tracks
 
 
 ```JavaScript
-
-  juiceboxBroswer.loadTrack([config1, config2, ...]);
+  juiceboxBroswer.loadTracks([config1, config2, ...]);
 
 ```
 
