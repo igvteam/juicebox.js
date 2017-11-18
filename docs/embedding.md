@@ -114,16 +114,21 @@ juiceboxBrowser.loadHicFile({
 
 #### To load a track
 
-```js  
-juiceboxBroswer.loadTrack(config);
+
+```JavaScript
+
+  juiceboxBroswer.loadTrack([config1, config2, ...]);
 
 ```
 
 See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the track config object.  The simplest possible track config contains a single property, the URL.  For example
 
-```js 
-  juicboxBowser.loadTrack({
+
+```JavaScript
+  
+  juicboxBowser.loadTracks([{
      url: "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig"
-  });
+  }]);
+
 ```
 
