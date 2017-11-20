@@ -32081,17 +32081,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.FeatureFileReader.prototype.isIndexable = function () {
-        var hasIndexURL,
-            isValidType,
-            isIndexed;
 
-        hasIndexURL = (undefined !== this.config.indexURL);
-        isValidType = (this.format !== 'wig' && this.format !== 'seg');
-        isIndexed = (false !== this.config.indexed);
-
-        return isIndexed && (hasIndexURL || isValidType);
-    };
 
     /**
      * Return a Promise for the async loaded index
@@ -32246,7 +32236,8 @@ var igv = (function (igv) {
             return Promise.resolve(self.index);
         }
 
-        if (self.isIndexable()) {
+        if (isIndexed()) {
+
             return self.loadIndex()
                 .then(function (indexOrUndefined) {
                     if (indexOrUndefined) {
@@ -32260,8 +32251,7 @@ var igv = (function (igv) {
                 .catch(function (error) {
                     self.indexed = false;
                     if (error.message === '404' && self.config.indexURL === undefined) {
-                        // This is an expected condition -- ignore
-                        return undefined;
+                        igv.presentAlert("Index file not found.  Check track configuration")
                     } else {
                         throw error;
                     }
@@ -32270,7 +32260,22 @@ var igv = (function (igv) {
             self.indexed = false;
             return Promise.resolve(undefined);
         }
+
+        function isIndexed() {
+            if(self.config.indexURL || self.config.indexed) {
+                return true;
+            }
+            else {
+                // Assusme vcf.gz files are tabix indexed (they almost always are).
+                var idx = self.config.url.indexOf("?"),
+                    path = idx > 0 ? self.config.url.substring(0, idx) : self.config.url;
+                return path.endsWith(".vcf.gz");
+
+            }
+        }
     };
+
+
 
     igv.FeatureFileReader.prototype.loadFeaturesFromDataURI = function () {
         var bytes, inflate, plain, features,
