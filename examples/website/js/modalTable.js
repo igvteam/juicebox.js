@@ -38,6 +38,7 @@ var igv = (function (igv) {
         teardownModalDOM(config);
         this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
         config.$modalBody.append(this.$table);
+        this.doBuildTable = true;
 
         this.$spinner = $('<div>');
         this.$table.append(this.$spinner);
@@ -95,14 +96,9 @@ var igv = (function (igv) {
             .retrieveData(browser.genome.id)
             .then(function (data) {
 
-                self.$spinner.hide();
-
-                console.log('modaltable. then. received data ' + _.size(data) + '. begin building table ...');
+                console.log('modaltable. then. received data ' + _.size(data));
 
                 self.datasource.data = data;
-                self.tableWithDataAndColumns(self.datasource.tableData(data), self.datasource.tableColumns());
-
-                console.log('... done building table');
 
                 self.config.$modal.on('show.bs.modal', function (e) {
 
@@ -116,6 +112,15 @@ var igv = (function (igv) {
 
                     if (undefined === browser) {
                         self.config.$modal.modal('hide');
+                    } else if (true === self.doBuildTable) {
+
+                        console.log('building table ...');
+                        self.tableWithDataAndColumns(self.datasource.tableData(data), self.datasource.tableColumns());
+                        console.log('... done building table');
+
+                        self.$spinner.hide();
+
+                        self.doBuildTable = false;
                     }
 
                 });
