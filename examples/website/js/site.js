@@ -182,12 +182,14 @@ var juicebox = (function (site) {
             url = $(this).val();
             $selected = $(this).find('option:selected');
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            browser = hic.Browser.getCurrentBrowser();
+            if (undefined === browser) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 loadHicFile(url, $selected.text())
                     .then(function (dataset) {
-                        console.log("hic file loaded")
+                        console.log("hic file loaded");
+                        browser.isLoadingHICFile = false;
                     });
             }
 

@@ -649,6 +649,8 @@ var hic = (function (hic) {
 
         self.layoutController.removeAllTrackXYPairs();
 
+        this.isLoadingHICFile = true;
+
         self.contactMatrixView.clearCaches();
         self.tracks2D = [];
         self.tracks = [];
@@ -699,6 +701,7 @@ var hic = (function (hic) {
                         return setDataset(dataset);
                     })
                     .catch(function (error) {
+                        self.isLoadingHICFile = false;
                         self.contactMatrixView.stopSpinner();
                         igv.presentAlert("Error loading hic file: " + error);
                     })
