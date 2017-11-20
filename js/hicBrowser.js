@@ -512,7 +512,7 @@ var hic = (function (hic) {
 
                 var url = config.url;
 
-                if (url.includes("drive.google.com")) {
+                if (url && typeof url === "string" && url.includes("drive.google.com")) {
                     var tmp = hic.extractQuery(url);
                     var id = tmp["id"];
                     var apiKey = hic.apiKey;
@@ -672,7 +672,7 @@ var hic = (function (hic) {
             }
         }
 
-        if (config.url && config.url.includes("drive.google.com") && config.name === undefined && apiKey) {
+        if (config.url && typeof config.url === "string" && config.url.includes("drive.google.com") && config.name === undefined && apiKey) {
             tmp = hic.extractQuery(config.url);
             id = tmp["id"];
             return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
