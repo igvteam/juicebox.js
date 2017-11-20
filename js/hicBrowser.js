@@ -88,11 +88,18 @@ var hic = (function (hic) {
             initialImageImg,
             initialImageX,
             initialImageY,
-            uriDecode;
+            uriDecode,
+            apiKey;
 
         $hic_container = $(hic_container);
 
         setDefaults(config);
+
+        apiKey = config.apiKey;
+        if (apiKey) {
+            igv.setApiKey(apiKey);
+            hic.apiKey = apiKey;
+        }
 
         queryString = config.queryString || config.href;   // href for backward compatibility
         if (queryString === undefined && config.initFromUrl !== false) {
