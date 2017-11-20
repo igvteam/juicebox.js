@@ -78,6 +78,7 @@ var juicebox = (function (site) {
         apiKey = config.apiKey;
         if (apiKey) {
             igv.setApiKey(apiKey);
+            hic.apiKey = apiKey;
         }
         else {
             $("#hic-share-button").hide();
@@ -211,7 +212,7 @@ var juicebox = (function (site) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    hic.Browser.getCurrentBrowser().loadTrack([{url: file, name: file.name}]);
+                    hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -230,24 +231,7 @@ var juicebox = (function (site) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-
-                paramIdx = url.indexOf("?");
-                path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
-
-                if (url.includes("drive.google.com")) {
-                    var tmp = hic.extractQuery(url);
-                    var id = tmp["id"];
-                    igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
-                        .then(function (json) {
-                            var fileName = json.originalFilename;
-                            loadHicFile(url, fileName);
-                        })
-
-                }
-                else {
-
-                    loadHicFile(url, hic.extractFilename(path));
-                }
+                loadHicFile(url);
             }
 
             $(this).val("");
@@ -256,39 +240,13 @@ var juicebox = (function (site) {
         });
 
         $('#track-load-url').on('change', function (e) {
-            var url,
-                suffix,
-                paramIdx,
-                path;
+            var url;
 
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-
-                paramIdx = url.indexOf("?");
-                path = paramIdx > 0 ? url.substring(0, paramIdx) : url;
-
-                if (url.includes("drive.google.com")) {
-                    var tmp = hic.extractQuery(url);
-                    var id = tmp["id"];
-                    igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
-                        .then(function (json) {
-                            // Create a config object to infer track types
-                            var config = {
-                                url: json.originalFilename
-                            };
-                            igv.inferTrackTypes(config);
-
-                            config.url = url;
-                            config.name = json.originalFilename;
-                            hic.Browser.getCurrentBrowser().loadTrack([config]);
-                        })
-
-                }
-                else {
-                    hic.Browser.getCurrentBrowser().loadTrack([{url: url, name: hic.extractFilename(path)}]);
-                }
+                hic.Browser.getCurrentBrowser().loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -307,7 +265,7 @@ var juicebox = (function (site) {
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+                hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -326,7 +284,7 @@ var juicebox = (function (site) {
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                hic.Browser.getCurrentBrowser().loadTrack([{url: path, name: name}]);
+                hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -517,7 +475,7 @@ var juicebox = (function (site) {
                 $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
                 $modalGoButton: $('#encodeModalGoButton'),
                 browserRetrievalFunction: browserRetrievalFunction,
-                browserLoadFunction: 'loadTrack'
+                browserLoadFunction: 'loadTracks'
             };
 
             encodeTable = new igv.ModalTable(config, encodeDatasource);

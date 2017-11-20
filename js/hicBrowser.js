@@ -142,20 +142,33 @@ var hic = (function (hic) {
 
                 // Load hic file after initial image is loaded -- important
                 if (config.url || config.dataset) {
-                    browser.loadHicFile(config);
+                    browser.loadHicFile(config)
+                        .then(function (dataset) {
+                            if (config.tracks) {
+                                browser.loadTracks(config.tracks);
+                            }
+                        })
                 }
             }
             initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
         }
         else {
             if (config.url || config.dataset) {
-                browser.loadHicFile(config);
+                browser.loadHicFile(config)
+                    .then(function (dataset) {
+
+                        if (config.tracks) {
+                            browser.loadTracks(config.tracks);
+                        }
+                    });
             }
         }
+
 
         return browser;
 
     };
+
 
     hic.Browser = function ($app_container, config) {
 
@@ -187,7 +200,7 @@ var hic = (function (hic) {
         this.layoutController = new hic.LayoutController(this, this.$root);
 
         // prevent user interaction during lengthy data loads
-        this.$user_interaction_shield = $('<div>', { class:'hic-root-prevent-interaction' });
+        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
         this.$root.append(this.$user_interaction_shield);
         this.$user_interaction_shield.hide();
 
@@ -411,109 +424,157 @@ var hic = (function (hic) {
             });
     };
 
-    hic.Browser.prototype.loadTrack = function (trackConfigurations) {
+    hic.Browser.prototype.loadTracks = function (trackConfigurations) {
 
-        var self = this,
-            promises,
-            promises2D;
+        var self = this;
 
-        promises = [];
-        promises2D = [];
+        Promise.all(inferTypes(trackConfigurations))
 
-        trackConfigurations.forEach( function (config) {
-
-            var isLocal = config.url instanceof File,
-                fn = isLocal ? config.url.name : config.url;
-            
-            //  Dropping support for this, never used
-            // if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
-            //     self.loadNormalizationFile(config.url);
-            //     if (isLocal === false) {
-            //         self.normVectorFiles.push(config.url);
-            //     }
-            //     return;
-            // }
+            .then(function (trackConfigurations) {
 
 
-            igv.inferTrackTypes(config);
+                var promises,
+                    promises2D;
 
-            if ("annotation" === config.type && config.color === undefined) {
-                config.color = DEFAULT_ANNOTATION_COLOR;
-            }
+                promises = [];
+                promises2D = [];
 
-            config.height = self.layoutController.track_height;
+                trackConfigurations.forEach(function (config) {
 
-            if (config.type === undefined) {
-                // Assume this is a 2D track
-                promises2D.push(hic.loadTrack2D(config));
-            }
-            else {
-                promises.push(loadIGVTrack(config));   // X track
-                promises.push(loadIGVTrack(config));   // Y track
-            }
+                    if (config) {
 
-        });
+                        var isLocal = config.url instanceof File,
+                            fn = isLocal ? config.url.name : config.url;
 
-        // 1D tracks
-        if (promises.length > 0) {
-            Promise
-                .all(promises)
-                .then(function (tracks) {
-                    var trackXYPairs = [],
-                        index;
+                        if ("annotation" === config.type && config.color === undefined) {
+                            config.color = DEFAULT_ANNOTATION_COLOR;
+                        }
 
-                    for (index = 0; index < tracks.length; index += 2) {
-                        trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
+                        config.height = self.layoutController.track_height;
+
+                        if (config.type === undefined) {
+                            // Assume this is a 2D track
+                            promises2D.push(hic.loadTrack2D(config));
+                        }
+                        else {
+                            promises.push(loadIGVTrack(config));   // X track
+                            promises.push(loadIGVTrack(config));   // Y track
+                        }
                     }
 
-                    self.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
-                })
-                .catch(function (error) {
-                    console.log(error.message);
-                    alert(error.message);
                 });
-        }
 
-        // 2D tracks
-        if (promises2D.length > 0) {
-            Promise.all(promises2D)
-                .then(function (tracks2D) {
-                    self.tracks2D = self.tracks2D.concat(tracks2D);
-                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
+                // 1D tracks
+                if (promises.length > 0) {
+                    Promise
+                        .all(promises)
+                        .then(function (tracks) {
+                            var trackXYPairs = [],
+                                index;
 
-                }).catch(function (error) {
-                console.log(error.message);
-                alert(error.message);
+                            for (index = 0; index < tracks.length; index += 2) {
+                                trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
+                            }
+
+                            self.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
+                        })
+                        .catch(function (error) {
+                            console.log(error.message);
+                            alert(error.message);
+                        });
+                }
+
+                // 2D tracks
+                if (promises2D.length > 0) {
+                    Promise.all(promises2D)
+                        .then(function (tracks2D) {
+                            self.tracks2D = self.tracks2D.concat(tracks2D);
+                            self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
+
+                        }).catch(function (error) {
+                        console.log(error.message);
+                        alert(error.message);
+                    });
+                }
             });
+
+        function inferTypes(trackConfigurations) {
+
+            var promises = [];
+            trackConfigurations.forEach(function (config) {
+
+                var url = config.url;
+
+                if (url.includes("drive.google.com")) {
+                    var tmp = hic.extractQuery(url);
+                    var id = tmp["id"];
+                    var apiKey = hic.apiKey;
+                    var alertPresented = false;
+
+                    if (apiKey) {
+
+                        promises.push(igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+
+                            .then(function (json) {
+                                // Temporarily switch URL to infer tipes
+                                config.url = json.originalFilename
+                                igv.inferTrackTypes(config);
+                                if (config.name === undefined) {
+                                    config.name = json.originalFilename;
+                                }
+                                config.url = url;
+                                return config;
+                            })
+                        );
+                    }
+                    else {
+                        if (!alertPresented) {
+                            igv.presentAlert("Goole Drive URLs are not supported by this installation of Juicebox.  A Google API key must be supplied");
+                            alertPresented = true;
+                        }
+                    }
+
+                }
+                else {
+                    igv.inferTrackTypes(config);
+                    if (!config.name) {
+                        config.name = hic.extractFilename(config.url);
+                    }
+                    promises.push(Promise.resolve(config));
+                }
+
+            });
+
+            return promises;
         }
 
-    };
+        function loadIGVTrack(config) {
 
-    function loadIGVTrack(config) {
+            return new Promise(function (fulfill, reject) {
 
-        return new Promise(function (fulfill, reject) {
+                var newTrack;
 
-            var newTrack;
+                newTrack = igv.createTrack(config);
 
-            newTrack = igv.createTrack(config);
+                if (undefined === newTrack) {
+                    reject(new Error('Could not create track'));
+                } else if (typeof newTrack.getFileHeader === "function") {
 
-            if (undefined === newTrack) {
-                reject(new Error('Could not create track'));
-            } else if (typeof newTrack.getFileHeader === "function") {
+                    newTrack
+                        .getFileHeader()
+                        .then(function (header) {
+                            fulfill(newTrack);
+                        })
+                        .catch(reject);
 
-                newTrack
-                    .getFileHeader()
-                    .then(function (header) {
-                        fulfill(newTrack);
-                    })
-                    .catch(reject);
+                } else {
+                    fulfill(newTrack);
+                }
+            });
 
-            } else {
-                fulfill(newTrack);
-            }
-        });
-
+        }
     }
+
 
     hic.Browser.prototype.loadNormalizationFile = function (url) {
 
@@ -560,12 +621,17 @@ var hic = (function (hic) {
         xy.y.repaint();
     };
 
+
+    /**
+     * Load a .hic file
+     * @return a promise for a dataset
+     * @param config
+     */
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader,
-            queryIdx,
-            parts;
+            hicReader, queryIdx, parts, tmp, id, url,
+            apiKey = hic.apiKey;
 
 
         if (!config.url && !config.dataset) {
@@ -574,94 +640,63 @@ var hic = (function (hic) {
         }
 
 
+        self.layoutController.removeAllTrackXYPairs();
+
+        self.contactMatrixView.clearCaches();
+        self.tracks2D = [];
+        self.tracks = [];
+        if (!self.config.initialImage) {
+            self.contactMatrixView.startSpinner();
+        }
+
 
         if (config.url) {
-
             this.url = config.url;
-
-            if (config.url instanceof File) {
-                this.url = config.url;
-            } else {
+            if (!config.url instanceof File) {
                 queryIdx = config.url.indexOf("?");
                 if (queryIdx > 0) {
-
                     parts = parseUri(config.url);
                     if (parts.queryKey) {
-                        _.each(parts.queryKey, function (value, key) {
-                            config[key] = value;
-                        });
+                        Object.assign(config, parts.queryKey);
                     }
-                }
-                else {
-                    this.url = config.url;
                 }
             }
         }
 
-        this.name = config.name;
-
-        this.$contactMaplabel.text(config.name);
-
-        this.layoutController.removeAllTrackXYPairs();
-
-        this.contactMatrixView.clearCaches();
-
-        if (!this.config.initialImage) {
-            this.contactMatrixView.startSpinner();
-        }
-
-        this.tracks2D = [];
-
-        if (config.dataset) {
-            setDataset(config.dataset);
+        if (config.url && config.url.includes("drive.google.com") && config.name === undefined && apiKey) {
+            tmp = hic.extractQuery(config.url);
+            id = tmp["id"];
+            return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                .then(function (json) {
+                    config.name = json.originalFilename;
+                    return loadDataset();
+                })
         }
         else {
-
-            hicReader = new hic.HiCReader(config);
-
-            hicReader.loadDataset(config)
-
-                .then(function (dataset) {
-
-                    self.dataset = dataset;
-
-                    if (config.normVectorFiles) {
-
-                        var promises = [];
-
-                        config.normVectorFiles.forEach(function (f) {
-                            promises.push(dataset.readNormalizationVectorFile(f));
-                        });
-
-                        self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
-
-                        Promise.all(promises)
-
-                            .then(function (ignore) {
-
-                                setDataset(dataset);
-
-                                self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
-
-                            })
-                            .catch(function (error) {
-                                throw new Error("Error");
-                            });
-                    }
-                    else {
-                        setDataset(dataset);
-                    }
-
-                })
-                .catch(function (error) {
-                    // Error getting dataset
-                    self.contactMatrixView.stopSpinner();
-                    console.log(error);
-                });
+            return loadDataset();
         }
 
-        function setDataset(dataset) {
+        function loadDataset() {
 
+            self.$contactMaplabel.text(config.name);
+            self.name = config.name;
+
+            if (config.dataset) {
+                return Promise.resolve(setDataset(config.dataset));
+            }
+            else {
+
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config)
+                    .then(function (dataset) {
+                        return setDataset(dataset);
+                    })
+            }
+        }
+
+
+        function setDataset(dataset) {
+            
             var previousGenomeId = self.genome ? self.genome.id : undefined;
 
             self.dataset = dataset;
@@ -686,10 +721,6 @@ var hic = (function (hic) {
 
             if (config.colorScale) {
                 self.contactMatrixView.setColorScale(config.colorScale, self.state);
-            }
-
-            if (config.tracks) {
-                self.loadTrack(config.tracks);
             }
 
             if (dataset.hicReader.normVectorIndex) {
@@ -731,7 +762,10 @@ var hic = (function (hic) {
             $('.hic-root').removeClass('hic-root-selected');
             hic.Browser.setCurrentBrowser(undefined);
 
+            return dataset;
+
         }
+
 
         stripUriParameters = function () {
 
@@ -1360,7 +1394,7 @@ var hic = (function (hic) {
 
         var queryString, nviString, trackString;
 
-        if(!this.url) return "";   // URL is required
+        if (!this.url) return "";   // URL is required
 
         queryString = [];
 
@@ -1639,7 +1673,6 @@ var hic = (function (hic) {
             return s;
         }
     }
-
 
 
     return hic;

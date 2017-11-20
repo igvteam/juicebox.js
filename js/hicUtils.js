@@ -26,17 +26,21 @@
  */
 var hic = (function (hic) {
 
-    hic.extractFilename = function (urlString) {
+    hic.extractFilename = function (urlOrFile) {
 
-        var idx = urlString.lastIndexOf("/");
-
-        if (idx > 0) {
-            return urlString.substring(idx + 1);
+        if (igv.isFilePath(urlOrFile)) {
+            return urlOrFile.name;
         }
         else {
-            return urlString;
-        }
+            var idx = urlOrFile.lastIndexOf("/");
 
+            if (idx > 0) {
+                return urlOrFile.substring(idx + 1);
+            }
+            else {
+                return urlOrFile;
+            }
+        }
     };
 
     hic.igvSupports = function (path) {
