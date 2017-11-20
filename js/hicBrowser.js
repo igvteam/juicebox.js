@@ -691,6 +691,10 @@ var hic = (function (hic) {
                     .then(function (dataset) {
                         return setDataset(dataset);
                     })
+                    .catch(function (error) {
+                        self.contactMatrixView.stopSpinner();
+                        igv.presentAlert("Error loading hic file: " + error);
+                    })
             }
         }
 

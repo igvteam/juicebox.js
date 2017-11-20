@@ -185,8 +185,10 @@ var juicebox = (function (site) {
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
-
-                loadHicFile(url, $selected.text());
+                loadHicFile(url, $selected.text())
+                    .then(function (dataset) {
+                        console.log("hic file loaded")
+                    });
             }
 
             $('#hic-contact-map-select-modal').modal('hide');
@@ -210,7 +212,10 @@ var juicebox = (function (site) {
                 suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
                 if ('hic' === suffix) {
-                    loadHicFile(file, file.name);
+                    loadHicFile(file, file.name)
+                        .then(function (dataset) {
+                            console.log("hic file loaded")
+                        });
                 } else {
                     hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
@@ -231,7 +236,10 @@ var juicebox = (function (site) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                loadHicFile(url);
+                loadHicFile(url)
+                    .then(function (dataset) {
+                        console.log("hic file loaded")
+                    });
             }
 
             $(this).val("");
@@ -436,7 +444,7 @@ var juicebox = (function (site) {
             synchState = hic.allBrowsers[0].getSyncState();
         }
 
-        hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+        return hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
     }
 
     function createEncodeTable(browserRetrievalFunction, genomeId) {
