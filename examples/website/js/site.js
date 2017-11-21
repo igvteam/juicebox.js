@@ -29,13 +29,12 @@
  */
 var juicebox = (function (site) {
     var apiKey,
-        encodeTable;
-
+        encodeTable,
+        lastGenomeId;
 
     site.init = function ($container, config) {
 
         var genomeChangeListener,
-            lastGenomeId,
             $appContainer;
 
         var query,
@@ -49,7 +48,7 @@ var juicebox = (function (site) {
 
                 if (lastGenomeId !== genomeId) {
 
-                    lastGenomeId = genomeId;
+                    // lastGenomeId = genomeId;
 
                     if (config.trackMenu) {
                         var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
@@ -65,7 +64,7 @@ var juicebox = (function (site) {
                         return hic.Browser.getCurrentBrowser();
                     };
 
-                    createEncodeTable(browserRetrievalFunction, event.data);
+                    createEncodeTable(browserRetrievalFunction, genomeId);
                 }
             }
         };
@@ -456,8 +455,7 @@ var juicebox = (function (site) {
             encodeDatasource,
             browser;
 
-        browser = browserRetrievalFunction();
-        if (encodeTable && genomeId === browser.genome.id) {
+        if (encodeTable && genomeId === lastGenomeId) {
             // do nothing
         } else {
 
@@ -491,6 +489,9 @@ var juicebox = (function (site) {
             encodeTable = new igv.ModalTable(config, encodeDatasource);
 
             encodeTable.loadData();
+
+            // TODO: Do NOT update lastGenomeId if there was an error loading data
+            lastGenomeId = genomeId;
 
         }
 
