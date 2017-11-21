@@ -6,7 +6,7 @@ juicebox.js is an embeddable interactive contact map viewer for .hic files writt
 It is based on the desktop Juicebox visualization application.  A public
 instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juicebox).
 
-Developer documentation can be found [here](docs/developers)
+Developer documentation can be found [**here**](docs/developers)
 
 
 
