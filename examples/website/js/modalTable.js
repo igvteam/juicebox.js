@@ -30,6 +30,13 @@
 
 var igv = (function (igv) {
 
+    var lut =
+        {
+            mm10:'mm10',
+            hg19:'hg19',
+            hg38:'GRCh38'
+        };
+
     igv.ModalTable = function (config, datasource) {
 
         this.config = config;
@@ -90,16 +97,17 @@ var igv = (function (igv) {
 
         var self = this,
             browser,
-            $hic_track_dropdown;
+            $hic_track_dropdown,
+            assembly;
 
         $hic_track_dropdown = $('#hic-track-dropdown');
 
         browser = this.config.browserRetrievalFunction();
-
+        assembly = lut[ browser.genome.id ] || browser.genome.id;
         this.$spinner.show();
         $hic_track_dropdown.prop('disabled', true);
         this.datasource
-            .retrieveData(browser.genome.id)
+            .retrieveData(assembly)
             .then(function (data) {
                 console.log('modaltable. then. received data ' + _.size(data));
                 self.datasource.data = data;

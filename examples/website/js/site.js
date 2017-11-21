@@ -215,7 +215,8 @@ var juicebox = (function (site) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name)
                         .then(function (dataset) {
-                            console.log("hic file loaded")
+                            console.log("hic file loaded");
+                            hic.Browser.getCurrentBrowser().isLoadingHICFile = false;
                         });
                 } else {
                     hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
@@ -239,7 +240,8 @@ var juicebox = (function (site) {
                 url = $(this).val();
                 loadHicFile(url)
                     .then(function (dataset) {
-                        console.log("hic file loaded")
+                        console.log("hic file loaded");
+                        hic.Browser.getCurrentBrowser().isLoadingHICFile = false;
                     });
             }
 
