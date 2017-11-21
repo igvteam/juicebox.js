@@ -459,6 +459,8 @@ var juicebox = (function (site) {
             // do nothing
         } else {
 
+            lastGenomeId = genomeId;
+
             if (encodeTable) {
                 discardEncodeTable();
             }
@@ -489,9 +491,6 @@ var juicebox = (function (site) {
             encodeTable = new igv.ModalTable(config, encodeDatasource);
 
             encodeTable.loadData();
-
-            // TODO: Do NOT update lastGenomeId if there was an error loading data
-            lastGenomeId = genomeId;
 
         }
 
