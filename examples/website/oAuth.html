@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Juicebox</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
+
+    <!-- Shims for legacy browsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.35.3/es6-shim.js"></script>
+
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Bootstrap-Select Plugin CSS -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/v/dt/dt-1.10.16/sc-1.4.3/datatables.min.css"/>
+
+    <!-- IGV CSS -->
+    <link rel="stylesheet" href="css/igv.css">
+
+    <!-- site CSS -->
+    <link rel="stylesheet" href="css/site.css">
+
+    <!-- Juicebox CSS-->
+    <link rel="stylesheet" href="css/juicebox.css">
+
+    <!-- IGV JS -->
+    <script src="js/igv.js"></script>
+
+    <script src="js/juicebox.min.js"></script>
+
+    <script src="https://apis.google.com/js/platform.js"></script>
+
+</head>
+<body>
+
+<div style="margin:20px">
+
+
+    <div id="signInButton" style="display:none;" class="g-signin2" data-onsuccess="handleSignInClick"></div>
+
+    <div style="margin-top:30px">
+    <span style="margin-right: 30px">
+        <button id="shareButton" onclick="share()">Share</button>
+        <input id="shareText" type="text" style="width:600px;"/>
+    </span>
+    </div>
+
+    <div style="margin-top: 20px">
+        <span style="margin-right: 10px">Protected map files (.hic).  Click to load after signing in</span>
+        <select id="mapSelect" name="select" onchange="mapSelect()"><!--Supplement an id here instead of using 'name'-->
+            <option value="none">Select</option>
+            <option value="https://drive.google.com/open?id=1mTOpaaqtlDw4WKQywpjykI49RH4usN-p">HCT-116 Untreated
+            </option>
+            <option value="https://drive.google.com/open?id=1U3jILxkRH4EC_TzJ4H8jbU6o36eUfMoa">HCT-116
+                Cohesin Loss
+            </option>
+        </select>
+    </div>
+
+    <div style="margin-top: 20px" id="trackSelectionDiv" onchange="trackSelect()">
+        <span style="margin-right: 10px">Protected track files (.bw).  Click to load after signing in</span>
+        <select id="trackSelect" name="select"> <!--Supplement an id here instead of using 'name'-->
+            <option value="none">Select</option>
+            <option value="https://drive.google.com/open?id=1-QSVDUEi7LXTyp5edV5buuDx4arLiscU">CTCF Untreated</option>
+            <option value="https://drive.google.com/open?id=1Pw7D18vJ7V2h5idDefVvx1TIZKmnBb3W">CTCF Cohesin Loss
+            </option>
+
+        </select>
+
+
+    </div>
+</div>
+
+<div id="juicebox-container" style="margin:20px">
+    <!-- Juicebox app will appear here -->
+</div>
+
+
+<script type="text/javascript">
+
+
+    var scope =
+            "https://www.googleapis.com/auth/cloud-platform " +
+            "https://www.googleapis.com/auth/genomics " +
+            "https://www.googleapis.com/auth/devstorage.read_only " +
+            "https://www.googleapis.com/auth/drive.readonly " +
+            "https://www.googleapis.com/auth/userinfo.profile";
+    var client_id = "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com";
+    var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        gapi.load('client:auth2', initClient);
+
+        function initClient() {
+            gapi.client.init({
+                'clientId': client_id,
+                'scope': scope
+
+            }).then(function () {
+
+                var appContainer, config, query, googleAuth;
+                ;
+
+                document.getElementById("signInButton").style.display = "inline-block";
+
+                googleAuth = gapi.auth2.getAuthInstance();
+
+                googleAuth.isSignedIn.listen(updateSigninStatus);
+
+                var user = googleAuth.currentUser.get();
+                if (user) {
+                    var accessToken = user.getAuthResponse().access_token;
+                    if (accessToken) {
+                        igv.setGoogleOauthToken(user.getAuthResponse().access_token);
+                    }
+                }
+
+
+                appContainer = document.getElementById("juicebox-container");
+                config = {
+                    apiKey: apiKey     // Neccessary for google drive api
+                };
+
+
+                query = hic.extractQuery(window.location.href);
+
+                if (query && query.hasOwnProperty("juiceboxURL")) {
+
+                    expandURL(query["juiceboxURL"])
+
+                            .then(function (jbURL) {
+
+                                googleAuth.signIn()
+                                        .then(function (foo) {
+                                            var accessToken = user.getAuthResponse().access_token;
+                                            if (accessToken) {
+                                                igv.setGoogleOauthToken(user.getAuthResponse().access_token);
+                                            }
+                                            window.juiceboxBrowser = createBrowser(appContainer, jbURL);
+                                        });
+                            })
+                }
+                else {
+                    window.juiceboxBrowser = hic.createBrowser(appContainer, config);
+                }
+
+            });
+        }
+    });
+
+    function createBrowser(appContainer, q) {
+
+        var parts, browser, i;
+
+        if (q.startsWith("%7B")) {
+            q = decodeURIComponent(q);
+        }
+
+        q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+        parts = q.split("},{");
+        return hic.createBrowser(appContainer, {queryString: decodeURIComponent(parts[0])});
+    }
+
+
+    function mapSelect() {
+        var select = document.getElementById("mapSelect");
+        if (select.value !== "none") {
+            juiceboxBrowser.loadHicFile({url: select.value});
+        }
+    }
+
+    function trackSelect() {
+        var select = document.getElementById("mapSelect");
+        if (select.value !== "none") {
+            juiceboxBrowser.loadTracks({url: select.value});
+        }
+    }
+
+    function handleSignInClick(event) {
+
+    }
+
+    function updateSigninStatus(isSignedIn) {
+
+        var user = gapi.auth2.getAuthInstance().currentUser.get();
+        igv.setGoogleOauthToken(user.getAuthResponse().access_token);
+
+    }
+
+    function signOut() {
+        var auth2 = gapi.auth2.getAuthInstance();
+        auth2.signOut().then(function () {
+            igv.setGoogleOauthToken(undefined);
+        });
+    }
+
+    function share(e) {
+
+        var queryString,
+                href,
+                idx;
+
+        href = new String(window.location.href);
+
+        // This js file is specific to this page, and we know we have only juicebox parameters.
+        // Strip href of current parameters, if any
+        idx = href.indexOf("?");
+        if (idx > 0) href = href.substring(0, idx);
+
+        shortJuiceboxURL(href)
+                .then(function (jbUrl) {
+                    document.getElementById("shareText").value = jbUrl;
+
+                });
+    }
+
+
+    function shortJuiceboxURL(base) {
+
+
+        var endpoint, body, url, queryString;
+
+        url = base + "?juicebox=";
+
+        queryString = "{";
+        hic.allBrowsers.forEach(function (browser, index) {
+            queryString += encodeURIComponent(browser.getQueryString());
+            queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+        });
+
+        url = url + encodeURIComponent(queryString);
+
+        return shortenURL(url)
+
+                .then(function (shortURL) {
+
+
+                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
+                    // the expanded url (after a redirect) being over the browser limit.
+
+                    var idx, href, url;
+
+                    href = window.location.href;
+                    idx = href.indexOf("?");
+                    if (idx > 0) {
+                        href = href.substr(0, idx);
+                    }
+
+
+                    url = href + "?juiceboxURL=" + shortURL;
+
+                    return url;
+
+                })
+
+
+    }
+
+    function shortenURL(url) {
+
+        if (undefined === apiKey) {
+            return Promise.resolve(url);
+        }
+        else {
+            var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
+
+            return igv.xhr.loadJson(endpoint,
+                    {
+                        sendData: JSON.stringify({"longUrl": url}),
+                        contentType: "application/json"
+                    })
+                    .then(function (json) {
+                        return json.id;
+                    })
+        }
+    }
+
+    function expandURL(url) {
+
+        var endpoint;
+
+        if (apiKey && url.includes("goo.gl")) {
+
+            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
+
+            return igv.xhr.loadJson(endpoint,
+                    {
+                        contentType: "application/json"
+                    })
+                    .then(function (json) {
+                        return json.longUrl;
+                    })
+
+        }
+        else {
+            // Not a google url or no api key
+            return Promise.resolve(url);
+        }
+
+    }
+
+
+</script>
+
+
+</body>
+</html>

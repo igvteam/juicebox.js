@@ -24482,7 +24482,7 @@ var igv = (function (igv) {
 
         this.bamPath = config.url;
 
-        this.isDataUri = this.bamPath.startsWith("data:");
+        this.isDataUri = config.url && config.url.startsWith("data:");
 
         igv.BamUtils.setReaderDefaults(this, config);
 
@@ -24622,7 +24622,7 @@ var igv = (function (igv) {
         this.alignmentContainer = undefined;
         this.maxRows = config.maxRows || 1000;
 
-        if (config.url.startsWith("data:")) {
+        if (config.url && config.url.startsWith("data:")) {
             this.config.indexed = false;
         }
 
@@ -32236,7 +32236,7 @@ var igv = (function (igv) {
             return Promise.resolve(self.index);
         }
 
-        if (isIndexed()) {
+        if (self.indexURL || self.indexed) {
 
             return self.loadIndex()
                 .then(function (indexOrUndefined) {
@@ -32260,22 +32260,7 @@ var igv = (function (igv) {
             self.indexed = false;
             return Promise.resolve(undefined);
         }
-
-        function isIndexed() {
-            if(self.config.indexURL || self.config.indexed) {
-                return true;
-            }
-            else {
-                // Assusme vcf.gz files are tabix indexed (they almost always are).
-                var idx = self.config.url.indexOf("?"),
-                    path = idx > 0 ? self.config.url.substring(0, idx) : self.config.url;
-                return path.endsWith(".vcf.gz");
-
-            }
-        }
     };
-
-
 
     igv.FeatureFileReader.prototype.loadFeaturesFromDataURI = function () {
         var bytes, inflate, plain, features,
@@ -36860,9 +36845,14 @@ var igv = (function (igv) {
                 url = options.url,
                 body = options.body,
                 decode = options.decode,
-                apiKey = oauth.google.apiKey,
+                apiKey = (igv.oauth.google.apiKey),
                 paramSeparator = "?",
                 fields = options.fields;  // Partial response
+
+            if (!acToken && typeof oauth !== "undefined") {
+                // Check legacy variable
+                apiKey = oauth.google.access_token
+            }
 
             if (apiKey) {
                 url = url + paramSeparator + "key=" + apiKey;
@@ -37070,7 +37060,12 @@ var igv = (function (igv) {
     function ga4ghHeaders() {
 
         var headers = {},
+            acToken = igv.oauth.google.access_token;
+
+        if (!acToken && typeof oauth !== "undefined") {
+            // Check legacy variable
             acToken = oauth.google.access_token;
+        }
 
         headers["Cache-Control"] = "no-cache";
         if (acToken) {
@@ -37333,7 +37328,11 @@ var igv = (function (igv) {
             {
                 headers["Cache-Control"] = "no-cache";
 
-                var acToken = oauth.google.access_token;
+                var acToken = igv.oauth.google.access_token;
+                if (!acToken && typeof oauth !== "undefined") {
+                    // Check legacy variable
+                    acToken = oauth.google.access_token;
+                }
                 if (acToken && !headers.hasOwnProperty("Authorization")) {
                     headers["Authorization"] = "Bearer " + acToken;
                 }
@@ -37345,7 +37344,7 @@ var igv = (function (igv) {
 
         addApiKey: function (url) {
 
-            var apiKey = oauth.google.apiKey,
+            var apiKey = igv.oauth.google.apiKey,
                 paramSeparator = url.includes("?") ? "&" : "?";
 
             if (apiKey !== undefined && !url.includes("key=")) {
@@ -41096,12 +41095,22 @@ var igv = (function (igv) {
 
     };
 
+    //@deprecated -- user setGoogleApiKey
     igv.setApiKey = function (key) {
-        oauth.google.apiKey = key;
+        igv.oauth.google.apiKey = key;
     }
 
+    igv.setGoogleApiKey = function (key) {
+        igv.oauth.google.apiKey = key;
+    }
+
+    //@deprecated -- use setGoogleOauthToken
     igv.setOauthToken = function (token) {
-        oauth.google.access_token = token;
+        igv.oauth.google.access_token = token;
+    }
+
+    igv.setGoogleOauthToken = function (token) {
+        igv.oauth.google.access_token = token;
     }
 
     function setTrackOrder(conf) {
@@ -42946,7 +42955,11 @@ var igv = (function (igv) {
         {
             headers["Cache-Control"] = "no-cache";
 
-            var acToken = oauth.google.access_token;       // TODO -- generalize
+            var acToken = igv.oauth.google.access_token;
+            if (!acToken && typeof oauth !== "undefined") {
+                // Check legacy variable
+                acToken = oauth.google.access_token;
+            }
             if (acToken && !headers.hasOwnProperty("Authorization")) {
                 headers["Authorization"] = "Bearer " + acToken;
             }
@@ -42997,10 +43010,10 @@ var igv = (function (igv) {
     };
 
     /**
-     * Crude test for google urls.  For optimization, nothing bad happens if this is wrong
+     * Crude test for google urls.
      */
     function isGoogleURL(url) {
-        return url.includes("googleapis");
+        return url.includes("googleapis")  && !url.includes("urlshortener");
     }
 
 // Increments an anonymous usage count.  Count is anonymous, needed for our continued funding.  Please don't delete
@@ -44014,113 +44027,20 @@ var igv = (function (igv) {
 /**
  * OAuth object provided for example pages.
  */
-var oauth = (function (oauth) {
-
-    // Define singleton object for google oauth
-
-    if (!oauth.google) {
-
-        var OAUTHURL = 'https://accounts.google.com/o/oauth2/auth?';
-        var VALIDURL = 'https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=';
-        var SCOPE = 'https://www.googleapis.com/auth/genomics';
-        var CLIENTID = '661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com';
-        var REDIRECT = 'http://snorlax.ucsd.edu:8659/static/emptyPage.html'; //'http://localhost:5000/static/emptyPage.html'
-        var LOGOUT = 'http://accounts.google.com/Logout';
-        var TYPE = 'token';
-        var _url = OAUTHURL +
-            "scope=https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/genomics https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email&" +
-            "state=%2Fprofile&" +
-            "redirect_uri=http%3A%2F%2Fsnorlax.ucsd.edu%3A8659%2Fstatic%2FemptyPage.html&" +
-            "response_type=token&" +
-            "client_id=661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com";
-
-        var tokenType;
-        var expiresIn;
-        var user;
-        var loggedIn = false;
-
-        oauth.google = {
-
-            login: function (callback) {
-                var win = window.open(_url, "windowname1", 'width=800, height=600');
-
-                var pollTimer = window.setInterval(function () {
-                    try {
-                        console.log(win.document.URL);
-                        if (win.document.URL.indexOf(REDIRECT) != -1) {
-                            window.clearInterval(pollTimer);
-                            var url = win.document.URL;
-                            oauth.google.access_token = oauth.google.gup(url, 'access_token');
-                            tokenType = oauth.google.gup(url, 'token_type');
-                            expiresIn = oauth.google.gup(url, 'expires_in');
-                            win.close();
-
-                            oauth.google.validateToken(oauth.google.access_token);
-
-                            if(callback) {
-                                callback();
-                            }
-                        }
-                    } catch (e) {
-                    }
-                }, 500);
-            },
-
-            validateToken: function (token) {
-                $.ajax({
-
-                    url: VALIDURL + token,
-                    data: null,
-                    success: function (responseText) {
-                        oauth.google.getUserInfo();
-                        loggedIn = true;
-                        //$('#loginText').hide();
-                        //$('#logoutText').show();
-                    },
-                    dataType: "jsonp"
-                });
-            },
-
-            getUserInfo: function () {
-                $.ajax({
-                    url: 'https://www.googleapis.com/oauth2/v1/userinfo?access_token=' + oauth.google.access_token,
-                    data: null,
-                    success: function (resp) {
-                        user = resp;
-                        console.log(user);
-                        //$('#uName').text('Welcome ' + user.name);
-                        //$('#imgHolder').attr('src', user.picture);
-                    },
-                    dataType: "jsonp"
-                });
-            },
-
-            //credits: http://www.netlobo.com/url_query_string_javascript.html
-            gup: function (url, name) {
-                name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-                var regexS = "[\\#&]" + name + "=([^&#]*)";
-                var regex = new RegExp(regexS);
-                var results = regex.exec(url);
-                if (results == null)
-                    return "";
-                else
-                    return results[1];
-            }
-        }
-    }
-
-    return oauth;
-})(oauth || {});
-
 
 var igv = (function (igv) {
 
-    igv.oauth = oauth;
+
+    igv.oauth = {
+        google: {}
+    };
 
 
     return igv;
+})
+(igv || {});
 
-})(igv || {});
+
 
 
 

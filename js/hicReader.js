@@ -80,70 +80,66 @@ var hic = (function (hic) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
 
-            igv.xhr.loadArrayBuffer(self.path,
-                {
-                    headers: self.config.headers,
-                    range: {start: 0, size: 64000},                     // TODO -- a guess, what if not enough ?
-                    withCredentials: self.config.withCredentials
-                }).then(function (data) {
+        return igv.xhr.loadArrayBuffer(self.path,
+            {
+                headers: self.config.headers,
+                range: {start: 0, size: 64000},                     // TODO -- a guess, what if not enough ?
+                withCredentials: self.config.withCredentials
+            }).then(function (data) {
 
-                if (!data) {
-                    fulfill(null);
-                    return;
+            if (!data) {
+                fulfill(null);
+                return;
+            }
+
+            var binaryParser = new igv.BinaryParser(new DataView(data));
+
+            self.magic = binaryParser.getString();
+            self.version = binaryParser.getInt();
+            self.masterIndexPos = binaryParser.getLong();
+
+            dataset.genomeId = binaryParser.getString();
+            dataset.attributes = {};
+            var nAttributes = binaryParser.getInt();
+            while (nAttributes-- > 0) {
+                dataset.attributes[binaryParser.getString()] = binaryParser.getString();
+            }
+
+            dataset.chromosomes = [];
+            var nChrs = binaryParser.getInt(), i = 0;
+            while (nChrs-- > 0) {
+                dataset.chromosomes.push({index: i, name: binaryParser.getString(), size: binaryParser.getInt()});
+                i++;
+            }
+            self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
+
+            dataset.bpResolutions = [];
+            var nBpResolutions = binaryParser.getInt();
+            while (nBpResolutions-- > 0) {
+                dataset.bpResolutions.push(binaryParser.getInt());
+            }
+
+            if (this.loadFragData) {
+                dataset.fragResolutions = [];
+                var nFragResolutions = binaryParser.getInt();
+                while (nFragResolutions-- > 0) {
+                    dataset.fragResolutions.push(binaryParser.getInt());
                 }
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
-
-                self.magic = binaryParser.getString();
-                self.version = binaryParser.getInt();
-                self.masterIndexPos = binaryParser.getLong();
-
-                dataset.genomeId = binaryParser.getString();
-                dataset.attributes = {};
-                var nAttributes = binaryParser.getInt();
-                while (nAttributes-- > 0) {
-                    dataset.attributes[binaryParser.getString()] = binaryParser.getString();
-                }
-
-                dataset.chromosomes = [];
-                var nChrs = binaryParser.getInt(), i = 0;
-                while (nChrs-- > 0) {
-                    dataset.chromosomes.push({index: i, name: binaryParser.getString(), size: binaryParser.getInt()});
-                    i++;
-                }
-                self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
-
-                dataset.bpResolutions = [];
-                var nBpResolutions = binaryParser.getInt();
-                while (nBpResolutions-- > 0) {
-                    dataset.bpResolutions.push(binaryParser.getInt());
-                }
-
-                if (this.loadFragData) {
-                    dataset.fragResolutions = [];
-                    var nFragResolutions = binaryParser.getInt();
-                    while (nFragResolutions-- > 0) {
-                        dataset.fragResolutions.push(binaryParser.getInt());
-                    }
-
-                    if (nFragResolutions > 0) {
-                        dataset.sites = [];
-                        var nSites = binaryParser.getInt();
-                        while (nSites-- > 0) {
-                            dataset.sites.push(binaryParser.getInt());
-                        }
+                if (nFragResolutions > 0) {
+                    dataset.sites = [];
+                    var nSites = binaryParser.getInt();
+                    while (nSites-- > 0) {
+                        dataset.sites.push(binaryParser.getInt());
                     }
                 }
+            }
 
-                fulfill(self);
+            return self;
 
-            }).catch(function (error) {
-                reject(error);
-            });
+        })
 
-        });
     };
 
     hic.HiCReader.prototype.readFooter = function (dataset) {

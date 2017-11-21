@@ -679,6 +679,9 @@ var hic = (function (hic) {
                 .then(function (json) {
                     config.name = json.originalFilename;
                     return loadDataset();
+                }).catch(function (error) {
+                    self.contactMatrixView.stopSpinner();
+                    igv.presentAlert(error);
                 })
         }
         else {
@@ -710,7 +713,7 @@ var hic = (function (hic) {
 
 
         function setDataset(dataset) {
-            
+
             var previousGenomeId = self.genome ? self.genome.id : undefined;
 
             self.dataset = dataset;
