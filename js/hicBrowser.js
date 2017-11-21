@@ -464,8 +464,7 @@ var hic = (function (hic) {
                             promises2D.push(hic.loadTrack2D(config));
                         }
                         else {
-                            promises.push(loadIGVTrack(config));   // X track
-                            promises.push(loadIGVTrack(config));   // Y track
+                            promises.push(loadIGVTrack(config));
                         }
                     }
 
@@ -476,14 +475,14 @@ var hic = (function (hic) {
                     Promise
                         .all(promises)
                         .then(function (tracks) {
-                            var trackXYPairs = [],
-                                index;
+                            var trackXYPairs = [];
 
-                            for (index = 0; index < tracks.length; index += 2) {
-                                trackXYPairs.push({x: tracks[index], y: tracks[index + 1]});
-                            }
+                            tracks.forEach(function (track) {
+                                trackXYPairs.push({x: track, y: track});
+                            });
 
                             self.eventBus.post(hic.Event("TrackLoad", {trackXYPairs: trackXYPairs}));
+
                         })
                         .catch(function (error) {
                             console.log(error.message);
@@ -557,28 +556,25 @@ var hic = (function (hic) {
 
         function loadIGVTrack(config) {
 
-            return new Promise(function (fulfill, reject) {
+            var newTrack;
 
-                var newTrack;
+            newTrack = igv.createTrack(config);
 
-                newTrack = igv.createTrack(config);
 
-                if (undefined === newTrack) {
-                    reject(new Error('Could not create track'));
-                } else if (typeof newTrack.getFileHeader === "function") {
+            if (undefined === newTrack) {
+                throw new Error('Could not create track');
+                // } else if (typeof newTrack.getFileHeader === "function") {
+                //
+                //     return newTrack
+                //         .getFileHeader()
+                //         .then(function (header) {
+                //             return newTrack;
+                //         })
 
-                    newTrack
-                        .getFileHeader()
-                        .then(function (header) {
-                            fulfill(newTrack);
-                        })
-                        .catch(reject);
 
-                } else {
-                    fulfill(newTrack);
-                }
-            });
-
+            } else {
+                return Promise.resolve(newTrack);
+            }
         }
     }
 
@@ -608,24 +604,57 @@ var hic = (function (hic) {
 
         var self = this;
 
-        _.each(this.trackRenderers, function (xyTrackRenderPair, index) {
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
 
-            _.each(xyTrackRenderPair, function (trackRenderer) {
+            sync(xyTrackRenderPair.x, index);
+            sync(xyTrackRenderPair.y, index);
 
-                trackRenderer.$viewport.css({order: index});
-
-                if (true === doSyncCanvas) {
-                    trackRenderer.syncCanvas();
-                }
-
-                self.renderTrackXY(xyTrackRenderPair);
-            });
+            self.renderTrackXY(xyTrackRenderPair);
         });
+
+        function sync(trackRenderer, index) {
+
+            trackRenderer.$viewport.css({order: index});
+
+            if (true === doSyncCanvas) {
+                trackRenderer.syncCanvas();
+            }
+        }
     };
 
+    /**
+     * Render the XY pair of tracks.  We wait on X to complete before painting Y to avoid loading data for
+     * the same region twice.   If another paint request arrives for XY while a paint is in progress it is, in
+     * effect, "queued" and run after the current paint completes.   We don't keep an actual queue, as only
+     * the last paint request matters.  Without this "queue" the track can get out of sync with the map when
+     * rapidly panning.
+     *
+     * @param xy
+     */
     hic.Browser.prototype.renderTrackXY = function (xy) {
-        xy.x.repaint();
-        xy.y.repaint();
+
+        var self = this;
+
+        if (xy.isPainting) {
+            xy.repaintQueued = true;
+            return;
+        }
+
+        xy.isPainting = true;
+        xy.x.repaint()
+            .then(function (ignore) {
+                xy.y.repaint()
+                    .then(function (ignore) {
+
+                        xy.isPainting = false;
+
+                        if(xy.repaintQueued) {
+                            xy.repaintQueued = false;
+                            self.renderTrackXY(xy);
+                        }
+                    });
+            });
+
     };
 
 
