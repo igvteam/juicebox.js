@@ -6,8 +6,9 @@ juicebox.js is an embeddable interactive contact map viewer for .hic files writt
 It is based on the desktop Juicebox visualization application.  A public
 instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juicebox).
 
-Instructions for embedding a juicebox.js instance can be found [here](docs/embedding).  See
-the examples/site folder, described [here](docs/site) for a prototype juicebox web page.
+Instructions for embedding a juicebox.js instance can be found [here](docs/embedding).
+
+See the examples/site folder, described [here](docs/site) for a prototype juicebox web page.
 
 
 
@@ -36,9 +37,8 @@ Heatmap pixels are colored from 0 (white) to {Color Scale} red. You can
 adjust {Color scale} by entering a value in the text box or
 using the - / + buttons.
 
-_Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus
-the counts per bin.   This necessitates a scale change.
-_
+Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus the counts per bin.   This necessitates a scale change.
+
 **Tracks:**
 
 Genome tracks and 2D annotations can be loaded from the "Load Tracks" menu.
