@@ -8,7 +8,7 @@ instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juic
 
 Instructions for embedding a juicebox.js instance can be found [here](docs/embedding).
 
-See the examples/site folder, described [here](docs/site) for a prototype juicebox web page.
+See the examples/site folder, described [here](docs/website) for a prototype juicebox web page.
 
 
 
