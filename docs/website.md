@@ -23,5 +23,25 @@ A google api key is required to use the "Share" button.  See https://developers.
 for instructions on obtaining an API key.
 
 Bootstrap is used for the user controls for loading files and tracks in this prototype site, but Bootstrap is not required
-for the juicebox.js component.  You are free to use any library or none at all.   For more details on
+for the juicebox.js component.  You are free to use any framework or none at all.   For more details on
 juicebox.js dependencies see [embedding](embedding).
+
+
+## Sharable URLs
+
+The prototype site includes the ability to create sharable URLs.  These URLs encapsulate the current state of the
+juicebox instance.   Thes URLs do not expire, and remain valid as long as the underlying
+website and data are available.
+
+Resources referenced in the URLs can be public or private, and can be protected with
+oAuth credentials.  In the case of private data the receiver of the sharable URL
+must have access to the resources referenced.   If the resources are
+protected the user must be prompted on the hosting website to sign in
+with the approriate oAuth provider before the encapsualeted data can
+be loaded and viewed.   Details will vary by provider and website, but see
+our prototype website  ["oauth.html"](https://github.com/igvteam/juicebox.js/blob/master/examples/website/oAuth.html)
+for an example of sharing URLs using private data on Google Drive.
+
+
+
+

@@ -57,7 +57,7 @@ See the Browser API section below for configuration options.
      document.addEventListener("DOMContentLoaded", function () {
         var appContainer, config;
 
-        appContainer = document.getElementById("juicebox-container);
+        appContainer = document.getElementById("juicebox-container");
         config = {};
 
         window.juiceboxBrowser = hic.createBrowser(appContainer, config);

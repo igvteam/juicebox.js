@@ -36,6 +36,9 @@ Heatmap pixels are colored from 0 (white) to {Color Scale} red. You can
 adjust {Color scale} by entering a value in the text box or
 using the - / + buttons.
 
+_Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus
+the counts per bin.   This necessitates a scale change.
+_
 **Tracks:**
 
 Genome tracks and 2D annotations can be loaded from the "Load Tracks" menu.

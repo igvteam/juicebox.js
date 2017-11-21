@@ -1,4 +1,4 @@
-This pages documents the juicebox.js URL structure.  Note this is in active development and subject to change.
+This pages documents the juicebox.js URL structure.
 
 Note:  all parameter values must be URL encoded
 
