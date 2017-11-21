@@ -80,7 +80,6 @@
 
 <body id="portfolio">
 
-
 <!-- Share URL Modal -->
 <div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
      aria-hidden="true">
@@ -118,8 +117,7 @@
                     <div class="hic-social-button-container">
 
                         <div id="tweetButtonContainer">
-                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
-                               data-show-count="false">TWEET</a>
+                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">TWEET</a>
                         </div>
 
                         <div id="emailButtonContainer">
@@ -246,8 +244,7 @@
 </div>
 
 <!-- Contact Map Select Modal -->
-<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog"
-     aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
+<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -261,8 +258,7 @@
 
             <div class="modal-body">
                 <div class="form-group">
-                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker"
-                            data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
+                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
                     </select>
                 </div>
             </div>
@@ -403,8 +399,7 @@
             <!-- Contact Map: Select | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button"
-                        data-toggle="dropdown">
+                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     Load Contact Map &nbsp;
                     <span class="caret"></span>
                 </button>
@@ -438,9 +433,8 @@
             <!-- Track File: ENCODE | Annotations | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button"
-                        data-toggle="dropdown">
-                    Load Tracks &nbsp;
+                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    <span>Load Tracks &nbsp;</span>
                     <span class="caret"></span>
                 </button>
 
@@ -509,6 +503,16 @@
         </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-4">
+            <div>
+                <span>&nbsp;&nbsp;&nbsp;</span>
+                <span id="hic-version-number">version 0.9.3</span>
+
+            </div>
+
+        </div>
+    </div>
     <div class="row header">
         <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
             <br>
@@ -574,11 +578,11 @@
         };
 
         juicebox.init($('#app-container'), config);
-
     });
 
 </script>
 
 </body>
+
 
 </html>
