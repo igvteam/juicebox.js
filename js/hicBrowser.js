@@ -701,17 +701,23 @@ var hic = (function (hic) {
             }
         }
 
-        if (config.url && typeof config.url === "string" && config.url.includes("drive.google.com") && config.name === undefined && apiKey) {
-            tmp = hic.extractQuery(config.url);
-            id = tmp["id"];
-            return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
-                .then(function (json) {
-                    config.name = json.originalFilename;
-                    return loadDataset();
-                }).catch(function (error) {
-                    self.contactMatrixView.stopSpinner();
-                    igv.presentAlert(error);
-                })
+        if(config.name === undefined && typeof config.url === "string") {
+            if (config.url.includes("drive.google.com") && apiKey) {
+                tmp = hic.extractQuery(config.url);
+                id = tmp["id"];
+                return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                    .then(function (json) {
+                        config.name = json.originalFilename;
+                        return loadDataset();
+                    }).catch(function (error) {
+                        self.contactMatrixView.stopSpinner();
+                        igv.presentAlert(error);
+                    })
+            } else {
+                config.name = hic.extractFilename(config.url);
+                return loadDataset();
+            }
+
         }
         else {
             return loadDataset();
