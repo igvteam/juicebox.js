@@ -40427,6 +40427,7 @@ var igv = (function (igv) {
     igv.createColorSwatchSelector = function ($genericContainer, colorHandler) {
 
         var rgbs,
+            dev_null,
             s;
 
         s = 1;
@@ -40437,6 +40438,10 @@ var igv = (function (igv) {
                 rgbs.push(r);
             }
         }
+
+        // add black
+        dev_null = rgbs.shift();
+        rgbs.unshift(igv.Color.rgbColor(32, 32, 32));
 
         rgbs.forEach(function (rgb) {
             var $swatch;
