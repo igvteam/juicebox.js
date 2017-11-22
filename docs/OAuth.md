@@ -1,0 +1,64 @@
+# OAuth
+
+OAuth is an industry standard framework that enables secure access to
+protected resources without exposing the users credentials to third
+party applications, such as juicebox.  To access protected resources
+the user first authenticates by signing into an OAuth provider, such
+as Google, Dropbox, or a private OAuth server, and grants the application
+(e.g. juicebox) permission to access resources the user has been
+granted permission to access.  This permission is granted via an
+encrypted access token returned to the calling application.   This token
+is then added to reqeusts for the protected resource, and used by
+the server to check permissions.
+
+juicebox.js supports the OAuth II standard,  used by many public
+cloud providers such as Google and Dropbox as well as private
+intranets.   User authentication is typically supported by adding
+a sign-in button for the OAuth provider (e.g. Google)  to the website
+hosting juicebox,  then using one of the options below to pass
+the access token to juicebox.js
+
+## Global setting
+
+If all resources on a site are protected the token can be set for
+all requests by calling the following function
+
+```js
+igv.setOauthToken(user.getAuthResponse().access_token)
+```
+
+## File specific
+
+If a site serves a mix of protected and public resources,  or protected
+resources from multiple providers (e.g. Google and Dropbox),  the
+oAuth token can be set for each file via the config parameter.  For example
+
+```js
+juicebox.browser.loadHicFile(
+   {
+     "name": "HCT-116 Cohesin Loss",
+     "url": "https://drive.google.com/open?id=1U3jILxkRH4EC_TzJ4H8jbU6o36eUfMoa",
+     "oauthToken": "F0jh9korTyzd9kaZqZ0SzjKZuS3ut0i4P46Lc52m2JYHiLIcqzFAumpyxshU9mMQ13gJHtxD2fy"
+   }
+```
+
+Alternatively,  oauthToken can be set to a function.  The function will be called whenever
+the token is needed.
+
+```js
+juicebox.browser.loadHicFile(
+   {
+     "name": "HCT-116 Cohesin Loss",
+     "url": "https://drive.google.com/open?id=1U3jILxkRH4EC_TzJ4H8jbU6o36eUfMoa",
+     "oauthToken": myOauthFn
+   }
+```
+
+For more information on oAuth support in juicebox see
+
+https://github.com/igvteam/igv.js/wiki/OAuth-Support
+
+For an example webpage implementing oAuth support for Google Drive storage see examples/website/oAuth.html.
+
+
+
