@@ -51,7 +51,7 @@ The supported 2D annotation format is described at  https://github.com/theaidenl
 
 **Sharing your maps:**
 
-The visualization state can be captured and shared by using the "Share" button.  The generated URLs encapsulate the current state of the application and can be shared with anyone who has access to the files loaded.  The URLs do not have an expiration date.
+The visualization state can be captured and shared by using the "Share" button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the users hard-drive).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
 
 
 
