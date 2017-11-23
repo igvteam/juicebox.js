@@ -58,7 +58,7 @@ For more information on oAuth support in juicebox see
 
 https://github.com/igvteam/igv.js/wiki/OAuth-Support
 
-For an example webpage implementing oAuth support for Google Drive storage see examples/website/oAuth.html.
+For an example webpage implementing oAuth support for Google Drive storage see [examples/website/oAuth.html](https://github.com/igvteam/juicebox.js/tree/master/examples/website).
 
 
 
