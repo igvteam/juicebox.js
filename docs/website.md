@@ -27,14 +27,14 @@ for the juicebox.js component.  You are free to use any framework or none at all
 juicebox.js dependencies see [embedding](embedding).
 
 
-## Sharable URLs
+## Shareable URLs
 
-The prototype site includes the ability to create sharable URLs.  These URLs encapsulate the current state of the
+The prototype site includes the ability to create shareable URLs.  These URLs encapsulate the current state of the
 juicebox instance.   Thes URLs do not expire, and remain valid as long as the underlying
 website and data are available.
 
 Resources referenced in the URLs can be public or private, and can be protected with
-oAuth credentials.  In the case of private data the receiver of the sharable URL
+oAuth credentials.  In the case of private data the receiver of the shareable URL
 must have access to the resources referenced.   If the resources are
 protected the user must be prompted on the hosting website to sign in
 with the approriate oAuth provider before the encapsualeted data can
