@@ -8,4 +8,4 @@ User documentation can be found [here](https://igvteam.github.io/juicebox.js/).
 
 Instructions for embedding a juicebox.js instance in a web page can be found [here](https://igvteam.github.io/juicebox.js/docs/embedding).
 
-See the examples/site folder, described [here](https://igvteam.github.io/juicebox.js/docs/site)  for a prototype juicebox web page.
+See the examples/site folder, described [here](https://igvteam.github.io/juicebox.js/docs/website)  for a prototype juicebox web page.
