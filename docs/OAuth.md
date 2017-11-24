@@ -8,7 +8,7 @@ as Google, Dropbox, or a private OAuth server, and grants the application
 (e.g. juicebox) permission to access resources the user has been
 granted permission to access.  This permission is granted via an
 encrypted access token returned to the calling application.   This token
-is then added to reqeusts for the protected resource, and used by
+is then added to an _Authorization: bearer header_ for all requests for the protected resource, and used by
 the server to check permissions.
 
 juicebox.js supports the OAuth II standard,  used by many public
@@ -21,7 +21,7 @@ the access token to juicebox.js
 ## Global setting
 
 If all resources on a site are protected the token can be set for
-all requests by calling the following function
+all resource request by calling the following function
 
 ```js
 igv.setOauthToken(user.getAuthResponse().access_token)
