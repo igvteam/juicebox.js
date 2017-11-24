@@ -76,8 +76,7 @@ var juicebox = (function (site) {
 
         apiKey = config.apiKey;
         if (apiKey) {
-            igv.setApiKey(apiKey);
-            hic.apiKey = apiKey;
+            hic.setApiKey(apiKey);
         }
         else {
             $("#hic-share-button").hide();

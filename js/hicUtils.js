@@ -26,6 +26,13 @@
  */
 var hic = (function (hic) {
 
+    hic.setApiKey = function (key) {
+
+        hic.apiKey = key;
+        igv.setApiKey(key);
+
+    }
+
     hic.extractFilename = function (urlOrFile) {
 
         if (igv.isFilePath(urlOrFile)) {

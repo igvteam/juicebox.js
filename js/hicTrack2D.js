@@ -65,19 +65,15 @@ var hic = (function (hic) {
 
     hic.loadTrack2D = function (config) {
 
-        return new Promise(function (fulfill, reject) {
+        return igv.xhr.loadString(config.url, igv.buildOptions(config))
 
-            igv.xhr.loadString(config.url, igv.buildOptions({config}))
-                .then(function (data) {
+            .then(function (data) {
 
-                    var features = parseData(data);
+                var features = parseData(data);
 
-                    fulfill(new hic.Track2D(config, features));
-                })
-                .catch(reject);
-
-        })
-    };
+                return new hic.Track2D(config, features);
+            })
+    }
 
     function parseData(data) {
 
