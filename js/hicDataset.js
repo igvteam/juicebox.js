@@ -86,43 +86,41 @@ var hic = (function (hic) {
 
                         .then(function (nv1) {
 
-                            return self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize);
+                            return self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
-                        })
+                                .then(function (nv2) {
 
-                        .then(function (nv2) {
+                                    var normRecords = [],
+                                        normBlock;
 
-                            var normRecords = [],
-                                normBlock;
+                                    if (nv1 === undefined || nv2 === undefined) {
+                                        console.log("Undefined normalization vector for: " + normalization);
+                                        return block;
+                                    }
 
-                            if (nv1 === undefined || nv2 === undefined) {
-                                console.log("Undefined normalization vector for: " + normalization);
-                                return block;
-                            }
+                                    else {
+                                        block.records.forEach(function (record) {
 
-                            else {
-                                block.records.forEach(function (record) {
+                                            var x = record.bin1,
+                                                y = record.bin2,
+                                                counts,
+                                                nvnv = nv1.data[x] * nv2.data[y];
 
-                                    var x = record.bin1,
-                                        y = record.bin2,
-                                        counts,
-                                        nvnv = nv1.data[x] * nv2.data[y];
+                                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                                                counts = record.counts / nvnv;
+                                                //countArray.push(counts);
+                                                normRecords.push(new hic.ContactRecord(x, y, counts));
+                                            }
+                                        })
 
-                                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                        counts = record.counts / nvnv;
-                                        //countArray.push(counts);
-                                        normRecords.push(new hic.ContactRecord(x, y, counts));
+                                        normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+                                        normBlock.percentile95 = block.percentile95;
+
+                                        return normBlock;
                                     }
                                 })
-
-                                normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-                                normBlock.percentile95 = block.percentile95;
-
-                                return normBlock;
-                            }
                         })
-
                 }
             })
     }
