@@ -24,14 +24,14 @@ If all resources on a site are protected the token can be set for
 all resource request by calling the following function
 
 ```js
-igv.setOauthToken(user.getAuthResponse().access_token)
+igv.setOauthToken(<access token>)
 ```
 
 ## File specific
 
 If a site serves a mix of protected and public resources,  or protected
 resources from multiple providers (e.g. Google and Dropbox),  the
-oAuth token can be set for each file via the config parameter.  For example
+oAuth token can be set for each file via the oauthToken config parameter.  For example
 
 ```js
 juicebox.browser.loadHicFile(
