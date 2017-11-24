@@ -244,45 +244,48 @@ var hic = (function (hic) {
 
             .then(function (matrix) {
 
-                var zd = matrix.bpZoomData[state.zoom],
-                    blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
-                    pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
-                    widthInBins = self.$viewport.width() / pixelSizeInt,
-                    heightInBins = self.$viewport.height() / pixelSizeInt,
-                    blockCol1 = Math.floor(state.x / blockBinCount),
-                    blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
-                    blockRow1 = Math.floor(state.y / blockBinCount),
-                    blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                    r, c, promises = [];
+                if(matrix) {
 
-                self.checkColorScale(zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+                    var zd = matrix.bpZoomData[state.zoom],
+                        blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
+                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+                        widthInBins = self.$viewport.width() / pixelSizeInt,
+                        heightInBins = self.$viewport.height() / pixelSizeInt,
+                        blockCol1 = Math.floor(state.x / blockBinCount),
+                        blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
+                        blockRow1 = Math.floor(state.y / blockBinCount),
+                        blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
+                        r, c, promises = [];
 
-                    .then(function () {
+                    self.checkColorScale(zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-                        for (r = blockRow1; r <= blockRow2; r++) {
-                            for (c = blockCol1; c <= blockCol2; c++) {
-                                promises.push(self.getImageTile(zd, r, c, state));
+                        .then(function () {
+
+                            for (r = blockRow1; r <= blockRow2; r++) {
+                                for (c = blockCol1; c <= blockCol2; c++) {
+                                    promises.push(self.getImageTile(zd, r, c, state));
+                                }
                             }
-                        }
 
-                        Promise.all(promises)
-                            .then(function (imageTiles) {
-                                self.updating = false;
-                                self.draw(imageTiles, zd);
-                                self.stopSpinner();
-                            })
-                            .catch(function (error) {
-                                self.updating = false;
-                                self.stopSpinner();
-                                console.error(error);
-                            })
+                            Promise.all(promises)
+                                .then(function (imageTiles) {
+                                    self.updating = false;
+                                    self.draw(imageTiles, zd);
+                                    self.stopSpinner();
+                                })
+                                .catch(function (error) {
+                                    self.updating = false;
+                                    self.stopSpinner();
+                                    console.error(error);
+                                })
 
-                    })
-                    .catch(function (error) {
-                        self.updating = false;
-                        self.stopSpinner(self);
-                        console.error(error);
-                    })
+                        })
+                        .catch(function (error) {
+                            self.updating = false;
+                            self.stopSpinner(self);
+                            console.error(error);
+                        })
+                }
             })
             .catch(function (error) {
                 self.updating = false;

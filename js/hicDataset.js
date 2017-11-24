@@ -59,83 +59,72 @@ var hic = (function (hic) {
             return Promise.resolve(self.matrixCache[key]);
 
         } else {
-            return new Promise(function (fulfill, reject) {
+            return reader.readMatrix(key)
 
-
-                reader
-                    .readMatrix(key)
-                    .then(function (matrix) {
-                        self.matrixCache[key] = matrix;
-                        fulfill(matrix);
-                    })
-                    .catch(reject);
-            })
-
+                .then(function (matrix) {
+                    self.matrixCache[key] = matrix;
+                    return matrix;
+                })
         }
-    };
+    }
+
 
     hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization) {
 
         var self = this;
 
-        return new Promise(function (fulfill, reject) {
+        return self.getBlock(zd, blockNumber)
 
-            self.getBlock(zd, blockNumber)
+            .then(function (block) {
 
-                .then(function (block) {
+                if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
+                    return block;
+                }
+                else {
+                    // Get the norm vectors serially, its very likely they are the same and the second will be cached
+                    return self.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
 
-                    if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-                        fulfill(block);
-                    }
-                    else {
+                        .then(function (nv1) {
 
-                        // Get the norm vectors serially, its very likely they are the same and the second will be cached
-                        self.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
+                            return self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize);
 
-                            .then(function (nv1) {
+                        })
 
-                                self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
+                        .then(function (nv2) {
 
-                                    .then(function (nv2) {
+                            var normRecords = [],
+                                normBlock;
 
-                                        var normRecords = [],
-                                            normBlock;
+                            if (nv1 === undefined || nv2 === undefined) {
+                                console.log("Undefined normalization vector for: " + normalization);
+                                return block;
+                            }
 
-                                        if (nv1 === undefined || nv2 === undefined) {
-                                            console.log("Undefined normalization vector for: " + normalization);
-                                            fulfill(block);
-                                        }
+                            else {
+                                block.records.forEach(function (record) {
 
-                                        else {
-                                            block.records.forEach(function (record) {
+                                    var x = record.bin1,
+                                        y = record.bin2,
+                                        counts,
+                                        nvnv = nv1.data[x] * nv2.data[y];
 
-                                                var x = record.bin1,
-                                                    y = record.bin2,
-                                                    counts,
-                                                    nvnv = nv1.data[x] * nv2.data[y];
+                                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                                        counts = record.counts / nvnv;
+                                        //countArray.push(counts);
+                                        normRecords.push(new hic.ContactRecord(x, y, counts));
+                                    }
+                                })
 
-                                                if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                                    counts = record.counts / nvnv;
-                                                    //countArray.push(counts);
-                                                    normRecords.push(new hic.ContactRecord(x, y, counts));
-                                                }
-                                            })
+                                normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
 
-                                            normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+                                normBlock.percentile95 = block.percentile95;
 
-                                            normBlock.percentile95 = block.percentile95;
+                                return normBlock;
+                            }
+                        })
 
-                                            fulfill(normBlock);
-                                        }
-                                    })
-                                    .catch(reject)
-
-                            })
-                            .catch(reject);
-                    }
-                })
-                .catch(reject);
-        })
+                }
+            })
     }
 
     hic.Dataset.prototype.getBlock = function (zd, blockNumber) {
@@ -147,29 +136,25 @@ var hic = (function (hic) {
         if (this.blockCache.hasOwnProperty(key)) {
             return Promise.resolve(this.blockCache[key]);
         } else {
-            return new Promise(function (fulfill, reject) {
 
-                var reader = self.hicReader;
+            var reader = self.hicReader;
 
-                reader.readBlock(blockNumber, zd)
+            return reader.readBlock(blockNumber, zd)
 
-                    .then(function (block) {
+                .then(function (block) {
 
-                        if (self.blockCacheKeys.length > self.blockCacheLimit) {
-                            delete self.blockCache[self.blockCacheKeys[0]];
-                            self.blockCacheKeys.shift();
-                        }
+                    if (self.blockCacheKeys.length > self.blockCacheLimit) {
+                        delete self.blockCache[self.blockCacheKeys[0]];
+                        self.blockCacheKeys.shift();
+                    }
 
-                        self.blockCacheKeys.push(key);
-                        self.blockCache[key] = block;
+                    self.blockCacheKeys.push(key);
+                    self.blockCache[key] = block;
 
-                        fulfill(block);
+                    return block;
 
-                    })
-                    .catch(function (error) {
-                        reject(error);
-                    })
-            })
+                })
+
         }
     };
 
@@ -181,53 +166,22 @@ var hic = (function (hic) {
         if (this.normVectorCache.hasOwnProperty(key)) {
             return Promise.resolve(this.normVectorCache[key]);
         } else {
-            return new Promise(function (fulfill, reject) {
 
-                var reader = self.hicReader;
+            var reader = self.hicReader;
 
-                reader.readNormalizationVector(type, chrIdx, unit, binSize)
+            return reader.readNormalizationVector(type, chrIdx, unit, binSize)
 
-                    .then(function (nv) {
+                .then(function (nv) {
 
-                        self.normVectorCache[key] = nv;
+                    self.normVectorCache[key] = nv;
 
-                        fulfill(nv);
+                    return nv;
 
-                    })
-                    .catch(reject)
-            })
+                })
+
         }
     };
 
-    hic.Dataset.prototype.readNormalizationVectorFile = function (url) {
-
-        var self = this;
-
-        return new Promise(function (fulfill, reject) {
-
-            self.hicReader.readNormalizationVectorFile(url, self.chromosomes)
-
-                .then(function (normVectors) {
-
-                    _.extend(self.normVectorCache, normVectors);
-
-                    normVectors["types"].forEach(function (type) {
-
-                        if (!self.normalizationTypes) self.normalizationTypes = [];
-
-                        if (_.contains(self.normalizationTypes, type) === false) {
-                            self.normalizationTypes.push(type);
-                        }
-
-                    });
-
-                    fulfill(self);
-
-                })
-                .catch(reject)
-        });
-
-    }
 
     hic.Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
         var i,

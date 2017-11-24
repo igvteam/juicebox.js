@@ -47,7 +47,7 @@ var hic = (function (hic) {
             var key = getKey(f.chr1, f.chr2),
                 list = self.featureMap[key];
 
-            if(!list) {
+            if (!list) {
                 list = [];
                 self.featureMap[key] = list;
             }
@@ -56,9 +56,9 @@ var hic = (function (hic) {
 
     };
 
-    hic.Track2D.prototype.getFeatures = function(chr1, chr2) {
+    hic.Track2D.prototype.getFeatures = function (chr1, chr2) {
         var key = getKey(chr1, chr2),
-            features =  this.featureMap[key];
+            features = this.featureMap[key];
 
         return features || this.featureMap[getAltKey(chr1, chr2)];
     };
@@ -67,8 +67,7 @@ var hic = (function (hic) {
 
         return new Promise(function (fulfill, reject) {
 
-            igv.xhr
-                .loadString(config.url, {})
+            igv.xhr.loadString(config.url, igv.buildOptions({config}))
                 .then(function (data) {
 
                     var features = parseData(data);

@@ -519,7 +519,7 @@ var hic = (function (hic) {
 
                     if (apiKey) {
 
-                        promises.push(igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                        promises.push(igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, igv.buildOptions(config))
 
                             .then(function (json) {
                                 // Temporarily switch URL to infer tipes
@@ -705,7 +705,7 @@ var hic = (function (hic) {
             if (config.url.includes("drive.google.com") && apiKey) {
                 tmp = hic.extractQuery(config.url);
                 id = tmp["id"];
-                return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, {})
+                return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, igv.buildOptions(config))
                     .then(function (json) {
                         config.name = json.originalFilename;
                         return loadDataset();
