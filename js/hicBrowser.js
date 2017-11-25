@@ -78,7 +78,6 @@ var hic = (function (hic) {
 
     }
 
-
     hic.createBrowser = function (hic_container, config) {
 
         var browser,
@@ -1726,6 +1725,7 @@ var hic = (function (hic) {
         }
     }
 
+    var bitlyToken = "NzY2NzBkYzYwYjUxOWVhZjliZTRmYzFjMjI3YjRmM2UzYjNhNWUyNg==";
 
     return hic;
 

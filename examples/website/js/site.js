@@ -28,6 +28,7 @@
  *
  */
 var juicebox = (function (site) {
+
     var apiKey,
         encodeTable,
         lastGenomeId;
@@ -86,7 +87,7 @@ var juicebox = (function (site) {
 
         if (query && query.hasOwnProperty("juiceboxURL")) {
 
-            expandURL(query["juiceboxURL"])
+            hic.GoogleURL.expandURL(query["juiceboxURL"])
                 .then(function (jbURL) {
 
                     query = hic.extractQuery(jbURL);
@@ -118,7 +119,7 @@ var juicebox = (function (site) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            shortJuiceboxURL(href)
+            hic.GoogleURL.shortJuiceboxURL(href)
 
                 .then(function (jbUrl) {
 
@@ -131,7 +132,7 @@ var juicebox = (function (site) {
                             $hic_embed_url.get(0).select();
                         });
 
-                    shortenURL(jbUrl)
+                    hic.GoogleURL.shortenURL(jbUrl)
 
                         .then(function (shortURL) {
 
