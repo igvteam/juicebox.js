@@ -83,7 +83,7 @@
 
         if (query && query.hasOwnProperty("juiceboxURL")) {
 
-            expandURL(query["juiceboxURL"])
+            hic.expandURL(query["juiceboxURL"])
                     .then(function (jbURL) {
 
                         query = hic.extractQuery(jbURL);
@@ -132,30 +132,7 @@
             hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
         }
 
-        function expandURL(url) {
 
-            var endpoint;
-
-            if (url.includes("goo.gl")) {
-
-                endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-                return new Promise(function (fulfill, reject) {
-                    igv.xhr.loadJson(endpoint,
-                            {
-                                contentType: "application/json"
-                            })
-                            .then(function (json) {
-                                fulfill(json.longUrl);
-                            })
-                });
-            }
-            else {
-                // Not a google url
-                return Promise.resolve(url);
-            }
-
-        }
 
     });
 

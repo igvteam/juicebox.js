@@ -162,11 +162,13 @@ var hic = (function (hic) {
             if (config.url || config.dataset) {
                 browser.loadHicFile(config)
                     .then(function (dataset) {
-
                         if (config.tracks) {
                             browser.loadTracks(config.tracks);
                         }
-                    });
+                    })
+                    .catch(function (error) {
+                        hic.presentError("Error loading " + (config.name || config.url), error);
+                    })
             }
         }
 
@@ -432,7 +434,11 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.loadTracks = function (trackConfigurations) {
 
-        var self = this;
+        var self = this,
+            errorPrefix;
+
+        // If loading a single track remember its name, for error message
+        errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name :  "Error loading tracks";
 
         Promise.all(inferTypes(trackConfigurations))
 
@@ -484,8 +490,7 @@ var hic = (function (hic) {
 
                         })
                         .catch(function (error) {
-                            console.log(error.message);
-                            alert(error.message);
+                            hic.presentError(errorPrefix, error);
                         });
                 }
 
@@ -496,12 +501,16 @@ var hic = (function (hic) {
                             self.tracks2D = self.tracks2D.concat(tracks2D);
                             self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
 
-                        }).catch(function (error) {
-                        console.log(error.message);
-                        alert(error.message);
-                    });
+                        })
+                        .catch(function (error) {
+                            hic.presentError(errorPrefix, error);
+                        });
                 }
-            });
+            })
+
+            .catch(function (error) {
+                hic.presentError(errorPrefix, error);
+            })
 
         function inferTypes(trackConfigurations) {
 
@@ -516,30 +525,24 @@ var hic = (function (hic) {
                     var apiKey = hic.apiKey;
                     var alertPresented = false;
 
-                    if (apiKey) {
+                    var endpoint = "https://www.googleapis.com/drive/v2/files/" + id;
+                    if (apiKey)  endpoint += "?key=" + apiKey;
 
-                        promises.push(igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, igv.buildOptions(config))
+                    promises.push(igv.xhr.loadJson(endpoint, igv.buildOptions(config))
 
-                            .then(function (json) {
-                                // Temporarily switch URL to infer tipes
-                                config.url = json.originalFilename
-                                igv.inferTrackTypes(config);
-                                if (config.name === undefined) {
-                                    config.name = json.originalFilename;
-                                }
-                                config.url = url;
-                                return config;
-                            })
-                        );
-                    }
-                    else {
-                        if (!alertPresented) {
-                            igv.presentAlert("Goole Drive URLs are not supported by this installation of Juicebox.  A Google API key must be supplied");
-                            alertPresented = true;
-                        }
-                    }
-
+                        .then(function (json) {
+                            // Temporarily switch URL to infer tipes
+                            config.url = json.originalFilename
+                            igv.inferTrackTypes(config);
+                            if (config.name === undefined) {
+                                config.name = json.originalFilename;
+                            }
+                            config.url = url;
+                            return config;
+                        })
+                    );
                 }
+
                 else {
                     igv.inferTrackTypes(config);
                     if (!config.name) {
@@ -647,7 +650,7 @@ var hic = (function (hic) {
 
                         xy.isPainting = false;
 
-                        if(xy.repaintQueued) {
+                        if (xy.repaintQueued) {
                             xy.repaintQueued = false;
                             self.renderTrackXY(xy);
                         }
@@ -666,7 +669,8 @@ var hic = (function (hic) {
 
         var self = this,
             hicReader, queryIdx, parts, tmp, id, url,
-            apiKey = hic.apiKey;
+            apiKey = hic.apiKey,
+            endPoint;
 
 
         if (!config.url && !config.dataset) {
@@ -700,11 +704,17 @@ var hic = (function (hic) {
             }
         }
 
-        if(config.name === undefined && typeof config.url === "string") {
-            if (config.url.includes("drive.google.com") && apiKey) {
+        if (config.name === undefined && typeof config.url === "string") {
+
+            if (config.url.includes("drive.google.com")) {
+
                 tmp = hic.extractQuery(config.url);
                 id = tmp["id"];
-                return igv.xhr.loadJson("https://www.googleapis.com/drive/v2/files/" + id + "?key=" + apiKey, igv.buildOptions(config))
+                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+
+                if(apiKey) endPoint += "?key=" + apiKey;
+
+                return igv.xhr.loadJson(endPoint, igv.buildOptions(config))
                     .then(function (json) {
                         config.name = json.originalFilename;
                         return loadDataset();
@@ -1528,7 +1538,7 @@ var hic = (function (hic) {
     };
 
     /**
-     * Legacy URL decoding (pre version 1.0)
+     * Extend config properties with query parameters
      *
      * @param query
      * @param config
@@ -1568,6 +1578,7 @@ var hic = (function (hic) {
             });
 
             config.url = hicUrl;
+
         }
         if (name) {
             config.name = paramDecodeV0(name, uriDecode);
@@ -1585,6 +1596,13 @@ var hic = (function (hic) {
         if (trackString) {
             trackString = paramDecodeV0(trackString, uriDecode);
             config.tracks = destringifyTracksV0(trackString);
+
+            // If an oAuth token is provided append it to track configs.
+            if (config.tracks && config.oauthToken) {
+                config.tracks.forEach(function (t) {
+                    t.oauthToken = config.oauthToken;
+                })
+            }
         }
 
         if (selectedGene) {

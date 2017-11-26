@@ -3,7 +3,7 @@ This folder contains prototype webpages hosting juicebox.js instances.
 
 ## Notes
 
-A google api key is required to use the "Share" button. The key should be set in the config object of juicebox.html.
+If not using oAuth a google api key is required to use the "Share" button. The key should be set in the config object of juicebox.html.
 In addition, to support the "EMBED" option set the embedTarget
 
         var config = {
@@ -31,7 +31,15 @@ Example webpage with an embedded juicebox.js instance.  For an example of a prod
 ### oauth.html
 
 Uses oAuth to provide restricted access to map and track files hosted on
-Google Drive.  To request access to these files for testing purposes
+Google Drive.
+
+This file is deployed at http://igv.org/web/jb/test/oAuth.html.  To host
+on your own server you must obtain a client ID from Google.
+See https://developers.google.com/identity/sign-in/web/devconsole-project
+and https://support.google.com/googleapi/answer/6158862?hl=en.   After
+obtaining set the parameter  "client_id" in oauth.html.
+
+To request access to the data files for testing purposes
 send email to igv-team@broadinstitute.org
 
 

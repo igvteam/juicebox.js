@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="css/juicebox.css">
 
     <!-- IGV JS -->
-    <script src="js/igv.min.js"></script>
+    <script src="js/igv.js"></script>
 
     <!-- Vendor JS -->
     <script src="../../vendor/colors.js"></script>
@@ -43,6 +43,7 @@
     <script src="../../js/annotationWidget.js"></script>
     <script src="../../js/genome.js"></script>
     <script src="../../js/hicUtils.js"></script>
+    <script src="../../js/hicUrl.js"></script>
     <script src="../../js/hicReader.js"></script>
     <script src="../../js/hicColorScaleWidget.js"></script>
     <script src="../../js/hicLocusGoto.js"></script>
@@ -69,17 +70,28 @@
 </head>
 <body>
 
+
+<div style="margin-left:20px;margin-bottom: 40px; border-style: solid; border-width: thin; padding: 5px">
+
+    This example illustrates using oAuth authentication to access private resources hosted at Google Drive.
+    To run the demo first request access to the protected files by emailing igv-team@broadinstitute.org with your google
+    email
+    address. After receiving email confirmation run the following steps.
+    <ol>
+        <li>Authenticate with the "Sign In" button</li>
+        <li>Load a contact map</li>
+        <li>Load 1 or more tracks</li>
+        <li>Create a sharable URL with the Share button</li>
+        <li>Try the URL in a new tab or window</li>
+    </ol>
+</div>
+
+
 <div style="margin:20px">
 
-
-    <div id="signInButton" style="display:none;" class="g-signin2" data-onsuccess="handleSignInClick"></div>
-
-    <div style="margin-top:30px">
-    <span style="margin-right: 30px">
-        <button id="shareButton" onclick="share()">Share</button>
-        <input id="shareText" type="text" style="width:600px;"/>
+    <span>
+    <button id="signInButton" onclick="signInOut()">Sign In</button>
     </span>
-    </div>
 
     <div style="margin-top: 20px">
         <span style="margin-right: 10px">Protected map files (.hic).  Click to load after signing in</span>
@@ -95,16 +107,22 @@
 
     <div style="margin-top: 20px" id="trackSelectionDiv" onchange="trackSelect()">
         <span style="margin-right: 10px">Protected track files (.bw).  Click to load after signing in</span>
-        <select id="trackSelect" name="select"> <!--Supplement an id here instead of using 'name'-->
+        <select id="trackSelect" name="select">
             <option value="none">Select</option>
             <option value="https://drive.google.com/open?id=1-QSVDUEi7LXTyp5edV5buuDx4arLiscU">CTCF Untreated</option>
             <option value="https://drive.google.com/open?id=1Pw7D18vJ7V2h5idDefVvx1TIZKmnBb3W">CTCF Cohesin Loss
             </option>
 
         </select>
-
-
     </div>
+
+    <div style="margin-top: 20px">
+        <span style="margin-right: 30px">
+            <button id="shareButton" onclick="share()">Share</button>
+            <input id="shareText" type="text" style="width:600px;"/>
+        </span>
+    </div>
+
 </div>
 
 <div id="juicebox-container" style="margin:20px">
@@ -114,25 +132,23 @@
 
 <script type="text/javascript">
 
-
-    var scope =
-            "https://www.googleapis.com/auth/cloud-platform " +
-            "https://www.googleapis.com/auth/genomics " +
-            "https://www.googleapis.com/auth/devstorage.read_only " +
-            "https://www.googleapis.com/auth/drive.readonly " +
-            "https://www.googleapis.com/auth/userinfo.profile";
-    var client_id = "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com";
-    var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
-
     // Variable for user's oAuth token
     var oauthToken;
 
     document.addEventListener("DOMContentLoaded", function () {
 
+        var scope =
+                "https://www.googleapis.com/auth/cloud-platform " +
+                "https://www.googleapis.com/auth/genomics " +
+                "https://www.googleapis.com/auth/devstorage.read_only " +
+                "https://www.googleapis.com/auth/drive.readonly " +
+                "https://www.googleapis.com/auth/userinfo.profile";
 
-        gapi.load('client:auth2', initClient);
+        //NOTE:  This ID is site specific.  To install this demo on your site you must first obtain a Google client id.
+        var client_id = "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com";
 
-        function initClient() {
+
+        gapi.load('client:auth2', function () {
 
             // Initialize google api client
             gapi.client.init({
@@ -142,29 +158,13 @@
             })
                     .then(function () {
 
-                        var appContainer, config, query, googleAuth;
+                        var query, appContainer;
 
-                        // Make sign-in button visible
-                        document.getElementById("signInButton").style.display = "inline-block";
-
-                        // Get google oAuth object
-                        googleAuth = gapi.auth2.getAuthInstance();
-                        googleAuth.isSignedIn.listen(updateSigninStatus);
-
-                        // See if user is already logged in.
-                        var user = googleAuth.currentUser.get();
-                        if (user) {
-                            var accessToken = user.getAuthResponse().access_token;
-                            if (accessToken) {
-                                oauthToken = user.getAuthResponse().access_token;
-                            }
-                        }
-
-
+                        // find container for juicebox app
                         appContainer = document.getElementById("juicebox-container");
-                        config = {
-                            apiKey: apiKey     // Neccessary for google drive api
-                        };
+
+                        // Make the sign-in button visible
+                        document.getElementById("signInButton").style.display = "inline-block";
 
 
                         // Check for shareable URL parameters.  If this instance is loaded from a shareable URL
@@ -174,47 +174,51 @@
 
                         if (query && query.hasOwnProperty("juiceboxURL")) {
 
-                            expandURL(query["juiceboxURL"])
+                            hic.expandURL(query["juiceboxURL"])
+
                                     .then(function (jbURL) {
 
-                                        googleAuth.signIn()
-                                                .then(function (foo) {
-                                                    var accessToken = user.getAuthResponse().access_token;
-                                                    if (accessToken) {
-                                                        oauthToken = user.getAuthResponse().access_token;
-                                                    }
-                                                    window.juiceboxBrowser = createBrowser(appContainer, jbURL);
-                                                });
+                                        signIn().then(function (oauthToken) {
+
+                                            var config = decodeJBUrl(jbURL);
+
+                                            window.juiceboxBrowser = hic.createBrowser(appContainer, config);
+                                        });
+                                    })
+                                    .catch(function (error) {
+                                        igv.presentAlert("Error expanding URL: " + error);
                                     })
                         }
                         else {
 
                             // Not a shareable URL.  Just create the browser
-                            window.juiceboxBrowser = hic.createBrowser(appContainer, config);
+                            window.juiceboxBrowser = hic.createBrowser(appContainer, {});
                         }
 
                     });
+        });
+
+
+        function decodeJBUrl(jbURL) {
+
+            var q, parts, config;
+
+            q = hic.extractQuery(jbURL)["juicebox"];
+
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+
+            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+            parts = q.split("},{");
+
+            return {
+                queryString: decodeURIComponent(parts[0]),
+                oauthToken: oauthToken
+            }
         }
+
     });
-
-    function createBrowser(appContainer, q) {
-
-        var parts, browser, i;
-
-        if (q.startsWith("%7B")) {
-            q = decodeURIComponent(q);
-        }
-
-        q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-        parts = q.split("},{");
-        return hic.createBrowser(appContainer, {queryString: decodeURIComponent(parts[0])});
-    }
-
-
-    function getOathToken() {
-        return oauthToken;
-    }
-
 
 
     // Load a selection from the map browser.
@@ -222,11 +226,18 @@
     function mapSelect() {
         var select = document.getElementById("mapSelect");
         if (select.value !== "none") {
-            juiceboxBrowser.loadHicFile(
-                    {
-                        url: select.value,
-                        oauthToken: oauthToken
-                    });
+
+            getOauthToken()
+                    .then(function (oauthToken) {
+                        juiceboxBrowser.loadHicFile(
+                                {
+                                    url: select.value,
+                                    oauthToken: oauthToken
+                                });
+                    })
+                    .catch(function (error) {
+                        alert(error);
+                    })
         }
     }
 
@@ -235,38 +246,64 @@
     function trackSelect() {
         var select = document.getElementById("trackSelect");
         if (select.value !== "none") {
-            juiceboxBrowser.loadTracks([
-                {
-                    url: select.value,
-                    oauthToken: oauthToken
-                }
-            ])
+
+            getOauthToken()
+                    .then(function (oauthToken) {
+                        juiceboxBrowser.loadTracks([
+                            {
+                                url: select.value,
+                                oauthToken: oauthToken
+                            }
+                        ])
+                    });
         }
     }
 
-    function handleSignInClick(event) {
-
+    function signInOut() {
+        if (oauthToken) {
+            signOut();
+        }
+        else {
+            signIn();
+        }
     }
 
-    function updateSigninStatus(isSignedIn) {
-
-        var user = gapi.auth2.getAuthInstance().currentUser.get();
-        oauthToken = user.getAuthResponse().access_token;
-
+    function signIn() {
+        return gapi.auth2.getAuthInstance().signIn()
+                .then(function (user) {
+                    oauthToken = user.getAuthResponse().access_token;
+                    document.getElementById("signInButton").innerHTML = "Sign Out";
+                    return oauthToken;
+                })
     }
+
 
     function signOut() {
-        var auth2 = gapi.auth2.getAuthInstance();
-        auth2.signOut().then(function () {
-            oauthToken = undefined;
-        });
+        return gapi.auth2.getAuthInstance().signOut()
+                .then(function () {
+                    oauthToken = undefined;
+                    document.getElementById("signInButton").innerHTML = "Sign In";
+                });
+    }
+
+    /**
+     * Return a promise for the oAuth token.  If signed in resolves immediately, if not gapi signin call is made.
+     */
+    function getOauthToken() {
+
+        if (oauthToken) {
+            return Promise.resolve(oauthToken);
+        }
+        else {
+            return signIn();
+        }
+
     }
 
     function share(e) {
 
-        var queryString,
-                href,
-                idx;
+        var href, idx;
+        var urlShortener = hic.GoogleURL;
 
         href = new String(window.location.href);
 
@@ -275,96 +312,17 @@
         idx = href.indexOf("?");
         if (idx > 0) href = href.substring(0, idx);
 
-        shortJuiceboxURL(href)
+        urlShortener.shortJuiceboxURL(href)
+
                 .then(function (jbUrl) {
-                    document.getElementById("shareText").value = jbUrl;
-
-                });
-    }
-
-
-    function shortJuiceboxURL(base) {
-
-
-        var endpoint, body, url, queryString;
-
-        url = base + "?juicebox=";
-
-        queryString = "{";
-        hic.allBrowsers.forEach(function (browser, index) {
-            queryString += encodeURIComponent(browser.getQueryString());
-            queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
-        });
-
-        url = url + encodeURIComponent(queryString);
-
-        return shortenURL(url)
+                    return urlShortener.shortenURL(jbUrl);
+                })
+                // Shorten a second time
+                // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
 
                 .then(function (shortURL) {
-
-
-                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
-                    // the expanded url (after a redirect) being over the browser limit.
-
-                    var idx, href, url;
-
-                    href = window.location.href;
-                    idx = href.indexOf("?");
-                    if (idx > 0) {
-                        href = href.substr(0, idx);
-                    }
-
-
-                    url = href + "?juiceboxURL=" + shortURL;
-
-                    return url;
-
-                })
-
-
-    }
-
-    function shortenURL(url) {
-
-        if (undefined === apiKey) {
-            return Promise.resolve(url);
-        }
-        else {
-            var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-            return igv.xhr.loadJson(endpoint,
-                    {
-                        sendData: JSON.stringify({"longUrl": url}),
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        return json.id;
-                    })
-        }
-    }
-
-    function expandURL(url) {
-
-        var endpoint;
-
-        if (apiKey && url.includes("goo.gl")) {
-
-            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-            return igv.xhr.loadJson(endpoint,
-                    {
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        return json.longUrl;
-                    })
-
-        }
-        else {
-            // Not a google url or no api key
-            return Promise.resolve(url);
-        }
-
+                    document.getElementById("shareText").value = shortURL;
+                });
     }
 
 

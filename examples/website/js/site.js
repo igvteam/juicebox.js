@@ -41,6 +41,8 @@ var juicebox = (function (site) {
         var query,
             $hic_share_url_modal;
 
+        var urlShortener = hic.GoogleURL;
+
         genomeChangeListener = {
 
             receiveEvent: function (event) {
@@ -87,7 +89,7 @@ var juicebox = (function (site) {
 
         if (query && query.hasOwnProperty("juiceboxURL")) {
 
-            hic.GoogleURL.expandURL(query["juiceboxURL"])
+            hic.expandURL(query["juiceboxURL"])
                 .then(function (jbURL) {
 
                     query = hic.extractQuery(jbURL);
@@ -119,7 +121,7 @@ var juicebox = (function (site) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            hic.GoogleURL.shortJuiceboxURL(href)
+            urlShortener.shortJuiceboxURL(href)
 
                 .then(function (jbUrl) {
 
@@ -132,7 +134,7 @@ var juicebox = (function (site) {
                             $hic_embed_url.get(0).select();
                         });
 
-                    hic.GoogleURL.shortenURL(jbUrl)
+                    urlShortener.shortenURL(jbUrl)
 
                         .then(function (shortURL) {
 
@@ -535,95 +537,6 @@ var juicebox = (function (site) {
         return config.type !== undefined;
 
     }
-
-    function shortJuiceboxURL(base) {
-
-        return new Promise(function (fulfill, reject) {
-
-            var endpoint, body, url, queryString;
-
-            url = base + "?juicebox=";
-
-            queryString = "{";
-            hic.allBrowsers.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
-            });
-
-            url = url + encodeURIComponent(queryString);
-
-            shortenURL(url)
-
-                .then(function (shortURL) {
-
-
-                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
-                    // the expanded url (after a redirect) being over the browser limit.
-
-                    var idx, href, url;
-
-                    href = window.location.href;
-                    idx = href.indexOf("?");
-                    if (idx > 0) {
-                        href = href.substr(0, idx);
-                    }
-
-
-                    url = href + "?juiceboxURL=" + shortURL;
-
-                    fulfill(url);
-
-                })
-        });
-
-    }
-
-    function shortenURL(url) {
-
-        if (undefined === apiKey) {
-            return Promise.resolve(url);
-        }
-        else {
-            var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-            return new Promise(function (fulfill, reject) {
-                igv.xhr.loadJson(endpoint,
-                    {
-                        sendData: JSON.stringify({"longUrl": url}),
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        fulfill(json.id);
-                    })
-            });
-        }
-    }
-
-    function expandURL(url) {
-
-        var endpoint;
-
-        if (apiKey && url.includes("goo.gl")) {
-
-            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-            return new Promise(function (fulfill, reject) {
-                igv.xhr.loadJson(endpoint,
-                    {
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        fulfill(json.longUrl);
-                    })
-            });
-        }
-        else {
-            // Not a google url or no api key
-            return Promise.resolve(url);
-        }
-
-    }
-
 
     return site;
 

@@ -301,88 +301,20 @@ var hic = (function (hic) {
         return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     }
 
+    hic.presentError = function(prefix, error) {
 
-    hic.GoogleURL = {
-
-        apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",
-
-        shortJuiceboxURL: function (base) {
-
-            var url, queryString;
-
-            url = base + "?juicebox=";
-
-            queryString = "{";
-            hic.allBrowsers.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
-            });
-
-            url = url + encodeURIComponent(queryString);
-
-            return hic.GoogleURL.shortenURL(url)
-
-                .then(function (shortURL) {
-
-                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
-                    // the expanded url (after a redirect) being over the browser limit.
-
-                    var idx, href, url;
-
-                    href = window.location.href;
-                    idx = href.indexOf("?");
-                    if (idx > 0) {
-                        href = href.substr(0, idx);
-                    }
-
-                    url = href + "?juiceboxURL=" + shortURL;
-                    return url;
-                })
-        },
-
-        shortenURL: function (url) {
-
-            var apiKey = hic.GoogleURL.apiKey;
-
-            if (!apiKey) {
-                return Promise.resolve(url);
-            }
-            else {
-                var endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-                return igv.xhr.loadJson(endpoint,
-                    {
-                        sendData: JSON.stringify({"longUrl": url}),
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        return json.id;
-                    })
-            }
-        },
-
-        expandURL: function (url) {
-
-            var endpoint;
-            var apiKey = hic.GoogleURL.apiKey;
-
-            if (apiKey && url.includes("goo.gl")) {
-
-                endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
-
-                return igv.xhr.loadJson(endpoint,
-                    {
-                        contentType: "application/json"
-                    })
-                    .then(function (json) {
-                        return json.longUrl;
-                    })
-            }
-            else {
-                // Not a google url or no api key
-                return Promise.resolve(url);
-            }
+        var msg = error.message;
+        if(httpMessages.hasOwnProperty(msg)) {
+            msg = httpMessages[msg];
         }
+        igv.presentAlert(prefix + ": " + msg);
+
+    }
+
+    var httpMessages = {
+        "401": "Access unauthorized",
+        "403": "Access forbidden",
+        "404": "Not found"
     }
 
     return hic;
