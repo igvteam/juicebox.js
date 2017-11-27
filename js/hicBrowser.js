@@ -408,12 +408,12 @@ var hic = (function (hic) {
         return this.contactMatrixView.colorScale;
     };
 
-    hic.Browser.prototype.updateColorScale = function (config) {
+    hic.Browser.prototype.updateColorScale = function (options) {
 
         var self = this,
             state;
 
-        this.contactMatrixView.setColorScale(config);
+        this.contactMatrixView.setColorScale(options);
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
@@ -423,7 +423,7 @@ var hic = (function (hic) {
             .then(function (matrix) {
                 var zd = matrix.bpZoomData[state.zoom];
                 var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = config.high;
+                self.contactMatrixView.colorScaleCache[colorKey] = options.high;
                 self.contactMatrixView.update();
             })
             .catch(function (error) {

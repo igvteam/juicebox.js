@@ -131,17 +131,17 @@ var hic = (function (hic) {
         this.update();
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (config, state) {
+    hic.ContactMatrixView.prototype.setColorScale = function (options, state) {
 
-        if (config.high) this.colorScale.high = config.high;
-        if (undefined !== config.highR) this.colorScale.highR = config.highR;
-        if (undefined !== config.highG) this.colorScale.highG = config.highG;
-        if (undefined !== config.highB) this.colorScale.highB = config.highB;
+        if (options.high) this.colorScale.high = options.high;
+        if (undefined !== options.highR) this.colorScale.highR = options.highR;
+        if (undefined !== options.highG) this.colorScale.highG = options.highG;
+        if (undefined !== options.highB) this.colorScale.highB = options.highB;
 
         if (!state) {
             state = this.browser.state;
         }
-        this.colorScaleCache[colorScaleKey(state)] = config.high;
+        this.colorScaleCache[colorScaleKey(state)] = options.high;
     };
 
     function colorScaleKey(state) {
