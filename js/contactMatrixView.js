@@ -134,9 +134,9 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.setColorScale = function (config, state) {
 
         if (config.high) this.colorScale.high = config.high;
-        if (config.highR) this.colorScale.highR = config.highR;
-        if (config.highG) this.colorScale.highG = config.highG;
-        if (config.highB) this.colorScale.highB = config.highB;
+        if (undefined !== config.highR) this.colorScale.highR = config.highR;
+        if (undefined !== config.highG) this.colorScale.highG = config.highG;
+        if (undefined !== config.highB) this.colorScale.highB = config.highB;
 
         if (!state) {
             state = this.browser.state;
