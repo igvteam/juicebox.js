@@ -29,7 +29,7 @@
  */
 var juicebox = (function (site) {
 
-    var apiKey,
+    var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
         encodeTable,
         lastGenomeId;
 
@@ -41,7 +41,13 @@ var juicebox = (function (site) {
         var query,
             $hic_share_url_modal;
 
-        var urlShortener = hic.GoogleURL;
+
+        if (config.urlShortener) {
+            hic.setURLShortener(config.urlShortener);
+        }
+        else {
+            $("#hic-share-button").hide();
+        }
 
         genomeChangeListener = {
 
@@ -79,10 +85,8 @@ var juicebox = (function (site) {
 
         apiKey = config.apiKey;
         if (apiKey) {
+            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
             hic.setApiKey(apiKey);
-        }
-        else {
-            $("#hic-share-button").hide();
         }
 
         query = hic.extractQuery(window.location.href);
@@ -121,7 +125,7 @@ var juicebox = (function (site) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            urlShortener.shortJuiceboxURL(href)
+            hic.shortJuiceboxURL(href)
 
                 .then(function (jbUrl) {
 
@@ -134,7 +138,7 @@ var juicebox = (function (site) {
                             $hic_embed_url.get(0).select();
                         });
 
-                    urlShortener.shortenURL(jbUrl)
+                    hic.shortenURL(jbUrl)
 
                         .then(function (shortURL) {
 

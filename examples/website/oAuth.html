@@ -48,7 +48,7 @@
     <ol>
         <li>Authenticate with the "Sign In" button</li>
         <li>Load a contact map</li>
-        <li>Load 1 or more tracks</li>
+        <li>Load a track</li>
         <li>Create a sharable URL with the Share button</li>
         <li>Try the URL in a new tab or window</li>
     </ol>
@@ -112,6 +112,9 @@
                 "https://www.googleapis.com/auth/drive.readonly " +
                 "https://www.googleapis.com/auth/userinfo.profile";
 
+        // API Key for the google shortener.  This key is site specific, you must obtain an API key and set it here
+        var apiKey = "ABCD";
+
         //NOTE:  This ID is site specific.  To install this demo on your site you must first obtain a Google client id.
         var client_id = "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com";
 
@@ -128,12 +131,22 @@
 
                         var query, appContainer;
 
+                        // initialize the URL shortener -- goo.gl
+                        // hic.setURLShortener({
+                        //     provider: "google",
+                        //     apiKey: apiKey
+                        // });
+
+                        hic.setURLShortener({
+                            provider: "bitly",
+                            apiKey: apiKey
+                        });
+
                         // find container for juicebox app
                         appContainer = document.getElementById("juicebox-container");
 
                         // Make the sign-in button visible
                         document.getElementById("signInButton").style.display = "inline-block";
-
 
                         // Check for shareable URL parameters.  If this instance is loaded from a shareable URL
                         // prompt user to sign in before creating juicebox browser.
@@ -148,13 +161,13 @@
 
                                         signIn().then(function (oauthToken) {
 
-                                            var config = decodeJBUrl(jbURL);
+                                            var config = hic.decodeJBUrl(jbURL);
 
                                             window.juiceboxBrowser = hic.createBrowser(appContainer, config);
                                         });
                                     })
                                     .catch(function (error) {
-                                        igv.presentAlert("Error expanding URL: " + error);
+                                        alert("Error expanding URL: " + error);
                                     })
                         }
                         else {
@@ -162,30 +175,12 @@
                             // Not a shareable URL.  Just create the browser
                             window.juiceboxBrowser = hic.createBrowser(appContainer, {});
                         }
-
-                    });
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                        alert("Error initializing Google client API: " + error);
+                    })
         });
-
-
-        function decodeJBUrl(jbURL) {
-
-            var q, parts, config;
-
-            q = hic.extractQuery(jbURL)["juicebox"];
-
-            if (q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
-            }
-
-            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-            parts = q.split("},{");
-
-            return {
-                queryString: decodeURIComponent(parts[0]),
-                oauthToken: oauthToken
-            }
-        }
-
     });
 
 
@@ -271,7 +266,6 @@
     function share(e) {
 
         var href, idx;
-        var urlShortener = hic.GoogleURL;
 
         href = new String(window.location.href);
 
@@ -280,10 +274,10 @@
         idx = href.indexOf("?");
         if (idx > 0) href = href.substring(0, idx);
 
-        urlShortener.shortJuiceboxURL(href)
+        hic.shortJuiceboxURL(href)
 
                 .then(function (jbUrl) {
-                    return urlShortener.shortenURL(jbUrl);
+                    return hic.shortenURL(jbUrl);
                 })
                 // Shorten a second time
                 // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
