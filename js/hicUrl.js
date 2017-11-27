@@ -26,40 +26,47 @@
  */
 var hic = (function (hic) {
 
-    var urlShortener;
+    var urlShorteners;
 
-    hic.setURLShortener = function (shortener) {
+    hic.setURLShortener = function (shortenerConfigs) {
 
-        if (!shortener || shortener === "none") {
+        if (!shortenerConfigs || shortenerConfigs === "none") {
 
-        } else if (shortener.provider) {
-
-            if (shortener.provider === "google") {
-                urlShortener = new GoogleURL(shortener.apiKey);
-            }
-            else if (shortener.provider === "bitly") {
-                urlShortener = new BitlyURL(shortener.apiKey);
-            }
-            else {
-                igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
-            }
+        } else {
+            urlShorteners = [];
+            shortenerConfigs.forEach(function (config) {
+                urlShorteners.push(getShortener(config));
+            })
         }
-        else {
 
-            if (typeof shortener.shortenURL === "function" &&
-                typeof shortener.expandURL === "function") {
-                urlShortener = shortener;
+        function getShortener(shortener) {
+            if (shortener.provider) {
+                if (shortener.provider === "google") {
+                    return new GoogleURL(shortener);
+                }
+                else if (shortener.provider === "bitly") {
+                    return new BitlyURL(shortener);
+                }
+                else {
+                    igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
+                }
             }
-
-            else {
-                igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL'")
+            else {    // Custom
+                if (typeof shortener.shortenURL === "function" &&
+                    typeof shortener.expandURL === "function" &&
+                    typeof shortner.hostname === "string") {
+                    return shortener;
+                }
+                else {
+                    igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'")
+                }
             }
         }
     }
 
     hic.shortenURL = function (url) {
-        if (urlShortener) {
-            return urlShortener.shortenURL(url);
+        if (urlShorteners) {
+            return urlShorteners[0].shortenURL(url);
         }
         else {
             return Promise.resolve(url);
@@ -75,15 +82,23 @@ var hic = (function (hic) {
      */
     hic.expandURL = function (url) {
 
-        // if (urlShortener && urlShortener.prefix && url.startsWith(urlShortener.prefix)) {
-        //     return urlShortener.expandURL(url);
-        // }
-        // else if (url.startsWith("https://goo.gl")) {
-        //     return urlShortener.expandURL(url);
-        // }
-        // else {
-            return urlShortener ? urlShortener.expandURL(url) : url;
-       // }
+        var urlObject = new URL(url),
+            hostname = urlObject.hostname,
+            i,
+            expander;
+
+        if (urlShorteners) {
+            for (i = 0; i < urlShorteners.length; i++) {
+                expander = urlShorteners[i];
+                if (hostname === expander.hostname) {
+                    return expander.expandURL(url);
+                }
+            }
+        }
+
+        igv.presentAlert("No expanders for URL: " + url);
+
+        return Promise.resolve(url);
     }
 
     hic.shortJuiceboxURL = function (base) {
@@ -142,11 +157,11 @@ var hic = (function (hic) {
     }
 
 
-    var BitlyURL = function (apiKey) {
-
-        this.apiKey = apiKey === "ABCD" ? "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e26" : apiKey;
-        this.devIP = "192.168.1.11",   // For development, replace with your IP address. Bitly will not shorten localhost !
-            this.api = "https://api-ssl.bitly.com"
+    var BitlyURL = function (config) {
+        this.api = "https://api-ssl.bitly.com";
+        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e26" : config.apiKey;
+        this.hostname = config.hostname ? config.hostname : "bit.ly";
+        this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
     }
 
 
@@ -182,9 +197,9 @@ var hic = (function (hic) {
     }
 
 
-    var GoogleURL = function (apiKey) {
-
-        this.apiKey = apiKey === "ABCD" ? "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0": apiKey;
+    var GoogleURL = function (config) {
+        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0" : config.apiKey;
+        this.hostname = config.hostname || "goo.gl";
     }
 
     GoogleURL.prototype.shortenURL = function (url) {
