@@ -227,7 +227,7 @@
                                 });
                     })
                     .catch(function (error) {
-                        alert(error);
+                        alert("Error signing in");
                     })
         }
     }
@@ -246,7 +246,10 @@
                                 oauthToken: oauthToken
                             }
                         ])
-                    });
+                    })
+                    .catch(function (error) {
+                        alert("Error signing in");
+                    })
         }
     }
 
