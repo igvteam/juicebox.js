@@ -129,6 +129,8 @@ var igv = (function (igv) {
 
         if (true === success) {
 
+            $('#hic-encode-modal-button').off('click');
+
             this.config.$modal.on('shown.bs.modal', function (e) {
 
                 if (true === self.doBuildTable) {
@@ -161,9 +163,14 @@ var igv = (function (igv) {
             });
 
         } else {
-            this.config.$modal.on('shown.bs.modal', function (e) {
+            // this.config.$modal.on('shown.bs.modal', function (e) {
+            //     igv.presentAlert('No ENCODE data available');
+            //     self.config.$modal.modal('hide');
+            // });
+
+            $('#hic-encode-modal-button').on('click', function (e) {
                 igv.presentAlert('No ENCODE data available');
-                self.config.$modal.modal('hide');
+                return false;
             });
         }
 
