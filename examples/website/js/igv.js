@@ -31709,8 +31709,9 @@ var igv = (function (igv) {
 
 
     igv.CustomServiceReader = function (config) {
-
         this.config = config;
+
+        this.supportsWholeGenome = true;
     }
 
     igv.CustomServiceReader.prototype.readFeatures = function (chr, start, end) {
@@ -31736,9 +31737,8 @@ var igv = (function (igv) {
             }
         }
 
-        return igv.xhr.load(url, self.config)
+        return igv.xhr.load(url, self.config).then(function (data) {
 
-            .then(function (data) {
             if (data) {
 
                 var results = (typeof self.config.parser === "function") ? self.config.parser(data) : data;
@@ -31747,7 +31747,7 @@ var igv = (function (igv) {
 
             }
             else {
-                return undefined;
+                return null;
             }
 
         })
@@ -35828,7 +35828,7 @@ var igv = (function (igv) {
         function htmlStringified(autoscale) {
             var html = [];
 
-            html.push('<div>');
+            html.push('<div id="datarange-autoscale">');
             html.push(true === autoscale ? '<i class="fa fa-check">' : '<i class="fa fa-check fa-check-hidden">');
             html.push('</i>');
             html.push('Autoscale');
@@ -42750,7 +42750,7 @@ var igv = (function (igv) {
 
                 xhr.onabort = function (event) {
                     console.log("Aborted");
-                    reject(event);
+                    reject(new igv.AbortLoad());
                 };
 
                 try {
@@ -42944,6 +42944,10 @@ var igv = (function (igv) {
         return !url.startsWith(origin);
 
     }
+
+    igv.AbortLoad = function () {
+
+    };
 
     /**
      * Legacy method to add oauth tokens.  Kept for backward compatibility.  Do not use -- use config.token setting instead.
@@ -49072,6 +49076,11 @@ var igv = (function (igv) {
             if(isNaN(min) || isNaN(max)) {
                 igv.presentAlert("Must input numeric values");
             } else {
+
+                if (true === trackView.track.autoscale) {
+                    $('#datarange-autoscale').trigger('click');
+                }
+
                 trackView.setDataRange(min, max, false);
             }
 
