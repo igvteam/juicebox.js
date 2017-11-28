@@ -249,13 +249,13 @@ var hic = (function (hic) {
                         };
 
                         self.track.draw(self.drawConfiguration);
-
-                        self.stopSpinner();
+                        
 
                     } else {
                         ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
                     }
 
+                    self.stopSpinner();
                     self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                     return "OK";
 

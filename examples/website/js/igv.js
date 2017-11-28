@@ -42750,7 +42750,7 @@ var igv = (function (igv) {
 
                 xhr.onabort = function (event) {
                     console.log("Aborted");
-                    reject(new igv.AbortLoad());
+                    reject(event);
                 };
 
                 try {
@@ -42944,10 +42944,6 @@ var igv = (function (igv) {
         return !url.startsWith(origin);
 
     }
-
-    igv.AbortLoad = function () {
-
-    };
 
     /**
      * Legacy method to add oauth tokens.  Kept for backward compatibility.  Do not use -- use config.token setting instead.

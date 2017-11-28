@@ -658,7 +658,8 @@ var hic = (function (hic) {
                 return xy.y.readyToPaint();
             })
             .then(function (ignore) {
-
+                xy.x.stopSpinner();
+                xy.y.stopSpinner();
                 xy.x.repaint();
                 xy.y.repaint();
             })
@@ -1767,9 +1768,7 @@ var hic = (function (hic) {
             return s;
         }
     }
-
-    var bitlyToken = "NzY2NzBkYzYwYjUxOWVhZjliZTRmYzFjMjI3YjRmM2UzYjNhNWUyNg==";
-
+    
     return hic;
 
 })
