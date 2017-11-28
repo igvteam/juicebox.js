@@ -106,11 +106,11 @@ var hic = (function (hic) {
                 this.$menu_container.hide();
             }
 
-        }
+            // compatibility with igv menus
+            this.track.trackView = this;
+            this.track.trackView.trackDiv = this.$viewport.get(0);
 
-        // compatibility with igv menus
-        this.track.trackView = this;
-        this.track.trackView.trackDiv = this.$viewport.get(0);
+        }
 
         this.configTrackTransforms();
 
