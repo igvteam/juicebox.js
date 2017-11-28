@@ -31709,9 +31709,8 @@ var igv = (function (igv) {
 
 
     igv.CustomServiceReader = function (config) {
-        this.config = config;
 
-        this.supportsWholeGenome = true;
+        this.config = config;
     }
 
     igv.CustomServiceReader.prototype.readFeatures = function (chr, start, end) {
@@ -31737,8 +31736,9 @@ var igv = (function (igv) {
             }
         }
 
-        return igv.xhr.load(url, self.config).then(function (data) {
+        return igv.xhr.load(url, self.config)
 
+            .then(function (data) {
             if (data) {
 
                 var results = (typeof self.config.parser === "function") ? self.config.parser(data) : data;
@@ -31747,7 +31747,7 @@ var igv = (function (igv) {
 
             }
             else {
-                return null;
+                return undefined;
             }
 
         })
@@ -42134,9 +42134,15 @@ var igv = (function (igv) {
         return $button;
     };
 
-    igv.presentAlert = function (string) {
+    igv.presentAlert = function (obj) {
 
-        console.trace();
+        //console.trace();
+
+        var string = obj.message || obj;
+
+        if(httpMessages.hasOwnProperty(string)) {
+            string = httpMessages[string];
+        }
         
         igv.alert.$dialogLabel.text(string);
         igv.alert.show(undefined);
@@ -42144,6 +42150,13 @@ var igv = (function (igv) {
         igv.popover.hide();
 
     };
+
+    var httpMessages = {
+        "401": "Access unauthorized",
+        "403": "Access forbidden",
+        "404": "Not found"
+    }
+
 
     igv.attachDialogCloseHandlerWithParent = function ($parent, closeHandler) {
 
@@ -42588,7 +42601,7 @@ var igv = (function (igv) {
 
         url = mapUrl(url);
 
-        if (!options) options = {};
+        options = options ||  {};
 
         if (!options.oauthToken) {
             return getLoadPromise(url, options);
@@ -42615,6 +42628,7 @@ var igv = (function (igv) {
         }
 
         function getLoadPromise(url, options) {
+
             return new Promise(function (fullfill, reject) {
 
                 var xhr = new XMLHttpRequest(),
@@ -42760,10 +42774,11 @@ var igv = (function (igv) {
 
     igv.xhr.loadArrayBuffer = function (url, options) {
 
+        options = options || {};
+
         if (url instanceof File) {
             return loadFileSlice(url, options);
         } else {
-            if (options === undefined) options = {};
             options.responseType = "arraybuffer";
             return igv.xhr.load(url, options);
         }
@@ -42772,6 +42787,8 @@ var igv = (function (igv) {
 
     igv.xhr.loadJson = function (url, options) {
 
+        options = options || {};
+        
         var method = options.method || (options.sendData ? "POST" : "GET");
 
         if (method == "POST") options.contentType = "application/json";
@@ -42793,6 +42810,9 @@ var igv = (function (igv) {
     };
 
     igv.xhr.loadString = function (path, options) {
+
+        options = options || {};
+
         if (path instanceof File) {
             return loadStringFromFile(path, options);
         } else {
@@ -46621,18 +46641,27 @@ var igv = (function (igv) {
 
         this.windowFunction = config.windowFunction || "mean";
         this.reader = new igv.TDFReader(config);
+        this.featureCache = [];
     };
 
     igv.TDFSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel) {
 
         var self = this,
             featureCache = self.featureCache,
-            genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd);
+            cache,
+            genomicInterval = new igv.GenomicInterval(chr, bpStart, bpEnd),
+            i;
 
         genomicInterval.bpPerPixel = bpPerPixel;
 
-        if (featureCache && featureCache.range.bpPerPixel === bpPerPixel && featureCache.range.containsRange(genomicInterval)) {
-            return Promise.resolve(self.featureCache.queryFeatures(chr, bpStart, bpEnd));
+        if (featureCache) {
+
+            for (i = 0; i < featureCache.length; i++) {
+                cache = featureCache[i];
+                if (cache.range.bpPerPixel === bpPerPixel && cache.range.containsRange(genomicInterval)) {
+                    return Promise.resolve(cache.queryFeatures(chr, bpStart, bpEnd));
+                }
+            }
         }
 
         return self.reader.readRootGroup()
@@ -46678,7 +46707,7 @@ var igv = (function (igv) {
 
                 var features = [];
 
-                tiles.forEach( function (tile) {
+                tiles.forEach(function (tile) {
                     switch (tile.type) {
                         case "bed":
                             decodeBedTile(tile, chr, bpStart, bpEnd, bpPerPixel, features);
@@ -46693,13 +46722,24 @@ var igv = (function (igv) {
                             reject("Unknown tile type: " + tile.type);
                             return;
                     }
+                });
+
+                features.sort(function (a, b) {
+                    return a.start - b.start;
                 })
 
-                // Note -- replacing feature cache
-                self.featureCache = new igv.FeatureCache(features, genomicInterval);
+                cache = new igv.FeatureCache(features, genomicInterval);
+
+                // Limit to 2 caches for now
+                if (self.featureCache.length < 2) {
+                    self.featureCache.push(cache);
+                }
+                else {
+                    self.featureCache[1] = self.featureCache[0];
+                    self.featureCache[0] = cache;
+                }
 
                 return features;
-
             })
     }
 
@@ -46765,16 +46805,18 @@ var igv = (function (igv) {
 
             var e = s + span;
 
-            if (e < bpStart) continue;
             if (s > bpEnd) break;
 
-            if (!Number.isNaN(data[i])) {
-                features.push({
-                    chr: chr,
-                    start: s,
-                    end: e,
-                    value: data[i]
-                });
+            if (e >= bpStart) {
+
+                if (!Number.isNaN(data[i])) {
+                    features.push({
+                        chr: chr,
+                        start: s,
+                        end: e,
+                        value: data[i]
+                    });
+                }
             }
 
             s = e;

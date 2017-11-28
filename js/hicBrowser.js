@@ -384,25 +384,47 @@ var hic = (function (hic) {
 
     };
 
-    hic.Browser.prototype.genomicState = function () {
+    hic.Browser.prototype.genomicState = function (axis) {
         var gs,
             bpResolution;
 
         bpResolution = this.dataset.bpResolutions[this.state.zoom];
-
-        gs = {};
-        gs.bpp = bpResolution / this.state.pixelSize;
-
-        gs.chromosome = {x: this.dataset.chromosomes[this.state.chr1], y: this.dataset.chromosomes[this.state.chr2]};
-
-        gs.startBP = {x: this.state.x * bpResolution, y: this.state.y * bpResolution};
-        gs.endBP = {
-            x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width,
-            y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height
+        gs = {
+            bpp: bpResolution / this.state.pixelSize
         };
 
+        if (axis === "x") {
+            gs.chromosome = this.dataset.chromosomes[this.state.chr1];
+            gs.startBP = this.state.x * bpResolution;
+            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
+        }
+        else {
+            gs.chromosome = this.dataset.chromosomes[this.state.chr2];
+            gs.startBP = this.state.y * bpResolution;
+            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
+        }
         return gs;
     };
+
+// hic.Browser.prototype.genomicState = function () {
+//     var gs,
+//         bpResolution;
+//
+//     bpResolution = this.dataset.bpResolutions[this.state.zoom];
+//
+//     gs = {};
+//     gs.bpp = bpResolution / this.state.pixelSize;
+//
+//     gs.chromosome = {x: this.dataset.chromosomes[this.state.chr1], y: this.dataset.chromosomes[this.state.chr2]};
+//
+//     gs.startBP = {x: this.state.x * bpResolution, y: this.state.y * bpResolution};
+//     gs.endBP = {
+//         x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width,
+//         y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height
+//     };
+//
+//     return gs;
+// };
 
     hic.Browser.prototype.getColorScale = function () {
         return this.contactMatrixView.colorScale;
@@ -438,7 +460,7 @@ var hic = (function (hic) {
             errorPrefix;
 
         // If loading a single track remember its name, for error message
-        errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name :  "Error loading tracks";
+        errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name : "Error loading tracks";
 
         Promise.all(inferTypes(trackConfigurations))
 
@@ -625,39 +647,22 @@ var hic = (function (hic) {
     };
 
     /**
-     * Render the XY pair of tracks.  We wait on X to complete before painting Y to avoid loading data for
-     * the same region twice.   If another paint request arrives for XY while a paint is in progress it is, in
-     * effect, "queued" and run after the current paint completes.   We don't keep an actual queue, as only
-     * the last paint request matters.  Without this "queue" the track can get out of sync with the map when
-     * rapidly panning.
+     * Render the XY pair of tracks.
      *
      * @param xy
      */
     hic.Browser.prototype.renderTrackXY = function (xy) {
 
-        var self = this;
-
-        if (xy.isPainting) {
-            xy.repaintQueued = true;
-            return;
-        }
-
-        xy.isPainting = true;
-        xy.x.repaint()
+        xy.x.readyToPaint()
             .then(function (ignore) {
-                xy.y.repaint()
-                    .then(function (ignore) {
+                return xy.y.readyToPaint();
+            })
+            .then(function (ignore) {
 
-                        xy.isPainting = false;
-
-                        if (xy.repaintQueued) {
-                            xy.repaintQueued = false;
-                            self.renderTrackXY(xy);
-                        }
-                    });
-            });
-
-    };
+                xy.x.repaint();
+                xy.y.repaint();
+            })
+    }
 
 
     /**
@@ -712,7 +717,7 @@ var hic = (function (hic) {
                 id = tmp["id"];
                 endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
 
-                if(apiKey) endPoint += "?key=" + apiKey;
+                if (apiKey) endPoint += "?key=" + apiKey;
 
                 return igv.xhr.loadJson(endPoint, igv.buildOptions(config))
                     .then(function (json) {
@@ -1023,7 +1028,7 @@ var hic = (function (hic) {
 
     };
 
-    // Zoom in response to a double-click
+// Zoom in response to a double-click
     hic.Browser.prototype.zoomAndCenter = function (direction, centerPX, centerPY) {
 
         if (!this.dataset) return;
@@ -1155,7 +1160,7 @@ var hic = (function (hic) {
 
     }
 
-    // TODO -- when is this called?
+// TODO -- when is this called?
     hic.Browser.prototype.update = function () {
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
     };
@@ -1252,6 +1257,8 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.shiftPixels = function (dx, dy) {
 
+        var self = this;
+
         if (!this.dataset) return;
 
         this.state.x += (dx / this.state.pixelSize);
@@ -1261,6 +1268,24 @@ var hic = (function (hic) {
         var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false, dragging: true});
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
+
+        // Take direct control of map, track, and ruler repaints, and insure they are synched
+
+        var promises = [];
+        // promises.push(this.contactMatrixView.readyToPaint());
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+            promises.push(xyTrackRenderPair.x.readyToPaint()
+                .then(function (ignore) {
+                    return xyTrackRenderPair.y.readyToPaint();
+                }))
+        });
+
+        Promise.all(promises)
+            .then(function (results) {
+                // todo paint ruler
+                // this.contactMatrixView.repaint();
+                self.renderTracks(false);
+            })
     };
 
 
@@ -1343,7 +1368,7 @@ var hic = (function (hic) {
     };
 
 
-    // Set default values for config properties
+// Set default values for config properties
     function setDefaults(config) {
 
         defaultPixelSize = 1;
@@ -1391,9 +1416,9 @@ var hic = (function (hic) {
         }
     }
 
-    // parseUri 1.2.2
-    // (c) Steven Levithan <stevenlevithan.com>
-    // MIT License
+// parseUri 1.2.2
+// (c) Steven Levithan <stevenlevithan.com>
+// MIT License
 
     function parseUri(str) {
         var o = parseUri.options,

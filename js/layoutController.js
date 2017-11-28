@@ -327,7 +327,7 @@ var hic = (function (hic) {
             this.browser.updateLayout();
 
         } else if ('LocusChange' === event.type) {
-            this.browser.renderTracks(false);
+           // this.browser.renderTracks(false);
         }
 
 

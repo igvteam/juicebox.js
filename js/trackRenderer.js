@@ -57,7 +57,7 @@ var hic = (function (hic) {
 
         // IGV STYLE SPINNER
         spinner = igv.spinner("24px")
-        if('x' === this.axis) {
+        if ('x' === this.axis) {
             spinner.style.position = "absolute";
             spinner.style.left = "0px";
             spinner.style.top = "0px"
@@ -176,46 +176,25 @@ var hic = (function (hic) {
     };
 
     /**
-     * Return a promise to paint the track.  We use a promise because loading features is asynchronous, and we
-     * need to chain X and Y track repaints sequentially.
+     * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
+     * and drawing tile if neccessary.
+     *
+     * @returns {*}
      */
-    hic.TrackRenderer.prototype.repaint = function () {
-
+    hic.TrackRenderer.prototype.readyToPaint = function () {
         var self = this,
-            lengthPixel,
-            lengthBP,
-            startBP,
-            endBP,
-            genomicState,
-            chrName;
+            genomicState, chrName, lengthPixel, lengthBP, startBP, endBP;
 
-        genomicState = _.mapObject(self.browser.genomicState(), function (val) {
-            return _.isObject(val) ? val[self.axis] : val;
-        });
-
-        if (/*this.$zoomInNotice &&*/ self.track.visibilityWindow && self.track.visibilityWindow > 0) {
-
-            if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) /*|| ('all' === genomicState.chromosome.name && !self.track.supportsWholeGenome)*/) {
-
-                self.tile = undefined;
-                self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
-
-                self.stopSpinner();
-                // self.$zoomInNotice.show();
-
-                return Promise.resolve("OK");
-
-            } else {
-                // self.$zoomInNotice.hide();
-            }
-
-        } // if (/*this.$zoomInNotice &&*/ self.track.visibilityWindow && self.track.visibilityWindow > 0)
-
+        genomicState = self.browser.genomicState(self.axis);
         chrName = genomicState.chromosome.name;
 
         if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
-            self.drawTileWithGenomicState(self.tile, genomicState);
-            return Promise.resolve("OK");
+
+            return Promise.resolve();
+
+        } else if (genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
+
+            return Promise.resolve();
 
         } else {
 
@@ -223,21 +202,19 @@ var hic = (function (hic) {
             lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
 
             lengthBP = Math.round(genomicState.bpp * lengthPixel);
-
             startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
-
             endBP = startBP + lengthBP;
-
             self.startSpinner();
 
             return self.track
+
                 .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
+
                 .then(function (features) {
-                    
+
                     var buffer,
                         ctx;
 
-                    self.loading = false;
 
                     buffer = document.createElement('canvas');
                     buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
@@ -280,15 +257,46 @@ var hic = (function (hic) {
                     }
 
                     self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
-                    self.drawTileWithGenomicState(self.tile, genomicState);
-
                     return "OK";
 
                 })
+        }
+    }
+
+    /**
+     *
+     */
+    hic.TrackRenderer.prototype.repaint = function () {
+
+        var self = this,
+            genomicState,
+            chrName;
+
+        genomicState = self.browser.genomicState(self.axis);
+
+        if (self.track.visibilityWindow && self.track.visibilityWindow > 0) {
+
+            if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow)) {
+                self.tile = undefined;
+                self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
+            }
+        }
+
+        chrName = genomicState.chromosome.name;
+
+        if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
+            self.drawTileWithGenomicState(self.tile, genomicState);
+
+        } else {
+
+            self.readyToPaint()
+                .then(function (ignore) {
+                    self.drawTileWithGenomicState(self.tile, genomicState);
+                })
                 .catch(function (error) {
-                    self.stopSpinner();
-                    throw error;
-                });
+                    console.error(error);
+                })
+
         }
 
     };
@@ -315,18 +323,18 @@ var hic = (function (hic) {
 
         igv.startSpinnerAtParentElement(this.$viewport[0]);
 
-    //    this.$spinner.show();
-    //    this.throbber.start();
-    //    console.log("Spinner show");
+        //    this.$spinner.show();
+        //    this.throbber.start();
+        //    console.log("Spinner show");
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
 
         igv.stopSpinnerAtParentElement(this.$viewport[0]);
 
-    //    this.throbber.stop();
-    //    this.$spinner.hide();
-    //    console.log("Spinner stop");
+        //    this.throbber.stop();
+        //    this.$spinner.hide();
+        //    console.log("Spinner stop");
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {
@@ -342,7 +350,7 @@ var hic = (function (hic) {
     };
 
     Tile.prototype.containsRange = function (chr, startBP, endBP, bpp) {
-        return this.bpp === bpp && startBP >= this.startBP && endBP <= this.endBP && chr === this.chr;
+        return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
     };
 
     return hic;
