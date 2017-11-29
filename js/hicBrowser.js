@@ -147,12 +147,18 @@ var hic = (function (hic) {
                 browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
 
                 // Load hic file after initial image is loaded -- important
+                // Defer track loads until hic file is loaded.  The hic file defines the reference for the tracks.
                 if (config.url || config.dataset) {
+
                     browser.loadHicFile(config)
+
                         .then(function (dataset) {
+
                             if (config.tracks) {
+
                                 browser.loadTracks(config.tracks);
                             }
+
                         })
                 }
             }
@@ -161,7 +167,7 @@ var hic = (function (hic) {
         else {
             if (config.url || config.dataset) {
 
-               browser.loadHicFile(config)
+                browser.loadHicFile(config)
                     .then(function (dataset) {
                         if (config.tracks) {
                             browser.loadTracks(config.tracks);
@@ -269,6 +275,24 @@ var hic = (function (hic) {
         this.$menu.hide();
     };
 
+    hic.Browser.prototype.startSpinner = function () {
+
+        if (true === this.isLoadingHICFile) {
+            this.$user_interaction_shield.show();
+        }
+
+        this.contactMatrixView.startSpinner();
+    }
+
+    hic.Browser.prototype.stopSpinner = function () {
+
+        if (!this.isLoadingHICFile) {
+            this.$user_interaction_shield.hide();
+        }
+
+        this.contactMatrixView.stopSpinner();
+    }
+
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
      * instantiating multiple browsers in a page.
@@ -276,33 +300,29 @@ var hic = (function (hic) {
      * @param config
      */
     hic.loadDataset = function (config) {
+        var self = this;
 
-        return new Promise(function (fulfill, reject) {
-            var hicReader = new hic.HiCReader(config);
+        var hicReader = new hic.HiCReader(config);
 
-            hicReader.loadDataset(config)
+        return hicReader.loadDataset(config)
 
-                .then(function (dataset) {
+            .then(function (dataset) {
 
-                    if (config.nvi) {
-                        var nviArray = decodeURIComponent(config.nvi).split(","),
-                            range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+                if (config.nvi) {
+                    var nviArray = decodeURIComponent(config.nvi).split(","),
+                        range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
 
-                        hicReader.readNormVectorIndex(dataset, range)
-                            .then(function (ignore) {
-                                fulfill(dataset);
-                            })
-                            .catch(function (error) {
-                                self.contactMatrixView.stopSpinner();
-                                console.log(error);
-                            })
-                    }
-                    else {
-                        fulfill(dataset);
-                    }
-                })
-                .catch(reject)
-        });
+                    return hicReader.readNormVectorIndex(dataset, range)
+                        .then(function (ignore) {
+                            return dataset;
+                        })
+
+                }
+                else {
+                    return dataset;
+                }
+            })
+
     };
 
     hic.syncBrowsers = function (browsers) {
@@ -617,16 +637,19 @@ var hic = (function (hic) {
      * @param xy
      */
     hic.Browser.prototype.renderTrackXY = function (xy) {
-
+        var self = this;
         xy.x.readyToPaint()
             .then(function (ignore) {
                 return xy.y.readyToPaint();
             })
             .then(function (ignore) {
-                xy.x.stopSpinner();
-                xy.y.stopSpinner();
+                self.stopSpinner();
                 xy.x.repaint();
                 xy.y.repaint();
+            })
+            .catch(function (error) {
+                self.stopSpinner();
+                console.error(error);
             })
     }
 
@@ -690,8 +713,9 @@ var hic = (function (hic) {
                         config.name = json.originalFilename;
                         return loadDataset();
                     }).catch(function (error) {
-                        self.contactMatrixView.stopSpinner();
+                        self.stopSpinner();
                         igv.presentAlert(error);
+                        return Promise.reject(error);
                     })
             } else {
                 config.name = hic.extractFilename(config.url);
@@ -714,18 +738,21 @@ var hic = (function (hic) {
             else {
 
                 hicReader = new hic.HiCReader(config);
+
                 return hicReader.loadDataset(config)
+
                     .then(function (dataset) {
                         setDataset(dataset)
                         self.isLoadingHICFile = false;
-                        self.contactMatrixView.stopSpinner();
+                        self.stopSpinner();
                         return dataset;
 
                     })
                     .catch(function (error) {
                         self.isLoadingHICFile = false;
-                        self.contactMatrixView.stopSpinner();
+                        self.stopSpinner();
                         igv.presentAlert("Error loading hic file: " + error);
+                        return Promise.reject(error);
                     })
             }
         }
@@ -776,7 +803,7 @@ var hic = (function (hic) {
 
                         })
                         .catch(function (error) {
-                            self.contactMatrixView.stopSpinner();
+                            self.stopSpinner();
                             console.log(error);
                         })
                 } else {
@@ -789,7 +816,7 @@ var hic = (function (hic) {
                             self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                         })
                         .catch(function (error) {
-                            self.contactMatrixView.stopSpinner();
+                            self.stopSpinner();
                             console.log(error);
                         });
                 }
@@ -1141,11 +1168,6 @@ var hic = (function (hic) {
 
     }
 
-// TODO -- when is this called?
-    hic.Browser.prototype.update = function () {
-        this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: false}));
-    };
-
     /**
      * Set the matrix state.  Used to restore state from a bookmark
      * @param state  browser state
@@ -1327,39 +1349,52 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.receiveEvent = function (event) {
 
-        var self = this;
-
         if ("LocusChange" === event.type) {
             // Take direct control of map, track, and ruler repaints, and insure they are synched
-console.log("LocusChange");
-            self.contactMatrixView.startSpinner();
-            var promises = [];
-            promises.push(this.contactMatrixView.readyToPaint());
-            this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-                promises.push(
-                    xyTrackRenderPair.x.readyToPaint()
-                        .then(function (ignore) {
-                            return xyTrackRenderPair.y.readyToPaint();
-                        }))
-            });
+
+            this.update(event);
+        }
+
+    };
 
 
-            Promise.all(promises)
-                .then(function (results) {
-                    self.contactMatrixView.stopSpinner();
-                    self.updating = false;
+    hic.Browser.prototype.update = function (event) {
+
+        var self = this;
+
+        if (!event) {
+            console.log("Update");
+            console.trace();
+        }
+
+        self.contactMatrixView.startSpinner();
+        var promises = [];
+        promises.push(this.contactMatrixView.readyToPaint());
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+            promises.push(
+                xyTrackRenderPair.x.readyToPaint()
+                    .then(function (ignore) {
+                        return xyTrackRenderPair.y.readyToPaint();
+                    }))
+        });
+
+
+        Promise.all(promises)
+            .then(function (results) {
+                self.stopSpinner();
+                self.updating = false;
+                if (event) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
-                    self.contactMatrixView.repaint();
-                    self.renderTracks();
-                })
-                .catch(function (error) {
-                    self.contactMatrixView.stopSpinner();
-                    self.updating.false;
-                    console.error(error);
-                })
-
-        }
+                }
+                self.contactMatrixView.repaint();
+                self.renderTracks();
+            })
+            .catch(function (error) {
+                self.stopSpinner();
+                self.updating.false;
+                console.error(error);
+            })
 
     };
 

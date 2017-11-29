@@ -307,12 +307,11 @@ var hic = (function (hic) {
 
         if ('TrackLoad' === event.type) {
 
-            _.each(event.data.trackXYPairs, function (trackPair, index) {
+            event.data.trackXYPairs.forEach(function (trackPair, index) {
 
-                var w,
-                    h;
+                var w, h;
 
-                self.doLayoutTrackXYPairCount(1 + _.size(self.browser.trackRenderers));
+                self.doLayoutTrackXYPairCount(1 + self.browser.trackRenderers.length);
 
                 trackRendererPair = {};
                 w = h = self.track_height;

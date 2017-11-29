@@ -56,13 +56,13 @@ var hic = (function (hic) {
         }
 
         // IGV STYLE SPINNER
-        spinner = igv.spinner("24px")
-        if ('x' === this.axis) {
-            spinner.style.position = "absolute";
-            spinner.style.left = "0px";
-            spinner.style.top = "0px"
-        }
-        this.$viewport[0].appendChild(spinner);
+        // spinner = igv.spinner("24px")
+        // if ('x' === this.axis) {
+        //     spinner.style.position = "absolute";
+        //     spinner.style.left = "0px";
+        //     spinner.style.top = "0px"
+        // }
+        // this.$viewport[0].appendChild(spinner);
 
         // track spinner container
         this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
@@ -204,7 +204,9 @@ var hic = (function (hic) {
             lengthBP = Math.round(genomicState.bpp * lengthPixel);
             startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             endBP = startBP + lengthBP;
-            
+
+            self.startSpinner();
+
             return self.track
 
                 .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
@@ -320,7 +322,9 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.startSpinner = function () {
 
-        igv.startSpinnerAtParentElement(this.$viewport[0]);
+        this.browser.startSpinner();
+        
+        //igv.startSpinnerAtParentElement(this.$viewport[0]);
 
         //    this.$spinner.show();
         //    this.throbber.start();
@@ -329,7 +333,9 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
 
-        igv.stopSpinnerAtParentElement(this.$viewport[0]);
+        this.browser.stopSpinner();
+        
+        //igv.stopSpinnerAtParentElement(this.$viewport[0]);
 
         //    this.throbber.stop();
         //    this.$spinner.hide();

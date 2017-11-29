@@ -63,16 +63,25 @@ var hic = (function (hic) {
         // this.$canvas.attr('height', this.$viewport.height());
         // this.ctx = this.$canvas.get(0).getContext("2d");
 
-        //spinner
-        id = browser.id + '_' + 'viewport-spinner-container';
-        this.$spinner = $("<div>", {id: id});
-        this.$viewport.append(this.$spinner);
+        this.$fa_spinner = $('<i class="fa fa-spinner fa-spin">');
+        this.$fa_spinner.css("font-size", "48px");
+        this.$fa_spinner.css("position", "absolute");
+        this.$fa_spinner.css("left", "40%");
+        this.$fa_spinner.css("top", "40%");
+        this.$fa_spinner.css("display","none")
+        this.$viewport.append(this.$fa_spinner);
 
-        // throbber
-        // size: see $hic-viewport-spinner-size in .scss files
-        // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
-        this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 64, padding: 16}).appendTo(this.$spinner.get(0));
-        this.stopSpinner();
+
+        //spinner
+        // id = browser.id + '_' + 'viewport-spinner-container';
+        // this.$spinner = $("<div>", {id: id});
+        // this.$viewport.append(this.$spinner);
+        //
+        // // throbber
+        // // size: see $hic-viewport-spinner-size in .scss files
+        // // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
+        // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 64, padding: 16}).appendTo(this.$spinner.get(0));
+        // this.stopSpinner();
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(browser, this.$viewport);
@@ -327,11 +336,9 @@ var hic = (function (hic) {
                         .then(function (imageTiles) {
                             self.updating = false;
                             self.draw(imageTiles, zd);
-                            self.stopSpinner();
                         })
                         .catch(function (error) {
                             self.updating = false;
-                            self.stopSpinner();
                             console.error(error);
                         })
 
@@ -358,7 +365,6 @@ var hic = (function (hic) {
         }
 
         else {
-            self.startSpinner();
 
             return new Promise(function (fulfill, reject) {
 
@@ -393,14 +399,11 @@ var hic = (function (hic) {
                             self.colorScaleCache[colorKey] = s;
                             self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
                         }
-
-                        self.stopSpinner();
-
+                        
                         fulfill();
 
                     })
                     .catch(function (error) {
-                        self.stopSpinner();
                         reject(error);
                     });
             })
@@ -603,8 +606,6 @@ var hic = (function (hic) {
                     blockNumber = row * blockColumnCount + column;
                 }
 
-                self.startSpinner();
-
                 self.browser.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
 
                     .then(function (block) {
@@ -627,12 +628,10 @@ var hic = (function (hic) {
 
                         self.imageTileCache[key] = imageTile;
 
-                        self.stopSpinner();
                         fulfill(imageTile);
 
                     })
                     .catch(function (error) {
-                        self.stopSpinner();
                         reject(error);
                     })
             })
@@ -656,24 +655,13 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
 
-        if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
-            this.browser.$user_interaction_shield.show();
-        }
-
-        if (this.$spinner.is(':visible') !== true) {
-            this.$spinner.show();
-            this.throbber.start();
-        }
+        this.$fa_spinner.css("display","inline-block");
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
 
-        if (this.browser.$user_interaction_shield) {
-            this.browser.$user_interaction_shield.hide();
-        }
+        this.$fa_spinner.css("display","none");
 
-        this.throbber.stop();
-        this.$spinner.hide();
     };
 
     function shiftCurrentImage(self, dx, dy) {
