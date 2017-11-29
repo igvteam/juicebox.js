@@ -160,7 +160,8 @@ var hic = (function (hic) {
         }
         else {
             if (config.url || config.dataset) {
-                browser.loadHicFile(config)
+
+               browser.loadHicFile(config)
                     .then(function (dataset) {
                         if (config.tracks) {
                             browser.loadTracks(config.tracks);
@@ -601,26 +602,13 @@ var hic = (function (hic) {
             });
     };
 
-    hic.Browser.prototype.renderTracks = function (doSyncCanvas) {
+    hic.Browser.prototype.renderTracks = function () {
 
         var self = this;
-
         this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-
-            sync(xyTrackRenderPair.x, index);
-            sync(xyTrackRenderPair.y, index);
-
             self.renderTrackXY(xyTrackRenderPair);
         });
 
-        function sync(trackRenderer, index) {
-
-            trackRenderer.$viewport.css({order: index});
-
-            if (true === doSyncCanvas) {
-                trackRenderer.syncCanvas();
-            }
-        }
     };
 
     /**
@@ -1107,8 +1095,19 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.updateLayout = function () {
 
+        var self = this;
         this.clamp();
-        this.renderTracks(true);
+
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+            sync(xyTrackRenderPair.x, index);
+            sync(xyTrackRenderPair.y, index);
+        });
+
+        function sync(trackRenderer, index) {
+            trackRenderer.$viewport.css({order: index});
+            trackRenderer.syncCanvas();
+        }
+
         this.layoutController.xAxisRuler.update();
         this.layoutController.yAxisRuler.update();
         this.contactMatrixView.clearCaches();
@@ -1332,7 +1331,7 @@ var hic = (function (hic) {
 
         if ("LocusChange" === event.type) {
             // Take direct control of map, track, and ruler repaints, and insure they are synched
-
+console.log("LocusChange");
             self.contactMatrixView.startSpinner();
             var promises = [];
             promises.push(this.contactMatrixView.readyToPaint());
@@ -1352,7 +1351,7 @@ var hic = (function (hic) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
                     self.contactMatrixView.repaint();
-                    self.renderTracks(false);
+                    self.renderTracks();
                 })
                 .catch(function (error) {
                     self.contactMatrixView.stopSpinner();
