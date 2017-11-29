@@ -194,7 +194,6 @@ var juicebox = (function (site) {
                 loadHicFile(url, $selected.text())
                     .then(function (dataset) {
                         console.log("hic file loaded");
-                        browser.isLoadingHICFile = false;
                     });
             }
 
@@ -222,7 +221,6 @@ var juicebox = (function (site) {
                     loadHicFile(file, file.name)
                         .then(function (dataset) {
                             console.log("hic file loaded");
-                            hic.Browser.getCurrentBrowser().isLoadingHICFile = false;
                         });
                 } else {
                     hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
@@ -247,7 +245,6 @@ var juicebox = (function (site) {
                 loadHicFile(url)
                     .then(function (dataset) {
                         console.log("hic file loaded");
-                        hic.Browser.getCurrentBrowser().isLoadingHICFile = false;
                     });
             }
 

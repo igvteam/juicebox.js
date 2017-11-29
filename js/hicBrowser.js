@@ -221,6 +221,7 @@ var hic = (function (hic) {
             this.contactMatrixView.setColorScale(config.colorScale, this.state);
         }
 
+        this.eventBus.subscribe("LocusChange", this);
 
         function configureHover($e) {
 
@@ -359,29 +360,24 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
-
         this.contactMatrixView.$x_guide.css({top: coords.y, left: 0});
         this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css({top: coords.y, left: 0});
-
         this.contactMatrixView.$y_guide.css({top: 0, left: coords.x});
         this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css({top: 0, left: coords.x});
-
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
-
-        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find("div[id$='y-track-guide']"), this.layoutController.$y_tracks.find("div[id$='x-track-guide']")], function ($e) {
-            $e.hide();
-        });
-
-    };
+        this.contactMatrixView.$x_guide.hide();
+        this.contactMatrixView.$y_guide.hide();
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
+    }
 
     hic.Browser.prototype.showCrosshairs = function () {
-
-        _.each([this.contactMatrixView.$x_guide, this.contactMatrixView.$y_guide, this.layoutController.$x_tracks.find("div[id$='y-track-guide']"), this.layoutController.$y_tracks.find("div[id$='x-track-guide']")], function ($e) {
-            $e.show();
-        });
-
+        this.contactMatrixView.$x_guide.hide();
+        this.contactMatrixView.$y_guide.hide();
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
     };
 
     hic.Browser.prototype.genomicState = function (axis) {
@@ -406,25 +402,6 @@ var hic = (function (hic) {
         return gs;
     };
 
-// hic.Browser.prototype.genomicState = function () {
-//     var gs,
-//         bpResolution;
-//
-//     bpResolution = this.dataset.bpResolutions[this.state.zoom];
-//
-//     gs = {};
-//     gs.bpp = bpResolution / this.state.pixelSize;
-//
-//     gs.chromosome = {x: this.dataset.chromosomes[this.state.chr1], y: this.dataset.chromosomes[this.state.chr2]};
-//
-//     gs.startBP = {x: this.state.x * bpResolution, y: this.state.y * bpResolution};
-//     gs.endBP = {
-//         x: gs.startBP.x + gs.bpp * this.contactMatrixView.getViewDimensions().width,
-//         y: gs.startBP.y + gs.bpp * this.contactMatrixView.getViewDimensions().height
-//     };
-//
-//     return gs;
-// };
 
     hic.Browser.prototype.getColorScale = function () {
         return this.contactMatrixView.colorScale;
@@ -751,7 +728,11 @@ var hic = (function (hic) {
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config)
                     .then(function (dataset) {
-                        return setDataset(dataset);
+                        setDataset(dataset)
+                        self.isLoadingHICFile = false;
+                        self.contactMatrixView.stopSpinner();
+                        return dataset;
+
                     })
                     .catch(function (error) {
                         self.isLoadingHICFile = false;
@@ -1262,6 +1243,10 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
+        if (this.updating) return;
+
+        this.updating = true;
+
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
@@ -1270,23 +1255,7 @@ var hic = (function (hic) {
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
 
-        // Take direct control of map, track, and ruler repaints, and insure they are synched
 
-        var promises = [];
-        // promises.push(this.contactMatrixView.readyToPaint());
-        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-            promises.push(xyTrackRenderPair.x.readyToPaint()
-                .then(function (ignore) {
-                    return xyTrackRenderPair.y.readyToPaint();
-                }))
-        });
-
-        Promise.all(promises)
-            .then(function (results) {
-                // todo paint ruler
-                // this.contactMatrixView.repaint();
-                self.renderTracks(false);
-            })
     };
 
 
@@ -1359,7 +1328,39 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.receiveEvent = function (event) {
 
-        console.log("Unexpected event: " + event.type);
+        var self = this;
+
+        if ("LocusChange" === event.type) {
+            // Take direct control of map, track, and ruler repaints, and insure they are synched
+
+            self.contactMatrixView.startSpinner();
+            var promises = [];
+            promises.push(this.contactMatrixView.readyToPaint());
+            this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+                promises.push(
+                    xyTrackRenderPair.x.readyToPaint()
+                        .then(function (ignore) {
+                            return xyTrackRenderPair.y.readyToPaint();
+                        }))
+            });
+
+
+            Promise.all(promises)
+                .then(function (results) {
+                    self.contactMatrixView.stopSpinner();
+                    self.updating = false;
+                    self.layoutController.xAxisRuler.locusChange(event);
+                    self.layoutController.yAxisRuler.locusChange(event);
+                    self.contactMatrixView.repaint();
+                    self.renderTracks(false);
+                })
+                .catch(function (error) {
+                    self.contactMatrixView.stopSpinner();
+                    self.updating.false;
+                    console.error(error);
+                })
+
+        }
 
     };
 
@@ -1768,7 +1769,7 @@ var hic = (function (hic) {
             return s;
         }
     }
-    
+
     return hic;
 
 })

@@ -35,29 +35,28 @@ var hic = (function (hic) {
         this.axis = axis;
 
         id = browser.id + '_' + this.axis + '-axis';
-        this.$axis = $("<div>", { id:id });
+        this.$axis = $("<div>", {id: id});
         $parent.append(this.$axis);
 
 
         this.$canvas = $('<canvas>');
         this.$axis.append(this.$canvas);
 
-        this.$canvas.width(        this.$axis.width());
+        this.$canvas.width(this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
 
-        this.$canvas.height(        this.$axis.height());
+        this.$canvas.height(this.$axis.height());
         this.$canvas.attr('height', this.$axis.height());
 
         this.ctx = this.$canvas.get(0).getContext("2d");
 
-        this.yAxisTransformWithContext = function(context) {
+        this.yAxisTransformWithContext = function (context) {
             context.scale(-1, 1);
-            context.rotate(Math.PI/2.0);
+            context.rotate(Math.PI / 2.0);
         };
 
         this.setAxisTransform(axis);
 
-        this.browser.eventBus.subscribe('LocusChange', this);
         this.browser.eventBus.subscribe('MapLoad', this);
 
     };
@@ -91,7 +90,7 @@ var hic = (function (hic) {
             var d,
                 percentage;
 
-            percentage = (chr.bpLength)/extent;
+            percentage = (chr.bpLength) / extent;
 
             if (percentage * dimen < 1.0) {
                 scraps += percentage;
@@ -152,32 +151,33 @@ var hic = (function (hic) {
 
         this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
 
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) { };
+        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) {
+        };
 
     };
 
-    hic.Ruler.prototype.receiveEvent = function(event) {
+    hic.Ruler.prototype.receiveEvent = function (event) {
 
-        if ('LocusChange' === event.type) {
-
-            if (0 === event.data.state.chr1 && event.data.state.chr1 === event.data.state.chr1) {
-                this.showWholeGenome();
-            } else {
-                this.hideWholeGenome();
-                this.update();
-            }
-
-        } else if ('MapLoad' === event.type) {
+        if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.axis, event.data);
         }
 
     };
 
+    hic.Ruler.prototype.locusChange = function (event) {
+        if (0 === event.data.state.chr1 && event.data.state.chr1 === event.data.state.chr1) {
+            this.showWholeGenome();
+        } else {
+            this.hideWholeGenome();
+            this.update();
+        }
+    }
+
     hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
 
-        this.$axis.css( 'width', calc );
+        this.$axis.css('width', calc);
 
-        this.$canvas.width(        this.$axis.width());
+        this.$canvas.width(this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
 
         this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
@@ -187,7 +187,7 @@ var hic = (function (hic) {
 
     hic.Ruler.prototype.updateHeight = function (height) {
 
-        this.$canvas.height(        height);
+        this.$canvas.height(height);
         this.$canvas.attr('height', height);
 
         this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
@@ -204,19 +204,19 @@ var hic = (function (hic) {
             browser = this.browser;
 
         identityTransformWithContext(this.ctx);
-        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), { fillStyle: igv.Color.rgbColor(255, 255, 255) });
+        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: igv.Color.rgbColor(255, 255, 255)});
 
         this.canvasTransform(this.ctx);
 
         w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
         h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
 
-        igv.graphics.fillRect(this.ctx, 0, 0, w, h, { fillStyle: igv.Color.rgbColor(255, 255, 255) });
+        igv.graphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: igv.Color.rgbColor(255, 255, 255)});
 
-        config.bpPerPixel = browser.dataset.bpResolutions[ browser.state.zoom ] / browser.state.pixelSize;
+        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
-        config.bpStart = bin * browser.dataset.bpResolutions[ browser.state.zoom ];
+        config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];
 
         config.rulerTickMarkReferencePixels = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
 
@@ -248,14 +248,14 @@ var hic = (function (hic) {
             chrName,
             chromosomes = this.browser.dataset.chromosomes;
 
-        chrName = ('x' === this.axis) ? chromosomes[ this.browser.state.chr1 ].name : chromosomes[ this.browser.state.chr2 ].name;
-        chrSize = ('x' === this.axis) ? chromosomes[ this.browser.state.chr1 ].size : chromosomes[ this.browser.state.chr2 ].size;
+        chrName = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].name : chromosomes[this.browser.state.chr2].name;
+        chrSize = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].size : chromosomes[this.browser.state.chr2].size;
 
         if (options.chrName === "all") {
             // drawAll.call(this);
         } else {
 
-            igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, { fillStyle: igv.Color.rgbColor(255, 255, 255) });
+            igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: igv.Color.rgbColor(255, 255, 255)});
 
             fontStyle = {
                 textAlign: 'center',

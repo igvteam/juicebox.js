@@ -204,8 +204,7 @@ var hic = (function (hic) {
             lengthBP = Math.round(genomicState.bpp * lengthPixel);
             startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             endBP = startBP + lengthBP;
-            self.startSpinner();
-
+            
             return self.track
 
                 .getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)

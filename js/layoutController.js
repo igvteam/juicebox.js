@@ -17,7 +17,6 @@ var hic = (function (hic) {
         this.track_height = 32;
 
         this.browser.eventBus.subscribe('TrackLoad', this);
-        this.browser.eventBus.subscribe('LocusChange', this);
 
     };
 
@@ -326,11 +325,7 @@ var hic = (function (hic) {
 
             this.browser.updateLayout();
 
-        } else if ('LocusChange' === event.type) {
-           // this.browser.renderTracks(false);
-        }
-
-
+        } 
     };
 
     hic.LayoutController.prototype.removeAllTrackXYPairs = function () {

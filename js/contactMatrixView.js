@@ -33,16 +33,16 @@ var hic = (function (hic) {
     const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
     var defaultColorScaleInitializer =
-        {
-            low: 0,
-            lowR: 255,
-            lowG: 255,
-            lowB: 255,
-            high: 2000,
-            highR: 255,
-            highG: 0,
-            highB: 0
-        };
+    {
+        low: 0,
+        lowR: 255,
+        lowG: 255,
+        lowB: 255,
+        high: 2000,
+        highR: 255,
+        highG: 0,
+        highB: 0
+    };
 
     hic.ContactMatrixView = function (browser, $container) {
         var id;
@@ -100,12 +100,11 @@ var hic = (function (hic) {
         this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
 
         this.colorScaleCache = {};
-
-        this.browser.eventBus.subscribe("LocusChange", this);
+        
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
         this.browser.eventBus.subscribe("TrackState2D", this);
-
+        this.browser.eventBus.subscribe("LocusChange", this);
     };
 
     hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
@@ -170,7 +169,6 @@ var hic = (function (hic) {
         if (this.initialImage) {
             if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
                 this.initialImage = undefined;
-                this.startSpinner();
             }
         }
 
@@ -183,8 +181,8 @@ var hic = (function (hic) {
         if (initialImage.state.equals(state)) return true;
 
         if (!(initialImage.state.chr1 === state.chr1 && initialImage.state.chr2 === state.chr2 &&
-                initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
-                initialImage.state.normalization === state.normalization)) return false;
+            initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
+            initialImage.state.normalization === state.normalization)) return false;
 
         // Now see if initial image fills view
         var offsetX = (initialImage.x - state.x) * state.pixelSize,
@@ -216,7 +214,72 @@ var hic = (function (hic) {
         this.ctx.drawImage(image.img, offsetX, offsetY);
     }
 
+
     hic.ContactMatrixView.prototype.update = function () {
+
+        var self = this;
+
+        this.readyToPaint()
+            .then(function (ignore) {
+
+                self.repaint();
+            })
+            .catch(function (error) {
+                console.error(error);
+            })
+
+    }
+
+    /**
+     * Return a promise to load all neccessary data
+     */
+    hic.ContactMatrixView.prototype.readyToPaint = function () {
+
+        var self = this,
+            state = this.browser.state;
+
+        if (!self.browser.dataset || self.initialImage) {
+            return Promise.resolve();
+        }
+
+        return self.browser.dataset.getMatrix(state.chr1, state.chr2)
+
+            .then(function (matrix) {
+
+                if (matrix) {
+
+                    var zd = matrix.bpZoomData[state.zoom],
+                        blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
+                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+                        widthInBins = self.$viewport.width() / pixelSizeInt,
+                        heightInBins = self.$viewport.height() / pixelSizeInt,
+                        blockCol1 = Math.floor(state.x / blockBinCount),
+                        blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
+                        blockRow1 = Math.floor(state.y / blockBinCount),
+                        blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
+                        r, c, promises = [];
+
+                    return self.checkColorScale(zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+
+                        .then(function () {
+
+                            for (r = blockRow1; r <= blockRow2; r++) {
+                                for (c = blockCol1; c <= blockCol2; c++) {
+                                    promises.push(self.getImageTile(zd, r, c, state));
+                                }
+                            }
+
+                            return Promise.all(promises);
+                        })
+                }
+                else {
+                    return Promise.resolve();
+                }
+            })
+    };
+
+
+    hic.ContactMatrixView.prototype.repaint = function () {
 
         var self = this,
             state = this.browser.state;
@@ -236,15 +299,12 @@ var hic = (function (hic) {
             return;
         }
 
-        self.updating = true;
-
-        self.startSpinner();
 
         self.browser.dataset.getMatrix(state.chr1, state.chr2)
 
             .then(function (matrix) {
 
-                if(matrix) {
+                if (matrix) {
 
                     var zd = matrix.bpZoomData[state.zoom],
                         blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
@@ -257,34 +317,25 @@ var hic = (function (hic) {
                         blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
                         r, c, promises = [];
 
-                    self.checkColorScale(zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+                    for (r = blockRow1; r <= blockRow2; r++) {
+                        for (c = blockCol1; c <= blockCol2; c++) {
+                            promises.push(self.getImageTile(zd, r, c, state));
+                        }
+                    }
 
-                        .then(function () {
-
-                            for (r = blockRow1; r <= blockRow2; r++) {
-                                for (c = blockCol1; c <= blockCol2; c++) {
-                                    promises.push(self.getImageTile(zd, r, c, state));
-                                }
-                            }
-
-                            Promise.all(promises)
-                                .then(function (imageTiles) {
-                                    self.updating = false;
-                                    self.draw(imageTiles, zd);
-                                    self.stopSpinner();
-                                })
-                                .catch(function (error) {
-                                    self.updating = false;
-                                    self.stopSpinner();
-                                    console.error(error);
-                                })
-
+                    Promise.all(promises)
+                        .then(function (imageTiles) {
+                            self.updating = false;
+                            self.draw(imageTiles, zd);
+                            self.stopSpinner();
                         })
                         .catch(function (error) {
                             self.updating = false;
-                            self.stopSpinner(self);
+                            self.stopSpinner();
                             console.error(error);
                         })
+
+
                 }
             })
             .catch(function (error) {
@@ -335,7 +386,7 @@ var hic = (function (hic) {
 
                         if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
-                            if(0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
+                            if (0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
 
                             self.colorScale.high = s;
                             self.computeColorScale = false;
@@ -390,7 +441,7 @@ var hic = (function (hic) {
                 var offsetY = (y0 - state.y) * state.pixelSize;
                 var scale = state.pixelSize / pixelSizeInt;
                 var scaledWidth = image.width * scale;
-                var scaledHeight =image.height * scale;
+                var scaledHeight = image.height * scale;
                 if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
                     offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
                     if (scale === 1) {
@@ -997,10 +1048,10 @@ var hic = (function (hic) {
         tokens = string.split(",");
 
         cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[ 0 ];
-        cs.highR = tokens[ 1 ];
-        cs.highG = tokens[ 2 ];
-        cs.highB = tokens[ 3 ];
+        cs.high = tokens[0];
+        cs.highR = tokens[1];
+        cs.highG = tokens[2];
+        cs.highB = tokens[3];
 
         return new hic.ColorScale(cs);
 
