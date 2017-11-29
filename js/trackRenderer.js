@@ -135,7 +135,7 @@ var hic = (function (hic) {
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
 
-        igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: igv.Color.rgbColor(255, 255, 255)});
+        this.repaint(false);
     };
 
     hic.TrackRenderer.prototype.setColor = function (color) {
@@ -267,11 +267,13 @@ var hic = (function (hic) {
     /**
      *
      */
-    hic.TrackRenderer.prototype.repaint = function () {
+    hic.TrackRenderer.prototype.repaint = function (loadIfNeeded) {
 
         var self = this,
             genomicState,
             chrName;
+
+        if(loadIfNeeded === undefined) loadIfNeeded = false;
 
         genomicState = self.browser.genomicState(self.axis);
 
@@ -288,7 +290,7 @@ var hic = (function (hic) {
         if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
             self.drawTileWithGenomicState(self.tile, genomicState);
 
-        } else {
+        } else if (loadIfNeeded) {
 
             self.readyToPaint()
                 .then(function (ignore) {

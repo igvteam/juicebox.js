@@ -1137,7 +1137,9 @@ var hic = (function (hic) {
 
         this.layoutController.xAxisRuler.update();
         this.layoutController.yAxisRuler.update();
+
         this.update();
+
     };
 
     function minPixelSize(chr1, chr2, z) {
@@ -1381,6 +1383,7 @@ var hic = (function (hic) {
         Promise.all(promises)
             .then(function (results) {
                 self.stopSpinner();
+                self.updating = false;
                 if (event) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
@@ -1390,6 +1393,7 @@ var hic = (function (hic) {
             })
             .catch(function (error) {
                 self.stopSpinner();
+                self.updating = false;
                 console.error(error);
             })
 
