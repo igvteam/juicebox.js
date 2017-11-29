@@ -539,15 +539,15 @@
             // URL shortener.   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
             // TODO -- to use a custom or provider other than Google or Bitly supply details here.   See documentation.
             urlShortener: [
-//                {
-//                    provider: "google",
-//                    apiKey: "ABCD",        // TODO -- replace with your Google API Key
-//                    hostname: "goo.gl"
-//                },
                 {
                     provider: "bitly",
                     apiKey: "ABCD",        // TODO -- replace with your Bitly access token
                     hostname: 'bit.ly'
+                },
+                {
+                    provider: "google",
+                    apiKey: "ABCD",        // TODO -- replace with your Google API Key
+                    hostname: "goo.gl"
                 }
             ],
 
