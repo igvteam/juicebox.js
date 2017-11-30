@@ -59,16 +59,19 @@ var hic = (function (hic) {
             eventType = event.type,
             subscriberList = this.subscribers[eventType];
 
-        if(subscriberList) {
+        if (subscriberList) {
             subscriberList.forEach(function (subscriber) {
 
                 if ("function" === typeof subscriber.receiveEvent) {
                     subscriber.receiveEvent(event);
+                } else if ("function" === typeof subscriber) {
+                    subscriber(event);
                 }
+
             });
         }
 
-        if(event.type === "LocusChange"  && event.propogate) {
+        if (event.type === "LocusChange" && event.propogate) {
 
             self.browser.synchedBrowsers.forEach(function (browser) {
                 browser.syncState(self.browser.getSyncState());
@@ -78,7 +81,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.Event = function(type, data, propogate) {
+    hic.Event = function (type, data, propogate) {
         return {
             type: type,
             data: data || {},
