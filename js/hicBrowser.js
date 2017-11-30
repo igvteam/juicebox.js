@@ -737,9 +737,9 @@ var hic = (function (hic) {
                 } else {
 
                     // Load norm vector index in the background
-                    dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    return dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
-                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                         })
                         .catch(function (error) {
                             console.log(error);
@@ -1324,14 +1324,14 @@ var hic = (function (hic) {
 
         Promise.all(promises)
             .then(function (results) {
-                self.stopSpinner();
-                self.updating = false;
-                if (event) {
+                if (event && "LocusChange" === event.type) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
                 }
                 self.contactMatrixView.repaint();
                 self.renderTracks();
+                self.stopSpinner();
+                self.updating = false;
             })
             .catch(function (error) {
                 self.stopSpinner();
