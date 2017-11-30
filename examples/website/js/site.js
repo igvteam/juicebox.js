@@ -489,7 +489,7 @@ var juicebox = (function (site) {
 
             encodeTable = new igv.ModalTable(config, encodeDatasource);
 
-            encodeTable.loadData();
+            encodeTable.loadData(genomeId);
 
         }
 

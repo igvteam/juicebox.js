@@ -705,6 +705,7 @@ var hic = (function (hic) {
                         self.contactMatrixView.setColorScale(config.colorScale, self.state);
                     }
                     self.isLoadingHICFile = false;
+                    self.eventBus.post(hic.Event("MapLoad", dataset));
                     return dataset;
 
                 })
@@ -715,8 +716,10 @@ var hic = (function (hic) {
                         .then(function (nvi) {
                             self.isLoadingHICFile = false;
                             self.stopSpinner();
+
                             $('.hic-root').removeClass('hic-root-selected');
                             hic.Browser.setCurrentBrowser(undefined);
+
                             return dataset;
                         })
                 })
@@ -1109,7 +1112,7 @@ var hic = (function (hic) {
             zoomChanged = (this.state.zoom !== state.zoom);
         this.state = state;
 
-       // Possibly adjust pixel size
+        // Possibly adjust pixel size
         minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
             .then(function (minPS) {
                 self.state.pixelSize = Math.max(state.pixelSize, minPS);

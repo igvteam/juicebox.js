@@ -114,6 +114,7 @@ var hic = (function (hic) {
             this.$normalization_selector.append(elements.join(''));
         }
 
+        // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
         if ("MapLoad" === event.type) {
             // TODO -- start norm widget "not ready" state
             this.startNotReady();
