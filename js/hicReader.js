@@ -299,7 +299,13 @@ var hic = (function (hic) {
 
     };
 
-
+    /**
+     * Return a promise to load the normalization vector index 
+     * 
+     * @param dataset
+     * @param range  -- file range {position, size}
+     * @returns Promise for the normalization vector index
+     */
     hic.HiCReader.prototype.readNormVectorIndex = function (dataset, range) {
 
         if (this.normVectorIndex) {
@@ -352,7 +358,7 @@ var hic = (function (hic) {
                     self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
                 }
 
-                return self;
+                return self.normVectorIndex;
 
             })
     }

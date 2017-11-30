@@ -200,7 +200,6 @@ var hic = (function (hic) {
 
             // Expand the requested range so we can pan a bit without reloading
             lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
-
             lengthBP = Math.round(genomicState.bpp * lengthPixel);
             startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             endBP = startBP + lengthBP;
@@ -213,10 +212,7 @@ var hic = (function (hic) {
 
                 .then(function (features) {
 
-                    var buffer,
-                        ctx;
-
-
+                    var buffer, ctx;
                     buffer = document.createElement('canvas');
                     buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
                     buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
@@ -250,7 +246,7 @@ var hic = (function (hic) {
                         };
 
                         self.track.draw(self.drawConfiguration);
-                        
+
 
                     } else {
                         ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
@@ -273,7 +269,7 @@ var hic = (function (hic) {
             genomicState,
             chrName;
 
-        if(loadIfNeeded === undefined) loadIfNeeded = false;
+        if (loadIfNeeded === undefined) loadIfNeeded = false;
 
         genomicState = self.browser.genomicState(self.axis);
 
@@ -325,7 +321,7 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.startSpinner = function () {
 
         this.browser.startSpinner();
-        
+
         //igv.startSpinnerAtParentElement(this.$viewport[0]);
 
         //    this.$spinner.show();
@@ -336,7 +332,7 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.stopSpinner = function () {
 
         this.browser.stopSpinner();
-        
+
         //igv.stopSpinnerAtParentElement(this.$viewport[0]);
 
         //    this.throbber.stop();
