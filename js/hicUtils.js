@@ -34,19 +34,18 @@ var hic = (function (hic) {
     }
 
     hic.extractFilename = function (urlOrFile) {
+        var idx,
+            str;
 
         if (igv.isFilePath(urlOrFile)) {
             return urlOrFile.name;
         }
         else {
-            var idx = urlOrFile.lastIndexOf("/");
 
-            if (idx > 0) {
-                return urlOrFile.substring(idx + 1);
-            }
-            else {
-                return urlOrFile;
-            }
+            str = urlOrFile.split('?').shift();
+            idx = urlOrFile.lastIndexOf("/");
+
+            return idx > 0 ? str.substring(idx + 1) : str;
         }
     };
 
