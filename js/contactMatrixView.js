@@ -655,6 +655,10 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.startSpinner = function () {
 
+        if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
+            this.browser.$user_interaction_shield.show();
+        }
+        
         this.$fa_spinner.css("display","inline-block");
     };
 
