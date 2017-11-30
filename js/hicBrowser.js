@@ -649,39 +649,23 @@ var hic = (function (hic) {
             }
         }
 
-
-        if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-            tmp = hic.extractQuery(config.url);
-            id = tmp["id"];
-            endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
-            if (apiKey) endPoint += "?key=" + apiKey;
-
-            return igv.xhr.loadJson(endPoint, igv.buildOptions(config))
-                .then(function (json) {
-                    config.name = json.originalFilename;
-
-                    return loadDataset();
-                })
-        }
-
-        if (config.name === undefined) {
-            config.name = hic.extractFilename(config.url);
-        }
-
-        self.$contactMaplabel.text(config.name);
-        self.name = config.name;
-
         if (config.dataset) {
+            self.$contactMaplabel.text(config.name);
+            self.name = config.name;
             return Promise.resolve(setDataset(config.dataset));
         }
         else {
 
-            hicReader = new hic.HiCReader(config);
+            return extractName(config)
 
-            return hicReader.loadDataset(config)
+                .then(function (name) {
+                    self.$contactMaplabel.text(config.name);
+                    self.name = config.name;
+                    hicReader = new hic.HiCReader(config);
+                    return hicReader.loadDataset(config);
+                })
 
                 .then(function (dataset) {
-
                     var previousGenomeId = self.genome ? self.genome.id : undefined;
                     self.dataset = dataset;
                     self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
@@ -726,6 +710,7 @@ var hic = (function (hic) {
                 .catch(function (error) {
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
+                    console.error(error);
                     igv.presentAlert("Error loading hic file: " + error);
                     return error;
                 })
@@ -760,9 +745,36 @@ var hic = (function (hic) {
                             console.log(error);
                         });
 
-                    return undefined;   // NVI not loaded yeat
+                    return Promise.resolve(undefined);   // NVI not loaded yeat
                 }
 
+            }
+        }
+
+        /**
+         * Return a promise to extract the name of the dataset.  The promise is neccessacary because
+         * google drive urls require a call to the API
+         *
+         * @returns Promise for the name
+         */
+        function extractName(config) {
+
+            if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
+                tmp = hic.extractQuery(config.url);
+                id = tmp["id"];
+                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+                if (apiKey) endPoint += "?key=" + apiKey;
+
+                return igv.xhr.loadJson(endPoint, igv.buildOptions(config))
+                    .then(function (json) {
+                        config.name = json.originalFilename;
+                        return config.name;
+                    })
+            } else {
+                if (config.name === undefined) {
+                    config.name = hic.extractFilename(config.url);
+                }
+                return Promise.resolve(config.name);
             }
         }
 
