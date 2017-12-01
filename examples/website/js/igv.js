@@ -27341,8 +27341,13 @@ var igv = (function (igv) {
             return Promise.resolve(subbuffer(self, requestedRange, asUint8));
         }
         else {
-            // Expand buffer size if needed, but not beyond content length
-            bufferSize = Math.max(self.bufferSize, requestedRange.size);
+            // If requested range size is specified, expand buffer size if needed, but not beyond content length
+            if(requestedRange.size) {
+                bufferSize = Math.max(self.bufferSize, requestedRange.size);
+            }
+            else {
+                bufferSize = self.bufferSize;
+            }
 
             if (self.contentLength > 0 && requestedRange.start + bufferSize > self.contentLength) {
                 loadRange = {start: requestedRange.start};
@@ -30289,6 +30294,10 @@ var igv = (function (igv) {
 (igv || {});
 
 
+
+/**
+ * Created by jrobinso on 12/1/17.
+ */
 
 /*
  * The MIT License (MIT)
@@ -36818,7 +36827,8 @@ var igv = (function (igv) {
                 url = options.url,
                 body = options.body,
                 decode = options.decode,
-                apiKey = (igv.oauth.google.apiKey),
+                apiKey = igv.oauth.google.apiKey,
+                acToken = igv.oauth.google.access_token,
                 paramSeparator = "?",
                 fields = options.fields;  // Partial response
 
@@ -42556,14 +42566,14 @@ var igv = (function (igv) {
     };
 
     igv.buildOptions = function(config, options) {
-        var defaultOptions = {
-            oauthToken: config.oauthToken || undefined,
-            headers: config.headers,
-            withCredentials: config.withCredentials,
-            oauth: config.oauth
-        };
+        // var defaultOptions = {
+        //     oauthToken: config.oauthToken || undefined,
+        //     headers: config.headers,
+        //     withCredentials: config.withCredentials,
+        //     oauth: config.oauth
+        // };
 
-        return options ? Object.assign(defaultOptions, options): defaultOptions;
+        return options ? Object.assign(config, options): config;
     };
 
     return igv;

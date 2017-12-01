@@ -212,7 +212,7 @@ var hic = (function (hic) {
         }
 
         var self = this,
-            range = {start: this.normExpectedValueVectorsPosition, size: 60000000};
+            range = {start: this.normExpectedValueVectorsPosition, size: 85000000};
 
 
         return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
