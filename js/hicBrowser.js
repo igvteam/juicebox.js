@@ -655,16 +655,9 @@ var hic = (function (hic) {
             return Promise.resolve(setDataset(config.dataset));
         }
         else {
-
-            return extractName(config)
-
-                .then(function (name) {
-                    self.$contactMaplabel.text(config.name);
-                    self.name = config.name;
-                    hicReader = new hic.HiCReader(config);
-                    return hicReader.loadDataset(config);
-                })
-
+            hicReader = new hic.HiCReader(config);
+            return hicReader
+                .loadDataset(config)
                 .then(function (dataset) {
                     var previousGenomeId = self.genome ? self.genome.id : undefined;
                     self.dataset = dataset;
@@ -707,13 +700,10 @@ var hic = (function (hic) {
                             return dataset;
                         })
                 })
-                .catch(function (error) {
-                    self.$contactMaplabel.text('');
-                    self.isLoadingHICFile = false;
-                    self.stopSpinner();
-                    igv.presentAlert("Error loading hic file: " + error);
-                    return error;
-                })
+                .then(function (unused) {
+                    self.$contactMaplabel.text(config.name);
+                    self.name = config.name;
+                });
         }
 
 

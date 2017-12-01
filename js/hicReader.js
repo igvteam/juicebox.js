@@ -59,7 +59,7 @@ var hic = (function (hic) {
             });
 
 
-    }
+    };
 
     hic.HiCReader.prototype.readHeader = function (dataset) {
 
