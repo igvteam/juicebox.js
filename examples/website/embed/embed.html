@@ -81,6 +81,20 @@
         var query = hic.extractQuery(window.location.href);
         var container = document.getElementById("app-container");
 
+        hic.setURLShortener([
+            {
+                provider: "bitly",
+                apiKey: "ABCD",        // TODO -- replace with your Bitly access token
+                hostname: 'bit.ly'
+            },
+            {
+                provider: "google",
+                apiKey: "ABCD",        // TODO -- replace with your Google API Key
+                hostname: "goo.gl"
+            }
+        ]);
+
+
         if (query && query.hasOwnProperty("juiceboxURL")) {
 
             hic.expandURL(query["juiceboxURL"])
@@ -97,7 +111,9 @@
 
         function createBrowsers(query) {
 
-            var parts, q, browser, i;
+            var parts, q, config;
+
+            config = {};
 
             if (query && query.hasOwnProperty("juicebox")) {
                 q = query["juicebox"];
@@ -108,16 +124,20 @@
 
                 q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
                 parts = q.split("},{");
-                hic.createBrowser(container, {href: decodeURIComponent(parts[0])});
+
+                config.href = decodeURIComponent(parts[0]);
+
+                hic.createBrowser(container, config);
 
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
-                        hic.createBrowser(container, {href: decodeURIComponent(parts[i])});
+                        config.href = decodeURIComponent(parts[i]);
+                        hic.createBrowser(container, config);
                     }
                     hic.syncBrowsers(hic.allBrowsers);
                 }
             } else {
-                hic.createBrowser(container, {});
+                hic.createBrowser(container, config);
             }
         }
 
@@ -133,8 +153,8 @@
         }
 
 
-
-    });
+    })
+    ;
 
 </script>
 
