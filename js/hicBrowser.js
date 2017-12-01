@@ -737,11 +737,12 @@ var hic = (function (hic) {
                 } else {
 
                     // Load norm vector index in the background
-                    return dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
                             return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                         })
                         .catch(function (error) {
+                            igv.presentAlert("Error loading normalization vectors");
                             console.log(error);
                         });
 
