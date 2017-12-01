@@ -54,6 +54,10 @@ var hic = (function (hic) {
             .then(function (ignore) {
                     return dataset;
             })
+            .catch(function (error) {
+                return error;
+            });
+
 
     }
 

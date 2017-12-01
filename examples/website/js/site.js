@@ -227,10 +227,7 @@ var juicebox = (function (site) {
         });
 
         $('#hic-load-url').on('change', function (e) {
-            var url,
-                suffix,
-                paramIdx,
-                path;
+            var url;
 
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
@@ -441,10 +438,14 @@ var juicebox = (function (site) {
             synchState = hic.allBrowsers[0].getSyncState();
         }
 
-        hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState})
+        hic.Browser.getCurrentBrowser()
+            .loadHicFile({ url: url, name: name, synchState: synchState })
             .then(function (dataset) {
                 console.log("hic file loaded");
             })
+            .catch(function (error) {
+                hic.presentError("Error loading " + url, error);
+            });
     }
 
     function createEncodeTable(browserRetrievalFunction, genomeId) {

@@ -708,9 +708,9 @@ var hic = (function (hic) {
                         })
                 })
                 .catch(function (error) {
+                    self.$contactMaplabel.text('');
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
-                    console.error(error);
                     igv.presentAlert("Error loading hic file: " + error);
                     return error;
                 })
@@ -778,16 +778,6 @@ var hic = (function (hic) {
                 return Promise.resolve(config.name);
             }
         }
-
-
-        stripUriParameters = function () {
-
-            var href = window.location.href,
-                idx = href.indexOf("?");
-
-            if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
-
-        };
 
     };
 
