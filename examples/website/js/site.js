@@ -157,9 +157,9 @@ var juicebox = (function (site) {
                             tweetContainer = $('#tweetButtonContainer');
                             tweetContainer.empty();
                             config =
-                            {
-                                text: 'Contact map: '
-                            };
+                                {
+                                    text: 'Contact map: '
+                                };
                             window.twttr.widgets
                                 .createShareButton(shortURL, tweetContainer.get(0), config)
                                 .then(function (el) {
@@ -227,10 +227,7 @@ var juicebox = (function (site) {
         });
 
         $('#hic-load-url').on('change', function (e) {
-            var url,
-                suffix,
-                paramIdx,
-                path;
+            var url;
 
             if (undefined === hic.Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
@@ -302,10 +299,10 @@ var juicebox = (function (site) {
                 config;
 
             config =
-            {
-                initFromUrl: false,
-                updateHref: false
-            };
+                {
+                    initFromUrl: false,
+                    updateHref: false
+                };
             browser = hic.createBrowser($container.get(0), config);
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
@@ -435,15 +432,23 @@ var juicebox = (function (site) {
     };
 
     function loadHicFile(url, name) {
-        var synchState;
+        var synchState,
+            browser;
 
         if (hic.allBrowsers.length > 1) {
             synchState = hic.allBrowsers[0].getSyncState();
         }
 
-        hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState})
+        browser = hic.Browser.getCurrentBrowser();
+        browser
+            .loadHicFile({ url: url, name: name, synchState: synchState })
             .then(function (dataset) {
                 console.log("hic file loaded");
+            })
+            .catch(function (error) {
+                browser.isLoadingHICFile = false;
+                browser.stopSpinner();
+                igv.presentAlert("Error loading hic url: " + url);
             })
     }
 
@@ -477,15 +482,15 @@ var juicebox = (function (site) {
             encodeDatasource = new igv.EncodeDataSource(columnFormat);
 
             config =
-            {
-                $modal: $('#hicEncodeModal'),
-                $modalBody: $('#encodeModalBody'),
-                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                $modalGoButton: $('#encodeModalGoButton'),
-                browserRetrievalFunction: browserRetrievalFunction,
-                browserLoadFunction: 'loadTracks'
-            };
+                {
+                    $modal: $('#hicEncodeModal'),
+                    $modalBody: $('#encodeModalBody'),
+                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                    $modalGoButton: $('#encodeModalGoButton'),
+                    browserRetrievalFunction: browserRetrievalFunction,
+                    browserLoadFunction: 'loadTracks'
+                };
 
             encodeTable = new igv.ModalTable(config, encodeDatasource);
 
