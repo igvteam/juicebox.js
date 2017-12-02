@@ -442,9 +442,9 @@ var juicebox = (function (site) {
         }
 
         hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState})
-            .then(function (dataset) {
-                console.log("hic file loaded");
-            })
+            .then(function (name) {
+                console.log("Load Hic file " + name);
+            });
     }
 
     function createEncodeTable(browserRetrievalFunction, genomeId) {

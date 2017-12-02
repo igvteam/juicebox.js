@@ -54,8 +54,11 @@ var hic = (function (hic) {
             .then(function (ignore) {
                     return dataset;
             })
+            .catch(function (error) {
+                return error;
+            });
 
-    }
+    };
 
     hic.HiCReader.prototype.readHeader = function (dataset) {
 
