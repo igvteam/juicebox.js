@@ -52,7 +52,7 @@ var hic = (function (hic) {
                 return self.readFooter(dataset)
             })
             .then(function (ignore) {
-                    return dataset;
+                return dataset;
             })
 
     }
@@ -212,96 +212,154 @@ var hic = (function (hic) {
         }
 
         var self = this,
-            range = {start: this.normExpectedValueVectorsPosition, size: 85000000};
+            range;
 
 
-        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+        if (this.normExpectedValueVectorsPosition === undefined) {
+            return Promise.resolve();
+        }
 
-            .then(function (data) {
+        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition, -1)
 
-                var key, pos, size, nEntries, type, unit, binSize, nValues, values, nChrScaleFactors, normFactors,
-                    p0, chrIdx, filePosition, sizeInBytes;
+            .then(function (nviStart) {
 
-                if (!data) {
-                    return undefined;
-                }
+                range = {start: nviStart, size: 10000}
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
+                return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
 
-                dataset.normalizedExpectedValueVectors = {};
+                    .then(function (data) {
 
-                try {
-                    nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
+                        var key, pos, size, nEntries, type, unit, binSize, nValues, values, nChrScaleFactors, normFactors,
+                            p0, chrIdx, filePosition, sizeInBytes;
 
-                        type = binaryParser.getString();
-                        unit = binaryParser.getString();
-                        binSize = binaryParser.getInt();
-                        nValues = binaryParser.getInt();
-                        values = [];
+                        var binaryParser = new igv.BinaryParser(new DataView(data));
 
-                        while (nValues-- > 0) {
-                            values.push(binaryParser.getDouble());
+                        dataset.normalizedExpectedValueVectors = {};
+
+                        try {
+
+                            // Normalization vector index
+                            p0 = binaryParser.position;
+                            self.normVectorIndex = {};
+
+                            if (!dataset.normalizationTypes) {
+                                dataset.normalizationTypes = [];
+                            }
+                            dataset.normalizationTypes.push('NONE');
+
+                            nEntries = binaryParser.getInt();
+                            while (nEntries-- > 0) {
+                                type = binaryParser.getString();
+                                chrIdx = binaryParser.getInt();
+                                unit = binaryParser.getString();
+                                binSize = binaryParser.getInt();
+                                filePosition = binaryParser.getLong();
+                                sizeInBytes = binaryParser.getInt();
+                                key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                                if (_.contains(dataset.normalizationTypes, type) === false) {
+                                    dataset.normalizationTypes.push(type);
+                                }
+                                self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+                            }
+
+                            self.normalizationVectorIndexRange = {
+                                start: range.start + p0,
+                                size: binaryParser.position - p0
+                            };
+                        } catch (e) {
+                            // This is normal, apparently, when there are no vectors.
+                            self.normalizationVectorIndexRange = undefined;
                         }
 
-                        nChrScaleFactors = binaryParser.getInt();
-                        normFactors = {};
 
-                        while (nChrScaleFactors-- > 0) {
-                            normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                        }
+                        return self;
 
-                        // key = unit + "_" + binSize + "_" + type;
-                        // NOT USED YET SO DON'T STORE
-                        //   dataset.normalizedExpectedValueVectors[key] =
-                        //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                    }
-
-
-                    // Normalization vector index
-                    p0 = binaryParser.position;
-                    self.normVectorIndex = {};
-
-                    if (!dataset.normalizationTypes) {
-                        dataset.normalizationTypes = [];
-                    }
-                    dataset.normalizationTypes.push('NONE');
-
-                    nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
-                        type = binaryParser.getString();
-                        chrIdx = binaryParser.getInt();
-                        unit = binaryParser.getString();
-                        binSize = binaryParser.getInt();
-                        filePosition = binaryParser.getLong();
-                        sizeInBytes = binaryParser.getInt();
-                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-                        if (_.contains(dataset.normalizationTypes, type) === false) {
-                            dataset.normalizationTypes.push(type);
-                        }
-                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                    }
-
-                    self.normalizationVectorIndexRange = {
-                        start: range.start + p0,
-                        size: binaryParser.position - p0
-                    };
-                } catch (e) {
-                    // This is normal, apparently, when there are no vectors.
-                    self.normalizationVectorIndexRange = undefined;
-                }
-
-
-                return self;
-
+                    })
             })
 
     };
 
     /**
-     * Return a promise to load the normalization vector index 
-     * 
+     * This function is used when the position of the norm vector index is unknown.  We must read through the expected
+     * values to find the index
+     *
+     * @param dataset
+     * @returns {Promise}
+     */
+    function skipExpectedValues(start, nEntries) {
+
+        var self = this;
+
+        var range = {start: start, size: 30000000};
+
+        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+            .then(function (data) {
+
+                var p0;
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
+
+                if (nEntries < 0) nEntries = binaryParser.getInt();   // First time
+
+                while (nEntries-- > 0) {
+                    p0 = binaryParser.position;
+                    if (!parseEntry(binaryParser)) {
+                        start = start + p0;
+                        nEntries++;
+                        return skipExpectedValues.call(self, start, nEntries);
+                    }
+                }
+                return Promise.resolve(start + binaryParser.position);
+
+            })
+
+
+        function parseEntry(binaryParser) {
+
+            var nValues, nChrScaleFactors;
+
+            if (available() < 28) return false;
+
+            var type = binaryParser.getString(); // type
+            binaryParser.getString(); // unit
+            binaryParser.getInt(); // binSize
+            nValues = binaryParser.getInt();
+            values = [];
+
+            if (available() < nValues * 8 + 4) return false;
+
+            while (nValues-- > 0) {
+                binaryParser.getDouble();    // value
+                //values.push(binaryParser.getDouble());
+            }
+
+            nChrScaleFactors = binaryParser.getInt();
+            //normFactors = {};
+
+            if (available() < nChrScaleFactors * (4 + 8)) return false;
+            while (nChrScaleFactors-- > 0) {
+                binaryParser.getInt();
+                binaryParser.getDouble();
+                //normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+            }
+
+            return true;
+            // key = unit + "_" + binSize + "_" + type;
+            // NOT USED YET SO DON'T STORE
+            //   dataset.normalizedExpectedValueVectors[key] =
+            //       new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+
+            function available() {
+                return binaryParser.length - binaryParser.position - 1;
+            }
+        }
+    }
+
+    /**
+     * Return a promise to load the normalization vector index
+     *
      * @param dataset
      * @param range  -- file range {position, size}
      * @returns Promise for the normalization vector index
@@ -422,7 +480,7 @@ var hic = (function (hic) {
         var self = this,
             idx = null,
             i, j;
-
+        ``
         var blockIndex = zd.blockIndexMap;
         if (blockIndex) {
             var idx = blockIndex[blockNumber];
@@ -704,7 +762,7 @@ var hic = (function (hic) {
     };
 
 
-    // Legacy implementation, used only in tests.
+// Legacy implementation, used only in tests.
     Matrix.prototype.getZoomData = function (zoom) {
 
         var zdArray = zoom.unit === "BP" ? this.bpZoomData : this.fragZoomData,

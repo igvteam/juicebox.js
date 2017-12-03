@@ -736,7 +736,7 @@ var hic = (function (hic) {
                         })
                 } else {
 
-                    // Load norm vector index in the background
+                    // Load the norm vectors in the background.  
                     dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
                             return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
@@ -1294,8 +1294,6 @@ var hic = (function (hic) {
     hic.Browser.prototype.receiveEvent = function (event) {
 
         if ("LocusChange" === event.type) {
-            // Take direct control of map, track, and ruler repaints, and insure they are synched
-
             this.update(event);
         }
 
