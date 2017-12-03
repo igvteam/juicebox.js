@@ -511,7 +511,7 @@ var hic = (function (hic) {
         var self = this,
             idx = null,
             i, j;
-        ``
+
         var blockIndex = zd.blockIndexMap;
         if (blockIndex) {
             var idx = blockIndex[blockNumber];
