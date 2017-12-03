@@ -86,20 +86,34 @@ var igv = (function (igv) {
         return result.length > 0 ? result : undefined;
     }
 
+    igv.ModalTable.prototype.willRetrieveData = function () {
+        this.$spinner.show();
+        $('#hic-encode-modal-button').hide();
+        $('#hic-encode-loading').show();
+
+    };
+
+    igv.ModalTable.prototype.didRetrieveData = function () {
+        $('#hic-encode-loading').hide();
+        $('#hic-encode-modal-button').show();
+        this.buildTable(true);
+    };
+
+    igv.ModalTable.prototype.didFailToRetrieveData = function () {
+        $('#hic-encode-loading').hide();
+        $('#hic-encode-modal-button').show();
+        this.$spinner.hide();
+        this.buildTable(false);
+    };
+
     igv.ModalTable.prototype.loadData = function (genomeId) {
 
         var self = this,
-            browser,
-            $hic_track_dropdown,
             assembly;
 
-        $hic_track_dropdown = $('#hic-track-dropdown');
+        this.willRetrieveData();
 
-        browser = this.config.browserRetrievalFunction();
-        // assembly = lut[ browser.genome.id ] || browser.genome.id;
         assembly = igv.genomeIdLUT( genomeId);
-        this.$spinner.show();
-        $hic_track_dropdown.prop('disabled', true);
         this.datasource
             .retrieveData(assembly)
             .then(function (data) {
@@ -107,13 +121,10 @@ var igv = (function (igv) {
                 self.datasource.data = data;
                 self.doRetrieveData = false;
 
-                self.buildTable(true);
-                $hic_track_dropdown.prop('disabled', false);
+                self.didRetrieveData();
             })
             .catch(function (e) {
-                self.$spinner.hide();
-                $hic_track_dropdown.prop('disabled', false);
-                self.buildTable(false);
+                self.didFailToRetrieveData();
             });
     };
 
@@ -157,10 +168,6 @@ var igv = (function (igv) {
             });
 
         } else {
-            // this.config.$modal.on('shown.bs.modal', function (e) {
-            //     igv.presentAlert('No ENCODE data available');
-            //     self.config.$modal.modal('hide');
-            // });
 
             $('#hic-encode-modal-button').on('click', function (e) {
                 igv.presentAlert('No ENCODE data available');

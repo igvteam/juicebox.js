@@ -41,6 +41,7 @@ var juicebox = (function (site) {
         var query,
             $hic_share_url_modal;
 
+        $('#hic-encode-loading').hide();
 
         if (config.urlShortener) {
             hic.setURLShortener(config.urlShortener);
