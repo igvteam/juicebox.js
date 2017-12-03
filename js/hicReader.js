@@ -287,36 +287,65 @@ var hic = (function (hic) {
      * @param dataset
      * @returns {Promise}
      */
-    function skipExpectedValues(start, nEntries) {
+    function skipExpectedValues(start) {
 
         var self = this;
 
-        var range = {start: start, size: 30000000};
+        var range = {start: start, size: 4};
 
         return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
 
             .then(function (data) {
-
-                var p0;
-
                 var binaryParser = new igv.BinaryParser(new DataView(data));
-
-                if (nEntries < 0) nEntries = binaryParser.getInt();   // First time
-
-                while (nEntries-- > 0) {
-                    p0 = binaryParser.position;
-                    if (!parseEntry(binaryParser)) {
-                        start = start + p0;
-                        nEntries++;
-                        return skipExpectedValues.call(self, start, nEntries);
-                    }
-                }
-                return Promise.resolve(start + binaryParser.position);
-
+                var nEntries = binaryParser.getInt();   // Total # of expected value chunks
+                return parseNext(start + 4, nEntries);     // Skip 4 bytes for int
             })
 
 
+        function parseNext(start, nEntries) {
+
+            var range = {start: start, size: 500},
+                chunkSize = 0,
+                p0 = start;
+
+            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+                .then(function (data) {
+                    var binaryParser = new igv.BinaryParser(new DataView(data));
+                    var nValues, nChrScaleFactors;
+                    binaryParser.getString(); // type
+                    binaryParser.getString(); // unit
+                    binaryParser.getInt(); // binSize
+                    nValues = binaryParser.getInt();
+                    chunkSize += binaryParser.position + nValues * 8;
+                    return start + chunkSize;
+                })
+                .then(function (start) {
+                    var range = {start: start, size: 4};
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                })
+                .then(function (data) {
+                    var binaryParser = new igv.BinaryParser(new DataView(data));
+                    var nChrScaleFactors = binaryParser.getInt();
+                    chunkSize += (4 + nChrScaleFactors * (4 + 8));
+                    return chunkSize;
+                })
+                .then(function (chunkSize) {
+                    nEntries--;
+                    if(nEntries === 0) {
+                        return Promise.resolve(p0 + chunkSize);
+                    }
+                    else {
+                        return parseNext(p0 + chunkSize, nEntries);
+                    }
+                })
+
+        }
+
+
         function parseEntry(binaryParser) {
+
+            var p0 = binaryParser.position;
 
             var nValues, nChrScaleFactors;
 
@@ -344,6 +373,8 @@ var hic = (function (hic) {
                 binaryParser.getDouble();
                 //normFactors[binaryParser.getInt()] = binaryParser.getDouble();
             }
+
+            console.log("Size = " + (binaryParser.position - p0));
 
             return true;
             // key = unit + "_" + binSize + "_" + type;

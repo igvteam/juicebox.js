@@ -171,10 +171,6 @@ var hic = (function (hic) {
 
     };
 
-    hic.TrackRenderer.prototype.update = function () {
-        this.repaint();
-    };
-
     /**
      * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
      * and drawing tile if neccessary.
@@ -251,8 +247,7 @@ var hic = (function (hic) {
                     } else {
                         ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
                     }
-
-                    self.stopSpinner();
+                    
                     self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                     return "OK";
 
