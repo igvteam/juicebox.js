@@ -659,8 +659,6 @@ var hic = (function (hic) {
             return extractName(config)
 
                 .then(function (name) {
-                    self.$contactMaplabel.text(config.name);
-                    self.name = config.name;
                     hicReader = new hic.HiCReader(config);
                     return hicReader.loadDataset(config);
                 })
@@ -704,6 +702,9 @@ var hic = (function (hic) {
                             $('.hic-root').removeClass('hic-root-selected');
                             hic.Browser.setCurrentBrowser(undefined);
 
+                            self.$contactMaplabel.text(config.name);
+                            self.name = config.name;
+
                             return dataset;
                         })
                 })
@@ -736,7 +737,7 @@ var hic = (function (hic) {
                         })
                 } else {
 
-                    // Load the norm vectors in the background.  
+                    // Load norm vector index in the background
                     dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
                             return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
