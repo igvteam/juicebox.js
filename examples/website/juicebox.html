@@ -117,7 +117,8 @@
                     <div class="hic-social-button-container">
 
                         <div id="tweetButtonContainer">
-                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">TWEET</a>
+                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
+                               data-show-count="false">TWEET</a>
                         </div>
 
                         <div id="emailButtonContainer">
@@ -244,7 +245,8 @@
 </div>
 
 <!-- Contact Map Select Modal -->
-<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
+<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
 
@@ -258,7 +260,8 @@
 
             <div class="modal-body">
                 <div class="form-group">
-                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
+                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker"
+                            data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
                     </select>
                 </div>
             </div>
@@ -345,6 +348,7 @@
     </div>
 </div>
 
+
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
@@ -358,6 +362,7 @@
         </nav>
     </div>
 </nav>
+
 
 <div class="container-fluid">
 
@@ -376,7 +381,8 @@
             <!-- Contact Map: Select | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button"
+                        data-toggle="dropdown">
                     Load Contact Map &nbsp;
                     <span class="caret"></span>
                 </button>
@@ -410,18 +416,18 @@
             <!-- Track File: ENCODE | Annotations | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button"
+                        data-toggle="dropdown">
                     <span>Load Tracks &nbsp;</span>
                     <span class="caret"></span>
                 </button>
 
                 <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
 
-                    <li role="presentation"><!-- Select ENCODE -->
-                        <a id="hic-encode-modal-button" role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">
-                            ENCODE
-                        </a>
-                    </li><!-- Select ENCODE -->
+                    <li id="hic-encode-modal-list-item" role="presentation">
+                        <span id="hic-encode-loading" >&nbsp;&nbsp;&nbsp;&nbsp;ENCODE loading ...</span>
+                        <a id="hic-encode-modal-button" role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">ENCODE</a>
+                    </li>
 
                     <li role="presentation"><!-- Select Annotations -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
@@ -484,7 +490,7 @@
         <div class="col-md-4">
             <div>
                 <span>&nbsp;&nbsp;&nbsp;</span>
-                <span id="hic-version-number">version: v0.9.9</span>
+                <span id="hic-version-number">version test</span>
 
             </div>
 
@@ -498,7 +504,9 @@
                     Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
                         href="http://igv.org" target="_blank">IGV</a> team, in collaboration with <a
                         href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a
-                        href="http://aidenlab.org" target="_blank">Aiden Lab</a>. </h4><br><br>
+                        href="http://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged
+                <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
+                    Juicebox</a>.</h4><br><br>
             <h4>If you use Juicebox in your research, please cite:</h4><br>
             <h4>Neva C. Durand*, James T. Robinson*, Muhammad S. Shamim, Ido Machol, Jill P. Mesirov, Eric S. Lander,
                 and Erez Lieberman Aiden. <em>"Juicebox provides a visualization system for Hi-C contact maps with
@@ -510,9 +518,22 @@
 
 <div id="footer-white" style="background:#414B5B;">
     <div class="container">
+        <div class="row" align="center">
+            <div class="newsletter" style="width:60%;">
+                <div class="signup clearfix">
+                    <p style="text-align:center;">
+                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+                    </p>
+                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+                        <input type="text" name="email" class="form-control" placeholder="Your email address">
+                        <input type="submit" name="submit" value="Sign up">
+                    </form>
+                </div>
+            </div>
+        </div>
         <div class="row credits">
             <div class="col-md-12">
-                igv.org
+                Copyright © 2017. Aiden Lab
             </div>
         </div>
     </div>
