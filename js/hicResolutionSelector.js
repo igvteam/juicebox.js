@@ -28,8 +28,7 @@
 var hic = (function (hic) {
 
     hic.ResolutionSelector = function (browser, $parent) {
-        var self = this,
-            $label;
+        var self = this;
 
         this.browser = browser;
 
@@ -41,9 +40,9 @@ var hic = (function (hic) {
         this.$container.append(this.$label_container);
 
         // Resolution (kb)
-        $label = $('<div>');
-        this.$label_container.append($label);
-        $label.text('Resolution (kb)');
+        this.$label = $("<div>");
+        this.$label_container.append(this.$label);
+        this.$label.text('Resolution (kb)');
 
         // lock/unlock
         this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
@@ -76,7 +75,12 @@ var hic = (function (hic) {
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
 
         var self = this,
-            status;
+            htmlString,
+            resolutions,
+            selectedIndex,
+            isWholeGenome,
+            digits,
+            divisor;
 
         if (event.type === "LocusChange") {
 
@@ -85,38 +89,48 @@ var hic = (function (hic) {
                 self.setResolutionLock(this.browser.resolutionLocked);
             }
 
+            isWholeGenome = (0 === event.data.state.chr1);
+
+            this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
+            resolutions = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+            selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
+            divisor = isWholeGenome ? 1e6 : 1e3;
+
+            htmlString = optionListHTML(resolutions, selectedIndex, divisor);
+
+            this.$resolution_selector.empty();
+            this.$resolution_selector.append(htmlString);
+
             this.$resolution_selector
                 .find('option')
                 .filter(function (index) {
-                    return index === event.data.state.zoom;
+                    return index === selectedIndex;
                 })
                 .prop('selected', true);
 
-            if (0 === event.data.state.chr1) {
-                this.$label_container.hide();
-                this.$resolution_selector.prop('disabled', true);
-            } else {
-                this.$label_container.show();
-                this.$resolution_selector.prop('disabled', false);
-            }
-
-
         } else if (event.type === "MapLoad") {
-
-            var elements;
 
             this.browser.resolutionLocked = false;
             this.setResolutionLock(this.browser.resolutionLocked);
 
-            elements = _.map(this.browser.dataset.bpResolutions, function (resolution, index) {
-                var selected = self.browser.state.zoom === index;
-                
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(resolution / 1e3) + '</option>';
+            this.$resolution_selector.empty();
+            htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
+            this.$resolution_selector.append(htmlString);
+
+        }
+
+        function optionListHTML(resolutionList, selectedIndex, divisor) {
+            var list;
+
+            list = _.map(resolutionList, function (resolution, index) {
+
+                var selected;
+
+                selected = selectedIndex === index;
+                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.round(resolution/divisor)) + '</option>';
             });
 
-            this.$resolution_selector.empty();
-            this.$resolution_selector.append(elements.join(''));
-
+            return list.join('');
         }
 
     };
