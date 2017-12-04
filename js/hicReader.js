@@ -92,24 +92,15 @@ var hic = (function (hic) {
                         size: binaryParser.getInt()
                     };
                     if(chr.name.toLowerCase() === "all") {
-                        dataset.wholeGenomeResolution = (chr.size * (1000 / 500));    // Hardcoded in juicer
+                        self.wholeGenomeChromosome = chr;
+                        dataset.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
                     }
                     dataset.chromosomes.push(chr);
                     i++;
                 }
 
 
-
-                // Treat single chromosome assemblies special -- chr "All" becomes lowest resolution of single chromosome/sequence/assembly
-                // if(dataset.chromosomes.length === 2 && dataset.chromosomes[0].toLowerCase() === "all") {
-                //     self.singleChromosome = true;
-                //     dataset.chromosomes.shift();
-                // }
-
                 self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
-
-                
-                
                 dataset.bpResolutions = [];
                 var nBpResolutions = binaryParser.getInt();
                 while (nBpResolutions-- > 0) {
@@ -313,7 +304,12 @@ var hic = (function (hic) {
             .then(function (data) {
                 var binaryParser = new igv.BinaryParser(new DataView(data));
                 var nEntries = binaryParser.getInt();   // Total # of expected value chunks
-                return parseNext(start + 4, nEntries);     // Skip 4 bytes for int
+                if(nEntries === 0) {
+                    return range.start + range.size;
+                }
+                else {
+                    return parseNext(start + 4, nEntries);
+                }     // Skip 4 bytes for int
             })
 
 
