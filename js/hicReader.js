@@ -86,15 +86,30 @@ var hic = (function (hic) {
                 dataset.chromosomes = [];
                 var nChrs = binaryParser.getInt(), i = 0;
                 while (nChrs-- > 0) {
-                    dataset.chromosomes.push({
+                    var chr = {
                         index: i,
                         name: binaryParser.getString(),
                         size: binaryParser.getInt()
-                    });
+                    };
+                    if(chr.name.toLowerCase() === "all") {
+                        dataset.wholeGenomeResolution = (chr.size * (1000 / 500));    // Hardcoded in juicer
+                    }
+                    dataset.chromosomes.push(chr);
                     i++;
                 }
+
+
+
+                // Treat single chromosome assemblies special -- chr "All" becomes lowest resolution of single chromosome/sequence/assembly
+                // if(dataset.chromosomes.length === 2 && dataset.chromosomes[0].toLowerCase() === "all") {
+                //     self.singleChromosome = true;
+                //     dataset.chromosomes.shift();
+                // }
+
                 self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
 
+                
+                
                 dataset.bpResolutions = [];
                 var nBpResolutions = binaryParser.getInt();
                 while (nBpResolutions-- > 0) {
