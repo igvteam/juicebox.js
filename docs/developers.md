@@ -1,8 +1,9 @@
+## Developer Documentation
 
 [Embedding](embedding)
 
 [Example Website](website)
 
-[Authentication with OAugh](OAuth)
+[Authentication with OAuth](OAuth)
 
 [URL Structure](url)
