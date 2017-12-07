@@ -32228,9 +32228,10 @@ var igv = (function (igv) {
             return Promise.resolve(self.index);
         }
 
-        if (self.indexURL || self.indexed) {
+        if (self.indexURL || self.indexed || (typeof self.config.url === 'string' && self.config.url.endsWith(".gz"))) {
 
             return self.loadIndex()
+
                 .then(function (indexOrUndefined) {
                     if (indexOrUndefined) {
                         self.index = indexOrUndefined;
@@ -34944,6 +34945,23 @@ var igv = (function (igv) {
 
     }
 
+    igv.MergedTrack.prototype.paintAxis = function (ctx, pixelWidth, pixelHeight) {
+
+        var i, len, autoscale, track;
+
+        autoscale = true;   // Hardcoded for now
+
+        for (i = 0, len = this.tracks.length; i < len; i++) {
+
+            track = this.tracks[i];
+
+            if (typeof track.paintAxis === 'function') {
+                track.paintAxis(ctx, pixelWidth, pixelHeight);
+                if (autoscale) break;
+            }
+        }
+    }
+
     function autoscale(chr, featureArrays) {
 
 
@@ -35888,7 +35906,7 @@ var igv = (function (igv) {
 
 
         // Temp hack
-        if(self.color && self.color.startsWith("rgb(")) {
+        if(typeof self.color === "string" && self.color.startsWith("rgb(")) {
             baselineColor =  igv.Color.addAlpha(self.color, 0.1);
         }
 
@@ -35944,9 +35962,8 @@ var igv = (function (igv) {
                 x,
                 y,
                 width,
-                height,
-                rectEnd,
-                rectBaseline;
+                color,
+                rectEnd;
 
             if (feature.end < bpStart) return;
             if (feature.start > bpEnd) return;
@@ -35980,7 +35997,10 @@ var igv = (function (igv) {
             }
 
             //canvas.fillRect(x, yUnitless * pixelHeight, width, heightUnitLess * pixelHeight, { fillStyle: igv.randomRGB(64, 255) });
-            igv.graphics.fillRect(ctx, x, yUnitless * pixelHeight, width, heightUnitLess * pixelHeight, {fillStyle: self.color});
+
+            color = (typeof self.color === "function") ? self.color(feature.value) : self.color;
+
+            igv.graphics.fillRect(ctx, x, yUnitless * pixelHeight, width, heightUnitLess * pixelHeight, {fillStyle: color});
 
         }
 
@@ -37338,30 +37358,42 @@ var igv = (function (igv) {
             var i1, i2, id;
             // Return a google drive download url for the sharable link
             //https://drive.google.com/open?id=0B-lleX9c2pZFbDJ4VVRxakJzVGM
-            //https://drive.google.com/file/d/0B-lleX9c2pZFZVZyVTdkSFZ2cm8/view?usp=sharing
-            //https://drive.google.com/file/d/0B-lleX9c2pZFbDJ4VVRxakJzVGM/view?usp=sharing
-            // url: 'https://www.googleapis.com/drive/v3/files/0B-lleX9c2pZFZVZyVTdkSFZ2cm8/?alt=media',
+            //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
 
-            if (link.includes("/open?id=")) {
-                i1 = link.indexOf("/open?id=") + 9;
-                i2 = link.indexOf("&");
-                if (i1 > 0 && i2 > i1) {
-                    id = link.substring(i1, i2)
-                }
-                else if (i1 > 0) {
-                    id = link.substring(i1);
-                }
-
-            }
-            else if (link.includes("/file/d/")) {
-                i1 = link.indexOf("/file/d/") + 8;
-                i2 = link.lastIndexOf("/");
-                id = link.substring(i1, i2);
-
-            }
+            var id = getGoogleDriveFileID(link);
 
             return id ? "https://www.googleapis.com/drive/v3/files/" + id + "?alt=media" : link;
+        },
 
+        getDriveFileInfo: function (googleDriveURL) {
+
+            var id = getGoogleDriveFileID(googleDriveURL),
+                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+
+            return igv.xhr.loadJson(endPoint, igv.buildOptions({}));
+        }
+    }
+
+    function getGoogleDriveFileID(link) {
+
+        //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
+        var i1, i2;
+
+        if (link.includes("/open?id=")) {
+            i1 = link.indexOf("/open?id=") + 9;
+            i2 = link.indexOf("&");
+            if (i1 > 0 && i2 > i1) {
+                return link.substring(i1, i2)
+            }
+            else if (i1 > 0) {
+                 return link.substring(i1);
+            }
+
+        }
+        else if (link.includes("/file/d/")) {
+            i1 = link.indexOf("/file/d/") + 8;
+            i2 = link.lastIndexOf("/");
+            return link.substring(i1, i2);
         }
     }
 
@@ -37875,6 +37907,10 @@ var igv = (function (igv) {
         this.name = label;
         this.pValueField = config.pValueField || "pValue";
         this.geneField = config.geneField || "geneName";
+
+        this.autoscale = (config.autoScale === undefined ? true : config.autoScale);
+        this.percentile = (config.percentile === undefined ? 98 : config.percentile);
+
         this.minLogP = config.minLogP || 3.5;
         this.maxLogP = config.maxLogP || 25;
         this.background = config.background;    // No default
@@ -37929,7 +37965,7 @@ var igv = (function (igv) {
 
         font['textAlign'] = 'center';
 
-        igv.graphics.fillText(ctx, "-log10(pvalue)", pixelWidth/4, pixelHeight/2, font, {rotate: {angle: -90}});
+        igv.graphics.fillText(ctx, "-log10(pvalue)", pixelWidth / 4, pixelHeight / 2, font, {rotate: {angle: -90}});
 
     };
 
@@ -37939,7 +37975,7 @@ var igv = (function (igv) {
 
     igv.EqtlTrack.prototype.draw = function (options) {
 
-        var track = this,
+        var self = this,
             featureList = options.features,
             ctx = options.context,
             bpPerPixel = options.bpPerPixel,
@@ -37947,7 +37983,7 @@ var igv = (function (igv) {
             pixelWidth = options.pixelWidth,
             pixelHeight = options.pixelHeight,
             bpEnd = bpStart + pixelWidth * bpPerPixel + 1,
-            yScale = (track.maxLogP - track.minLogP) / pixelHeight;
+            yScale = (self.maxLogP - self.minLogP) / pixelHeight;
 
         // Background
         if (this.background) igv.graphics.fillRect(ctx, 0, 0, pixelWidth, pixelHeight, {'fillStyle': this.background});
@@ -37956,16 +37992,15 @@ var igv = (function (igv) {
         if (ctx) {
 
             var len = featureList.length;
-
-
+            
             ctx.save();
-
-
+            
+            self.maxLogP = autoscale(featureList, bpStart, bpEnd);
+            
             // Draw in two passes, with "selected" eqtls drawn last
             drawEqtls(false);
             drawEqtls(true);
-
-
+            
             ctx.restore();
 
         }
@@ -37973,16 +38008,10 @@ var igv = (function (igv) {
         function drawEqtls(drawSelected) {
 
             var radius = drawSelected ? 2 * track.dotSize : track.dotSize,
-                eqtl,
-                i,
-                px,
-                py,
-                color,
-                isSelected,
-                snp,
-                geneName,
-                selection;
+                eqtl, i, px, py, color, isSelected, snp, geneName, selection;
 
+
+            //ctx.fillStyle = igv.selection.colorForGene(eqtl.geneName);
             igv.graphics.setProperties(ctx, {
                 fillStyle: "rgb(180, 180, 180)",
                 strokeStyle: "rgb(180, 180, 180)"
@@ -37993,7 +38022,7 @@ var igv = (function (igv) {
                 eqtl = featureList[i];
                 snp = eqtl.snp.toUpperCase();
                 geneName = eqtl[track.geneField].toUpperCase();
-                selection = options.genomicState.selection;
+                selection = igv.browser.selection;
                 isSelected = selection &&
                 (selection.snp === snp || selection.gene === geneName);
 
@@ -38071,7 +38100,7 @@ var igv = (function (igv) {
                         feature.start <= genomicLocation + tolerance &&
                         feature.py - yOffset < 2 * dotSize) {
 
-                        if(popupData.length > 0) {
+                        if (popupData.length > 0) {
                             popupData.push("<hr>");
                         }
 
@@ -40996,6 +41025,8 @@ var igv = (function (igv) {
 
                 if (session) {
                     config = Object.assign(config, session);
+                    if(undefined === config.tracks) config.tracks = [];
+                    config.tracks.push({type: "sequence", order: -Number.MAX_VALUE});
                 }
 
                 // Deal with legacy genome definition options
@@ -45314,6 +45345,7 @@ var igv = (function (igv) {
         Array.from(elements).forEach(function (res, idx) {
             var res = {
                 url: res.getAttribute("path"),
+                indexURL: res.getAttribute("index"),
                 order: idx
             };
             self.tracks.push(res);
@@ -51774,7 +51806,7 @@ var igv = (function (igv) {
         }
 
         function doRenderControlCanvas(genomicState, trackView) {
-            return (/*0 === genomicState.locusIndex &&*/ trackView.track.paintAxis && trackView.controlCanvas.width > 0 && trackView.controlCanvas.height > 0);
+            return (/*0 === genomicState.locusIndex &&*/ (typeof trackView.track.paintAxis === 'function') && trackView.controlCanvas.width > 0 && trackView.controlCanvas.height > 0);
         }
 
         function viewIsReady() {

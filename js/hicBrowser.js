@@ -767,7 +767,7 @@ var hic = (function (hic) {
                 endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
                 if (apiKey) endPoint += "?key=" + apiKey;
 
-                return igv.xhr.loadJson(endPoint, igv.buildOptions(config))
+                return igv.Google.getDriveFileInfo(config.url)
                     .then(function (json) {
                         config.name = json.originalFilename;
                         return config.name;
