@@ -33,7 +33,7 @@ var hic = (function (hic) {
         $container = $("<div>", { class: 'hic-annotation-presentation-button-container' });
         $parent.append($container);
 
-        annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
+        annotationPresentationButton.call(this, $container, config.title);
 
         annotationPanel.call(this, this.browser.$root, config.title);
 
@@ -64,7 +64,7 @@ var hic = (function (hic) {
 
     };
 
-    function annotationPresentationButton($parent, title, alertMessage) {
+    function annotationPresentationButton($parent, title) {
         var self = this,
             $button;
 
@@ -80,7 +80,7 @@ var hic = (function (hic) {
                 self.updateBody(self.trackListRetrievalCallback());
                 self.$annotationPanel.toggle();
             } else {
-                igv.presentAlert(alertMessage);
+                igv.presentAlert('No Annotations to Present');
             }
 
             self.browser.hideMenu();
