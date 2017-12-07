@@ -530,19 +530,12 @@ var hic = (function (hic) {
                 var url = config.url;
 
                 if (url && typeof url === "string" && url.includes("drive.google.com")) {
-                    var tmp = hic.extractQuery(url);
-                    var id = tmp["id"];
-                    var apiKey = hic.apiKey;
-                    var alertPresented = false;
 
-                    var endpoint = "https://www.googleapis.com/drive/v2/files/" + id;
-                    if (apiKey)  endpoint += "?key=" + apiKey;
-
-                    promises.push(igv.xhr.loadJson(endpoint, igv.buildOptions(config))
+                    promises.push(igv.Google.getDriveFileInfo(config.url)
 
                         .then(function (json) {
                             // Temporarily switch URL to infer tipes
-                            config.url = json.originalFilename
+                            config.url = json.originalFilename;
                             igv.inferTrackTypes(config);
                             if (config.name === undefined) {
                                 config.name = json.originalFilename;
