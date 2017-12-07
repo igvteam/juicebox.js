@@ -8,4 +8,6 @@
 
 [URL structure](url)
 
+||
+
 [**Back to juicebox.js**](../) 
