@@ -12,15 +12,15 @@ Developer documentation can be found [**here**](docs/developers)
 
 ## Quick Start guide for [aidenlab.org/juicebox](http://aidenlab.org/juicebox)
 
-Begin by loading a contact map (hic) file using 'Load Contact Map > Select Contact Map'. The menu is searchable.
+Begin by loading a contact map (hic) file using `Load Contact Map > Select Contact Map`. The menu list is searchable.
 The viewer will initially open on the first chromosome in the file (e.g. 1-1).
 
 **Navigation tips:**
-* type a pair of chromosome names into the locus text box and hit return
-* search by gene name by ("ADAMTS1")
-* search by genome coordinates (ex "1:35,294,888-79,647,754" or "1:35,294,888-79,647,754 1:34,982,544-79,335,410")
-* select a different resolution from the pulldown
-* pan and zoom interactively
+* Type a pair of chromosome names into the locus text box and hit return
+* Search by gene name by ("ADAMTS1")
+* Search by genome coordinates (ex "1:35,294,888-79,647,754" or "1:35,294,888-79,647,754 1:34,982,544-79,335,410")
+* Select a different resolution from the pulldown menu
+* Pan and zoom interactively
 
 **Browsing tips:**
 * Crosshairs: SHIFT
@@ -39,8 +39,8 @@ Note that changing resolution by zooming or with the resolution pulldown changes
 
 **Tracks:**
 
-Genome tracks and 2D annotations can be loaded from the "Load Tracks" menu.
-The Encode option searches the database for all supported track types for supported
+Genome tracks and 2D annotations can be loaded from the `Load Tracks` menu.
+The ENCODE option searches a database for all supported track types for supported
 genomes.  This can take some time to initialize (5-10 seconds) on first use.
 
 **Load by URL:**
@@ -51,7 +51,7 @@ The supported 2D annotation format is described at  https://github.com/theaidenl
 
 **Sharing your maps:**
 
-The visualization state can be captured and shared by using the "Share" button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the users hard-drive).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
+The visualization state can be captured and shared by using the `Share` button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the user's local hard disk).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
 
 
 
