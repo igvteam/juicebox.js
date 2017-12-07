@@ -2,10 +2,10 @@
 
 [Embedding juicebox.js](embedding)
 
-[Example Website](website)
+[Example website](website)
 
 [Authentication with OAuth](OAuth)
 
-[URL Structure](url)
+[URL structure](url)
 
 [**Back to juicebox.js**](../) 
