@@ -1,6 +1,6 @@
-[**Back to main page**](./)
+[**Back to main page**](../)
 
-[**Back to developer doc**](docs/developers)  
+[**Back to developer doc**](developers)  
 
 # OAuth
 
