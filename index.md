@@ -15,21 +15,23 @@ Developer documentation can be found [**here**](docs/developers)
 Begin by loading a contact map (hic) file using `Load Contact Map > Select Contact Map`. The menu list is searchable.
 The viewer will initially open on the first chromosome in the file (e.g. 1-1).
 
-**Navigation tips:**
+### Navigation tips
+
 * Type a pair of chromosome names into the locus text box and hit return
 * Search by gene name by ("ADAMTS1")
 * Search by genome coordinates (ex "1:35,294,888-79,647,754" or "1:35,294,888-79,647,754 1:34,982,544-79,335,410")
 * Select a different resolution from the pulldown menu
 * Pan and zoom interactively
 
-**Browsing tips:**
+### Browsing tips
+
 * Crosshairs: SHIFT
 * Pan: Click & Drag
 * Zoom: Double-click
 * Sweep Zoom: ALT-Click & Drag
 * Click 'Resolution' to toggle resolution lock
 
-**Color scale:**
+### Color scale
 
 Heatmap pixels are colored from 0 (white) to {Color Scale} red. You can
 adjust {Color scale} by entering a value in the text box or
@@ -37,19 +39,19 @@ using the - / + buttons.
 
 Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus the counts per bin.   This necessitates a scale change.
 
-**Tracks:**
+### Tracks
 
 Genome tracks and 2D annotations can be loaded from the `Load Tracks` menu.
 The ENCODE option searches a database for all supported track types for supported
 genomes.  This can take some time to initialize (5-10 seconds) on first use.
 
-**Load by URL:**
+### Load by URL
 
 Both .hic and track files can be loaded by URL.  All common genomic track
 file formats are supported (bigwig, begbed, wig bedgraph, bed, gff3, and gtf).
 The supported 2D annotation format is described at  https://github.com/theaidenlab/juicebox/wiki/Loading-Annotations-(Annotations-menu)#adding-2d-annotations).
 
-**Sharing your maps:**
+### Sharing your maps
 
 The visualization state can be captured and shared by using the `Share` button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the user's local hard disk).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
 
