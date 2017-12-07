@@ -1,3 +1,5 @@
+[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
+
 This pages documents the juicebox.js URL structure.
 
 Note:  all parameter values must be URL encoded
