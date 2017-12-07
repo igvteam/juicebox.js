@@ -1,10 +1,10 @@
-[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
+[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers) || 
 
 
 # OAuth
 
 OAuth is an industry standard framework that enables secure access to
-protected resources without exposing the users credentials to third
+protected resources without exposing the user's credentials to third
 party applications, such as juicebox.  To access protected resources
 the user first authenticates by signing into an OAuth provider, such
 as Google, Dropbox, or a private OAuth server, and grants the application
