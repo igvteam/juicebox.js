@@ -1,3 +1,5 @@
+[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
+
 # Prototype juicebox.js site
 
 The examples/site folder contains a prototype website hosting a juicebox instance.
