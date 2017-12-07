@@ -1,4 +1,4 @@
-[**Back to juicebox.js**](../) || [**Back to developer doc**](developers)  
+[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
 
 
 # OAuth
