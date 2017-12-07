@@ -1,6 +1,6 @@
 [**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
 
-This pages documents the juicebox.js URL structure.
+# juicebox.js URL structure.
 
 Note:  all parameter values must be URL encoded
 
@@ -12,7 +12,8 @@ colorScale | max value and rgb components of the map color scale   (optional, se
 track | string encoding url to tracks and associated state (optional, see below)
 
 
-### state - comma separated string with following tokens
+### state 
+`state` is comma separated string with following tokens
 
 token | description
 ----- | ----------
@@ -24,15 +25,18 @@ token | description
 6  | pixel size  (size of each bin in screen pixels)
 7  | normalization 
 
-### colorScale - comma separated with 4 fields.  The color scale ranges from 0 (white) - max (color)
-token | description
+### colorScale 
+`colorScale` is a comma separated string with 4 fields.  The color scale ranges from 0 (white) - max (color)
+
+field | description
 ----- | -----------
 1 | max value (contact map value at maximum color intensity)
 2 | red component of max color (0-255)
 3 | green component of max color (0-255)
 4 | blud component of max color (0-255)
 
-### track -  string encoding all tracks, with each track section delimited by triple bars ("|||").  Track fields are delimited by a single bar ("|") with the following tokens.
+### track
+`track` is a string encoding all tracks, with each track section delimited by triple bars ("|||").  Track fields are delimited by a single bar ("|") with the following tokens.
 
 token | description
 ----- | --------
