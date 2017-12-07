@@ -1,3 +1,8 @@
+---
+title: Tite - Embedding juicebox.js
+---
+
+
 # Embedding juicebox.js
 
 juicebox.js is an embeddable JavaScript component for visualization of contact maps in the .hic format.  This page describes steps for embedding a map in a
