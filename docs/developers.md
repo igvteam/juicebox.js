@@ -1,6 +1,6 @@
 ## Developer Documentation
 
-[Embedding](embedding)
+[Embedding juicebox.js](embedding)
 
 [Example Website](website)
 
