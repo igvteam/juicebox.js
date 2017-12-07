@@ -276,7 +276,8 @@ var hic = (function (hic) {
         config =
         {
             title: '2D Annotations',
-            loadTitle: 'Load:'
+            loadTitle: 'Load:',
+            alertMessage: 'No 2D annotations currently loaded for this map'
         };
         browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
             return browser.tracks2D;
@@ -285,7 +286,8 @@ var hic = (function (hic) {
         config =
         {
             title: 'Tracks',
-            loadTitle: 'Load Tracks:'
+            loadTitle: 'Load Tracks:',
+            alertMessage: 'No tracks currently loaded for this map'
         };
 
         browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
