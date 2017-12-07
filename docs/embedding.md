@@ -1,4 +1,4 @@
-[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers)  
+[**Back to juicebox.js**](../) // [**Back to Developer Doc**](developers) || 
 
 
 # Embedding juicebox.js
