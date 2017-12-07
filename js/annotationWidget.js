@@ -73,8 +73,16 @@ var hic = (function (hic) {
         $parent.append($button);
 
         $button.on('click', function () {
-            self.updateBody(self.trackListRetrievalCallback());
-            self.$annotationPanel.toggle();
+            var list;
+
+            list = self.trackListRetrievalCallback();
+            if (list.length > 0) {
+                self.updateBody(self.trackListRetrievalCallback());
+                self.$annotationPanel.toggle();
+            } else {
+                igv.presentAlert('No Annotations to Present');
+            }
+
             self.browser.hideMenu();
         });
     }
