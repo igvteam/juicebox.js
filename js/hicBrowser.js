@@ -76,8 +76,9 @@ var hic = (function (hic) {
 
         // alert object -- singleton shared by all components
 
-        firstBrowser = (hic.allBrowsers && hic.allBrowsers.length > 1) ? hic.allBrowsers[ 0 ] : hicBrowser;
-        igv.alert = new igv.AlertDialog(firstBrowser.$root, "igv-alert");
+        // firstBrowser = (hic.allBrowsers && hic.allBrowsers.length > 1) ? hic.allBrowsers[ 0 ] : hicBrowser;
+        // igv.alert = new igv.AlertDialog(firstBrowser.$root, "igv-alert");
+        igv.alert = new igv.AlertDialog(hicBrowser.$root, "igv-alert");
         igv.alert.hide();
 
     }
