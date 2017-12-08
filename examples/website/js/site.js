@@ -176,6 +176,13 @@ var juicebox = (function (site) {
             $('#hic-embed-container').hide();
         });
 
+        $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
+            var browser = hic.Browser.getCurrentBrowser();
+            if (undefined === browser.dataset) {
+                igv.presentAlert('Contact map must be loaded before loading tracks');
+            }
+        });
+
         $('#hic-embed-button').on('click', function (e) {
             $('#hic-embed-container').show();
         });
