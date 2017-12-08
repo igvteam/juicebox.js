@@ -52,7 +52,7 @@ __Change resolution__
 ### Load Local File or by URL
 
 In addition to the provided menus, .hic contact map files and track files can also be loaded from the local file system or by URL.  All common genomic track file formats are supported (bigwig, begbed, wig bedgraph, bed, gff3, and gtf).
-The supported 2D annotation format is described at in the [desktop juicebox documentation](https://github.com/theaidenlab/juicebox/wiki/Loading-Annotations-(Annotations-menu)#adding-2d-annotations).
+The supported 2D annotation format is described in the [desktop Juicebox documentation](https://github.com/theaidenlab/juicebox/wiki/Loading-Annotations-(Annotations-menu)#adding-2d-annotations).
 
 ### Multiple Maps
 
