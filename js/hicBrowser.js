@@ -42,6 +42,8 @@ var hic = (function (hic) {
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
+        var firstBrowser;
+
         igv.browser =
         {
             constants: {defaultColor: "rgb(0,0,150)"},
@@ -73,7 +75,9 @@ var hic = (function (hic) {
         igv.dataRangeDialog.hide();
 
         // alert object -- singleton shared by all components
-        igv.alert = new igv.AlertDialog(hicBrowser.$root, "igv-alert");
+
+        firstBrowser = (hic.allBrowsers && hic.allBrowsers.length > 1) ? hic.allBrowsers[ 0 ] : hicBrowser;
+        igv.alert = new igv.AlertDialog(firstBrowser.$root, "igv-alert");
         igv.alert.hide();
 
     }
