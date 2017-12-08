@@ -40,7 +40,7 @@ must have access to the resources referenced.   If the resources are
 protected the user must be prompted on the hosting website to sign in
 with the approriate oAuth provider before the encapsualeted data can
 be loaded and viewed.   Details will vary by provider and website, but see the file
-[`oauth.html`](https://github.com/igvteam/juicebox.js/blob/master/examples/website/oAuth.html) in our prototype website
+[`oauth.html` in our prototype website](https://github.com/igvteam/juicebox.js/blob/master/examples/website/oAuth.html) 
 for an example of sharing URLs using private data on Google Drive.
 
 
