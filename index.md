@@ -7,7 +7,7 @@ It is based on the desktop Juicebox visualization application.
 
 A public instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juicebox).
 
-For developers who wish to embed juicebox.js, see the [**Developer Documentation**](docs/developers)
+For developers who wish to embed juicebox.js, see the [Developer Documentation](docs/developers)
 
 
 
@@ -33,19 +33,21 @@ __Pan and zoom__
 
 __Change resolution__
 
-* Select a different resolution from the pulldown menu. 
-* Click on the lock icon to enable/disable the resolution menu.
+* Select a different resolution from the pulldown menu.
 * Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus the counts per bin. This necessitates a scale change.
+* Click on the lock icon to fix the resolution at its current value.
 
 ### Contact Map Color Scale
 
-By default, the contact map is drawn in red. Heatmap pixels are colored from white (for map value = 0) to red (for a specified max map value). You can adjust the max map value by entering a value in the text box or using the - / + buttons. To use a different color for the heatmap, click on the red square next to the color value box and select a color from the palette that pops up.
+* By default, the contact map is drawn in red. Heatmap pixels are colored from white (for map value = 0) to red (for a specified max map value). 
+* You can adjust the max map value by entering a value in the text box or using the - / + buttons. 
+* To use a different color for the heatmap, click on the red square next to the color value box and select a color from the palette that pops up.
 
 ### Tracks
 
 * Genome tracks and 2D annotations can be loaded from the `Load Tracks` menu.
 * The ENCODE option searches a database for all supported track types for supported genomes. This can take some time to initialize (5-10 seconds) on first use.
-* Manage track properties by clicking on the 3-line icon i
+* To manage properties of loaded tracks, click on the 3-line icon in the upper-right corner of the map panel and then click on `Tracks` or `2D Annotations`. A panel will pop up that will all you to change track colors, rearrange the track order, remove tracks.
 
 ### Load Local File or by URL
 
