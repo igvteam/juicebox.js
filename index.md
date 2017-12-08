@@ -39,7 +39,7 @@ __Change resolution__
 
 ### Contact Map Color Scale
 
-* By default, the contact map is drawn in red. Heatmap pixels are colored from white (for map value = 0) to red (for a specified max map value). 
+* By default, the contact map is drawn as a red heatmap, with pixel colors ranging from white (for map value = 0) to red (for a specified max map value). 
 * You can adjust the max map value by entering a value in the text box or using the - / + buttons. 
 * To use a different color for the heatmap, click on the red square next to the color value box and select a color from the palette that pops up.
 
@@ -47,18 +47,18 @@ __Change resolution__
 
 * Genome tracks and 2D annotations can be loaded from the `Load Tracks` menu.
 * The ENCODE option searches a database for all supported track types for supported genomes. This can take some time to initialize (5-10 seconds) on first use.
-* To manage properties of loaded tracks, click on the 3-line icon in the upper-right corner of the map panel and then click on `Tracks` or `2D Annotations`. A panel will pop up that will all you to change track colors, rearrange the track order, remove tracks.
+* To manage properties of loaded tracks, click on the 3-line icon in the upper-right corner of the map panel and then click on `Tracks` or `2D Annotations`. A panel will pop up that will all you to change track colors, rearrange the track order, and remove tracks.
 
 ### Load Local File or by URL
 
 In addition to the provided menus, .hic contact map files and track files can also be loaded from the local file system or by URL.  All common genomic track file formats are supported (bigwig, begbed, wig bedgraph, bed, gff3, and gtf).
-The supported 2D annotation format is described at  https://github.com/theaidenlab/juicebox/wiki/Loading-Annotations-(Annotations-menu)#adding-2d-annotations).
+The supported 2D annotation format is described at in the [desktop juicebox documentation](https://github.com/theaidenlab/juicebox/wiki/Loading-Annotations-(Annotations-menu)#adding-2d-annotations).
 
-### Multiple maps
+### Multiple Maps
 
 View and compare two or more maps. Click on the `+` button above the map panel to create a new empty panel, and load another contact map. Note that all maps must be based on the same genome assembly. 
 
-### Sharing your maps
+### Sharing Your Maps
 
 The visualization state can be captured and shared by using the `Share` button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the user's local file system).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
 
