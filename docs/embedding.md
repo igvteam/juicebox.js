@@ -128,7 +128,7 @@ See <https://github.com/igvteam/igv.js/wiki/Tracks> for a description of the tra
 
 ```JavaScript
   
-  juicboxBowser.loadTracks([{
+  juiceboxBowser.loadTracks([{
      url: "http://hgdownload.cse.ucsc.edu/goldenPath/hg19/encodeDCC/wgEncodeBroadHistone/wgEncodeBroadHistoneGm12878H3k4me3StdSig.bigWig"
   }]);
 
