@@ -668,20 +668,10 @@ var hic = (function (hic) {
 
                     // TODO -- this is not going to work with browsers on different assemblies on the same page.
                     igv.browser.genome = self.genome;
-
-                    //self.contactMatrixView.datasetUpdated();
-
                     if (self.genome.id !== previousGenomeId) {
                         self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                     }
-                    if (config.colorScale) {
-                        self.contactMatrixView.setColorScale(config.colorScale, self.state);
-                    }
-                    self.isLoadingHICFile = false;
-                    return dataset;
 
-                })
-                .then(function (dataset) {
                     return loadNVI(dataset)
                 })
 
@@ -694,6 +684,12 @@ var hic = (function (hic) {
 
                     self.$contactMaplabel.text(config.name);
                     self.name = config.name;
+
+                    if (config.colorScale) {
+                        self.contactMatrixView.setColorScale(config.colorScale, self.state);
+                    }
+
+                    self.isLoadingHICFile = false;
 
                     self.eventBus.post(hic.Event("MapLoad", self.dataset));
                     if (config.state) {
@@ -1327,7 +1323,7 @@ var hic = (function (hic) {
 
         Promise.all(promises)
             .then(function (results) {
-                if (event === undefined || "LocusChange" === event.type) {
+                if (event !== undefined && "LocusChange" === event.type) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
                 }
