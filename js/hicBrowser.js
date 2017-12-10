@@ -671,7 +671,8 @@ var hic = (function (hic) {
                     if (self.genome.id !== previousGenomeId) {
                         self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                     }
-
+                    self.eventBus.post(hic.Event("MapLoad", self.dataset));
+                    
                     return loadNVI(dataset)
                 })
 
@@ -691,7 +692,7 @@ var hic = (function (hic) {
 
                     self.isLoadingHICFile = false;
 
-                    self.eventBus.post(hic.Event("MapLoad", self.dataset));
+
                     if (config.state) {
                         self.setState(config.state);
                     } else if (config.synchState) {
