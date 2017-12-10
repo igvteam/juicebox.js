@@ -78,8 +78,11 @@ var hic = (function (hic) {
                 },
                 undefined,
                 function () {
+                    var browser;
+
+                    browser = trackRenderer.browser;
+                    browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
                     popover.hide();
-                    self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
                 },
                 true));
 
