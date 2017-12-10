@@ -54,21 +54,11 @@ var hic = (function (hic) {
                 trackRenderer.track.name,
                 function () {
 
-                    var alphanumeric = parseAlphanumeric(igv.dialog.$dialogInput.val());
+                    var value = igv.dialog.$dialogInput.val().trim();
 
-                    if (undefined !== alphanumeric) {
-                        trackRenderer.track.name = alphanumeric;
-                        trackRenderer.$label.text(trackRenderer.track.name);
-                    }
+                    trackRenderer.track.name = ('' === value || undefined === value) ? 'untitled' : value;
 
-                    function parseAlphanumeric(value) {
-
-                        var alphanumeric_re = /(?=.*[a-zA-Z].*)([a-zA-Z0-9 ]+)/,
-                            alphanumeric = alphanumeric_re.exec(value);
-
-                        return (null !== alphanumeric) ? alphanumeric[0] : "untitled";
-                    }
-
+                    trackRenderer.$label.text(trackRenderer.track.name);
                 },
                 undefined));
 

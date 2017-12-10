@@ -25051,12 +25051,12 @@ var igv = (function (igv) {
 
     };
 
-    igv.BAMTrack.prototype.popupDataWithConfiguration = function (config) {
+    igv.BAMTrack.prototype.popupData = function (config) {
 
         if (config.y >= this.coverageTrack.top && config.y < this.coverageTrack.height) {
-            return this.coverageTrack.popupDataWithConfiguration(config);
+            return this.coverageTrack.popupData(config);
         } else {
-            return this.alignmentTrack.popupDataWithConfiguration(config);
+            return this.alignmentTrack.popupData(config);
         }
 
     };
@@ -25361,13 +25361,13 @@ var igv = (function (igv) {
 
     };
 
-    CoverageTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, this.top, config.viewport.genomicState.referenceFrame);
-    };
-
-    CoverageTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
-
-        var coverageMap = this.featureSource.alignmentContainer.coverageMap,
+    CoverageTrack.prototype.popupData = function (config) {
+        
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame,
+            coverageMap = this.featureSource.alignmentContainer.coverageMap,
             coverageMapIndex,
             coverage,
             nameValues = [],
@@ -25749,7 +25749,7 @@ var igv = (function (igv) {
 
     };
 
-    AlignmentTrack.prototype.popupDataWithConfiguration = function (config) {
+    AlignmentTrack.prototype.popupData = function (config) {
 
         var clickedObject;
 
@@ -25795,7 +25795,7 @@ var igv = (function (igv) {
                 Array.prototype.push.apply(head, tail);
             }
 
-            igv.browser.parseSearchInput(head.join(' '));
+            igv.browser.search(head.join(' '));
         }
 
         function locusPairWithAlignmentAndViewport(alignment, viewport) {
@@ -27278,12 +27278,12 @@ var igv = (function (igv) {
 
     igv.ShardedBamReader.prototype.readAlignments = function (chr, start, end) {
 
-        var self = this, queryChr,
-            reader;
+        var self = this,
+            queryChr, reader, tmp, bamConfig;
 
         queryChr = self.chrAliasTable.hasOwnProperty(chr) ? self.chrAliasTable[chr] : chr;
 
-        if (!this.bamReaders.hasOwnProperty(queryChr)) {
+        if (!this.bamReaders.hasOwnProperty(queryChr) || "none" === this.bamReaders[queryChr]) {
             return Promise.resolve(new igv.AlignmentContainer(chr, start, end));
         }
 
@@ -27292,8 +27292,13 @@ var igv = (function (igv) {
             reader = self.bamReaders[queryChr];
 
             if (!reader) {
-                var bamUrl = self.config.sources.url.replace("$CHR", queryChr);
-                var bamConfig = Object.assign(self.config, {url: bamUrl});
+                tmp = {
+                    url: self.config.sources.url.replace("$CHR", queryChr)
+                }
+                if (self.config.sources.indexURL) {
+                    tmp.indexURL = self.config.sources.indexURL.replace("$CHR", queryChr);
+                }
+                bamConfig = Object.assign(self.config, tmp);
                 reader = new igv.BamReader(bamConfig);
                 self.bamReaders[queryChr] = reader;
             }
@@ -27301,8 +27306,9 @@ var igv = (function (igv) {
             return reader.readAlignments(queryChr, start, end)
                 .catch(function (error) {
                     console.error(error);
+                    igv.presentAlert("Error reading BAM or index file for: " + tmp.url);
                     self.bamReaders[queryChr] = "none";
-                    return [];
+                    return new igv.AlignmentContainer(chr, start, end);   // Empty alignment container
                 })
         }
     }
@@ -29095,7 +29101,7 @@ var igv = (function (igv) {
         if (true === resizeWillExceedChromosomeLength(this.trackViews)) {
 
             viewport = _.first((_.first(this.trackViews)).viewports);
-            this.parseSearchInput(viewport.genomicState.chromosome.name);
+            this.search(viewport.genomicState.chromosome.name);
         } else {
 
             _.each(_.union([this.ideoPanel, this.karyoPanel, this.centerGuide], this.trackViews), function (renderable) {
@@ -29575,7 +29581,7 @@ var igv = (function (igv) {
 
     };
 
-    igv.Browser.prototype.parseSearchInput = function (string) {
+    igv.Browser.prototype.search = function (string) {
 
         var self = this,
             loci = string.split(' ');
@@ -30187,7 +30193,7 @@ var igv = (function (igv) {
      * @param callback - function to call
      * @param force - force callback
      */
-    igv.Browser.prototype.search = function (feature, callback, force) {
+    igv.Browser.prototype.__depricated_search = function (feature, callback, force) {
         var type,
             chr,
             start,
@@ -31697,13 +31703,13 @@ var igv = (function (igv) {
     };
 
 
-    igv.AneuTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
+    igv.AneuTrack.prototype.popupData = function (config) {
 
-    igv.AneuTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
-
-        var sampleName, row = Math.floor(yOffset / this.sampleHeight), items;
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame,
+            sampleName, row = Math.floor(yOffset / this.sampleHeight), items;
 
         log("popupData for row " + row + ", sampleNames=" + JSON.stringify(this.sampleNames));
         if (row < this.sampleNames.length) {
@@ -33820,28 +33826,24 @@ var igv = (function (igv) {
     };
 
 
-    igv.FeatureTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
-
     /**
      * Return "popup data" for feature @ genomic location.  Data is an array of key-value pairs
-     */
-    igv.FeatureTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
+     */ 
+    igv.FeatureTrack.prototype.popupData = function (config) {
 
         // We use the featureCache property rather than method to avoid async load.  If the
         // feature is not already loaded this won't work,  but the user wouldn't be mousing over it either.
         if (this.featureSource.featureCache) {
 
-            var tolerance,
+            var genomicLocation = config.genomicLocation,
+                yOffset = config.y,
+                referenceFrame = config.viewport.genomicState.referenceFrame,
+                tolerance,
                 featureList,
                 row,
                 popupData,
                 ss,
-                ee,
-                str,
-                filtered,
-                mapped;
+                ee;
 
             // We need some tolerance around genomicLocation, start with +/- 2 pixels
             tolerance = 2 * referenceFrame.bpPerPixel;
@@ -35536,13 +35538,13 @@ var igv = (function (igv) {
         sortDirection = (sortDirection === "ASC" ? "DESC" : "ASC");
     };
 
-    igv.SegTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
+    igv.SegTrack.prototype.popupData = function (config) {
 
-    igv.SegTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
-
-        var sampleHeight = ("SQUISHED" === this.displayMode) ? this.sampleSquishHeight : this.sampleExpandHeight,
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame,
+            sampleHeight = ("SQUISHED" === this.displayMode) ? this.sampleSquishHeight : this.sampleExpandHeight,
             sampleName,
             row,
             items;
@@ -35883,7 +35885,7 @@ var igv = (function (igv) {
         if (config.color === undefined) {
             config.color = "rgb(150,150,150)";
         }
-        if(config.height === undefined) {
+        if (config.height === undefined) {
             config.height = 50;
         }
 
@@ -35968,18 +35970,18 @@ var igv = (function (igv) {
             return self.featureSource.getFileHeader()
                 .then(function (header) {
 
-                if (header) {
-                    // Header (from track line).  Set properties,unless set in the config (config takes precedence)
-                    if (header.name && !self.config.name) {
-                        self.name = header.name;
+                    if (header) {
+                        // Header (from track line).  Set properties,unless set in the config (config takes precedence)
+                        if (header.name && !self.config.name) {
+                            self.name = header.name;
+                        }
+                        if (header.color && !self.config.color) {
+                            self.color = "rgb(" + header.color + ")";
+                        }
                     }
-                    if (header.color && !self.config.color) {
-                        self.color = "rgb(" + header.color + ")";
-                    }
-                }
-                return header;
+                    return header;
 
-            })
+                })
         }
         else {
             return Promise.resolve(null);
@@ -36004,9 +36006,11 @@ var igv = (function (igv) {
             baselineColor;
 
 
+        this.currentFeatures = options.features;    // Cache for popup text
+
         // Temp hack
-        if(typeof self.color === "string" && self.color.startsWith("rgb(")) {
-            baselineColor =  igv.Color.addAlpha(self.color, 0.1);
+        if (typeof self.color === "string" && self.color.startsWith("rgb(")) {
+            baselineColor = igv.Color.addAlpha(self.color, 0.1);
         }
 
 
@@ -36042,7 +36046,7 @@ var igv = (function (igv) {
                 features.forEach(renderFeature);
 
                 // If the track includes negative values draw a baseline
-                if(featureValueMinimum < 0) {
+                if (featureValueMinimum < 0) {
                     var alpha = ctx.lineWidth;
                     ctx.lineWidth = 5;
                     var basepx = (featureValueMaximum / (featureValueMaximum - featureValueMinimum)) * options.pixelHeight;
@@ -36105,6 +36109,44 @@ var igv = (function (igv) {
 
     };
 
+    igv.WIGTrack.prototype.popupData = function (config) {
+
+        // We use the featureCache property rather than method to avoid async load.  If the
+        // feature is not already loaded this won't work,  but the user wouldn't be mousing over it either.
+        if (this.currentFeatures) {
+
+            var genomicLocation = config.genomicLocation,
+
+                referenceFrame = config.viewport.genomicState.referenceFrame,
+                tolerance,
+                featureList,
+                popupData,
+                selectedFeature;
+
+            featureList = this.currentFeatures;
+
+            if (featureList.length > 0) {
+
+                popupData = [];
+
+                // We need some tolerance around genomicLocation, start with +/- 2 pixels
+                tolerance = 2 * referenceFrame.bpPerPixel;
+                selectedFeature = binarySearch(featureList, genomicLocation, tolerance);
+
+                if (selectedFeature) {
+                    popupData.push({name: "Position:", value: igv.numberFormatter(selectedFeature.start + 1) + "-" + igv.numberFormatter(selectedFeature.end)});
+                    popupData.push({name: "Value:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", value: igv.numberFormatter(selectedFeature.value)});
+                }
+
+                return popupData;
+            }
+
+        }
+        else {
+            return null;
+        }
+    }
+
     function autoscale(features) {
         var min = 0,
             max = -Number.MAX_VALUE;
@@ -36123,6 +36165,79 @@ var igv = (function (igv) {
         return (a > 0 && b < 0 || a < 0 && b > 0);
     }
 
+    /**
+     * Return the closest feature to the genomic position +/- the specified tolerance.  Closest is defined
+     * by the minimum of the distance between position and start or end of the feature.
+     *
+     * @param features
+     * @param position
+     * @returns {*}
+     */
+    function binarySearch(features, position, tolerance) {
+        var startIndex = 0,
+            stopIndex = features.length - 1,
+            index = (startIndex + stopIndex) >> 1,
+            candidateFeature,
+            tmp, delta;
+
+
+        // Use binary search to get the index of at least 1 feature in the click tolerance bounds
+        while (!test(features[index], position, tolerance) && startIndex < stopIndex) {
+            if (position < features[index].start) {
+                stopIndex = index - 1;
+            } else if (position > features[index].end) {
+                startIndex = index + 1;
+            }
+
+            index = (startIndex + stopIndex) >> 1;
+        }
+
+        if (test(features[index], position, tolerance)) {
+
+            candidateFeature = features[index];
+            if (test(candidateFeature, position, 0)) return candidateFeature;
+
+            // Else, find closest feature to click
+            tmp = index;
+            while (tmp-- >= 0) {
+                if (!test(features[tmp]), position, tolerance) {
+                    break;
+                }
+                if (test(features[tmp], position, 0)) {
+                    return features[tmp];
+                }
+                if (delta(features[tmp], position) < delta(candidateFeature, position)) {
+                    candidateFeature = features[tmp];
+                }
+
+                tmp = index;
+                while (tmp++ < features.length) {
+                    if (!test(features[tmp]), position, tolerance) {
+                        break;
+                    }
+                    if (test(features[tmp], position, 0)) {
+                        return features[tmp];
+                    }
+                    if (delta(features[tmp], position) < delta(candidateFeature, position)) {
+                        candidateFeature = features[tmp];
+                    }
+                }
+            }
+            return candidateFeature;
+
+        } else {
+            console.log(position + ' not found!');
+            return undefined;
+        }
+
+        function test(feature, position, tolerance) {
+            return position >= (feature.start - tolerance) && position <= (feature.end + tolerance);
+        }
+
+        function delta(feature, position) {
+            return Math.min(Math.abs(feature.start - position), Math.abs(feature.end - position));
+        }
+    }
 
     return igv;
 
@@ -38040,8 +38155,13 @@ var igv = (function (igv) {
         };
 
         igv.graphics.fillRect(ctx, 0, 0, pixelWidth, pixelHeight, {'fillStyle': "rgb(255, 255, 255)"});
+        
+        // Determine a tick spacing such that there is at least 10 pixels between ticks
+        
+        var n = Math.ceil((this.maxLogP - this.minLogP) * 10 / pixelHeight);
+        
 
-        for (var p = 4; p <= track.maxLogP; p += 2) {
+        for (var p = 4; p <= track.maxLogP; p += n) {
 
             var x1,
                 x2,
@@ -38059,7 +38179,9 @@ var igv = (function (igv) {
 
             igv.graphics.strokeLine(ctx, x1, y1, x2, y2, font); // Offset dashes up by 2 pixel
 
-            igv.graphics.fillText(ctx, p, x1 - 1, y1 + 2, font); // Offset numbers down by 2 pixels; TODO: error
+            if(y1 > 8) {
+                igv.graphics.fillText(ctx, p, x1 - 1, y1 + 2, font);
+            } // Offset numbers down by 2 pixels;
         }
 
         font['textAlign'] = 'center';
@@ -38104,56 +38226,83 @@ var igv = (function (igv) {
 
         }
 
+        function autoscale(featureList, start, end) {
+
+            var values = featureList
+                .filter(function (eqtl) {
+                    return eqtl.position >= start && eqtl.position <= end
+                })
+                .map(function (eqtl) {
+                    return -Math.log(eqtl[self.pValueField]) / Math.LN10
+                })
+
+            return igv.Math.percentile(values, self.percentile);
+            
+        }
+
         function drawEqtls(drawSelected) {
 
-            var radius = drawSelected ? 2 * track.dotSize : track.dotSize,
-                eqtl, i, px, py, color, isSelected, snp, geneName, selection;
-
-
-            //ctx.fillStyle = igv.selection.colorForGene(eqtl.geneName);
-            igv.graphics.setProperties(ctx, {
-                fillStyle: "rgb(180, 180, 180)",
-                strokeStyle: "rgb(180, 180, 180)"
-            });
+            var radius = drawSelected ? 2 * self.dotSize : self.dotSize,
+                eqtl,
+                i,
+                px,
+                py,
+                color,
+                isSelected,
+                snp,
+                geneName,
+                selection,
+                capped;
 
             for (i = 0; i < len; i++) {
 
                 eqtl = featureList[i];
-                snp = eqtl.snp.toUpperCase();
-                geneName = eqtl[track.geneField].toUpperCase();
-                selection = igv.browser.selection;
-                isSelected = selection &&
-                (selection.snp === snp || selection.gene === geneName);
-
-                if (drawSelected && !isSelected) continue;
-
-                // Add eqtl's gene to the selection if this is the selected snp.
-                // TODO -- this should not be done here in the rendering code.
-                if (selection && selection.snp === snp) {
-                    selection.addGene(geneName);
-                }
-
-                if (drawSelected && selection) {
-                    color = selection.colorForGene(geneName);
-                }
-
-                if (drawSelected && color === undefined) continue;   // This should be impossible
-
-
-                px = (Math.round(eqtl.position  - bpStart + 0.5)) / bpPerPixel;
+                px = (Math.round(eqtl.position - bpStart + 0.5)) / bpPerPixel;
                 if (px < 0) continue;
                 else if (px > pixelWidth) break;
 
-                var mLogP = -Math.log(eqtl[track.pValueField]) / Math.LN10;
-                if (mLogP < track.minLogP) continue;
 
-                py = Math.max(0 + radius, pixelHeight - Math.round((mLogP - track.minLogP) / yScale));
-                eqtl.px = px;
-                eqtl.py = py;
+                snp = eqtl.snp.toUpperCase();
+                geneName = eqtl[self.geneField].toUpperCase();
+                selection = options.genomicState.selection;
+                isSelected = selection &&
+                    (selection.snp === snp || selection.gene === geneName);
 
-                if (color) igv.graphics.setProperties(ctx, {fillStyle: color, strokeStyle: "black"});
-                igv.graphics.fillCircle(ctx, px, py, radius);
-                igv.graphics.strokeCircle(ctx, px, py, radius);
+                if (!drawSelected || isSelected) {
+
+                    // Add eqtl's gene to the selection if this is the selected snp.
+                    // TODO -- this should not be done here in the rendering code.
+                    if (selection && selection.snp === snp) {
+                        selection.addGene(geneName);
+                    }
+
+                    var mLogP = -Math.log(eqtl[self.pValueField]) / Math.LN10;
+                    if (mLogP >= self.minLogP) {
+
+                        if(mLogP > self.maxLogP) {
+                            mLogP = self.maxLogP;
+                            capped = true;
+                        } else {
+                            capped = false;
+
+                        }
+
+                        py = Math.max(0 + radius, pixelHeight - Math.round((mLogP - self.minLogP) / yScale));
+                        eqtl.px = px;
+                        eqtl.py = py;
+
+                        if (drawSelected && selection) {
+                            color = selection.colorForGene(geneName);
+                            igv.graphics.setProperties(ctx, {fillStyle: color, strokeStyle: "black"});
+                        } else {
+                            color = capped ? "rgb(150, 150, 150)" : "rgb(180, 180, 180)";
+                            igv.graphics.setProperties(ctx, {fillStyle: color, strokeStyle: color});
+                        }
+
+                        igv.graphics.fillCircle(ctx, px, py, radius);
+                        igv.graphics.strokeCircle(ctx, px, py, radius);
+                    }
+                }
             }
         }
 
@@ -38169,16 +38318,15 @@ var igv = (function (igv) {
         igv.browser.update();
     }
 
-
-    igv.EqtlTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
-
-
     /**
      * Return "popup data" for feature @ genomic location.  Data is an array of key-value pairs
      */
-    igv.EqtlTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
+    igv.EqtlTrack.prototype.popupData = function (config) {
+    
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame;
 
         // We use the featureCache property rather than method to avoid async load.  If the
         // feature is not already loaded this won't work,  but the user wouldn't be mousing over it either.
@@ -38989,14 +39137,13 @@ var igv = (function (igv) {
     };
 
 
-    igv.GWASTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
+    igv.GWASTrack.prototype.popupData = function (config) {
 
-
-    igv.GWASTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
-
-        var i,
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame,
+            i,
             len,
             p,
             dbSnp,
@@ -39045,10 +39192,6 @@ var igv = (function (igv) {
 
         }
         return data;
-    };
-
-    igv.GWASTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame);
     };
 
     return igv;
@@ -41350,14 +41493,14 @@ var igv = (function (igv) {
             $searchContainer.append(browser.$searchInput);
 
             browser.$searchInput.change(function (e) {
-                browser.parseSearchInput($(this).val());
+                browser.search($(this).val());
             });
 
             $faSearch = $('<i class="fa fa-search">');
             $searchContainer.append($faSearch);
 
             $faSearch.click(function () {
-                browser.parseSearchInput(browser.$searchInput.val());
+                browser.search(browser.$searchInput.val());
             });
 
 
@@ -44574,7 +44717,7 @@ var igv = (function (igv) {
                         locusString = loci.join(' ');
                     }
 
-                    igv.browser.parseSearchInput(locusString);
+                    igv.browser.search(locusString);
                 });
             }
 
@@ -47474,26 +47617,20 @@ var igv = (function (igv) {
         var menuItems = [],
             all;
 
-        if (trackView.track.config.type != 'sequence') {
+        if (trackView.track.config.type !== 'sequence') {
 
             menuItems.push(igv.trackMenuItem(popover, trackView, "Set track name", function () {
                 return "Track Name"
             }, trackView.track.name, function () {
 
-                var alphanumeric = parseAlphanumeric(igv.dialog.$dialogInput.val());
+                var value;
 
-                if (undefined !== alphanumeric) {
-                    igv.setTrackLabel(trackView.track, alphanumeric);
-                    trackView.update();
-                }
+                value = igv.dialog.$dialogInput.val().trim();
+                value = ('' === value || undefined === value) ? 'untitled' : value;
 
-                function parseAlphanumeric(value) {
+                igv.setTrackLabel(trackView.track, value);
 
-                    var alphanumeric_re = /(?=.*[a-zA-Z].*)([a-zA-Z0-9 ]+)/,
-                        alphanumeric = alphanumeric_re.exec(value);
-
-                    return (null !== alphanumeric) ? alphanumeric[0] : "untitled";
-                }
+                trackView.update();
 
             }, undefined));
 
@@ -49061,7 +49198,7 @@ var igv = (function (igv) {
         this.$container.append(this.$select);
 
         this.$select.on('change', function () {
-            browser.parseSearchInput( $(this).val() );
+            browser.search($(this).val());
         });
 
     };
@@ -49752,7 +49889,7 @@ var igv = (function (igv) {
                 x: trackLocationState.x,
                 y: trackLocationState.y
             };
-        dataList = track.popupDataWithConfiguration(config);
+        dataList = track.popupData(config);
 
         popupClickHandlerResult = igv.browser.fireEvent('trackclick', [track, dataList]);
 
@@ -50694,14 +50831,15 @@ var igv = (function (igv) {
         }
     };
 
-    igv.VariantTrack.prototype.popupDataWithConfiguration = function (config) {
-        return this.popupData(config.genomicLocation, config.x, config.y, config.viewport.genomicState.referenceFrame)
-    };
-
     /**
      * Return "popup data" for feature @ genomic location.  Data is an array of key-value pairs
-     */
-    igv.VariantTrack.prototype.popupData = function (genomicLocation, xOffset, yOffset, referenceFrame) {
+     */   
+    igv.VariantTrack.prototype.popupData = function (config) {
+
+        var genomicLocation = config.genomicLocation,
+            xOffset = config.x,
+            yOffset = config.y,
+            referenceFrame = config.viewport.genomicState.referenceFrame;
 
         // We use the featureCache property rather than method to avoid async load.  If the
         // feature is not already loaded this won't work,  but the user wouldn't be mousing over it either.
@@ -51612,7 +51750,7 @@ var igv = (function (igv) {
                             locusString = loci.join(' ');
                         }
 
-                        igv.browser.parseSearchInput(locusString);
+                        igv.browser.search(locusString);
 
                     } else {
                         self.genomicState.referenceFrame.bpPerPixel /= 2;
@@ -51639,7 +51777,7 @@ var igv = (function (igv) {
                         self.trackView.track.altClick(genomicLocation, referenceFrame, e);
                     }
 
-                } else if (Math.abs(canvasCoords.x - mouseDownX) <= igv.browser.constants.dragThreshold && self.trackView.track.popupDataWithConfiguration) {
+                } else if (Math.abs(canvasCoords.x - mouseDownX) <= igv.browser.constants.dragThreshold && self.trackView.track.popupData) {
 
                     popupTimer = window.setTimeout(function () {
 
