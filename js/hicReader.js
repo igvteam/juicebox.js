@@ -91,7 +91,7 @@ var hic = (function (hic) {
                         name: binaryParser.getString(),
                         size: binaryParser.getInt()
                     };
-                    if(chr.name.toLowerCase() === "all") {
+                    if (chr.name.toLowerCase() === "all") {
                         self.wholeGenomeChromosome = chr;
                         dataset.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
                     }
@@ -209,6 +209,9 @@ var hic = (function (hic) {
      */
     hic.HiCReader.prototype.readNormExpectedValuesAndNormVectorIndex = function (dataset) {
 
+        var self = this,
+            range;
+
         if (this.normExpectedValueVectorsPosition === undefined) {
             return Promise.resolve();
         }
@@ -217,72 +220,66 @@ var hic = (function (hic) {
             return Promise.resolve(this.normVectorIndex);
         }
 
-        var self = this,
-            range;
-
-
-        if (this.normExpectedValueVectorsPosition === undefined) {
-            return Promise.resolve();
-        }
 
         return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition, -1)
 
             .then(function (nviStart) {
 
-                range = {start: nviStart, size: 10000}
+                range = {start: nviStart, size: 100000}
 
                 return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
-
-                    .then(function (data) {
-
-                        var key, pos, size, nEntries, type, unit, binSize, nValues, values, nChrScaleFactors, normFactors,
-                            p0, chrIdx, filePosition, sizeInBytes;
-
-                        var binaryParser = new igv.BinaryParser(new DataView(data));
-
-                        dataset.normalizedExpectedValueVectors = {};
-
-                        try {
-
-                            // Normalization vector index
-                            p0 = binaryParser.position;
-                            self.normVectorIndex = {};
-
-                            if (!dataset.normalizationTypes) {
-                                dataset.normalizationTypes = [];
-                            }
-                            dataset.normalizationTypes.push('NONE');
-
-                            nEntries = binaryParser.getInt();
-                            while (nEntries-- > 0) {
-                                type = binaryParser.getString();
-                                chrIdx = binaryParser.getInt();
-                                unit = binaryParser.getString();
-                                binSize = binaryParser.getInt();
-                                filePosition = binaryParser.getLong();
-                                sizeInBytes = binaryParser.getInt();
-                                key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-                                if (_.contains(dataset.normalizationTypes, type) === false) {
-                                    dataset.normalizationTypes.push(type);
-                                }
-                                self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                            }
-
-                            self.normalizationVectorIndexRange = {
-                                start: range.start + p0,
-                                size: binaryParser.position - p0
-                            };
-                        } catch (e) {
-                            // This is normal, apparently, when there are no vectors.
-                            self.normalizationVectorIndexRange = undefined;
-                        }
-
-
-                        return self;
-
-                    })
             })
+
+            .then(function (data) {
+
+                var key, nEntries, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes;
+
+                var binaryParser = new igv.BinaryParser(new DataView(data));
+
+                dataset.normalizedExpectedValueVectors = {};
+
+                try {
+
+                    // Normalization vector index
+                    p0 = binaryParser.position;
+                    self.normVectorIndex = {};
+
+                    if (!dataset.normalizationTypes) {
+                        dataset.normalizationTypes = [];
+                    }
+                    dataset.normalizationTypes.push('NONE');
+
+                    nEntries = binaryParser.getInt();
+                    while (nEntries-- > 0) {
+                        type = binaryParser.getString();
+                        chrIdx = binaryParser.getInt();
+                        unit = binaryParser.getString();
+                        binSize = binaryParser.getInt();
+                        filePosition = binaryParser.getLong();
+                        sizeInBytes = binaryParser.getInt();
+                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                        if (_.contains(dataset.normalizationTypes, type) === false) {
+                            dataset.normalizationTypes.push(type);
+                        }
+                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+                    }
+
+                    self.normalizationVectorIndexRange = {
+                        start: range.start + p0,
+                        size: binaryParser.position - p0
+                    };
+                } catch (e) {
+                    // This is normal, apparently, when there are no vectors.
+                    self.normalizationVectorIndexRange = undefined;
+                }
+
+
+                return self;
+
+            })
+
+        
 
     };
 
@@ -304,7 +301,7 @@ var hic = (function (hic) {
             .then(function (data) {
                 var binaryParser = new igv.BinaryParser(new DataView(data));
                 var nEntries = binaryParser.getInt();   // Total # of expected value chunks
-                if(nEntries === 0) {
+                if (nEntries === 0) {
                     return range.start + range.size;
                 }
                 else {
@@ -343,7 +340,7 @@ var hic = (function (hic) {
                 })
                 .then(function (chunkSize) {
                     nEntries--;
-                    if(nEntries === 0) {
+                    if (nEntries === 0) {
                         return Promise.resolve(p0 + chunkSize);
                     }
                     else {
