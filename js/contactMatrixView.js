@@ -113,6 +113,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
         this.browser.eventBus.subscribe("TrackState2D", this);
+        this.browser.eventBus.subscribe("MapLoad", this)
     };
 
     hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
@@ -122,20 +123,6 @@ var hic = (function (hic) {
             state: state.clone(),
             img: image
         }
-    };
-
-    hic.ContactMatrixView.prototype.datasetUpdated = function () {
-        // This should probably be an event
-        // Don't enable mouse actions until we have a dataset.
-        if (!this.mouseHandlersEnabled) {
-            addMouseHandlers.call(this, this.$viewport);
-            this.mouseHandlersEnabled = true;
-        }
-
-        this.updating = false;
-        this.clearCaches();
-        this.colorScaleCache = {};
-        this.update();
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (options, state) {
@@ -168,20 +155,30 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
-        // Perhaps in the future we'll do something special based on event type & properties
 
-        if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type || "TrackState2D" === event.type) {
-            this.clearCaches();
-        }
-
-        if (this.initialImage) {
-            if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
-                this.initialImage = undefined;
+        if ("MapLoad" === event.type) {
+            // Don't enable mouse actions until we have a dataset.
+            if (!this.mouseHandlersEnabled) {
+                addMouseHandlers.call(this, this.$viewport);
+                this.mouseHandlersEnabled = true;
             }
+            this.clearCaches();
+            this.colorScaleCache = {};
         }
 
-        this.update();
+        else {
+            if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type || "TrackState2D" === event.type) {
+                this.clearCaches();
+            }
 
+            if (this.initialImage) {
+                if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
+                    this.initialImage = undefined;
+                }
+            }
+
+            this.update();
+        }
     };
 
     function validateInitialImage(initialImage, state) {

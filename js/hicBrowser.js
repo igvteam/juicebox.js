@@ -669,14 +669,7 @@ var hic = (function (hic) {
                     // TODO -- this is not going to work with browsers on different assemblies on the same page.
                     igv.browser.genome = self.genome;
 
-                    if (config.state) {
-                        self.setState(config.state);
-                    } else if (config.synchState) {
-                        self.syncState(config.synchState);
-                    } else {
-                        self.setState(defaultState.clone());
-                    }
-                    self.contactMatrixView.datasetUpdated();
+                    //self.contactMatrixView.datasetUpdated();
 
                     if (self.genome.id !== previousGenomeId) {
                         self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
@@ -685,26 +678,32 @@ var hic = (function (hic) {
                         self.contactMatrixView.setColorScale(config.colorScale, self.state);
                     }
                     self.isLoadingHICFile = false;
-                    self.eventBus.post(hic.Event("MapLoad", dataset));
                     return dataset;
 
                 })
                 .then(function (dataset) {
-
                     return loadNVI(dataset)
+                })
 
-                        .then(function (nvi) {
-                            self.isLoadingHICFile = false;
-                            self.stopSpinner();
+                .then(function (nvi) {
+                    self.isLoadingHICFile = false;
+                    self.stopSpinner();
 
-                            $('.hic-root').removeClass('hic-root-selected');
-                            hic.Browser.setCurrentBrowser(undefined);
+                    $('.hic-root').removeClass('hic-root-selected');
+                    hic.Browser.setCurrentBrowser(undefined);
 
-                            self.$contactMaplabel.text(config.name);
-                            self.name = config.name;
+                    self.$contactMaplabel.text(config.name);
+                    self.name = config.name;
 
-                            return dataset;
-                        })
+                    self.eventBus.post(hic.Event("MapLoad", self.dataset));
+                    if (config.state) {
+                        self.setState(config.state);
+                    } else if (config.synchState) {
+                        self.syncState(config.synchState);
+                    } else {
+                        self.setState(defaultState.clone());
+                    }
+
                 })
                 .catch(function (error) {
                     self.isLoadingHICFile = false;
@@ -979,40 +978,46 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
-        var self = this,
-            bpResolutions = this.dataset.bpResolutions,
-            viewDimensions = this.contactMatrixView.getViewDimensions(),
-            dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
-            dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
-            newPixelSize, shiftRatio;
+        if (this.state.chr === 0) {
+
+        }
+
+        else {
+            var self = this,
+                bpResolutions = this.dataset.bpResolutions,
+                viewDimensions = this.contactMatrixView.getViewDimensions(),
+                dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
+                dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
+                newPixelSize, shiftRatio;
 
 
-        this.state.x += (dx / this.state.pixelSize);
-        this.state.y += (dy / this.state.pixelSize);
+            this.state.x += (dx / this.state.pixelSize);
+            this.state.y += (dy / this.state.pixelSize);
 
-        if (this.resolutionLocked ||
-            (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
-            (direction < 0 && this.state.zoom === 0)) {
+            if (this.resolutionLocked ||
+                (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
+                (direction < 0 && this.state.zoom === 0)) {
 
-            minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+                minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
 
-                .then(function (minPS) {
+                    .then(function (minPS) {
 
-                    var state = self.state;
+                        var state = self.state;
 
-                    newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)),
-                        minPS);
+                        newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)),
+                            minPS);
 
-                    shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
-                    state.pixelSize = newPixelSize;
-                    state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
-                    state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
+                        shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+                        state.pixelSize = newPixelSize;
+                        state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
+                        state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
-                    self.clamp();
-                    self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
-                });
-        } else {
-            this.setZoom(this.state.zoom + direction);
+                        self.clamp();
+                        self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
+                    });
+            } else {
+                this.setZoom(this.state.zoom + direction);
+            }
         }
     };
 
@@ -1128,8 +1133,8 @@ var hic = (function (hic) {
         minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
             .then(function (minPS) {
                 self.state.pixelSize = Math.max(state.pixelSize, minPS);
+                self.eventBus.post(new hic.Event("LocusChange", {state: self.state, resolutionChanged: true}));
             });
-
     };
 
 
@@ -1322,7 +1327,7 @@ var hic = (function (hic) {
 
         Promise.all(promises)
             .then(function (results) {
-                if (event && "LocusChange" === event.type) {
+                if (event === undefined || "LocusChange" === event.type) {
                     self.layoutController.xAxisRuler.locusChange(event);
                     self.layoutController.yAxisRuler.locusChange(event);
                 }

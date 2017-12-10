@@ -129,7 +129,7 @@ var hic = (function (hic) {
             percentages,
             str;
 
-        if (false === this.isDragging && event.type === "LocusChange") {
+        if (!this.isDragging && event.type === "LocusChange") {
 
             var state = event.data.state,
                 dataset = self.browser.dataset;
