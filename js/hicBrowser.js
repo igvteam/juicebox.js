@@ -389,10 +389,15 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
-        this.contactMatrixView.$x_guide.css({top: coords.y, left: 0});
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css({top: coords.y, left: 0});
-        this.contactMatrixView.$y_guide.css({top: 0, left: coords.x});
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css({top: 0, left: coords.x});
+        var obj;
+
+        obj = coords.y < 0 ?  { left: 0 } : { top: coords.y, left: 0 };
+        this.contactMatrixView.$x_guide.css(obj);
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css(obj);
+
+        obj = coords.x < 0 ?  { top: 0 } : { top: 0, left: coords.x };
+        this.contactMatrixView.$y_guide.css(obj);
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css(obj);
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
@@ -400,7 +405,7 @@ var hic = (function (hic) {
         this.contactMatrixView.$y_guide.hide();
         this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
         this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
-    }
+    };
 
     hic.Browser.prototype.showCrosshairs = function () {
         this.contactMatrixView.$x_guide.show();

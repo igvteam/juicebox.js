@@ -887,7 +887,9 @@ var hic = (function (hic) {
                 e.stopPropagation();
                 coords = {x: e.offsetX, y: e.offsetY};
 
-                self.browser.updateCrosshairs(coords);
+                if (true === self.areCrosshairsVisible) {
+                    self.browser.updateCrosshairs(coords);
+                }
 
                 if (isMouseDown) { // Possibly dragging
 
@@ -935,7 +937,8 @@ var hic = (function (hic) {
 
                 keydown: function (e) {
                     // shift key
-                    if (true === mouseOver && 16 === e.keyCode) {
+                    if (undefined === self.areCrosshairsVisible && true === mouseOver && 16 === e.keyCode) {
+                        self.areCrosshairsVisible = true;
                         self.browser.showCrosshairs();
                     }
                 },
@@ -944,6 +947,7 @@ var hic = (function (hic) {
                     // shift key
                     if (16 === e.keyCode) {
                         self.browser.hideCrosshairs();
+                        self.areCrosshairsVisible = undefined;
                     }
                 },
 
