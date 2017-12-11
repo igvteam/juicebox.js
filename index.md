@@ -26,7 +26,7 @@ __Pan and zoom__
 * Pan by click-dragging in the map. 
 * Zoom in by double-clicking on the map. 
 * Sweep-zoom by holding down the ALT key while you click-drag in the map.
-* Hold the SHIFT key to display crosshairs in the map.
+* Hold the SHIFT key to display crosshairs in the map, and move the cursor without holding down the mouse button.
 
 __Change resolution__
 
