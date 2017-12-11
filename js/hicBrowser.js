@@ -403,10 +403,10 @@ var hic = (function (hic) {
     }
 
     hic.Browser.prototype.showCrosshairs = function () {
-        this.contactMatrixView.$x_guide.hide();
-        this.contactMatrixView.$y_guide.hide();
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
+        this.contactMatrixView.$x_guide.show();
+        this.contactMatrixView.$y_guide.show();
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").show();
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").show();
     };
 
     hic.Browser.prototype.genomicState = function (axis) {
