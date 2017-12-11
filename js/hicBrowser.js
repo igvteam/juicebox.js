@@ -672,7 +672,7 @@ var hic = (function (hic) {
                         self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                     }
                     self.eventBus.post(hic.Event("MapLoad", self.dataset));
-                    
+
                     return loadNVI(dataset)
                 })
 
@@ -1305,11 +1305,20 @@ var hic = (function (hic) {
 
         var self = this;
 
-        if (!event) {
-            console.log("Update");
-            console.trace();
+        // Allow only 1 update at a time, if an update is in progress queue up until its finished
+        if (self.updating) {
+            if (self.updateTimer) {
+                clearTimeout(self.updateTimer);
+            }
+            self.updateTimer = setTimeout(function () {
+                    self.update(event);
+                    self.updateTimer = null;
+                },
+                100)
+            return;
         }
 
+        self.updating = true;
         self.contactMatrixView.startSpinner();
         var promises = [];
         promises.push(this.contactMatrixView.readyToPaint());
