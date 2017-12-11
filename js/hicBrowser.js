@@ -401,17 +401,17 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
-        this.contactMatrixView.$x_guide.css('z-index', -1024);
-        this.contactMatrixView.$y_guide.css('z-index', -1024);
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css('z-index', -1024);
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css('z-index', -1024);
+        this.contactMatrixView.$x_guide.hide();
+        this.contactMatrixView.$y_guide.hide();
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
     };
 
     hic.Browser.prototype.showCrosshairs = function () {
-        this.contactMatrixView.$x_guide.css('z-index', 2048);
-        this.contactMatrixView.$y_guide.css('z-index', 2048);
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css('z-index', 2048);
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css('z-index', 2048);
+        this.contactMatrixView.$x_guide.show();
+        this.contactMatrixView.$y_guide.show();
+        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").show();
+        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").show();
     };
 
     hic.Browser.prototype.genomicState = function (axis) {
