@@ -1208,10 +1208,7 @@ var hic = (function (hic) {
         var self = this;
 
         if (!this.dataset) return;
-
-        if (this.updating) return;
-
-        this.updating = true;
+        if (self.updating) return;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
@@ -1321,6 +1318,7 @@ var hic = (function (hic) {
         self.updating = true;
         self.contactMatrixView.startSpinner();
         var promises = [];
+
         promises.push(this.contactMatrixView.readyToPaint());
         this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
             promises.push(
