@@ -3,12 +3,9 @@ layout: default
 ---
 
 juicebox.js is an embeddable interactive contact map viewer for .hic files written in JavaScript and CSS.
-It is based on the desktop Juicebox visualization application.  
+It is based on the desktop Juicebox visualization application.  For developers who wish to embed juicebox.js, see the [Developer Documentation](docs/developers)
 
 A public instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juicebox).
-
-For developers who wish to embed juicebox.js, see the [Developer Documentation](docs/developers)
-
 
 
 ## [aidenlab.org/juicebox](http://aidenlab.org/juicebox): Quick Start Guide  
@@ -35,7 +32,7 @@ __Change resolution__
 
 * Select a different resolution from the pulldown menu.
 * Note that changing resolution by zooming or with the resolution pulldown changes the bin size and thus the counts per bin. This necessitates a scale change.
-* Click on the lock icon to fix the resolution at its current value.
+* Click on the lock icon to fix the resolution at its current value when zooming.
 
 ### Contact Map Color Scale
 
