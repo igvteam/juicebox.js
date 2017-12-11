@@ -572,15 +572,15 @@ div[id$="x-track-container"] {
       position: absolute;
       top: 0;
       left: 50%;
-      width: 1px;
+      width: 2px;
       height: 100%;
-      border-left-style: dotted;
+      border-left-style: solid;
       border-left-width: thin;
       border-left-color: #202020;
       user-select: none;
       -moz-user-select: none;
       -webkit-user-select: none;
-      z-index: 666; }
+      z-index: 4196; }
     div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container {
       cursor: pointer;
       position: relative;
@@ -699,14 +699,14 @@ div[id$="content-container"] {
         top: 50%;
         left: 0;
         width: 100%;
-        height: 1px;
-        border-top-style: dotted;
+        height: 2px;
+        border-top-style: solid;
         border-top-width: thin;
         border-top-color: #202020;
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-        z-index: 666; }
+        z-index: 4096; }
       div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] .y-track-canvas-container {
         display: block;
         position: relative;
@@ -790,27 +790,27 @@ div[id$="content-container"] {
         top: 50%;
         left: 0;
         width: 100%;
-        height: 1px;
-        border-top-style: dotted;
+        height: 2px;
+        border-top-style: solid;
         border-top-width: thin;
         border-top-color: #202020;
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-        z-index: 555; }
+        z-index: 2048; }
       div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] div[id$="y-guide"] {
         position: absolute;
         top: 0;
         left: 50%;
-        width: 1px;
+        width: 2px;
         height: 100%;
-        border-left-style: dotted;
+        border-left-style: solid;
         border-left-width: thin;
         border-left-color: #202020;
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-        z-index: 666; }
+        z-index: 2148; }
     div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis-scrollbar-container"] {
       display: block;
       position: relative;
