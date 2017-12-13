@@ -490,7 +490,7 @@
         <div class="col-md-4">
             <div>
                 <span>&nbsp;&nbsp;&nbsp;</span>
-                <span id="hic-version-number">version 0.9.13</span>
+                <span id="hic-version-number">version 0.9.14</span>
 
             </div>
 
@@ -552,22 +552,22 @@
                 items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
 
-            // URL shortener.   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
-            // TODO -- to use a custom or provider other than Google or Bitly supply details here.   See documentation.
+            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
+            // If more than 1 shortener is defined the first is used to shorten URLs
             urlShortener: [
                 {
                     provider: "bitly",
-                    apiKey: "ABCD",        // TODO -- replace with your Bitly access token
+                    apiKey: "ABCD",        // TODO -- replace with your Bitly access token, or function to fetch token
                     hostname: 'bit.ly'
                 },
                 {
                     provider: "google",
-                    apiKey: "ABCD",        // TODO -- replace with your Google API Key
+                    apiKey: "ABCD",        // TODO -- replace with your Google API Key, or function to fetch key
                     hostname: "goo.gl"
                 }
             ],
 
-            apiKey: "ABCD",   // TODO -- replace with your Google API Key
+            apiKey: "ABCD",   // TODO -- replace with your Google API Key if supporting Google Drive
 
             embedTarget: "https://igv.org/web/jb/aidenlab/embed/embed.html"
         };

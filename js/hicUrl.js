@@ -54,7 +54,7 @@ var hic = (function (hic) {
             else {    // Custom
                 if (typeof shortener.shortenURL === "function" &&
                     typeof shortener.expandURL === "function" &&
-                    typeof shortner.hostname === "string") {
+                    typeof shortener.hostname === "string") {
                     return shortener;
                 }
                 else {
@@ -74,10 +74,6 @@ var hic = (function (hic) {
     }
 
     /**
-     * Expand the shortened URL.  Currently we support google and bitly.
-     *
-     * TODO -- support custom shortener
-     *
      * Returns a promise to expand the URL
      */
     hic.expandURL = function (url) {
@@ -159,7 +155,7 @@ var hic = (function (hic) {
 
     var BitlyURL = function (config) {
         this.api = "https://api-ssl.bitly.com";
-        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e26" : config.apiKey;
+        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchBitlyApiKey : config.apiKey;
         this.hostname = config.hostname ? config.hostname : "bit.ly";
         this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
     }
@@ -167,22 +163,36 @@ var hic = (function (hic) {
 
     BitlyURL.prototype.shortenURL = function (url) {
 
+        var self = this;
+
         if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
 
-        var endpoint = this.api + "/v3/shorten?access_token=" + this.apiKey + "&longUrl=" + encodeURIComponent(url);
-        return igv.xhr.loadJson(endpoint, {})
+        return getApiKey.call(this)
+
+            .then(function (key) {
+                var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
+
+                return igv.xhr.loadJson(endpoint, {})
+            })
 
             .then(function (json) {
                 return json.data.url;
             })
-
     };
+
 
     BitlyURL.prototype.expandURL = function (url) {
 
-        var endpoint = this.api + "/v3/expand?access_token=" + this.apiKey + "&shortUrl=" + encodeURIComponent(url);
+        var self = this;
 
-        return igv.xhr.loadJson(endpoint, {})
+        return getApiKey.call(this)
+
+            .then(function (key) {
+
+                var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
+
+                return igv.xhr.loadJson(endpoint, {})
+            })
 
             .then(function (json) {
 
@@ -198,53 +208,106 @@ var hic = (function (hic) {
 
 
     var GoogleURL = function (config) {
-        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0" : config.apiKey;
+        this.api = "https://www.googleapis.com/urlshortener/v1/url";
+        this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchGoogleApiKey : config.apiKey;
         this.hostname = config.hostname || "goo.gl";
     }
 
     GoogleURL.prototype.shortenURL = function (url) {
 
-        var apiKey = this.apiKey;
+        var self = this;
 
-        if (!apiKey) {
-            return Promise.resolve(url);
-        }
-        else {
-            var endpoint = "https://www.googleapis.com/urlshortener/v1/url" + "?key=" + apiKey;
+        return getApiKey.call(this)
 
-            return igv.xhr.loadJson(endpoint,
-                {
-                    sendData: JSON.stringify({"longUrl": url}),
-                    contentType: "application/json"
-                })
-                .then(function (json) {
-                    return json.id;
-                })
-        }
-    };
+            .then(function (key) {
+
+                var endpoint = self.api + "?key=" + key;
+
+                return igv.xhr.loadJson(endpoint,
+                    {
+                        sendData: JSON.stringify({"longUrl": url}),
+                        contentType: "application/json"
+                    })
+            })
+            .then(function (json) {
+                return json.id;
+            })
+    }
+
 
     GoogleURL.prototype.expandURL = function (url) {
 
-        var endpoint,
-            apiKey = this.apiKey;
+        var self = this;
+        return getApiKey.call(this)
 
-        if (apiKey && url.includes("goo.gl")) {
+            .then(function (apiKey) {
 
-            endpoint = "https://www.googleapis.com/urlshortener/v1/url?shortUrl=" + url + "&key=" + apiKey;
+                var endpoint;
 
-            return igv.xhr.loadJson(endpoint,
-                {
-                    contentType: "application/json"
+                if (url.includes("goo.gl")) {
+
+                    endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
+
+                    return igv.xhr.loadJson(endpoint, {contentType: "application/json"})
+                        .then(function (json) {
+                            return json.longUrl;
+                        })
+                }
+                else {
+                    // Not a google url or no api key
+                    return Promise.resolve(url);
+                }
+            })
+    }
+
+    function getApiKey() {
+
+        var self = this, token;
+
+        if (typeof self.apiKey === "string") {
+            return Promise.resolve(self.apiKey);
+        }
+        else if (typeof self.apiKey === "function") {
+
+            token = self.apiKey();
+
+            if (typeof token.then === "function") {
+                return token.then(function (key) {
+                    self.apiKey = key;
+                    return key;
                 })
-                .then(function (json) {
-                    return json.longUrl;
-                })
+            } else {
+                self.apiKey = token;
+                return Promise.resolve(token);
+            }
         }
         else {
-            // Not a google url or no api key
-            return Promise.resolve(url);
+            throw new Error("Unknown apiKey type: " + this.apiKey);
         }
-    };
+    }
+
+
+// Example function for fetching an api key.
+    function fetchBitlyApiKey() {
+        return igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
+            .then(function (json) {
+                return json["apiKey"];
+            })
+            .catch(function (error) {
+                console.error(error);
+            })
+    }
+
+// Example function for fetching an api key.
+    function fetchGoogleApiKey() {
+        return igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {})
+            .then(function (json) {
+                return json["apiKey"];
+            })
+            .catch(function (error) {
+                console.error(error);
+            })
+    }
 
 
     return hic;

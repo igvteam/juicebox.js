@@ -1302,7 +1302,19 @@ var hic = (function (hic) {
 
     };
 
-
+    /**
+     * Update the maps and tracks.
+     *
+     * Data load functions for tracks and the map are not neccessarily thread safe.   Although JS is single-threaded,
+     * the ascyncronous nature of XmLHttpRequests makes it possible to call these functions multiple times
+     * simultaneously.   To prevent this we check for an update in progress before proceeding.   If and update
+     * is in progress the call to self is deferred with a timeout until the currently executing update completes.
+     *
+     * This might involve asynchronous data loads,  insure that all data loads are complete
+     * before painting track.
+     *
+     * @param event
+     */
     hic.Browser.prototype.update = function (event) {
 
         var self = this;
