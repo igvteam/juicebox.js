@@ -35738,7 +35738,7 @@ var igv = (function (igv) {
                     $fa.addClass('fa-check-hidden');
                 }
 
-                self.trackView.update();
+                self.trackView.setDataRange(undefined, undefined, self.autoscale);
             }
         });
 
@@ -35812,12 +35812,7 @@ var igv = (function (igv) {
 
 
         if (features && features.length > 0) {
-            // if (self.autoscale === undefined && self.dataRange === undefined && (typeof self.featureSource.getDefaultRange === "function")) {
-            //     defaultRange = self.featureSource.getDefaultRange();
-            //     if (!isNaN(defaultRange.min) && !isNaN(defaultRange.max)) {
-            //         self.dataRange = defaultRange;
-            //     }
-            // }
+
             if (self.autoscale || self.dataRange === undefined) {
                 var s = autoscale(features);
                 featureValueMinimum = self.config.min || s.min;      // If min is explicitly set use it
@@ -48553,9 +48548,17 @@ var igv = (function (igv) {
     };
 
     igv.TrackView.prototype.setDataRange = function (min, max, autoscale) {
-        this.track.dataRange.min = min;
-        this.track.dataRange.max = max;
+
+        if (min) {
+            this.track.dataRange.min = min;
+        }
+
+        if (max) {
+            this.track.dataRange.max = max;
+        }
+
         this.track.autoscale = autoscale;
+
         this.update();
     };
 
