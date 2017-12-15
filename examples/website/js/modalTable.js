@@ -30,10 +30,11 @@
 
 var igv = (function (igv) {
 
-    igv.ModalTable = function (config, datasource) {
+    igv.ModalTable = function (config) {
 
         this.config = config;
-        this.datasource = datasource;
+        this.datasource = config.datasource;
+        this.browserHandler = config.browserHandler;
 
         teardownModalDOM(config);
         this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
@@ -154,15 +155,12 @@ var igv = (function (igv) {
             });
 
             this.config.$modalGoButton.on('click', function () {
-                var selected,
-                    browser;
+                var selected;
 
                 selected = getSelectedTableRowsData.call(self, self.$dataTables.$('tr.selected'));
 
-                browser = self.config.browserRetrievalFunction();
-
                 if (selected) {
-                    browser[ self.config.browserLoadFunction ](selected);
+                    self.browserHandler(selected);
                 }
 
             });

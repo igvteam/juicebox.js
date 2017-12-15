@@ -54,8 +54,7 @@ var juicebox = (function (site) {
         genomeChangeListener = {
 
             receiveEvent: function (event) {
-                var browserRetrievalFunction,
-                    genomeId = event.data;
+                var genomeId = event.data;
 
                 if (lastGenomeId !== genomeId) {
 
@@ -71,11 +70,7 @@ var juicebox = (function (site) {
                         loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
                     }
 
-                    browserRetrievalFunction = function () {
-                        return hic.Browser.getCurrentBrowser();
-                    };
-
-                    createEncodeTable(browserRetrievalFunction, genomeId);
+                    createEncodeTable(genomeId);
                 }
             }
         };
@@ -458,12 +453,12 @@ var juicebox = (function (site) {
             })
     }
 
-    function createEncodeTable(browserRetrievalFunction, genomeId) {
+    function createEncodeTable(genomeId) {
 
         var config,
             columnFormat,
             encodeDatasource,
-            browser;
+            loadTracks;
 
         if (encodeTable && genomeId === lastGenomeId) {
             // do nothing
@@ -487,6 +482,10 @@ var juicebox = (function (site) {
 
             encodeDatasource = new igv.EncodeDataSource(columnFormat);
 
+            loadTracks = function (configurationList) {
+                hic.Browser.getCurrentBrowser().loadTracks(configurationList);
+            };
+
             config =
             {
                 $modal: $('#hicEncodeModal'),
@@ -494,11 +493,11 @@ var juicebox = (function (site) {
                 $modalTopCloseButton: $('#encodeModalTopCloseButton'),
                 $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
                 $modalGoButton: $('#encodeModalGoButton'),
-                browserRetrievalFunction: browserRetrievalFunction,
-                browserLoadFunction: 'loadTracks'
+                datasource: encodeDatasource,
+                browserHandler: loadTracks
             };
 
-            encodeTable = new igv.ModalTable(config, encodeDatasource);
+            encodeTable = new igv.ModalTable(config);
 
             encodeTable.loadData(genomeId);
 
