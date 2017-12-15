@@ -158,13 +158,22 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
 
-        setDataRange(this.trackRenderPair.x);
-        setDataRange(this.trackRenderPair.y);
+        setDataRange.call(this.trackRenderPair.x);
+        setDataRange.call(this.trackRenderPair.y);
 
-        function setDataRange(trackRenderer) {
-            trackRenderer.tile = undefined;
-            trackRenderer.track.dataRange = {min: min, max: max};
-            trackRenderer.track.autscale = autoscale;
+        function setDataRange() {
+
+            this.tile = undefined;
+
+            if (min) {
+                this.track.dataRange.min = min;
+            }
+
+            if (max) {
+                this.track.dataRange.max = max;
+            }
+
+            this.track.autscale = autoscale;
         }
 
         this.browser.renderTrackXY(this.trackRenderPair);
