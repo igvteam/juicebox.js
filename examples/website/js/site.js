@@ -441,10 +441,14 @@ var juicebox = (function (site) {
     };
 
     function loadHicFile(url, name) {
-        var synchState;
+        var synchState, browsersWithMaps;
 
-        if (hic.allBrowsers.length > 1) {
-            synchState = hic.allBrowsers[0].getSyncState();
+        browsersWithMaps = hic.allBrowsers.filter(function (browser) {
+            return browser.dataset !== undefined;
+        })
+
+        if (browsersWithMaps.length > 1) {
+            synchState = browsersWithMaps[0].getSyncState();
         }
 
         hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState})
