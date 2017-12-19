@@ -335,23 +335,35 @@ var hic = (function (hic) {
 
     hic.syncBrowsers = function (browsers) {
 
-        browsers.forEach(function (b1) {
-            if (b1 === undefined) {
-                console.log("Attempt to sync undefined browser");
-            }
-            else {
-                browsers.forEach(function (b2) {
-                    if (b2 === undefined) {
-                        console.log("Attempt to sync undefined browser");
-                    }
-                    else {
-                        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
-                            b1.synchedBrowsers.push(b2);
-                        }
-                    }
-                })
-            }
+        var browsersWithMaps, genome;
+
+        browsersWithMaps = browsers.filter(function (b) {
+            return b.dataset !== undefined;
         })
+
+        if (browsersWithMaps.length < 2) {
+            // Nothing to sync
+            return;
+        }
+
+        // Canonical browser is the first one, arbitrarily
+        genome = browsers[0].dataset.genomeId;
+
+        // Sync compatible maps only
+
+        browsersWithMaps.filter(function (b) {
+            return b.dataset.genomeId === genome;
+        })
+            .forEach(function (b1) {
+
+                browsers.forEach(function (b2) {
+                    if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
+                        b1.synchedBrowsers.push(b2);
+                    }
+
+                })
+
+            })
     };
 
     hic.Browser.getCurrentBrowser = function () {
@@ -391,11 +403,11 @@ var hic = (function (hic) {
     hic.Browser.prototype.updateCrosshairs = function (coords) {
         var obj;
 
-        obj = coords.y < 0 ?  { left: 0 } : { top: coords.y, left: 0 };
+        obj = coords.y < 0 ? {left: 0} : {top: coords.y, left: 0};
         this.contactMatrixView.$x_guide.css(obj);
         this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css(obj);
 
-        obj = coords.x < 0 ?  { top: 0 } : { top: 0, left: coords.x };
+        obj = coords.x < 0 ? {top: 0} : {top: 0, left: coords.x};
         this.contactMatrixView.$y_guide.css(obj);
         this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css(obj);
     };
@@ -700,7 +712,7 @@ var hic = (function (hic) {
 
                     if (config.state) {
                         self.setState(config.state);
-                    } else if (config.synchState) {
+                    } else if (config.synchState && self.canBeSynched(config.synchState)) {
                         self.syncState(config.synchState);
                     } else {
                         self.setState(defaultState.clone());
@@ -1156,6 +1168,18 @@ var hic = (function (hic) {
     }
 
     /**
+     * Return true if this browser can be synched to the given state
+     * @param syncState
+     */
+    hic.Browser.prototype.canBeSynched = function (syncState) {
+
+       return this.dataset &&
+           (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
+           (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
+
+    }
+
+        /**
      * Used to synch state with other browsers
      * @param state  browser state
      */
@@ -1169,6 +1193,10 @@ var hic = (function (hic) {
             x = syncState.binX,
             y = syncState.binY,
             pixelSize = syncState.pixelSize;
+
+        if(!(chr1 && chr2)) {
+            return;   // Can't be synched.
+        }
 
         if (zoom === undefined) {
             // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
