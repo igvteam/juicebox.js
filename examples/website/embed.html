@@ -43,16 +43,16 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
     <!-- IGV CSS -->
-    <link rel="stylesheet" type="text/css" href="../css/igv.css">
+    <link rel="stylesheet" type="text/css" href="css/igv.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
+    <link rel="stylesheet" type="text/css" href="css/juicebox.css">
 
     <!-- IGV JS -->
-    <script src="../js/igv.min.js"></script>
+    <script src="js/igv.min.js"></script>
 
     <!-- Juicebox JS -->
-    <script src="../js/juicebox.min.js"></script>
+    <script src="js/juicebox.min.js"></script>
 
 </head>
 
@@ -77,7 +77,6 @@
 
     document.addEventListener("DOMContentLoaded", function () {
 
-        var apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
         var query = hic.extractQuery(window.location.href);
         var container = document.getElementById("app-container");
 
@@ -131,6 +130,7 @@
 
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
+                        config = Object.assign({}, config);
                         config.href = decodeURIComponent(parts[i]);
                         hic.createBrowser(container, config);
                     }
