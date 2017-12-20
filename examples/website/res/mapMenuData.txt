@@ -1,3 +1,7 @@
+https://s3.amazonaws.com/hicfiles/external/goodell/HSPC.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC
+https://s3.amazonaws.com/hicfiles/external/goodell/HSPC_CanyonDel.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC CanyonDel
+https://s3.amazonaws.com/hicfiles/external/goodell/tcell.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 T-Cell
+https://s3.amazonaws.com/hicfiles/external/goodell/ep.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 EP 
 https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc.hic	4DN Dekker Lab H1 hESC combined
 https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep1.hic	4DN Dekker Lab H1 hESC rep1
 https://hicfiles.s3.amazonaws.com/external/dekker/4dn/h1hesc_rep2.hic	4DN Dekker Lab H1 hESC rep2
@@ -17,32 +21,32 @@ https://hicfiles.s3.amazonaws.com/hiseq/assembly/hs2-hic.hic	Dudchenko et al. | 
 https://hicfiles.s3.amazonaws.com/hiseq/assembly/CpipJ3.hic	Dudchenko et al. | Science 2017 Culex quinquefasciatus
 https://s3.amazonaws.com/hicfiles/external/phanstiel/updated_O/Snyder_O.hic	Phanstiel and Van Bortle et al. | Biorxiv 2017 -PMA THP-1 Monocytes (3.9B)
 https://s3.amazonaws.com/hicfiles/external/phanstiel/A_inter.hic	Phanstiel and Van Bortle et al. | Biorxiv 2017 +PMA THP-1 Macrophages (3.7B)
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic	Rao et al. | Biorxiv 2017 Combined Untreated
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic	Rao et al. | Biorxiv 2017 Combined Treated (6 hr)
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/combined.hic	Rao et al. | Biorxiv 2017 Combined Untreated Synchronized
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/combined.hic	Rao et al. | Biorxiv 2017 Combined Treated (6 hr) Synchronized
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC001.hic	Rao et al. | Biorxiv 2017 Untreated HIC001
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC002.hic	Rao et al. | Biorxiv 2017 Untreated HIC002
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC003.hic	Rao et al. | Biorxiv 2017 Untreated HIC003
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC004.hic	Rao et al. | Biorxiv 2017 Untreated HIC004
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic	Rao et al. | Biorxiv 2017 Untreated HIC005
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC006.hic	Rao et al. | Biorxiv 2017 Untreated HIC006
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC007.hic	Rao et al. | Biorxiv 2017 Untreated HIC007
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC008.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC008
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC009.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC009
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC010.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC010
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC011.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC011
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC012.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC012
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC013.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC013
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC014.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) HIC014
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC015.hic	Rao et al. | Biorxiv 2017 Untreated Synchronized HIC015
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC016.hic	Rao et al. | Biorxiv 2017 Untreated Synchronized HIC016
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC017.hic	Rao et al. | Biorxiv 2017 Untreated Synchronized HIC017
-https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC018.hic	Rao et al. | Biorxiv 2017 Untreated Synchronized HIC018
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC019.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) Synchronized HIC019
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC020.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) Synchronized HIC020
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC021.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) Synchronized HIC021
-https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC022.hic	Rao et al. | Biorxiv 2017 Treated (6 hr) Synchronized HIC022
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic	Rao et al. | Cell 2017 Combined Untreated
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic	Rao et al. | Cell 2017 Combined Treated (6 hr)
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/combined.hic	Rao et al. | Cell 2017 Combined Untreated Synchronized
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/combined.hic	Rao et al. | Cell 2017 Combined Treated (6 hr) Synchronized
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC001.hic	Rao et al. | Cell 2017 Untreated HIC001
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC002.hic	Rao et al. | Cell 2017 Untreated HIC002
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC003.hic	Rao et al. | Cell 2017 Untreated HIC003
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC004.hic	Rao et al. | Cell 2017 Untreated HIC004
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic	Rao et al. | Cell 2017 Untreated HIC005
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC006.hic	Rao et al. | Cell 2017 Untreated HIC006
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC007.hic	Rao et al. | Cell 2017 Untreated HIC007
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC008.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC008
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC009.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC009
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC010.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC010
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC011.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC011
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC012.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC012
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC013.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC013
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/HIC014.hic	Rao et al. | Cell 2017 Treated (6 hr) HIC014
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC015.hic	Rao et al. | Cell 2017 Untreated Synchronized HIC015
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC016.hic	Rao et al. | Cell 2017 Untreated Synchronized HIC016
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC017.hic	Rao et al. | Cell 2017 Untreated Synchronized HIC017
+https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/synchronized/HIC018.hic	Rao et al. | Cell 2017 Untreated Synchronized HIC018
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC019.hic	Rao et al. | Cell 2017 Treated (6 hr) Synchronized HIC019
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC020.hic	Rao et al. | Cell 2017 Treated (6 hr) Synchronized HIC020
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC021.hic	Rao et al. | Cell 2017 Treated (6 hr) Synchronized HIC021
+https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/synchronized/HIC022.hic	Rao et al. | Cell 2017 Treated (6 hr) Synchronized HIC022
 https://s3.amazonaws.com/hicfiles/hiseq/degron/time_course/deep/20min_withdraw_combined.hic	Rao et al. | Cell 2017 Combined Treated (6 hr) Withdraw (20 min)
 https://s3.amazonaws.com/hicfiles/hiseq/degron/time_course/deep/40min_withdraw_combined.hic	Rao et al. | Cell 2017 Combined Treated (6 hr) Withdraw (40 min)
 https://s3.amazonaws.com/hicfiles/hiseq/degron/time_course/deep/60min_withdraw_combined.hic	Rao et al. | Cell 2017 Combined Treated (6 hr) Withdraw (60 min)
@@ -486,4 +490,6 @@ https://s3.amazonaws.com/hicfiles/external/wapl_hic/WaplKO_3.3.hic	Haarhuis et a
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/SCC4KO.hic	Haarhuis et al. | Cell 2017 Hap1 knockout SCC4
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/DKO.hic	Haarhuis et al. | Cell 2017 Hap1 double knockout WAPL/SCC4
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/WT.hic	Haarhuis et al. | Cell 2017 Hap1 control
-
+http://hicfiles.s3.amazonaws.com/external/bonev/ES_mapq30.hic	Bonev et al. | Cell 2017 ES cells
+http://hicfiles.s3.amazonaws.com/external/bonev/NPC_mapq30.hic	Bonev et al. | Cell 2017 Neural Progenitors
+http://hicfiles.s3.amazonaws.com/external/bonev/CN_mapq30.hic	Bonev et al. | Cell 2017 Cortical Neurons

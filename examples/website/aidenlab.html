@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Juicebox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <!--  <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico"> -->
+    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
     <!-- Shims for legacy browsers -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.5.7/es5-shim.min.js"></script>
@@ -478,6 +478,7 @@
 
     </div>
 
+
     <!-- App container -->
     <div class="row">
         <div class="col-md-12">
@@ -486,16 +487,6 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div>
-                <span>&nbsp;&nbsp;&nbsp;</span>
-                <span id="hic-version-number">version 1.0.0</span>
-
-            </div>
-
-        </div>
-    </div>
     <div class="row header">
         <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
             <br>
@@ -531,6 +522,11 @@
                 </div>
             </div>
         </div>
+        <div class="row credits">
+            <div class="col-md-12">
+                Copyright © 2017. Aiden Lab
+            </div>
+        </div>
     </div>
 </div>
 
@@ -552,8 +548,9 @@
                 items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
 
-            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
-            // If more than 1 shortener is defined the first is used to shorten URLs
+            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten
+            // localhost If more than 1 shortener is defined the first is used to shorten URLs, others might
+            // be needed to expand
             urlShortener: [
                 {
                     provider: "bitly",
@@ -578,6 +575,5 @@
 </script>
 
 </body>
-
 
 </html>
