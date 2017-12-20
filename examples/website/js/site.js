@@ -393,19 +393,22 @@ var juicebox = (function (site) {
 
                 q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
                 parts = q.split("},{");
-                browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])});
+                browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])}, syncBrowsers);
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
                         browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
                         browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                     }
-                    hic.syncBrowsers(hic.allBrowsers);
                 }
             } else {
                 browser = hic.createBrowser($container.get(0), {});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
+        }
+        
+        function syncBrowsers() {
+            hic.syncBrowsers(hic.allBrowsers);
         }
 
         function populatePulldown(menu) {

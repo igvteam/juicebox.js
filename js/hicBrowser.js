@@ -83,7 +83,8 @@ var hic = (function (hic) {
 
     }
 
-    hic.createBrowser = function (hic_container, config) {
+    // The dreaded callback!!!  Interim patch to properly sync browsers
+    hic.createBrowser = function (hic_container, config, callback) {
 
         var browser,
             queryString,
@@ -176,6 +177,8 @@ var hic = (function (hic) {
 
                     .then(function (dataset) {
 
+                        if(typeof callback === "function") callback();
+                        
                         if (config.tracks) {
                             browser.loadTracks(config.tracks);
                         }

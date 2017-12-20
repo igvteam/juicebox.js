@@ -135,29 +135,20 @@
                     for (i = 1; i < parts.length; i++) {
                         config = Object.assign({}, config);
                         config.href = decodeURIComponent(parts[i]);
-                        hic.createBrowser(container, config);
+                        hic.createBrowser(container, config, syncBrowsers);
                     }
-                    hic.syncBrowsers(hic.allBrowsers);
                 }
             } else {
                 hic.createBrowser(container, config);
             }
         }
 
-
-        function loadHicFile(url, name) {
-            var synchState;
-
-            if (hic.allBrowsers.length > 1) {
-                synchState = hic.allBrowsers[0].getSyncState();
-            }
-
-            hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState});
+        function syncBrowsers() {
+            hic.syncBrowsers(hic.allBrowsers);
         }
 
-
     })
-    ;
+
 
 </script>
 
