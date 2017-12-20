@@ -195,7 +195,7 @@ var juicebox = (function (site) {
 
             browser = hic.Browser.getCurrentBrowser();
             if (undefined === browser) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
                 loadHicFile(url, $selected.text());
             }
