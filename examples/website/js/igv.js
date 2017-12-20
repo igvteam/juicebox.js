@@ -29831,6 +29831,8 @@ var igv = (function (igv) {
                     return false;          // Unknown chromosome
                 }
                 locusObject.chromosome = chromosome;     // Map chr to offical name from possible alias
+                locusObject.start = 0;
+                locusObject.end = chromosome.bpLength;
             }
 
             // if just a chromosome name we are done
@@ -48549,11 +48551,11 @@ var igv = (function (igv) {
 
     igv.TrackView.prototype.setDataRange = function (min, max, autoscale) {
 
-        if (min) {
+        if (min !== undefined) {
             this.track.dataRange.min = min;
         }
 
-        if (max) {
+        if (max !== undefined) {
             this.track.dataRange.max = max;
         }
 
@@ -49916,11 +49918,6 @@ var igv = (function (igv) {
 
         var variant = new igv.Variant();
 
-
-        var self = this,
-            altTokens;
-
-
         variant.chr = tokens[0]; // TODO -- use genome aliases
         variant.pos = parseInt(tokens[1]);
         variant.names = tokens[2];    // id in VCF
@@ -49930,15 +49927,11 @@ var igv = (function (igv) {
         variant.filter = tokens[6];
         variant.info = getInfoObject(tokens[7]);
 
-        if (variant.info["PERIOD"]) {
-            variant.type = 'str';
-        }
-
-        initAlleles(variant, true);
-
+        init(variant);
 
         return variant;
 
+        //
         function getInfoObject(infoStr) {
 
             if (!infoStr) return undefined;
@@ -49959,9 +49952,9 @@ var igv = (function (igv) {
         var variant = new igv.Variant();
 
         variant.chr = json.referenceName;
-        variant.start = parseInt(json.start);
-        variant.end = parseInt(json.end);
-        variant.pos = variant.start + 1;      // GA4GH is not 0 based.
+        variant.start = parseInt(json.start);  // Might get overriden below
+        variant.end = parseInt(json.end);      // Might get overriden below
+        variant.pos = variant.start + 1;       // GA4GH is 0 based.
         variant.names = arrayToCommaString(json.names);
         variant.referenceBases = json.referenceBases + '';
         variant.alternateBases = json.alternateBases + '';
@@ -49969,13 +49962,6 @@ var igv = (function (igv) {
         variant.filter = arrayToCommaString(json.filter);
         variant.info = json.info;
 
-        if(variant.pos === 155158842) {
-            console.log('');
-        }
-
-        if (variant.info["PERIOD"]) {
-            variant.type = 'str';
-        }
 
         // Need to build a hash of calls for fast lookup
         // Note from the GA4GH spec on call ID:
@@ -49995,14 +49981,14 @@ var igv = (function (igv) {
             })
         }
 
-        initAlleles(variant, false);
+        init(variant);
 
         return variant;
 
     }
 
 
-    function initAlleles(variant, computeStartEnd) {
+    function init(variant) {
 
         //Alleles
         var altTokens = variant.alternateBases.split(","),
@@ -50010,18 +49996,27 @@ var igv = (function (igv) {
             maxAltLength = variant.referenceBases.length;
 
 
+        if (variant.info["PERIOD"]) {
+            variant.type = 'str';
+        }
+
+
         variant.alleles = [];
 
         // If an STR define start and end based on reference allele.  Otherwise start and end computed below based
         // on alternate allele type (snp, insertion, deletion)
 
-        if('str' === variant.type) {
+        if ('str' === variant.type) {
             variant.start = variant.pos - 1;
             variant.end = variant.start + variant.referenceBases.length;
+
+        } else if (isRefBlock(variant.alternateBases)) {
+            variant.type = "refblock";
         }
 
-        if (variant.alternateBases === ".") {     // "." => no alternate alleles
+        if (variant.type === "refblock" || variant.alternateBases === ".") {     // "." => no alternate alleles
             variant.heterozygosity = 0;
+
         } else {
             altTokens.forEach(function (alt) {
                 var a, s, e, diff;
@@ -50030,7 +50025,7 @@ var igv = (function (igv) {
 
                 // Adjust for padding, used for insertions and deletions, unless variant is a short tandem repeat.
 
-                if (!('str' === variant.type) && alt.length > 0 && computeStartEnd) {
+                if (!("str" === variant.type) && alt.length > 0) {
 
                     diff = variant.referenceBases.length - alt.length;
 
@@ -50125,12 +50120,23 @@ var igv = (function (igv) {
         return fields;
 
     };
-
+    
+    
     function arrayToCommaString(value) {
         if (!(Array.isArray(value))) {
             return value;
         }
         return value.join(',');
+    }
+
+
+    function isRefBlock(altAlleles) {
+
+        return !altAlleles ||
+            altAlleles.trim().length === 0 ||
+            altAlleles === "\u003cNON_REF\u003e" ||
+            altAlleles === "\u003c*\u003e";
+
     }
 
     return igv;
@@ -51066,7 +51072,11 @@ var igv = (function (igv) {
                 tokens = line.split("\t");
 
                 if (tokens.length >= 8) {
+                
                     variant = igv.createVCFVariant(tokens);
+                    
+                    if("refblock" === variant.type) continue;     // Skip reference blocks
+                   
                     variant.header = this.header;       // Keep a pointer to the header to interpret fields for popup text
                     allFeatures.push(variant);
 
