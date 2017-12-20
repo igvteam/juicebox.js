@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 
 <html>
 <head>
@@ -348,16 +347,38 @@
     </div>
 </div>
 
-
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
         <div class="navbar-header">
-            <a href="https://github.com/igvteam/juicebox.js" class="navbar-brand" target="_blank">Juicebox Test</a>
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="https://igvteam.github.io/juicebox.js/" target="_blank">Help</a></li>
-                <li><a href="https://github.com/igvteam/juicebox.js/issues" target="_blank">Forum</a></li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="http://www.aidenlab.org/aboutus.html" target="_blank">Team</a></li>
+                        <li><a href="http://news.tc4ga.com/" target="_blank">News</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Research <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="http://www.aidenlab.org/research.html" target="_blank">Projects</a></li>
+                        <li><a href="http://www.aidenlab.org/publications.html" target="_blank">Publications</a></li>
+                        <li><a href="http://www.aidenlab.org/software.html" target="_blank">Software</a></li>
+                        <li><a href="http://www.aidenlab.org/documentation.html" target="_blank">Documentation</a></li>
+                        <li><a href="http://www.aidenlab.org/data.html" target="_blank">Data</a></li>
+                    </ul>
+                </li>
+                <li><a href="http://www.aidenlab.org/join.html" target="_blank">Join</a></li>
+                <li><a href="http://www.aidenlab.org/contactus.html" target="_blank">Contact</a></li>
+                <li><a href="http://www.aidenlab.org/forum.html" target="_blank">Forum</a></li>
             </ul>
         </nav>
     </div>
@@ -478,7 +499,6 @@
 
     </div>
 
-
     <!-- App container -->
     <div class="row">
         <div class="col-md-12">
@@ -548,9 +568,8 @@
                 items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
 
-            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten
-            // localhost If more than 1 shortener is defined the first is used to shorten URLs, others might
-            // be needed to expand
+            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
+            // If more than 1 shortener is defined the first is used to shorten URLs
             urlShortener: [
                 {
                     provider: "bitly",
@@ -566,7 +585,7 @@
 
             apiKey: "ABCD",   // TODO -- replace with your Google API Key if supporting Google Drive
 
-            embedTarget: "https://igv.org/web/jb/release/1.0.0/site/embed.html"
+            embedTarget: "https://aidenlab.org/juicebox/embed.html"
         };
 
         juicebox.init($('#app-container'), config);
