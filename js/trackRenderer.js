@@ -165,11 +165,12 @@ var hic = (function (hic) {
 
             this.tile = undefined;
 
-            if (min) {
+
+            if (min !== undefined) {
                 this.track.dataRange.min = min;
             }
 
-            if (max) {
+            if (max !== undefined) {
                 this.track.dataRange.max = max;
             }
 
