@@ -238,48 +238,45 @@ var hic = (function (hic) {
 
                 dataset.normalizedExpectedValueVectors = {};
 
-                try {
+                // Normalization vector index
+                p0 = binaryParser.position;
+                self.normVectorIndex = {};
 
-                    // Normalization vector index
-                    p0 = binaryParser.position;
-                    self.normVectorIndex = {};
+                if (!dataset.normalizationTypes) {
+                    dataset.normalizationTypes = [];
+                }
+                dataset.normalizationTypes.push('NONE');
 
-                    if (!dataset.normalizationTypes) {
-                        dataset.normalizationTypes = [];
+                nEntries = binaryParser.getInt();
+                while (nEntries-- > 0) {
+                    type = binaryParser.getString();
+                    chrIdx = binaryParser.getInt();
+                    unit = binaryParser.getString();
+                    binSize = binaryParser.getInt();
+                    filePosition = binaryParser.getLong();
+                    sizeInBytes = binaryParser.getInt();
+                    key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                    if (_.contains(dataset.normalizationTypes, type) === false) {
+                        dataset.normalizationTypes.push(type);
                     }
-                    dataset.normalizationTypes.push('NONE');
-
-                    nEntries = binaryParser.getInt();
-                    while (nEntries-- > 0) {
-                        type = binaryParser.getString();
-                        chrIdx = binaryParser.getInt();
-                        unit = binaryParser.getString();
-                        binSize = binaryParser.getInt();
-                        filePosition = binaryParser.getLong();
-                        sizeInBytes = binaryParser.getInt();
-                        key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-                        if (_.contains(dataset.normalizationTypes, type) === false) {
-                            dataset.normalizationTypes.push(type);
-                        }
-                        self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                    }
-
-                    self.normalizationVectorIndexRange = {
-                        start: range.start + p0,
-                        size: binaryParser.position - p0
-                    };
-                } catch (e) {
-                    // This is normal, apparently, when there are no vectors.
-                    self.normalizationVectorIndexRange = undefined;
+                    self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
                 }
 
+                self.normalizationVectorIndexRange = {
+                    start: range.start + p0,
+                    size: binaryParser.position - p0
+                };
 
                 return self;
 
             })
+            .catch(function (e) {
+                igv.presentAlert("Error reading normalization vectors")
+                console.error(e);
+                self.normalizationVectorIndexRange = undefined;
+            })
 
-        
 
     };
 
@@ -292,7 +289,7 @@ var hic = (function (hic) {
      */
     function skipExpectedValues(start) {
 
-        var self = this;
+        var self = this, range;
 
         var range = {start: start, size: 4};
 
@@ -321,7 +318,7 @@ var hic = (function (hic) {
                 .then(function (data) {
                     var binaryParser = new igv.BinaryParser(new DataView(data));
                     var nValues, nChrScaleFactors;
-                    binaryParser.getString(); // type
+                    console.log(binaryParser.getString()); // type
                     binaryParser.getString(); // unit
                     binaryParser.getInt(); // binSize
                     nValues = binaryParser.getInt();
