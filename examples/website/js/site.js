@@ -31,7 +31,8 @@ var juicebox = (function (site) {
 
     var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
         encodeTable,
-        lastGenomeId;
+        lastGenomeId,
+        qrcode;
 
     site.init = function ($container, config) {
 
@@ -109,7 +110,6 @@ var juicebox = (function (site) {
         $hic_share_url_modal = $('#hic-share-url-modal');
 
         $hic_share_url_modal.on('show.bs.modal', function (e) {
-            // $hic_share_url_modal.on('show.bs.modal', function (e) {
 
             var queryString,
                 href,
@@ -143,7 +143,6 @@ var juicebox = (function (site) {
                             // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
 
                             var tweetContainer,
-                                emailContainer,
                                 config,
                                 $hic_share_url;
 
@@ -164,12 +163,30 @@ var juicebox = (function (site) {
                                 });
 
                             $('#emailButton').attr('href', 'mailto:?body=' + shortURL);
+
+                            // QR code generation
+                            if (qrcode) {
+                                qrcode.clear();
+                                $('hic-qr-code-image').empty();
+                            } else {
+                                config =
+                                    {
+                                        width : 128,
+                                        height : 128,
+                                        correctLevel : QRCode.CorrectLevel.H
+                                    };
+
+                                qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                            }
+
+                            qrcode.makeCode(shortURL);
                         });
                 });
         });
 
         $hic_share_url_modal.on('hidden.bs.modal', function (e) {
             $('#hic-embed-container').hide();
+            $('#hic-qr-code-image').hide();
         });
 
         $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
@@ -182,7 +199,13 @@ var juicebox = (function (site) {
         });
 
         $('#hic-embed-button').on('click', function (e) {
-            $('#hic-embed-container').show();
+            $('#hic-qr-code-image').hide();
+            $('#hic-embed-container').toggle();
+        });
+
+        $('#hic-qr-code-button').on('click', function (e) {
+            $('#hic-embed-container').hide();
+            $('#hic-qr-code-image').toggle();
         });
 
         $('#dataset_selector').on('change', function (e) {

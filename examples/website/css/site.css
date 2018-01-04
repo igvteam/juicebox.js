@@ -5,6 +5,9 @@
     font-size: 16px;
     font-weight: 400; }
 
+#hic-qr-code-image {
+  display: none; }
+
 #hic-embed-container {
   display: none; }
 
@@ -22,6 +25,12 @@ a#emailButton:active {
 #hic-embed-button:hover,
 #hic-embed-button:focus,
 #hic-embed-button:active {
+  cursor: pointer;
+  font-weight: 700; }
+
+#hic-qr-code-button:hover,
+#hic-qr-code-button:focus,
+#hic-qr-code-button:active {
   cursor: pointer;
   font-weight: 700; }
 
