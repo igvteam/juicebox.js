@@ -68,7 +68,7 @@ var hic = (function (hic) {
         this.$fa_spinner.css("position", "absolute");
         this.$fa_spinner.css("left", "40%");
         this.$fa_spinner.css("top", "40%");
-        this.$fa_spinner.css("display", "none")
+        this.$fa_spinner.css("display", "none");
         this.$viewport.append(this.$fa_spinner);
 
 
@@ -890,6 +890,7 @@ var hic = (function (hic) {
                 if (true === self.willShowCrosshairs) {
                     self.browser.updateCrosshairs(coords);
                     self.browser.showCrosshairs();
+
                 }
 
                 if (isMouseDown) { // Possibly dragging

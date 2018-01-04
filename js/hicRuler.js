@@ -58,6 +58,8 @@ var hic = (function (hic) {
         this.setAxisTransform(axis);
 
         this.browser.eventBus.subscribe('MapLoad', this);
+        this.browser.eventBus.subscribe("UpdateCrosshairs", this);
+
 
     };
 
@@ -100,7 +102,6 @@ var hic = (function (hic) {
 
                 if ('x' === axis) {
                     d = Math.round(percentage * dimen);
-                    //console.log(chr.name + "  " + chr.bpLength + "  " + percentage + " " + d + " " + dimen);
                     $div.width(d - 2);
                 } else {
                     d = Math.round(percentage * dimen);
@@ -160,6 +161,8 @@ var hic = (function (hic) {
 
         if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.axis, event.data);
+        } else if ('UpdateCrosshairs' === event.type) {
+            console.log(this.axis + ' update crosshairs ' + event.data.xAxis + ' ' + event.data.yAxis);
         }
 
     };
@@ -171,7 +174,7 @@ var hic = (function (hic) {
             this.hideWholeGenome();
             this.update();
         }
-    }
+    };
 
     hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
 

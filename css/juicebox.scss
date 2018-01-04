@@ -1139,6 +1139,10 @@ div[id$="content-container"] {
         border-right-color: transparent;
       }
 
+      //> div:hover {
+      //  background-color: rgba(0, 0, 0, 0.09);
+      //}
+
     }
 
   }
@@ -1272,6 +1276,10 @@ div[id$="content-container"] {
       div:last-child {
         border-bottom-color: transparent;
       }
+
+      //> div:hover {
+      //  background-color: rgba(0, 0, 0, 0.09);
+      //}
 
     }
 

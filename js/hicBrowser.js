@@ -428,29 +428,40 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
-        var obj;
+        var xGuide,
+            yGuide;
 
-        obj = coords.y < 0 ? {left: 0} : {top: coords.y, left: 0};
-        this.contactMatrixView.$x_guide.css(obj);
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").css(obj);
+        xGuide = coords.y < 0 ? {left: 0} : {top: coords.y, left: 0};
+        this.contactMatrixView.$x_guide.css(xGuide);
+        this.layoutController.$x_track_guide.css(xGuide);
 
-        obj = coords.x < 0 ? {top: 0} : {top: 0, left: coords.x};
-        this.contactMatrixView.$y_guide.css(obj);
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").css(obj);
+        yGuide = coords.x < 0 ? {top: 0} : {top: 0, left: coords.x};
+        this.contactMatrixView.$y_guide.css(yGuide);
+        this.layoutController.$y_track_guide.css(yGuide);
+
+        if (coords.x >=0 && coords.y >= 0) {
+            this.eventBus.post(hic.Event("UpdateCrosshairs", { xAxis: coords.x, yAxis: coords.y }, false));
+        }
+
+
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
+
         this.contactMatrixView.$x_guide.hide();
+        this.layoutController.$x_track_guide.hide();
+
         this.contactMatrixView.$y_guide.hide();
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").hide();
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").hide();
+        this.layoutController.$y_track_guide.hide();
     };
 
     hic.Browser.prototype.showCrosshairs = function () {
+
         this.contactMatrixView.$x_guide.show();
+        this.layoutController.$x_track_guide.show();
+
         this.contactMatrixView.$y_guide.show();
-        this.layoutController.$x_tracks.find("div[id$='y-track-guide']").show();
-        this.layoutController.$y_tracks.find("div[id$='x-track-guide']").show();
+        this.layoutController.$y_track_guide.show();
     };
 
     hic.Browser.prototype.genomicState = function (axis) {
