@@ -37,6 +37,7 @@ var hic = (function (hic) {
         height: 640
     };
 
+
     hic.allBrowsers = [];
 
     // mock igv browser objects for igv.js compatibility
@@ -177,8 +178,8 @@ var hic = (function (hic) {
 
                     .then(function (dataset) {
 
-                        if(typeof callback === "function") callback();
-                        
+                        if (typeof callback === "function") callback();
+
                         if (config.tracks) {
                             browser.loadTracks(config.tracks);
                         }
@@ -338,7 +339,7 @@ var hic = (function (hic) {
 
     hic.syncBrowsers = function (browsers) {
 
-        var browsersWithMaps, genome;
+        var browsersWithMaps, genome, incompatibleDatasets, gid;
 
         browsersWithMaps = browsers.filter(function (b) {
             return b.dataset !== undefined;
@@ -350,23 +351,46 @@ var hic = (function (hic) {
         }
 
         // Canonical browser is the first one, arbitrarily
-        genome = browsers[0].dataset.genomeId;
+        genome = canonicalGenomeId(browsers[0].dataset.genomeId);
 
         // Sync compatible maps only
 
-        browsersWithMaps.filter(function (b) {
-            return b.dataset.genomeId === genome;
-        })
-            .forEach(function (b1) {
+        incompatibleDatasets = [];
+        browsersWithMaps.forEach(function (b1) {
 
+            gid = canonicalGenomeId(b1.dataset.genomeId);
+
+            if (gid === genome) {
                 browsers.forEach(function (b2) {
                     if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
                         b1.synchedBrowsers.push(b2);
                     }
 
                 })
+            } else {
+                incompatibleDatasets.push(b1.dataset.genomeId);
+            }
+        });
 
-            })
+        if (incompatibleDatasets.length > 0) {
+            igv.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
+        }
+
+
+        function canonicalGenomeId(genomeId) {
+
+            switch (genomeId) {
+                case "GRCh38":
+                    return "hg38";
+                case "GRCh37":
+                    return "hg19";
+                case "GRCm38" :
+                    return "mm10";
+                default:
+                    return genomeId;
+            }
+        }
+
     };
 
     hic.Browser.getCurrentBrowser = function () {
@@ -685,6 +709,8 @@ var hic = (function (hic) {
                     var previousGenomeId = self.genome ? self.genome.id : undefined;
                     self.dataset = dataset;
                     self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+
+                    console.log(self.dataset.genomeId);
 
                     // TODO -- this is not going to work with browsers on different assemblies on the same page.
                     igv.browser.genome = self.genome;
@@ -1176,13 +1202,13 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.canBeSynched = function (syncState) {
 
-       return this.dataset &&
-           (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
-           (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
+        return this.dataset &&
+            (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
+            (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
 
     }
 
-        /**
+    /**
      * Used to synch state with other browsers
      * @param state  browser state
      */
@@ -1197,7 +1223,7 @@ var hic = (function (hic) {
             y = syncState.binY,
             pixelSize = syncState.pixelSize;
 
-        if(!(chr1 && chr2)) {
+        if (!(chr1 && chr2)) {
             return;   // Can't be synched.
         }
 
