@@ -439,7 +439,7 @@ var hic = (function (hic) {
         this.contactMatrixView.$y_guide.css(yGuide);
         this.layoutController.$y_track_guide.css(yGuide);
 
-        // console.log('updateCrosshairs ' + coords.x);
+        // console.log('browser - updateCrosshairs ' + coords.x);
 
         this.eventBus.post(hic.Event("UpdateCrosshairs", coords, false));
 

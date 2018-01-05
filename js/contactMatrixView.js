@@ -881,8 +881,7 @@ var hic = (function (hic) {
             $viewport.on('mousemove', hic.throttle(function (e) {
 
                 var coords,
-                    eFixed,
-                    xy;
+                    eFixed;
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -893,15 +892,12 @@ var hic = (function (hic) {
                         y: e.offsetY
                     };
 
+                // Sets pageX and pageY for browsers that don't support them
+                eFixed = $.event.fix(e);
+
                 if (true === self.willShowCrosshairs) {
 
-                    xy =
-                        {
-                            x: e.offsetX,
-                            y: e.offsetY
-                        };
-                    console.log('contact map - mousemove ' + xy.x);
-                    self.browser.updateCrosshairs(xy);
+                    self.browser.updateCrosshairs({ x: eFixed.pageX - $viewport.offset().left, y: eFixed.pageY - $viewport.offset().top });
                     self.browser.showCrosshairs();
 
                 }
@@ -909,12 +905,10 @@ var hic = (function (hic) {
                 if (isMouseDown) { // Possibly dragging
 
                     if (isSweepZooming) {
-                        // Sets pageX and pageY for browsers that don't support them
-                        eFixed = $.event.fix(e);
-                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
-                    }
 
-                    else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
+                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
+
+                    }else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
                         isDragging = true;
 
@@ -968,7 +962,7 @@ var hic = (function (hic) {
                 // when the viewport boundary is crossed.
                 mouseup: function (e) {
 
-                    e.preventDefault()
+                    e.preventDefault();
                     e.stopPropagation();
 
                     if (isSweepZooming) {

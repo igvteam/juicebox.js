@@ -92,7 +92,8 @@ var hic = (function (hic) {
         this.bboxes = [];
         _.each(list, function (chr, index) {
             var d,
-                percentage;
+                percentage,
+                size;
 
             percentage = (chr.bpLength) / extent;
 
@@ -107,12 +108,11 @@ var hic = (function (hic) {
                 }
 
                 if ('x' === axis) {
-                    d = Math.round(percentage * dimen);
-                    $div.width(d - 2);
+                    d = Math.round(percentage * dimen) - 2;
+                    $div.width(d);
                 } else {
-                    d = Math.round(percentage * dimen);
-                    $div.height(d - 2);
-
+                    d = Math.round(percentage * dimen) - 2;
+                    $div.height(d);
                 }
 
                 $e = $('<div>');
@@ -211,9 +211,9 @@ var hic = (function (hic) {
         } else if ('UpdateCrosshairs' === event.type) {
 
             offset = 'x' === this.axis ? event.data.x : event.data.y;
-            // if ('x' === this.axis) {
-            //     console.log(this.axis + ' offset ' + offset);
-            // }
+            if ('x' === this.axis) {
+                console.log(this.axis + ' offset ' + offset);
+            }
 
             // $e = hitTest(this.bboxes, offset);
             // if ($e) {
