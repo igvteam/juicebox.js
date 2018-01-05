@@ -1216,8 +1216,10 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
-        var chr1 = this.dataset.getChrIndexFromName(syncState.chr1Name),
-            chr2 = this.dataset.getChrIndexFromName(syncState.chr2Name),
+        var chr1Name = this.genome.getChromosomeName(syncState.chr1Name),
+            chr2Name = this.genome.getChromosomeName(syncState.chr2Name),
+            chr1 = this.dataset.getChrIndexFromName(chr1Name),
+            chr2 = this.dataset.getChrIndexFromName(chr2Name),
             zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
             x = syncState.binX,
             y = syncState.binY,
