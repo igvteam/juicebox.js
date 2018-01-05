@@ -439,10 +439,9 @@ var hic = (function (hic) {
         this.contactMatrixView.$y_guide.css(yGuide);
         this.layoutController.$y_track_guide.css(yGuide);
 
-        if (coords.x >=0 && coords.y >= 0) {
-            this.eventBus.post(hic.Event("UpdateCrosshairs", { xAxis: coords.x, yAxis: coords.y }, false));
-        }
+        // console.log('updateCrosshairs ' + coords.x);
 
+        this.eventBus.post(hic.Event("UpdateCrosshairs", coords, false));
 
     };
 

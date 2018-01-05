@@ -73,6 +73,7 @@ var hic = (function (hic) {
             chrLast,
             scraps,
             $div,
+            $firstDiv,
             $e;
 
         // discard current tiles
@@ -88,7 +89,8 @@ var hic = (function (hic) {
 
         dimen = 'x' === axis ? $axis.width() : $axis.height();
         scraps = 0;
-        _.each(list, function (chr) {
+        this.bboxes = [];
+        _.each(list, function (chr, index) {
             var d,
                 percentage;
 
@@ -99,6 +101,10 @@ var hic = (function (hic) {
             } else {
                 $div = $('<div>');
                 $axis.append($div);
+
+                if (0 === index) {
+                    $firstDiv = $div;
+                }
 
                 if ('x' === axis) {
                     d = Math.round(percentage * dimen);
@@ -115,6 +121,7 @@ var hic = (function (hic) {
 
             }
 
+            self.bboxes.push(bbox(axis, $div, $firstDiv));
         });
 
         scraps *= dimen;
@@ -131,12 +138,50 @@ var hic = (function (hic) {
 
             $e.text('-');
 
+            self.bboxes.push(bbox(axis, $div, $firstDiv));
         }
 
         // initially hide
         this.hideWholeGenome();
 
     };
+
+    function bbox(axis, $child, $firstChild) {
+        var delta,
+            size;
+
+        delta = 'x' === axis ? $child.offset().left - $firstChild.offset().left : $child.offset().top - $firstChild.offset().top;
+         size = 'x' === axis ? $child.width() : $child.height();
+
+        return { $e: $child, a: delta, b: delta + size };
+
+    }
+
+    function hitTest(bboxes, value) {
+        var $result,
+            success;
+
+        success = false;
+        $result = undefined;
+        bboxes.forEach(function (bbox) {
+
+            if (false === success) {
+
+                if (value < bbox.a) {
+                    // nuthin
+                } else if (value > bbox.b) {
+                    // nuthin
+                } else {
+                    $result = bbox.$e;
+                    success = true;
+                }
+
+            }
+
+        });
+
+        return $result;
+    }
 
     hic.Ruler.prototype.hideWholeGenome = function () {
         this.$axis.find('div').hide();
@@ -158,11 +203,22 @@ var hic = (function (hic) {
     };
 
     hic.Ruler.prototype.receiveEvent = function (event) {
+        var offset,
+            $e;
 
         if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.axis, event.data);
         } else if ('UpdateCrosshairs' === event.type) {
-            console.log(this.axis + ' update crosshairs ' + event.data.xAxis + ' ' + event.data.yAxis);
+
+            offset = 'x' === this.axis ? event.data.x : event.data.y;
+            // if ('x' === this.axis) {
+            //     console.log(this.axis + ' offset ' + offset);
+            // }
+
+            // $e = hitTest(this.bboxes, offset);
+            // if ($e) {
+            //     console.log(this.axis + ' highlight chr ' + $e.text());
+            // }
         }
 
     };

@@ -880,15 +880,28 @@ var hic = (function (hic) {
 
             $viewport.on('mousemove', hic.throttle(function (e) {
 
-                var coords, eFixed;
-
+                var coords,
+                    eFixed,
+                    xy;
 
                 e.preventDefault();
                 e.stopPropagation();
-                coords = {x: e.offsetX, y: e.offsetY};
+
+                coords =
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
 
                 if (true === self.willShowCrosshairs) {
-                    self.browser.updateCrosshairs(coords);
+
+                    xy =
+                        {
+                            x: e.offsetX,
+                            y: e.offsetY
+                        };
+                    console.log('contact map - mousemove ' + xy.x);
+                    self.browser.updateCrosshairs(xy);
                     self.browser.showCrosshairs();
 
                 }
