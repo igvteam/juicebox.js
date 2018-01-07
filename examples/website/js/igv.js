@@ -44372,7 +44372,7 @@ var igv = (function (igv) {
         this.$rulerSweeper = $('<div class="igv-ruler-sweeper-div">');
         this.$viewportContent.append(this.$rulerSweeper);
 
-        this.wholeGenomeLayout(this.$viewportContent.find('.igv-whole-genome-container'));
+        this.wholeGenomeLayout(this.$viewportContent.find('.igv-whole-genome-container'), undefined, undefined, undefined);
 
         this.addMouseHandlers();
     };

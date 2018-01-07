@@ -38,7 +38,7 @@ var hic = (function (hic) {
         this.$axis = $("<div>", {id: id});
         $parent.append(this.$axis);
 
-
+        // canvas
         this.$canvas = $('<canvas>');
         this.$axis.append(this.$canvas);
 
@@ -47,6 +47,10 @@ var hic = (function (hic) {
 
         this.$canvas.height(this.$axis.height());
         this.$canvas.attr('height', this.$axis.height());
+
+        // whole genome
+        this.$wholeGenomeContainer = $('<div>');
+        this.$axis.append(this.$wholeGenomeContainer);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
 
@@ -63,7 +67,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.Ruler.prototype.wholeGenomeLayout = function ($axis, axis, dataset) {
+    hic.Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axisName, dataset) {
 
         var self = this,
             list,
@@ -77,7 +81,7 @@ var hic = (function (hic) {
             $e;
 
         // discard current tiles
-        $axis.find('div').remove();
+        $wholeGenomeContainer.empty();
 
         list = _.filter(dataset.chromosomes, function (chr) {
             return 'all' !== chr.name.toLowerCase();
@@ -87,13 +91,13 @@ var hic = (function (hic) {
         cumulativeOffset = this.browser.genome.getCumulativeOffset(chrLast);
         extent = chrLast.bpLength + cumulativeOffset;
 
-        dimen = 'x' === axis ? $axis.width() : $axis.height();
+        dimen = 'x' === axisName ? $axis.width() : $axis.height();
         scraps = 0;
         this.bboxes = [];
+        $firstDiv = undefined;
         _.each(list, function (chr, index) {
-            var d,
-                percentage,
-                size;
+            var size,
+                percentage;
 
             percentage = (chr.bpLength) / extent;
 
@@ -101,27 +105,25 @@ var hic = (function (hic) {
                 scraps += percentage;
             } else {
                 $div = $('<div>');
-                $axis.append($div);
+                $wholeGenomeContainer.append($div);
 
                 if (0 === index) {
                     $firstDiv = $div;
                 }
 
-                if ('x' === axis) {
-                    d = Math.round(percentage * dimen) - 2;
-                    $div.width(d);
+                if ('x' === axisName) {
+                    size = Math.round(percentage * dimen) - 2;
+                    $div.width(size);
                 } else {
-                    d = Math.round(percentage * dimen) - 2;
-                    $div.height(d);
+                    size = Math.round(percentage * dimen) - 2;
+                    $div.height(size);
                 }
 
                 $e = $('<div>');
                 $div.append($e);
                 $e.text(chr.name);
-
             }
 
-            self.bboxes.push(bbox(axis, $div, $firstDiv));
         });
 
         scraps *= dimen;
@@ -129,7 +131,7 @@ var hic = (function (hic) {
         if (scraps >= 1) {
 
             $div = $('<div>');
-            $axis.append($div);
+            $wholeGenomeContainer.append($div);
 
             $div.width(scraps);
 
@@ -137,9 +139,12 @@ var hic = (function (hic) {
             $div.append($e);
 
             $e.text('-');
-
-            self.bboxes.push(bbox(axis, $div, $firstDiv));
         }
+
+        $wholeGenomeContainer.children().each(function (index) {
+            self.bboxes.push(bbox(axisName, $(this), $firstDiv));
+        });
+
 
         // initially hide
         this.hideWholeGenome();
@@ -148,10 +153,15 @@ var hic = (function (hic) {
 
     function bbox(axis, $child, $firstChild) {
         var delta,
-            size;
+            size,
+            o,
+            fo;
 
-        delta = 'x' === axis ? $child.offset().left - $firstChild.offset().left : $child.offset().top - $firstChild.offset().top;
-         size = 'x' === axis ? $child.width() : $child.height();
+         o = 'x' === axis ?      $child.offset().left :      $child.offset().top;
+        fo = 'x' === axis ? $firstChild.offset().left : $firstChild.offset().top;
+
+        delta = o - fo;
+        size = 'x' === axis ? $child.width() : $child.height();
 
         return { $e: $child, a: delta, b: delta + size };
 
@@ -184,13 +194,13 @@ var hic = (function (hic) {
     }
 
     hic.Ruler.prototype.hideWholeGenome = function () {
-        this.$axis.find('div').hide();
+        this.$wholeGenomeContainer.hide();
         this.$canvas.show();
     };
 
     hic.Ruler.prototype.showWholeGenome = function () {
         this.$canvas.hide();
-        this.$axis.find('div').show();
+        this.$wholeGenomeContainer.show();
     };
 
     hic.Ruler.prototype.setAxisTransform = function (axis) {
@@ -207,7 +217,7 @@ var hic = (function (hic) {
             $e;
 
         if ('MapLoad' === event.type) {
-            this.wholeGenomeLayout(this.$axis, this.axis, event.data);
+            this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
         } else if ('UpdateCrosshairs' === event.type) {
 
             offset = 'x' === this.axis ? event.data.x : event.data.y;
@@ -239,7 +249,7 @@ var hic = (function (hic) {
         this.$canvas.width(this.$axis.width());
         this.$canvas.attr('width', this.$axis.width());
 
-        this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
+        this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
 
         this.update();
     };
@@ -249,7 +259,7 @@ var hic = (function (hic) {
         this.$canvas.height(height);
         this.$canvas.attr('height', height);
 
-        this.wholeGenomeLayout(this.$axis, this.axis, this.browser.dataset);
+        this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
 
         this.update();
     };
