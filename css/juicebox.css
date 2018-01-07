@@ -888,6 +888,9 @@ div[id$="content-container"] {
           font-weight: 400;
           white-space: nowrap; }
 
+.hic-whole-genome-chromosome-highlight {
+  background-color: rgba(0, 0, 0, 0.1); }
+
 .hic-track-menu {
   position: absolute;
   color: white;

@@ -452,6 +452,9 @@ var hic = (function (hic) {
 
         this.contactMatrixView.$y_guide.hide();
         this.layoutController.$y_track_guide.hide();
+
+        this.layoutController.xAxisRuler.unhighlightWholeChromosome();
+        this.layoutController.yAxisRuler.unhighlightWholeChromosome();
     };
 
     hic.Browser.prototype.showCrosshairs = function () {

@@ -212,6 +212,10 @@ var hic = (function (hic) {
 
     };
 
+    hic.Ruler.prototype.unhighlightWholeChromosome = function () {
+        this.$wholeGenomeContainer.children().removeClass('hic-whole-genome-chromosome-highlight');
+    };
+
     hic.Ruler.prototype.receiveEvent = function (event) {
         var offset,
             $e;
@@ -220,15 +224,15 @@ var hic = (function (hic) {
             this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
         } else if ('UpdateCrosshairs' === event.type) {
 
+            this.unhighlightWholeChromosome();
+
             offset = 'x' === this.axis ? event.data.x : event.data.y;
-            if ('x' === this.axis) {
-                console.log(this.axis + ' offset ' + offset);
+            $e = hitTest(this.bboxes, offset);
+            if ($e) {
+                // console.log(this.axis + ' highlight chr ' + $e.text());
+                $e.addClass('hic-whole-genome-chromosome-highlight');
             }
 
-            // $e = hitTest(this.bboxes, offset);
-            // if ($e) {
-            //     console.log(this.axis + ' highlight chr ' + $e.text());
-            // }
         }
 
     };
