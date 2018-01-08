@@ -68,7 +68,7 @@ var hic = (function (hic) {
         this.$fa_spinner.css("position", "absolute");
         this.$fa_spinner.css("left", "40%");
         this.$fa_spinner.css("top", "40%");
-        this.$fa_spinner.css("display", "none")
+        this.$fa_spinner.css("display", "none");
         this.$viewport.append(this.$fa_spinner);
 
 
@@ -880,27 +880,43 @@ var hic = (function (hic) {
 
             $viewport.on('mousemove', hic.throttle(function (e) {
 
-                var coords, eFixed;
-
+                var coords,
+                    eFixed,
+                    xy;
 
                 e.preventDefault();
                 e.stopPropagation();
-                coords = {x: e.offsetX, y: e.offsetY};
+
+                coords =
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
+
+                // Sets pageX and pageY for browsers that don't support them
+                eFixed = $.event.fix(e);
+
+                xy =
+                    {
+                      x: eFixed.pageX - $viewport.offset().left,
+                      y: eFixed.pageY - $viewport.offset().top
+                    };
+
+                // console.log('cursor ' + xy.x + ' ' + xy.y);
+
+                self.browser.updateCrosshairs(xy);
 
                 if (true === self.willShowCrosshairs) {
-                    self.browser.updateCrosshairs(coords);
                     self.browser.showCrosshairs();
                 }
 
                 if (isMouseDown) { // Possibly dragging
 
                     if (isSweepZooming) {
-                        // Sets pageX and pageY for browsers that don't support them
-                        eFixed = $.event.fix(e);
-                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
-                    }
 
-                    else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
+                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
+
+                    }else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
                         isDragging = true;
 
@@ -954,7 +970,7 @@ var hic = (function (hic) {
                 // when the viewport boundary is crossed.
                 mouseup: function (e) {
 
-                    e.preventDefault()
+                    e.preventDefault();
                     e.stopPropagation();
 
                     if (isSweepZooming) {

@@ -166,8 +166,8 @@ var hic = (function (hic) {
 
         // crosshairs guide
         id = browser.id + '_' + 'y-track-guide';
-        $e = $("<div>", {id: id});
-        this.$x_tracks.append($e);
+        this.$y_track_guide = $("<div>", {id: id});
+        this.$x_tracks.append(this.$y_track_guide);
 
         // content container
         id = browser.id + '_' + 'content-container';
@@ -209,8 +209,8 @@ var hic = (function (hic) {
 
         // crosshairs guide
         id = browser.id + '_' + 'x-track-guide';
-        $e = $("<div>", {id: id});
-        this.$y_tracks.append($e);
+        this.$x_track_guide = $("<div>", {id: id});
+        this.$y_tracks.append(this.$x_track_guide);
 
         // y-axis
         this.yAxisRuler = new hic.Ruler(browser, 'y', $container);

@@ -1094,49 +1094,56 @@ div[id$="content-container"] {
     // x-axis
     div[id$="x-axis"] {
 
-      display: flex;
-      flex-flow: row;
-      flex-wrap: nowrap;
-      justify-content: space-between;
-
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
       margin-right: $hic-scrollbar-height;
       background-color: white;
 
-      // whole genome divs
       div {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
 
-        font-family: $default-font-family;
-        font-size: 8px;
-        font-weight: 400;
-        color: #444;
-
+        width: 100%;
         height: 100%;
 
-        border-left-color: transparent;
-        border-left-style: solid;
-        border-left-width: thin;
+        display: flex;
+        flex-flow: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
 
-        border-right-color: #bfbfbf;
-        border-right-style: solid;
-        border-right-width: thin;
-
+        // whole genome divs
         div {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
+          justify-content: center;
+          align-items: center;
+
+          font-family: $default-font-family;
+          font-size: 8px;
+          font-weight: 400;
+          color: #444;
+
+          height: 100%;
+
+          border-left-color: transparent;
+          border-left-style: solid;
+          border-left-width: thin;
+
+          border-right-color: #bfbfbf;
+          border-right-style: solid;
+          border-right-width: thin;
+
+          div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
         }
 
-      }
+        div:last-child {
+          border-right-color: transparent;
+        }
 
-      div:last-child {
-        border-right-color: transparent;
       }
 
     }
@@ -1227,50 +1234,57 @@ div[id$="content-container"] {
     // y-axis
     div[id$="y-axis"] {
 
-      display: flex;
-      flex-flow: column;
-      flex-wrap: nowrap;
-      justify-content: space-between;
-
       width: $hic-axis-height;
       height: 100%;
       margin-bottom: $hic-scrollbar-height;
       background-color: white;
 
-      // whole genome divs
       div {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
-
-        font-family: $default-font-family;
-        font-size: 8px;
-        font-weight: 400;
-        color: #444;
 
         width: 100%;
+        height: 100%;
 
-        border-top-color: transparent;
-        border-top-style: solid;
-        border-top-width: thin;
+        display: flex;
+        flex-flow: column;
+        flex-wrap: nowrap;
+        justify-content: space-between;
 
-        border-bottom-color: #bfbfbf;
-        border-bottom-style: solid;
-        border-bottom-width: thin;
-
+        // whole genome divs
         div {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          transform: rotate(-90deg);
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
+          justify-content: center;
+          align-items: center;
+
+          font-family: $default-font-family;
+          font-size: 8px;
+          font-weight: 400;
+          color: #444;
+
+          width: 100%;
+
+          border-top-color: transparent;
+          border-top-style: solid;
+          border-top-width: thin;
+
+          border-bottom-color: #bfbfbf;
+          border-bottom-style: solid;
+          border-bottom-width: thin;
+
+          div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transform: rotate(-90deg);
+          }
+
         }
 
-      }
+        div:last-child {
+          border-bottom-color: transparent;
+        }
 
-      div:last-child {
-        border-bottom-color: transparent;
       }
 
     }
@@ -1435,6 +1449,10 @@ div[id$="content-container"] {
     }
 
   }
+}
+
+.hic-whole-genome-chromosome-highlight {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .hic-track-menu {
