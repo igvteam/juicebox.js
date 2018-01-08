@@ -881,7 +881,8 @@ var hic = (function (hic) {
             $viewport.on('mousemove', hic.throttle(function (e) {
 
                 var coords,
-                    eFixed;
+                    eFixed,
+                    xy;
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -895,11 +896,18 @@ var hic = (function (hic) {
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
+                xy =
+                    {
+                      x: eFixed.pageX - $viewport.offset().left,
+                      y: eFixed.pageY - $viewport.offset().top
+                    };
+
+                // console.log('cursor ' + xy.x + ' ' + xy.y);
+
+                self.browser.updateCrosshairs(xy);
+
                 if (true === self.willShowCrosshairs) {
-
-                    self.browser.updateCrosshairs({ x: eFixed.pageX - $viewport.offset().left, y: eFixed.pageY - $viewport.offset().top });
                     self.browser.showCrosshairs();
-
                 }
 
                 if (isMouseDown) { // Possibly dragging
