@@ -902,11 +902,10 @@ var hic = (function (hic) {
                       y: eFixed.pageY - $viewport.offset().top
                     };
 
-                // console.log('cursor ' + xy.x + ' ' + xy.y);
-
-                self.browser.updateCrosshairs(xy);
+                self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
                 if (true === self.willShowCrosshairs) {
+                    self.browser.updateCrosshairs(xy);
                     self.browser.showCrosshairs();
                 }
 
@@ -940,7 +939,13 @@ var hic = (function (hic) {
 
             $viewport.on('mouseup', panMouseUpOrMouseOut);
 
-            $viewport.on('mouseleave', panMouseUpOrMouseOut);
+            $viewport.on('mouseleave', function () {
+
+                self.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
+                self.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
+
+                panMouseUpOrMouseOut();
+            });
 
             // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
             // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl

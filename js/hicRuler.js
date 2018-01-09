@@ -62,7 +62,7 @@ var hic = (function (hic) {
         this.setAxisTransform(axis);
 
         this.browser.eventBus.subscribe('MapLoad', this);
-        this.browser.eventBus.subscribe("UpdateCrosshairs", this);
+        this.browser.eventBus.subscribe("UpdateContactMapMousePosition", this);
 
 
     };
@@ -222,7 +222,7 @@ var hic = (function (hic) {
 
         if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
-        } else if ('UpdateCrosshairs' === event.type) {
+        } else if ('UpdateContactMapMousePosition' === event.type) {
 
             this.unhighlightWholeChromosome();
 
