@@ -95,8 +95,8 @@ var hic = (function (hic) {
             width,
             height,
             xMax,
-            yMax;
-
+            yMax,
+            minimumResolution;
 
         this.$rulerSweeper.hide();
 
@@ -122,7 +122,8 @@ var hic = (function (hic) {
         xMax = x + width;
         yMax = y + height;
 
-        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax);
+        minimumResolution = this.browser.dataset.bpResolutions[ this.browser.dataset.bpResolutions.length - 1 ];
+        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
 
     };
 
