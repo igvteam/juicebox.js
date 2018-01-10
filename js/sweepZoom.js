@@ -38,7 +38,7 @@ var hic = (function (hic) {
         this.sweepRect = {};
     };
 
-    hic.SweepZoom.prototype.reset = function (pageCoords) {
+    hic.SweepZoom.prototype.initialize = function (pageCoords) {
 
         this.anchor = pageCoords;
         this.coordinateFrame = this.$rulerSweeper.parent().offset();
@@ -85,7 +85,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.SweepZoom.prototype.dismiss = function () {
+    hic.SweepZoom.prototype.commit = function () {
         var state,
             resolution,
             posX,

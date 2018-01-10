@@ -871,7 +871,7 @@ var hic = (function (hic) {
                 isSweepZooming = (true === e.altKey);
                 if (isSweepZooming) {
                     eFixed = $.event.fix(e);
-                    self.sweepZoom.reset({x: eFixed.pageX, y: eFixed.pageY});
+                    self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
                 }
 
                 isMouseDown = true;
@@ -980,7 +980,7 @@ var hic = (function (hic) {
 
                     if (isSweepZooming) {
                         isSweepZooming = false;
-                        self.sweepZoom.dismiss();
+                        self.sweepZoom.commit();
                     }
 
                 }
