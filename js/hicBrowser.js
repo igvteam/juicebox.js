@@ -1310,7 +1310,7 @@ var hic = (function (hic) {
 
         targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
 
-        if (targetResolution < minResolution) {
+        if (minResolution && targetResolution < minResolution) {
             maxExtent = viewWidth * minResolution;
             xCenter = (bpX + bpXMax) / 2;
             yCenter = (bpY + bpYMax) / 2;

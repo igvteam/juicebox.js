@@ -38,7 +38,7 @@ var hic = (function (hic) {
         this.sweepRect = {};
     };
 
-    hic.SweepZoom.prototype.reset = function (pageCoords) {
+    hic.SweepZoom.prototype.initialize = function (pageCoords) {
 
         this.anchor = pageCoords;
         this.coordinateFrame = this.$rulerSweeper.parent().offset();
@@ -85,7 +85,7 @@ var hic = (function (hic) {
 
     };
 
-    hic.SweepZoom.prototype.dismiss = function () {
+    hic.SweepZoom.prototype.commit = function () {
         var state,
             resolution,
             posX,
@@ -95,8 +95,8 @@ var hic = (function (hic) {
             width,
             height,
             xMax,
-            yMax;
-
+            yMax,
+            minimumResolution;
 
         this.$rulerSweeper.hide();
 
@@ -122,7 +122,8 @@ var hic = (function (hic) {
         xMax = x + width;
         yMax = y + height;
 
-        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax);
+        minimumResolution = this.browser.dataset.bpResolutions[ this.browser.dataset.bpResolutions.length - 1 ];
+        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
 
     };
 
