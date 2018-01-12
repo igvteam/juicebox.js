@@ -8,7 +8,7 @@ web page.  The embedded map has an API for loading maps and tracks, but
 does not contain menus to load these tracks.   For a prototype web page
 complete with load menus and an embedded map click [here](site).
 
-**Current release:** [1.0](https://igv.org/web/jb/release/1.0).
+**Current release:** [1.0.0](https://igv.org/web/jb/release/1.0.0/).
 
 ### Summary
 
