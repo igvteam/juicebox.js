@@ -318,7 +318,7 @@ var hic = (function (hic) {
                 .then(function (data) {
                     var binaryParser = new igv.BinaryParser(new DataView(data));
                     var nValues, nChrScaleFactors;
-                    console.log(binaryParser.getString()); // type
+                    binaryParser.getString(); // type
                     binaryParser.getString(); // unit
                     binaryParser.getInt(); // binSize
                     nValues = binaryParser.getInt();

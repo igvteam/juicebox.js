@@ -78,6 +78,20 @@ var hic = (function (hic) {
         return this.getCumulativeOffset(chr) + bp;
     };
 
+    hic.Genome.prototype.getChromsosomeForCoordinate = function (bp) {
+        var i = 0,
+            offset = 0,
+            l;
+
+        for (i = 1; i < this.chromosomes.length; i++) {
+            l = this.chromosomes[i].size;
+            if (offset + l > bp) return this.chromosomes[i];
+            offset += l;
+        }
+        return this.chromosomes[this.chromosomes.length - 1];
+
+    }
+
 
     /**
      * Return the offset in genome coordinates (kb) of the start of the given chromosome

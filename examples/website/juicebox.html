@@ -557,7 +557,7 @@
                 items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
 
-            // URL shortener(s).   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
+            // URL shortener(s).  Optional.   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
             // If more than 1 shortener is defined the first is used to shorten URLs
             urlShortener: [
                 {
@@ -572,9 +572,9 @@
                 }
             ],
 
-            apiKey: "ABCD",   // TODO -- replace with your Google API Key if supporting Google Drive
+            apiKey: "ABCD",   // Optional.  TODO -- replace with your Google API Key if supporting Google Drive
 
-            embedTarget: "https://igv.org/web/jb/release/1.0.0/site/embed.html"
+            embedTarget: "https://igv.org/web/jb/release/1.0.0/site/embed.html"   // "Embed" sharable links will use this url
         };
 
         juicebox.init($('#app-container'), config);
