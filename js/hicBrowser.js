@@ -43,8 +43,6 @@ var hic = (function (hic) {
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
-        var firstBrowser;
-
         igv.browser =
             {
                 constants: {defaultColor: "rgb(0,0,150)"},
@@ -134,8 +132,9 @@ var hic = (function (hic) {
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
-        createIGV($hic_container, browser, browser.trackMenuReplacement);
-
+        if (undefined === igv.browser) {
+            createIGV($hic_container, browser, browser.trackMenuReplacement);
+        }
 
         if (config.initialImage) {
 
