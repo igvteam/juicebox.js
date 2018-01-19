@@ -93,13 +93,19 @@ var hic = (function (hic) {
 
         $fa.on('click', function (e) {
 
+            if (browser === hic.Browser.getCurrentBrowser()) {
+                hic.Browser.setCurrentBrowser(undefined);
+            }
+
             hic.allBrowsers.splice(_.indexOf(hic.allBrowsers, browser), 1);
             browser.$root.remove();
             browser = undefined;
 
-            if (1 === _.size(hic.allBrowsers)) {
+            if (1 === hic.allBrowsers.length) {
                 $('.hic-nav-bar-delete-button').hide();
+                hic.Browser.setCurrentBrowser(hic.allBrowsers[ 0 ]);
             }
+
         });
 
         // hide delete buttons for now. Delete button is only

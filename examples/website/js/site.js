@@ -339,6 +339,8 @@ var juicebox = (function (site) {
 
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
+            hic.Browser.setCurrentBrowser(browser);
+
         });
 
         $('#hic-copy-link').on('click', function (e) {
@@ -469,7 +471,7 @@ var juicebox = (function (site) {
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
-        })
+        });
 
         if (browsersWithMaps.length > 0) {
             synchState = browsersWithMaps[0].getSyncState();
