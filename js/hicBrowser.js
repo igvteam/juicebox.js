@@ -32,10 +32,10 @@ var hic = (function (hic) {
     var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
-    {
-        width: 640,
-        height: 640
-    };
+        {
+            width: 640,
+            height: 640
+        };
 
 
     hic.allBrowsers = [];
@@ -43,15 +43,13 @@ var hic = (function (hic) {
     // mock igv browser objects for igv.js compatibility
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
-        var firstBrowser;
-
         igv.browser =
-        {
-            constants: {defaultColor: "rgb(0,0,150)"},
+            {
+                constants: {defaultColor: "rgb(0,0,150)"},
 
-            // Compatibility wit igv menus
-            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-        };
+                // Compatibility wit igv menus
+                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+            };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -134,8 +132,9 @@ var hic = (function (hic) {
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
 
-        createIGV($hic_container, browser, browser.trackMenuReplacement);
-
+        if (undefined === igv.browser) {
+            createIGV($hic_container, browser, browser.trackMenuReplacement);
+        }
 
         if (config.initialImage) {
 
@@ -405,23 +404,24 @@ var hic = (function (hic) {
 
     hic.Browser.setCurrentBrowser = function (browser) {
 
+        // unselect current browser
         if (undefined === browser) {
 
-            $('.hic-root').removeClass('hic-root-selected');
-            hic.Browser.currentBrowser = browser;
-        } else if (browser === hic.Browser.currentBrowser) {
-
-            // toggle state (turn selection off)
-            $('.hic-root').removeClass('hic-root-selected');
-            hic.Browser.currentBrowser = undefined;
-
-        } else {
-
-            if (hic.allBrowsers.length > 1) {
-                $('.hic-root').removeClass('hic-root-selected');
-                browser.$root.addClass('hic-root-selected');
+            if (hic.Browser.currentBrowser) {
+                hic.Browser.currentBrowser.$root.removeClass('hic-root-selected');
             }
 
+            hic.Browser.currentBrowser = browser;
+            return;
+        }
+
+        if (browser !== hic.Browser.currentBrowser) {
+
+            if (hic.Browser.currentBrowser) {
+                hic.Browser.currentBrowser.$root.removeClass('hic-root-selected');
+            }
+
+            browser.$root.addClass('hic-root-selected');
             hic.Browser.currentBrowser = browser;
         }
 
@@ -734,9 +734,6 @@ var hic = (function (hic) {
                 .then(function (nvi) {
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
-
-                    $('.hic-root').removeClass('hic-root-selected');
-                    hic.Browser.setCurrentBrowser(undefined);
 
                     self.$contactMaplabel.text(config.name);
                     self.name = config.name;
@@ -1644,16 +1641,16 @@ var hic = (function (hic) {
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, defaultColorScaleInitializer;
 
         defaultColorScaleInitializer =
-        {
-            low: 0,
-            lowR: 255,
-            lowG: 255,
-            lowB: 255,
-            high: 2000,
-            highR: 255,
-            highG: 0,
-            highB: 0
-        };
+            {
+                low: 0,
+                lowR: 255,
+                lowG: 255,
+                lowB: 255,
+                high: 2000,
+                highR: 255,
+                highG: 0,
+                highB: 0
+            };
 
         hicUrl = query["hicUrl"];
         name = query["name"];
