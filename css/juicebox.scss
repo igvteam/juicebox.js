@@ -211,7 +211,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   border-style: solid;
   border-width: 2px;
-  border-color: #5f5f5f;
+  border-color: #bfbfbf;
 
 }
 
@@ -1490,7 +1490,8 @@ div[id$="content-container"] {
 }
 
 .hic-root-selected {
-  border-color: #df0000;
+  //border-color: #df0000;
+  border-color: #5f5f5f;
 }
 
 .unselect {
