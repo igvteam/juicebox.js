@@ -917,25 +917,20 @@ var hic = (function (hic) {
 
         var self = this,
             parts,
-            chrName,
+            chromosome,
             extent,
-            succeeded,
-            chromosomeNames,
             locusObject = {},
             numeric;
 
         parts = locus.trim().split(':');
 
-        chromosomeNames = _.map(self.dataset.chromosomes, function (chr) {
-            return chr.name.toLowerCase();
-        });
 
-        chrName = this.genome.getChromosomeName(_.first(parts).toLowerCase());
+        chromosome = this.genome.getChromosome(_.first(parts).toLowerCase());
 
-        if (!_.contains(chromosomeNames, chrName)) {
+        if (!chromosome) {
             return undefined;
         } else {
-            locusObject.chr = _.indexOf(chromosomeNames, chrName);
+            locusObject.chr = chromosome.index;
         }
 
 
@@ -1226,10 +1221,8 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
-        var chr1Name = this.genome.getChromosomeName(syncState.chr1Name),
-            chr2Name = this.genome.getChromosomeName(syncState.chr2Name),
-            chr1 = this.dataset.getChrIndexFromName(chr1Name),
-            chr2 = this.dataset.getChrIndexFromName(chr2Name),
+        var chr1 = this.genome.getChromosome(syncState.chr1Name),
+            chr2 = this.genome.getChromosome(syncState.chr2Name),
             zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
             x = syncState.binX,
             y = syncState.binY,
@@ -1258,8 +1251,8 @@ var hic = (function (hic) {
 
 
         var zoomChanged = (this.state.zoom !== zoom);
-        this.state.chr1 = chr1;
-        this.state.chr2 = chr2;
+        this.state.chr1 = chr1.index;
+        this.state.chr2 = chr2.index;
         this.state.zoom = zoom;
         this.state.x = x;
         this.state.y = y;

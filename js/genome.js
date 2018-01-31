@@ -31,8 +31,11 @@ var hic = (function (hic) {
 
     hic.Genome = function (id, chromosomes) {
 
+        var self = this;
+
         this.id = id;
         this.chromosomes = chromosomes;
+        this.chromosomeLookupTable = {};
 
         // Alias for size for igv compatibility
         this.chromosomes.forEach(function (c) {
@@ -53,6 +56,8 @@ var hic = (function (hic) {
             chrAliasTable[alias] = name;
             if (name === "chrM") chrAliasTable["MT"] = "chrM";
             if (name === "MT") chrAliasTable["chrmM"] = "MT";
+
+            self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
         });
 
         constructWG(this);
@@ -62,13 +67,13 @@ var hic = (function (hic) {
     }
 
     hic.Genome.prototype.getChromosomeName = function (str) {
-        var chr = this.chrAliasTable[str];
+        var chr = this.chrAliasTable[str.toLowerCase()];
         return chr ? chr : str;
     };
 
-    hic.Genome.prototype.getChromosome = function (chr) {
-        chr = this.getChromosomeName(chr);
-        return this.chromosomes[chr];
+    hic.Genome.prototype.getChromosome = function (str) {
+        var chrname = this.getChromosomeName(str).toLowerCase();
+        return this.chromosomeLookupTable[chrname];
     };
 
     /**
@@ -100,7 +105,7 @@ var hic = (function (hic) {
 
         var queryChr;
 
-        queryChr = this.getChromosomeName(chr);
+        queryChr = this.getChromosomeName(chr.name);
 
         if (this.cumulativeOffsets === undefined) {
             computeCumulativeOffsets.call(this);
