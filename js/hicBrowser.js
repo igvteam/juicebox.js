@@ -1437,7 +1437,7 @@ var hic = (function (hic) {
     function setDefaults(config) {
 
         defaultPixelSize = 1;
-        defaultState = new hic.State(1, 1, 0, 0, 0, defaultPixelSize, "NONE");
+        defaultState = new hic.State(0, 0, 0, 0, 0, defaultPixelSize, "NONE");
 
         if (config.figureMode === true) {
             config.showLocusGoto = false;
