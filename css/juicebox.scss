@@ -4,7 +4,8 @@ $hic-color-swatch-size: 24px;
 //
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
-$nav-bar-shim-height: 4px;
+//$nav-bar-shim-height: 4px;
+$nav-bar-shim-height: 36px;
 $nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
 
 $nav-bar-widget-height: 24px;
@@ -690,7 +691,7 @@ $default-font-family: 'Open Sans', sans-serif;
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 
   width: 100%;

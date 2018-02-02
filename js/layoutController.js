@@ -22,7 +22,8 @@ var hic = (function (hic) {
     // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
     hic.LayoutController.nav_bar_label_height = 36;
     hic.LayoutController.nav_bar_widget_container_height = 36;
-    hic.LayoutController.nav_bar_shim_height = 4;
+    // hic.LayoutController.nav_bar_shim_height = 4;
+    hic.LayoutController.nav_bar_shim_height = 36;
 
     hic.LayoutController.navbarHeight = function (figureMode) {
         var height;
@@ -141,8 +142,8 @@ var hic = (function (hic) {
             browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
             // shim
-            $navbar_shim = $('<div class="hic-nav-bar-shim">');
-            $navbar_container.append($navbar_shim);
+            // $navbar_shim = $('<div class="hic-nav-bar-shim">');
+            // $navbar_container.append($navbar_shim);
         }
 
     }
