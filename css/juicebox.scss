@@ -825,7 +825,8 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-color-scale-input;
 
   input {
-    width: 110px;
+    //width: 110px;
+    width: 64px;
   }
 
   i.fa-minus {

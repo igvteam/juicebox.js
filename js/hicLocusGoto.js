@@ -39,8 +39,8 @@ var hic = (function (hic) {
         this.$container.append(this.$resolution_selector);
 
         this.$resolution_selector.on('change', function (e) {
-            var value = $(this).val();
-            browser.parseGotoInput(value);
+            browser.parseGotoInput( $(this).val() );
+            $(this).blur();
         });
 
         this.browser.eventBus.subscribe("LocusChange", this);
