@@ -4,8 +4,7 @@ $hic-color-swatch-size: 24px;
 //
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
-//$nav-bar-shim-height: 4px;
-$nav-bar-shim-height: 36px;
+$nav-bar-shim-height: 4px;
 $nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
 
 $nav-bar-widget-height: 24px;
@@ -810,7 +809,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  width: 100%;
+  width: 65%;
   @include navbar-input;
 }
 
