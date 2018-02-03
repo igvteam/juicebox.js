@@ -798,6 +798,20 @@ var hic = (function (hic) {
     };
 
 
+    Matrix.prototype.findZoomForResolution = function (binSize, unit) {
+
+        var i, zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
+
+        for (i = 1; i < zdArray.length; i++) {
+            var zd = zdArray[i];
+            if (zd.zoom.binSize < binSize) {
+                return i-1;
+            }
+        }
+        return zdArray.length - 1;
+
+    }
+
 // Legacy implementation, used only in tests.
     Matrix.prototype.getZoomData = function (zoom) {
 

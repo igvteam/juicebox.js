@@ -32,10 +32,10 @@ var hic = (function (hic) {
     var MAX_PIXEL_SIZE = 12;
     var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
     var defaultSize =
-        {
-            width: 640,
-            height: 640
-        };
+    {
+        width: 640,
+        height: 640
+    };
 
 
     hic.allBrowsers = [];
@@ -44,12 +44,12 @@ var hic = (function (hic) {
     function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
 
         igv.browser =
-            {
-                constants: {defaultColor: "rgb(0,0,150)"},
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
 
-                // Compatibility wit igv menus
-                trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-            };
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
 
         igv.trackMenuItem = function () {
             return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
@@ -440,7 +440,6 @@ var hic = (function (hic) {
         this.layoutController.$y_track_guide.css(yGuide);
 
 
-
     };
 
     hic.Browser.prototype.hideCrosshairs = function () {
@@ -513,6 +512,13 @@ var hic = (function (hic) {
             });
     };
 
+    /**
+     * Load a list of 1D genome tracks (wig, etc).
+     *
+     * NOTE: public API function
+     *
+     * @param trackConfigurations
+     */
     hic.Browser.prototype.loadTracks = function (trackConfigurations) {
 
         var self = this,
@@ -659,6 +665,8 @@ var hic = (function (hic) {
 
     /**
      * Load a .hic file
+     *
+     * NOTE: public API function
      *
      * @return a promise for a dataset
      * @param config
@@ -1110,11 +1118,16 @@ var hic = (function (hic) {
 
         this.state.chr1 = Math.min(chr1, chr2);
         this.state.chr2 = Math.max(chr1, chr2);
-        this.state.zoom = 0;
+        this.state.zoom = minZoom.call(this, chr1, chr2);
         this.state.x = 0;
         this.state.y = 0;
 
-        minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+        minZoom.call(this, chr1, chr2)
+            .then(function (z) {
+                self.state.zoom = z;
+                return minPixelSize.call(self, self.state.chr1, self.state.chr2, self.state.zoom)
+            })
+
             .then(function (minPS) {
                 self.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
                 self.eventBus.post(hic.Event("LocusChange", {state: self.state, resolutionChanged: true}));
@@ -1144,6 +1157,23 @@ var hic = (function (hic) {
 
     };
 
+    function minZoom(chr1, chr2) {
+
+        var self = this;
+
+        var viewDimensions, chr1Length, chr2Length, binSize, nBins1, nBins2, isWholeGenome;
+
+        viewDimensions = self.contactMatrixView.getViewDimensions();
+        chr1Length = self.dataset.chromosomes[chr1].size;
+        chr2Length = self.dataset.chromosomes[chr2].size;
+        binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
+
+        return self.dataset.getMatrix(chr1, chr2)
+            .then(function (matrix) {
+                return matrix.findZoomForResolution(binSize);
+            })
+    }
+
     function minPixelSize(chr1, chr2, z) {
 
         var self = this;
@@ -1157,14 +1187,13 @@ var hic = (function (hic) {
         return self.dataset.getMatrix(chr1, chr2)
 
             .then(function (matrix) {
+
                 var zd = matrix.getZoomDataByIndex(z, "BP");
                 binSize = zd.zoom.binSize;
                 nBins1 = chr1Length / binSize;
                 nBins2 = chr2Length / binSize;
                 return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
             })
-
-
     }
 
     /**
@@ -1638,16 +1667,16 @@ var hic = (function (hic) {
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, defaultColorScaleInitializer;
 
         defaultColorScaleInitializer =
-            {
-                low: 0,
-                lowR: 255,
-                lowG: 255,
-                lowB: 255,
-                high: 2000,
-                highR: 255,
-                highG: 0,
-                highB: 0
-            };
+        {
+            low: 0,
+            lowR: 255,
+            lowG: 255,
+            lowB: 255,
+            high: 2000,
+            highR: 255,
+            highG: 0,
+            highB: 0
+        };
 
         hicUrl = query["hicUrl"];
         name = query["name"];
