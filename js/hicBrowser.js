@@ -1025,7 +1025,30 @@ var hic = (function (hic) {
 
     };
 
-// Zoom in response to a double-click
+    hic.Browser.prototype.wheelClickZoom = function (direction, centerPX, centerPY) {
+
+        var self = this;
+
+        if (this.resolutionLocked) {
+            this.zoomAndCenter(direction, centerPX, centerPY);
+
+        }
+        else {
+            minZoom.call(self, self.state.chr1, self.state.chr2)
+                .then(function (z) {
+                    var newZoom = self.state.zoom + direction;
+                    if(self.state.chr1 !== 0 && newZoom < z) {
+                       self.setChromosomes(0, 0);
+                    }
+                    else {
+                        zoomAndCenter(direction, centerPX, centerPY);
+                    }
+                })
+        }
+
+    }
+
+        // Zoom in response to a double-click
     hic.Browser.prototype.zoomAndCenter = function (direction, centerPX, centerPY) {
 
         if (!this.dataset) return;

@@ -761,7 +761,7 @@ var hic = (function (hic) {
     }
 
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
-        this.chr1 = chr1;
+        this.chr1 = chr1;    // chromosome index
         this.chr2 = chr2;
         this.zoom = zoom;
         this.blockBinCount = blockBinCount;

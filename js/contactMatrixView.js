@@ -1013,7 +1013,7 @@ var hic = (function (hic) {
                     coords = igv.translateMouseCoordinates(e, $viewport),
                     x = coords.x,
                     y = coords.y;
-                self.browser.zoomAndCenter(direction, x, y);
+                self.browser.wheelClickZoom(direction, x, y);
                 lastWheelTime = t;
             }
 
