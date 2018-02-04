@@ -1029,19 +1029,19 @@ var hic = (function (hic) {
 
         var self = this;
 
-        if (this.resolutionLocked) {
-            this.zoomAndCenter(direction, centerPX, centerPY);
 
+        if (this.resolutionLocked || self.state.chr1 === 0) {   // Resolution locked OR whole genome view
+            this.zoomAndCenter(direction, centerPX, centerPY);
         }
         else {
             minZoom.call(self, self.state.chr1, self.state.chr2)
                 .then(function (z) {
                     var newZoom = self.state.zoom + direction;
-                    if(self.state.chr1 !== 0 && newZoom < z) {
+                    if(newZoom < z) {
                        self.setChromosomes(0, 0);
                     }
                     else {
-                        zoomAndCenter(direction, centerPX, centerPY);
+                        self.zoomAndCenter(direction, centerPX, centerPY);
                     }
                 })
         }
