@@ -1001,29 +1001,41 @@ var hic = (function (hic) {
             newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
         }
 
-        minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
+        minZoom.call(self, self.state.chr1, self.state.chr2)
+            .then(function (z) {
 
-            .then(function (minPS) {
+                if (zoomChanged && self.state.chr1 !== 0 && newZoom < z) {
+                    self.setChromosomes(0, 0);
+                }
+                else {
+                    minPixelSize.call(self, self.state.chr1, self.state.chr2, newZoom)
 
-                var state = self.state;
+                        .then(function (minPS) {
 
-                newPixelSize = Math.max(newPixelSize, minPS);
+                            var state = self.state;
 
-                // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
-                gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
+                            newPixelSize = Math.max(newPixelSize, minPS);
 
-                state.x = gx / newResolution - anchorPx / newPixelSize;
-                state.y = gy / newResolution - anchorPy / newPixelSize;
+                            // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+                            gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
+                            gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
 
-                state.zoom = newZoom;
-                state.pixelSize = newPixelSize;
+                            state.x = gx / newResolution - anchorPx / newPixelSize;
+                            state.y = gy / newResolution - anchorPy / newPixelSize;
 
-                self.clamp();
-                self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+                            state.zoom = newZoom;
+                            state.pixelSize = newPixelSize;
+
+                            self.clamp();
+                            self.eventBus.post(hic.Event("LocusChange", {
+                                state: state,
+                                resolutionChanged: zoomChanged
+                            }));
+                        });
+                }
+
             });
-
-    };
+    }
 
     hic.Browser.prototype.wheelClickZoom = function (direction, centerPX, centerPY) {
 
@@ -1037,8 +1049,8 @@ var hic = (function (hic) {
             minZoom.call(self, self.state.chr1, self.state.chr2)
                 .then(function (z) {
                     var newZoom = self.state.zoom + direction;
-                    if(newZoom < z) {
-                       self.setChromosomes(0, 0);
+                    if (newZoom < z) {
+                        self.setChromosomes(0, 0);
                     }
                     else {
                         self.zoomAndCenter(direction, centerPX, centerPY);
@@ -1048,7 +1060,7 @@ var hic = (function (hic) {
 
     }
 
-        // Zoom in response to a double-click
+    // Zoom in response to a double-click
     hic.Browser.prototype.zoomAndCenter = function (direction, centerPX, centerPY) {
 
         if (!this.dataset) return;
