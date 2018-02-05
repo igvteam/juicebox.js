@@ -14,6 +14,9 @@ $chromosome-selector-widget-container-width: 160px;
 $hic-colorscale-widget-plus-minus-margin: 8px;
 
 //
+$hic-whole-genome-chromosome-highlight-color: rgba(0, 0, 0, 0.1);
+
+//
 $hic-scrollbar-height: 20px;
 $hic-axis-height: 32px;
 
@@ -1148,6 +1151,11 @@ div[id$="content-container"] {
           border-right-color: transparent;
         }
 
+        div:hover {
+          cursor: pointer;
+          background-color: $hic-whole-genome-chromosome-highlight-color;
+        }
+
       }
 
     }
@@ -1456,7 +1464,7 @@ div[id$="content-container"] {
 }
 
 .hic-whole-genome-chromosome-highlight {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: $hic-whole-genome-chromosome-highlight-color;
 }
 
 .hic-track-menu {
