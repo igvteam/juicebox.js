@@ -78,7 +78,7 @@ module.exports = function (grunt) {
             sitejs: {
                 expand: true,
                 flatten: true,
-                src: 'dist/juicebox.min.js',
+                src: 'dist/juicebox*.js',
                 dest: 'examples/website/js'
             },
             sitemap: {
