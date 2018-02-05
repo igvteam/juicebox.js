@@ -11,6 +11,9 @@ $nav-bar-widget-height: 24px;
 $chromosome-selector-widget-container-width: 160px;
 
 //
+$hic-colorscale-widget-plus-minus-margin: 8px;
+
+//
 $hic-scrollbar-height: 20px;
 $hic-axis-height: 32px;
 
@@ -831,8 +834,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   i.fa-minus {
     display: block;
-    margin-left: 4px;
-    margin-right: 4px;
+    margin-left: $hic-colorscale-widget-plus-minus-margin;
+    margin-right: $hic-colorscale-widget-plus-minus-margin;
     color: $default-dark-color;
   }
 
@@ -845,8 +848,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   i.fa-plus {
     display: block;
-    margin-left: 4px;
-    margin-right: 4px;
+    margin-left: $hic-colorscale-widget-plus-minus-margin;
+    margin-right: $hic-colorscale-widget-plus-minus-margin;
     color: $default-dark-color;
   }
 
