@@ -1004,7 +1004,7 @@ var hic = (function (hic) {
         minZoom.call(self, self.state.chr1, self.state.chr2)
             .then(function (z) {
 
-                if (newZoom < z) {
+                if (!this.resolutionLocked && newZoom < z) {
                     self.setChromosomes(0, 0);
                 }
                 else {
