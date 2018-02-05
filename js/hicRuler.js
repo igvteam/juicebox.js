@@ -73,8 +73,6 @@ var hic = (function (hic) {
             list,
             dimen,
             extent,
-            cumulativeOffset,
-            chrLast,
             scraps,
             $div,
             $firstDiv,
@@ -83,19 +81,22 @@ var hic = (function (hic) {
         // discard current tiles
         $wholeGenomeContainer.empty();
 
-        list = _.filter(dataset.chromosomes, function (chr) {
-            return 'all' !== chr.name.toLowerCase();
+        list = dataset.chromosomes.filter(function (chromosome) {
+            return 'all' !== chromosome.name.toLowerCase();
         });
 
-        chrLast = _.last(dataset.chromosomes);
-        cumulativeOffset = this.browser.genome.getCumulativeOffset(chrLast);
-        extent = chrLast.bpLength + cumulativeOffset;
+        extent = 0;    // could use reduce for this
+        list.forEach(function (chromosome) {
+            extent += chromosome.size;
+        });
+
 
         dimen = 'x' === axisName ? $axis.width() : $axis.height();
         scraps = 0;
         this.bboxes = [];
         $firstDiv = undefined;
-        _.each(list, function (chr, index) {
+
+        list.forEach(function (chr, index) {
             var size,
                 percentage;
 
@@ -157,13 +158,13 @@ var hic = (function (hic) {
             o,
             fo;
 
-         o = 'x' === axis ?      $child.offset().left :      $child.offset().top;
+        o = 'x' === axis ? $child.offset().left : $child.offset().top;
         fo = 'x' === axis ? $firstChild.offset().left : $firstChild.offset().top;
 
         delta = o - fo;
         size = 'x' === axis ? $child.width() : $child.height();
 
-        return { $e: $child, a: delta, b: delta + size };
+        return {$e: $child, a: delta, b: delta + size};
 
     }
 
