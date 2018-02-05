@@ -1153,7 +1153,6 @@ var hic = (function (hic) {
 
         this.state.chr1 = Math.min(chr1, chr2);
         this.state.chr2 = Math.max(chr1, chr2);
-        this.state.zoom = minZoom.call(this, chr1, chr2);
         this.state.x = 0;
         this.state.y = 0;
 
