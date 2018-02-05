@@ -123,6 +123,15 @@ var hic = (function (hic) {
                 $e = $('<div>');
                 $div.append($e);
                 $e.text(chr.name);
+
+                $div.on('click', function (e) {
+                    var $o;
+                    $o = $(this).children(':first');
+                    console.log('click on chromosome ' + $o.text());
+
+                    self.browser.parseGotoInput( $o.text() );
+                });
+
             }
 
         });
@@ -133,6 +142,13 @@ var hic = (function (hic) {
 
             $div = $('<div>');
             $wholeGenomeContainer.append($div);
+            $div.on('click', function (e) {
+                var $o;
+                $o = $(this).children(':first');
+                console.log('click on chromosome ' + $o.text());
+
+                self.browser.parseGotoInput( $o.text() );
+            });
 
             $div.width(scraps);
 

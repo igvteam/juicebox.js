@@ -362,7 +362,7 @@
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   height: 112px;
@@ -432,7 +432,7 @@
     background-color: transparent; }
 
 .hic-chromosome-goto-container {
-  width: 100%; }
+  width: 65%; }
   .hic-chromosome-goto-container input {
     display: block;
     height: 32px;
@@ -470,11 +470,11 @@
     border-color: #a6a6a6;
     background-color: white; }
   .hic-colorscale-widget-container input {
-    width: 110px; }
+    width: 64px; }
   .hic-colorscale-widget-container i.fa-minus {
     display: block;
-    margin-left: 4px;
-    margin-right: 4px;
+    margin-left: 8px;
+    margin-right: 8px;
     color: #5f5f5f; }
   .hic-colorscale-widget-container i.fa-minus:hover,
   .hic-colorscale-widget-container i.fa-minus:focus,
@@ -483,8 +483,8 @@
     color: #0f0f0f; }
   .hic-colorscale-widget-container i.fa-plus {
     display: block;
-    margin-left: 4px;
-    margin-right: 4px;
+    margin-left: 8px;
+    margin-right: 8px;
     color: #5f5f5f; }
   .hic-colorscale-widget-container i.fa-plus:hover,
   .hic-colorscale-widget-container i.fa-plus:focus,
@@ -680,6 +680,9 @@ div[id$="content-container"] {
             text-overflow: ellipsis; }
         div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:last-child {
           border-right-color: transparent; }
+        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:hover {
+          cursor: pointer;
+          background-color: rgba(0, 0, 0, 0.1); }
   div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;

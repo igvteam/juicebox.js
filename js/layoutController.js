@@ -42,9 +42,6 @@ var hic = (function (hic) {
             $label_delete_button_container,
             $upper_widget_container,
             $lower_widget_container,
-            $navbar_shim,
-            $a,
-            $b,
             $e,
             $fa;
 
@@ -120,6 +117,10 @@ var hic = (function (hic) {
         // location box / goto
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
+        // resolution widget
+        browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
+        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
         if (true === browser.config.figureMode) {
             browser.$contactMaplabel.addClass('hidden-text');
             $upper_widget_container.hide();
@@ -136,13 +137,6 @@ var hic = (function (hic) {
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
 
-            // resolution widget
-            browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
-            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-            // shim
-            $navbar_shim = $('<div class="hic-nav-bar-shim">');
-            $navbar_container.append($navbar_shim);
         }
 
     }
