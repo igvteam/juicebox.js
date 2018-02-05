@@ -29,6 +29,12 @@
 
 var hic = (function (hic) {
 
+    /**
+     * 
+     * @param id
+     * @param chromosomes -- an array of hic.Chromosome objects.  
+     * @constructor
+     */
     hic.Genome = function (id, chromosomes) {
 
         var self = this;
@@ -38,8 +44,12 @@ var hic = (function (hic) {
         this.chromosomeLookupTable = {};
 
         // Alias for size for igv compatibility
+        this.genomeLength = 0;
         this.chromosomes.forEach(function (c) {
             c.bpLength = c.size;
+            if('all' !== c.name.toLowerCase()) {
+                self.genomeLength += c.size;
+            }
         })
 
         /**
@@ -60,14 +70,13 @@ var hic = (function (hic) {
             self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
         });
 
-        constructWG(this);
 
         this.chrAliasTable = chrAliasTable;
 
     }
 
     hic.Genome.prototype.getChromosomeName = function (str) {
-        var chr = this.chrAliasTable[str.toLowerCase()];
+        var chr = this.chrAliasTable[str];
         return chr ? chr : str;
     };
 
@@ -80,7 +89,7 @@ var hic = (function (hic) {
      * Return the genome coordinate for the give chromosome and position.
      */
     hic.Genome.prototype.getGenomeCoordinate = function (chr, bp) {
-        return this.getCumulativeOffset(chr) + bp;
+        return this.getCumulativeOffset(chr.name) + bp;
     };
 
     hic.Genome.prototype.getChromsosomeForCoordinate = function (bp) {
@@ -105,12 +114,12 @@ var hic = (function (hic) {
 
         var queryChr;
 
-        queryChr = this.getChromosomeName(chr.name);
+        queryChr = this.getChromosomeName(chr);
 
         if (this.cumulativeOffsets === undefined) {
             computeCumulativeOffsets.call(this);
         }
-        return this.cumulativeOffsets[queryChr.name];
+        return this.cumulativeOffsets[queryChr];
     };
 
     function computeCumulativeOffsets() {
@@ -136,29 +145,11 @@ var hic = (function (hic) {
 
     }
 
-
-// this.sequence = sequence;
-// this.chromosomeNames = sequence.chromosomeNames;
-// this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
-// this.ideograms = ideograms;
-// this.wgChromosomeNames = wgChromosomeNames;
-
-    function constructWG(genome) {
-
-        var l;
-
-        // Construct the whole-genome "chromosome"
-        l = 0;
-        _.each(genome.chromosomes, function (chromosome) {
-            l += Math.floor((chromosome.size / 1000));  // wg length is in kb.  bp would overflow maximum number limit
-        });
-
-
-        genome.chromosomes["all"] = {
-            name: "all",
-            size: l
-        };
+    // Required for igv.js
+    hic.Genome.prototype.getGenomeLength = function () {
+        return this.genomeLength;
     }
+
 
     return hic;
 

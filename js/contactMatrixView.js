@@ -712,7 +712,8 @@ var hic = (function (hic) {
                 dx, dy, dist, direction;
 
             if (count === 2) {
-                touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
+                // Average position of fingers
+                touchCoords = translateTouchCoordinates(ev.targetTouches[1], viewport);
                 offsetX = (offsetX + touchCoords.x) / 2;
                 offsetY = (offsetY + touchCoords.y) / 2;
             }
@@ -729,7 +730,7 @@ var hic = (function (hic) {
 
 
             if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-
+                // Double tap
                 direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
                 dx = lastTouch.x - offsetX;
                 dy = lastTouch.y - offsetY;
