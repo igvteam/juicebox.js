@@ -239,12 +239,9 @@ var hic = (function (hic) {
     };
 
     hic.Ruler.prototype.locusChange = function (event) {
-        if (0 === event.data.state.chr1 && event.data.state.chr1 === event.data.state.chr1) {
-            this.showWholeGenome();
-        } else {
-            this.hideWholeGenome();
-            this.update();
-        }
+
+        this.update();
+
     };
 
     hic.Ruler.prototype.updateWidthWithCalculation = function (calc) {
@@ -276,6 +273,13 @@ var hic = (function (hic) {
             bin,
             config = {},
             browser = this.browser;
+
+        if (isBrowserInWholeGenomeView(browser.state)) {
+            this.showWholeGenome();
+            return;
+        }
+
+        this.hideWholeGenome();
 
         identityTransformWithContext(this.ctx);
         igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: igv.Color.rgbColor(255, 255, 255)});
@@ -327,6 +331,7 @@ var hic = (function (hic) {
 
         if (options.chrName === "all") {
             // drawAll.call(this);
+            console.log('draw whole genome');
         } else {
 
             igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: igv.Color.rgbColor(255, 255, 255)});
@@ -492,6 +497,10 @@ var hic = (function (hic) {
         }
 
     };
+
+    function isBrowserInWholeGenomeView (state) {
+        return 0 === state.chr1 && state.chr1 === state.chr1;
+    }
 
     function TickSpacing(majorTick, majorUnit, unitMultiplier) {
         this.majorTick = majorTick;
