@@ -118,8 +118,8 @@ var hic = (function (hic) {
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
         // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+        // browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
+        // browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         if (true === browser.config.figureMode) {
             browser.$contactMaplabel.addClass('hidden-text');
@@ -136,6 +136,10 @@ var hic = (function (hic) {
 
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         }
 

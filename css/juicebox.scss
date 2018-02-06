@@ -815,12 +815,14 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  width: 75%;
+  width: 100%;
   @include navbar-input;
 }
 
 // navbar - colorscale
 .hic-colorscale-widget-container {
+
+  width: 33%;
 
   display: flex;
   flex-flow: row;
@@ -868,13 +870,15 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - normalization
 .hic-normalization-selector-container {
 
+  //width: 33%;
+  //margin-right: 12px;
+  margin-left: 26px;
+
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
-
-  width: 200px;
 
   div {
     display: block;
@@ -892,10 +896,12 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - resolution
 .hic-resolution-selector-container {
 
+  width: 33%;
+
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center;
 
   div#hic-resolution-label-container {
@@ -926,7 +932,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 72px;
+    width: 84px;
   }
 
 }

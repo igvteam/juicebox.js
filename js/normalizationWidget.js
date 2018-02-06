@@ -54,7 +54,7 @@ var hic = (function (hic) {
         $label = $('<div>');
         $label.text( (true === browser.config.figureMode) ? 'Normalization' : 'Norm');
         this.$container.append($label);
-        $label.hide();
+        // $label.hide();
 
         // select
         this.$normalization_selector = $('<select name="select">');
