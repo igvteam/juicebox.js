@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-resolution-selector-container">');
+        this.$container = $("<div>", { class:'hic-resolution-selector-container',  title:'Resolution' });
         $parent.append(this.$container);
 
         // label container
@@ -43,6 +43,7 @@ var hic = (function (hic) {
         this.$label = $("<div>");
         this.$label_container.append(this.$label);
         this.$label.text('Resolution (kb)');
+        this.$label.hide();
 
         // lock/unlock
         this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
@@ -124,10 +125,12 @@ var hic = (function (hic) {
 
             list = _.map(resolutionList, function (resolution, index) {
 
-                var selected;
+                var selected,
+                    str;
 
                 selected = selectedIndex === index;
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.round(resolution/divisor)) + '</option>';
+                str = igv.numberFormatter(Math.round(resolution/divisor)) + (1e3 === divisor ? ' kb' : ' mb');
+                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + str + '</option>';
             });
 
             return list.join('');

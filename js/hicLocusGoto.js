@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-chromosome-goto-container">');
+        this.$container = $("<div>", { class:'hic-chromosome-goto-container',  title:'Chromosome Goto' });
         $container.append(this.$container);
 
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
