@@ -127,10 +127,18 @@ var hic = (function (hic) {
                 $div.on('click', function (e) {
                     var $o;
                     $o = $(this).children(':first');
-                    console.log('click on chromosome ' + $o.text());
-
                     self.browser.parseGotoInput( $o.text() );
                 });
+
+                $div.hover(
+                    function () {
+                        hoverHandler.call(self, $(this), true);
+                    },
+
+                    function () {
+                        hoverHandler.call(self, $(this), false);
+                    }
+                );
 
             }
 
@@ -142,13 +150,6 @@ var hic = (function (hic) {
 
             $div = $('<div>');
             $wholeGenomeContainer.append($div);
-            $div.on('click', function (e) {
-                var $o;
-                $o = $(this).children(':first');
-                console.log('click on chromosome ' + $o.text());
-
-                self.browser.parseGotoInput( $o.text() );
-            });
 
             $div.width(scraps);
 
@@ -156,6 +157,23 @@ var hic = (function (hic) {
             $div.append($e);
 
             $e.text('-');
+
+            $div.on('click', function (e) {
+                var $o;
+                $o = $(this).children(':first');
+                self.browser.parseGotoInput( $o.text() );
+            });
+
+            $div.hover(
+                function () {
+                    $(this).css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
+                },
+
+                function () {
+                    $(this).css({ 'cursor':'auto', 'background-color': 'white' });
+                }
+            );
+
         }
 
         $wholeGenomeContainer.children().each(function (index) {
@@ -166,6 +184,31 @@ var hic = (function (hic) {
         // initially hide
         this.hideWholeGenome();
 
+        function hoverHandler($e, doHover) {
+            var self = this,
+                me,
+                $other,
+                other,
+                str;
+
+            me = $e.index();
+
+            str = 'div:nth-child(' + (1 + me) + ')';
+            $other = self.otherRuler.$wholeGenomeContainer.find(str);
+            other = $other.index();
+
+            if (true === doHover) {
+                $e.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
+                $other.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
+            } else {
+                $e.css({ 'cursor':'auto', 'background-color': 'white' });
+                $other.css({ 'cursor':'auto', 'background-color': 'white' });
+            }
+        }
+
+        function doUnhover($e) {
+
+        }
     };
 
     function bbox(axis, $child, $firstChild) {

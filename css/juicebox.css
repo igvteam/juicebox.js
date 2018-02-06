@@ -678,9 +678,6 @@ div[id$="content-container"] {
             text-overflow: ellipsis; }
         div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:last-child {
           border-right-color: transparent; }
-        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:hover {
-          cursor: pointer;
-          background-color: rgba(0, 0, 0, 0.1); }
   div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;

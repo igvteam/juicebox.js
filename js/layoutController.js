@@ -220,7 +220,10 @@ var hic = (function (hic) {
         this.yAxisRuler = new hic.Ruler(browser, 'y', $container);
 
         this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
+        this.xAxisRuler.otherRuler = this.yAxisRuler;
+
         this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
+        this.yAxisRuler.otherRuler = this.xAxisRuler;
 
         // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
