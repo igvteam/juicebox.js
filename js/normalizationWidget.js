@@ -47,13 +47,14 @@ var hic = (function (hic) {
         this.browser = browser;
 
         // container
-        this.$container = $('<div class="hic-normalization-selector-container">');
+        this.$container = $("<div>", { class:'hic-normalization-selector-container',  title:'Normalization' });
         $parent.append(this.$container);
 
         // label
         $label = $('<div>');
         $label.text( (true === browser.config.figureMode) ? 'Normalization' : 'Norm');
         this.$container.append($label);
+        $label.hide();
 
         // select
         this.$normalization_selector = $('<select name="select">');

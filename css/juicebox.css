@@ -123,8 +123,7 @@
       width: 96px;
       font-family: "Open Sans", sans-serif;
       font-weight: 400;
-      color: #5f5f5f;
-      direction: rtl; }
+      color: #5f5f5f; }
     .hic-menu .hic-normalization-selector-container select {
       width: 95%; }
   .hic-menu .hic-resolution-selector-container {
@@ -160,8 +159,7 @@
       width: 96px;
       font-family: "Open Sans", sans-serif;
       font-weight: 400;
-      color: #5f5f5f;
-      direction: rtl; }
+      color: #5f5f5f; }
     .hic-menu .hic-resolution-selector-container select {
       width: 95%; }
   .hic-menu .hic-annotation-presentation-button-container {
@@ -432,7 +430,7 @@
     background-color: transparent; }
 
 .hic-chromosome-goto-container {
-  width: 65%; }
+  width: 75%; }
   .hic-chromosome-goto-container input {
     display: block;
     height: 32px;
@@ -496,7 +494,7 @@
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center;
   width: 200px; }
   .hic-normalization-selector-container div {
@@ -508,8 +506,7 @@
     width: 96px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
+    color: #5f5f5f; }
   .hic-normalization-selector-container select {
     width: 160px; }
 
@@ -542,8 +539,7 @@
     width: 96px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
+    color: #5f5f5f; }
   .hic-resolution-selector-container select {
     width: 72px; }
 

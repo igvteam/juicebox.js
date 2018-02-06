@@ -128,7 +128,7 @@ $default-font-family: 'Open Sans', sans-serif;
     font-weight: 400;
     color: $default-dark-color;
 
-    direction: rtl;
+    //direction: rtl;
   }
 
 }
@@ -815,7 +815,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
 // navbar - chromosome goto
 .hic-chromosome-goto-container {
-  width: 65%;
+  width: 75%;
   @include navbar-input;
 }
 
@@ -871,7 +871,7 @@ $default-font-family: 'Open Sans', sans-serif;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center;
 
   width: 200px;

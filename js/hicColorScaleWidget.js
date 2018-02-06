@@ -35,7 +35,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-colorscale-widget-container">');
+        this.$container = $("<div>", { class:'hic-colorscale-widget-container',  title:'Color Scale' });
         $container.append(this.$container);
 
         // color chip
