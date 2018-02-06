@@ -157,8 +157,10 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
 
         if ("MapLoad" === event.type) {
+
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
+                addTouchHandlers(this, this.$viewport);
                 addMouseHandlers.call(this, this.$viewport);
                 this.mouseHandlersEnabled = true;
             }
@@ -674,15 +676,63 @@ var hic = (function (hic) {
 
     };
 
-    function shiftCurrentImage(self, dx, dy) {
-        var canvasWidth = self.$canvas.width(),
-            canvasHeight = self.$canvas.height(),
-            imageData;
 
-        imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        self.ctx.putImageData(imageData, dx, dy);
-    }
+    hic.ColorScale = function (scale) {
+        this.low = scale.low;
+        this.lowR = scale.lowR;
+        this.lowG = scale.lowG;
+        this.lowB = scale.lowB;
+        this.high = scale.high;
+        this.highR = scale.highR;
+        this.highG = scale.highG;
+        this.highB = scale.highB;
+    };
+
+    hic.ColorScale.prototype.equals = function (cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    };
+
+    hic.ColorScale.prototype.getColor = function (value) {
+        var scale = this, r, g, b, frac, diff;
+
+        if (value <= scale.low) value = scale.low;
+        else if (value >= scale.high) value = scale.high;
+
+        diff = scale.high - scale.low;
+
+        frac = (value - scale.low) / diff;
+        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
+        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
+        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+
+        return {
+            red: r,
+            green: g,
+            blue: b,
+            rgb: "rgb(" + r + "," + g + "," + b + ")"
+        };
+    };
+
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
+    };
+
+    hic.destringifyColorScale = function (string) {
+
+        var cs,
+            tokens;
+
+        tokens = string.split(",");
+
+        cs = _.clone(defaultColorScaleInitializer);
+        cs.high = tokens[0];
+        cs.highR = tokens[1];
+        cs.highG = tokens[2];
+        cs.highB = tokens[3];
+
+        return new hic.ColorScale(cs);
+
+    };
 
     function addMouseHandlers($viewport) {
 
@@ -693,148 +743,9 @@ var hic = (function (hic) {
             mouseDown,
             mouseLast,
             mouseOver,
-            lastTouch,
-            pinch,
-            viewport = $viewport[0],
             lastWheelTime;
 
-        viewport.ontouchstart = function (ev) {
-
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                offsetX = touchCoords.x,
-                offsetY = touchCoords.y,
-                count = ev.targetTouches.length,
-                timeStamp = ev.timeStamp || Date.now(),
-                resolved = false,
-                dx, dy, dist, direction;
-
-            if (count === 2) {
-                // Average position of fingers
-                touchCoords = translateTouchCoordinates(ev.targetTouches[1], viewport);
-                offsetX = (offsetX + touchCoords.x) / 2;
-                offsetY = (offsetY + touchCoords.y) / 2;
-            }
-
-            // NOTE: If the user makes simultaneous touches, the browser may fire a
-            // separate touchstart event for each touch point. Thus if there are
-            // two simultaneous touches, the first touchstart event will have
-            // targetTouches length of one and the second event will have a length
-            // of two.  In this case replace previous touch with this one and return
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
-                return;
-            }
-
-
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-                // Double tap
-                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
-                dx = lastTouch.x - offsetX;
-                dy = lastTouch.y - offsetY;
-                dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                    self.browser.zoomAndCenter(direction, offsetX, offsetY);
-                    lastTouch = undefined;
-                    resolved = true;
-                }
-            }
-
-            if (!resolved) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
-            }
-        }
-
-        viewport.ontouchmove = hic.throttle(function (ev) {
-
-            var touchCoords1, touchCoords2, t;
-
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            if (ev.targetTouches.length === 2) {
-
-                // Update pinch  (assuming 2 finger movement is a pinch)
-                touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
-                touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport);
-
-                t = {
-                    x1: touchCoords1.x,
-                    y1: touchCoords1.y,
-                    x2: touchCoords2.x,
-                    y2: touchCoords2.y
-                };
-
-                if (pinch) {
-                    pinch.end = t;
-                } else {
-                    pinch = {start: t};
-                }
-            }
-
-            else {
-                // Assuming 1 finger movement is a drag
-
-                if (self.updating) return;   // Don't overwhelm browser
-
-                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                    offsetX = touchCoords.x,
-                    offsetY = touchCoords.y;
-                if (lastTouch) {
-                    var dx = lastTouch.x - offsetX,
-                        dy = lastTouch.y - offsetY;
-                    if (!isNaN(dx) && !isNaN(dy)) {
-                        self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
-                    }
-                }
-
-                lastTouch = {
-                    x: offsetX,
-                    y: offsetY,
-                    timeStamp: ev.timeStamp || Date.now(),
-                    count: ev.targetTouches.length
-                };
-            }
-
-        }, 20);
-
-        viewport.ontouchend = function (ev) {
-
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            if (pinch && pinch.end !== undefined) {
-
-                var startT = pinch.start,
-                    endT = pinch.end,
-                    dxStart = startT.x2 - startT.x1,
-                    dyStart = startT.y2 - startT.y1,
-                    dxEnd = endT.x2 - endT.x1,
-                    dyEnd = endT.y2 - endT.y1,
-                    distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
-                    scale = distEnd / distStart,
-                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
-                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
-                    anchorPx = (startT.x1 + startT.x2) / 2,
-                    anchorPy = (startT.y1 + startT.y2) / 2;
-
-                if (scale < 0.8 || scale > 1.2) {
-                    lastTouch = undefined;
-                    self.browser.pinchZoom(anchorPx, anchorPy, scale);
-                }
-            }
-
-            // a touch end always ends a pinch
-            pinch = undefined;
-
-        }
-
         if (!this.browser.isMobile) {
-
 
             $viewport.dblclick(function (e) {
 
@@ -889,19 +800,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    };
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                    {
-                      x: eFixed.pageX - $viewport.offset().left,
-                      y: eFixed.pageY - $viewport.offset().top
-                    };
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
@@ -916,7 +827,7 @@ var hic = (function (hic) {
 
                         self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
 
-                    }else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
+                    } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
                         isDragging = true;
 
@@ -986,7 +897,6 @@ var hic = (function (hic) {
 
                 }
             });
-
         }
 
         function panMouseUpOrMouseOut(e) {
@@ -1020,77 +930,200 @@ var hic = (function (hic) {
 
         }
 
+
+        function shiftCurrentImage(self, dx, dy) {
+            var canvasWidth = self.$canvas.width(),
+                canvasHeight = self.$canvas.height(),
+                imageData;
+
+            imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+            self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            self.ctx.putImageData(imageData, dx, dy);
+        }
+
     }
 
-    hic.ColorScale = function (scale) {
-        this.low = scale.low;
-        this.lowR = scale.lowR;
-        this.lowG = scale.lowG;
-        this.lowB = scale.lowB;
-        this.high = scale.high;
-        this.highR = scale.highR;
-        this.highG = scale.highG;
-        this.highB = scale.highB;
-    };
 
-    hic.ColorScale.prototype.equals = function (cs) {
-        return JSON.stringify(this) === JSON.stringify(cs);
-    };
+    /**
+     * Add touch handlers.  Touches are mapped to one of the following application level events
+     *  - double tap, equivalent to double click
+     *  - move
+     *  - pinch
+     *
+     * @param $viewport
+     */
 
-    hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff;
+    function addTouchHandlers($viewport) {
 
-        if (value <= scale.low) value = scale.low;
-        else if (value >= scale.high) value = scale.high;
+        var self = this,
 
-        diff = scale.high - scale.low;
+            lastTouch,
+            pinch,
+            viewport = $viewport[0];
 
-        frac = (value - scale.low) / diff;
-        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
-        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
-        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+        /**
+         * Touch start -- 3 possibilities
+         *   (1) beginning of a drag (pan)
+         *   (2) first tap of a double tap
+         *   (3) beginning of a pinch
+         */
+        viewport.ontouchstart = function (ev) {
 
-        return {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        };
-    };
+            ev.preventDefault();
+            ev.stopPropagation();
 
-    hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
-    };
+            var touchCoords, offsetX, offsetY, count, timeStamp, resolved, dx, dy, dist, direction;
 
-    hic.destringifyColorScale = function (string) {
+            count = ev.touches.length;
+            timeStamp = ev.timeStamp || Date.now();
+            resolved = false;
 
-        var cs,
-            tokens;
+            touchCoords = translateTouchCoordinates(ev.touches[0], viewport);
+            offsetX = touchCoords.x;
+            offsetY = touchCoords.y;
+            if (count === 2) {
+                // Average position of fingers
+                touchCoords = translateTouchCoordinates(ev.touches[1], viewport);
+                offsetX = (offsetX + touchCoords.x) / 2;
+                offsetY = (offsetY + touchCoords.y) / 2;
 
-        tokens = string.split(",");
 
-        cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[0];
-        cs.highR = tokens[1];
-        cs.highG = tokens[2];
-        cs.highB = tokens[3];
+                // NOTE: If the user makes simultaneous touches, the browser may fire a
+                // separate touchstart event for each touch point. Thus if there are
+                // two simultaneous touches, the first touchstart event will have
+                // targetTouches length of one and the second event will have a length
+                // of two.  In this case replace previous touch with this one and return
 
-        return new hic.ColorScale(cs);
+                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.touches.length};
+            }
 
-    };
+            else {
 
-    function translateTouchCoordinates(e, target) {
+                // Detect double tap.  Taps must be sufficiently close in time and space
+                if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
+                    // Double tap
+                    direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
+                    dx = lastTouch.x - offsetX;
+                    dy = lastTouch.y - offsetY;
+                    dist = Math.sqrt(dx * dx + dy * dy);
 
-        var $target = $(target),
-            eFixed,
-            posx,
-            posy;
+                    if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
+                        self.browser.zoomAndCenter(direction, offsetX, offsetY);
+                        lastTouch = undefined;
+                    }
+                }
+            }
+        }
 
-        posx = e.pageX - $target.offset().left;
-        posy = e.pageY - $target.offset().top;
+        /**
+         * Touch move.  2 possibilities
+         *   (1) pinch in progress  (two finger move)
+         *   (2) drag in progress
+         */
+        viewport.ontouchmove = hic.throttle(function (ev) {
 
-        return {x: posx, y: posy}
+            var touchCoords1, touchCoords2, t;
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            if (ev.targetTouches.length === 2) {
+
+                // Update pinch  (assuming 2 finger movement is a pinch)
+                touchCoords1 = translateTouchCoordinates(ev.touches[0], viewport);
+                touchCoords2 = translateTouchCoordinates(ev.touches[1], viewport);
+
+                t = {
+                    x1: touchCoords1.x,
+                    y1: touchCoords1.y,
+                    x2: touchCoords2.x,
+                    y2: touchCoords2.y
+                };
+
+                if (pinch) {
+                    pinch.end = t;
+                } else {
+                    pinch = {start: t};
+                }
+            }
+
+            else {
+                // Assuming 1 finger movement is a drag
+
+                if (self.updating) return;   // Don't overwhelm browser
+
+                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
+                    offsetX = touchCoords.x,
+                    offsetY = touchCoords.y;
+                if (lastTouch) {
+                    var dx = lastTouch.x - offsetX,
+                        dy = lastTouch.y - offsetY;
+                    if (!isNaN(dx) && !isNaN(dy)) {
+                        self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
+                    }
+                }
+
+                lastTouch = {
+                    x: offsetX,
+                    y: offsetY,
+                    timeStamp: ev.timeStamp || Date.now(),
+                    count: ev.targetTouches.length
+                };
+            }
+
+        }, 20);
+
+        /**
+         * touch end -- if a pinch is in progress process it.
+         * 
+         * @param ev
+         */
+        viewport.ontouchend = function (ev) {
+
+            ev.preventDefault();
+            ev.stopPropagation();
+
+            if (pinch && pinch.end !== undefined) {
+
+                var startT = pinch.start,
+                    endT = pinch.end,
+                    dxStart = startT.x2 - startT.x1,
+                    dyStart = startT.y2 - startT.y1,
+                    dxEnd = endT.x2 - endT.x1,
+                    dyEnd = endT.y2 - endT.y1,
+                    distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
+                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
+                    scale = distEnd / distStart,
+                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
+                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
+                    anchorPx = (startT.x1 + startT.x2) / 2,
+                    anchorPy = (startT.y1 + startT.y2) / 2;
+
+                if (scale < 0.8 || scale > 1.2) {
+                    self.browser.pinchZoom(anchorPx, anchorPy, scale);
+                }
+            }
+
+            lastTouch = undefined;
+            pinch = undefined;
+
+        }
+
+        function translateTouchCoordinates(e, target) {
+
+            var $target = $(target),
+                eFixed,
+                posx,
+                posy;
+
+            posx = e.pageX - $target.offset().left;
+            posy = e.pageY - $target.offset().top;
+
+            return {x: posx, y: posy}
+        }
+
     }
+
 
     return hic;
 
