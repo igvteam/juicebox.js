@@ -105,8 +105,10 @@ var hic = (function (hic) {
             if (percentage * dimen < 1.0) {
                 scraps += percentage;
             } else {
+
                 $div = $('<div>');
                 $wholeGenomeContainer.append($div);
+                $div.data('label', chr.name);
 
                 if (0 === index) {
                     $firstDiv = $div;
@@ -122,24 +124,9 @@ var hic = (function (hic) {
 
                 $e = $('<div>');
                 $div.append($e);
-                $e.text(chr.name);
+                $e.text($div.data('label'));
 
-                $div.on('click', function (e) {
-                    var $o;
-                    $o = $(this).children(':first');
-                    self.browser.parseGotoInput( $o.text() );
-                });
-
-                $div.hover(
-                    function () {
-                        hoverHandler.call(self, $(this), true);
-                    },
-
-                    function () {
-                        hoverHandler.call(self, $(this), false);
-                    }
-                );
-
+                decorate.call(self, $div);
             }
 
         });
@@ -150,30 +137,15 @@ var hic = (function (hic) {
 
             $div = $('<div>');
             $wholeGenomeContainer.append($div);
+            $div.data('label', '-');
 
             $div.width(scraps);
 
             $e = $('<span>');
             $div.append($e);
+            $e.text($div.data('label'));
 
-            $e.text('-');
-
-            $div.on('click', function (e) {
-                var $o;
-                $o = $(this).children(':first');
-                self.browser.parseGotoInput( $o.text() );
-            });
-
-            $div.hover(
-                function () {
-                    $(this).css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
-                },
-
-                function () {
-                    $(this).css({ 'cursor':'auto', 'background-color': 'white' });
-                }
-            );
-
+            decorate.call(self, $div);
         }
 
         $wholeGenomeContainer.children().each(function (index) {
@@ -184,25 +156,46 @@ var hic = (function (hic) {
         // initially hide
         this.hideWholeGenome();
 
+        function decorate($d) {
+            var self = this;
+
+            $d.on('click', function (e) {
+                var $o;
+                $o = $(this).first();
+                self.browser.parseGotoInput( $o.text() );
+            });
+
+            $d.hover(
+                function () {
+                    hoverHandler.call(self, $(this), true);
+                },
+
+                function () {
+                    hoverHandler.call(self, $(this), false);
+                }
+            );
+
+        }
+
         function hoverHandler($e, doHover) {
-            var self = this,
-                me,
-                $other,
-                other,
-                str;
 
-            me = $e.index();
+            var target,
+                $target;
 
-            str = 'div:nth-child(' + (1 + me) + ')';
-            $other = self.otherRuler.$wholeGenomeContainer.find(str);
-            other = $other.index();
+            target = $e.data('label');
+
+            this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
+                if (target === $(this).data('label')) {
+                    $target = $(this);
+                }
+            });
 
             if (true === doHover) {
-                $e.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
-                // $other.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
+                $e.addClass('hic-whole-genome-chromosome-highlight');
+                $target.addClass('hic-whole-genome-chromosome-highlight');
             } else {
-                $e.css({ 'cursor':'auto', 'background-color': 'white' });
-                // $other.css({ 'cursor':'auto', 'background-color': 'white' });
+                $e.removeClass('hic-whole-genome-chromosome-highlight');
+                $target.removeClass('hic-whole-genome-chromosome-highlight');
             }
         }
 
