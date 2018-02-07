@@ -160,7 +160,7 @@ var hic = (function (hic) {
 
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
-                addTouchHandlers(this, this.$viewport);
+                addTouchHandlers.call(this, this.$viewport);
                 addMouseHandlers.call(this, this.$viewport);
                 this.mouseHandlersEnabled = true;
             }
