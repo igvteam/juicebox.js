@@ -973,16 +973,13 @@ var hic = (function (hic) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            console.log("Touch start");
-            ev.touches.forEach(function (t) {
-                console.log("x: " + t.clientX + "  y:" + t.clientY);
-            });
-
             var touchCoords, offsetX, offsetY, count, timeStamp, resolved, dx, dy, dist, direction;
 
             count = ev.touches.length;
             timeStamp = ev.timeStamp || Date.now();
-            resolved = false;
+
+            console.log("Touch start: " + count);
+
 
             touchCoords = translateTouchCoordinates(ev.touches[0], viewport);
             offsetX = touchCoords.x;
@@ -993,7 +990,6 @@ var hic = (function (hic) {
                 offsetX = (offsetX + touchCoords.x) / 2;
                 offsetY = (offsetY + touchCoords.y) / 2;
 
-
                 // NOTE: If the user makes simultaneous touches, the browser may fire a
                 // separate touchstart event for each touch point. Thus if there are
                 // two simultaneous touches, the first touchstart event will have
@@ -1003,22 +999,21 @@ var hic = (function (hic) {
                 lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.touches.length};
             }
 
-            else {
 
-                // Detect double tap.  Taps must be sufficiently close in time and space
-                if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-                    // Double tap
-                    direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
-                    dx = lastTouch.x - offsetX;
-                    dy = lastTouch.y - offsetY;
-                    dist = Math.sqrt(dx * dx + dy * dy);
+            // Detect double tap.  Taps must be sufficiently close in time and space
+            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
+                // Double tap
+                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
+                dx = lastTouch.x - offsetX;
+                dy = lastTouch.y - offsetY;
+                dist = Math.sqrt(dx * dx + dy * dy);
 
-                    if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                        self.browser.zoomAndCenter(direction, offsetX, offsetY);
-                        lastTouch = undefined;
-                    }
+                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
+                    self.browser.zoomAndCenter(direction, offsetX, offsetY);
+                    lastTouch = undefined;
                 }
             }
+
         }
 
         /**
@@ -1081,7 +1076,7 @@ var hic = (function (hic) {
 
         /**
          * touch end -- if a pinch is in progress process it.
-         * 
+         *
          * @param ev
          */
         viewport.ontouchend = function (ev) {
