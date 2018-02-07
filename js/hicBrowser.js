@@ -984,6 +984,13 @@ var hic = (function (hic) {
 
         currentResolution = bpResolutions[this.state.zoom];
 
+        if(this.state.chr1 === 0) {
+
+            this.zoomAndCenter(1, anchorPx, anchorPy);
+            return;
+
+        }
+
         if (this.resolutionLocked ||
             (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
             (this.state.zoom === 0 && scaleFactor < 1)) {
