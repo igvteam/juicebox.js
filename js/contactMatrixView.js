@@ -969,8 +969,14 @@ var hic = (function (hic) {
          */
         viewport.ontouchstart = function (ev) {
 
+
             ev.preventDefault();
             ev.stopPropagation();
+
+            console.log("Touch start");
+            ev.touches.forEach(function (t) {
+                console.log("x: " + t.clientX + "  y:" + t.clientY);
+            });
 
             var touchCoords, offsetX, offsetY, count, timeStamp, resolved, dx, dy, dist, direction;
 
