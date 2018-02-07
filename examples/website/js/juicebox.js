@@ -22040,8 +22040,10 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
 
         if ("MapLoad" === event.type) {
+
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
+                addTouchHandlers.call(this, this.$viewport);
                 addMouseHandlers.call(this, this.$viewport);
                 this.mouseHandlersEnabled = true;
             }
@@ -22557,15 +22559,63 @@ var hic = (function (hic) {
 
     };
 
-    function shiftCurrentImage(self, dx, dy) {
-        var canvasWidth = self.$canvas.width(),
-            canvasHeight = self.$canvas.height(),
-            imageData;
 
-        imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        self.ctx.putImageData(imageData, dx, dy);
-    }
+    hic.ColorScale = function (scale) {
+        this.low = scale.low;
+        this.lowR = scale.lowR;
+        this.lowG = scale.lowG;
+        this.lowB = scale.lowB;
+        this.high = scale.high;
+        this.highR = scale.highR;
+        this.highG = scale.highG;
+        this.highB = scale.highB;
+    };
+
+    hic.ColorScale.prototype.equals = function (cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    };
+
+    hic.ColorScale.prototype.getColor = function (value) {
+        var scale = this, r, g, b, frac, diff;
+
+        if (value <= scale.low) value = scale.low;
+        else if (value >= scale.high) value = scale.high;
+
+        diff = scale.high - scale.low;
+
+        frac = (value - scale.low) / diff;
+        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
+        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
+        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+
+        return {
+            red: r,
+            green: g,
+            blue: b,
+            rgb: "rgb(" + r + "," + g + "," + b + ")"
+        };
+    };
+
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
+    };
+
+    hic.destringifyColorScale = function (string) {
+
+        var cs,
+            tokens;
+
+        tokens = string.split(",");
+
+        cs = _.clone(defaultColorScaleInitializer);
+        cs.high = tokens[0];
+        cs.highR = tokens[1];
+        cs.highG = tokens[2];
+        cs.highB = tokens[3];
+
+        return new hic.ColorScale(cs);
+
+    };
 
     function addMouseHandlers($viewport) {
 
@@ -22576,11 +22626,229 @@ var hic = (function (hic) {
             mouseDown,
             mouseLast,
             mouseOver,
-            lastTouch,
-            pinch,
-            viewport = $viewport[0],
             lastWheelTime;
 
+        if (!this.browser.isMobile) {
+
+            $viewport.dblclick(function (e) {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                var mouseX = e.offsetX || e.layerX,
+                    mouseY = e.offsetY || e.layerX;
+
+                self.browser.zoomAndCenter(1, mouseX, mouseY);
+
+            });
+
+            $viewport.on('mouseover', function (e) {
+                mouseOver = true;
+            });
+
+            $viewport.on('mouseout', function (e) {
+                mouseOver = undefined;
+            });
+
+            $viewport.on('mousedown', function (e) {
+                var eFixed;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (self.browser.$menu.is(':visible')) {
+                    self.browser.hideMenu();
+                }
+
+                mouseLast = {x: e.offsetX, y: e.offsetY};
+                mouseDown = {x: e.offsetX, y: e.offsetY};
+
+                isSweepZooming = (true === e.altKey);
+                if (isSweepZooming) {
+                    eFixed = $.event.fix(e);
+                    self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
+                }
+
+                isMouseDown = true;
+
+            });
+
+            $viewport.on('mousemove', hic.throttle(function (e) {
+
+                var coords,
+                    eFixed,
+                    xy;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                coords =
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+
+                // Sets pageX and pageY for browsers that don't support them
+                eFixed = $.event.fix(e);
+
+                xy =
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
+
+                self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
+
+                if (true === self.willShowCrosshairs) {
+                    self.browser.updateCrosshairs(xy);
+                    self.browser.showCrosshairs();
+                }
+
+                if (isMouseDown) { // Possibly dragging
+
+                    if (isSweepZooming) {
+
+                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
+
+                    } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
+
+                        isDragging = true;
+
+                        var dx = mouseLast.x - coords.x;
+                        var dy = mouseLast.y - coords.y;
+
+                        // If matrix data is updating shift current map image while we wait
+                        if (self.updating) {
+                            shiftCurrentImage(self, -dx, -dy);
+                        }
+
+                        self.browser.shiftPixels(dx, dy);
+
+                    }
+
+                    mouseLast = coords;
+                }
+
+
+            }, 10));
+
+            $viewport.on('mouseup', panMouseUpOrMouseOut);
+
+            $viewport.on('mouseleave', function () {
+
+                self.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
+                self.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
+
+                panMouseUpOrMouseOut();
+            });
+
+            // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
+            // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
+
+            if (!self.browser.figureMode) {
+                $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+            }
+
+            // Document level events
+            $(document).on({
+
+                keydown: function (e) {
+                    if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                        self.willShowCrosshairs = true;
+                    }
+                },
+
+                keyup: function (e) {
+                    if (/*true === e.shiftKey*/true) {
+                        self.browser.hideCrosshairs();
+                        self.willShowCrosshairs = undefined;
+                    }
+                },
+
+                // for sweep-zoom allow user to sweep beyond viewport extent
+                // sweep area clamps since viewport mouse handlers stop firing
+                // when the viewport boundary is crossed.
+                mouseup: function (e) {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (isSweepZooming) {
+                        isSweepZooming = false;
+                        self.sweepZoom.commit();
+                    }
+
+                }
+            });
+        }
+
+        function panMouseUpOrMouseOut(e) {
+
+            if (true === isDragging) {
+                isDragging = false;
+                self.browser.eventBus.post(hic.Event("DragStopped"));
+            }
+
+            isMouseDown = false;
+            mouseDown = mouseLast = undefined;
+        }
+
+        function mouseWheelHandler(e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var t = Date.now();
+
+            if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
+
+                // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
+                var direction = e.deltaY < 0 ? 1 : -1,
+                    coords = igv.translateMouseCoordinates(e, $viewport),
+                    x = coords.x,
+                    y = coords.y;
+                self.browser.wheelClickZoom(direction, x, y);
+                lastWheelTime = t;
+            }
+
+        }
+
+
+        function shiftCurrentImage(self, dx, dy) {
+            var canvasWidth = self.$canvas.width(),
+                canvasHeight = self.$canvas.height(),
+                imageData;
+
+            imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+            self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            self.ctx.putImageData(imageData, dx, dy);
+        }
+
+    }
+
+
+    /**
+     * Add touch handlers.  Touches are mapped to one of the following application level events
+     *  - double tap, equivalent to double click
+     *  - move
+     *  - pinch
+     *
+     * @param $viewport
+     */
+
+    function addTouchHandlers($viewport) {
+
+        var self = this,
+
+            lastTouch, pinch,
+            viewport = $viewport[0];
+
+        /**
+         * Touch start -- 3 possibilities
+         *   (1) beginning of a drag (pan)
+         *   (2) first tap of a double tap
+         *   (3) beginning of a pinch
+         */
         viewport.ontouchstart = function (ev) {
 
             ev.preventDefault();
@@ -22595,8 +22863,7 @@ var hic = (function (hic) {
                 dx, dy, dist, direction;
 
             if (count === 2) {
-                // Average position of fingers
-                touchCoords = translateTouchCoordinates(ev.targetTouches[1], viewport);
+                touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
                 offsetX = (offsetX + touchCoords.x) / 2;
                 offsetY = (offsetY + touchCoords.y) / 2;
             }
@@ -22613,7 +22880,7 @@ var hic = (function (hic) {
 
 
             if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-                // Double tap
+
                 direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
                 dx = lastTouch.x - offsetX;
                 dy = lastTouch.y - offsetY;
@@ -22716,264 +22983,21 @@ var hic = (function (hic) {
 
         }
 
-        if (!this.browser.isMobile) {
+        function translateTouchCoordinates(e, target) {
 
+            var $target = $(target),
+                eFixed,
+                posx,
+                posy;
 
-            $viewport.dblclick(function (e) {
+            posx = e.pageX - $target.offset().left;
+            posy = e.pageY - $target.offset().top;
 
-                e.preventDefault();
-                e.stopPropagation();
-
-                var mouseX = e.offsetX || e.layerX,
-                    mouseY = e.offsetY || e.layerX;
-
-                self.browser.zoomAndCenter(1, mouseX, mouseY);
-
-            });
-
-            $viewport.on('mouseover', function (e) {
-                mouseOver = true;
-            });
-
-            $viewport.on('mouseout', function (e) {
-                mouseOver = undefined;
-            });
-
-            $viewport.on('mousedown', function (e) {
-                var eFixed;
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (self.browser.$menu.is(':visible')) {
-                    self.browser.hideMenu();
-                }
-
-                mouseLast = {x: e.offsetX, y: e.offsetY};
-                mouseDown = {x: e.offsetX, y: e.offsetY};
-
-                isSweepZooming = (true === e.altKey);
-                if (isSweepZooming) {
-                    eFixed = $.event.fix(e);
-                    self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
-                }
-
-                isMouseDown = true;
-
-            });
-
-            $viewport.on('mousemove', hic.throttle(function (e) {
-
-                var coords,
-                    eFixed,
-                    xy;
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    };
-
-                // Sets pageX and pageY for browsers that don't support them
-                eFixed = $.event.fix(e);
-
-                xy =
-                    {
-                      x: eFixed.pageX - $viewport.offset().left,
-                      y: eFixed.pageY - $viewport.offset().top
-                    };
-
-                self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
-
-                if (true === self.willShowCrosshairs) {
-                    self.browser.updateCrosshairs(xy);
-                    self.browser.showCrosshairs();
-                }
-
-                if (isMouseDown) { // Possibly dragging
-
-                    if (isSweepZooming) {
-
-                        self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
-
-                    }else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
-
-                        isDragging = true;
-
-                        var dx = mouseLast.x - coords.x;
-                        var dy = mouseLast.y - coords.y;
-
-                        // If matrix data is updating shift current map image while we wait
-                        if (self.updating) {
-                            shiftCurrentImage(self, -dx, -dy);
-                        }
-
-                        self.browser.shiftPixels(dx, dy);
-
-                    }
-
-                    mouseLast = coords;
-                }
-
-
-            }, 10));
-
-            $viewport.on('mouseup', panMouseUpOrMouseOut);
-
-            $viewport.on('mouseleave', function () {
-
-                self.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
-                self.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
-
-                panMouseUpOrMouseOut();
-            });
-
-            // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
-            // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
-
-            if (!self.browser.figureMode) {
-                $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
-            }
-
-            // Document level events
-            $(document).on({
-
-                keydown: function (e) {
-                    if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                        self.willShowCrosshairs = true;
-                    }
-                },
-
-                keyup: function (e) {
-                    if (/*true === e.shiftKey*/true) {
-                        self.browser.hideCrosshairs();
-                        self.willShowCrosshairs = undefined;
-                    }
-                },
-
-                // for sweep-zoom allow user to sweep beyond viewport extent
-                // sweep area clamps since viewport mouse handlers stop firing
-                // when the viewport boundary is crossed.
-                mouseup: function (e) {
-
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isSweepZooming) {
-                        isSweepZooming = false;
-                        self.sweepZoom.commit();
-                    }
-
-                }
-            });
-
-        }
-
-        function panMouseUpOrMouseOut(e) {
-
-            if (true === isDragging) {
-                isDragging = false;
-                self.browser.eventBus.post(hic.Event("DragStopped"));
-            }
-
-            isMouseDown = false;
-            mouseDown = mouseLast = undefined;
-        }
-
-        function mouseWheelHandler(e) {
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            var t = Date.now();
-
-            if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-
-                // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-                var direction = e.deltaY < 0 ? 1 : -1,
-                    coords = igv.translateMouseCoordinates(e, $viewport),
-                    x = coords.x,
-                    y = coords.y;
-                self.browser.wheelClickZoom(direction, x, y);
-                lastWheelTime = t;
-            }
-
+            return {x: posx, y: posy}
         }
 
     }
 
-    hic.ColorScale = function (scale) {
-        this.low = scale.low;
-        this.lowR = scale.lowR;
-        this.lowG = scale.lowG;
-        this.lowB = scale.lowB;
-        this.high = scale.high;
-        this.highR = scale.highR;
-        this.highG = scale.highG;
-        this.highB = scale.highB;
-    };
-
-    hic.ColorScale.prototype.equals = function (cs) {
-        return JSON.stringify(this) === JSON.stringify(cs);
-    };
-
-    hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff;
-
-        if (value <= scale.low) value = scale.low;
-        else if (value >= scale.high) value = scale.high;
-
-        diff = scale.high - scale.low;
-
-        frac = (value - scale.low) / diff;
-        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
-        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
-        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
-
-        return {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        };
-    };
-
-    hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
-    };
-
-    hic.destringifyColorScale = function (string) {
-
-        var cs,
-            tokens;
-
-        tokens = string.split(",");
-
-        cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[0];
-        cs.highR = tokens[1];
-        cs.highG = tokens[2];
-        cs.highB = tokens[3];
-
-        return new hic.ColorScale(cs);
-
-    };
-
-    function translateTouchCoordinates(e, target) {
-
-        var $target = $(target),
-            eFixed,
-            posx,
-            posy;
-
-        posx = e.pageX - $target.offset().left;
-        posy = e.pageY - $target.offset().top;
-
-        return {x: posx, y: posy}
-    }
 
     return hic;
 
@@ -24316,6 +24340,13 @@ var hic = (function (hic) {
 
         currentResolution = bpResolutions[this.state.zoom];
 
+        if(this.state.chr1 === 0) {
+
+            this.zoomAndCenter(1, anchorPx, anchorPy);
+            return;
+
+        }
+
         if (this.resolutionLocked ||
             (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
             (this.state.zoom === 0 && scaleFactor < 1)) {
@@ -24334,9 +24365,10 @@ var hic = (function (hic) {
         }
 
         minZoom.call(self, self.state.chr1, self.state.chr2)
+            
             .then(function (z) {
 
-                if (!this.resolutionLocked && newZoom < z) {
+                if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
                     self.setChromosomes(0, 0);
                 }
                 else {
@@ -24381,7 +24413,7 @@ var hic = (function (hic) {
             minZoom.call(self, self.state.chr1, self.state.chr2)
                 .then(function (z) {
                     var newZoom = self.state.zoom + direction;
-                    if (newZoom < z) {
+                    if (direction < 0 && newZoom < z) {
                         self.setChromosomes(0, 0);
                     }
                     else {
@@ -25270,7 +25302,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-colorscale-widget-container">');
+        this.$container = $("<div>", { class:'hic-colorscale-widget-container',  title:'Color Scale' });
         $container.append(this.$container);
 
         // color chip
@@ -25651,7 +25683,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-chromosome-goto-container">');
+        this.$container = $("<div>", { class:'hic-chromosome-goto-container',  title:'Chromosome Goto' });
         $container.append(this.$container);
 
         this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
@@ -26586,7 +26618,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $('<div class="hic-resolution-selector-container">');
+        this.$container = $("<div>", { class:'hic-resolution-selector-container',  title:'Resolution' });
         $parent.append(this.$container);
 
         // label container
@@ -26597,6 +26629,7 @@ var hic = (function (hic) {
         this.$label = $("<div>");
         this.$label_container.append(this.$label);
         this.$label.text('Resolution (kb)');
+        this.$label.hide();
 
         // lock/unlock
         this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
@@ -26678,10 +26711,12 @@ var hic = (function (hic) {
 
             list = _.map(resolutionList, function (resolution, index) {
 
-                var selected;
+                var selected,
+                    str;
 
                 selected = selectedIndex === index;
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + igv.numberFormatter(Math.round(resolution/divisor)) + '</option>';
+                str = igv.numberFormatter(Math.round(resolution/divisor)) + (1e3 === divisor ? ' kb' : ' mb');
+                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + str + '</option>';
             });
 
             return list.join('');
@@ -26801,8 +26836,10 @@ var hic = (function (hic) {
             if (percentage * dimen < 1.0) {
                 scraps += percentage;
             } else {
+
                 $div = $('<div>');
                 $wholeGenomeContainer.append($div);
+                $div.data('label', chr.name);
 
                 if (0 === index) {
                     $firstDiv = $div;
@@ -26818,16 +26855,9 @@ var hic = (function (hic) {
 
                 $e = $('<div>');
                 $div.append($e);
-                $e.text(chr.name);
+                $e.text($div.data('label'));
 
-                $div.on('click', function (e) {
-                    var $o;
-                    $o = $(this).children(':first');
-                    console.log('click on chromosome ' + $o.text());
-
-                    self.browser.parseGotoInput( $o.text() );
-                });
-
+                decorate.call(self, $div);
             }
 
         });
@@ -26838,20 +26868,15 @@ var hic = (function (hic) {
 
             $div = $('<div>');
             $wholeGenomeContainer.append($div);
-            $div.on('click', function (e) {
-                var $o;
-                $o = $(this).children(':first');
-                console.log('click on chromosome ' + $o.text());
-
-                self.browser.parseGotoInput( $o.text() );
-            });
+            $div.data('label', '-');
 
             $div.width(scraps);
 
             $e = $('<span>');
             $div.append($e);
+            $e.text($div.data('label'));
 
-            $e.text('-');
+            decorate.call(self, $div);
         }
 
         $wholeGenomeContainer.children().each(function (index) {
@@ -26861,6 +26886,49 @@ var hic = (function (hic) {
 
         // initially hide
         this.hideWholeGenome();
+
+        function decorate($d) {
+            var self = this;
+
+            $d.on('click', function (e) {
+                var $o;
+                $o = $(this).first();
+                self.browser.parseGotoInput( $o.text() );
+            });
+
+            $d.hover(
+                function () {
+                    hoverHandler.call(self, $(this), true);
+                },
+
+                function () {
+                    hoverHandler.call(self, $(this), false);
+                }
+            );
+
+        }
+
+        function hoverHandler($e, doHover) {
+
+            var target,
+                $target;
+
+            target = $e.data('label');
+
+            this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
+                if (target === $(this).data('label')) {
+                    $target = $(this);
+                }
+            });
+
+            if (true === doHover) {
+                $e.addClass('hic-whole-genome-chromosome-highlight');
+                $target.addClass('hic-whole-genome-chromosome-highlight');
+            } else {
+                $e.removeClass('hic-whole-genome-chromosome-highlight');
+                $target.removeClass('hic-whole-genome-chromosome-highlight');
+            }
+        }
 
     };
 
@@ -28381,8 +28449,8 @@ var hic = (function (hic) {
         browser.locusGoto = new hic.LocusGoto(browser, $upper_widget_container);
 
         // resolution widget
-        browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
-        browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+        // browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
+        // browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         if (true === browser.config.figureMode) {
             browser.$contactMaplabel.addClass('hidden-text');
@@ -28399,6 +28467,10 @@ var hic = (function (hic) {
 
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+
+            // resolution widget
+            browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
+            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
         }
 
@@ -28479,7 +28551,10 @@ var hic = (function (hic) {
         this.yAxisRuler = new hic.Ruler(browser, 'y', $container);
 
         this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
+        this.xAxisRuler.otherRuler = this.yAxisRuler;
+
         this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
+        this.yAxisRuler.otherRuler = this.xAxisRuler;
 
         // viewport | y-scrollbar
         browser.contactMatrixView = new hic.ContactMatrixView(browser, $container);
@@ -28858,13 +28933,14 @@ var hic = (function (hic) {
         this.browser = browser;
 
         // container
-        this.$container = $('<div class="hic-normalization-selector-container">');
+        this.$container = $("<div>", { class:'hic-normalization-selector-container',  title:'Normalization' });
         $parent.append(this.$container);
 
         // label
         $label = $('<div>');
         $label.text( (true === browser.config.figureMode) ? 'Normalization' : 'Norm');
         this.$container.append($label);
+        // $label.hide();
 
         // select
         this.$normalization_selector = $('<select name="select">');

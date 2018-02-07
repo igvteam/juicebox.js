@@ -123,8 +123,7 @@
       width: 96px;
       font-family: "Open Sans", sans-serif;
       font-weight: 400;
-      color: #5f5f5f;
-      direction: rtl; }
+      color: #5f5f5f; }
     .hic-menu .hic-normalization-selector-container select {
       width: 95%; }
   .hic-menu .hic-resolution-selector-container {
@@ -160,8 +159,7 @@
       width: 96px;
       font-family: "Open Sans", sans-serif;
       font-weight: 400;
-      color: #5f5f5f;
-      direction: rtl; }
+      color: #5f5f5f; }
     .hic-menu .hic-resolution-selector-container select {
       width: 95%; }
   .hic-menu .hic-annotation-presentation-button-container {
@@ -432,7 +430,7 @@
     background-color: transparent; }
 
 .hic-chromosome-goto-container {
-  width: 65%; }
+  width: 100%; }
   .hic-chromosome-goto-container input {
     display: block;
     height: 32px;
@@ -449,6 +447,7 @@
     background-color: white; }
 
 .hic-colorscale-widget-container {
+  width: 33%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -493,12 +492,12 @@
     color: #0f0f0f; }
 
 .hic-normalization-selector-container {
+  margin-left: 26px;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
-  align-items: center;
-  width: 200px; }
+  justify-content: flex-end;
+  align-items: center; }
   .hic-normalization-selector-container div {
     display: block;
     margin-right: 6px; }
@@ -508,16 +507,16 @@
     width: 96px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
+    color: #5f5f5f; }
   .hic-normalization-selector-container select {
     width: 160px; }
 
 .hic-resolution-selector-container {
+  width: 33%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: flex-end;
   align-items: center; }
   .hic-resolution-selector-container div#hic-resolution-label-container {
     display: flex;
@@ -542,10 +541,9 @@
     width: 96px;
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
-    color: #5f5f5f;
-    direction: rtl; }
+    color: #5f5f5f; }
   .hic-resolution-selector-container select {
-    width: 72px; }
+    width: 84px; }
 
 div[id$="x-track-container"] {
   display: flex;
@@ -680,9 +678,6 @@ div[id$="content-container"] {
             text-overflow: ellipsis; }
         div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:last-child {
           border-right-color: transparent; }
-        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div div:hover {
-          cursor: pointer;
-          background-color: rgba(0, 0, 0, 0.1); }
   div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;
