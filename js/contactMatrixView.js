@@ -957,8 +957,7 @@ var hic = (function (hic) {
 
         var self = this,
 
-            lastTouch,
-            pinch,
+            lastTouch, pinch, 
             viewport = $viewport[0];
 
         /**
@@ -973,46 +972,48 @@ var hic = (function (hic) {
             ev.preventDefault();
             ev.stopPropagation();
 
-            var touchCoords, offsetX, offsetY, count, timeStamp, resolved, dx, dy, dist, direction;
+            var touchCoords, offsetX, offsetY, count, timeStamp, resolved, dx, dy, dist, direction, touchCoords1, touchCoords2;
 
             count = ev.touches.length;
             timeStamp = ev.timeStamp || Date.now();
-
-            console.log("Touch start: " + count);
-
 
             touchCoords = translateTouchCoordinates(ev.touches[0], viewport);
             offsetX = touchCoords.x;
             offsetY = touchCoords.y;
             if (count === 2) {
-                // Average position of fingers
-                touchCoords = translateTouchCoordinates(ev.touches[1], viewport);
-                offsetX = (offsetX + touchCoords.x) / 2;
-                offsetY = (offsetY + touchCoords.y) / 2;
+                // Possible start of a pinch
 
-                // NOTE: If the user makes simultaneous touches, the browser may fire a
-                // separate touchstart event for each touch point. Thus if there are
-                // two simultaneous touches, the first touchstart event will have
-                // targetTouches length of one and the second event will have a length
-                // of two.  In this case replace previous touch with this one and return
+                // Update pinch  (assuming 2 finger movement is a pinch)
+                touchCoords1 = translateTouchCoordinates(ev.touches[0], viewport);
+                touchCoords2 = translateTouchCoordinates(ev.touches[1], viewport);
 
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.touches.length};
-            }
-
-
-            // Detect double tap.  Taps must be sufficiently close in time and space
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-                // Double tap
-                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
-                dx = lastTouch.x - offsetX;
-                dy = lastTouch.y - offsetY;
-                dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                    self.browser.zoomAndCenter(direction, offsetX, offsetY);
-                    lastTouch = undefined;
+                pinch = {
+                    start: {
+                        x1: touchCoords1.x,
+                        y1: touchCoords1.y,
+                        x2: touchCoords2.x,
+                        y2: touchCoords2.y
+                    }
                 }
             }
+
+           // else {
+            //    pinch = undefined;
+
+                // Detect double tap.  Taps must be sufficiently close in time and space
+                if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
+                    // Double tap
+                    direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
+                    dx = lastTouch.x - offsetX;
+                    dy = lastTouch.y - offsetY;
+                    dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
+                        self.browser.zoomAndCenter(direction, offsetX, offsetY);
+                        lastTouch = undefined;
+                    }
+                }
+           // }
 
         }
 
@@ -1034,22 +1035,20 @@ var hic = (function (hic) {
                 touchCoords1 = translateTouchCoordinates(ev.touches[0], viewport);
                 touchCoords2 = translateTouchCoordinates(ev.touches[1], viewport);
 
-                t = {
-                    x1: touchCoords1.x,
-                    y1: touchCoords1.y,
-                    x2: touchCoords2.x,
-                    y2: touchCoords2.y
-                };
-
                 if (pinch) {
-                    pinch.end = t;
-                } else {
-                    pinch = {start: t};
+                    pinch.end = {
+                        x1: touchCoords1.x,
+                        y1: touchCoords1.y,
+                        x2: touchCoords2.x,
+                        y2: touchCoords2.y
+                    };
                 }
             }
 
             else {
                 // Assuming 1 finger movement is a drag
+
+                pinch = undefined;
 
                 if (self.updating) return;   // Don't overwhelm browser
 
@@ -1095,8 +1094,6 @@ var hic = (function (hic) {
                     distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
                     distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
                     scale = distEnd / distStart,
-                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
-                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
                     anchorPx = (startT.x1 + startT.x2) / 2,
                     anchorPy = (startT.y1 + startT.y2) / 2;
 
