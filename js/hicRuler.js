@@ -105,8 +105,10 @@ var hic = (function (hic) {
             if (percentage * dimen < 1.0) {
                 scraps += percentage;
             } else {
+
                 $div = $('<div>');
                 $wholeGenomeContainer.append($div);
+                $div.data('label', chr.name);
 
                 if (0 === index) {
                     $firstDiv = $div;
@@ -122,16 +124,9 @@ var hic = (function (hic) {
 
                 $e = $('<div>');
                 $div.append($e);
-                $e.text(chr.name);
+                $e.text($div.data('label'));
 
-                $div.on('click', function (e) {
-                    var $o;
-                    $o = $(this).children(':first');
-                    console.log('click on chromosome ' + $o.text());
-
-                    self.browser.parseGotoInput( $o.text() );
-                });
-
+                decorate.call(self, $div);
             }
 
         });
@@ -142,20 +137,15 @@ var hic = (function (hic) {
 
             $div = $('<div>');
             $wholeGenomeContainer.append($div);
-            $div.on('click', function (e) {
-                var $o;
-                $o = $(this).children(':first');
-                console.log('click on chromosome ' + $o.text());
-
-                self.browser.parseGotoInput( $o.text() );
-            });
+            $div.data('label', '-');
 
             $div.width(scraps);
 
             $e = $('<span>');
             $div.append($e);
+            $e.text($div.data('label'));
 
-            $e.text('-');
+            decorate.call(self, $div);
         }
 
         $wholeGenomeContainer.children().each(function (index) {
@@ -165,6 +155,49 @@ var hic = (function (hic) {
 
         // initially hide
         this.hideWholeGenome();
+
+        function decorate($d) {
+            var self = this;
+
+            $d.on('click', function (e) {
+                var $o;
+                $o = $(this).first();
+                self.browser.parseGotoInput( $o.text() );
+            });
+
+            $d.hover(
+                function () {
+                    hoverHandler.call(self, $(this), true);
+                },
+
+                function () {
+                    hoverHandler.call(self, $(this), false);
+                }
+            );
+
+        }
+
+        function hoverHandler($e, doHover) {
+
+            var target,
+                $target;
+
+            target = $e.data('label');
+
+            this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
+                if (target === $(this).data('label')) {
+                    $target = $(this);
+                }
+            });
+
+            if (true === doHover) {
+                $e.addClass('hic-whole-genome-chromosome-highlight');
+                $target.addClass('hic-whole-genome-chromosome-highlight');
+            } else {
+                $e.removeClass('hic-whole-genome-chromosome-highlight');
+                $target.removeClass('hic-whole-genome-chromosome-highlight');
+            }
+        }
 
     };
 
