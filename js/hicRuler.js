@@ -199,16 +199,13 @@ var hic = (function (hic) {
 
             if (true === doHover) {
                 $e.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
-                $other.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
+                // $other.css({ 'cursor':'pointer', 'background-color': 'rgba(0, 0, 0, 0.1)' });
             } else {
                 $e.css({ 'cursor':'auto', 'background-color': 'white' });
-                $other.css({ 'cursor':'auto', 'background-color': 'white' });
+                // $other.css({ 'cursor':'auto', 'background-color': 'white' });
             }
         }
 
-        function doUnhover($e) {
-
-        }
     };
 
     function bbox(axis, $child, $firstChild) {
