@@ -492,6 +492,7 @@
     color: #0f0f0f; }
 
 .hic-normalization-selector-container {
+  margin-left: 28px;
   width: 33%;
   display: flex;
   flex-flow: row;
