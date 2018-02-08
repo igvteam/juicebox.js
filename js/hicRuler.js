@@ -163,7 +163,9 @@ var hic = (function (hic) {
                 var $o;
                 $o = $(this).first();
                 self.browser.parseGotoInput( $o.text() );
-                $(this).removeClass('hic-whole-genome-chromosome-highlight');
+                // $(this).removeClass('hic-whole-genome-chromosome-highlight');
+                self.unhighlightWholeChromosome();
+                self.otherRuler.unhighlightWholeChromosome();
             });
 
             $d.hover(
