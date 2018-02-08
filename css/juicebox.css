@@ -469,7 +469,7 @@
     border-color: #a6a6a6;
     background-color: white; }
   .hic-colorscale-widget-container input {
-    width: 64px; }
+    width: 45%; }
   .hic-colorscale-widget-container i.fa-minus {
     display: block;
     margin-left: 8px;
@@ -492,7 +492,7 @@
     color: #0f0f0f; }
 
 .hic-normalization-selector-container {
-  margin-left: 26px;
+  width: 33%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -509,7 +509,7 @@
     font-weight: 400;
     color: #5f5f5f; }
   .hic-normalization-selector-container select {
-    width: 160px; }
+    width: 75%; }
 
 .hic-resolution-selector-container {
   width: 33%;
@@ -543,7 +543,7 @@
     font-weight: 400;
     color: #5f5f5f; }
   .hic-resolution-selector-container select {
-    width: 84px; }
+    width: 54%; }
 
 div[id$="x-track-container"] {
   display: flex;
