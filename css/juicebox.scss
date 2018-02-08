@@ -1470,6 +1470,7 @@ div[id$="content-container"] {
 }
 
 .hic-whole-genome-chromosome-highlight {
+  cursor: pointer;
   background-color: $hic-whole-genome-chromosome-highlight-color;
 }
 
