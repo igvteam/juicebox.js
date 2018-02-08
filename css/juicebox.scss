@@ -789,7 +789,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   }
 
-  // nav-bar widgets
+  // nav-bar widget container. Two instances are used
   div[id$="hic-nav-bar-widget-container"] {
 
     display: flex;
@@ -833,8 +833,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-color-scale-input;
 
   input {
-    //width: 110px;
-    width: 64px;
+    width: 45%;
   }
 
   i.fa-minus {
@@ -870,9 +869,7 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - normalization
 .hic-normalization-selector-container {
 
-  //width: 33%;
-  //margin-right: 12px;
-  margin-left: 26px;
+  width: 33%;
 
   display: flex;
   flex-flow: row;
@@ -888,7 +885,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 160px;
+    width: 75%;
   }
 
 }
@@ -932,7 +929,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 84px;
+    width: 54%;
   }
 
 }
