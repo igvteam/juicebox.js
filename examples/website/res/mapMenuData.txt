@@ -1,4 +1,4 @@
-https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic	Inter
+https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic Inter
 https://s3.amazonaws.com/hicfiles/external/goodell/HSPC.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC
 https://s3.amazonaws.com/hicfiles/external/goodell/HSPC_CanyonDel.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC CanyonDel
 https://s3.amazonaws.com/hicfiles/external/goodell/tcell.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 T-Cell

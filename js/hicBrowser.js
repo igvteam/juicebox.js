@@ -1073,7 +1073,7 @@ var hic = (function (hic) {
 
         if (!this.dataset) return;
 
-        if (this.state.chr1 === 0) {
+        if (this.state.chr1 === 0 && direction > 0) {
             var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
                 genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize,
                 chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX),
