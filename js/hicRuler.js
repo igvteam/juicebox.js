@@ -48,8 +48,9 @@ var hic = (function (hic) {
         this.$canvas.height(this.$axis.height());
         this.$canvas.attr('height', this.$axis.height());
 
-        // whole genome
-        this.$wholeGenomeContainer = $('<div>');
+        // whole genome container
+        id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
+        this.$wholeGenomeContainer = $("<div>", { id: id });
         this.$axis.append(this.$wholeGenomeContainer);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
@@ -76,7 +77,9 @@ var hic = (function (hic) {
             scraps,
             $div,
             $firstDiv,
-            $e;
+            $e,
+            id,
+            className;
 
         // discard current tiles
         $wholeGenomeContainer.empty();
@@ -106,7 +109,8 @@ var hic = (function (hic) {
                 scraps += percentage;
             } else {
 
-                $div = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome-container';
+                $div = $("<div>", { class: className });
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
@@ -122,9 +126,11 @@ var hic = (function (hic) {
                     $div.height(size);
                 }
 
-                $e = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome';
+                $e = $("<div>", { class: className });
                 $div.append($e);
                 $e.text($div.data('label'));
+                // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
                 decorate.call(self, $div);
             }
@@ -135,15 +141,18 @@ var hic = (function (hic) {
         scraps = Math.floor(scraps);
         if (scraps >= 1) {
 
-            $div = $('<div>');
+            className = self.axis + '-axis-whole-genome-chromosome-container';
+            $div = $("<div>", { class: className });
             $wholeGenomeContainer.append($div);
             $div.data('label', '-');
 
             $div.width(scraps);
 
-            $e = $('<span>');
+            className = self.axis + '-axis-whole-genome-chromosome';
+            $e = $("<div>", { class: className });
             $div.append($e);
             $e.text($div.data('label'));
+            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
             decorate.call(self, $div);
         }
@@ -163,10 +172,14 @@ var hic = (function (hic) {
                 var $o;
                 $o = $(this).first();
                 self.browser.parseGotoInput( $o.text() );
-                // $(this).removeClass('hic-whole-genome-chromosome-highlight');
+
                 self.unhighlightWholeChromosome();
                 self.otherRuler.unhighlightWholeChromosome();
             });
+
+            // DIAGNOSTIC BACKGROUND COLOR
+            // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
+            // return;
 
             $d.hover(
                 function () {
