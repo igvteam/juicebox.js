@@ -134,6 +134,9 @@ var hic = (function (hic) {
             // colorscale
             browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
 
+            // control map
+            browser.controlMapWidget = new hic.ControlMapWidget(browser, $lower_widget_container);
+
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
 

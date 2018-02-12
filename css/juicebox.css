@@ -447,12 +447,22 @@
     background-color: white; }
 
 .hic-colorscale-widget-container {
-  width: 33%;
+  width: 30%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center; }
+  .hic-colorscale-widget-container > i.fa-minus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: #5f5f5f; }
+  .hic-colorscale-widget-container > i.fa-plus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: #5f5f5f; }
   .hic-colorscale-widget-container input {
     display: block;
     margin-right: 4px;
@@ -469,11 +479,11 @@
     border-color: #a6a6a6;
     background-color: white; }
   .hic-colorscale-widget-container input {
-    width: 45%; }
+    width: 30%; }
   .hic-colorscale-widget-container i.fa-minus {
     display: block;
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 2%;
+    margin-right: 2%;
     color: #5f5f5f; }
   .hic-colorscale-widget-container i.fa-minus:hover,
   .hic-colorscale-widget-container i.fa-minus:focus,
@@ -482,8 +492,8 @@
     color: #0f0f0f; }
   .hic-colorscale-widget-container i.fa-plus {
     display: block;
-    margin-left: 8px;
-    margin-right: 8px;
+    margin-left: 2%;
+    margin-right: 2%;
     color: #5f5f5f; }
   .hic-colorscale-widget-container i.fa-plus:hover,
   .hic-colorscale-widget-container i.fa-plus:focus,
@@ -491,9 +501,29 @@
     cursor: pointer;
     color: #0f0f0f; }
 
+.hic-control-map-selector-container {
+  margin-left: 2%;
+  width: 25%;
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center; }
+  .hic-control-map-selector-container div {
+    display: block;
+    margin-right: 2px; }
+  .hic-control-map-selector-container select {
+    display: block;
+    height: 32px;
+    width: 96px;
+    font-family: "Open Sans", sans-serif;
+    font-weight: 400;
+    color: #5f5f5f; }
+  .hic-control-map-selector-container select {
+    width: 75%; }
+
 .hic-normalization-selector-container {
-  margin-left: 4%;
-  width: 33%;
+  width: 25%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
@@ -513,7 +543,7 @@
     width: 75%; }
 
 .hic-resolution-selector-container {
-  width: 33%;
+  width: 20%;
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;

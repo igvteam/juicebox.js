@@ -26,12 +26,50 @@
  */
 var hic = (function (hic) {
 
+    hic.colorSwatch = function (rgbString, doPlusOrMinusOrUndefined) {
+        var $swatch,
+            $span,
+            $fa_square,
+            $fa_plus_minus,
+            $fa,
+            str;
+
+        $swatch = $('<div>', {class: 'igv-color-swatch'});
+
+        if (undefined === doPlusOrMinusOrUndefined) {
+            $fa = $('<i>', { class: 'fa fa-square fa-lg' });
+            $swatch.append($fa);
+            $fa.css({color: rgbString});
+
+        } else {
+
+            $span = $('<span>', { class: 'fa-stack' });
+            $swatch.append($span);
+
+            // background square
+            $fa_square = $('<i>', { class: 'fa fa-square fa-stack-2x' });
+            $span.append($fa_square);
+            $fa_square.css({ color: rgbString, '-webkit-text-stroke-width':'2px', '-webkit-text-stroke-color':'transparent' });
+
+            // foreground +/-
+            // str = '+' === doPlusOrMinusOrUndefined ? 'fa fa-plus fa-stack-1x' : 'fa fa-minus fa-stack-1x';
+            str = '';
+            $fa_plus_minus = $('<i>', { class: str });
+            $span.append($fa_plus_minus);
+            $fa_plus_minus.css({ color: 'white' });
+
+        }
+
+
+        return $swatch;
+    };
+
     hic.setApiKey = function (key) {
 
         hic.apiKey = key;
         igv.setApiKey(key);
 
-    }
+    };
 
     hic.extractFilename = function (urlOrFile) {
         var idx,

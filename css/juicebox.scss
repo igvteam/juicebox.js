@@ -822,24 +822,38 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - colorscale
 .hic-colorscale-widget-container {
 
-  width: 33%;
+  width: 30%;
 
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
+
+  > i.fa-minus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: $default-dark-color;
+  }
+
+  > i.fa-plus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: $default-dark-color;
+  }
 
   @include navbar-color-scale-input;
 
   input {
-    width: 45%;
+    width: 30%;
   }
 
   i.fa-minus {
     display: block;
-    margin-left: $hic-colorscale-widget-plus-minus-margin;
-    margin-right: $hic-colorscale-widget-plus-minus-margin;
+    margin-left: 2%;
+    margin-right: 2%;
     color: $default-dark-color;
   }
 
@@ -852,8 +866,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   i.fa-plus {
     display: block;
-    margin-left: $hic-colorscale-widget-plus-minus-margin;
-    margin-right: $hic-colorscale-widget-plus-minus-margin;
+    margin-left: 2%;
+    margin-right: 2%;
     color: $default-dark-color;
   }
 
@@ -866,11 +880,36 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+// navbar - control map
+.hic-control-map-selector-container {
+
+  margin-left: 2%;
+  width: 25%;
+
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  div {
+    display: block;
+    margin-right: 2px;
+  }
+
+  @include navbar-select;
+
+  select {
+    width: 75%;
+  }
+
+}
+
 // navbar - normalization
 .hic-normalization-selector-container {
 
-  margin-left: 4%;
-  width: 33%;
+  //margin-left: 2%;
+  width: 25%;
 
   display: flex;
   flex-flow: row;
@@ -894,7 +933,8 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - resolution
 .hic-resolution-selector-container {
 
-  width: 33%;
+  //margin-left: 4%;
+  width: 20%;
 
   display: flex;
   flex-flow: row;
