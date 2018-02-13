@@ -37,10 +37,19 @@ var juicebox = (function (site) {
     site.init = function ($container, config) {
 
         var genomeChangeListener,
-            $appContainer;
+            $appContainer,
+            query,
+            $hic_share_url_modal,
+            contact_map_dropdown_id,
+            control_map_dropdown_id,
+            $e;
 
-        var query,
-            $hic_share_url_modal;
+        contact_map_dropdown_id = 'hic-contact-map-dropdown';
+        control_map_dropdown_id = 'hic-control-map-dropdown';
+
+        site.contactMapLoaders = {};
+        site.contactMapLoaders[ contact_map_dropdown_id ] = doLoadContactMap;
+        site.contactMapLoaders[ control_map_dropdown_id ] = doLoadControlMap;
 
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
@@ -367,6 +376,15 @@ var juicebox = (function (site) {
             }
         });
 
+        $e = $('button[id$=-map-dropdown]');
+        $e.parent().on('show.bs.dropdown', function () {
+            site.currentContactMapDropdownButton = $(this).children('.dropdown-toggle').attr('id');
+            console.log("show " + site.currentContactMapDropdownButton);
+        });
+
+        $e.parent().on('hide.bs.dropdown', function () {
+            console.log("hide contact/control map");
+        });
 
         function getEmbeddableSnippet(jbUrl) {
 
@@ -466,6 +484,34 @@ var juicebox = (function (site) {
 
     };
 
+    site.receiveEvent = function (event) {
+        var browser;
+
+        if ('MapLoad' === event.type) {
+
+            $('#hic-control-map-dropdown').removeAttr('disabled');
+
+            browser = hic.Browser.getCurrentBrowser();
+            browser.controlMapWidget.$control_map_selector.removeAttr('disabled');
+
+        } else if ('DidSelectBrowserPanel' === event.type) {
+
+            browser = event.data;
+
+            if (browser.dataset) {
+                $('#hic-control-map-dropdown').removeAttr('disabled');
+                browser.controlMapWidget.$control_map_selector.removeAttr('disabled');
+                browser.colorscaleWidget.$minusButton.show();
+            } else {
+                $('#hic-control-map-dropdown').attr('disabled', 'disabled');
+                browser.controlMapWidget.$control_map_selector.attr('disabled', 'disabled');
+                browser.colorscaleWidget.$minusButton.hide();
+            }
+
+        }
+
+    };
+
     function loadHicFile(url, name) {
         var synchState, browsersWithMaps;
 
@@ -477,13 +523,31 @@ var juicebox = (function (site) {
             synchState = browsersWithMaps[0].getSyncState();
         }
 
-        hic.Browser.getCurrentBrowser().loadHicFile({url: url, name: name, synchState: synchState})
+        site.contactMapLoaders[ site.currentContactMapDropdownButton ](url, name, synchState);
 
+    }
+
+    function doLoadContactMap(url, name, synchState) {
+        var browser;
+
+        browser = hic.Browser.getCurrentBrowser();
+        browser
+            .loadHicFile({url: url, name: name, synchState: synchState})
             .then(function (dataset) {
-
                 hic.syncBrowsers(hic.allBrowsers);
+            });
+    }
 
-            })
+    function doLoadControlMap(url, name, synchState) {
+        var browser;
+
+        browser = hic.Browser.getCurrentBrowser();
+        browser
+            .loadHicFile({url: url, name: name, synchState: synchState})
+            .then(function (dataset) {
+                hic.syncBrowsers(hic.allBrowsers);
+            });
+
     }
 
     function createEncodeTable(genomeId) {

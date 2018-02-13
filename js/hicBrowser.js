@@ -241,6 +241,10 @@ var hic = (function (hic) {
 
         this.eventBus.subscribe("LocusChange", this);
 
+        // app events
+        this.eventBus.subscribe('MapLoad', juicebox);
+        this.eventBus.subscribe('DidSelectBrowserPanel', juicebox);
+
         function configureHover($e) {
 
             var self = this;
@@ -414,6 +418,8 @@ var hic = (function (hic) {
             hic.Browser.currentBrowser = browser;
             return;
         }
+
+        browser.eventBus.post(hic.Event('DidSelectBrowserPanel', browser));
 
         if (browser !== hic.Browser.currentBrowser) {
 
