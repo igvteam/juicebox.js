@@ -591,7 +591,6 @@ var hic = (function (hic) {
                         ctx.save();
                         ctx.lineWidth = 2;
                         self.browser.tracks2D.forEach(function (track2D) {
-                            var color;
 
                             if (track2D.isVisible) {
                                 var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
