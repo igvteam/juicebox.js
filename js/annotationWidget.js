@@ -213,7 +213,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.getColor() : track1D.color);
         $row.append($colorpickerButton);
 
         // color swatch selector
