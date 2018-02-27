@@ -32,7 +32,9 @@ var juicebox = (function (site) {
     var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
         encodeTable,
         lastGenomeId,
-        qrcode;
+        qrcode,
+        contact_map_dropdown_id = 'hic-contact-map-dropdown',
+        control_map_dropdown_id = 'hic-control-map-dropdown';
 
     site.init = function ($container, config) {
 
@@ -44,12 +46,6 @@ var juicebox = (function (site) {
             control_map_dropdown_id,
             $e;
 
-        contact_map_dropdown_id = 'hic-contact-map-dropdown';
-        control_map_dropdown_id = 'hic-control-map-dropdown';
-
-        site.contactMapLoaders = {};
-        site.contactMapLoaders[ contact_map_dropdown_id ] = doLoadContactMap;
-        site.contactMapLoaders[ control_map_dropdown_id ] = doLoadControlMap;
 
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
@@ -179,11 +175,11 @@ var juicebox = (function (site) {
                                 $('hic-qr-code-image').empty();
                             } else {
                                 config =
-                                    {
-                                        width : 128,
-                                        height : 128,
-                                        correctLevel : QRCode.CorrectLevel.H
-                                    };
+                                {
+                                    width: 128,
+                                    height: 128,
+                                    correctLevel: QRCode.CorrectLevel.H
+                                };
 
                                 qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
                             }
@@ -449,7 +445,7 @@ var juicebox = (function (site) {
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             }
         }
-        
+
         function syncBrowsers() {
             hic.syncBrowsers(hic.allBrowsers);
         }
@@ -513,7 +509,8 @@ var juicebox = (function (site) {
     };
 
     function loadHicFile(url, name) {
-        var synchState, browsersWithMaps;
+
+        var synchState, browsersWithMaps, isControl, browser;
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
@@ -523,32 +520,25 @@ var juicebox = (function (site) {
             synchState = browsersWithMaps[0].getSyncState();
         }
 
-        site.contactMapLoaders[ site.currentContactMapDropdownButton ](url, name, synchState);
-
-    }
-
-    function doLoadContactMap(url, name, synchState) {
-        var browser;
+        isControl = site.currentContactMapDropdownButton === control_map_dropdown_id;
 
         browser = hic.Browser.getCurrentBrowser();
-        browser
-            .loadHicFile({url: url, name: name, synchState: synchState})
-            .then(function (dataset) {
-                hic.syncBrowsers(hic.allBrowsers);
-            });
+
+        if (isControl) {
+            browser
+                .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
+                .then(function (dataset) {
+
+                });
+        } else {
+            browser
+                .loadHicFile({url: url, name: name, synchState: synchState, isControl: isControl})
+                .then(function (dataset) {
+                    if (!isControl) hic.syncBrowsers(hic.allBrowsers);
+                });
+        }
     }
 
-    function doLoadControlMap(url, name, synchState) {
-        var browser;
-
-        browser = hic.Browser.getCurrentBrowser();
-        browser
-            .loadHicFile({url: url, name: name, synchState: synchState})
-            .then(function (dataset) {
-                hic.syncBrowsers(hic.allBrowsers);
-            });
-
-    }
 
     function createEncodeTable(genomeId) {
 

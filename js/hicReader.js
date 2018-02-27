@@ -752,14 +752,6 @@ var hic = (function (hic) {
 
     }
 
-    function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
-        this.normType = normType;
-        this.unit = unit;
-        this.binSize = binSize;
-        this.values = values;
-        this.normFactors = normFactors;
-    }
-
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
         this.chr1 = chr1;    // chromosome index
         this.chr2 = chr2;
@@ -827,6 +819,15 @@ var hic = (function (hic) {
 
         return undefined;
     };
+
+
+    function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
+        this.normType = normType;
+        this.unit = unit;
+        this.binSize = binSize;
+        this.values = values;
+        this.normFactors = normFactors;
+    }
 
 
     return hic;

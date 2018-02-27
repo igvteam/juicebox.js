@@ -715,6 +715,7 @@ var hic = (function (hic) {
         }
 
         if (config.dataset) {
+            // Explicit set dataset, do not need to load.  Used by "interactive figures"
             self.$contactMaplabel.text(config.name);
             self.name = config.name;
             return Promise.resolve(setDataset(config.dataset));
@@ -724,6 +725,7 @@ var hic = (function (hic) {
             return extractName(config)
 
                 .then(function (name) {
+                    config.name = config.name;
                     hicReader = new hic.HiCReader(config);
                     return hicReader.loadDataset(config);
                 })
@@ -742,7 +744,7 @@ var hic = (function (hic) {
                     }
                     self.eventBus.post(hic.Event("MapLoad", self.dataset));
 
-                    return loadNVI(dataset)
+                    return loadNVI.call(self, dataset, config)
                 })
 
                 .then(function (nvi) {
@@ -776,81 +778,151 @@ var hic = (function (hic) {
                     return error;
                 })
         }
+    };
 
+    /**
+     * Load a .hic file for a control map
+     *
+     * NOTE: public API function
+     *
+     * @return a promise for a dataset
+     * @param config
+     */
+    hic.Browser.prototype.loadHicControlFile = function (config) {
 
-        function loadNVI(dataset) {
+        var self = this,
+            hicReader, queryIdx, parts;
 
-            if (dataset.hicReader.normVectorIndex) {
-                // TODO jtr -- how can this happen?
-                return Promise.resolve(hicReader.normVectorIndex);
-            }
-            else {
-                if (config.nvi) {
+        if (!config.url && !config.dataset) {
+            console.log("No .hic url specified");
+            return;
+        }
 
-                    var nviArray = decodeURIComponent(config.nvi).split(","),
-                        range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+        this.isLoadingHICFile = true;
+        self.contactMatrixView.startSpinner();
 
-                    return dataset.hicReader.readNormVectorIndex(dataset, range)
-                        .then(function (nvi) {
-                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
-                            return nvi;
-                        })
-                } else {
-
-                    // Load norm vector index in the background
-                    dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
-                        .then(function (ignore) {
-                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
-                        })
-                        .catch(function (error) {
-                            igv.presentAlert("Error loading normalization vectors");
-                            console.log(error);
-                        });
-
-                    return Promise.resolve(undefined);   // NVI not loaded yeat
+        if (config.url) {
+            this.url = config.url;
+            if (typeof config.url === "string") {
+                queryIdx = config.url.indexOf("?");
+                if (queryIdx > 0) {
+                    parts = parseUri(config.url);
+                    if (parts.queryKey) {
+                        Object.assign(config, parts.queryKey);
+                    }
                 }
-
             }
         }
 
-        /**
-         * Return a promise to extract the name of the dataset.  The promise is neccessacary because
-         * google drive urls require a call to the API
-         *
-         * @returns Promise for the name
-         */
-        function extractName(config) {
+        return extractName(config)
 
-            if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-                tmp = hic.extractQuery(config.url);
-                id = tmp["id"];
-                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
-                if (apiKey) endPoint += "?key=" + apiKey;
+            .then(function (name) {
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config);
+            })
 
-                return igv.Google.getDriveFileInfo(config.url)
-                    .then(function (json) {
-                        config.name = json.originalFilename;
-                        return config.name;
-                    })
-            } else {
-                if (config.name === undefined) {
-                    config.name = hic.extractFilename(config.url);
+            .then(function (dataset) {
+
+                if (self.genome.id !== dataset.genomeId) {
+                    throw new Error("Control map genome ID does not match observed map")
                 }
+
+                self.controlDataset = dataset;
+                console.log("Set control dataset");
+                loadNVI.call(self, dataset, config)
+            })
+
+            .then(function (nvi) {
+
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+
+                //self.$contactMaplabel.text(config.name);
+                //self.name = config.name;
+
+                self.isLoadingHICFile = false;
+
+            })
+            .catch(function (error) {
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                console.error(error);
+                igv.presentAlert("Error loading hic file: " + error);
+                return error;
+            })
+
+    };
+
+    /**
+     * Return a promise to extract the name of the dataset.  The promise is neccessacary because
+     * google drive urls require a call to the API
+     *
+     * @returns Promise for the name
+     */
+    function extractName(config) {
+
+        var tmp, id, endPoint, apiKey;
+
+        if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
+            tmp = hic.extractQuery(config.url);
+            id = tmp["id"];
+            endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+            if (apiKey) endPoint += "?key=" + apiKey;
+
+            return igv.Google.getDriveFileInfo(config.url)
+                .then(function (json) {
+                    return json.originalFilename;
+                })
+        } else {
+            if (config.name === undefined) {
+                return Promise.resolve(hic.extractFilename(config.url));
+            } else {
                 return Promise.resolve(config.name);
             }
         }
+    }
 
 
-        stripUriParameters = function () {
+    function loadNVI(dataset, config) {
 
-            var href = window.location.href,
-                idx = href.indexOf("?");
+        var self = this;
 
-            if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
+        if (dataset.hicReader.normVectorIndex) {
+            // TODO jtr -- how can this happen?
+            return Promise.resolve(hicReader.normVectorIndex);
+        }
+        else {
+            if (config.nvi) {
 
-        };
+                var nviArray = decodeURIComponent(config.nvi).split(","),
+                    range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
 
-    };
+                return dataset.hicReader.readNormVectorIndex(dataset, range)
+                    .then(function (nvi) {
+                        if (!config.isControl) {
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        }
+                        return nvi;
+                    })
+            } else {
+
+                // Load norm vector index in the background
+                dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    .then(function (ignore) {
+                        if (!config.isControl) {
+                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        }
+                    })
+                    .catch(function (error) {
+                        igv.presentAlert("Error loading normalization vectors");
+                        console.log(error);
+                    });
+
+                return Promise.resolve(undefined);   // NVI not loaded yeat
+            }
+
+        }
+    }
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
@@ -990,7 +1062,7 @@ var hic = (function (hic) {
 
         currentResolution = bpResolutions[this.state.zoom];
 
-        if(this.state.chr1 === 0) {
+        if (this.state.chr1 === 0) {
 
             this.zoomAndCenter(1, anchorPx, anchorPy);
             return;
@@ -1015,7 +1087,7 @@ var hic = (function (hic) {
         }
 
         minZoom.call(self, self.state.chr1, self.state.chr2)
-            
+
             .then(function (z) {
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
@@ -1358,7 +1430,11 @@ var hic = (function (hic) {
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
-        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false, dragging: true});
+        var locusChangeEvent = hic.Event("LocusChange", {
+            state: this.state,
+            resolutionChanged: false,
+            dragging: true
+        });
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
 
