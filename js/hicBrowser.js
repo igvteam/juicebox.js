@@ -778,6 +778,47 @@ var hic = (function (hic) {
                     return error;
                 })
         }
+
+        function loadNVI(dataset, config) {
+
+            var self = this;
+
+            if (dataset.hicReader.normVectorIndex) {
+                return Promise.resolve(hicReader.normVectorIndex);
+            }
+            else {
+                if (config.nvi) {
+
+                    var nviArray = decodeURIComponent(config.nvi).split(","),
+                        range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                    return dataset.hicReader.readNormVectorIndex(dataset, range)
+                        .then(function (nvi) {
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            }
+                            return nvi;
+                        })
+                } else {
+
+                    // Load norm vector index in the background
+                    dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                        .then(function (ignore) {
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                                return hicReader.normVectorIndex;
+                            }
+                        })
+                        .catch(function (error) {
+                            igv.presentAlert("Error loading normalization vectors");
+                            console.log(error);
+                        });
+
+                    return Promise.resolve(undefined);   // NVI not loaded yeat
+                }
+
+            }
+        }
     };
 
     /**
@@ -791,34 +832,18 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicControlFile = function (config) {
 
         var self = this,
-            hicReader, queryIdx, parts;
-
-        if (!config.url && !config.dataset) {
-            console.log("No .hic url specified");
-            return;
-        }
+            hicReader;
 
         this.isLoadingHICFile = true;
         self.contactMatrixView.startSpinner();
-
-        if (config.url) {
-            this.url = config.url;
-            if (typeof config.url === "string") {
-                queryIdx = config.url.indexOf("?");
-                if (queryIdx > 0) {
-                    parts = parseUri(config.url);
-                    if (parts.queryKey) {
-                        Object.assign(config, parts.queryKey);
-                    }
-                }
-            }
-        }
 
         return extractName(config)
 
             .then(function (name) {
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config);
+                //self.$controltMaplabel.text(name);
+                //self.controlMapName = name;
             })
 
             .then(function (dataset) {
@@ -826,21 +851,18 @@ var hic = (function (hic) {
                 if (self.genome.id !== dataset.genomeId) {
                     throw new Error("Control map genome ID does not match observed map")
                 }
-
                 self.controlDataset = dataset;
-                console.log("Set control dataset");
-                loadNVI.call(self, dataset, config)
+                self.eventBus.post(hic.Event("ControlMapLoad", dataset));
+                return loadControlNVI.call(self, dataset, config)
             })
 
             .then(function (nvi) {
 
                 self.isLoadingHICFile = false;
                 self.stopSpinner();
-
-                //self.$contactMaplabel.text(config.name);
-                //self.name = config.name;
-
                 self.isLoadingHICFile = false;
+
+
 
             })
             .catch(function (error) {
@@ -851,6 +873,35 @@ var hic = (function (hic) {
                 return error;
             })
 
+        function loadControlNVI(dataset, config) {
+
+            var self = this;
+
+            if (config.controlNvi) {
+
+                var nviArray = decodeURIComponent(config.nvi).split(","),
+                    range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                return dataset.hicReader.readNormVectorIndex(dataset, range)
+                    .then(function (nvi) {
+                        if (!config.isControl) {
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        }
+                        return nvi;
+                    })
+            } else {
+
+                // Load norm vector index
+                return dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    .then(function (ignore) {
+                        return (hicReader.normVectorIndex);
+                    })
+                    .catch(function (error) {
+                        igv.presentAlert("Error loading normalization vectors");
+                        console.log(error);
+                    });
+            }
+        }
     };
 
     /**
@@ -882,47 +933,6 @@ var hic = (function (hic) {
         }
     }
 
-
-    function loadNVI(dataset, config) {
-
-        var self = this;
-
-        if (dataset.hicReader.normVectorIndex) {
-            // TODO jtr -- how can this happen?
-            return Promise.resolve(hicReader.normVectorIndex);
-        }
-        else {
-            if (config.nvi) {
-
-                var nviArray = decodeURIComponent(config.nvi).split(","),
-                    range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-
-                return dataset.hicReader.readNormVectorIndex(dataset, range)
-                    .then(function (nvi) {
-                        if (!config.isControl) {
-                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
-                        }
-                        return nvi;
-                    })
-            } else {
-
-                // Load norm vector index in the background
-                dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
-                    .then(function (ignore) {
-                        if (!config.isControl) {
-                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
-                        }
-                    })
-                    .catch(function (error) {
-                        igv.presentAlert("Error loading normalization vectors");
-                        console.log(error);
-                    });
-
-                return Promise.resolve(undefined);   // NVI not loaded yeat
-            }
-
-        }
-    }
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 

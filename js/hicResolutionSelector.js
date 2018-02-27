@@ -66,6 +66,7 @@ var hic = (function (hic) {
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
@@ -81,7 +82,8 @@ var hic = (function (hic) {
             selectedIndex,
             isWholeGenome,
             digits,
-            divisor;
+            divisor,
+            dataset;
 
         if (event.type === "LocusChange") {
 
@@ -117,6 +119,13 @@ var hic = (function (hic) {
             this.$resolution_selector.empty();
             htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.append(htmlString);
+
+        } else if(event.type === "ControlMapLoad") {
+
+            dataset = event.data;
+            // control resolutions == dataset.bpResolutions.  Update selector list
+            // items defined by this.browser.dataset.bpResolutions as usual.   Rows not present in dataset.bpResolutions
+            // are greyed out
 
         }
 
