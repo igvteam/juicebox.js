@@ -308,6 +308,14 @@ var hic = (function (hic) {
         this.contactMatrixView.stopSpinner();
     }
 
+    hic.Browser.prototype.setDisplayMode = function (mode) {
+        this.contactMatrixView.setDisplayMode(mode);
+    }
+
+    hic.Browser.prototype.getDisplayMode = function () {
+        return this.contactMatrixView.displayMode;
+    }
+
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
      * instantiating multiple browsers in a page.
@@ -861,7 +869,6 @@ var hic = (function (hic) {
                 self.isLoadingHICFile = false;
                 self.stopSpinner();
                 self.isLoadingHICFile = false;
-
 
 
             })
@@ -1995,6 +2002,7 @@ var hic = (function (hic) {
             return s;
         }
     }
+
 
     return hic;
 

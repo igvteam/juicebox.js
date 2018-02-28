@@ -101,14 +101,16 @@ var hic = (function (hic) {
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
+        this.displayMode = 'observed';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
 
         this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
-
         this.colorScaleCache = {};
+
+        this.ratioColorScale = new RatioColorScale();
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -137,6 +139,12 @@ var hic = (function (hic) {
         }
         this.colorScaleCache[colorScaleKey(state)] = options.high;
     };
+
+    hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
+        this.displayMode = mode;
+        this.clearCaches();
+        this.update();
+    }
 
     function colorScaleKey(state) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
@@ -249,12 +257,14 @@ var hic = (function (hic) {
             return Promise.resolve();
         }
 
-        return self.browser.dataset.getMatrix(state.chr1, state.chr2)
+        return getMatrices.call(self, state.chr1, state.chr2)
 
-            .then(function (matrix) {
+            .then(function (matrices) {
+
+                var matrix = matrices[0];
+
 
                 if (matrix) {
-
                     var zd = matrix.bpZoomData[state.zoom],
                         blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
                         pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
@@ -264,7 +274,11 @@ var hic = (function (hic) {
                         blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
                         blockRow1 = Math.floor(state.y / blockBinCount),
                         blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, promises = [];
+                        r, c, zdControl, promises = [];
+
+                    if (matrices.length > 1) {
+                        zdControl = matrices[1].bpZoomData[state.zoom];
+                    }
 
                     return checkColorScale.call(self, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
@@ -272,7 +286,7 @@ var hic = (function (hic) {
 
                             for (r = blockRow1; r <= blockRow2; r++) {
                                 for (c = blockCol1; c <= blockCol2; c++) {
-                                    promises.push(self.getImageTile(zd, r, c, state));
+                                    promises.push(self.getImageTile(zd, zdControl, r, c, state));
                                 }
                             }
 
@@ -286,6 +300,10 @@ var hic = (function (hic) {
     };
 
 
+    /**
+     * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
+     * created previously in readyToPaint.   We could just fetch them from the cache and paint.
+     */
     hic.ContactMatrixView.prototype.repaint = function () {
 
         var self = this,
@@ -308,9 +326,11 @@ var hic = (function (hic) {
         }
 
 
-        self.browser.dataset.getMatrix(state.chr1, state.chr2)
+        getMatrices.call(self, state.chr1, state.chr2)
 
-            .then(function (matrix) {
+            .then(function (matrices) {
+
+                var matrix = matrices[0];
 
                 if (matrix) {
 
@@ -324,11 +344,13 @@ var hic = (function (hic) {
                         blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
                         blockRow1 = Math.floor(state.y / blockBinCount),
                         blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, promises = [];
+                        r, c, zdControl, promises = [];
+
+                    if (matrices.length > 1) zdControl = matrices[1].bpZoomData[state.zoom];
 
                     for (r = blockRow1; r <= blockRow2; r++) {
                         for (c = blockCol1; c <= blockCol2; c++) {
-                            promises.push(self.getImageTile(zd, r, c, state));
+                            promises.push(self.getImageTile(zd, zdControl, r, c, state));
                         }
                     }
 
@@ -350,6 +372,16 @@ var hic = (function (hic) {
             })
     }
 
+    function getMatrices(chr1, chr2) {
+
+        var promises = [];
+        promises.push(this.browser.dataset.getMatrix(chr1, chr2))
+        if (this.displayMode && 'observed' !== this.displayMode && this.browser.controlDataset) {
+            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+        return Promise.all(promises);
+    }
+
     /**
      * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
      * data to computer scale.
@@ -364,9 +396,12 @@ var hic = (function (hic) {
      */
     function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this;
+        var self = this,
+            colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
 
-        var colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        if (self.displayMode && 'observed' !== self.displayMode) {
+            return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
+        }
 
         if (self.colorScaleCache[colorKey]) {
             var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
@@ -473,14 +508,14 @@ var hic = (function (hic) {
      * @param state
      * @returns {*}
      */
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column, state) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, zdControl, row, column, state) {
 
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
             pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
             useImageData = pixelSizeInt === 1,
             key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization;
+                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
 
         if (this.imageTileCache.hasOwnProperty(key)) {
 
@@ -502,13 +537,18 @@ var hic = (function (hic) {
                 blockNumber = row * blockColumnCount + column;
             }
 
-            return self.browser.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
+            return getNormalizedBlocks.call(self, zd, zdControl, blockNumber, state.normalization)
 
-                .then(function (block) {
+                .then(function (blocks) {
 
-                    var image;
+                    var block = blocks[0],
+                        controlBlock,
+                        image;
+
+                    if (blocks.length > 0) controlBlock = blocks[1];
+
                     if (block && block.records.length > 0) {
-                        image = drawBlock(block, transpose);
+                        image = drawBlock(block, controlBlock, transpose);
                     }
                     else {
                         //console.log("No block for " + blockNumber);
@@ -534,10 +574,12 @@ var hic = (function (hic) {
                         imageData.data[index + 3] = a;
                     }
 
-                    function drawBlock(block, transpose) {
+                    // Actual drawing happens here
+                    function drawBlock(block, controlBlock, transpose) {
 
                         var imageSize = Math.ceil(widthInBins * pixelSizeInt),
-                            blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, px, py;
+                            blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color,
+                            controlRecords, controlRec, key, score;
 
                         blockNumber = block.blockNumber;
                         row = Math.floor(blockNumber / blockColumnCount);
@@ -551,11 +593,26 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
+                        if('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
+                            controlRecords = {};
+                            controlBlock.records.forEach(function (record) {
+                                controlRecords[record.getKey()] = record;
+                            })
+
+
+                        }
+
                         if (useImageData) {
                             id = ctx.getImageData(0, 0, image.width, image.height);
                         }
 
+                        var averageCount = zd.averageCount;
+                        var ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+                        var averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
+
                         for (i = 0; i < block.records.length; i++) {
+
                             rec = block.records[i];
                             x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
                             y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
@@ -566,7 +623,33 @@ var hic = (function (hic) {
                                 x = t;
                             }
 
-                            color = self.colorScale.getColor(rec.counts);
+                            switch (self.displayMode) {
+
+                                case 'observed-over-control':
+
+                                    key = rec.getKey();
+                                    controlRec = controlRecords[key];
+                                    if(!controlRec) {
+                                        continue;    // Skip
+                                    }
+                                    score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
+
+                                    color = self.ratioColorScale.getColor(score);
+
+                                    break;
+
+                                case 'observed-minus-control':
+                                    key = rec.getKey();
+                                    controlRec = controlRecords[key];
+                                    if(!controlRec) {
+                                        continue;    // Skip
+                                    }
+                                    score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                                default:
+                                    color = self.colorScale.getColor(rec.counts);
+                            }
+
 
                             if (useImageData) {
                                 // TODO -- verify that this bitblting is faster than fillRect
@@ -643,6 +726,19 @@ var hic = (function (hic) {
                     }
                 })
         }
+
+        function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
+            var promises = [];
+
+            promises.push(this.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization));
+
+            if (zdControl) {
+                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
+            }
+
+            return Promise.all(promises);
+
+        }
     };
 
     function computePercentile(blockArray, p) {
@@ -676,62 +772,6 @@ var hic = (function (hic) {
     };
 
 
-    hic.ColorScale = function (scale) {
-        this.low = scale.low;
-        this.lowR = scale.lowR;
-        this.lowG = scale.lowG;
-        this.lowB = scale.lowB;
-        this.high = scale.high;
-        this.highR = scale.highR;
-        this.highG = scale.highG;
-        this.highB = scale.highB;
-    };
-
-    hic.ColorScale.prototype.equals = function (cs) {
-        return JSON.stringify(this) === JSON.stringify(cs);
-    };
-
-    hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff;
-
-        if (value <= scale.low) value = scale.low;
-        else if (value >= scale.high) value = scale.high;
-
-        diff = scale.high - scale.low;
-
-        frac = (value - scale.low) / diff;
-        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
-        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
-        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
-
-        return {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        };
-    };
-
-    hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
-    };
-
-    hic.destringifyColorScale = function (string) {
-
-        var cs,
-            tokens;
-
-        tokens = string.split(",");
-
-        cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[0];
-        cs.highR = tokens[1];
-        cs.highG = tokens[2];
-        cs.highB = tokens[3];
-
-        return new hic.ColorScale(cs);
-
-    };
 
     function addMouseHandlers($viewport) {
 
@@ -1112,6 +1152,104 @@ var hic = (function (hic) {
             return {x: posx, y: posy}
         }
 
+    }
+
+
+    hic.ColorScale = function (scale) {
+        this.low = scale.low;
+        this.lowR = scale.lowR;
+        this.lowG = scale.lowG;
+        this.lowB = scale.lowB;
+        this.high = scale.high;
+        this.highR = scale.highR;
+        this.highG = scale.highG;
+        this.highB = scale.highB;
+    };
+
+    hic.ColorScale.prototype.equals = function (cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    };
+
+    hic.ColorScale.prototype.getColor = function (value) {
+        var scale = this, r, g, b, frac, diff;
+
+        if (value <= scale.low) value = scale.low;
+        else if (value >= scale.high) value = scale.high;
+
+        diff = scale.high - scale.low;
+
+        frac = (value - scale.low) / diff;
+        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
+        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
+        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+
+        return {
+            red: r,
+            green: g,
+            blue: b,
+            rgb: "rgb(" + r + "," + g + "," + b + ")"
+        };
+    };
+
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
+    };
+
+    hic.destringifyColorScale = function (string) {
+
+        var cs,
+            tokens;
+
+        tokens = string.split(",");
+
+        cs = _.clone(defaultColorScaleInitializer);
+        cs.high = tokens[0];
+        cs.highR = tokens[1];
+        cs.highG = tokens[2];
+        cs.highB = tokens[3];
+
+        return new hic.ColorScale(cs);
+
+    };
+
+    function RatioColorScale(threshold) {
+        this.threshold = (threshold === undefined) ? 5 : threshold;
+    }
+
+    RatioColorScale.prototype.resetThreshold = function () {
+        this.threshold = Math.log(this.defaultMaxOEVal);
+    }
+
+    RatioColorScale.prototype.getColor = function (score) {
+
+        var logThreshold = Math.log(this.threshold);
+        /*
+         int R = (int) (255 * Math.min(score/max, 1));
+         int G = 0;
+         int B = (int) (255 * Math.min(min * (1.0/score), 1));
+         */
+        var newValue = Math.log(score);
+        var R, G, B;
+        if (newValue > 0) {
+            R = 255;
+            newValue = Math.min(newValue, logThreshold);
+            G = Math.floor(255 * (logThreshold - newValue) / logThreshold);
+            B = Math.floor(255 * (logThreshold - newValue) / logThreshold);
+        } else {
+            newValue = -newValue;
+            newValue = Math.min(newValue, this.threshold);
+            B = 255;
+            R = Math.floor(255 * (logThreshold - newValue) / logThreshold);
+            G = Math.floor(255 * (logThreshold - newValue) / logThreshold);
+
+        }
+
+        return {
+            red: R,
+            green: G,
+            blue: B,
+            rgb: "rgb(" + R + "," + G + "," + B + ")"
+        };
     }
 
 

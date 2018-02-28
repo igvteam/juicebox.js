@@ -222,6 +222,10 @@ var hic = (function (hic) {
         this.bin2 = bin2;
         this.counts = counts;
     };
+    
+    hic.ContactRecord.prototype.getKey = function () {
+        return "" + this.bin1 + "_" + this.bin2;
+    }
 
 
     return hic;

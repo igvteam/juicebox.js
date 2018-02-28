@@ -45,7 +45,7 @@ var hic = (function (hic) {
             var value;
 
             value = $(this).val();
-            console.log('Control Map select - ' + value);
+            browser.setDisplayMode(value);
         });
         this.$container.append(this.$control_map_selector);
         optionStrings =
