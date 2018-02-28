@@ -33,19 +33,20 @@ var juicebox = (function (site) {
         encodeTable,
         lastGenomeId,
         qrcode,
-        contact_map_dropdown_id = 'hic-contact-map-dropdown',
-        control_map_dropdown_id = 'hic-control-map-dropdown';
+        contact_map_dropdown_id,
+        control_map_dropdown_id;
 
     site.init = function ($container, config) {
 
         var genomeChangeListener,
             $appContainer,
             query,
-            $hic_share_url_modal,
-            contact_map_dropdown_id,
-            control_map_dropdown_id,
-            $e;
+            $hic_share_url_modal;
 
+        contact_map_dropdown_id = 'hic-contact-map-dropdown';
+        control_map_dropdown_id = 'hic-control-map-dropdown';
+
+        site.$mapSelectionDropdowns = $('button[id$=-map-dropdown]').parent();
 
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
@@ -88,7 +89,7 @@ var juicebox = (function (site) {
 
         apiKey = config.apiKey;
         if (apiKey) {
-            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
+            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
             hic.setApiKey(apiKey);
         }
 
@@ -372,14 +373,11 @@ var juicebox = (function (site) {
             }
         });
 
-        $e = $('button[id$=-map-dropdown]');
-        $e.parent().on('show.bs.dropdown', function () {
-            site.currentContactMapDropdownButton = $(this).children('.dropdown-toggle').attr('id');
-            console.log("show " + site.currentContactMapDropdownButton);
-        });
+        site.$mapSelectionDropdowns.on('show.bs.dropdown', function (event) {
+            var $button;
 
-        $e.parent().on('hide.bs.dropdown', function () {
-            console.log("hide contact/control map");
+            $button = $(event.relatedTarget);
+            site.$mapSelectionDropdownButton = $button;
         });
 
         function getEmbeddableSnippet(jbUrl) {
@@ -510,7 +508,10 @@ var juicebox = (function (site) {
 
     function loadHicFile(url, name) {
 
-        var synchState, browsersWithMaps, isControl, browser;
+        var synchState,
+            browsersWithMaps,
+            isControl,
+            browser;
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
@@ -520,7 +521,7 @@ var juicebox = (function (site) {
             synchState = browsersWithMaps[0].getSyncState();
         }
 
-        isControl = site.currentContactMapDropdownButton === control_map_dropdown_id;
+        isControl = control_map_dropdown_id === site.$mapSelectionDropdownButton.attr('id');
 
         browser = hic.Browser.getCurrentBrowser();
 
@@ -528,12 +529,15 @@ var juicebox = (function (site) {
             browser
                 .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-
+                    console.log('control map loaded');
                 });
         } else {
             browser
                 .loadHicFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
+
+                    console.log('contact map loaded');
+
                     if (!isControl) hic.syncBrowsers(hic.allBrowsers);
                 });
         }
