@@ -688,10 +688,10 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader, queryIdx, parts, tmp, id, url,
-            apiKey = hic.apiKey,
-            endPoint;
-
+            hicReader,
+            queryIdx,
+            parts,
+            str;
 
         if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
@@ -724,8 +724,10 @@ var hic = (function (hic) {
 
         if (config.dataset) {
             // Explicit set dataset, do not need to load.  Used by "interactive figures"
-            self.$contactMaplabel.text(config.name);
+            str = 'Contact: ' + config.name;
+            self.$contactMaplabel.text(str);
             self.name = config.name;
+
             return Promise.resolve(setDataset(config.dataset));
         }
         else {
@@ -759,7 +761,8 @@ var hic = (function (hic) {
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
 
-                    self.$contactMaplabel.text(config.name);
+                    str = 'Contact: ' + config.name;
+                    self.$contactMaplabel.text(str);
                     self.name = config.name;
 
                     if (config.colorScale) {
@@ -848,10 +851,13 @@ var hic = (function (hic) {
         return extractName(config)
 
             .then(function (name) {
+
+                var str = 'Control: ' + name;
+                self.$controlMaplabel.text(str);
+                self.controlMapName = name;
+
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config);
-                //self.$controltMaplabel.text(name);
-                //self.controlMapName = name;
             })
 
             .then(function (dataset) {
