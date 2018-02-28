@@ -529,15 +529,13 @@ var juicebox = (function (site) {
             browser
                 .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-                    console.log('control map loaded');
+                    browser.$controlMaplabel.text(name);
                 });
         } else {
             browser
                 .loadHicFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-
-                    console.log('contact map loaded');
-
+                    browser.$contactMaplabel.text(name);
                     if (!isControl) hic.syncBrowsers(hic.allBrowsers);
                 });
         }
