@@ -166,26 +166,12 @@ var hic = (function (hic) {
                 numeric = obj.resolution;
                 str = igv.numberFormatter( Math.round( numeric/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
 
-                if (false === obj.isVisible) {
-                    html = '<option' + ' value=' + index + ' disabled=' + '"disabled"' + '>' + str + '</option>';
-                } else {
-                    selected = selectedIndex === index;
-                    html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
-                }
+                selected = selectedIndex === index;
+                html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
 
                 return html;
 
             });
-
-            // list = _.map(resolutions, function (resolution, index) {
-            //
-            //     var selected,
-            //         str;
-            //
-            //     selected = selectedIndex === index;
-            //     str = igv.numberFormatter(Math.round(resolution/divisor)) + (1e3 === divisor ? ' kb' : ' mb');
-            //     return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + str + '</option>';
-            // });
 
             return list.join('');
         }
