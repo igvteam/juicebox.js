@@ -511,7 +511,8 @@ var juicebox = (function (site) {
         var synchState,
             browsersWithMaps,
             isControl,
-            browser;
+            browser,
+            str;
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
@@ -529,13 +530,15 @@ var juicebox = (function (site) {
             browser
                 .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-                    browser.$controlMaplabel.text(name);
+                    str = 'Control: ' + name;
+                    browser.$controlMaplabel.text(str);
                 });
         } else {
             browser
                 .loadHicFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-                    browser.$contactMaplabel.text(name);
+                    str = 'Contact: ' + name;
+                    browser.$contactMaplabel.text(str);
                     if (!isControl) hic.syncBrowsers(hic.allBrowsers);
                 });
         }

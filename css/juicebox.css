@@ -383,6 +383,7 @@
     .hic-navbar-container div[id$="hic-nav-bar-map-container"] div[id$="hic-nav-bar-map-label"] {
       width: 90%;
       height: 100%;
+      font-size: 12px;
       font-weight: 700;
       text-overflow: ellipsis;
       vertical-align: middle;
