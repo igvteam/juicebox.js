@@ -61,7 +61,7 @@ var hic = (function (hic) {
         this.$plusButton.on('click', function (e) {
             self.presentColorPicker($(this), self.$plusColorPicker);
         });
-        
+
 
         // threshold
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
@@ -99,7 +99,7 @@ var hic = (function (hic) {
             var colorScale;
             colorScale = browser.getColorScale();
             colorScale.setThreshold(colorScale.getThreshold() * scaleFactor);
-            self.$high_colorscale_input.val(igv.numberFormatter(Math.round(colorScale.getThreshold())));
+            self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
             browser.repaint();
         }
 
@@ -138,7 +138,7 @@ var hic = (function (hic) {
         var colorScale;
 
         colorScale = this.browser.getColorScale();
-        this.$high_colorscale_input.val(igv.numberFormatter(Math.round(colorScale.getThreshold())));
+        this.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
 
         if ("DisplayMode" === event.type) {
 
