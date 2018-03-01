@@ -38,16 +38,6 @@ var hic = (function (hic) {
         this.$container = $('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
-        // '+' color swatch
-        rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
-        this.$plusButton = hic.colorSwatch(rgbString, '+');
-        this.$container.append(this.$plusButton);
-        this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
-        this.$plusColorPicker.draggable();
-        this.$plusColorPicker.hide();
-        this.$plusButton.on('click', function (e) {
-            self.presentColorPicker($(this), self.$plusColorPicker);
-        });
 
         // '-' color swatch
         rgbString = getRGBString('-', "blue");                    // TODO -- get the default from browser.
@@ -61,6 +51,17 @@ var hic = (function (hic) {
             self.presentColorPicker($(this), self.$minusColorPicker);
         });
 
+        // '+' color swatch
+        rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
+        this.$plusButton = hic.colorSwatch(rgbString, '+');
+        this.$container.append(this.$plusButton);
+        this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
+        this.$plusColorPicker.draggable();
+        this.$plusColorPicker.hide();
+        this.$plusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.$plusColorPicker);
+        });
+        
 
         // threshold
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
