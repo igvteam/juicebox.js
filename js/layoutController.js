@@ -29,7 +29,7 @@ var hic = (function (hic) {
         if (true === figureMode) {
             height = hic.LayoutController.nav_bar_label_height;
         } else {
-            height = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+            height = (2 * hic.LayoutController.nav_bar_label_height) + (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
         }
         // console.log('navbar height ' + height);
         return height;
@@ -39,7 +39,7 @@ var hic = (function (hic) {
 
         var id,
             $navbar_container,
-            $label_delete_button_container,
+            $map_container,
             $upper_widget_container,
             $lower_widget_container,
             $e,
@@ -60,19 +60,19 @@ var hic = (function (hic) {
 
         }
 
-        // container: label | menu button | browser delete button
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
-        $label_delete_button_container = $("<div>", {id: id});
-        $navbar_container.append($label_delete_button_container);
+        // container: contact map label | menu button | browser delete button
+        id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
+        $map_container = $("<div>", { id: id });
+        $navbar_container.append($map_container);
 
-        // label
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
+        // contact map label
+        id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
         browser.$contactMaplabel = $("<div>", {id: id});
-        $label_delete_button_container.append(browser.$contactMaplabel);
+        $map_container.append(browser.$contactMaplabel);
 
         // menu button
         browser.$menuPresentDismiss = $("<div>", {class: 'hic-nav-bar-menu-button'});
-        $label_delete_button_container.append(browser.$menuPresentDismiss);
+        $map_container.append(browser.$menuPresentDismiss);
 
         $fa = $("<i>", {class: 'fa fa-bars fa-lg'});
         browser.$menuPresentDismiss.append($fa);
@@ -82,10 +82,9 @@ var hic = (function (hic) {
 
         // browser delete button
         $e = $("<div>", {class: 'hic-nav-bar-delete-button'});
-        $label_delete_button_container.append($e);
+        $map_container.append($e);
 
         $fa = $("<i>", {class: 'fa fa-minus-circle fa-lg'});
-        // class="fa fa-plus-circle fa-lg" aria-hidden="true"
         $e.append($fa);
 
         $fa.on('click', function (e) {
@@ -108,6 +107,24 @@ var hic = (function (hic) {
         // hide delete buttons for now. Delete button is only
         // if there is more then one browser instance.
         $e.hide();
+
+
+        // container: control map label
+        id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
+        $map_container = $("<div>", { id: id });
+        $navbar_container.append($map_container);
+
+        // control map label
+        id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
+        browser.$controlMaplabel = $("<div>", {id: id});
+        $map_container.append(browser.$controlMaplabel);
+
+
+
+
+
+
+
 
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
@@ -133,6 +150,9 @@ var hic = (function (hic) {
 
             // colorscale
             browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+
+            // control map
+            browser.controlMapWidget = new hic.ControlMapWidget(browser, $lower_widget_container);
 
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);

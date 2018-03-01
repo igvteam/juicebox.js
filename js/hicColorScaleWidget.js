@@ -31,92 +31,139 @@ var hic = (function (hic) {
 
         var self = this,
             $fa,
-            $e;
+            rgbString;
 
         this.browser = browser;
 
-        this.$container = $("<div>", { class:'hic-colorscale-widget-container',  title:'Color Scale' });
+        this.$container = $('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
-        // color chip
-        this.$button = igv.colorSwatch(browser.config.colorScale ? igv.Color.rgbColor(browser.config.colorScale.highR, browser.config.colorScale.highG, browser.config.colorScale.highB) : 'red');
-        this.$container.append(this.$button);
+        // '+' color swatch
+        rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
+        this.$plusButton = hic.colorSwatch(rgbString, '+');
+        this.$container.append(this.$plusButton);
+        this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
+        this.$plusColorPicker.draggable();
+        this.$plusColorPicker.hide();
+        this.$plusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.$plusColorPicker);
+        });
 
-        // input
+        // '-' color swatch
+        rgbString = getRGBString('-', "blue");                    // TODO -- get the default from browser.
+        this.$minusButton = hic.colorSwatch(rgbString, 'i');
+        this.$container.append(this.$minusButton);
+        this.$minusButton.hide();
+        this.$minusColorPicker = createColorpicker.call(this, browser, this.$minusButton, '-');
+        this.$minusColorPicker.draggable();
+        this.$minusColorPicker.hide();
+        this.$minusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.$minusColorPicker);
+        });
+
+
+        // threshold
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
         this.$container.append(this.$high_colorscale_input);
-
-        this.$high_colorscale_input.on('change', function(e){
-
+        this.$high_colorscale_input.on('change', function (e) {
             var numeric;
-
-            numeric = igv.numberUnFormatter( $(this).val() );
+            numeric = igv.numberUnFormatter($(this).val());
             if (isNaN(numeric)) {
                 // do nothing
             } else {
-                // browser.updateColorScale({ high: parseInt(numeric, 10) });
-                browser.updateColorScale({ high: parseInt( numeric, 10 ) });
+                browser.getColorScale().setThreshold(parseInt(numeric, 10));
             }
         });
 
-        // -
-        $fa = $("<i>", { class:'fa fa-minus', 'aria-hidden':'true' });
+        // threshold -
+        $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true'});
         $fa.on('click', function (e) {
-            doUpdateColorScale(1.0/2.0);
+            updateThreshold(1.0 / 2.0);
         });
         this.$container.append($fa);
 
-        // +
-        $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
+        // threshold +
+        $fa = $("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true'});
         $fa.on('click', function (e) {
-            doUpdateColorScale(2.0);
+            updateThreshold(2.0);
         });
         this.$container.append($fa);
 
-        this.$colorpicker = createColorpicker.call(this, browser);
-
-        this.$colorpicker.draggable();
-        this.$colorpicker.hide();
-
-        this.$button.on('click', function (e) {
-            self.$colorpicker.toggle();
-        });
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
+        this.browser.eventBus.subscribe("DisplayMode", this);
 
-        function doUpdateColorScale (scaleFactor) {
+        function updateThreshold(scaleFactor) {
             var colorScale;
+            colorScale = browser.getColorScale();
+            colorScale.setThreshold(colorScale.getThreshold() * scaleFactor);
+            self.$high_colorscale_input.val(igv.numberFormatter(Math.round(colorScale.getThreshold())));
+            browser.repaint();
+        }
+
+        function getRGBString(type, defaultColor) {
+            var colorScale, comps;
 
             colorScale = browser.getColorScale();
-            browser.updateColorScale({ high: colorScale.high * scaleFactor });
-            self.$high_colorscale_input.val( igv.numberFormatter(Math.round( colorScale.high )) );
+            if (colorScale) {
+                comps = colorScale.getColorComponents(type);
+                return igv.Color.rgbColor(comps.r, comps.g, comps.b);
+            }
+            else {
+                return defaultColor;
+            }
         }
+
     };
 
-    hic.ColorScaleWidget.prototype.receiveEvent = function(event) {
+    hic.ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
+        var str;
+
+        this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+        this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+        this.$presentingButton = $presentingButton;
+        this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+        str = this.$presentingButton.find('i').hasClass('fa-plus') ? '+' : '-';
+        // console.log('presenting button ' + str);
+        // this.$colorpicker.toggle();
+        $colorpicker.show();
+    };
+
+    hic.ColorScaleWidget.prototype.receiveEvent = function (event) {
 
         var colorScale;
 
-        if (event.type === "MapLoad" || event.type === "ColorScale") {
-            colorScale = this.browser.getColorScale();
-            this.$high_colorscale_input.val( igv.numberFormatter(Math.round( colorScale.high )) );
+        colorScale = this.browser.getColorScale();
+        this.$high_colorscale_input.val(igv.numberFormatter(Math.round(colorScale.getThreshold())));
+
+        if ("DisplayMode" === event.type) {
+
+            if ("observed-over-control" === event.data) {
+                this.$minusButton.show();
+            }
+            else {
+                this.$minusButton.hide();
+            }
         }
+
 
     };
 
-    function createColorpicker(browser) {
+    function createColorpicker(browser, $presentingButton, type) {
 
         var self = this,
             $colorpicker,
             config;
 
         config =
-            {
-                // width = (29 * swatch-width) + border-width + border-width
-                width: ((29 * 24) + 1 + 1),
-                classes: [ 'igv-position-absolute' ]
-            };
+        {
+            // width = (29 * swatch-width) + border-width + border-width
+            width: ((29 * 24) + 1 + 1),
+            classes: ['igv-position-absolute']
+        };
 
         $colorpicker = igv.genericContainer(browser.$root, config, function () {
             $colorpicker.toggle();
@@ -125,20 +172,19 @@ var hic = (function (hic) {
         igv.createColorSwatchSelector($colorpicker, function (colorName) {
             var rgb;
 
-            self.$button.find('.fa-square').css({ color: colorName });
+            $presentingButton.find('.fa-square').css({color: colorName});
 
-            rgb = _.map(colorName.split('(').pop().split(')').shift().split(','), function (str) {
+            rgb = colorName.split('(').pop().split(')').shift().split(',').map(function (str) {
                 return parseInt(str, 10);
             });
 
-            browser.updateColorScale(
-                {
-                    high:parseInt(igv.numberUnFormatter( self.$high_colorscale_input.val() ), 10),
-                    highR:rgb[0],
-                    highG:rgb[1],
-                    highB:rgb[2]
-                }
+            browser.getColorScale().setColorComponents({
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2]
+                }, type
             );
+            browser.repaint();
 
         });
 

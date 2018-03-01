@@ -236,10 +236,11 @@ var hic = (function (hic) {
         this.state = config.state ? config.state : defaultState.clone();
 
         if (config.colorScale) {
-            this.contactMatrixView.setColorScale(config.colorScale, this.state);
+            this.contactMatrixView.setColorScale(config.colorScale);
         }
 
         this.eventBus.subscribe("LocusChange", this);
+
 
         function configureHover($e) {
 
@@ -303,6 +304,55 @@ var hic = (function (hic) {
 
         this.contactMatrixView.stopSpinner();
     }
+
+    hic.Browser.prototype.setDisplayMode = function (mode) {
+        this.contactMatrixView.setDisplayMode(mode);
+        this.eventBus.post(hic.Event("DisplayMode", mode));
+    }
+
+    hic.Browser.prototype.getDisplayMode = function () {
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+    }
+
+
+
+    hic.Browser.prototype.getColorScale = function () {
+
+        if(!this.contactMatrixView) return undefined;
+
+        return this.getDisplayMode() === 'observed-over-control' ?
+            this.contactMatrixView.ratioColorScale :
+            this.contactMatrixView.colorScale;
+    };
+
+    hic.Browser.prototype.updateColorScale = function (options) {
+
+        var self = this,
+            state;
+
+        if (this.getDisplayMode() === 'observed-over-control') {
+            this.contactMatrixView.ratioColorScale.high = options.high;
+        }
+        else {
+            this.contactMatrixView.setColorScale(options);
+        }
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+        //
+        // state = this.state;
+        // this.dataset.getMatrix(state.chr1, state.chr2)
+        //     .then(function (matrix) {
+        //         var zd = matrix.bpZoomData[state.zoom];
+        //         var colorKey = zd.getKey() + "_" + state.normalization;
+        //         self.contactMatrixView.colorScaleCache[colorKey] = options.high;
+        //         self.contactMatrixView.update();
+        //     })
+        //     .catch(function (error) {
+        //         console.log(error);
+        //         alert(error);
+        //     });
+    };
 
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
@@ -415,6 +465,7 @@ var hic = (function (hic) {
             return;
         }
 
+
         if (browser !== hic.Browser.currentBrowser) {
 
             if (hic.Browser.currentBrowser) {
@@ -483,34 +534,6 @@ var hic = (function (hic) {
         return gs;
     };
 
-
-    hic.Browser.prototype.getColorScale = function () {
-        return this.contactMatrixView.colorScale;
-    };
-
-    hic.Browser.prototype.updateColorScale = function (options) {
-
-        var self = this,
-            state;
-
-        this.contactMatrixView.setColorScale(options);
-        this.contactMatrixView.imageTileCache = {};
-        this.contactMatrixView.initialImage = undefined;
-        this.contactMatrixView.update();
-
-        state = this.state;
-        this.dataset.getMatrix(state.chr1, state.chr2)
-            .then(function (matrix) {
-                var zd = matrix.bpZoomData[state.zoom];
-                var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = options.high;
-                self.contactMatrixView.update();
-            })
-            .catch(function (error) {
-                console.log(error);
-                alert(error);
-            });
-    };
 
     /**
      * Load a list of 1D genome tracks (wig, etc).
@@ -674,10 +697,10 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader, queryIdx, parts, tmp, id, url,
-            apiKey = hic.apiKey,
-            endPoint;
-
+            hicReader,
+            queryIdx,
+            parts,
+            str;
 
         if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
@@ -709,8 +732,11 @@ var hic = (function (hic) {
         }
 
         if (config.dataset) {
-            self.$contactMaplabel.text(config.name);
+            // Explicit set dataset, do not need to load.  Used by "interactive figures"
+            str = 'Contact: ' + config.name;
+            self.$contactMaplabel.text(str);
             self.name = config.name;
+
             return Promise.resolve(setDataset(config.dataset));
         }
         else {
@@ -718,6 +744,7 @@ var hic = (function (hic) {
             return extractName(config)
 
                 .then(function (name) {
+                    config.name = config.name;
                     hicReader = new hic.HiCReader(config);
                     return hicReader.loadDataset(config);
                 })
@@ -736,18 +763,19 @@ var hic = (function (hic) {
                     }
                     self.eventBus.post(hic.Event("MapLoad", self.dataset));
 
-                    return loadNVI(dataset)
+                    return loadNVI.call(self, dataset, config)
                 })
 
                 .then(function (nvi) {
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
 
-                    self.$contactMaplabel.text(config.name);
+                    str = 'Contact: ' + config.name;
+                    self.$contactMaplabel.text(str);
                     self.name = config.name;
 
                     if (config.colorScale) {
-                        self.contactMatrixView.setColorScale(config.colorScale, self.state);
+                        self.contactMatrixView.setColorScale(config.colorScale);
                     }
 
                     self.isLoadingHICFile = false;
@@ -771,11 +799,11 @@ var hic = (function (hic) {
                 })
         }
 
+        function loadNVI(dataset, config) {
 
-        function loadNVI(dataset) {
+            var self = this;
 
             if (dataset.hicReader.normVectorIndex) {
-                // TODO jtr -- how can this happen?
                 return Promise.resolve(hicReader.normVectorIndex);
             }
             else {
@@ -786,7 +814,9 @@ var hic = (function (hic) {
 
                     return dataset.hicReader.readNormVectorIndex(dataset, range)
                         .then(function (nvi) {
-                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            }
                             return nvi;
                         })
                 } else {
@@ -794,7 +824,10 @@ var hic = (function (hic) {
                     // Load norm vector index in the background
                     dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
-                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                                return hicReader.normVectorIndex;
+                            }
                         })
                         .catch(function (error) {
                             igv.presentAlert("Error loading normalization vectors");
@@ -806,45 +839,122 @@ var hic = (function (hic) {
 
             }
         }
+    };
 
-        /**
-         * Return a promise to extract the name of the dataset.  The promise is neccessacary because
-         * google drive urls require a call to the API
-         *
-         * @returns Promise for the name
-         */
-        function extractName(config) {
+    /**
+     * Load a .hic file for a control map
+     *
+     * NOTE: public API function
+     *
+     * @return a promise for a dataset
+     * @param config
+     */
+    hic.Browser.prototype.loadHicControlFile = function (config) {
 
-            if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-                tmp = hic.extractQuery(config.url);
-                id = tmp["id"];
-                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
-                if (apiKey) endPoint += "?key=" + apiKey;
+        var self = this,
+            hicReader;
 
-                return igv.Google.getDriveFileInfo(config.url)
-                    .then(function (json) {
-                        config.name = json.originalFilename;
-                        return config.name;
+        this.isLoadingHICFile = true;
+        self.contactMatrixView.startSpinner();
+
+        return extractName(config)
+
+            .then(function (name) {
+
+                var str = 'Control: ' + name;
+                self.$controlMaplabel.text(str);
+                self.controlMapName = name;
+
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config);
+            })
+
+            .then(function (dataset) {
+
+                if (self.genome.id !== dataset.genomeId) {
+                    throw new Error("Control map genome ID does not match observed map")
+                }
+                self.controlDataset = dataset;
+                self.eventBus.post(hic.Event("ControlMapLoad", dataset));
+                return loadControlNVI.call(self, dataset, config)
+            })
+
+            .then(function (nvi) {
+
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                self.isLoadingHICFile = false;
+
+
+            })
+            .catch(function (error) {
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                console.error(error);
+                igv.presentAlert("Error loading hic file: " + error);
+                return error;
+            })
+
+        function loadControlNVI(dataset, config) {
+
+            var self = this;
+
+            if (config.controlNvi) {
+
+                var nviArray = decodeURIComponent(config.nvi).split(","),
+                    range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                return dataset.hicReader.readNormVectorIndex(dataset, range)
+                    .then(function (nvi) {
+                        if (!config.isControl) {
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        }
+                        return nvi;
                     })
             } else {
-                if (config.name === undefined) {
-                    config.name = hic.extractFilename(config.url);
-                }
+
+                // Load norm vector index
+                return dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    .then(function (ignore) {
+                        return (hicReader.normVectorIndex);
+                    })
+                    .catch(function (error) {
+                        igv.presentAlert("Error loading normalization vectors");
+                        console.log(error);
+                    });
+            }
+        }
+    };
+
+    /**
+     * Return a promise to extract the name of the dataset.  The promise is neccessacary because
+     * google drive urls require a call to the API
+     *
+     * @returns Promise for the name
+     */
+    function extractName(config) {
+
+        var tmp, id, endPoint, apiKey;
+
+        if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
+            tmp = hic.extractQuery(config.url);
+            id = tmp["id"];
+            endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+            if (apiKey) endPoint += "?key=" + apiKey;
+
+            return igv.Google.getDriveFileInfo(config.url)
+                .then(function (json) {
+                    return json.originalFilename;
+                })
+        } else {
+            if (config.name === undefined) {
+                return Promise.resolve(hic.extractFilename(config.url));
+            } else {
                 return Promise.resolve(config.name);
             }
         }
+    }
 
-
-        stripUriParameters = function () {
-
-            var href = window.location.href,
-                idx = href.indexOf("?");
-
-            if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
-
-        };
-
-    };
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
@@ -984,7 +1094,7 @@ var hic = (function (hic) {
 
         currentResolution = bpResolutions[this.state.zoom];
 
-        if(this.state.chr1 === 0) {
+        if (this.state.chr1 === 0) {
 
             this.zoomAndCenter(1, anchorPx, anchorPy);
             return;
@@ -1009,7 +1119,7 @@ var hic = (function (hic) {
         }
 
         minZoom.call(self, self.state.chr1, self.state.chr2)
-            
+
             .then(function (z) {
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
@@ -1352,7 +1462,11 @@ var hic = (function (hic) {
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
-        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false, dragging: true});
+        var locusChangeEvent = hic.Event("LocusChange", {
+            state: this.state,
+            resolutionChanged: false,
+            dragging: true
+        });
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
 
@@ -1497,6 +1611,13 @@ var hic = (function (hic) {
             })
 
     };
+
+
+    hic.Browser.prototype.repaint = function() {
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+    }
 
 
     hic.Browser.prototype.resolution = function () {
@@ -1715,9 +1836,9 @@ var hic = (function (hic) {
             lowG: 255,
             lowB: 255,
             high: 2000,
-            highR: 255,
-            highG: 0,
-            highB: 0
+            r: 255,
+            g: 0,
+            b: 0
         };
 
         hicUrl = query["hicUrl"];
@@ -1863,9 +1984,9 @@ var hic = (function (hic) {
 
             cs = _.clone(defaultColorScaleInitializer);
             cs.high = tokens[0];
-            cs.highR = tokens[1];
-            cs.highG = tokens[2];
-            cs.highB = tokens[3];
+            cs.r = tokens[1];
+            cs.g = tokens[2];
+            cs.b = tokens[3];
 
             return new hic.ColorScale(cs);
         };
@@ -1903,6 +2024,7 @@ var hic = (function (hic) {
             return s;
         }
     }
+
 
     return hic;
 

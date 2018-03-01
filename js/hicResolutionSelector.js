@@ -66,6 +66,7 @@ var hic = (function (hic) {
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
@@ -80,8 +81,9 @@ var hic = (function (hic) {
             resolutions,
             selectedIndex,
             isWholeGenome,
-            digits,
-            divisor;
+            divisor,
+            dataset,
+            list;
 
         if (event.type === "LocusChange") {
 
@@ -93,11 +95,17 @@ var hic = (function (hic) {
             isWholeGenome = (0 === event.data.state.chr1);
 
             this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-            resolutions = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+
+            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+            this.contactMapResoultions = {};
+            list.forEach(function (resolution) {
+                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
+
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
 
-            htmlString = optionListHTML(resolutions, selectedIndex, divisor);
+            htmlString = optionListHTML(this.contactMapResoultions, selectedIndex, divisor);
 
             this.$resolution_selector.empty();
             this.$resolution_selector.append(htmlString);
@@ -111,26 +119,58 @@ var hic = (function (hic) {
 
         } else if (event.type === "MapLoad") {
 
+            dataset = event.data;
+
+            console.log('resolution selector - did load CONTACT map');
+            this.contactMapResoultions = {};
+            dataset.bpResolutions.forEach(function (resolution) {
+                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
+
             this.browser.resolutionLocked = false;
             this.setResolutionLock(this.browser.resolutionLocked);
 
             this.$resolution_selector.empty();
-            htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
+            // htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
+            htmlString = optionListHTML(this.contactMapResoultions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.append(htmlString);
+
+        } else if(event.type === "ControlMapLoad") {
+
+            dataset = event.data;
+
+            console.log('resolution selector - did load CONTROL map');
+            // control resolutions == dataset.bpResolutions.  Update selector list
+            // items defined by this.browser.dataset.bpResolutions as usual.   Rows not present in dataset.bpResolutions
+            // are greyed out
+            this.controlMapResoultions = {};
+            dataset.bpResolutions.forEach(function (resolution) {
+                self.controlMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
 
         }
 
-        function optionListHTML(resolutionList, selectedIndex, divisor) {
+
+        function optionListHTML(resolutions, selectedIndex, divisor) {
             var list;
 
-            list = _.map(resolutionList, function (resolution, index) {
-
+            list = Object.keys(resolutions).map(function (key, index) {
                 var selected,
-                    str;
+                    str,
+                    numeric,
+                    obj,
+                    html;
+
+                obj = resolutions[ key ];
+
+                numeric = obj.resolution;
+                str = igv.numberFormatter( Math.round( numeric/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
 
                 selected = selectedIndex === index;
-                str = igv.numberFormatter(Math.round(resolution/divisor)) + (1e3 === divisor ? ' kb' : ' mb');
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + str + '</option>';
+                html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
+
+                return html;
+
             });
 
             return list.join('');

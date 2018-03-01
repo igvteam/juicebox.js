@@ -71,6 +71,7 @@
     <script src="../../js/hicUrl.js"></script>
     <script src="../../js/hicReader.js"></script>
     <script src="../../js/hicColorScaleWidget.js"></script>
+    <script src="../../js/controlMapWidget.js"></script>
     <script src="../../js/hicLocusGoto.js"></script>
     <script src="../../js/hicResolutionSelector.js"></script>
     <script src="../../js/hicBrowser.js"></script>
@@ -432,6 +433,38 @@
                             Contact Map URL
                         </a>
                     </li><!-- Contact Map URL -->
+
+                </ul>
+
+            </div>
+
+            <!-- Control Map: Select | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <button id="hic-control-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    Load Control Map &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-control-map-dropdown">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
+                            Select Contact Map
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                            Local Contact Map File
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Contact Map URL
+                        </a>
+                    </li>
 
                 </ul>
 

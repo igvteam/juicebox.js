@@ -5,7 +5,7 @@ $hic-color-swatch-size: 24px;
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
 $nav-bar-shim-height: 4px;
-$nav-bar-height: $nav-bar-label-height + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
+$nav-bar-height: (2 * $nav-bar-label-height) + (2 * $nav-bar-widget-container-height) + $nav-bar-shim-height;
 
 $nav-bar-widget-height: 24px;
 $chromosome-selector-widget-container-width: 160px;
@@ -706,7 +706,6 @@ $default-font-family: 'Open Sans', sans-serif;
   font-family: $default-font-family;
 
   font-size: 14px;
-
   font-weight: 400;
 
   background-color: $default-light-color;
@@ -715,8 +714,8 @@ $default-font-family: 'Open Sans', sans-serif;
   border-bottom-width: thin;
   border-bottom-color: transparent;
 
-  // container: contact map label | browser delete button
-  div[id$="hic-nav-bar-contact-map-label-delete-button-container"] {
+  // container: contact map label | menu button | browser delete button
+  div[id$="hic-nav-bar-map-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
@@ -724,18 +723,19 @@ $default-font-family: 'Open Sans', sans-serif;
     align-items: center;
 
     width: 95%;
-    height: $nav-bar-widget-container-height;
+    height: $nav-bar-label-height;
 
     // nav-bar contact map label
-    div[id$="hic-nav-bar-contact-map-label"] {
+    div[id$="hic-nav-bar-map-label"] {
       width: 90%;
       height: 100%;
 
+      font-size: 12px;
       font-weight: 700;
       text-overflow: ellipsis;
 
       vertical-align: middle;
-      line-height: $nav-bar-widget-container-height;
+      line-height: $nav-bar-label-height;
 
       border-bottom-style: solid;
       border-bottom-width: thin;
@@ -822,24 +822,38 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - colorscale
 .hic-colorscale-widget-container {
 
-  width: 33%;
+  width: 30%;
 
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
+
+  > i.fa-minus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: $default-dark-color;
+  }
+
+  > i.fa-plus {
+    display: block;
+    margin-left: 1%;
+    margin-right: 1%;
+    color: $default-dark-color;
+  }
 
   @include navbar-color-scale-input;
 
   input {
-    width: 45%;
+    width: 30%;
   }
 
   i.fa-minus {
     display: block;
-    margin-left: $hic-colorscale-widget-plus-minus-margin;
-    margin-right: $hic-colorscale-widget-plus-minus-margin;
+    margin-left: 2%;
+    margin-right: 2%;
     color: $default-dark-color;
   }
 
@@ -852,8 +866,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
   i.fa-plus {
     display: block;
-    margin-left: $hic-colorscale-widget-plus-minus-margin;
-    margin-right: $hic-colorscale-widget-plus-minus-margin;
+    margin-left: 2%;
+    margin-right: 2%;
     color: $default-dark-color;
   }
 
@@ -866,11 +880,36 @@ $default-font-family: 'Open Sans', sans-serif;
 
 }
 
+// navbar - control map
+.hic-control-map-selector-container {
+
+  margin-left: 2%;
+  width: 25%;
+
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  div {
+    display: block;
+    margin-right: 2px;
+  }
+
+  @include navbar-select;
+
+  select {
+    width: 75%;
+  }
+
+}
+
 // navbar - normalization
 .hic-normalization-selector-container {
 
-  margin-left: 4%;
-  width: 33%;
+  //margin-left: 2%;
+  width: 25%;
 
   display: flex;
   flex-flow: row;
@@ -894,7 +933,8 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - resolution
 .hic-resolution-selector-container {
 
-  width: 33%;
+  //margin-left: 4%;
+  width: 20%;
 
   display: flex;
   flex-flow: row;
