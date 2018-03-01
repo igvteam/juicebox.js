@@ -386,6 +386,8 @@
       font-size: 12px;
       font-weight: 700;
       text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
       vertical-align: middle;
       line-height: 36px;
       border-bottom-style: solid;

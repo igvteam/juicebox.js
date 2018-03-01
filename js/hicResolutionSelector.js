@@ -113,8 +113,7 @@ var hic = (function (hic) {
                 if (true === isWholeGenome) {
                     harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), this.browser.controlDataset.wholeGenomeResolution);
                 } else {
-                    // TODO: Hack to test intersection of contact/control resolution lists
-                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(this.browser.controlDataset.bpResolutions, 2));
+                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), this.browser.controlDataset.bpResolutions);
                 }
             }
 
@@ -131,12 +130,13 @@ var hic = (function (hic) {
             isWholeGenome = (0 === this.browser.state.chr1);
             list = isWholeGenome ? [ event.data.wholeGenomeResolution ] : event.data.bpResolutions;
 
-            if (true === isWholeGenome) {
-                harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
-            } else {
-                // TODO: Hack to test intersection of contact/control resolution lists
-                harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(list, 2));
-            }
+            harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
+
+            // if (true === isWholeGenome) {
+            //     harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
+            // } else {
+            //     harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(list, 2));
+            // }
 
         }
 
