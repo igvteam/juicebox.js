@@ -418,16 +418,48 @@
 
             </div>
 
+            <!-- Control Map: Select | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <button id="hic-control-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                    Load Control Map &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-control-map-dropdown">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
+                            Select Contact Map
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
+                            Local Contact Map File
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Contact Map URL
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
             <!-- Track File: ENCODE | Annotations | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-track-dropdown" class="btn btn-default dropdown-toggle" type="button"
-                        data-toggle="dropdown">
+                <!--  data-toggle="dropdown" -->
+                <button id="hic-track-dropdown-button" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
                     <span>Load Tracks &nbsp;</span>
                     <span class="caret"></span>
                 </button>
 
-                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown">
+                <ul id="hic-track-dropdown" class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown-button">
 
                     <li id="hic-encode-modal-list-item" role="presentation">
                         <span id="hic-encode-loading" >&nbsp;&nbsp;&nbsp;&nbsp;ENCODE loading ...</span>
@@ -482,6 +514,7 @@
         </div>
 
     </div>
+
 
     <!-- App container -->
     <div class="row">

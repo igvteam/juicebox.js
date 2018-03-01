@@ -21550,7 +21550,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.getColor() : track1D.color);
         $row.append($colorpickerButton);
 
         // color swatch selector
@@ -21917,14 +21917,10 @@ var hic = (function (hic) {
 
     var defaultColorScaleInitializer =
     {
-        low: 0,
-        lowR: 255,
-        lowG: 255,
-        lowB: 255,
         high: 2000,
-        highR: 255,
-        highG: 0,
-        highB: 0
+        r: 255,
+        g: 0,
+        b: 0
     };
 
     hic.ContactMatrixView = function (browser, $container) {
@@ -21984,14 +21980,15 @@ var hic = (function (hic) {
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
+        this.displayMode = 'observed';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
 
         this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
-
         this.colorScaleCache = {};
+        this.ratioColorScale = new RatioColorScale(5);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -22008,18 +22005,21 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (options, state) {
+    hic.ContactMatrixView.prototype.setColorScale = function (options) {
 
         if (options.high) this.colorScale.high = options.high;
-        if (undefined !== options.highR) this.colorScale.highR = options.highR;
-        if (undefined !== options.highG) this.colorScale.highG = options.highG;
-        if (undefined !== options.highB) this.colorScale.highB = options.highB;
+        if (undefined !== options.r) this.colorScale.r = options.r;
+        if (undefined !== options.g) this.colorScale.g = options.g;
+        if (undefined !== options.b) this.colorScale.b = options.b;
 
-        if (!state) {
-            state = this.browser.state;
-        }
-        this.colorScaleCache[colorScaleKey(state)] = options.high;
+        this.colorScaleCache[colorScaleKey(this.browser.state)] = options.high;
     };
+
+    hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
+        this.displayMode = mode;
+        this.clearCaches();
+        this.update();
+    }
 
     function colorScaleKey(state) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
@@ -22132,12 +22132,14 @@ var hic = (function (hic) {
             return Promise.resolve();
         }
 
-        return self.browser.dataset.getMatrix(state.chr1, state.chr2)
+        return getMatrices.call(self, state.chr1, state.chr2)
 
-            .then(function (matrix) {
+            .then(function (matrices) {
+
+                var matrix = matrices[0];
+
 
                 if (matrix) {
-
                     var zd = matrix.bpZoomData[state.zoom],
                         blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
                         pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
@@ -22147,7 +22149,11 @@ var hic = (function (hic) {
                         blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
                         blockRow1 = Math.floor(state.y / blockBinCount),
                         blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, promises = [];
+                        r, c, zdControl, promises = [];
+
+                    if (matrices.length > 1) {
+                        zdControl = matrices[1].bpZoomData[state.zoom];
+                    }
 
                     return checkColorScale.call(self, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
@@ -22155,7 +22161,7 @@ var hic = (function (hic) {
 
                             for (r = blockRow1; r <= blockRow2; r++) {
                                 for (c = blockCol1; c <= blockCol2; c++) {
-                                    promises.push(self.getImageTile(zd, r, c, state));
+                                    promises.push(self.getImageTile(zd, zdControl, r, c, state));
                                 }
                             }
 
@@ -22169,6 +22175,10 @@ var hic = (function (hic) {
     };
 
 
+    /**
+     * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
+     * created previously in readyToPaint.   We could just fetch them from the cache and paint.
+     */
     hic.ContactMatrixView.prototype.repaint = function () {
 
         var self = this,
@@ -22191,9 +22201,11 @@ var hic = (function (hic) {
         }
 
 
-        self.browser.dataset.getMatrix(state.chr1, state.chr2)
+        getMatrices.call(self, state.chr1, state.chr2)
 
-            .then(function (matrix) {
+            .then(function (matrices) {
+
+                var matrix = matrices[0];
 
                 if (matrix) {
 
@@ -22207,11 +22219,13 @@ var hic = (function (hic) {
                         blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
                         blockRow1 = Math.floor(state.y / blockBinCount),
                         blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, promises = [];
+                        r, c, zdControl, promises = [];
+
+                    if (matrices.length > 1) zdControl = matrices[1].bpZoomData[state.zoom];
 
                     for (r = blockRow1; r <= blockRow2; r++) {
                         for (c = blockCol1; c <= blockCol2; c++) {
-                            promises.push(self.getImageTile(zd, r, c, state));
+                            promises.push(self.getImageTile(zd, zdControl, r, c, state));
                         }
                     }
 
@@ -22233,6 +22247,16 @@ var hic = (function (hic) {
             })
     }
 
+    function getMatrices(chr1, chr2) {
+
+        var promises = [];
+        promises.push(this.browser.dataset.getMatrix(chr1, chr2))
+        if (this.displayMode && 'observed' !== this.displayMode && this.browser.controlDataset) {
+            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+        return Promise.all(promises);
+    }
+
     /**
      * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
      * data to computer scale.
@@ -22247,9 +22271,12 @@ var hic = (function (hic) {
      */
     function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this;
+        var self = this,
+            colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
 
-        var colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        if (self.displayMode && 'observed' !== self.displayMode) {
+            return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
+        }
 
         if (self.colorScaleCache[colorKey]) {
             var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
@@ -22356,14 +22383,14 @@ var hic = (function (hic) {
      * @param state
      * @returns {*}
      */
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, row, column, state) {
+    hic.ContactMatrixView.prototype.getImageTile = function (zd, zdControl, row, column, state) {
 
         var self = this,
             sameChr = zd.chr1 === zd.chr2,
             pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
             useImageData = pixelSizeInt === 1,
             key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization;
+                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
 
         if (this.imageTileCache.hasOwnProperty(key)) {
 
@@ -22385,13 +22412,18 @@ var hic = (function (hic) {
                 blockNumber = row * blockColumnCount + column;
             }
 
-            return self.browser.dataset.getNormalizedBlock(zd, blockNumber, state.normalization)
+            return getNormalizedBlocks.call(self, zd, zdControl, blockNumber, state.normalization)
 
-                .then(function (block) {
+                .then(function (blocks) {
 
-                    var image;
+                    var block = blocks[0],
+                        controlBlock,
+                        image;
+
+                    if (blocks.length > 0) controlBlock = blocks[1];
+
                     if (block && block.records.length > 0) {
-                        image = drawBlock(block, transpose);
+                        image = drawBlock(block, controlBlock, transpose);
                     }
                     else {
                         //console.log("No block for " + blockNumber);
@@ -22417,10 +22449,12 @@ var hic = (function (hic) {
                         imageData.data[index + 3] = a;
                     }
 
-                    function drawBlock(block, transpose) {
+                    // Actual drawing happens here
+                    function drawBlock(block, controlBlock, transpose) {
 
                         var imageSize = Math.ceil(widthInBins * pixelSizeInt),
-                            blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color, px, py;
+                            blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color,
+                            controlRecords, controlRec, key, score;
 
                         blockNumber = block.blockNumber;
                         row = Math.floor(blockNumber / blockColumnCount);
@@ -22434,11 +22468,26 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
+                        if ('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
+                            controlRecords = {};
+                            controlBlock.records.forEach(function (record) {
+                                controlRecords[record.getKey()] = record;
+                            })
+
+
+                        }
+
                         if (useImageData) {
                             id = ctx.getImageData(0, 0, image.width, image.height);
                         }
 
+                        var averageCount = zd.averageCount;
+                        var ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+                        var averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
+
                         for (i = 0; i < block.records.length; i++) {
+
                             rec = block.records[i];
                             x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
                             y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
@@ -22449,7 +22498,33 @@ var hic = (function (hic) {
                                 x = t;
                             }
 
-                            color = self.colorScale.getColor(rec.counts);
+                            switch (self.displayMode) {
+
+                                case 'observed-over-control':
+
+                                    key = rec.getKey();
+                                    controlRec = controlRecords[key];
+                                    if (!controlRec) {
+                                        continue;    // Skip
+                                    }
+                                    score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
+
+                                    color = self.ratioColorScale.getColor(score);
+
+                                    break;
+
+                                case 'observed-minus-control':
+                                    key = rec.getKey();
+                                    controlRec = controlRecords[key];
+                                    if (!controlRec) {
+                                        continue;    // Skip
+                                    }
+                                    score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                                default:
+                                    color = self.colorScale.getColor(rec.counts);
+                            }
+
 
                             if (useImageData) {
                                 // TODO -- verify that this bitblting is faster than fillRect
@@ -22474,7 +22549,6 @@ var hic = (function (hic) {
                         ctx.save();
                         ctx.lineWidth = 2;
                         self.browser.tracks2D.forEach(function (track2D) {
-                            var color;
 
                             if (track2D.isVisible) {
                                 var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
@@ -22527,6 +22601,19 @@ var hic = (function (hic) {
                     }
                 })
         }
+
+        function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
+            var promises = [];
+
+            promises.push(this.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization));
+
+            if (zdControl) {
+                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
+            }
+
+            return Promise.all(promises);
+
+        }
     };
 
     function computePercentile(blockArray, p) {
@@ -22559,63 +22646,6 @@ var hic = (function (hic) {
 
     };
 
-
-    hic.ColorScale = function (scale) {
-        this.low = scale.low;
-        this.lowR = scale.lowR;
-        this.lowG = scale.lowG;
-        this.lowB = scale.lowB;
-        this.high = scale.high;
-        this.highR = scale.highR;
-        this.highG = scale.highG;
-        this.highB = scale.highB;
-    };
-
-    hic.ColorScale.prototype.equals = function (cs) {
-        return JSON.stringify(this) === JSON.stringify(cs);
-    };
-
-    hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff;
-
-        if (value <= scale.low) value = scale.low;
-        else if (value >= scale.high) value = scale.high;
-
-        diff = scale.high - scale.low;
-
-        frac = (value - scale.low) / diff;
-        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
-        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
-        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
-
-        return {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        };
-    };
-
-    hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
-    };
-
-    hic.destringifyColorScale = function (string) {
-
-        var cs,
-            tokens;
-
-        tokens = string.split(",");
-
-        cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[0];
-        cs.highR = tokens[1];
-        cs.highG = tokens[2];
-        cs.highB = tokens[3];
-
-        return new hic.ColorScale(cs);
-
-    };
 
     function addMouseHandlers($viewport) {
 
@@ -22998,6 +23028,219 @@ var hic = (function (hic) {
 
     }
 
+
+    hic.ColorScale = function (scale) {
+        this.high = scale.high;
+        this.r = scale.r;
+        this.g = scale.g;
+        this.b = scale.b;
+    };
+
+    hic.ColorScale.prototype.setThreshold = function (threshold) {
+        this.high = threshold;
+    }
+
+    hic.ColorScale.prototype.getThreshold = function () {
+        return this.high;
+    }
+
+    hic.ColorScale.prototype.setColorComponents = function (components) {
+        this.r = components.r;
+        this.g = components.g;
+        this.b = components.b;
+    }
+
+    hic.ColorScale.prototype.getColorComponents = function () {
+        return {
+            r: this.r,
+            g: this.g,
+            b: this.b
+        }
+    }
+
+
+    hic.ColorScale.prototype.equals = function (cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    };
+
+    hic.ColorScale.prototype.getColor = function (value) {
+        var scale = this, r, g, b, frac, diff, low, lowR, lowG, lowB;
+
+        low = 0;
+        lowR = 255;
+        lowB = 255;
+        lowG = 255;
+
+        if (value <= low) value = low;
+        else if (value >= scale.high) value = scale.high;
+
+        diff = scale.high - low;
+
+        frac = (value - low) / diff;
+        r = Math.floor(lowR + frac * (scale.r - lowR));
+        g = Math.floor(lowG + frac * (scale.g - lowG));
+        b = Math.floor(lowB + frac * (scale.b - lowB));
+
+        return {
+            red: r,
+            green: g,
+            blue: b,
+            rgb: "rgb(" + r + "," + g + "," + b + ")"
+        };
+    };
+
+    hic.ColorScale.prototype.stringify = function () {
+        return "" + this.high + ',' + this.r + ',' + this.g + ',' + this.b;
+    };
+
+    hic.destringifyColorScale = function (string) {
+
+        var cs,
+            tokens;
+
+        tokens = string.split(",");
+
+        cs = {
+            high: tokens[0],
+            r: tokens[1],
+            g: tokens[2],
+            b: tokens[3]
+        };
+
+        return new hic.ColorScale(cs);
+
+    };
+
+    function RatioColorScale(threshold) {
+
+        this.threshold = threshold;
+
+        this.positiveScale = new hic.ColorScale({
+            high: Math.log(threshold),
+            r: 255,
+            g: 0,
+            b: 0
+        });
+        this.negativeScale = new hic.ColorScale(
+            {
+                high: Math.log(threshold),
+                r: 0,
+                g: 0,
+                b: 255
+            })
+    }
+
+    RatioColorScale.prototype.setThreshold = function (threshold) {
+        this.threshold = threshold;
+        this.positiveScale.high = Math.log(threshold);
+        this.negativeScale.high = Math.log(threshold);
+    }
+
+    RatioColorScale.prototype.getThreshold = function () {
+        return this.threshold;
+    }
+
+    RatioColorScale.prototype.setColorComponents = function (components, plusOrMinus) {
+        if ('-' === plusOrMinus) {
+            return this.negativeScale.setColorComponents(components);
+        }
+        else {
+            return this.positiveScale.setColorComponents(components);
+        }
+    }
+
+    RatioColorScale.prototype.getColorComponents = function (plusOrMinus) {
+
+        if ('-' === plusOrMinus) {
+            return this.negativeScale.getColorComponents();
+        }
+        else {
+            return this.positiveScale.getColorComponents();
+        }
+    }
+
+    RatioColorScale.prototype.getColor = function (score) {
+
+        var logScore = Math.log(score);
+
+        if (logScore < 0) {
+            return this.negativeScale.getColor(-logScore);
+        }
+        else {
+            return this.positiveScale.getColor(logScore);
+        }
+
+    }
+
+
+    return hic;
+
+})
+(hic || {});
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+/**
+ * Created by dat on 3/21/17.
+ */
+var hic = (function (hic) {
+
+    hic.ControlMapWidget = function (browser, $parent) {
+
+        var self = this,
+            optionStrings,
+            $options;
+
+        this.browser = browser;
+
+        // container
+        this.$container = $('<div class="hic-control-map-selector-container">');
+        $parent.append(this.$container);
+
+        // select
+        this.$control_map_selector = $('<select>');
+        this.$control_map_selector.attr('name', 'control_map_selector');
+        this.$control_map_selector.on('change', function (e) {
+            var value;
+
+            value = $(this).val();
+            browser.setDisplayMode(value);
+        });
+        this.$container.append(this.$control_map_selector);
+        optionStrings =
+            [
+                { title:'Observed', value:'observed' },
+             //   { title:'Control', value:'control' },
+                { title:'Observed/Control', value:'observed-over-control' }
+             //   { title:'Observed-Control', value:'observed-minus-control' }
+            ];
+
+        optionStrings.forEach(function (o) {
+            self.$control_map_selector.append($('<option>').attr('title', o.title).attr('value', o.value).text(o.title));
+        });
+
+    };
 
     return hic;
 
@@ -23592,10 +23835,11 @@ var hic = (function (hic) {
         this.state = config.state ? config.state : defaultState.clone();
 
         if (config.colorScale) {
-            this.contactMatrixView.setColorScale(config.colorScale, this.state);
+            this.contactMatrixView.setColorScale(config.colorScale);
         }
 
         this.eventBus.subscribe("LocusChange", this);
+
 
         function configureHover($e) {
 
@@ -23659,6 +23903,55 @@ var hic = (function (hic) {
 
         this.contactMatrixView.stopSpinner();
     }
+
+    hic.Browser.prototype.setDisplayMode = function (mode) {
+        this.contactMatrixView.setDisplayMode(mode);
+        this.eventBus.post(hic.Event("DisplayMode", mode));
+    }
+
+    hic.Browser.prototype.getDisplayMode = function () {
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+    }
+
+
+
+    hic.Browser.prototype.getColorScale = function () {
+
+        if(!this.contactMatrixView) return undefined;
+
+        return this.getDisplayMode() === 'observed-over-control' ?
+            this.contactMatrixView.ratioColorScale :
+            this.contactMatrixView.colorScale;
+    };
+
+    hic.Browser.prototype.updateColorScale = function (options) {
+
+        var self = this,
+            state;
+
+        if (this.getDisplayMode() === 'observed-over-control') {
+            this.contactMatrixView.ratioColorScale.high = options.high;
+        }
+        else {
+            this.contactMatrixView.setColorScale(options);
+        }
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+        //
+        // state = this.state;
+        // this.dataset.getMatrix(state.chr1, state.chr2)
+        //     .then(function (matrix) {
+        //         var zd = matrix.bpZoomData[state.zoom];
+        //         var colorKey = zd.getKey() + "_" + state.normalization;
+        //         self.contactMatrixView.colorScaleCache[colorKey] = options.high;
+        //         self.contactMatrixView.update();
+        //     })
+        //     .catch(function (error) {
+        //         console.log(error);
+        //         alert(error);
+        //     });
+    };
 
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
@@ -23771,6 +24064,7 @@ var hic = (function (hic) {
             return;
         }
 
+
         if (browser !== hic.Browser.currentBrowser) {
 
             if (hic.Browser.currentBrowser) {
@@ -23839,34 +24133,6 @@ var hic = (function (hic) {
         return gs;
     };
 
-
-    hic.Browser.prototype.getColorScale = function () {
-        return this.contactMatrixView.colorScale;
-    };
-
-    hic.Browser.prototype.updateColorScale = function (options) {
-
-        var self = this,
-            state;
-
-        this.contactMatrixView.setColorScale(options);
-        this.contactMatrixView.imageTileCache = {};
-        this.contactMatrixView.initialImage = undefined;
-        this.contactMatrixView.update();
-
-        state = this.state;
-        this.dataset.getMatrix(state.chr1, state.chr2)
-            .then(function (matrix) {
-                var zd = matrix.bpZoomData[state.zoom];
-                var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = options.high;
-                self.contactMatrixView.update();
-            })
-            .catch(function (error) {
-                console.log(error);
-                alert(error);
-            });
-    };
 
     /**
      * Load a list of 1D genome tracks (wig, etc).
@@ -24030,10 +24296,10 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader, queryIdx, parts, tmp, id, url,
-            apiKey = hic.apiKey,
-            endPoint;
-
+            hicReader,
+            queryIdx,
+            parts,
+            str;
 
         if (!config.url && !config.dataset) {
             console.log("No .hic url specified");
@@ -24065,8 +24331,11 @@ var hic = (function (hic) {
         }
 
         if (config.dataset) {
-            self.$contactMaplabel.text(config.name);
+            // Explicit set dataset, do not need to load.  Used by "interactive figures"
+            str = 'Contact: ' + config.name;
+            self.$contactMaplabel.text(str);
             self.name = config.name;
+
             return Promise.resolve(setDataset(config.dataset));
         }
         else {
@@ -24074,6 +24343,7 @@ var hic = (function (hic) {
             return extractName(config)
 
                 .then(function (name) {
+                    config.name = config.name;
                     hicReader = new hic.HiCReader(config);
                     return hicReader.loadDataset(config);
                 })
@@ -24092,18 +24362,19 @@ var hic = (function (hic) {
                     }
                     self.eventBus.post(hic.Event("MapLoad", self.dataset));
 
-                    return loadNVI(dataset)
+                    return loadNVI.call(self, dataset, config)
                 })
 
                 .then(function (nvi) {
                     self.isLoadingHICFile = false;
                     self.stopSpinner();
 
-                    self.$contactMaplabel.text(config.name);
+                    str = 'Contact: ' + config.name;
+                    self.$contactMaplabel.text(str);
                     self.name = config.name;
 
                     if (config.colorScale) {
-                        self.contactMatrixView.setColorScale(config.colorScale, self.state);
+                        self.contactMatrixView.setColorScale(config.colorScale);
                     }
 
                     self.isLoadingHICFile = false;
@@ -24127,11 +24398,11 @@ var hic = (function (hic) {
                 })
         }
 
+        function loadNVI(dataset, config) {
 
-        function loadNVI(dataset) {
+            var self = this;
 
             if (dataset.hicReader.normVectorIndex) {
-                // TODO jtr -- how can this happen?
                 return Promise.resolve(hicReader.normVectorIndex);
             }
             else {
@@ -24142,7 +24413,9 @@ var hic = (function (hic) {
 
                     return dataset.hicReader.readNormVectorIndex(dataset, range)
                         .then(function (nvi) {
-                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            }
                             return nvi;
                         })
                 } else {
@@ -24150,7 +24423,10 @@ var hic = (function (hic) {
                     // Load norm vector index in the background
                     dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
                         .then(function (ignore) {
-                            return self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                            if (!config.isControl) {
+                                self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                                return hicReader.normVectorIndex;
+                            }
                         })
                         .catch(function (error) {
                             igv.presentAlert("Error loading normalization vectors");
@@ -24162,45 +24438,122 @@ var hic = (function (hic) {
 
             }
         }
+    };
 
-        /**
-         * Return a promise to extract the name of the dataset.  The promise is neccessacary because
-         * google drive urls require a call to the API
-         *
-         * @returns Promise for the name
-         */
-        function extractName(config) {
+    /**
+     * Load a .hic file for a control map
+     *
+     * NOTE: public API function
+     *
+     * @return a promise for a dataset
+     * @param config
+     */
+    hic.Browser.prototype.loadHicControlFile = function (config) {
 
-            if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-                tmp = hic.extractQuery(config.url);
-                id = tmp["id"];
-                endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
-                if (apiKey) endPoint += "?key=" + apiKey;
+        var self = this,
+            hicReader;
 
-                return igv.Google.getDriveFileInfo(config.url)
-                    .then(function (json) {
-                        config.name = json.originalFilename;
-                        return config.name;
+        this.isLoadingHICFile = true;
+        self.contactMatrixView.startSpinner();
+
+        return extractName(config)
+
+            .then(function (name) {
+
+                var str = 'Control: ' + name;
+                self.$controlMaplabel.text(str);
+                self.controlMapName = name;
+
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config);
+            })
+
+            .then(function (dataset) {
+
+                if (self.genome.id !== dataset.genomeId) {
+                    throw new Error("Control map genome ID does not match observed map")
+                }
+                self.controlDataset = dataset;
+                self.eventBus.post(hic.Event("ControlMapLoad", dataset));
+                return loadControlNVI.call(self, dataset, config)
+            })
+
+            .then(function (nvi) {
+
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                self.isLoadingHICFile = false;
+
+
+            })
+            .catch(function (error) {
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                console.error(error);
+                igv.presentAlert("Error loading hic file: " + error);
+                return error;
+            })
+
+        function loadControlNVI(dataset, config) {
+
+            var self = this;
+
+            if (config.controlNvi) {
+
+                var nviArray = decodeURIComponent(config.nvi).split(","),
+                    range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+
+                return dataset.hicReader.readNormVectorIndex(dataset, range)
+                    .then(function (nvi) {
+                        if (!config.isControl) {
+                            self.eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        }
+                        return nvi;
                     })
             } else {
-                if (config.name === undefined) {
-                    config.name = hic.extractFilename(config.url);
-                }
+
+                // Load norm vector index
+                return dataset.hicReader.readNormExpectedValuesAndNormVectorIndex(dataset)
+                    .then(function (ignore) {
+                        return (hicReader.normVectorIndex);
+                    })
+                    .catch(function (error) {
+                        igv.presentAlert("Error loading normalization vectors");
+                        console.log(error);
+                    });
+            }
+        }
+    };
+
+    /**
+     * Return a promise to extract the name of the dataset.  The promise is neccessacary because
+     * google drive urls require a call to the API
+     *
+     * @returns Promise for the name
+     */
+    function extractName(config) {
+
+        var tmp, id, endPoint, apiKey;
+
+        if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
+            tmp = hic.extractQuery(config.url);
+            id = tmp["id"];
+            endPoint = "https://www.googleapis.com/drive/v2/files/" + id;
+            if (apiKey) endPoint += "?key=" + apiKey;
+
+            return igv.Google.getDriveFileInfo(config.url)
+                .then(function (json) {
+                    return json.originalFilename;
+                })
+        } else {
+            if (config.name === undefined) {
+                return Promise.resolve(hic.extractFilename(config.url));
+            } else {
                 return Promise.resolve(config.name);
             }
         }
+    }
 
-
-        stripUriParameters = function () {
-
-            var href = window.location.href,
-                idx = href.indexOf("?");
-
-            if (idx > 0) window.history.replaceState("", "juicebox", href.substr(0, idx));
-
-        };
-
-    };
 
     function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
@@ -24340,7 +24693,7 @@ var hic = (function (hic) {
 
         currentResolution = bpResolutions[this.state.zoom];
 
-        if(this.state.chr1 === 0) {
+        if (this.state.chr1 === 0) {
 
             this.zoomAndCenter(1, anchorPx, anchorPy);
             return;
@@ -24365,7 +24718,7 @@ var hic = (function (hic) {
         }
 
         minZoom.call(self, self.state.chr1, self.state.chr2)
-            
+
             .then(function (z) {
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
@@ -24708,7 +25061,11 @@ var hic = (function (hic) {
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
 
-        var locusChangeEvent = hic.Event("LocusChange", {state: this.state, resolutionChanged: false, dragging: true});
+        var locusChangeEvent = hic.Event("LocusChange", {
+            state: this.state,
+            resolutionChanged: false,
+            dragging: true
+        });
         locusChangeEvent.dragging = true;
         this.eventBus.post(locusChangeEvent);
 
@@ -24853,6 +25210,13 @@ var hic = (function (hic) {
             })
 
     };
+
+
+    hic.Browser.prototype.repaint = function() {
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+    }
 
 
     hic.Browser.prototype.resolution = function () {
@@ -25071,9 +25435,9 @@ var hic = (function (hic) {
             lowG: 255,
             lowB: 255,
             high: 2000,
-            highR: 255,
-            highG: 0,
-            highB: 0
+            r: 255,
+            g: 0,
+            b: 0
         };
 
         hicUrl = query["hicUrl"];
@@ -25219,9 +25583,9 @@ var hic = (function (hic) {
 
             cs = _.clone(defaultColorScaleInitializer);
             cs.high = tokens[0];
-            cs.highR = tokens[1];
-            cs.highG = tokens[2];
-            cs.highB = tokens[3];
+            cs.r = tokens[1];
+            cs.g = tokens[2];
+            cs.b = tokens[3];
 
             return new hic.ColorScale(cs);
         };
@@ -25259,6 +25623,7 @@ var hic = (function (hic) {
             return s;
         }
     }
+
 
     return hic;
 
@@ -25298,92 +25663,140 @@ var hic = (function (hic) {
 
         var self = this,
             $fa,
-            $e;
+            rgbString;
 
         this.browser = browser;
 
-        this.$container = $("<div>", { class:'hic-colorscale-widget-container',  title:'Color Scale' });
+        this.$container = $('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
-        // color chip
-        this.$button = igv.colorSwatch(browser.config.colorScale ? igv.Color.rgbColor(browser.config.colorScale.highR, browser.config.colorScale.highG, browser.config.colorScale.highB) : 'red');
-        this.$container.append(this.$button);
 
-        // input
+        // '-' color swatch
+        rgbString = getRGBString('-', "blue");                    // TODO -- get the default from browser.
+        this.$minusButton = hic.colorSwatch(rgbString, 'i');
+        this.$container.append(this.$minusButton);
+        this.$minusButton.hide();
+        this.$minusColorPicker = createColorpicker.call(this, browser, this.$minusButton, '-');
+        this.$minusColorPicker.draggable();
+        this.$minusColorPicker.hide();
+        this.$minusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.$minusColorPicker);
+        });
+
+        // '+' color swatch
+        rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
+        this.$plusButton = hic.colorSwatch(rgbString, '+');
+        this.$container.append(this.$plusButton);
+        this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
+        this.$plusColorPicker.draggable();
+        this.$plusColorPicker.hide();
+        this.$plusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.$plusColorPicker);
+        });
+
+
+        // threshold
         this.$high_colorscale_input = $('<input type="text" placeholder="">');
         this.$container.append(this.$high_colorscale_input);
-
-        this.$high_colorscale_input.on('change', function(e){
-
+        this.$high_colorscale_input.on('change', function (e) {
             var numeric;
-
-            numeric = igv.numberUnFormatter( $(this).val() );
+            numeric = igv.numberUnFormatter($(this).val());
             if (isNaN(numeric)) {
                 // do nothing
             } else {
-                // browser.updateColorScale({ high: parseInt(numeric, 10) });
-                browser.updateColorScale({ high: parseInt( numeric, 10 ) });
+                browser.getColorScale().setThreshold(parseInt(numeric, 10));
             }
         });
 
-        // -
-        $fa = $("<i>", { class:'fa fa-minus', 'aria-hidden':'true' });
+        // threshold -
+        $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true'});
         $fa.on('click', function (e) {
-            doUpdateColorScale(1.0/2.0);
+            updateThreshold(1.0 / 2.0);
         });
         this.$container.append($fa);
 
-        // +
-        $fa = $("<i>", { class:'fa fa-plus', 'aria-hidden':'true' });
+        // threshold +
+        $fa = $("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true'});
         $fa.on('click', function (e) {
-            doUpdateColorScale(2.0);
+            updateThreshold(2.0);
         });
         this.$container.append($fa);
 
-        this.$colorpicker = createColorpicker.call(this, browser);
-
-        this.$colorpicker.draggable();
-        this.$colorpicker.hide();
-
-        this.$button.on('click', function (e) {
-            self.$colorpicker.toggle();
-        });
 
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("ColorScale", this);
+        this.browser.eventBus.subscribe("DisplayMode", this);
 
-        function doUpdateColorScale (scaleFactor) {
+        function updateThreshold(scaleFactor) {
             var colorScale;
+            colorScale = browser.getColorScale();
+            colorScale.setThreshold(colorScale.getThreshold() * scaleFactor);
+            self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
+            browser.repaint();
+        }
+
+        function getRGBString(type, defaultColor) {
+            var colorScale, comps;
 
             colorScale = browser.getColorScale();
-            browser.updateColorScale({ high: colorScale.high * scaleFactor });
-            self.$high_colorscale_input.val( igv.numberFormatter(Math.round( colorScale.high )) );
+            if (colorScale) {
+                comps = colorScale.getColorComponents(type);
+                return igv.Color.rgbColor(comps.r, comps.g, comps.b);
+            }
+            else {
+                return defaultColor;
+            }
         }
+
     };
 
-    hic.ColorScaleWidget.prototype.receiveEvent = function(event) {
+    hic.ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
+        var str;
+
+        this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+        this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+        this.$presentingButton = $presentingButton;
+        this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+        str = this.$presentingButton.find('i').hasClass('fa-plus') ? '+' : '-';
+        // console.log('presenting button ' + str);
+        // this.$colorpicker.toggle();
+        $colorpicker.show();
+    };
+
+    hic.ColorScaleWidget.prototype.receiveEvent = function (event) {
 
         var colorScale;
 
-        if (event.type === "MapLoad" || event.type === "ColorScale") {
-            colorScale = this.browser.getColorScale();
-            this.$high_colorscale_input.val( igv.numberFormatter(Math.round( colorScale.high )) );
+        colorScale = this.browser.getColorScale();
+        this.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
+
+        if ("DisplayMode" === event.type) {
+
+            if ("observed-over-control" === event.data) {
+                this.$minusButton.show();
+            }
+            else {
+                this.$minusButton.hide();
+            }
         }
+
 
     };
 
-    function createColorpicker(browser) {
+    function createColorpicker(browser, $presentingButton, type) {
 
         var self = this,
             $colorpicker,
             config;
 
         config =
-            {
-                // width = (29 * swatch-width) + border-width + border-width
-                width: ((29 * 24) + 1 + 1),
-                classes: [ 'igv-position-absolute' ]
-            };
+        {
+            // width = (29 * swatch-width) + border-width + border-width
+            width: ((29 * 24) + 1 + 1),
+            classes: ['igv-position-absolute']
+        };
 
         $colorpicker = igv.genericContainer(browser.$root, config, function () {
             $colorpicker.toggle();
@@ -25392,20 +25805,19 @@ var hic = (function (hic) {
         igv.createColorSwatchSelector($colorpicker, function (colorName) {
             var rgb;
 
-            self.$button.find('.fa-square').css({ color: colorName });
+            $presentingButton.find('.fa-square').css({color: colorName});
 
-            rgb = _.map(colorName.split('(').pop().split(')').shift().split(','), function (str) {
+            rgb = colorName.split('(').pop().split(')').shift().split(',').map(function (str) {
                 return parseInt(str, 10);
             });
 
-            browser.updateColorScale(
-                {
-                    high:parseInt(igv.numberUnFormatter( self.$high_colorscale_input.val() ), 10),
-                    highR:rgb[0],
-                    highG:rgb[1],
-                    highB:rgb[2]
-                }
+            browser.getColorScale().setColorComponents({
+                    r: rgb[0],
+                    g: rgb[1],
+                    b: rgb[2]
+                }, type
             );
+            browser.repaint();
 
         });
 
@@ -25642,6 +26054,10 @@ var hic = (function (hic) {
         this.bin2 = bin2;
         this.counts = counts;
     };
+    
+    hic.ContactRecord.prototype.getKey = function () {
+        return "" + this.bin1 + "_" + this.bin2;
+    }
 
 
     return hic;
@@ -26502,14 +26918,6 @@ var hic = (function (hic) {
 
     }
 
-    function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
-        this.normType = normType;
-        this.unit = unit;
-        this.binSize = binSize;
-        this.values = values;
-        this.normFactors = normFactors;
-    }
-
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
         this.chr1 = chr1;    // chromosome index
         this.chr2 = chr2;
@@ -26577,6 +26985,15 @@ var hic = (function (hic) {
 
         return undefined;
     };
+
+
+    function ExpectedValueFunction(normType, unit, binSize, values, normFactors) {
+        this.normType = normType;
+        this.unit = unit;
+        this.binSize = binSize;
+        this.values = values;
+        this.normFactors = normFactors;
+    }
 
 
     return hic;
@@ -26652,6 +27069,7 @@ var hic = (function (hic) {
 
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
@@ -26666,8 +27084,9 @@ var hic = (function (hic) {
             resolutions,
             selectedIndex,
             isWholeGenome,
-            digits,
-            divisor;
+            divisor,
+            dataset,
+            list;
 
         if (event.type === "LocusChange") {
 
@@ -26679,11 +27098,17 @@ var hic = (function (hic) {
             isWholeGenome = (0 === event.data.state.chr1);
 
             this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-            resolutions = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+
+            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+            this.contactMapResoultions = {};
+            list.forEach(function (resolution) {
+                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
+
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
 
-            htmlString = optionListHTML(resolutions, selectedIndex, divisor);
+            htmlString = optionListHTML(this.contactMapResoultions, selectedIndex, divisor);
 
             this.$resolution_selector.empty();
             this.$resolution_selector.append(htmlString);
@@ -26697,26 +27122,58 @@ var hic = (function (hic) {
 
         } else if (event.type === "MapLoad") {
 
+            dataset = event.data;
+
+            console.log('resolution selector - did load CONTACT map');
+            this.contactMapResoultions = {};
+            dataset.bpResolutions.forEach(function (resolution) {
+                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
+
             this.browser.resolutionLocked = false;
             this.setResolutionLock(this.browser.resolutionLocked);
 
             this.$resolution_selector.empty();
-            htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
+            // htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
+            htmlString = optionListHTML(this.contactMapResoultions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.append(htmlString);
+
+        } else if(event.type === "ControlMapLoad") {
+
+            dataset = event.data;
+
+            console.log('resolution selector - did load CONTROL map');
+            // control resolutions == dataset.bpResolutions.  Update selector list
+            // items defined by this.browser.dataset.bpResolutions as usual.   Rows not present in dataset.bpResolutions
+            // are greyed out
+            this.controlMapResoultions = {};
+            dataset.bpResolutions.forEach(function (resolution) {
+                self.controlMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
+            });
 
         }
 
-        function optionListHTML(resolutionList, selectedIndex, divisor) {
+
+        function optionListHTML(resolutions, selectedIndex, divisor) {
             var list;
 
-            list = _.map(resolutionList, function (resolution, index) {
-
+            list = Object.keys(resolutions).map(function (key, index) {
                 var selected,
-                    str;
+                    str,
+                    numeric,
+                    obj,
+                    html;
+
+                obj = resolutions[ key ];
+
+                numeric = obj.resolution;
+                str = igv.numberFormatter( Math.round( numeric/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
 
                 selected = selectedIndex === index;
-                str = igv.numberFormatter(Math.round(resolution/divisor)) + (1e3 === divisor ? ' kb' : ' mb');
-                return '<option' + ' value=' + index +  (selected ? ' selected': '') + '>' + str + '</option>';
+                html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
+
+                return html;
+
             });
 
             return list.join('');
@@ -26779,8 +27236,9 @@ var hic = (function (hic) {
         this.$canvas.height(this.$axis.height());
         this.$canvas.attr('height', this.$axis.height());
 
-        // whole genome
-        this.$wholeGenomeContainer = $('<div>');
+        // whole genome container
+        id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
+        this.$wholeGenomeContainer = $("<div>", { id: id });
         this.$axis.append(this.$wholeGenomeContainer);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
@@ -26807,7 +27265,9 @@ var hic = (function (hic) {
             scraps,
             $div,
             $firstDiv,
-            $e;
+            $e,
+            id,
+            className;
 
         // discard current tiles
         $wholeGenomeContainer.empty();
@@ -26837,7 +27297,8 @@ var hic = (function (hic) {
                 scraps += percentage;
             } else {
 
-                $div = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome-container';
+                $div = $("<div>", { class: className });
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
@@ -26853,9 +27314,11 @@ var hic = (function (hic) {
                     $div.height(size);
                 }
 
-                $e = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome';
+                $e = $("<div>", { class: className });
                 $div.append($e);
                 $e.text($div.data('label'));
+                // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
                 decorate.call(self, $div);
             }
@@ -26866,15 +27329,18 @@ var hic = (function (hic) {
         scraps = Math.floor(scraps);
         if (scraps >= 1) {
 
-            $div = $('<div>');
+            className = self.axis + '-axis-whole-genome-chromosome-container';
+            $div = $("<div>", { class: className });
             $wholeGenomeContainer.append($div);
             $div.data('label', '-');
 
             $div.width(scraps);
 
-            $e = $('<span>');
+            className = self.axis + '-axis-whole-genome-chromosome';
+            $e = $("<div>", { class: className });
             $div.append($e);
             $e.text($div.data('label'));
+            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
             decorate.call(self, $div);
         }
@@ -26894,10 +27360,14 @@ var hic = (function (hic) {
                 var $o;
                 $o = $(this).first();
                 self.browser.parseGotoInput( $o.text() );
-                // $(this).removeClass('hic-whole-genome-chromosome-highlight');
+
                 self.unhighlightWholeChromosome();
                 self.otherRuler.unhighlightWholeChromosome();
             });
+
+            // DIAGNOSTIC BACKGROUND COLOR
+            // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
+            // return;
 
             $d.hover(
                 function () {
@@ -27602,7 +28072,8 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
-        this.color = config.color === undefined ? features[0].color : config.color;
+        this.color = config.color;    // If specified, this will override colors of individual records.
+        this.repColor = features.length > 0 ? features[0].color : "black";
 
         features.forEach(function (f) {
 
@@ -27619,6 +28090,10 @@ var hic = (function (hic) {
         });
 
     };
+    
+    hic.Track2D.prototype.getColor = function() {
+        return this.color || this.repColor;
+    }
 
     hic.Track2D.prototype.getFeatures = function (chr1, chr2) {
         var key = getKey(chr1, chr2),
@@ -27633,13 +28108,25 @@ var hic = (function (hic) {
 
             .then(function (data) {
 
-                var features = parseData(data);
+                var features = parseData(data, isBedPE(config));
 
                 return new hic.Track2D(config, features);
             })
     }
 
-    function parseData(data) {
+    function isBedPE(config) {
+
+        if (typeof config.url === "string") {
+            return config.url.toLowerCase().indexOf(".bedpe") > 0;
+        } else if (typeof config.name === "string") {
+            return config.name.toLowerCase().indexOf(".bedpe") > 0;
+        }
+        else {
+            return true;  // Default
+        }
+    }
+
+    function parseData(data, isBedPE) {
 
         if (!data) return null;
 
@@ -27650,12 +28137,20 @@ var hic = (function (hic) {
             allFeatures = [],
             line,
             i,
-            delimiter = "\t";
+            delimiter = "\t",
+            start,
+            colorColumn;
 
+        start = isBedPE ? 0 : 1;
+        colorColumn = isBedPE ? 10 : 6;
 
-        for (i = 1; i < len; i++) {
+        for (i = start; i < len; i++) {
 
             line = lines[i];
+
+            if(line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+                continue;
+            }
 
             tokens = lines[i].split(delimiter);
             if (tokens.length < 7) {
@@ -27670,9 +28165,12 @@ var hic = (function (hic) {
                 chr2: tokens[3],
                 y1: parseInt(tokens[4]),
                 y2: parseInt(tokens[5]),
-                color: "rgb(" + tokens[6] + ")"
+                color: "rgb(" + tokens[colorColumn] + ")"
             }
-            allFeatures.push(feature);
+
+            if(!Number.isNaN(feature.x1)) {
+                allFeatures.push(feature);
+            }
         }
 
         return allFeatures;
@@ -28038,12 +28536,50 @@ var hic = (function (hic) {
  */
 var hic = (function (hic) {
 
+    hic.colorSwatch = function (rgbString, doPlusOrMinusOrUndefined) {
+        var $swatch,
+            $span,
+            $fa_square,
+            $fa_plus_minus,
+            $fa,
+            str;
+
+        $swatch = $('<div>', {class: 'igv-color-swatch'});
+
+        if (undefined === doPlusOrMinusOrUndefined) {
+            $fa = $('<i>', { class: 'fa fa-square fa-lg' });
+            $swatch.append($fa);
+            $fa.css({color: rgbString});
+
+        } else {
+
+            $span = $('<span>', { class: 'fa-stack' });
+            $swatch.append($span);
+
+            // background square
+            $fa_square = $('<i>', { class: 'fa fa-square fa-stack-2x' });
+            $span.append($fa_square);
+            $fa_square.css({ color: rgbString, '-webkit-text-stroke-width':'2px', '-webkit-text-stroke-color':'transparent' });
+
+            // foreground +/-
+            // str = '+' === doPlusOrMinusOrUndefined ? 'fa fa-plus fa-stack-1x' : 'fa fa-minus fa-stack-1x';
+            str = '';
+            $fa_plus_minus = $('<i>', { class: str });
+            $span.append($fa_plus_minus);
+            $fa_plus_minus.css({ color: 'white' });
+
+        }
+
+
+        return $swatch;
+    };
+
     hic.setApiKey = function (key) {
 
         hic.apiKey = key;
         igv.setApiKey(key);
 
-    }
+    };
 
     hic.extractFilename = function (urlOrFile) {
         var idx,
@@ -28363,7 +28899,7 @@ var hic = (function (hic) {
         if (true === figureMode) {
             height = hic.LayoutController.nav_bar_label_height;
         } else {
-            height = (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height + hic.LayoutController.nav_bar_label_height;
+            height = (2 * hic.LayoutController.nav_bar_label_height) + (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
         }
         // console.log('navbar height ' + height);
         return height;
@@ -28373,7 +28909,7 @@ var hic = (function (hic) {
 
         var id,
             $navbar_container,
-            $label_delete_button_container,
+            $map_container,
             $upper_widget_container,
             $lower_widget_container,
             $e,
@@ -28394,19 +28930,19 @@ var hic = (function (hic) {
 
         }
 
-        // container: label | menu button | browser delete button
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label-delete-button-container';
-        $label_delete_button_container = $("<div>", {id: id});
-        $navbar_container.append($label_delete_button_container);
+        // container: contact map label | menu button | browser delete button
+        id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
+        $map_container = $("<div>", { id: id });
+        $navbar_container.append($map_container);
 
-        // label
-        id = browser.id + '_' + 'hic-nav-bar-contact-map-label';
+        // contact map label
+        id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
         browser.$contactMaplabel = $("<div>", {id: id});
-        $label_delete_button_container.append(browser.$contactMaplabel);
+        $map_container.append(browser.$contactMaplabel);
 
         // menu button
         browser.$menuPresentDismiss = $("<div>", {class: 'hic-nav-bar-menu-button'});
-        $label_delete_button_container.append(browser.$menuPresentDismiss);
+        $map_container.append(browser.$menuPresentDismiss);
 
         $fa = $("<i>", {class: 'fa fa-bars fa-lg'});
         browser.$menuPresentDismiss.append($fa);
@@ -28416,10 +28952,9 @@ var hic = (function (hic) {
 
         // browser delete button
         $e = $("<div>", {class: 'hic-nav-bar-delete-button'});
-        $label_delete_button_container.append($e);
+        $map_container.append($e);
 
         $fa = $("<i>", {class: 'fa fa-minus-circle fa-lg'});
-        // class="fa fa-plus-circle fa-lg" aria-hidden="true"
         $e.append($fa);
 
         $fa.on('click', function (e) {
@@ -28442,6 +28977,24 @@ var hic = (function (hic) {
         // hide delete buttons for now. Delete button is only
         // if there is more then one browser instance.
         $e.hide();
+
+
+        // container: control map label
+        id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
+        $map_container = $("<div>", { id: id });
+        $navbar_container.append($map_container);
+
+        // control map label
+        id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
+        browser.$controlMaplabel = $("<div>", {id: id});
+        $map_container.append(browser.$controlMaplabel);
+
+
+
+
+
+
+
 
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
@@ -28467,6 +29020,9 @@ var hic = (function (hic) {
 
             // colorscale
             browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+
+            // control map
+            browser.controlMapWidget = new hic.ControlMapWidget(browser, $lower_widget_container);
 
             // normalization
             browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
