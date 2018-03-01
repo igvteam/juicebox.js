@@ -64,7 +64,8 @@ var hic = (function (hic) {
 
 
         // threshold
-        this.$high_colorscale_input = $('<input type="text" placeholder="">');
+        // this.$high_colorscale_input = $('<input type="text" placeholder="">');
+        this.$high_colorscale_input = $('<input>', { 'type': 'text', 'placeholder': '', 'title': 'color scale input'});
         this.$container.append(this.$high_colorscale_input);
         this.$high_colorscale_input.on('change', function (e) {
             var numeric;
@@ -77,14 +78,14 @@ var hic = (function (hic) {
         });
 
         // threshold -
-        $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true'});
+        $fa = $("<i>", { class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold' });
         $fa.on('click', function (e) {
             updateThreshold(1.0 / 2.0);
         });
         this.$container.append($fa);
 
         // threshold +
-        $fa = $("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true'});
+        $fa = $("<i>", { class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold' });
         $fa.on('click', function (e) {
             updateThreshold(2.0);
         });

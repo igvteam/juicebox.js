@@ -71,10 +71,10 @@ var hic = (function (hic) {
         $map_container.append(browser.$contactMaplabel);
 
         // menu button
-        browser.$menuPresentDismiss = $("<div>", {class: 'hic-nav-bar-menu-button'});
+        browser.$menuPresentDismiss = $("<div>", { class: 'hic-nav-bar-menu-button' });
         $map_container.append(browser.$menuPresentDismiss);
 
-        $fa = $("<i>", {class: 'fa fa-bars fa-lg'});
+        $fa = $("<i>", { class: 'fa fa-bars fa-lg', 'title':'Present menu' });
         browser.$menuPresentDismiss.append($fa);
         $fa.on('click', function (e) {
             browser.toggleMenu();
@@ -84,7 +84,7 @@ var hic = (function (hic) {
         $e = $("<div>", {class: 'hic-nav-bar-delete-button'});
         $map_container.append($e);
 
-        $fa = $("<i>", {class: 'fa fa-minus-circle fa-lg'});
+        $fa = $("<i>", {class: 'fa fa-minus-circle fa-lg', 'title':'Delete browser panel' });
         $e.append($fa);
 
         $fa.on('click', function (e) {

@@ -734,6 +734,7 @@ var hic = (function (hic) {
         if (config.dataset) {
             // Explicit set dataset, do not need to load.  Used by "interactive figures"
             self.$contactMaplabel.text(config.name);
+            self.$contactMaplabel.attr('title', config.name);
             self.name = config.name;
 
             return Promise.resolve(setDataset(config.dataset));
@@ -770,6 +771,7 @@ var hic = (function (hic) {
                     self.stopSpinner();
 
                     self.$contactMaplabel.text(config.name);
+                    self.$contactMaplabel.attr('title', config.name);
                     self.name = config.name;
 
                     if (config.colorScale) {
@@ -861,6 +863,7 @@ var hic = (function (hic) {
 
                 var str = 'Control: ' + name;
                 self.$controlMaplabel.text(str);
+                self.$controlMaplabel.attr('title', name);
                 self.controlMapName = name;
 
                 hicReader = new hic.HiCReader(config);
