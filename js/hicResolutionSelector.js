@@ -78,12 +78,13 @@ var hic = (function (hic) {
 
         var self = this,
             htmlString,
-            resolutions,
             selectedIndex,
             isWholeGenome,
             divisor,
-            dataset,
-            list;
+            list,
+            a,
+            b,
+            diff;
 
         if (event.type === "LocusChange") {
 
@@ -97,10 +98,7 @@ var hic = (function (hic) {
             this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
 
             list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
-            this.contactMapResoultions = {};
-            list.forEach(function (resolution) {
-                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
+            this.contactMapResoultions = resolutionDictionary(list);
 
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
@@ -119,37 +117,40 @@ var hic = (function (hic) {
 
         } else if (event.type === "MapLoad") {
 
-            dataset = event.data;
+            this.contactMapResoultions = resolutionDictionary(event.data.bpResolutions);
 
-            console.log('resolution selector - did load CONTACT map');
-            this.contactMapResoultions = {};
-            dataset.bpResolutions.forEach(function (resolution) {
-                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
+            console.log('resolution selector - did load CONTACT map. length ' +  Object.keys(this.contactMapResoultions).length);
 
             this.browser.resolutionLocked = false;
             this.setResolutionLock(this.browser.resolutionLocked);
 
             this.$resolution_selector.empty();
-            // htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
             htmlString = optionListHTML(this.contactMapResoultions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.append(htmlString);
 
-        } else if(event.type === "ControlMapLoad") {
 
-            dataset = event.data;
+        } else if (event.type === "ControlMapLoad") {
 
-            console.log('resolution selector - did load CONTROL map');
             // control resolutions == dataset.bpResolutions.  Update selector list
             // items defined by this.browser.dataset.bpResolutions as usual.   Rows not present in dataset.bpResolutions
             // are greyed out
-            this.controlMapResoultions = {};
-            dataset.bpResolutions.forEach(function (resolution) {
-                self.controlMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
+
+            this.controlMapResoultions = resolutionDictionary(event.data.bpResolutions);
+
+            console.log('resolution selector - did load CONTROL map. length ' +  Object.keys(this.controlMapResoultions).length);
 
         }
 
+        function resolutionDictionary(resolutions) {
+            var dictionary;
+
+            dictionary = {};
+            resolutions.forEach(function (resolution) {
+                dictionary[ resolution.toString() ] = { resolution: resolution };
+            });
+
+            return dictionary;
+        }
 
         function optionListHTML(resolutions, selectedIndex, divisor) {
             var list;
@@ -157,17 +158,15 @@ var hic = (function (hic) {
             list = Object.keys(resolutions).map(function (key, index) {
                 var selected,
                     str,
-                    numeric,
                     obj,
                     html;
 
                 obj = resolutions[ key ];
 
-                numeric = obj.resolution;
-                str = igv.numberFormatter( Math.round( numeric/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
+                str = igv.numberFormatter( Math.round( obj.resolution/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
 
                 selected = selectedIndex === index;
-                html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
+                html = '<option' + ' data-resolution=' + obj.resolution + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
 
                 return html;
 

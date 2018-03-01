@@ -732,7 +732,10 @@ $default-font-family: 'Open Sans', sans-serif;
 
       font-size: 12px;
       font-weight: 700;
+
       text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
 
       vertical-align: middle;
       line-height: $nav-bar-label-height;
