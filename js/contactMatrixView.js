@@ -34,14 +34,10 @@ var hic = (function (hic) {
 
     var defaultColorScaleInitializer =
     {
-        low: 0,
-        lowR: 255,
-        lowG: 255,
-        lowB: 255,
         high: 2000,
-        highR: 255,
-        highG: 0,
-        highB: 0
+        r: 255,
+        g: 0,
+        b: 0
     };
 
     hic.ContactMatrixView = function (browser, $container) {
@@ -109,8 +105,7 @@ var hic = (function (hic) {
 
         this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
         this.colorScaleCache = {};
-
-        this.ratioColorScale = new RatioColorScale();
+        this.ratioColorScale = new RatioColorScale(5);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -127,17 +122,14 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (options, state) {
+    hic.ContactMatrixView.prototype.setColorScale = function (options) {
 
         if (options.high) this.colorScale.high = options.high;
-        if (undefined !== options.highR) this.colorScale.highR = options.highR;
-        if (undefined !== options.highG) this.colorScale.highG = options.highG;
-        if (undefined !== options.highB) this.colorScale.highB = options.highB;
+        if (undefined !== options.r) this.colorScale.r = options.r;
+        if (undefined !== options.g) this.colorScale.g = options.g;
+        if (undefined !== options.b) this.colorScale.b = options.b;
 
-        if (!state) {
-            state = this.browser.state;
-        }
-        this.colorScaleCache[colorScaleKey(state)] = options.high;
+        this.colorScaleCache[colorScaleKey(this.browser.state)] = options.high;
     };
 
     hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
@@ -593,7 +585,7 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
-                        if('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
+                        if ('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
                             controlRecords = {};
                             controlBlock.records.forEach(function (record) {
                                 controlRecords[record.getKey()] = record;
@@ -629,7 +621,7 @@ var hic = (function (hic) {
 
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
-                                    if(!controlRec) {
+                                    if (!controlRec) {
                                         continue;    // Skip
                                     }
                                     score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
@@ -641,7 +633,7 @@ var hic = (function (hic) {
                                 case 'observed-minus-control':
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
-                                    if(!controlRec) {
+                                    if (!controlRec) {
                                         continue;    // Skip
                                     }
                                     score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
@@ -770,7 +762,6 @@ var hic = (function (hic) {
         this.$fa_spinner.css("display", "none");
 
     };
-
 
 
     function addMouseHandlers($viewport) {
@@ -1156,32 +1147,56 @@ var hic = (function (hic) {
 
 
     hic.ColorScale = function (scale) {
-        this.low = scale.low;
-        this.lowR = scale.lowR;
-        this.lowG = scale.lowG;
-        this.lowB = scale.lowB;
         this.high = scale.high;
-        this.highR = scale.highR;
-        this.highG = scale.highG;
-        this.highB = scale.highB;
+        this.r = scale.r;
+        this.g = scale.g;
+        this.b = scale.b;
     };
+
+    hic.ColorScale.prototype.setThreshold = function (threshold) {
+        this.high = threshold;
+    }
+
+    hic.ColorScale.prototype.getThreshold = function () {
+        return this.high;
+    }
+
+    hic.ColorScale.prototype.setColorComponents = function (components) {
+        this.r = components.r;
+        this.g = components.g;
+        this.b = components.b;
+    }
+
+    hic.ColorScale.prototype.getColorComponents = function () {
+        return {
+            r: this.r,
+            g: this.g,
+            b: this.b
+        }
+    }
+
 
     hic.ColorScale.prototype.equals = function (cs) {
         return JSON.stringify(this) === JSON.stringify(cs);
     };
 
     hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff;
+        var scale = this, r, g, b, frac, diff, low, lowR, lowG, lowB;
 
-        if (value <= scale.low) value = scale.low;
+        low = 0;
+        lowR = 255;
+        lowB = 255;
+        lowG = 255;
+
+        if (value <= low) value = low;
         else if (value >= scale.high) value = scale.high;
 
-        diff = scale.high - scale.low;
+        diff = scale.high - low;
 
-        frac = (value - scale.low) / diff;
-        r = Math.floor(scale.lowR + frac * (scale.highR - scale.lowR));
-        g = Math.floor(scale.lowG + frac * (scale.highG - scale.lowG));
-        b = Math.floor(scale.lowB + frac * (scale.highB - scale.lowB));
+        frac = (value - low) / diff;
+        r = Math.floor(lowR + frac * (scale.r - lowR));
+        g = Math.floor(lowG + frac * (scale.g - lowG));
+        b = Math.floor(lowB + frac * (scale.b - lowB));
 
         return {
             red: r,
@@ -1192,7 +1207,7 @@ var hic = (function (hic) {
     };
 
     hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.highR + ',' + this.highG + ',' + this.highB;
+        return "" + this.high + ',' + this.r + ',' + this.g + ',' + this.b;
     };
 
     hic.destringifyColorScale = function (string) {
@@ -1202,54 +1217,76 @@ var hic = (function (hic) {
 
         tokens = string.split(",");
 
-        cs = _.clone(defaultColorScaleInitializer);
-        cs.high = tokens[0];
-        cs.highR = tokens[1];
-        cs.highG = tokens[2];
-        cs.highB = tokens[3];
+        cs = {
+            high: tokens[0],
+            r: tokens[1],
+            g: tokens[2],
+            b: tokens[3]
+        };
 
         return new hic.ColorScale(cs);
 
     };
 
     function RatioColorScale(threshold) {
-        this.threshold = (threshold === undefined) ? 5 : threshold;
+
+        this.threshold = threshold;
+
+        this.positiveScale = new hic.ColorScale({
+            high: Math.log(threshold),
+            r: 255,
+            g: 0,
+            b: 0
+        });
+        this.negativeScale = new hic.ColorScale(
+            {
+                high: Math.log(threshold),
+                r: 0,
+                g: 0,
+                b: 255
+            })
     }
 
-    RatioColorScale.prototype.resetThreshold = function () {
-        this.threshold = Math.log(this.defaultMaxOEVal);
+    RatioColorScale.prototype.setThreshold = function (threshold) {
+        this.threshold = threshold;
+        this.positiveScale.high = Math.log(threshold);
+        this.negativeScale.high = Math.log(threshold);
+    }
+
+    RatioColorScale.prototype.getThreshold = function () {
+        return this.threshold;
+    }
+
+    RatioColorScale.prototype.setColorComponents = function (components, plusOrMinus) {
+        if ('-' === plusOrMinus) {
+            return this.negativeScale.setColorComponents(components);
+        }
+        else {
+            return this.positiveScale.setColorComponents(components);
+        }
+    }
+
+    RatioColorScale.prototype.getColorComponents = function (plusOrMinus) {
+
+        if ('-' === plusOrMinus) {
+            return this.negativeScale.getColorComponents();
+        }
+        else {
+            return this.positiveScale.getColorComponents();
+        }
     }
 
     RatioColorScale.prototype.getColor = function (score) {
 
-        var logThreshold = Math.log(this.threshold);
-        /*
-         int R = (int) (255 * Math.min(score/max, 1));
-         int G = 0;
-         int B = (int) (255 * Math.min(min * (1.0/score), 1));
-         */
-        var newValue = Math.log(score);
-        var R, G, B;
-        if (newValue > 0) {
-            R = 255;
-            newValue = Math.min(newValue, logThreshold);
-            G = Math.floor(255 * (logThreshold - newValue) / logThreshold);
-            B = Math.floor(255 * (logThreshold - newValue) / logThreshold);
-        } else {
-            newValue = -newValue;
-            newValue = Math.min(newValue, this.threshold);
-            B = 255;
-            R = Math.floor(255 * (logThreshold - newValue) / logThreshold);
-            G = Math.floor(255 * (logThreshold - newValue) / logThreshold);
+        var logScore = Math.log(score);
 
+        if (logScore < 0) {
+            return this.negativeScale.getColor(-logScore);
+        }
+        else {
+            return this.positiveScale.getColor(logScore);
         }
 
-        return {
-            red: R,
-            green: G,
-            blue: B,
-            rgb: "rgb(" + R + "," + G + "," + B + ")"
-        };
     }
 
 

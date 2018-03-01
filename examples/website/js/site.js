@@ -33,20 +33,19 @@ var juicebox = (function (site) {
         encodeTable,
         lastGenomeId,
         qrcode,
-        contact_map_dropdown_id,
-        control_map_dropdown_id;
+        contact_map_dropdown_id = 'hic-contact-map-dropdown',
+        control_map_dropdown_id = 'hic-control-map-dropdown';
 
     site.init = function ($container, config) {
 
         var genomeChangeListener,
             $appContainer,
             query,
-            $hic_share_url_modal;
+            $hic_share_url_modal,
+            contact_map_dropdown_id,
+            control_map_dropdown_id,
+            $e;
 
-        contact_map_dropdown_id = 'hic-contact-map-dropdown';
-        control_map_dropdown_id = 'hic-control-map-dropdown';
-
-        site.$mapSelectionDropdowns = $('button[id$=-map-dropdown]').parent();
 
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
@@ -89,7 +88,7 @@ var juicebox = (function (site) {
 
         apiKey = config.apiKey;
         if (apiKey) {
-            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
+            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
             hic.setApiKey(apiKey);
         }
 
@@ -373,11 +372,14 @@ var juicebox = (function (site) {
             }
         });
 
-        site.$mapSelectionDropdowns.on('show.bs.dropdown', function (event) {
-            var $button;
+        $e = $('button[id$=-map-dropdown]');
+        $e.parent().on('show.bs.dropdown', function () {
+            site.currentContactMapDropdownButton = $(this).children('.dropdown-toggle').attr('id');
+            console.log("show " + site.currentContactMapDropdownButton);
+        });
 
-            $button = $(event.relatedTarget);
-            site.$mapSelectionDropdownButton = $button;
+        $e.parent().on('hide.bs.dropdown', function () {
+            console.log("hide contact/control map");
         });
 
         function getEmbeddableSnippet(jbUrl) {
@@ -478,40 +480,10 @@ var juicebox = (function (site) {
 
     };
 
-    site.receiveEvent = function (event) {
-        var browser;
-
-        // if ('MapLoad' === event.type) {
-        //
-        //     $('#hic-control-map-dropdown').removeAttr('disabled');
-        //
-        //     browser = hic.Browser.getCurrentBrowser();
-        //     browser.controlMapWidget.$control_map_selector.removeAttr('disabled');
-        //
-        // } else if ('DidSelectBrowserPanel' === event.type) {
-        //
-        //     browser = event.data;
-        //
-        //     if (browser.dataset) {
-        //         $('#hic-control-map-dropdown').removeAttr('disabled');
-        //         browser.controlMapWidget.$control_map_selector.removeAttr('disabled');
-        //         browser.colorscaleWidget.$minusButton.show();
-        //     } else {
-        //         $('#hic-control-map-dropdown').attr('disabled', 'disabled');
-        //         browser.controlMapWidget.$control_map_selector.attr('disabled', 'disabled');
-        //         browser.colorscaleWidget.$minusButton.hide();
-        //     }
-        //
-        // }
-
-    };
 
     function loadHicFile(url, name) {
 
-        var synchState,
-            browsersWithMaps,
-            isControl,
-            browser;
+        var synchState, browsersWithMaps, isControl, browser;
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
@@ -521,7 +493,7 @@ var juicebox = (function (site) {
             synchState = browsersWithMaps[0].getSyncState();
         }
 
-        isControl = control_map_dropdown_id === site.$mapSelectionDropdownButton.attr('id');
+        isControl = site.currentContactMapDropdownButton === control_map_dropdown_id;
 
         browser = hic.Browser.getCurrentBrowser();
 
@@ -529,7 +501,7 @@ var juicebox = (function (site) {
             browser
                 .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
                 .then(function (dataset) {
-                    // do stuff
+
                 });
         } else {
             browser

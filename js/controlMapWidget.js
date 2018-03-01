@@ -51,9 +51,9 @@ var hic = (function (hic) {
         optionStrings =
             [
                 { title:'Observed', value:'observed' },
-                { title:'Control', value:'control' },
-                { title:'Observed/Control', value:'observed-over-control' },
-                { title:'Observed-Control', value:'observed-minus-control' }
+             //   { title:'Control', value:'control' },
+                { title:'Observed/Control', value:'observed-over-control' }
+             //   { title:'Observed-Control', value:'observed-minus-control' }
             ];
 
         optionStrings.forEach(function (o) {

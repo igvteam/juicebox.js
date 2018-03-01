@@ -236,14 +236,11 @@ var hic = (function (hic) {
         this.state = config.state ? config.state : defaultState.clone();
 
         if (config.colorScale) {
-            this.contactMatrixView.setColorScale(config.colorScale, this.state);
+            this.contactMatrixView.setColorScale(config.colorScale);
         }
 
         this.eventBus.subscribe("LocusChange", this);
 
-        // app events
-        this.eventBus.subscribe('MapLoad', juicebox);
-        this.eventBus.subscribe('DidSelectBrowserPanel', juicebox);
 
         function configureHover($e) {
 
@@ -310,11 +307,52 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setDisplayMode = function (mode) {
         this.contactMatrixView.setDisplayMode(mode);
+        this.eventBus.post(hic.Event("DisplayMode", mode));
     }
 
     hic.Browser.prototype.getDisplayMode = function () {
-        return this.contactMatrixView.displayMode;
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
     }
+
+
+
+    hic.Browser.prototype.getColorScale = function () {
+
+        if(!this.contactMatrixView) return undefined;
+
+        return this.getDisplayMode() === 'observed-over-control' ?
+            this.contactMatrixView.ratioColorScale :
+            this.contactMatrixView.colorScale;
+    };
+
+    hic.Browser.prototype.updateColorScale = function (options) {
+
+        var self = this,
+            state;
+
+        if (this.getDisplayMode() === 'observed-over-control') {
+            this.contactMatrixView.ratioColorScale.high = options.high;
+        }
+        else {
+            this.contactMatrixView.setColorScale(options);
+        }
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+        //
+        // state = this.state;
+        // this.dataset.getMatrix(state.chr1, state.chr2)
+        //     .then(function (matrix) {
+        //         var zd = matrix.bpZoomData[state.zoom];
+        //         var colorKey = zd.getKey() + "_" + state.normalization;
+        //         self.contactMatrixView.colorScaleCache[colorKey] = options.high;
+        //         self.contactMatrixView.update();
+        //     })
+        //     .catch(function (error) {
+        //         console.log(error);
+        //         alert(error);
+        //     });
+    };
 
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
@@ -427,7 +465,6 @@ var hic = (function (hic) {
             return;
         }
 
-        browser.eventBus.post(hic.Event('DidSelectBrowserPanel', browser));
 
         if (browser !== hic.Browser.currentBrowser) {
 
@@ -497,34 +534,6 @@ var hic = (function (hic) {
         return gs;
     };
 
-
-    hic.Browser.prototype.getColorScale = function () {
-        return this.contactMatrixView.colorScale;
-    };
-
-    hic.Browser.prototype.updateColorScale = function (options) {
-
-        var self = this,
-            state;
-
-        this.contactMatrixView.setColorScale(options);
-        this.contactMatrixView.imageTileCache = {};
-        this.contactMatrixView.initialImage = undefined;
-        this.contactMatrixView.update();
-
-        state = this.state;
-        this.dataset.getMatrix(state.chr1, state.chr2)
-            .then(function (matrix) {
-                var zd = matrix.bpZoomData[state.zoom];
-                var colorKey = zd.getKey() + "_" + state.normalization;
-                self.contactMatrixView.colorScaleCache[colorKey] = options.high;
-                self.contactMatrixView.update();
-            })
-            .catch(function (error) {
-                console.log(error);
-                alert(error);
-            });
-    };
 
     /**
      * Load a list of 1D genome tracks (wig, etc).
@@ -766,7 +775,7 @@ var hic = (function (hic) {
                     self.name = config.name;
 
                     if (config.colorScale) {
-                        self.contactMatrixView.setColorScale(config.colorScale, self.state);
+                        self.contactMatrixView.setColorScale(config.colorScale);
                     }
 
                     self.isLoadingHICFile = false;
@@ -1604,6 +1613,13 @@ var hic = (function (hic) {
     };
 
 
+    hic.Browser.prototype.repaint = function() {
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+    }
+
+
     hic.Browser.prototype.resolution = function () {
         return this.dataset.bpResolutions[this.state.zoom];
     };
@@ -1820,9 +1836,9 @@ var hic = (function (hic) {
             lowG: 255,
             lowB: 255,
             high: 2000,
-            highR: 255,
-            highG: 0,
-            highB: 0
+            r: 255,
+            g: 0,
+            b: 0
         };
 
         hicUrl = query["hicUrl"];
@@ -1968,9 +1984,9 @@ var hic = (function (hic) {
 
             cs = _.clone(defaultColorScaleInitializer);
             cs.high = tokens[0];
-            cs.highR = tokens[1];
-            cs.highG = tokens[2];
-            cs.highB = tokens[3];
+            cs.r = tokens[1];
+            cs.g = tokens[2];
+            cs.b = tokens[3];
 
             return new hic.ColorScale(cs);
         };
