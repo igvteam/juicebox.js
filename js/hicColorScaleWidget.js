@@ -41,7 +41,7 @@ var hic = (function (hic) {
 
         // '-' color swatch
         rgbString = getRGBString('-', "blue");                    // TODO -- get the default from browser.
-        this.$minusButton = hic.colorSwatch(rgbString, 'i');
+        this.$minusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$minusButton);
         this.$minusButton.hide();
         this.$minusColorPicker = createColorpicker.call(this, browser, this.$minusButton, '-');
@@ -53,7 +53,7 @@ var hic = (function (hic) {
 
         // '+' color swatch
         rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
-        this.$plusButton = hic.colorSwatch(rgbString, '+');
+        this.$plusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$plusButton);
         this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
         this.$plusColorPicker.draggable();
