@@ -78,11 +78,9 @@ var hic = (function (hic) {
 
         var self = this,
             htmlString,
-            resolutions,
             selectedIndex,
             isWholeGenome,
             divisor,
-            dataset,
             list;
 
         if (event.type === "LocusChange") {
@@ -96,17 +94,11 @@ var hic = (function (hic) {
 
             this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
 
-            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
-            this.contactMapResoultions = {};
-            list.forEach(function (resolution) {
-                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
-
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
+            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
 
-            htmlString = optionListHTML(this.contactMapResoultions, selectedIndex, divisor);
-
+            htmlString = optionListHTML(list, selectedIndex, divisor);
             this.$resolution_selector.empty();
             this.$resolution_selector.append(htmlString);
 
@@ -117,60 +109,78 @@ var hic = (function (hic) {
                 })
                 .prop('selected', true);
 
+            if (this.browser.controlDataset) {
+                if (true === isWholeGenome) {
+                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), this.browser.controlDataset.wholeGenomeResolution);
+                } else {
+                    // TODO: Hack to test intersection of contact/control resolution lists
+                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(this.browser.controlDataset.bpResolutions, 2));
+                }
+            }
+
         } else if (event.type === "MapLoad") {
-
-            dataset = event.data;
-
-            console.log('resolution selector - did load CONTACT map');
-            this.contactMapResoultions = {};
-            dataset.bpResolutions.forEach(function (resolution) {
-                self.contactMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
 
             this.browser.resolutionLocked = false;
             this.setResolutionLock(this.browser.resolutionLocked);
 
+            htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.empty();
-            // htmlString = optionListHTML(this.browser.dataset.bpResolutions, this.browser.state.zoom, 1e3);
-            htmlString = optionListHTML(this.contactMapResoultions, this.browser.state.zoom, 1e3);
             this.$resolution_selector.append(htmlString);
+        } else if (event.type === "ControlMapLoad") {
 
-        } else if(event.type === "ControlMapLoad") {
+            isWholeGenome = (0 === this.browser.state.chr1);
+            list = isWholeGenome ? [ event.data.wholeGenomeResolution ] : event.data.bpResolutions;
 
-            dataset = event.data;
-
-            console.log('resolution selector - did load CONTROL map');
-            // control resolutions == dataset.bpResolutions.  Update selector list
-            // items defined by this.browser.dataset.bpResolutions as usual.   Rows not present in dataset.bpResolutions
-            // are greyed out
-            this.controlMapResoultions = {};
-            dataset.bpResolutions.forEach(function (resolution) {
-                self.controlMapResoultions[ resolution.toString() ] = { isVisible: true, resolution: resolution };
-            });
+            if (true === isWholeGenome) {
+                harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
+            } else {
+                // TODO: Hack to test intersection of contact/control resolution lists
+                harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(list, 2));
+            }
 
         }
 
+        function harmonizeContactAndControlResolutuionOptions($options, resolutions) {
+
+            var dictionary;
+
+            dictionary = resolutionDictionary(resolutions);
+
+            // reset
+            $options.removeAttr('disabled');
+            $options.each(function( index ) {
+                var $option,
+                    str;
+
+                $option = $(this);
+                str = $option.data('resolution');
+                if (undefined === dictionary[ str ]) {
+                    $option.attr('disabled', 'disabled');
+                }
+
+            });
+
+            function resolutionDictionary(list) {
+                var d = {};
+                list.forEach(function (resolution) {
+                    d[ resolution.toString() ] = resolution;
+                });
+                return d;
+            }
+
+        }
 
         function optionListHTML(resolutions, selectedIndex, divisor) {
             var list;
 
-            list = Object.keys(resolutions).map(function (key, index) {
+            list = resolutions.map(function (resolution, index) {
                 var selected,
-                    str,
-                    numeric,
-                    obj,
-                    html;
+                    pretty;
 
-                obj = resolutions[ key ];
-
-                numeric = obj.resolution;
-                str = igv.numberFormatter( Math.round( numeric/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
-
+                pretty = igv.numberFormatter( Math.round( resolution/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
                 selected = selectedIndex === index;
-                html = '<option' + ' value=' + index + (selected ? ' selected': '') + '>' + str + '</option>';
 
-                return html;
-
+                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected': '') + '>' + pretty + '</option>';
             });
 
             return list.join('');
