@@ -126,8 +126,12 @@ var hic = (function (hic) {
         hic.Browser.setCurrentBrowser(browser);
 
         isFigureMode = (config.figureMode && true === config.figureMode);
-        if (!isFigureMode && _.size(hic.allBrowsers) > 1) {
-            $('.hic-nav-bar-delete-button').show();
+        if (!isFigureMode && hic.allBrowsers.length > 1) {
+
+            hic.allBrowsers.forEach(function (b) {
+                b.$browser_panel_delete_button.show();
+            });
+
         }
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
@@ -195,6 +199,22 @@ var hic = (function (hic) {
 
     };
 
+    hic.deleteBrowserPanel = function (browser) {
+
+        if (browser === hic.Browser.getCurrentBrowser()) {
+            hic.Browser.setCurrentBrowser(undefined);
+        }
+
+        hic.allBrowsers.splice(_.indexOf(hic.allBrowsers, browser), 1);
+        browser.$root.remove();
+        browser = undefined;
+
+        if (1 === hic.allBrowsers.length) {
+            hic.Browser.setCurrentBrowser(hic.allBrowsers[ 0 ]);
+            hic.Browser.getCurrentBrowser().$browser_panel_delete_button.hide();
+        }
+
+    };
 
     hic.Browser = function ($app_container, config) {
 

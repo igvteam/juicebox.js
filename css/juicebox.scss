@@ -727,11 +727,8 @@ $default-font-family: 'Open Sans', sans-serif;
 
     // nav-bar contact map label
     div[id$="hic-nav-bar-map-label"] {
-      width: 90%;
-      height: 100%;
 
-      //font-size: 12px;
-      //font-weight: 700;
+      height: 100%;
 
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -749,45 +746,37 @@ $default-font-family: 'Open Sans', sans-serif;
     }
 
     // menu presentation
-    .hic-nav-bar-menu-button {
+    .hic-nav-bar-button-container {
+
       height: 100%;
+
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
 
       color: $default-dark-color;
 
-      i.fa-bars {
-        cursor: pointer;
+      i {
+        display: block;
         margin-top: 8px;
+
       }
 
-      i.fa-times {
-        cursor: pointer;
-        margin-top: 8px;
+      i:first-child {
+        margin-right: 4px;
       }
 
-    }
-
-    .hic-nav-bar-menu-button:hover,
-    .hic-nav-bar-menu-button:focus,
-    .hic-nav-bar-menu-button:active {
-      color: $default-hover-color;
-    }
-
-    // delete browser (map panel)
-    .hic-nav-bar-delete-button {
-      height: 100%;
-
-      color: $default-dark-color;
-
-      i.fa-minus-circle {
-        cursor: pointer;
-        margin-top: 8px;
+      i:last-child {
+        margin-left: 4px;
       }
-    }
 
-    .hic-nav-bar-delete-button:hover,
-    .hic-nav-bar-delete-button:focus,
-    .hic-nav-bar-delete-button:active {
-      color: $default-hover-color;
+      i:hover {
+        cursor: pointer;
+        color: $default-hover-color;
+      }
+
     }
 
   }
