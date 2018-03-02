@@ -381,7 +381,6 @@
     width: 95%;
     height: 36px; }
     .hic-navbar-container div[id$="hic-nav-bar-map-container"] div[id$="hic-nav-bar-map-label"] {
-      width: 90%;
       height: 100%;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -392,29 +391,24 @@
       border-bottom-width: thin;
       border-bottom-color: transparent;
       background-color: transparent; }
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button {
+    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container {
       height: 100%;
+      display: flex;
+      flex-flow: row;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      align-items: center;
       color: #5f5f5f; }
-      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button i.fa-bars {
-        cursor: pointer;
+      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container i {
+        display: block;
         margin-top: 8px; }
-      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button i.fa-times {
+      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container i:first-child {
+        margin-right: 4px; }
+      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container i:last-child {
+        margin-left: 4px; }
+      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container i:hover {
         cursor: pointer;
-        margin-top: 8px; }
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button:hover,
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button:focus,
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-menu-button:active {
-      color: #0f0f0f; }
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-delete-button {
-      height: 100%;
-      color: #5f5f5f; }
-      .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-delete-button i.fa-minus-circle {
-        cursor: pointer;
-        margin-top: 8px; }
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-delete-button:hover,
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-delete-button:focus,
-    .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-delete-button:active {
-      color: #0f0f0f; }
+        color: #0f0f0f; }
   .hic-navbar-container div[id$="hic-nav-bar-widget-container"] {
     display: flex;
     flex-flow: row;

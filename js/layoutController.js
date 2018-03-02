@@ -43,6 +43,7 @@ var hic = (function (hic) {
             $upper_widget_container,
             $lower_widget_container,
             $e,
+            $browser_panel_delete_button,
             $fa;
 
         $navbar_container = $('<div class="hic-navbar-container">');
@@ -70,43 +71,28 @@ var hic = (function (hic) {
         browser.$contactMaplabel = $("<div>", {id: id});
         $map_container.append(browser.$contactMaplabel);
 
-        // menu button
-        browser.$menuPresentDismiss = $("<div>", { class: 'hic-nav-bar-menu-button' });
-        $map_container.append(browser.$menuPresentDismiss);
+        // navbar button container
+        $e = $("<div>", { class: 'hic-nav-bar-button-container' });
+        $map_container.append($e);
 
-        $fa = $("<i>", { class: 'fa fa-bars fa-lg', 'title':'Present menu' });
-        browser.$menuPresentDismiss.append($fa);
-        $fa.on('click', function (e) {
+        // menu present/dismiss button
+        browser.$menuPresentDismiss = $("<i>", { class: 'fa fa-bars fa-lg', 'title':'Present menu' });
+        $e.append(browser.$menuPresentDismiss);
+        browser.$menuPresentDismiss.on('click', function (e) {
             browser.toggleMenu();
         });
 
         // browser delete button
-        $e = $("<div>", {class: 'hic-nav-bar-delete-button'});
-        $map_container.append($e);
+        browser.$browser_panel_delete_button = $("<i>", { class: 'fa fa-minus-circle fa-lg', 'title':'Delete browser panel' });
+        $e.append(browser.$browser_panel_delete_button);
 
-        $fa = $("<i>", {class: 'fa fa-minus-circle fa-lg', 'title':'Delete browser panel' });
-        $e.append($fa);
-
-        $fa.on('click', function (e) {
-
-            if (browser === hic.Browser.getCurrentBrowser()) {
-                hic.Browser.setCurrentBrowser(undefined);
-            }
-
-            hic.allBrowsers.splice(_.indexOf(hic.allBrowsers, browser), 1);
-            browser.$root.remove();
-            browser = undefined;
-
-            if (1 === hic.allBrowsers.length) {
-                $('.hic-nav-bar-delete-button').hide();
-                hic.Browser.setCurrentBrowser(hic.allBrowsers[ 0 ]);
-            }
-
+        browser.$browser_panel_delete_button.on('click', function (e) {
+            hic.deleteBrowserPanel(browser);
         });
 
         // hide delete buttons for now. Delete button is only
         // if there is more then one browser instance.
-        $e.hide();
+        browser.$browser_panel_delete_button.hide();
 
 
         // container: control map label
