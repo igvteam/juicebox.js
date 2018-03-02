@@ -66,27 +66,31 @@ var hic = (function (hic) {
 
             .then(function (data) {
 
+                var chr, binaryParser, nBpResolutions, nFragResolutions, nSites, nChrs, nAttributes, tmp;
+
                 if (!data) {
                     return undefined;
                 }
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
+                binaryParser = new igv.BinaryParser(new DataView(data));
 
                 self.magic = binaryParser.getString();
                 self.version = binaryParser.getInt();
                 self.masterIndexPos = binaryParser.getLong();
 
                 dataset.genomeId = binaryParser.getString();
+
+
                 dataset.attributes = {};
-                var nAttributes = binaryParser.getInt();
+                nAttributes = binaryParser.getInt();
                 while (nAttributes-- > 0) {
                     dataset.attributes[binaryParser.getString()] = binaryParser.getString();
                 }
 
                 dataset.chromosomes = [];
-                var nChrs = binaryParser.getInt(), i = 0;
+                nChrs = binaryParser.getInt(), i = 0;
                 while (nChrs-- > 0) {
-                    var chr = {
+                    chr = {
                         index: i,
                         name: binaryParser.getString(),
                         size: binaryParser.getInt()
@@ -99,28 +103,35 @@ var hic = (function (hic) {
                     i++;
                 }
 
-
                 self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
+
                 dataset.bpResolutions = [];
-                var nBpResolutions = binaryParser.getInt();
+
+                nBpResolutions = binaryParser.getInt();
                 while (nBpResolutions-- > 0) {
                     dataset.bpResolutions.push(binaryParser.getInt());
                 }
 
                 if (this.loadFragData) {
                     dataset.fragResolutions = [];
-                    var nFragResolutions = binaryParser.getInt();
+                    nFragResolutions = binaryParser.getInt();
                     while (nFragResolutions-- > 0) {
                         dataset.fragResolutions.push(binaryParser.getInt());
                     }
 
                     if (nFragResolutions > 0) {
                         dataset.sites = [];
-                        var nSites = binaryParser.getInt();
+                        nSites = binaryParser.getInt();
                         while (nSites-- > 0) {
                             dataset.sites.push(binaryParser.getInt());
                         }
                     }
+                }
+
+                // Attempt to determine genomeId if not recognized
+                if (!Object.keys(knownGenomes).includes(dataset.genomeId)) {
+                    tmp = matchGenome(dataset.chromosomes);
+                    if (tmp) dataset.genomeId = tmp;
                 }
 
                 return self;
@@ -797,7 +808,7 @@ var hic = (function (hic) {
         for (i = 1; i < zdArray.length; i++) {
             var zd = zdArray[i];
             if (zd.zoom.binSize < binSize) {
-                return i-1;
+                return i - 1;
             }
         }
         return zdArray.length - 1;
@@ -827,6 +838,35 @@ var hic = (function (hic) {
         this.binSize = binSize;
         this.values = values;
         this.normFactors = normFactors;
+    }
+
+
+    function matchGenome(chromosomes) {
+
+        var keys = Object.keys(knownGenomes),
+            i, l;
+
+        if (chromosomes.length < 4) return undefined;
+
+        for (i = 0; i < keys.length; i++) {
+            l = knownGenomes[keys[i]];
+            if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
+                return keys[i];
+            }
+        }
+
+        return undefined;
+
+
+    }
+
+    var knownGenomes = {
+
+        "hg19": [249250621, 243199373, 198022430],
+        "hg38": [248956422, 242193529, 198295559],
+        "mm10": [195471971, 182113224, 160039680],
+        "mm9": [197195432, 181748087, 159599783]
+
     }
 
 
