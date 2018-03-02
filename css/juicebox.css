@@ -503,6 +503,7 @@
     color: #0f0f0f; }
 
 .hic-control-map-selector-container {
+  margin-left: 40px;
   width: 35%;
   display: flex;
   flex-flow: row;
