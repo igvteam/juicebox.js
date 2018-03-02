@@ -886,8 +886,8 @@ $default-font-family: 'Open Sans', sans-serif;
 // navbar - control map
 .hic-control-map-selector-container {
 
-  margin-left: 2%;
-  width: 25%;
+  //margin-left: 2%;
+  width: 35%;
 
   display: flex;
   flex-flow: row;
@@ -972,7 +972,7 @@ $default-font-family: 'Open Sans', sans-serif;
   @include navbar-select;
 
   select {
-    width: 65%;
+    width: 74%;
   }
 
 }
