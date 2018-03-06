@@ -45,6 +45,8 @@ var hic = (function (hic) {
 
         var self = this,
             dataset = new hic.Dataset(this);
+        
+        dataset.name = config.name;
 
         return self.readHeader(dataset)
 

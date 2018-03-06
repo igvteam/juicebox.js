@@ -257,7 +257,7 @@ var hic = (function (hic) {
                     } else {
                         ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
                     }
-                    
+
                     self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
                     return "OK";
 
@@ -268,13 +268,11 @@ var hic = (function (hic) {
     /**
      *
      */
-    hic.TrackRenderer.prototype.repaint = function (loadIfNeeded) {
+    hic.TrackRenderer.prototype.repaint = function () {
 
         var self = this,
             genomicState,
             chrName;
-
-        if (loadIfNeeded === undefined) loadIfNeeded = false;
 
         genomicState = self.browser.genomicState(self.axis);
 
@@ -291,8 +289,7 @@ var hic = (function (hic) {
         if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
             self.drawTileWithGenomicState(self.tile, genomicState);
 
-        } else if (loadIfNeeded) {
-
+        } else {
             self.readyToPaint()
                 .then(function (ignore) {
                     self.drawTileWithGenomicState(self.tile, genomicState);
@@ -363,4 +360,5 @@ var hic = (function (hic) {
 
     return hic;
 
-})(hic || {});
+})
+(hic || {});

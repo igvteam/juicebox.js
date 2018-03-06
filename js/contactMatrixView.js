@@ -111,6 +111,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("TrackLoad2D", this);
         this.browser.eventBus.subscribe("TrackState2D", this);
         this.browser.eventBus.subscribe("MapLoad", this)
+        this.browser.eventBus.subscribe("LocusChange", this);
     };
 
     hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
@@ -388,8 +389,9 @@ var hic = (function (hic) {
      */
     function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this,
-            colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        var self = this, colorKey;
+        
+        colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
 
         if (self.displayMode && 'observed' !== self.displayMode) {
             return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
@@ -1210,24 +1212,6 @@ var hic = (function (hic) {
         return "" + this.high + ',' + this.r + ',' + this.g + ',' + this.b;
     };
 
-    hic.destringifyColorScale = function (string) {
-
-        var cs,
-            tokens;
-
-        tokens = string.split(",");
-
-        cs = {
-            high: tokens[0],
-            r: tokens[1],
-            g: tokens[2],
-            b: tokens[3]
-        };
-
-        return new hic.ColorScale(cs);
-
-    };
-
     function RatioColorScale(threshold) {
 
         this.threshold = threshold;
@@ -1286,9 +1270,44 @@ var hic = (function (hic) {
         else {
             return this.positiveScale.getColor(logScore);
         }
-
     }
 
+    RatioColorScale.prototype.stringify = function () {
+        return "R:" + this.threshold + ":" + this.positiveScale.stringify() + ":" + this.negativeScale.stringify();
+    };
+
+
+    hic.destringifyColorScale = function (string) {
+
+        var pnstr, ratioCS;
+
+        if (string.startsWith("R:")) {
+            pnstr = string.subString(2).split(":");
+            ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+            ratioCS.positiveScale = foo(pnstr[1]);
+            ratioCS.negativeScale = foo(pnstr[2]);
+            return ratioCS;
+        }
+
+        else {
+            return foo(string);
+        }
+
+        function foo(str) {
+            var cs, tokens;
+
+            tokens = str.split(",");
+
+            cs = {
+                high: tokens[0],
+                r: tokens[1],
+                g: tokens[2],
+                b: tokens[3]
+            };
+            return new hic.ColorScale(cs);
+        }
+
+    };
 
     return hic;
 

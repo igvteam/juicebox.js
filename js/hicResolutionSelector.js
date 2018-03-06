@@ -108,14 +108,7 @@ var hic = (function (hic) {
                     return index === selectedIndex;
                 })
                 .prop('selected', true);
-
-            if (this.browser.controlDataset) {
-                if (true === isWholeGenome) {
-                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), this.browser.controlDataset.wholeGenomeResolution);
-                } else {
-                    harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), this.browser.controlDataset.bpResolutions);
-                }
-            }
+            
 
         } else if (event.type === "MapLoad") {
 
@@ -127,16 +120,7 @@ var hic = (function (hic) {
             this.$resolution_selector.append(htmlString);
         } else if (event.type === "ControlMapLoad") {
 
-            isWholeGenome = (0 === this.browser.state.chr1);
-            list = isWholeGenome ? [ event.data.wholeGenomeResolution ] : event.data.bpResolutions;
 
-            harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
-
-            // if (true === isWholeGenome) {
-            //     harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), list);
-            // } else {
-            //     harmonizeContactAndControlResolutuionOptions(this.$resolution_selector.find('option'), _.initial(list, 2));
-            // }
 
         }
 

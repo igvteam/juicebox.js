@@ -478,6 +478,18 @@ var juicebox = (function (site) {
                 })
         }
 
+        hic.eventBus.subscribe("BrowserSelect", function(event) {
+
+            var browser = event.data;
+            if(browser.dataset) {
+                $('#hic-control-map-dropdown').removeClass('disabled');
+            }
+            else {
+                $('#hic-control-map-dropdown').addClass('disabled');
+            }
+
+        })
+
     };
 
 
@@ -499,15 +511,19 @@ var juicebox = (function (site) {
 
         if (isControl) {
             browser
-                .loadHicControlFile({url: url, name: name, synchState: synchState, isControl: isControl})
+                .loadHicControlFile({url: url, name: name, isControl: isControl})
                 .then(function (dataset) {
 
                 });
         } else {
+            browser.reset();
             browser
-                .loadHicFile({url: url, name: name, synchState: synchState, isControl: isControl})
-                .then(function (dataset) {
-                    if (!isControl) hic.syncBrowsers(hic.allBrowsers);
+                .loadHicFile({url: url, name: name, isControl: isControl})
+                .then(function (ignore) {
+                    if (!isControl) {
+                        hic.syncBrowsers(hic.allBrowsers);
+                    }
+                    $('#hic-control-map-dropdown').removeClass('disabled');
                 });
         }
     }

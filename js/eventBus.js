@@ -34,9 +34,8 @@
 var hic = (function (hic) {
 
 
-    hic.EventBus = function (browser) {
+    hic.EventBus = function () {
 
-        this.browser = browser;
 
         // Map eventType -> list of subscribers
         this.subscribers = {};
@@ -71,14 +70,6 @@ var hic = (function (hic) {
             });
         }
 
-        if (event.type === "LocusChange" && event.propogate) {
-
-            self.browser.synchedBrowsers.forEach(function (browser) {
-                browser.syncState(self.browser.getSyncState());
-            })
-
-        }
-
     };
 
     hic.Event = function (type, data, propogate) {
@@ -88,6 +79,15 @@ var hic = (function (hic) {
             propogate: propogate !== undefined ? propogate : true     // Default to true
         }
     };
+    
+
+    /**
+     * The global event bus.  For events outside the scope of a single browser.
+     *
+     * @type {hic.EventBus}
+     */
+    hic.eventBus = new hic.EventBus();
+
 
 
     return hic;

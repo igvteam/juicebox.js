@@ -51,17 +51,11 @@
     <link rel="stylesheet" href="../../dist/css/juicebox.css">
 
     <!-- Bootstrap-Select Plugin CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css">
 
-    <!-- JQuery JS -->
-    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-
-
-    <!-- IGV JS -->
-    <script src="../website/js/igv.min.js"></script>
+    <!-- igv -->
+    <script src="https://igv.org/web/test/dist/igv.js"></script>
 
     <!-- Vendor JS -->
     <script src="../../vendor/colors.js"></script>
@@ -88,8 +82,10 @@
     <script src="../../js/annotationWidget.js"></script>
     <script src="../../js/genome.js"></script>
     <script src="../../js/hicUtils.js"></script>
+    <script src="../../js/hicUrl.js"></script>
     <script src="../../js/hicReader.js"></script>
     <script src="../../js/hicColorScaleWidget.js"></script>
+    <script src="../../js/controlMapWidget.js"></script>
     <script src="../../js/hicLocusGoto.js"></script>
     <script src="../../js/hicResolutionSelector.js"></script>
     <script src="../../js/hicBrowser.js"></script>
@@ -255,86 +251,95 @@
 
     $(document).ready(function () {
 
-        var browser1, browser2;
         var windowSize = 445;
 
-        hic.loadDataset({
-            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic",
-            nvi: "30439217680%2C36479"
-        })
-                .then(function (dataset) {
+        var promises = [
+            hic.loadDataset({
+                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/combined.hic",
+                nvi: "30439217680%2C36479"
 
-                    browser1 = hic.createBrowser($('#app-container-1'), {
-                        figureMode: true,
-                        width: windowSize,
-                        height: windowSize,
-                        dataset: dataset,
-                        initialImage: 'image1.png',
-                        state: {
-                            chr1: 3,
-                            chr2: 3,
-                            x: 19215,
-                            y: 19215,
-                            zoom: 7,
-                            pixelSize: 1.55,
-                            normalization: "KR"
-                        },
-                        colorScale: {"low": 0, "lowR": 255, "lowG": 255, "lowB": 255, "high": "72"},
-                        tracks: [{
-                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K36me3_FE.bw",
-                            name: "Untreated H3K36me3",
-                            min: 0,
-                            max: 3,
-                            color: "rgb(0,150,0)"
-                        }, {
-                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K4me1_FE.bw",
-                            name: "Untreated H3K4me1",
-                            min: 0,
-                            max: 7,
-                            color: "rgb(0,150,0)"
-                        }]
-                    });
-                    if (browser2) hic.syncBrowsers([browser1, browser2]);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
-        hic.loadDataset({
-            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic",
-            nvi: "33255540403%2C36479"
-        })
-                .then(function (dataset) {
-                    browser2 = hic.createBrowser($('#app-container-2'), {
-                        figureMode: true,
-                        width: windowSize,
-                        height: windowSize,
-                        dataset: dataset,
-                        initialImage: 'image2.png',
-                        state: {
-                            chr1: 3,
-                            chr2: 3,
-                            x: 19215,
-                            y: 19215,
-                            zoom: 7,
-                            pixelSize: 1.55,
-                            normalization: "KR"
-                        },
-                        colorScale: {"low": 0, "lowR": 255, "lowG": 255, "lowB": 255, "high": "31"},
-                        tracks: [{
-                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K36me3_FE.bw",
-                            name: "6hr Treated H3K36me3",
-                            min: 0,
-                            max: 3,
-                            color: "rgb(0,150,0)"
-                        }, {
-                            url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K4me1_FE.bw",
-                            name: "6hr Treated H3K4me1",
-                            min: 0,
-                            max: 7,
-                            color: "rgb(0,150,0)"
-                        }]
-                    });
-                    if (browser1) hic.syncBrowsers([browser1, browser2]);
+            })
+                    .then(function (dataset) {
+
+                        var browser = hic.createBrowser($('#app-container-1'), {
+                            figureMode: true,
+                            width: windowSize,
+                            height: windowSize,
+                            dataset: dataset,
+                            initialImage: 'image1.png',
+                            state: {
+                                chr1: 3,
+                                chr2: 3,
+                                x: 19215,
+                                y: 19215,
+                                zoom: 7,
+                                pixelSize: 1.55,
+                                normalization: "KR"
+                            },
+                            colorScale: {high: 72},
+                            tracks: [{
+                                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K36me3_FE.bw",
+                                name: "Untreated H3K36me3",
+                                min: 0,
+                                max: 3,
+                                color: "rgb(0,150,0)"
+                            }, {
+                                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/untreated/H3K4me1_FE.bw",
+                                name: "Untreated H3K4me1",
+                                min: 0,
+                                max: 7,
+                                color: "rgb(0,150,0)"
+                            }]
+                        });
+
+                        return browser;
+                    }),
+
+
+            hic.loadDataset({
+                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/treated_6hr/unsynchronized/combined.hic",
+                nvi: "33255540403%2C36479"
+            })
+                    .then(function (dataset) {
+
+                        var browser = hic.createBrowser($('#app-container-2'), {
+                            figureMode: true,
+                            width: windowSize,
+                            height: windowSize,
+                            dataset: dataset,
+                            initialImage: 'image2.png',
+                            state: {
+                                chr1: 3,
+                                chr2: 3,
+                                x: 19215,
+                                y: 19215,
+                                zoom: 7,
+                                pixelSize: 1.55,
+                                normalization: "KR"
+                            },
+                            colorScale: {high: 31},
+                            tracks: [{
+                                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K36me3_FE.bw",
+                                name: "6hr Treated H3K36me3",
+                                min: 0,
+                                max: 3,
+                                color: "rgb(0,150,0)"
+                            }, {
+                                url: "https://s3.amazonaws.com/hicfiles/hiseq/degron/chipseq_data/treated/H3K4me1_FE.bw",
+                                name: "6hr Treated H3K4me1",
+                                min: 0,
+                                max: 7,
+                                color: "rgb(0,150,0)"
+                            }]
+                        });
+
+                        return browser;
+                    })];
+
+        Promise.all(promises)
+
+                .then(function (browsers) {
+                    hic.syncBrowsers(browsers);
                 })
                 .catch(function (error) {
                     console.log(error);

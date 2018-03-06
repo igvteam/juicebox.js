@@ -40,47 +40,6 @@ var hic = (function (hic) {
 
     hic.allBrowsers = [];
 
-    // mock igv browser objects for igv.js compatibility
-    function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
-
-        igv.browser =
-        {
-            constants: {defaultColor: "rgb(0,0,150)"},
-
-            // Compatibility wit igv menus
-            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-        };
-
-        igv.trackMenuItem = function () {
-            return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
-        };
-
-        igv.trackMenuItemList = function () {
-            // var args;
-            // args = Array.prototype.slice.call(arguments);
-            // args.push(hicBrowser);
-            return trackMenuReplacement.trackMenuItemListReplacement.apply(trackMenuReplacement, arguments);
-        };
-
-        // Popover object -- singleton shared by all components
-        igv.popover = new igv.Popover($hic_container);
-
-        // Dialog object -- singleton shared by all components
-        igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
-        igv.dialog.hide();
-
-        // Data Range Dialog object -- singleton shared by all components
-        igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
-        igv.dataRangeDialog.hide();
-
-        // alert object -- singleton shared by all components
-
-        // firstBrowser = (hic.allBrowsers && hic.allBrowsers.length > 1) ? hic.allBrowsers[ 0 ] : hicBrowser;
-        // igv.alert = new igv.AlertDialog(firstBrowser.$root, "igv-alert");
-        igv.alert = new igv.AlertDialog(hicBrowser.$root, "igv-alert");
-        igv.alert.hide();
-
-    }
 
     // The dreaded callback!!!  Interim patch to properly sync browsers
     hic.createBrowser = function (hic_container, config, callback) {
@@ -127,11 +86,9 @@ var hic = (function (hic) {
 
         isFigureMode = (config.figureMode && true === config.figureMode);
         if (!isFigureMode && hic.allBrowsers.length > 1) {
-
             hic.allBrowsers.forEach(function (b) {
                 b.$browser_panel_delete_button.show();
             });
-
         }
 
         browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
@@ -140,63 +97,89 @@ var hic = (function (hic) {
             createIGV($hic_container, browser, browser.trackMenuReplacement);
         }
 
-        if (config.initialImage) {
+        loadInitialImage(config)
 
-            initialImageImg = new Image();
+            .then(function (img) {
+                return loadInitialDataset(browser, config);
+            })
+            .then(function (ignore) {
+                return browser.loadHicFile(config)
+            })
+            .then(function (dataset) {
 
-            initialImageImg.onload = function () {
-
-                if (typeof config.initialImage === 'string') {
-                    initialImageX = browser.state.x;
-                    initialImageY = browser.state.y;
-                } else {
-                    initialImageX = config.initialImage.left || browser.state.x;
-                    initialImageY = config.initialImage.top || browser.state.y;
+                if (config.colorScale) {
+                    // This must be down after dataset load
+                    browser.contactMatrixView.setColorScale(config.colorScale);
                 }
 
-                browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
-
-                // Load hic file after initial image is loaded -- important
-                // Defer track loads until hic file is loaded.  The hic file defines the reference for the tracks.
-                if (config.url || config.dataset) {
-
-                    browser.loadHicFile(config)
-
-                        .then(function (dataset) {
-
-                            if (config.tracks) {
-
-                                browser.loadTracks(config.tracks);
-                            }
-
-                        })
+                if (config.tracks) {
+                    browser.loadTracks(config.tracks);
                 }
-            }
-            initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
-        }
-        else {
-            if (config.url || config.dataset) {
 
-                browser.loadHicFile(config)
+                if (typeof callback === "function") callback();
 
-                    .then(function (dataset) {
-
-                        if (typeof callback === "function") callback();
-
-                        if (config.tracks) {
-                            browser.loadTracks(config.tracks);
-                        }
-
-                    })
-                    .catch(function (error) {
-                        hic.presentError("Error loading " + (config.name || config.url), error);
-                    })
-            }
-        }
+            })
+            .catch(function (error) {
+                hic.presentError("Error loading " + (config.name || config.url), error);
+            })
 
 
         return browser;
 
+        // Return a promise to load the initial image, if present
+        function loadInitialImage(config) {
+
+            if (config.initialImage) {
+
+                return new Promise(function (resolve, reject) {
+
+                    initialImageImg = new Image();
+
+                    initialImageImg.onload = function () {
+
+                        if (typeof config.initialImage === 'string') {
+                            initialImageX = browser.state.x;
+                            initialImageY = browser.state.y;
+                        } else {
+                            initialImageX = config.initialImage.left || browser.state.x;
+                            initialImageY = config.initialImage.top || browser.state.y;
+                        }
+
+                        browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
+
+                        resolve(initialImageImg);
+                    }
+
+                    initialImageImg.onerror = function (error) {
+                        reject(error);
+                    }
+
+                    initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
+                });
+            }
+            else {
+                return Promise.resolve(undefined);
+            }
+        }
+
+        // Explicit set dataset, do not need to load.  Used by "interactive figures"
+        function loadInitialDataset(browser, config) {
+
+            if (config.dataset) {
+                config.dataset.name = config.name;
+                browser.$contactMaplabel.text(config.name);
+                browser.$contactMaplabel.attr('title', config.name);
+                browser.dataset = config.dataset;
+                browser.genome = new hic.Genome(browser.dataset.genomeId, browser.dataset.chromosomes);
+                igv.browser.genome = browser.genome;
+                browser.eventBus.post(hic.Event("GenomeChange", browser.genome.id));
+                browser.eventBus.post(hic.Event("MapLoad", browser.dataset));
+                return Promise.resolve(config.dataset);
+            }
+            else {
+                return Promise.resolve(undefined);
+            }
+        }
     };
 
     hic.deleteBrowserPanel = function (browser) {
@@ -210,169 +193,12 @@ var hic = (function (hic) {
         browser = undefined;
 
         if (1 === hic.allBrowsers.length) {
-            hic.Browser.setCurrentBrowser(hic.allBrowsers[ 0 ]);
+            hic.Browser.setCurrentBrowser(hic.allBrowsers[0]);
             hic.Browser.getCurrentBrowser().$browser_panel_delete_button.hide();
         }
 
     };
 
-    hic.Browser = function ($app_container, config) {
-
-        this.config = config;
-        this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
-        this.resolutionLocked = false;
-        this.eventBus = new hic.EventBus(this);
-
-        this.id = _.uniqueId('browser_');
-        this.trackRenderers = [];
-        this.tracks2D = [];
-        this.normVectorFiles = [];
-
-        this.synchedBrowsers = [];
-
-        this.isMobile = hic.isMobile();
-
-        this.$root = $('<div class="hic-root unselect">');
-
-        if (config.width) {
-            this.$root.css("width", String(config.width));
-        }
-        if (config.height) {
-            this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.figureMode)));
-        }
-
-        $app_container.append(this.$root);
-
-        this.layoutController = new hic.LayoutController(this, this.$root);
-
-        // prevent user interaction during lengthy data loads
-        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
-        this.$root.append(this.$user_interaction_shield);
-        this.$user_interaction_shield.hide();
-
-
-        this.hideCrosshairs();
-
-        this.state = config.state ? config.state : defaultState.clone();
-
-        if (config.colorScale) {
-            this.contactMatrixView.setColorScale(config.colorScale);
-        }
-
-        this.eventBus.subscribe("LocusChange", this);
-
-
-        function configureHover($e) {
-
-            var self = this;
-
-            $e.hover(_in, _out);
-
-            _out();
-
-            function _in() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#df0000');
-                }
-
-            }
-
-            function _out() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#5f5f5f');
-                }
-
-            }
-        }
-
-    };
-
-    hic.Browser.prototype.toggleMenu = function () {
-
-        if (this.$menu.is(':visible')) {
-            this.hideMenu();
-        } else {
-            this.showMenu();
-        }
-
-    };
-
-    hic.Browser.prototype.showMenu = function () {
-        this.$menu.show();
-    };
-
-    hic.Browser.prototype.hideMenu = function () {
-        this.$menu.hide();
-    };
-
-    hic.Browser.prototype.startSpinner = function () {
-
-        if (true === this.isLoadingHICFile) {
-            this.$user_interaction_shield.show();
-        }
-
-        this.contactMatrixView.startSpinner();
-    }
-
-    hic.Browser.prototype.stopSpinner = function () {
-
-        if (!this.isLoadingHICFile) {
-            this.$user_interaction_shield.hide();
-        }
-
-        this.contactMatrixView.stopSpinner();
-    }
-
-    hic.Browser.prototype.setDisplayMode = function (mode) {
-        this.contactMatrixView.setDisplayMode(mode);
-        this.eventBus.post(hic.Event("DisplayMode", mode));
-    }
-
-    hic.Browser.prototype.getDisplayMode = function () {
-        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-    }
-
-
-
-    hic.Browser.prototype.getColorScale = function () {
-
-        if(!this.contactMatrixView) return undefined;
-
-        return this.getDisplayMode() === 'observed-over-control' ?
-            this.contactMatrixView.ratioColorScale :
-            this.contactMatrixView.colorScale;
-    };
-
-    hic.Browser.prototype.updateColorScale = function (options) {
-
-        var self = this,
-            state;
-
-        if (this.getDisplayMode() === 'observed-over-control') {
-            this.contactMatrixView.ratioColorScale.high = options.high;
-        }
-        else {
-            this.contactMatrixView.setColorScale(options);
-        }
-        this.contactMatrixView.imageTileCache = {};
-        this.contactMatrixView.initialImage = undefined;
-        this.contactMatrixView.update();
-        //
-        // state = this.state;
-        // this.dataset.getMatrix(state.chr1, state.chr2)
-        //     .then(function (matrix) {
-        //         var zd = matrix.bpZoomData[state.zoom];
-        //         var colorKey = zd.getKey() + "_" + state.normalization;
-        //         self.contactMatrixView.colorScaleCache[colorKey] = options.high;
-        //         self.contactMatrixView.update();
-        //     })
-        //     .catch(function (error) {
-        //         console.log(error);
-        //         alert(error);
-        //     });
-    };
 
     /**
      * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
@@ -381,13 +207,23 @@ var hic = (function (hic) {
      * @param config
      */
     hic.loadDataset = function (config) {
+
         var self = this;
 
-        var hicReader = new hic.HiCReader(config);
+        return extractName(config)
 
-        return hicReader.loadDataset(config)
+            .then(function (name) {
+
+                config.name = name;
+
+                var hicReader;
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config)
+            })
 
             .then(function (dataset) {
+
+                dataset.name = self.name;
 
                 if (config.nvi) {
                     var nviArray = decodeURIComponent(config.nvi).split(","),
@@ -462,6 +298,78 @@ var hic = (function (hic) {
 
     };
 
+
+    hic.Browser = function ($app_container, config) {
+
+        this.config = config;
+        this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
+        this.resolutionLocked = false;
+        this.eventBus = new hic.EventBus();
+
+        this.id = _.uniqueId('browser_');
+        this.trackRenderers = [];
+        this.tracks2D = [];
+        this.normVectorFiles = [];
+
+        this.synchedBrowsers = [];
+
+        this.isMobile = hic.isMobile();
+
+        this.$root = $('<div class="hic-root unselect">');
+
+        if (config.width) {
+            this.$root.css("width", String(config.width));
+        }
+        if (config.height) {
+            this.$root.css("height", String(config.height + hic.LayoutController.navbarHeight(this.config.figureMode)));
+        }
+
+        $app_container.append(this.$root);
+
+        this.layoutController = new hic.LayoutController(this, this.$root);
+
+        // prevent user interaction during lengthy data loads
+        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
+        this.$root.append(this.$user_interaction_shield);
+        this.$user_interaction_shield.hide();
+
+
+        this.hideCrosshairs();
+
+        this.state = config.state ? config.state : defaultState.clone();
+
+        this.eventBus.subscribe("LocusChange", this);
+
+
+        function configureHover($e) {
+
+            var self = this;
+
+            $e.hover(_in, _out);
+
+            _out();
+
+            function _in() {
+
+                if (_.size(hic.allBrowsers) > 1) {
+                    $e.css('border-color', '#df0000');
+                }
+
+            }
+
+            function _out() {
+
+                if (_.size(hic.allBrowsers) > 1) {
+                    $e.css('border-color', '#5f5f5f');
+                }
+
+            }
+        }
+
+    };
+
+
+
     hic.Browser.getCurrentBrowser = function () {
 
         if (hic.allBrowsers.length === 1) {
@@ -494,8 +402,65 @@ var hic = (function (hic) {
 
             browser.$root.addClass('hic-root-selected');
             hic.Browser.currentBrowser = browser;
+
+            hic.eventBus.post(hic.Event("BrowserSelect", browser));
         }
 
+    };
+
+    hic.Browser.prototype.toggleMenu = function () {
+
+        if (this.$menu.is(':visible')) {
+            this.hideMenu();
+        } else {
+            this.showMenu();
+        }
+
+    };
+
+    hic.Browser.prototype.showMenu = function () {
+        this.$menu.show();
+    };
+
+    hic.Browser.prototype.hideMenu = function () {
+        this.$menu.hide();
+    };
+
+    hic.Browser.prototype.startSpinner = function () {
+
+        if (true === this.isLoadingHICFile) {
+            this.$user_interaction_shield.show();
+        }
+
+        this.contactMatrixView.startSpinner();
+    }
+
+    hic.Browser.prototype.stopSpinner = function () {
+
+        if (!this.isLoadingHICFile) {
+            this.$user_interaction_shield.hide();
+        }
+
+        this.contactMatrixView.stopSpinner();
+    }
+
+    hic.Browser.prototype.setDisplayMode = function (mode) {
+        this.contactMatrixView.setDisplayMode(mode);
+        this.eventBus.post(hic.Event("DisplayMode", mode));
+    }
+
+    hic.Browser.prototype.getDisplayMode = function () {
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+    }
+
+
+    hic.Browser.prototype.getColorScale = function () {
+
+        if (!this.contactMatrixView) return undefined;
+
+        return this.getDisplayMode() === 'observed-over-control' ?
+            this.contactMatrixView.ratioColorScale :
+            this.contactMatrixView.colorScale;
     };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
@@ -686,9 +651,6 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.renderTrackXY = function (xy) {
 
-        //xy.x.repaint();
-        //xy.y.repaint();
-
         var self = this;
         xy.x.readyToPaint()
             .then(function (ignore) {
@@ -706,6 +668,21 @@ var hic = (function (hic) {
     }
 
 
+    hic.Browser.prototype.reset = function () {
+        var self = this;
+        self.dataset = undefined;
+        self.controlDataset = undefined;
+        self.layoutController.removeAllTrackXYPairs();
+        self.contactMatrixView.clearCaches();
+        self.tracks2D = [];
+        self.tracks = [];
+
+        self.$contactMaplabel.text("");
+        self.$contactMaplabel.attr('title', "");
+        self.$controlMaplabel.text("");
+        self.$controlMaplabel.attr('title', "");
+    }
+
     /**
      * Load a .hic file
      *
@@ -717,107 +694,70 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader,
-            queryIdx,
-            parts,
-            str;
+            hicReader;
 
-        if (!config.url && !config.dataset) {
+        if (!config.url) {
             console.log("No .hic url specified");
-            return;
+            return Promise.resolve(undefined);
         }
 
-        self.layoutController.removeAllTrackXYPairs();
-        self.contactMatrixView.clearCaches();
-        self.tracks2D = [];
-        self.tracks = [];
 
+        self.contactMatrixView.startSpinner();
         this.isLoadingHICFile = true;
-        if (!self.config.initialImage) {
-            self.contactMatrixView.startSpinner();
-        }
 
+        return extractName(config)
 
-        if (config.url) {
-            this.url = config.url;
-            if (typeof config.url === "string") {
-                queryIdx = config.url.indexOf("?");
-                if (queryIdx > 0) {
-                    parts = parseUri(config.url);
-                    if (parts.queryKey) {
-                        Object.assign(config, parts.queryKey);
-                    }
+            .then(function (name) {
+                self.$contactMaplabel.text(name);
+                self.$contactMaplabel.attr('title', name);
+
+                config.name = name;
+                hicReader = new hic.HiCReader(config);
+                return hicReader.loadDataset(config);
+            })
+
+            .then(function (dataset) {
+
+                var previousGenomeId;
+
+                self.dataset = dataset;
+
+                previousGenomeId = self.genome ? self.genome.id : undefined;
+                self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+
+                // TODO -- this is not going to work with browsers on different assemblies on the same page.
+                igv.browser.genome = self.genome;
+
+                if (self.genome.id !== previousGenomeId) {
+                    self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
                 }
-            }
-        }
+                self.eventBus.post(hic.Event("MapLoad", self.dataset));
 
-        if (config.dataset) {
-            // Explicit set dataset, do not need to load.  Used by "interactive figures"
-            self.$contactMaplabel.text(config.name);
-            self.$contactMaplabel.attr('title', config.name);
-            self.name = config.name;
+                return loadNVI.call(self, dataset, config)
+            })
 
-            return Promise.resolve(setDataset(config.dataset));
-        }
-        else {
+            .then(function (nvi) {
 
-            return extractName(config)
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
 
-                .then(function (name) {
-                    config.name = config.name;
-                    hicReader = new hic.HiCReader(config);
-                    return hicReader.loadDataset(config);
-                })
+                if (config.state) {
+                    self.setState(config.state);
+                } else if (config.synchState && self.canBeSynched(config.synchState)) {
+                    self.syncState(config.synchState);
+                } else {
+                    self.setState(defaultState.clone());
+                }
 
-                .then(function (dataset) {
-                    var previousGenomeId = self.genome ? self.genome.id : undefined;
-                    self.dataset = dataset;
-                    self.genome = new hic.Genome(self.dataset.genomeId, self.dataset.chromosomes);
+            })
+            .catch(function (error) {
+                self.isLoadingHICFile = false;
+                self.stopSpinner();
+                console.error(error);
+                igv.presentAlert("Error loading hic file: " + error);
+                return error;
+            })
 
-                    console.log(self.dataset.genomeId);
-
-                    // TODO -- this is not going to work with browsers on different assemblies on the same page.
-                    igv.browser.genome = self.genome;
-                    if (self.genome.id !== previousGenomeId) {
-                        self.eventBus.post(hic.Event("GenomeChange", self.genome.id));
-                    }
-                    self.eventBus.post(hic.Event("MapLoad", self.dataset));
-
-                    return loadNVI.call(self, dataset, config)
-                })
-
-                .then(function (nvi) {
-                    self.isLoadingHICFile = false;
-                    self.stopSpinner();
-
-                    self.$contactMaplabel.text(config.name);
-                    self.$contactMaplabel.attr('title', config.name);
-                    self.name = config.name;
-
-                    if (config.colorScale) {
-                        self.contactMatrixView.setColorScale(config.colorScale);
-                    }
-
-                    self.isLoadingHICFile = false;
-
-
-                    if (config.state) {
-                        self.setState(config.state);
-                    } else if (config.synchState && self.canBeSynched(config.synchState)) {
-                        self.syncState(config.synchState);
-                    } else {
-                        self.setState(defaultState.clone());
-                    }
-
-                })
-                .catch(function (error) {
-                    self.isLoadingHICFile = false;
-                    self.stopSpinner();
-                    console.error(error);
-                    igv.presentAlert("Error loading hic file: " + error);
-                    return error;
-                })
-        }
 
         function loadNVI(dataset, config) {
 
@@ -875,17 +815,17 @@ var hic = (function (hic) {
             hicReader;
 
         this.isLoadingHICFile = true;
+
+        this.controlUrl = config.url;
+
         self.contactMatrixView.startSpinner();
 
         return extractName(config)
 
             .then(function (name) {
 
-                var str = 'Control: ' + name;
-                self.$controlMaplabel.text(str);
-                self.$controlMaplabel.attr('title', name);
-                self.controlMapName = name;
 
+                config.name = name;
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config);
             })
@@ -896,6 +836,11 @@ var hic = (function (hic) {
                     throw new Error("Control map genome ID does not match observed map")
                 }
                 self.controlDataset = dataset;
+
+                self.$contactMaplabel.text("A: " + self.dataset.name);
+                self.$controlMaplabel.text("B: " + dataset.name);
+                self.$controlMaplabel.attr('title', dataset.name);
+
                 self.eventBus.post(hic.Event("ControlMapLoad", dataset));
                 return loadControlNVI.call(self, dataset, config)
             })
@@ -904,9 +849,6 @@ var hic = (function (hic) {
 
                 self.isLoadingHICFile = false;
                 self.stopSpinner();
-                self.isLoadingHICFile = false;
-
-
             })
             .catch(function (error) {
                 self.isLoadingHICFile = false;
@@ -1563,8 +1505,18 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.receiveEvent = function (event) {
+        var self = this;
 
         if ("LocusChange" === event.type) {
+            
+            if (event.propogate) {
+
+                self.synchedBrowsers.forEach(function (browser) {
+                    browser.syncState(self.getSyncState());
+                })
+
+            }
+            
             this.update(event);
         }
 
@@ -1634,7 +1586,7 @@ var hic = (function (hic) {
     };
 
 
-    hic.Browser.prototype.repaint = function() {
+    hic.Browser.prototype.repaint = function () {
         this.contactMatrixView.imageTileCache = {};
         this.contactMatrixView.initialImage = undefined;
         this.contactMatrixView.update();
@@ -1682,7 +1634,7 @@ var hic = (function (hic) {
         }
     }
 
-    function getNviString(dataset, state) {
+    function getNviString(dataset) {
 
         if (dataset.hicReader.normalizationVectorIndexRange) {
             var range = dataset.hicReader.normalizationVectorIndexRange,
@@ -1756,16 +1708,16 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.getQueryString = function () {
 
-        var queryString, nviString, trackString;
+        var queryString, nviString, trackString, displayMode;
 
-        if (!this.url) return "";   // URL is required
+        if (!(this.dataset && this.dataset.url)) return "";   // URL is required
 
         queryString = [];
 
-        queryString.push(paramString("hicUrl", this.url));
+        queryString.push(paramString("hicUrl", this.dataset.url));
 
-        if (this.name) {
-            queryString.push(paramString("name", this.name));
+        if (this.dataset.name) {
+            queryString.push(paramString("name", this.dataset.name));
         }
 
         queryString.push(paramString("state", this.state.stringify()));
@@ -1776,10 +1728,33 @@ var hic = (function (hic) {
             queryString.push(paramString("selectedGene", igv.FeatureTrack.selectedGene));
         }
 
-        nviString = getNviString(this.dataset, this.state);
+        nviString = getNviString(this.dataset);
         if (nviString) {
             queryString.push(paramString("nvi", nviString));
         }
+
+        if (this.controlDataset) {
+
+            queryString.push(paramString("controlUrl", this.controlUrl));
+
+            if (this.controlName) {
+                queryString.push(paramString("controlName", this.controlName))
+            }
+
+            queryString.push(paramString("ratioColorScale", this.contactMatrixView.ratioColorScale.stringify()));
+
+            displayMode = this.getDisplayMode();
+            if (displayMode) {
+                queryString.push(paramString("displayMode", this.getDisplayMode()));
+            }
+
+            nviString = getNviString(this.controlDataset);
+            if (nviString) {
+                queryString.push(paramString("controlNvi", nviString));
+            }
+
+        }
+
 
         if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
             trackString = "";
@@ -1848,19 +1823,9 @@ var hic = (function (hic) {
      */
     function decodeQuery(query, config, uriDecode) {
 
-        var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString, defaultColorScaleInitializer;
+        var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
+            controlUrl, ratioColorScale, controlName, displayMode, controlNvi;
 
-        defaultColorScaleInitializer =
-        {
-            low: 0,
-            lowR: 255,
-            lowG: 255,
-            lowB: 255,
-            high: 2000,
-            r: 255,
-            g: 0,
-            b: 0
-        };
 
         hicUrl = query["hicUrl"];
         name = query["name"];
@@ -1871,21 +1836,36 @@ var hic = (function (hic) {
         nvi = query["nvi"];
         normVectorString = query["normVectorFiles"];
 
+        controlUrl = query["controlUrl"];
+        controlName = query["controlName"];
+        ratioColorScale = query["ratioColorScale"];
+        displayMode = query["displayMode"];
+        controlNvi = query["controlNvi"];
+
         if (hicUrl) {
-
             hicUrl = paramDecodeV0(hicUrl, uriDecode);
-
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
             });
-
             config.url = hicUrl;
 
         }
         if (name) {
             config.name = paramDecodeV0(name, uriDecode);
         }
+        if (controlUrl) {
+            controlUrl = paramDecodeV0(controlUrl, uriDecode);
+            Object.keys(urlShortcuts).forEach(function (key) {
+                var value = urlShortcuts[key];
+                if (controlUrl.startsWith(key)) controlUrl = controlUrl.replace(key, value);
+            });
+            config.controlUrl = controlUrl;
+        }
+        if (controlName) {
+            config.controlName = paramDecodeV0(controlName, uriDecode);
+        }
+
         if (stateString) {
             stateString = paramDecodeV0(stateString, uriDecode);
             config.state = destringifyStateV0(stateString);
@@ -1894,6 +1874,14 @@ var hic = (function (hic) {
         if (colorScale) {
             colorScale = paramDecodeV0(colorScale, uriDecode);
             config.colorScale = destringifyColorScaleV0(colorScale);
+        }
+        if (ratioColorScale) {
+            ratioColorScale = paramDecodeV0(ratioColorScale, uriDecode);
+            config.ratioColorScale = destringifyColorScaleV0(ratioColorScale);
+        }
+
+        if (displayMode) {
+            config.displayMode = paramDecodeV0(displayMode, uriDecode);
         }
 
         if (trackString) {
@@ -1917,7 +1905,10 @@ var hic = (function (hic) {
         }
 
         if (nvi) {
-            config.nvi = nvi;
+            config.nvi = paramDecodeV0(nvi, uriDecode);
+        }
+        if (controlNvi) {
+            config.controlNvi = paramDecodeV0(controlNvi, uriDecode);
         }
 
         function destringifyStateV0(string) {
@@ -2003,11 +1994,12 @@ var hic = (function (hic) {
 
             tokens = string.split(",");
 
-            cs = _.clone(defaultColorScaleInitializer);
-            cs.high = tokens[0];
-            cs.r = tokens[1];
-            cs.g = tokens[2];
-            cs.b = tokens[3];
+            cs = {
+                high: tokens[0],
+                r: tokens[1],
+                g: tokens[2],
+                b: tokens[3]
+            };
 
             return new hic.ColorScale(cs);
         };
@@ -2044,6 +2036,99 @@ var hic = (function (hic) {
             s = replaceAll(s, "%3D", "=");
             return s;
         }
+    }
+
+    /**
+     * Encode an array of strings.  A "|" is used as a delimiter, therefore any "|" in individual elements
+     * must be encoded.
+     *
+     * @param array
+     * @returns {string}
+     */
+    function encodeArray(array) {
+
+        var arrayStr = "", i;
+
+        if (array.length > 0) {
+            arrayStr += encodeArrayElement(array[0]);
+            for (i = 1; i < array.length; i++) {
+                arrayStr += "|";
+                arrayStr += encodeArrayElement(array[i]);
+            }
+        }
+        return arrayStr;
+
+        function encodeArrayElement(elem) {
+            var s = paramEncode(elem);
+            s = replaceAll(s, "|", "%7C");
+            return s;
+        }
+    }
+
+    /**
+     * Decode a string to an array of strings.  Its assumed that the string was created with encodeArray.
+     *
+     * @param str
+     * @returns {Array}
+     */
+    function decodeArray(str) {
+
+        var array, elements;
+        array = [];
+        elements = str.split("|");
+        elements.forEach(function (elem) {
+            array.push(decodeArrayElement(elem));
+        })
+        return array;
+
+        function decodeArrayElement(elem) {
+            var s = paramDecode(elem, false);
+            s = replaceAll(s, "%7C", "|");
+            return s;
+        }
+    }
+
+
+    // mock igv browser objects for igv.js compatibility
+    function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
+
+        igv.browser =
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
+
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
+
+        igv.trackMenuItem = function () {
+            return trackMenuReplacement.trackMenuItemReplacement.apply(trackMenuReplacement, arguments);
+        };
+
+        igv.trackMenuItemList = function () {
+            // var args;
+            // args = Array.prototype.slice.call(arguments);
+            // args.push(hicBrowser);
+            return trackMenuReplacement.trackMenuItemListReplacement.apply(trackMenuReplacement, arguments);
+        };
+
+        // Popover object -- singleton shared by all components
+        igv.popover = new igv.Popover($hic_container);
+
+        // Dialog object -- singleton shared by all components
+        igv.dialog = new igv.Dialog($hic_container, igv.Dialog.dialogConstructor);
+        igv.dialog.hide();
+
+        // Data Range Dialog object -- singleton shared by all components
+        igv.dataRangeDialog = new igv.DataRangeDialog($hic_container);
+        igv.dataRangeDialog.hide();
+
+        // alert object -- singleton shared by all components
+
+        // firstBrowser = (hic.allBrowsers && hic.allBrowsers.length > 1) ? hic.allBrowsers[ 0 ] : hicBrowser;
+        // igv.alert = new igv.AlertDialog(firstBrowser.$root, "igv-alert");
+        igv.alert = new igv.AlertDialog(hicBrowser.$root, "igv-alert");
+        igv.alert.hide();
+
     }
 
 

@@ -36,6 +36,7 @@ var hic = (function (hic) {
 
         // container
         this.$container = $('<div class="hic-control-map-selector-container">');
+        this.$container.hide();
         $parent.append(this.$container);
 
         // select
@@ -50,15 +51,25 @@ var hic = (function (hic) {
         this.$container.append(this.$control_map_selector);
         optionStrings =
             [
-                { title:'Observed', value:'observed' },
+                { title:'A', value:'observed' },
              //   { title:'Control', value:'control' },
-                { title:'Observed/Control', value:'observed-over-control' }
+                { title:'A/B', value:'observed-over-control' }
              //   { title:'Observed-Control', value:'observed-minus-control' }
             ];
 
         optionStrings.forEach(function (o) {
             self.$control_map_selector.append($('<option>').attr('title', o.title).attr('value', o.value).text(o.title));
         });
+
+        browser.eventBus.subscribe("ControlMapLoad", function (event) {
+            self.$container.show();
+        })
+
+        browser.eventBus.subscribe("MapLoad", function (event) {
+            if(!browser.controlDataset) {
+                self.$container.hide();
+            }
+        })
 
     };
 
