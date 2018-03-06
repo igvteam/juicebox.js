@@ -75,6 +75,7 @@
 
 <body id="portfolio">
 
+
 <!-- Share URL Modal -->
 <div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
      aria-hidden="true">
@@ -356,9 +357,9 @@
 
 <nav class="navbar navbar-inverse navbar-fixed-top">
     <div class="container">
-        <div class="navbar-header">
-            <a href="https://github.com/igvteam/juicebox.js" class="navbar-brand" target="_blank">Juicebox Test</a>
-        </div>
+<!--        <div class="navbar-header">
+            <a href="https://github.com/igvteam/juicebox.js" class="navbar-brand" target="_blank">Juicebox</a>
+        </div>-->
         <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="https://igvteam.github.io/juicebox.js/" target="_blank">Help</a></li>
@@ -388,7 +389,7 @@
 
                 <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button"
                         data-toggle="dropdown">
-                    Load Contact Map &nbsp;
+                    Load Map &nbsp;
                     <span class="caret"></span>
                 </button>
 
@@ -397,20 +398,20 @@
                     <li role="presentation"><!-- Select Contact Map -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
                            data-target="#hic-contact-map-select-modal">
-                            Select Contact Map
+                            Hosted Map File
                         </a>
                     </li><!-- Select Contact Map -->
 
                     <li role="presentation"><!-- Local Contact Map File -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
                            data-target="#hic-load-local-file-modal">
-                            Local Contact Map File
+                            Local Map File
                         </a>
                     </li><!-- Local Contact Map File -->
 
                     <li role="presentation"><!-- Contact Map URL -->
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                            Contact Map URL
+                            Map URL
                         </a>
                     </li><!-- Contact Map URL -->
 
@@ -421,28 +422,31 @@
             <!-- Control Map: Select | Local File | URL -->
             <div class="dropdown site-widget">
 
-                <button id="hic-control-map-dropdown" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                    Load Control Map &nbsp;
+                <button id="hic-control-map-dropdown" class="btn btn-default dropdown-toggle disabled" type="button"
+                        data-toggle="dropdown">
+                    Load "B" Map &nbsp;
                     <span class="caret"></span>
                 </button>
 
                 <ul class="dropdown-menu" role="menu" aria-labelledby="hic-control-map-dropdown">
 
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">
-                            Select Contact Map
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-contact-map-select-modal">
+                            Hosted Map File
                         </a>
                     </li>
 
                     <li role="presentation">
-                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">
-                            Local Contact Map File
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-load-local-file-modal">
+                            Local Map File
                         </a>
                     </li>
 
                     <li role="presentation">
                         <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
-                            Contact Map URL
+                            Map URL
                         </a>
                     </li>
 
@@ -454,16 +458,19 @@
             <div class="dropdown site-widget">
 
                 <!--  data-toggle="dropdown" -->
-                <button id="hic-track-dropdown-button" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                <button id="hic-track-dropdown-button" class="btn btn-default dropdown-toggle" type="button"
+                        data-toggle="dropdown">
                     <span>Load Tracks &nbsp;</span>
                     <span class="caret"></span>
                 </button>
 
-                <ul id="hic-track-dropdown" class="dropdown-menu" role="menu" aria-labelledby="hic-track-dropdown-button">
+                <ul id="hic-track-dropdown" class="dropdown-menu" role="menu"
+                    aria-labelledby="hic-track-dropdown-button">
 
                     <li id="hic-encode-modal-list-item" role="presentation">
-                        <span id="hic-encode-loading" >&nbsp;&nbsp;&nbsp;&nbsp;ENCODE loading ...</span>
-                        <a id="hic-encode-modal-button" role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hicEncodeModal">ENCODE</a>
+                        <span id="hic-encode-loading">&nbsp;&nbsp;&nbsp;&nbsp;ENCODE loading ...</span>
+                        <a id="hic-encode-modal-button" role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hicEncodeModal">ENCODE</a>
                     </li>
 
                     <li role="presentation"><!-- Select Annotations -->
@@ -515,7 +522,6 @@
 
     </div>
 
-
     <!-- App container -->
     <div class="row">
         <div class="col-md-12">
@@ -528,7 +534,7 @@
         <div class="col-md-4">
             <div>
                 <span>&nbsp;&nbsp;&nbsp;</span>
-                <span id="hic-version-number">version 1.0.2</span>
+                <span id="hic-version-number">version 1.1 - beta</span>
 
             </div>
 
@@ -546,8 +552,10 @@
                 <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
                     Juicebox</a>.</h4><br><br>
             <h4>If you use Juicebox in your research, please cite:</h4><br>
-            <h4>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez Lieberman Aiden.
-                <em>"Juicebox.js Provides a Cloud-Based Visualization System for Hi-C Data."</em> <i>Cell Systems</i>&nbsp;(2018).</h4><br><br>
+            <h4>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez
+                Lieberman Aiden.
+                <em>"Juicebox.js Provides a Cloud-Based Visualization System for Hi-C Data."</em> <i>Cell Systems</i>&nbsp;6(2),2018.
+            </h4><br><br>
         </div>
     </div>
 
