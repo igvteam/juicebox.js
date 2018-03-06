@@ -517,8 +517,15 @@ var juicebox = (function (site) {
                 });
         } else {
             browser.reset();
+            browsersWithMaps = hic.allBrowsers.filter(function (browser) {
+                return browser.dataset !== undefined;
+            });
+
+            if (browsersWithMaps.length > 0) {
+                synchState = browsersWithMaps[0].getSyncState();
+            }
             browser
-                .loadHicFile({url: url, name: name, isControl: isControl})
+                .loadHicFile({url: url, name: name, isControl: isControl, synchState: synchState})
                 .then(function (ignore) {
                     if (!isControl) {
                         hic.syncBrowsers(hic.allBrowsers);
