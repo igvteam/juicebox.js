@@ -99,7 +99,7 @@ var hic = (function (hic) {
         this.bboxes = [];
         $firstDiv = undefined;
 
-        list.forEach(function (chr, index) {
+        list.forEach(function (chr) {
             var size,
                 percentage;
 
@@ -114,7 +114,7 @@ var hic = (function (hic) {
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
-                if (0 === index) {
+                if (!$firstDiv) {
                     $firstDiv = $div;
                 }
 
