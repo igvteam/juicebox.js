@@ -21550,7 +21550,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.color : track1D.color);
+        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.getColor() : track1D.color);
         $row.append($colorpickerButton);
 
         // color swatch selector
@@ -22474,7 +22474,6 @@ var hic = (function (hic) {
                         ctx.save();
                         ctx.lineWidth = 2;
                         self.browser.tracks2D.forEach(function (track2D) {
-                            var color;
 
                             if (track2D.isVisible) {
                                 var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
@@ -26779,8 +26778,9 @@ var hic = (function (hic) {
         this.$canvas.height(this.$axis.height());
         this.$canvas.attr('height', this.$axis.height());
 
-        // whole genome
-        this.$wholeGenomeContainer = $('<div>');
+        // whole genome container
+        id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
+        this.$wholeGenomeContainer = $("<div>", { id: id });
         this.$axis.append(this.$wholeGenomeContainer);
 
         this.ctx = this.$canvas.get(0).getContext("2d");
@@ -26807,7 +26807,9 @@ var hic = (function (hic) {
             scraps,
             $div,
             $firstDiv,
-            $e;
+            $e,
+            id,
+            className;
 
         // discard current tiles
         $wholeGenomeContainer.empty();
@@ -26827,7 +26829,7 @@ var hic = (function (hic) {
         this.bboxes = [];
         $firstDiv = undefined;
 
-        list.forEach(function (chr, index) {
+        list.forEach(function (chr) {
             var size,
                 percentage;
 
@@ -26837,11 +26839,12 @@ var hic = (function (hic) {
                 scraps += percentage;
             } else {
 
-                $div = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome-container';
+                $div = $("<div>", { class: className });
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
-                if (0 === index) {
+                if (!$firstDiv) {
                     $firstDiv = $div;
                 }
 
@@ -26853,9 +26856,11 @@ var hic = (function (hic) {
                     $div.height(size);
                 }
 
-                $e = $('<div>');
+                className = self.axis + '-axis-whole-genome-chromosome';
+                $e = $("<div>", { class: className });
                 $div.append($e);
                 $e.text($div.data('label'));
+                // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
                 decorate.call(self, $div);
             }
@@ -26866,15 +26871,18 @@ var hic = (function (hic) {
         scraps = Math.floor(scraps);
         if (scraps >= 1) {
 
-            $div = $('<div>');
+            className = self.axis + '-axis-whole-genome-chromosome-container';
+            $div = $("<div>", { class: className });
             $wholeGenomeContainer.append($div);
             $div.data('label', '-');
 
             $div.width(scraps);
 
-            $e = $('<span>');
+            className = self.axis + '-axis-whole-genome-chromosome';
+            $e = $("<div>", { class: className });
             $div.append($e);
             $e.text($div.data('label'));
+            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
             decorate.call(self, $div);
         }
@@ -26894,10 +26902,14 @@ var hic = (function (hic) {
                 var $o;
                 $o = $(this).first();
                 self.browser.parseGotoInput( $o.text() );
-                // $(this).removeClass('hic-whole-genome-chromosome-highlight');
+
                 self.unhighlightWholeChromosome();
                 self.otherRuler.unhighlightWholeChromosome();
             });
+
+            // DIAGNOSTIC BACKGROUND COLOR
+            // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
+            // return;
 
             $d.hover(
                 function () {
@@ -27602,7 +27614,8 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
-        this.color = config.color === undefined ? features[0].color : config.color;
+        this.color = config.color;    // If specified, this will override colors of individual records.
+        this.repColor = features.length > 0 ? features[0].color : "black";
 
         features.forEach(function (f) {
 
@@ -27619,6 +27632,10 @@ var hic = (function (hic) {
         });
 
     };
+    
+    hic.Track2D.prototype.getColor = function() {
+        return this.color || this.repColor;
+    }
 
     hic.Track2D.prototype.getFeatures = function (chr1, chr2) {
         var key = getKey(chr1, chr2),
@@ -27633,13 +27650,25 @@ var hic = (function (hic) {
 
             .then(function (data) {
 
-                var features = parseData(data);
+                var features = parseData(data, isBedPE(config));
 
                 return new hic.Track2D(config, features);
             })
     }
 
-    function parseData(data) {
+    function isBedPE(config) {
+
+        if (typeof config.url === "string") {
+            return config.url.toLowerCase().indexOf(".bedpe") > 0;
+        } else if (typeof config.name === "string") {
+            return config.name.toLowerCase().indexOf(".bedpe") > 0;
+        }
+        else {
+            return true;  // Default
+        }
+    }
+
+    function parseData(data, isBedPE) {
 
         if (!data) return null;
 
@@ -27650,12 +27679,20 @@ var hic = (function (hic) {
             allFeatures = [],
             line,
             i,
-            delimiter = "\t";
+            delimiter = "\t",
+            start,
+            colorColumn;
 
+        start = isBedPE ? 0 : 1;
+        colorColumn = isBedPE ? 10 : 6;
 
-        for (i = 1; i < len; i++) {
+        for (i = start; i < len; i++) {
 
             line = lines[i];
+
+            if(line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+                continue;
+            }
 
             tokens = lines[i].split(delimiter);
             if (tokens.length < 7) {
@@ -27670,9 +27707,12 @@ var hic = (function (hic) {
                 chr2: tokens[3],
                 y1: parseInt(tokens[4]),
                 y2: parseInt(tokens[5]),
-                color: "rgb(" + tokens[6] + ")"
+                color: "rgb(" + tokens[colorColumn] + ")"
             }
-            allFeatures.push(feature);
+
+            if(!Number.isNaN(feature.x1)) {
+                allFeatures.push(feature);
+            }
         }
 
         return allFeatures;
