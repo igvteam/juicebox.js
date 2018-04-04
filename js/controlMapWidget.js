@@ -44,34 +44,52 @@ var hic = (function (hic) {
         this.$control_map_selector.attr('name', 'control_map_selector');
         this.$control_map_selector.on('change', function (e) {
             var value;
-
             value = $(this).val();
             browser.setDisplayMode(value);
         });
         this.$container.append(this.$control_map_selector);
-        optionStrings =
-            [
-                { title:'A', value:'observed' },
-             //   { title:'Control', value:'control' },
-                { title:'A/B', value:'observed-over-control' }
-             //   { title:'Observed-Control', value:'observed-minus-control' }
-            ];
-
-        optionStrings.forEach(function (o) {
-            self.$control_map_selector.append($('<option>').attr('title', o.title).attr('value', o.value).text(o.title));
-        });
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
+            updateOptions.call(self, browser);
             self.$container.show();
         })
 
         browser.eventBus.subscribe("MapLoad", function (event) {
-            if(!browser.controlDataset) {
+            if (!browser.controlDataset) {
                 self.$container.hide();
             }
         })
 
     };
+
+
+    function updateOptions(browser) {
+
+        var self = this,
+            optionStrings;
+
+        optionStrings =
+            [
+                {title: 'A', value: 'observed'},
+                //   { title:'Control', value:'control' },
+                {title: 'A/B', value: 'observed-over-control'}
+                //   { title:'Observed-Control', value:'observed-minus-control' }
+            ];
+
+        this.$control_map_selector.empty();
+        optionStrings.forEach(function (o) {
+            var isSelected;
+
+            isSelected = browser.getDisplayMode() === o.value;
+
+            self.$control_map_selector.append($('<option' + isSelected ? ' selected ' : '' + '>')
+                .attr('title', o.title)
+                .attr('value', o.value)
+                .text(o.title));
+        });
+
+
+    }
 
     return hic;
 

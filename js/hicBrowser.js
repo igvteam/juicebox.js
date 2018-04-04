@@ -99,12 +99,18 @@ var hic = (function (hic) {
 
         loadInitialImage(config)
 
-            .then(function (img) {
+            .then(function (ignore) {
+                return loadControlFile(config);
+            })
+
+            .then(function (ignore) {
                 return loadInitialDataset(browser, config);
             })
+
             .then(function (ignore) {
                 return browser.loadHicFile(config)
             })
+
             .then(function (dataset) {
 
                 if (config.colorScale) {
@@ -115,10 +121,12 @@ var hic = (function (hic) {
                 if (config.tracks) {
                     browser.loadTracks(config.tracks);
                 }
-
-                if (typeof callback === "function") callback();
-
             })
+
+            .then(function (ignore) {
+                if (typeof callback === "function") callback();
+            })
+
             .catch(function (error) {
                 hic.presentError("Error loading " + (config.name || config.url), error);
             })
@@ -177,6 +185,20 @@ var hic = (function (hic) {
                 return Promise.resolve(config.dataset);
             }
             else {
+                return Promise.resolve(undefined);
+            }
+        }
+
+        // Load the control file, if any
+        function loadControlFile(config) {
+            if (config.controlUrl) {
+                return browser.loadHicControlFile({
+                    url: config.controlUrl,
+                    name: config.controlName,
+                    nvi: config.controlNvi,
+                    isControl: true
+                });
+            } else {
                 return Promise.resolve(undefined);
             }
         }
@@ -326,7 +348,9 @@ var hic = (function (hic) {
 
         $app_container.append(this.$root);
 
-        this.layoutController = new hic.LayoutController(this, this.$root);
+        this.layoutController = new hic.LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
+
+        if(config.displayMode) this.contactMatrixView.displayMode = config.displayMode;
 
         // prevent user interaction during lengthy data loads
         this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
@@ -367,7 +391,6 @@ var hic = (function (hic) {
         }
 
     };
-
 
 
     hic.Browser.getCurrentBrowser = function () {
@@ -708,7 +731,10 @@ var hic = (function (hic) {
         return extractName(config)
 
             .then(function (name) {
-                self.$contactMaplabel.text(name);
+
+                var prefix = self.controlDataset ? "A: " : "";
+
+                self.$contactMaplabel.text(prefix + name);
                 self.$contactMaplabel.attr('title', name);
 
                 config.name = name;
@@ -823,8 +849,6 @@ var hic = (function (hic) {
         return extractName(config)
 
             .then(function (name) {
-
-
                 config.name = name;
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config);
@@ -832,12 +856,11 @@ var hic = (function (hic) {
 
             .then(function (dataset) {
 
-                if (self.genome.id !== dataset.genomeId) {
+                if (self.genome && (self.genome.id !== dataset.genomeId)) {
                     throw new Error("Control map genome ID does not match observed map")
                 }
                 self.controlDataset = dataset;
 
-                self.$contactMaplabel.text("A: " + self.dataset.name);
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);
 
@@ -1508,7 +1531,7 @@ var hic = (function (hic) {
         var self = this;
 
         if ("LocusChange" === event.type) {
-            
+
             if (event.propogate) {
 
                 self.synchedBrowsers.forEach(function (browser) {
@@ -1516,7 +1539,7 @@ var hic = (function (hic) {
                 })
 
             }
-            
+
             this.update(event);
         }
 
@@ -1737,8 +1760,8 @@ var hic = (function (hic) {
 
             queryString.push(paramString("controlUrl", this.controlUrl));
 
-            if (this.controlName) {
-                queryString.push(paramString("controlName", this.controlName))
+            if (this.controlDataset.name) {
+                queryString.push(paramString("controlName", this.controlDataset.name))
             }
 
             queryString.push(paramString("ratioColorScale", this.contactMatrixView.ratioColorScale.stringify()));

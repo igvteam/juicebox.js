@@ -88,33 +88,6 @@ var hic = (function (hic) {
 
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
 
-        function updateOptions() {
-            var dataset = event.data,
-                normalizationTypes,
-                elements,
-                norm = this.browser.state.normalization;
-
-            normalizationTypes = dataset.normalizationTypes;
-            elements = _.map(normalizationTypes, function (normalization) {
-                var label,
-                    labelPresentation,
-                    isSelected,
-                    titleString,
-                    valueString;
-
-                label = labels[normalization] || normalization;
-                isSelected = (norm === normalization);
-                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-
-                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
-                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
-            });
-
-            this.$normalization_selector.empty();
-            this.$normalization_selector.append(elements.join(''));
-        }
-
         // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
         if ("MapLoad" === event.type) {
             // TODO -- start norm widget "not ready" state
@@ -134,6 +107,35 @@ var hic = (function (hic) {
                 this.startNotReady();
             } else {
                 this.stopNotReady();
+            }
+        }
+
+        function updateOptions() {
+            var dataset = event.data,
+                normalizationTypes,
+                elements,
+                norm = this.browser.state.normalization;
+
+            normalizationTypes = dataset.normalizationTypes;
+            if(normalizationTypes) {
+                elements = normalizationTypes.map(function (normalization) {
+                    var label,
+                        labelPresentation,
+                        isSelected,
+                        titleString,
+                        valueString;
+
+                    label = labels[normalization] || normalization;
+                    isSelected = (norm === normalization);
+                    titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                    valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+
+                    labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+                    return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
+                });
+
+                this.$normalization_selector.empty();
+                this.$normalization_selector.append(elements.join(''));
             }
         }
     };
