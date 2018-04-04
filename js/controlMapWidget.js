@@ -66,7 +66,8 @@ var hic = (function (hic) {
     function updateOptions(browser) {
 
         var self = this,
-            optionStrings;
+            optionStrings,
+            option;
 
         optionStrings =
             [
@@ -82,10 +83,14 @@ var hic = (function (hic) {
 
             isSelected = browser.getDisplayMode() === o.value;
 
-            self.$control_map_selector.append($('<option' + isSelected ? ' selected ' : '' + '>')
+            option = $('<option>')
                 .attr('title', o.title)
                 .attr('value', o.value)
-                .text(o.title));
+                .text(o.title);
+
+            if(isSelected) option.attr('selected', true);
+
+            self.$control_map_selector.append(option);
         });
 
 
