@@ -143,7 +143,7 @@ var hic = (function (hic) {
 
         if ("DisplayMode" === event.type) {
 
-            if ("observed-over-control" === event.data) {
+            if ("AOB" === event.data) {
                 this.$minusButton.show();
             }
             else {

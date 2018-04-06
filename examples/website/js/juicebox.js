@@ -21980,7 +21980,7 @@ var hic = (function (hic) {
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
-        this.displayMode = 'observed';
+        this.displayMode = 'A';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
@@ -21995,6 +21995,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("TrackState2D", this);
         this.browser.eventBus.subscribe("MapLoad", this)
         this.browser.eventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
     hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
@@ -22040,7 +22041,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
 
-        if ("MapLoad" === event.type) {
+        if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
 
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
@@ -22252,7 +22253,7 @@ var hic = (function (hic) {
 
         var promises = [];
         promises.push(this.browser.dataset.getMatrix(chr1, chr2))
-        if (this.displayMode && 'observed' !== this.displayMode && this.browser.controlDataset) {
+        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
         }
         return Promise.all(promises);
@@ -22276,7 +22277,7 @@ var hic = (function (hic) {
         
         colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
 
-        if (self.displayMode && 'observed' !== self.displayMode) {
+        if (self.displayMode && 'A' !== self.displayMode) {
             return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
         }
 
@@ -22470,7 +22471,7 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
-                        if ('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
+                        if ('AOB' === self.displayMode || 'AMB' === self.displayMode) {
                             controlRecords = {};
                             controlBlock.records.forEach(function (record) {
                                 controlRecords[record.getKey()] = record;
@@ -22502,7 +22503,7 @@ var hic = (function (hic) {
 
                             switch (self.displayMode) {
 
-                                case 'observed-over-control':
+                                case 'AOB':
 
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
@@ -22515,7 +22516,7 @@ var hic = (function (hic) {
 
                                     break;
 
-                                case 'observed-minus-control':
+                                case 'AMB':
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
                                     if (!controlRec) {
@@ -23243,34 +23244,57 @@ var hic = (function (hic) {
         this.$control_map_selector.attr('name', 'control_map_selector');
         this.$control_map_selector.on('change', function (e) {
             var value;
-
             value = $(this).val();
             browser.setDisplayMode(value);
         });
         this.$container.append(this.$control_map_selector);
-        optionStrings =
-            [
-                { title:'A', value:'observed' },
-             //   { title:'Control', value:'control' },
-                { title:'A/B', value:'observed-over-control' }
-             //   { title:'Observed-Control', value:'observed-minus-control' }
-            ];
-
-        optionStrings.forEach(function (o) {
-            self.$control_map_selector.append($('<option>').attr('title', o.title).attr('value', o.value).text(o.title));
-        });
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
+            updateOptions.call(self, browser);
             self.$container.show();
         })
 
         browser.eventBus.subscribe("MapLoad", function (event) {
-            if(!browser.controlDataset) {
+            if (!browser.controlDataset) {
                 self.$container.hide();
             }
         })
 
     };
+
+
+    function updateOptions(browser) {
+
+        var self = this,
+            optionStrings,
+            option;
+
+        optionStrings =
+            [
+                {title: 'A', value: 'A'},
+                //   { title:'Control', value:'control' },
+                {title: 'A/B', value: 'AOB'}
+                //   { title:'Observed-Control', value:'AMB' }
+            ];
+
+        this.$control_map_selector.empty();
+        optionStrings.forEach(function (o) {
+            var isSelected;
+
+            isSelected = browser.getDisplayMode() === o.value;
+
+            option = $('<option>')
+                .attr('title', o.title)
+                .attr('value', o.value)
+                .text(o.title);
+
+            if(isSelected) option.attr('selected', true);
+
+            self.$control_map_selector.append(option);
+        });
+
+
+    }
 
     return hic;
 
@@ -23728,12 +23752,18 @@ var hic = (function (hic) {
 
         loadInitialImage(config)
 
-            .then(function (img) {
+            .then(function (ignore) {
+                return loadControlFile(config);
+            })
+
+            .then(function (ignore) {
                 return loadInitialDataset(browser, config);
             })
+
             .then(function (ignore) {
                 return browser.loadHicFile(config)
             })
+
             .then(function (dataset) {
 
                 if (config.colorScale) {
@@ -23744,10 +23774,12 @@ var hic = (function (hic) {
                 if (config.tracks) {
                     browser.loadTracks(config.tracks);
                 }
-
-                if (typeof callback === "function") callback();
-
             })
+
+            .then(function (ignore) {
+                if (typeof callback === "function") callback();
+            })
+
             .catch(function (error) {
                 hic.presentError("Error loading " + (config.name || config.url), error);
             })
@@ -23806,6 +23838,20 @@ var hic = (function (hic) {
                 return Promise.resolve(config.dataset);
             }
             else {
+                return Promise.resolve(undefined);
+            }
+        }
+
+        // Load the control file, if any
+        function loadControlFile(config) {
+            if (config.controlUrl) {
+                return browser.loadHicControlFile({
+                    url: config.controlUrl,
+                    name: config.controlName,
+                    nvi: config.controlNvi,
+                    isControl: true
+                });
+            } else {
                 return Promise.resolve(undefined);
             }
         }
@@ -23955,7 +24001,9 @@ var hic = (function (hic) {
 
         $app_container.append(this.$root);
 
-        this.layoutController = new hic.LayoutController(this, this.$root);
+        this.layoutController = new hic.LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
+
+        if(config.displayMode) this.contactMatrixView.displayMode = config.displayMode;
 
         // prevent user interaction during lengthy data loads
         this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
@@ -23996,7 +24044,6 @@ var hic = (function (hic) {
         }
 
     };
-
 
 
     hic.Browser.getCurrentBrowser = function () {
@@ -24087,7 +24134,7 @@ var hic = (function (hic) {
 
         if (!this.contactMatrixView) return undefined;
 
-        return this.getDisplayMode() === 'observed-over-control' ?
+        return this.getDisplayMode() === 'AOB' ?
             this.contactMatrixView.ratioColorScale :
             this.contactMatrixView.colorScale;
     };
@@ -24337,7 +24384,10 @@ var hic = (function (hic) {
         return extractName(config)
 
             .then(function (name) {
-                self.$contactMaplabel.text(name);
+
+                var prefix = self.controlDataset ? "A: " : "";
+
+                self.$contactMaplabel.text(prefix + name);
                 self.$contactMaplabel.attr('title', name);
 
                 config.name = name;
@@ -24452,8 +24502,6 @@ var hic = (function (hic) {
         return extractName(config)
 
             .then(function (name) {
-
-
                 config.name = name;
                 hicReader = new hic.HiCReader(config);
                 return hicReader.loadDataset(config);
@@ -24461,16 +24509,18 @@ var hic = (function (hic) {
 
             .then(function (dataset) {
 
-                if (self.genome.id !== dataset.genomeId) {
+                if (self.genome && (self.genome.id !== dataset.genomeId)) {
                     throw new Error("Control map genome ID does not match observed map")
                 }
                 self.controlDataset = dataset;
 
-                self.$contactMaplabel.text("A: " + self.dataset.name);
+                if(self.dataset) {
+                    self.$contactMaplabel.text("A: " + self.dataset.name);
+                }
+
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);
-
-                self.eventBus.post(hic.Event("ControlMapLoad", dataset));
+                
                 return loadControlNVI.call(self, dataset, config)
             })
 
@@ -24478,6 +24528,8 @@ var hic = (function (hic) {
 
                 self.isLoadingHICFile = false;
                 self.stopSpinner();
+                self.eventBus.post(hic.Event("ControlMapLoad", self.controlDataset));
+                self.contactMatrixView.update();
             })
             .catch(function (error) {
                 self.isLoadingHICFile = false;
@@ -25137,7 +25189,7 @@ var hic = (function (hic) {
         var self = this;
 
         if ("LocusChange" === event.type) {
-            
+
             if (event.propogate) {
 
                 self.synchedBrowsers.forEach(function (browser) {
@@ -25145,7 +25197,7 @@ var hic = (function (hic) {
                 })
 
             }
-            
+
             this.update(event);
         }
 
@@ -25366,8 +25418,8 @@ var hic = (function (hic) {
 
             queryString.push(paramString("controlUrl", this.controlUrl));
 
-            if (this.controlName) {
-                queryString.push(paramString("controlName", this.controlName))
+            if (this.controlDataset.name) {
+                queryString.push(paramString("controlName", this.controlDataset.name))
             }
 
             queryString.push(paramString("ratioColorScale", this.contactMatrixView.ratioColorScale.stringify()));
@@ -25911,7 +25963,7 @@ var hic = (function (hic) {
 
         if ("DisplayMode" === event.type) {
 
-            if ("observed-over-control" === event.data) {
+            if ("AOB" === event.data) {
                 this.$minusButton.show();
             }
             else {
@@ -27460,7 +27512,7 @@ var hic = (function (hic) {
         this.bboxes = [];
         $firstDiv = undefined;
 
-        list.forEach(function (chr, index) {
+        list.forEach(function (chr) {
             var size,
                 percentage;
 
@@ -27475,7 +27527,7 @@ var hic = (function (hic) {
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
-                if (0 === index) {
+                if (!$firstDiv) {
                     $firstDiv = $div;
                 }
 
@@ -29696,33 +29748,6 @@ var hic = (function (hic) {
 
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
 
-        function updateOptions() {
-            var dataset = event.data,
-                normalizationTypes,
-                elements,
-                norm = this.browser.state.normalization;
-
-            normalizationTypes = dataset.normalizationTypes;
-            elements = _.map(normalizationTypes, function (normalization) {
-                var label,
-                    labelPresentation,
-                    isSelected,
-                    titleString,
-                    valueString;
-
-                label = labels[normalization] || normalization;
-                isSelected = (norm === normalization);
-                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-
-                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
-                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
-            });
-
-            this.$normalization_selector.empty();
-            this.$normalization_selector.append(elements.join(''));
-        }
-
         // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
         if ("MapLoad" === event.type) {
             // TODO -- start norm widget "not ready" state
@@ -29742,6 +29767,35 @@ var hic = (function (hic) {
                 this.startNotReady();
             } else {
                 this.stopNotReady();
+            }
+        }
+
+        function updateOptions() {
+            var dataset = event.data,
+                normalizationTypes,
+                elements,
+                norm = this.browser.state.normalization;
+
+            normalizationTypes = dataset.normalizationTypes;
+            if(normalizationTypes) {
+                elements = normalizationTypes.map(function (normalization) {
+                    var label,
+                        labelPresentation,
+                        isSelected,
+                        titleString,
+                        valueString;
+
+                    label = labels[normalization] || normalization;
+                    isSelected = (norm === normalization);
+                    titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                    valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+
+                    labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+                    return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
+                });
+
+                this.$normalization_selector.empty();
+                this.$normalization_selector.append(elements.join(''));
             }
         }
     };

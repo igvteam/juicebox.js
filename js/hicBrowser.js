@@ -481,7 +481,7 @@ var hic = (function (hic) {
 
         if (!this.contactMatrixView) return undefined;
 
-        return this.getDisplayMode() === 'observed-over-control' ?
+        return this.getDisplayMode() === 'AOB' ?
             this.contactMatrixView.ratioColorScale :
             this.contactMatrixView.colorScale;
     };
@@ -861,7 +861,9 @@ var hic = (function (hic) {
                 }
                 self.controlDataset = dataset;
 
-                self.$contactMaplabel.text("A: " + self.dataset.name);
+                if(self.dataset) {
+                    self.$contactMaplabel.text("A: " + self.dataset.name);
+                }
 
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);

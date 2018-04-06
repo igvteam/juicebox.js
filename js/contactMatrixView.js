@@ -97,7 +97,7 @@ var hic = (function (hic) {
 
         $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
-        this.displayMode = 'observed';
+        this.displayMode = 'A';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         // Cache at most 20 image tiles
@@ -370,7 +370,7 @@ var hic = (function (hic) {
 
         var promises = [];
         promises.push(this.browser.dataset.getMatrix(chr1, chr2))
-        if (this.displayMode && 'observed' !== this.displayMode && this.browser.controlDataset) {
+        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
         }
         return Promise.all(promises);
@@ -394,7 +394,7 @@ var hic = (function (hic) {
         
         colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
 
-        if (self.displayMode && 'observed' !== self.displayMode) {
+        if (self.displayMode && 'A' !== self.displayMode) {
             return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
         }
 
@@ -588,7 +588,7 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
-                        if ('observed-over-control' === self.displayMode || 'observed-minus-control' === self.displayMode) {
+                        if ('AOB' === self.displayMode || 'AMB' === self.displayMode) {
                             controlRecords = {};
                             controlBlock.records.forEach(function (record) {
                                 controlRecords[record.getKey()] = record;
@@ -620,7 +620,7 @@ var hic = (function (hic) {
 
                             switch (self.displayMode) {
 
-                                case 'observed-over-control':
+                                case 'AOB':
 
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
@@ -633,7 +633,7 @@ var hic = (function (hic) {
 
                                     break;
 
-                                case 'observed-minus-control':
+                                case 'AMB':
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
                                     if (!controlRec) {
