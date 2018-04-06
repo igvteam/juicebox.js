@@ -72,9 +72,8 @@ var hic = (function (hic) {
         optionStrings =
             [
                 {title: 'A', value: 'A'},
-                //   { title:'Control', value:'control' },
+                {title: 'B', value: 'B'},
                 {title: 'A/B', value: 'AOB'}
-                //   { title:'Observed-Control', value:'AMB' }
             ];
 
         this.$control_map_selector.empty();

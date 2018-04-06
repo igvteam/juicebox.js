@@ -290,15 +290,15 @@ var hic = (function (hic) {
             this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
         } else if ('UpdateContactMapMousePosition' === event.type) {
 
-            this.unhighlightWholeChromosome();
-
-            offset = 'x' === this.axis ? event.data.x : event.data.y;
-            $e = hitTest(this.bboxes, offset);
-            if ($e) {
-                // console.log(this.axis + ' highlight chr ' + $e.text());
-                $e.addClass('hic-whole-genome-chromosome-highlight');
+            if(this.bboxes) {
+                this.unhighlightWholeChromosome();
+                offset = 'x' === this.axis ? event.data.x : event.data.y;
+                $e = hitTest(this.bboxes, offset);
+                if ($e) {
+                    // console.log(this.axis + ' highlight chr ' + $e.text());
+                    $e.addClass('hic-whole-genome-chromosome-highlight');
+                }
             }
-
         }
 
     };

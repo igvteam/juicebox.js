@@ -131,7 +131,7 @@ var hic = (function (hic) {
         if (undefined !== options.g) this.colorScale.g = options.g;
         if (undefined !== options.b) this.colorScale.b = options.b;
 
-        this.colorScaleCache[colorScaleKey(this.browser.state)] = options.high;
+        this.colorScaleCache[colorScaleKey(this.browser.state), this.displayMode] = options.high;
     };
 
     hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
@@ -140,8 +140,8 @@ var hic = (function (hic) {
         this.update();
     }
 
-    function colorScaleKey(state) {
-        return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
+    function colorScaleKey(state, displayMode) {
+        return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
     }
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
@@ -369,9 +369,14 @@ var hic = (function (hic) {
     function getMatrices(chr1, chr2) {
 
         var promises = [];
-        promises.push(this.browser.dataset.getMatrix(chr1, chr2))
-        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+        if ('B' === this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+        else {
+            promises.push(this.browser.dataset.getMatrix(chr1, chr2));
+            if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+                promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+            }
         }
         return Promise.all(promises);
     }
@@ -390,12 +395,12 @@ var hic = (function (hic) {
      */
     function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this, colorKey;
-        
-        colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        var self = this, colorKey, dataset;
 
-        if (self.displayMode && 'A' !== self.displayMode) {
-            return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
+        colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
+
+        if ('AOB' === self.displayMode) {
+            return Promise.resolve(self.colorScale);     // Don't adjust color scale for A/B.
         }
 
         if (self.colorScaleCache[colorKey]) {
@@ -421,7 +426,8 @@ var hic = (function (hic) {
                         blockNumber = row * zd.blockColumnCount + column;
                     }
 
-                    promises.push(self.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization))
                 }
             }
 
@@ -640,8 +646,9 @@ var hic = (function (hic) {
                                         continue;    // Skip
                                     }
                                     score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+                                    break;
 
-                                default:
+                                default:    // Either 'A' or 'B'
                                     color = self.colorScale.getColor(rec.counts);
                             }
 
