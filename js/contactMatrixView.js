@@ -112,6 +112,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("TrackState2D", this);
         this.browser.eventBus.subscribe("MapLoad", this)
         this.browser.eventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
     hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
@@ -157,7 +158,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.receiveEvent = function (event) {
 
-        if ("MapLoad" === event.type) {
+        if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
 
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {

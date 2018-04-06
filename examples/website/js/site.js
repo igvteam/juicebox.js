@@ -434,15 +434,18 @@ var juicebox = (function (site) {
                 parts = q.split("},{");
                 browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])}, syncBrowsers);
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                browser.eventBus.subscribe("MapLoad", checkBDropdown);
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
                         browser = hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
                         browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                        browser.eventBus.subscribe("MapLoad", checkBDropdown);
                     }
                 }
             } else {
                 browser = hic.createBrowser($container.get(0), {});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                browser.eventBus.subscribe("MapLoad", checkBDropdown);
             }
         }
 
@@ -478,17 +481,25 @@ var juicebox = (function (site) {
                 })
         }
 
-        hic.eventBus.subscribe("BrowserSelect", function(event) {
+        function checkBDropdown() {
+            updateBDropdown(hic.Browser.getCurrentBrowser());
+        }
 
+        function updateBDropdown(browser) {
+            if (browser) {
+                if (browser.dataset) {
+                    $('#hic-control-map-dropdown').removeClass('disabled');
+                }
+                else {
+                    $('#hic-control-map-dropdown').addClass('disabled');
+                }
+            }
+        }
+
+        hic.eventBus.subscribe("BrowserSelect", function (event) {
+            updateBDropdown(event.data);
             var browser = event.data;
-            if(browser.dataset) {
-                $('#hic-control-map-dropdown').removeClass('disabled');
-            }
-            else {
-                $('#hic-control-map-dropdown').addClass('disabled');
-            }
-
-        })
+        });
 
     };
 

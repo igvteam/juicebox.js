@@ -861,10 +861,11 @@ var hic = (function (hic) {
                 }
                 self.controlDataset = dataset;
 
+                self.$contactMaplabel.text("A: " + self.dataset.name);
+
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);
-
-                self.eventBus.post(hic.Event("ControlMapLoad", dataset));
+                
                 return loadControlNVI.call(self, dataset, config)
             })
 
@@ -872,6 +873,8 @@ var hic = (function (hic) {
 
                 self.isLoadingHICFile = false;
                 self.stopSpinner();
+                self.eventBus.post(hic.Event("ControlMapLoad", self.controlDataset));
+                self.contactMatrixView.update();
             })
             .catch(function (error) {
                 self.isLoadingHICFile = false;
