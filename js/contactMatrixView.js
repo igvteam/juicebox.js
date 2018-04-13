@@ -28,17 +28,8 @@
 var hic = (function (hic) {
 
     const DRAG_THRESHOLD = 2;
-    const PINCH_THRESHOLD = 25;
     const DOUBLE_TAP_DIST_THRESHOLD = 20;
     const DOUBLE_TAP_TIME_THRESHOLD = 300;
-
-    var defaultColorScaleInitializer =
-    {
-        high: 2000,
-        r: 255,
-        g: 0,
-        b: 0
-    };
 
     hic.ContactMatrixView = function (browser, $container) {
         var id;
@@ -125,6 +116,9 @@ var hic = (function (hic) {
 
         this.getColorScale().setThreshold(threshold);
         this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
+        this.imageTileCache = {};
+        this.initialImage = undefined;
+        this.repaint();
     };
 
     hic.ContactMatrixView.prototype.getColorScale = function () {

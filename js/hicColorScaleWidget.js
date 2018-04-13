@@ -73,7 +73,7 @@ var hic = (function (hic) {
             if (isNaN(numeric)) {
                 // do nothing
             } else {
-                browser.getColorScale().setThreshold(numeric);
+                browser.setColorScaleThreshold(numeric);
             }
         });
 
@@ -102,7 +102,6 @@ var hic = (function (hic) {
             threshold = colorScale.getThreshold() * scaleFactor;
             browser.setColorScaleThreshold(threshold);
             self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
-            browser.repaint();
         }
 
         function getRGBString(type, defaultColor) {
