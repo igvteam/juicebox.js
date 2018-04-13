@@ -73,7 +73,7 @@ var hic = (function (hic) {
             if (isNaN(numeric)) {
                 // do nothing
             } else {
-                browser.getColorScale().setThreshold(parseInt(numeric, 10));
+                browser.getColorScale().setThreshold(numeric);
             }
         });
 
@@ -97,9 +97,10 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("DisplayMode", this);
 
         function updateThreshold(scaleFactor) {
-            var colorScale;
+            var threshold, colorScale;
             colorScale = browser.getColorScale();
-            colorScale.setThreshold(colorScale.getThreshold() * scaleFactor);
+            threshold = colorScale.getThreshold() * scaleFactor;
+            browser.setColorScaleThreshold(threshold);
             self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
             browser.repaint();
         }

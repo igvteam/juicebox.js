@@ -481,10 +481,19 @@ var hic = (function (hic) {
 
         if (!this.contactMatrixView) return undefined;
 
-        return this.getDisplayMode() === 'AOB' ?
-            this.contactMatrixView.ratioColorScale :
-            this.contactMatrixView.colorScale;
+        switch (this.getDisplayMode()) {
+            case 'AOB':
+                return this.contactMatrixView.ratioColorScale;
+            case 'AMB':
+                return this.contactMatrixView.diffColorScale;
+            default:
+                return this.contactMatrixView.colorScale;
+        }
     };
+
+    hic.Browser.prototype.setColorScaleThreshold = function (threshold) {
+        this.contactMatrixView.setColorScaleThreshold(threshold);
+    }
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
         var xGuide,
@@ -857,7 +866,7 @@ var hic = (function (hic) {
             .then(function (dataset) {
 
                 if (self.genome && (self.genome.id !== dataset.genomeId)) {
-                    throw new Error("Control map genome ID does not match observed map")
+                    throw new Error('"B" map genome (' + dataset.genomeId + ') does not match "A" map genome (' + self.genome.id + ')');
                 }
                 self.controlDataset = dataset;
 
