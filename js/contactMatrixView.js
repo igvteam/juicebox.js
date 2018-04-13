@@ -51,14 +51,12 @@ var hic = (function (hic) {
         this.$viewport = $("<div>", {id: id});
         $container.append(this.$viewport);
 
-        //content canvas
+        // content canvas
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
 
-        // this.$canvas.attr('width', this.$viewport.width());
-        // this.$canvas.attr('height', this.$viewport.height());
-        // this.ctx = this.$canvas.get(0).getContext("2d");
 
+        // spinner
         this.$fa_spinner = $('<i class="fa fa-spinner fa-spin">');
         this.$fa_spinner.css("font-size", "48px");
         this.$fa_spinner.css("position", "absolute");
@@ -66,18 +64,6 @@ var hic = (function (hic) {
         this.$fa_spinner.css("top", "40%");
         this.$fa_spinner.css("display", "none");
         this.$viewport.append(this.$fa_spinner);
-
-
-        //spinner
-        // id = browser.id + '_' + 'viewport-spinner-container';
-        // this.$spinner = $("<div>", {id: id});
-        // this.$viewport.append(this.$spinner);
-        //
-        // // throbber
-        // // size: see $hic-viewport-spinner-size in .scss files
-        // // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
-        // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 64, padding: 16}).appendTo(this.$spinner.get(0));
-        // this.stopSpinner();
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(browser, this.$viewport);
@@ -100,12 +86,13 @@ var hic = (function (hic) {
         this.displayMode = 'A';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
-        // Cache at most 20 image tiles
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
-
-        this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
         this.colorScaleCache = {};
+
+        // Set initial color scales.  These might be overriden / adjusted via parameters
+        this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
+        this.diffColorScale = new RatioColorScale(100, false);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -132,6 +119,23 @@ var hic = (function (hic) {
         if (undefined !== options.b) this.colorScale.b = options.b;
 
         this.colorScaleCache[colorScaleKey(this.browser.state), this.displayMode] = options.high;
+    };
+
+    hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
+
+        this.getColorScale().setThreshold(threshold);
+        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
+    };
+
+    hic.ContactMatrixView.prototype.getColorScale = function () {
+        switch (this.getDisplayMode) {
+            case 'AOB':
+                return this.ratioColorScale;
+            case 'AMB':
+                return this.diffColorScale;
+            default:
+                return this.colorScale;
+        }
     };
 
     hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
@@ -406,7 +410,9 @@ var hic = (function (hic) {
         if (self.colorScaleCache[colorKey]) {
             var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
             self.colorScale.high = self.colorScaleCache[colorKey];
-            if (changed) self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            if (changed) {
+                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            }
             return Promise.resolve();
         }
 
@@ -433,6 +439,7 @@ var hic = (function (hic) {
 
             return Promise.all(promises)
                 .then(function (blocks) {
+                   
                     var s = computePercentile(blocks, 95);
 
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
@@ -441,7 +448,6 @@ var hic = (function (hic) {
 
                         self.colorScale.high = s;
                         self.computeColorScale = false;
-                        self.colorScaleCache[colorKey] = s;
                         self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
                     }
 
@@ -645,7 +651,10 @@ var hic = (function (hic) {
                                     if (!controlRec) {
                                         continue;    // Skip
                                     }
-                                    score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+                                    score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                                    color = self.diffColorScale.getColor(score);
+
                                     break;
 
                                 default:    // Either 'A' or 'B'
@@ -732,7 +741,8 @@ var hic = (function (hic) {
         function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
             var promises = [];
 
-            promises.push(this.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization));
+            var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
+            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization));
 
             if (zdControl) {
                 promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
@@ -1220,9 +1230,10 @@ var hic = (function (hic) {
         return "" + this.high + ',' + this.r + ',' + this.g + ',' + this.b;
     };
 
-    function RatioColorScale(threshold) {
+    function RatioColorScale(threshold, logTransform) {
 
         this.threshold = threshold;
+        this.logTransform = (logTransform === undefined ? true : logTransform);
 
         this.positiveScale = new hic.ColorScale({
             high: Math.log(threshold),
@@ -1270,7 +1281,7 @@ var hic = (function (hic) {
 
     RatioColorScale.prototype.getColor = function (score) {
 
-        var logScore = Math.log(score);
+        var logScore = this.logTransform ? Math.log(score) : score;
 
         if (logScore < 0) {
             return this.negativeScale.getColor(-logScore);

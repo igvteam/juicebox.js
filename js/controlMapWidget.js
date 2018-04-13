@@ -73,7 +73,8 @@ var hic = (function (hic) {
             [
                 {title: 'A', value: 'A'},
                 {title: 'B', value: 'B'},
-                {title: 'A/B', value: 'AOB'}
+                {title: 'A/B', value: 'AOB'},
+                {title: 'A-B', value: 'AMB'}
             ];
 
         this.$control_map_selector.empty();
@@ -87,7 +88,9 @@ var hic = (function (hic) {
                 .attr('value', o.value)
                 .text(o.title);
 
-            if(isSelected) option.attr('selected', true);
+            if(isSelected) {
+                option.attr('selected', true);
+            }
 
             self.$control_map_selector.append(option);
         });
