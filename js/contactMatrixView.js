@@ -128,7 +128,7 @@ var hic = (function (hic) {
     };
 
     hic.ContactMatrixView.prototype.getColorScale = function () {
-        switch (this.getDisplayMode) {
+        switch (this.displayMode) {
             case 'AOB':
                 return this.ratioColorScale;
             case 'AMB':
