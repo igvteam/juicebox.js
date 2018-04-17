@@ -104,14 +104,7 @@ var hic = (function (hic) {
         id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
         browser.$controlMaplabel = $("<div>", {id: id});
         $map_container.append(browser.$controlMaplabel);
-
-
-
-
-
-
-
-
+        
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
         $upper_widget_container = $("<div>", {id: id});

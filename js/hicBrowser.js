@@ -52,7 +52,8 @@ var hic = (function (hic) {
             initialImageX,
             initialImageY,
             uriDecode,
-            apiKey;
+            apiKey,
+            $hic_container;
 
         $hic_container = $(hic_container);
 
@@ -80,6 +81,12 @@ var hic = (function (hic) {
 
         browser = new hic.Browser($hic_container, config);
 
+
+        if(config.displayMode) {
+            browser.contactMatrixView.displayMode = config.displayMode;
+        }
+
+
         hic.allBrowsers.push(browser);
 
         hic.Browser.setCurrentBrowser(browser);
@@ -104,7 +111,7 @@ var hic = (function (hic) {
             })
 
             .then(function (ignore) {
-                return loadInitialDataset(browser, config);
+                return setInitialDataset(browser, config);
             })
 
             .then(function (ignore) {
@@ -114,8 +121,9 @@ var hic = (function (hic) {
             .then(function (dataset) {
 
                 if (config.colorScale) {
-                    // This must be down after dataset load
+                    // This must be done after dataset load
                     browser.contactMatrixView.setColorScale(config.colorScale);
+                    browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
                 }
 
                 if (config.tracks) {
@@ -171,7 +179,7 @@ var hic = (function (hic) {
         }
 
         // Explicit set dataset, do not need to load.  Used by "interactive figures"
-        function loadInitialDataset(browser, config) {
+        function setInitialDataset(browser, config) {
 
             if (config.dataset) {
                 config.dataset.name = config.name;
@@ -350,45 +358,16 @@ var hic = (function (hic) {
 
         this.layoutController = new hic.LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
 
-        if(config.displayMode) this.contactMatrixView.displayMode = config.displayMode;
-
         // prevent user interaction during lengthy data loads
         this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
         this.$root.append(this.$user_interaction_shield);
         this.$user_interaction_shield.hide();
-
 
         this.hideCrosshairs();
 
         this.state = config.state ? config.state : defaultState.clone();
 
         this.eventBus.subscribe("LocusChange", this);
-
-
-        function configureHover($e) {
-
-            var self = this;
-
-            $e.hover(_in, _out);
-
-            _out();
-
-            function _in() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#df0000');
-                }
-
-            }
-
-            function _out() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#5f5f5f');
-                }
-
-            }
-        }
 
     };
 
@@ -899,7 +878,7 @@ var hic = (function (hic) {
 
             var self = this;
 
-            if (config.controlNvi) {
+            if (config.nvi) {
 
                 var nviArray = decodeURIComponent(config.nvi).split(","),
                     range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
@@ -1759,7 +1738,7 @@ var hic = (function (hic) {
 
         queryString.push(paramString("state", this.state.stringify()));
 
-        queryString.push(paramString("colorScale", this.contactMatrixView.colorScale.stringify()));
+        queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
 
         if (igv.FeatureTrack.selectedGene) {
             queryString.push(paramString("selectedGene", igv.FeatureTrack.selectedGene));
@@ -1777,8 +1756,6 @@ var hic = (function (hic) {
             if (this.controlDataset.name) {
                 queryString.push(paramString("controlName", this.controlDataset.name))
             }
-
-            queryString.push(paramString("ratioColorScale", this.contactMatrixView.ratioColorScale.stringify()));
 
             displayMode = this.getDisplayMode();
             if (displayMode) {
@@ -1910,11 +1887,7 @@ var hic = (function (hic) {
         }
         if (colorScale) {
             colorScale = paramDecodeV0(colorScale, uriDecode);
-            config.colorScale = destringifyColorScaleV0(colorScale);
-        }
-        if (ratioColorScale) {
-            ratioColorScale = paramDecodeV0(ratioColorScale, uriDecode);
-            config.ratioColorScale = destringifyColorScaleV0(ratioColorScale);
+            config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (displayMode) {
@@ -2023,23 +1996,6 @@ var hic = (function (hic) {
             return configList;
 
         }
-
-        function destringifyColorScaleV0(string) {
-
-            var cs,
-                tokens;
-
-            tokens = string.split(",");
-
-            cs = {
-                high: tokens[0],
-                r: tokens[1],
-                g: tokens[2],
-                b: tokens[3]
-            };
-
-            return new hic.ColorScale(cs);
-        };
 
     }
 
