@@ -127,15 +127,12 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
 
-        //  this.tile = null;
-
         this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());
 
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
 
-        this.repaint(false);
     };
 
     hic.TrackRenderer.prototype.setColor = function (color) {
@@ -223,8 +220,11 @@ var hic = (function (hic) {
                     buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
                     buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
                     ctx = buffer.getContext("2d");
-
                     if (features) {
+
+                        if (features.length === 0) {
+                            console.log("Zero");
+                        }
 
                         self.canvasTransform(ctx);
 
@@ -275,7 +275,6 @@ var hic = (function (hic) {
             chrName;
 
         genomicState = self.browser.genomicState(self.axis);
-
         if (self.track.visibilityWindow && self.track.visibilityWindow > 0) {
 
             if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow)) {
