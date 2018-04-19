@@ -21911,17 +21911,8 @@ var hic = (function (hic) {
 var hic = (function (hic) {
 
     const DRAG_THRESHOLD = 2;
-    const PINCH_THRESHOLD = 25;
     const DOUBLE_TAP_DIST_THRESHOLD = 20;
     const DOUBLE_TAP_TIME_THRESHOLD = 300;
-
-    var defaultColorScaleInitializer =
-    {
-        high: 2000,
-        r: 255,
-        g: 0,
-        b: 0
-    };
 
     hic.ContactMatrixView = function (browser, $container) {
         var id;
@@ -21934,14 +21925,12 @@ var hic = (function (hic) {
         this.$viewport = $("<div>", {id: id});
         $container.append(this.$viewport);
 
-        //content canvas
+        // content canvas
         this.$canvas = $('<canvas>');
         this.$viewport.append(this.$canvas);
 
-        // this.$canvas.attr('width', this.$viewport.width());
-        // this.$canvas.attr('height', this.$viewport.height());
-        // this.ctx = this.$canvas.get(0).getContext("2d");
 
+        // spinner
         this.$fa_spinner = $('<i class="fa fa-spinner fa-spin">');
         this.$fa_spinner.css("font-size", "48px");
         this.$fa_spinner.css("position", "absolute");
@@ -21949,18 +21938,6 @@ var hic = (function (hic) {
         this.$fa_spinner.css("top", "40%");
         this.$fa_spinner.css("display", "none");
         this.$viewport.append(this.$fa_spinner);
-
-
-        //spinner
-        // id = browser.id + '_' + 'viewport-spinner-container';
-        // this.$spinner = $("<div>", {id: id});
-        // this.$viewport.append(this.$spinner);
-        //
-        // // throbber
-        // // size: see $hic-viewport-spinner-size in .scss files
-        // // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 120, padding: 40}).appendTo(this.$spinner.get(0));
-        // this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 64, padding: 16}).appendTo(this.$spinner.get(0));
-        // this.stopSpinner();
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(browser, this.$viewport);
@@ -21983,12 +21960,13 @@ var hic = (function (hic) {
         this.displayMode = 'A';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
-        // Cache at most 20 image tiles
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
-
-        this.colorScale = new hic.ColorScale(defaultColorScaleInitializer);
         this.colorScaleCache = {};
+
+        // Set initial color scales.  These might be overriden / adjusted via parameters
+        this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
+       // this.diffColorScale = new RatioColorScale(100, false);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -22007,14 +21985,37 @@ var hic = (function (hic) {
         }
     };
 
-    hic.ContactMatrixView.prototype.setColorScale = function (options) {
+    hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
 
-        if (options.high) this.colorScale.high = options.high;
-        if (undefined !== options.r) this.colorScale.r = options.r;
-        if (undefined !== options.g) this.colorScale.g = options.g;
-        if (undefined !== options.b) this.colorScale.b = options.b;
+        switch (this.displayMode) {
+            case 'AOB':
+                this.ratioColorScale = colorScale;
+            case 'AMB':
+                return diffColorScale = colorScale;
+            default:
+                this.colorScale = colorScale;
+        }
+        this.colorScaleCache[colorScaleKey(this.browser.state), this.displayMode] = colorScale.threshold;
+    };
 
-        this.colorScaleCache[colorScaleKey(this.browser.state)] = options.high;
+    hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
+
+        this.getColorScale().setThreshold(threshold);
+        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
+        this.imageTileCache = {};
+        this.initialImage = undefined;
+        this.repaint();
+    };
+
+    hic.ContactMatrixView.prototype.getColorScale = function () {
+        switch (this.displayMode) {
+            case 'AOB':
+                return this.ratioColorScale;
+            case 'AMB':
+                return this.diffColorScale;
+            default:
+                return this.colorScale;
+        }
     };
 
     hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
@@ -22023,8 +22024,8 @@ var hic = (function (hic) {
         this.update();
     }
 
-    function colorScaleKey(state) {
-        return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization;
+    function colorScaleKey(state, displayMode) {
+        return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
     }
 
     hic.ContactMatrixView.prototype.clearCaches = function () {
@@ -22252,9 +22253,14 @@ var hic = (function (hic) {
     function getMatrices(chr1, chr2) {
 
         var promises = [];
-        promises.push(this.browser.dataset.getMatrix(chr1, chr2))
-        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+        if ('B' === this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+        else {
+            promises.push(this.browser.dataset.getMatrix(chr1, chr2));
+            if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+                promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+            }
         }
         return Promise.all(promises);
     }
@@ -22273,18 +22279,20 @@ var hic = (function (hic) {
      */
     function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this, colorKey;
-        
-        colorKey = colorScaleKey(self.browser.state);   // This doesn't feel right, state should be an argument
+        var self = this, colorKey, dataset;
 
-        if (self.displayMode && 'A' !== self.displayMode) {
-            return Promise.resolve(self.colorScale);     // Don't adjust color scale for other display modes.
+        colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
+
+        if ('AOB' === self.displayMode) {
+            return Promise.resolve(self.colorScale);     // Don't adjust color scale for A/B.
         }
 
         if (self.colorScaleCache[colorKey]) {
-            var changed = self.colorScale.high !== self.colorScaleCache[colorKey];
-            self.colorScale.high = self.colorScaleCache[colorKey];
-            if (changed) self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            var changed = self.colorScale.threshold !== self.colorScaleCache[colorKey];
+            self.colorScale.threshold = self.colorScaleCache[colorKey];
+            if (changed) {
+                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+            }
             return Promise.resolve();
         }
 
@@ -22304,21 +22312,22 @@ var hic = (function (hic) {
                         blockNumber = row * zd.blockColumnCount + column;
                     }
 
-                    promises.push(self.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization))
                 }
             }
 
             return Promise.all(promises)
                 .then(function (blocks) {
+                   
                     var s = computePercentile(blocks, 95);
 
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
                         if (0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
 
-                        self.colorScale.high = s;
+                        self.colorScale.threshold = s;
                         self.computeColorScale = false;
-                        self.colorScaleCache[colorKey] = s;
                         self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
                     }
 
@@ -22522,9 +22531,13 @@ var hic = (function (hic) {
                                     if (!controlRec) {
                                         continue;    // Skip
                                     }
-                                    score = averageAcrossMapAndControl * Math.abs((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+                                    score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
 
-                                default:
+                                    color = self.diffColorScale.getColor(score);
+
+                                    break;
+
+                                default:    // Either 'A' or 'B'
                                     color = self.colorScale.getColor(rec.counts);
                             }
 
@@ -22608,7 +22621,8 @@ var hic = (function (hic) {
         function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
             var promises = [];
 
-            promises.push(this.browser.dataset.getNormalizedBlock(zd, blockNumber, normalization));
+            var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
+            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization));
 
             if (zdControl) {
                 promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
@@ -23033,18 +23047,18 @@ var hic = (function (hic) {
 
 
     hic.ColorScale = function (scale) {
-        this.high = scale.high;
+        this.threshold = scale.threshold;
         this.r = scale.r;
         this.g = scale.g;
         this.b = scale.b;
     };
 
     hic.ColorScale.prototype.setThreshold = function (threshold) {
-        this.high = threshold;
+        this.threshold = threshold;
     }
 
     hic.ColorScale.prototype.getThreshold = function () {
-        return this.high;
+        return this.threshold;
     }
 
     hic.ColorScale.prototype.setColorComponents = function (components) {
@@ -23075,9 +23089,9 @@ var hic = (function (hic) {
         lowG = 255;
 
         if (value <= low) value = low;
-        else if (value >= scale.high) value = scale.high;
+        else if (value >= scale.threshold) value = scale.threshold;
 
-        diff = scale.high - low;
+        diff = scale.threshold - low;
 
         frac = (value - low) / diff;
         r = Math.floor(lowR + frac * (scale.r - lowR));
@@ -23093,7 +23107,7 @@ var hic = (function (hic) {
     };
 
     hic.ColorScale.prototype.stringify = function () {
-        return "" + this.high + ',' + this.r + ',' + this.g + ',' + this.b;
+        return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
     };
 
     function RatioColorScale(threshold) {
@@ -23101,14 +23115,14 @@ var hic = (function (hic) {
         this.threshold = threshold;
 
         this.positiveScale = new hic.ColorScale({
-            high: Math.log(threshold),
+            threshold: Math.log(threshold),
             r: 255,
             g: 0,
             b: 0
         });
         this.negativeScale = new hic.ColorScale(
             {
-                high: Math.log(threshold),
+                threshold: Math.log(threshold),
                 r: 0,
                 g: 0,
                 b: 255
@@ -23117,8 +23131,8 @@ var hic = (function (hic) {
 
     RatioColorScale.prototype.setThreshold = function (threshold) {
         this.threshold = threshold;
-        this.positiveScale.high = Math.log(threshold);
-        this.negativeScale.high = Math.log(threshold);
+        this.positiveScale.threshold = Math.log(threshold);
+        this.negativeScale.threshold = Math.log(threshold);
     }
 
     RatioColorScale.prototype.getThreshold = function () {
@@ -23166,7 +23180,7 @@ var hic = (function (hic) {
         var pnstr, ratioCS;
 
         if (string.startsWith("R:")) {
-            pnstr = string.subString(2).split(":");
+            pnstr = string.substring(2).split(":");
             ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
             ratioCS.positiveScale = foo(pnstr[1]);
             ratioCS.negativeScale = foo(pnstr[2]);
@@ -23183,7 +23197,7 @@ var hic = (function (hic) {
             tokens = str.split(",");
 
             cs = {
-                high: tokens[0],
+                threshold: tokens[0],
                 r: tokens[1],
                 g: tokens[2],
                 b: tokens[3]
@@ -23272,9 +23286,9 @@ var hic = (function (hic) {
         optionStrings =
             [
                 {title: 'A', value: 'A'},
-                //   { title:'Control', value:'control' },
+                {title: 'B', value: 'B'},
                 {title: 'A/B', value: 'AOB'}
-                //   { title:'Observed-Control', value:'AMB' }
+                //{title: 'A-B', value: 'AMB'}
             ];
 
         this.$control_map_selector.empty();
@@ -23288,7 +23302,9 @@ var hic = (function (hic) {
                 .attr('value', o.value)
                 .text(o.title);
 
-            if(isSelected) option.attr('selected', true);
+            if(isSelected) {
+                option.attr('selected', true);
+            }
 
             self.$control_map_selector.append(option);
         });
@@ -23705,7 +23721,8 @@ var hic = (function (hic) {
             initialImageX,
             initialImageY,
             uriDecode,
-            apiKey;
+            apiKey,
+            $hic_container;
 
         $hic_container = $(hic_container);
 
@@ -23733,6 +23750,13 @@ var hic = (function (hic) {
 
         browser = new hic.Browser($hic_container, config);
 
+
+        if(config.displayMode) {
+            browser.contactMatrixView.displayMode = config.displayMode;
+            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
+        }
+
+
         hic.allBrowsers.push(browser);
 
         hic.Browser.setCurrentBrowser(browser);
@@ -23757,7 +23781,7 @@ var hic = (function (hic) {
             })
 
             .then(function (ignore) {
-                return loadInitialDataset(browser, config);
+                return setInitialDataset(browser, config);
             })
 
             .then(function (ignore) {
@@ -23767,8 +23791,9 @@ var hic = (function (hic) {
             .then(function (dataset) {
 
                 if (config.colorScale) {
-                    // This must be down after dataset load
+                    // This must be done after dataset load
                     browser.contactMatrixView.setColorScale(config.colorScale);
+                    browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
                 }
 
                 if (config.tracks) {
@@ -23824,7 +23849,7 @@ var hic = (function (hic) {
         }
 
         // Explicit set dataset, do not need to load.  Used by "interactive figures"
-        function loadInitialDataset(browser, config) {
+        function setInitialDataset(browser, config) {
 
             if (config.dataset) {
                 config.dataset.name = config.name;
@@ -24003,45 +24028,16 @@ var hic = (function (hic) {
 
         this.layoutController = new hic.LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
 
-        if(config.displayMode) this.contactMatrixView.displayMode = config.displayMode;
-
         // prevent user interaction during lengthy data loads
         this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
         this.$root.append(this.$user_interaction_shield);
         this.$user_interaction_shield.hide();
-
 
         this.hideCrosshairs();
 
         this.state = config.state ? config.state : defaultState.clone();
 
         this.eventBus.subscribe("LocusChange", this);
-
-
-        function configureHover($e) {
-
-            var self = this;
-
-            $e.hover(_in, _out);
-
-            _out();
-
-            function _in() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#df0000');
-                }
-
-            }
-
-            function _out() {
-
-                if (_.size(hic.allBrowsers) > 1) {
-                    $e.css('border-color', '#5f5f5f');
-                }
-
-            }
-        }
 
     };
 
@@ -24134,10 +24130,19 @@ var hic = (function (hic) {
 
         if (!this.contactMatrixView) return undefined;
 
-        return this.getDisplayMode() === 'AOB' ?
-            this.contactMatrixView.ratioColorScale :
-            this.contactMatrixView.colorScale;
+        switch (this.getDisplayMode()) {
+            case 'AOB':
+                return this.contactMatrixView.ratioColorScale;
+            case 'AMB':
+                return this.contactMatrixView.diffColorScale;
+            default:
+                return this.contactMatrixView.colorScale;
+        }
     };
+
+    hic.Browser.prototype.setColorScaleThreshold = function (threshold) {
+        this.contactMatrixView.setColorScaleThreshold(threshold);
+    }
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
         var xGuide,
@@ -24510,7 +24515,7 @@ var hic = (function (hic) {
             .then(function (dataset) {
 
                 if (self.genome && (self.genome.id !== dataset.genomeId)) {
-                    throw new Error("Control map genome ID does not match observed map")
+                    throw new Error('"B" map genome (' + dataset.genomeId + ') does not match "A" map genome (' + self.genome.id + ')');
                 }
                 self.controlDataset = dataset;
 
@@ -24543,7 +24548,7 @@ var hic = (function (hic) {
 
             var self = this;
 
-            if (config.controlNvi) {
+            if (config.nvi) {
 
                 var nviArray = decodeURIComponent(config.nvi).split(","),
                     range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
@@ -25403,7 +25408,7 @@ var hic = (function (hic) {
 
         queryString.push(paramString("state", this.state.stringify()));
 
-        queryString.push(paramString("colorScale", this.contactMatrixView.colorScale.stringify()));
+        queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
 
         if (igv.FeatureTrack.selectedGene) {
             queryString.push(paramString("selectedGene", igv.FeatureTrack.selectedGene));
@@ -25421,8 +25426,6 @@ var hic = (function (hic) {
             if (this.controlDataset.name) {
                 queryString.push(paramString("controlName", this.controlDataset.name))
             }
-
-            queryString.push(paramString("ratioColorScale", this.contactMatrixView.ratioColorScale.stringify()));
 
             displayMode = this.getDisplayMode();
             if (displayMode) {
@@ -25554,11 +25557,7 @@ var hic = (function (hic) {
         }
         if (colorScale) {
             colorScale = paramDecodeV0(colorScale, uriDecode);
-            config.colorScale = destringifyColorScaleV0(colorScale);
-        }
-        if (ratioColorScale) {
-            ratioColorScale = paramDecodeV0(ratioColorScale, uriDecode);
-            config.ratioColorScale = destringifyColorScaleV0(ratioColorScale);
+            config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (displayMode) {
@@ -25667,23 +25666,6 @@ var hic = (function (hic) {
             return configList;
 
         }
-
-        function destringifyColorScaleV0(string) {
-
-            var cs,
-                tokens;
-
-            tokens = string.split(",");
-
-            cs = {
-                high: tokens[0],
-                r: tokens[1],
-                g: tokens[2],
-                b: tokens[3]
-            };
-
-            return new hic.ColorScale(cs);
-        };
 
     }
 
@@ -25893,7 +25875,7 @@ var hic = (function (hic) {
             if (isNaN(numeric)) {
                 // do nothing
             } else {
-                browser.getColorScale().setThreshold(parseInt(numeric, 10));
+                browser.setColorScaleThreshold(numeric);
             }
         });
 
@@ -25917,11 +25899,11 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("DisplayMode", this);
 
         function updateThreshold(scaleFactor) {
-            var colorScale;
+            var threshold, colorScale;
             colorScale = browser.getColorScale();
-            colorScale.setThreshold(colorScale.getThreshold() * scaleFactor);
+            threshold = colorScale.getThreshold() * scaleFactor;
+            browser.setColorScaleThreshold(threshold);
             self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
-            browser.repaint();
         }
 
         function getRGBString(type, defaultColor) {
@@ -27703,15 +27685,15 @@ var hic = (function (hic) {
             this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
         } else if ('UpdateContactMapMousePosition' === event.type) {
 
-            this.unhighlightWholeChromosome();
-
-            offset = 'x' === this.axis ? event.data.x : event.data.y;
-            $e = hitTest(this.bboxes, offset);
-            if ($e) {
-                // console.log(this.axis + ' highlight chr ' + $e.text());
-                $e.addClass('hic-whole-genome-chromosome-highlight');
+            if(this.bboxes) {
+                this.unhighlightWholeChromosome();
+                offset = 'x' === this.axis ? event.data.x : event.data.y;
+                $e = hitTest(this.bboxes, offset);
+                if ($e) {
+                    // console.log(this.axis + ' highlight chr ' + $e.text());
+                    $e.addClass('hic-whole-genome-chromosome-highlight');
+                }
             }
-
         }
 
     };
@@ -29203,14 +29185,7 @@ var hic = (function (hic) {
         id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
         browser.$controlMaplabel = $("<div>", {id: id});
         $map_container.append(browser.$controlMaplabel);
-
-
-
-
-
-
-
-
+        
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
         $upper_widget_container = $("<div>", {id: id});
@@ -30453,15 +30428,12 @@ var hic = (function (hic) {
 
     hic.TrackRenderer.prototype.syncCanvas = function () {
 
-        //  this.tile = null;
-
         this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());
 
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
 
-        this.repaint(false);
     };
 
     hic.TrackRenderer.prototype.setColor = function (color) {
@@ -30549,8 +30521,11 @@ var hic = (function (hic) {
                     buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
                     buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
                     ctx = buffer.getContext("2d");
-
                     if (features) {
+
+                        if (features.length === 0) {
+                            console.log("Zero");
+                        }
 
                         self.canvasTransform(ctx);
 
@@ -30601,7 +30576,6 @@ var hic = (function (hic) {
             chrName;
 
         genomicState = self.browser.genomicState(self.axis);
-
         if (self.track.visibilityWindow && self.track.visibilityWindow > 0) {
 
             if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow)) {
