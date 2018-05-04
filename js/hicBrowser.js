@@ -82,7 +82,7 @@ var hic = (function (hic) {
         browser = new hic.Browser($hic_container, config);
 
 
-        if(config.displayMode) {
+        if (config.displayMode) {
             browser.contactMatrixView.displayMode = config.displayMode;
             browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
         }
@@ -850,13 +850,13 @@ var hic = (function (hic) {
                 }
                 self.controlDataset = dataset;
 
-                if(self.dataset) {
+                if (self.dataset) {
                     self.$contactMaplabel.text("A: " + self.dataset.name);
                 }
 
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);
-                
+
                 return loadControlNVI.call(self, dataset, config)
             })
 
@@ -1980,9 +1980,15 @@ var hic = (function (hic) {
                     }
 
                     if (dataRangeString) {
-                        r = dataRangeString.split("-");
-                        config.min = parseFloat(r[0]);
-                        config.max = parseFloat(r[1])
+                        if (dataRangeString.startsWith("-")) {
+                            r = dataRangeString.substring(1).split("-");
+                            config.min = -parseFloat(r[0]);
+                            config.max = parseFloat(r[1]);
+                        } else {
+                            r = dataRangeString.split("-");
+                            config.min = parseFloat(r[0]);
+                            config.max = parseFloat(r[1]);
+                        }
                     }
 
                     if (color) {

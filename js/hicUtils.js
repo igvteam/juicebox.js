@@ -352,6 +352,12 @@ var hic = (function (hic) {
 
     }
 
+    hic.validateColor = function (str) {
+        var div = document.createElement("div");
+        div.style.borderColor = str;
+        return div.style.borderColor != "";
+    }
+
     var httpMessages = {
         "401": "Access unauthorized",
         "403": "Access forbidden",
