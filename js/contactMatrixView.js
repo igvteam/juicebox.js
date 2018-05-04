@@ -83,7 +83,7 @@ var hic = (function (hic) {
         // Set initial color scales.  These might be overriden / adjusted via parameters
         this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
-       // this.diffColorScale = new RatioColorScale(100, false);
+        // this.diffColorScale = new RatioColorScale(100, false);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -251,7 +251,8 @@ var hic = (function (hic) {
         if (!self.browser.dataset || self.initialImage) {
             return Promise.resolve();
         }
-
+        
+        self.startSpinner();
         return getMatrices.call(self, state.chr1, state.chr2)
 
             .then(function (matrices) {
@@ -291,6 +292,9 @@ var hic = (function (hic) {
                 else {
                     return Promise.resolve();
                 }
+            })
+            .then(function (ignore) {   // finally
+                self.stopSpinner();
             })
     };
 
@@ -436,7 +440,7 @@ var hic = (function (hic) {
 
             return Promise.all(promises)
                 .then(function (blocks) {
-                   
+
                     var s = computePercentile(blocks, 95);
 
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
