@@ -112,7 +112,7 @@ var hic = (function (hic) {
             default:
                 this.colorScale = colorScale;
         }
-        this.colorScaleCache[colorScaleKey(this.browser.state), this.displayMode] = colorScale.threshold;
+        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
     };
 
     hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {

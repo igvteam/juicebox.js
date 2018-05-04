@@ -375,7 +375,6 @@ var juicebox = (function (site) {
         $e = $('button[id$=-map-dropdown]');
         $e.parent().on('show.bs.dropdown', function () {
             site.currentContactMapDropdownButton = $(this).children('.dropdown-toggle').attr('id');
-            console.log("show " + site.currentContactMapDropdownButton);
         });
 
         $e.parent().on('hide.bs.dropdown', function () {
