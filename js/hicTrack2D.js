@@ -38,7 +38,9 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
-        this.color = config.color;    // If specified, this will override colors of individual records.
+        if(config.color && hic.validateColor(config.color)) {
+            this.color = this.color = config.color;    // If specified, this will override colors of individual records.
+        }
         this.repColor = features.length > 0 ? features[0].color : "black";
 
         features.forEach(function (f) {
