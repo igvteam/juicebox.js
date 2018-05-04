@@ -21966,7 +21966,7 @@ var hic = (function (hic) {
         // Set initial color scales.  These might be overriden / adjusted via parameters
         this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
-       // this.diffColorScale = new RatioColorScale(100, false);
+        // this.diffColorScale = new RatioColorScale(100, false);
 
         this.browser.eventBus.subscribe("NormalizationChange", this);
         this.browser.eventBus.subscribe("TrackLoad2D", this);
@@ -21995,7 +21995,7 @@ var hic = (function (hic) {
             default:
                 this.colorScale = colorScale;
         }
-        this.colorScaleCache[colorScaleKey(this.browser.state), this.displayMode] = colorScale.threshold;
+        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
     };
 
     hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
@@ -22134,7 +22134,8 @@ var hic = (function (hic) {
         if (!self.browser.dataset || self.initialImage) {
             return Promise.resolve();
         }
-
+        
+        self.startSpinner();
         return getMatrices.call(self, state.chr1, state.chr2)
 
             .then(function (matrices) {
@@ -22174,6 +22175,9 @@ var hic = (function (hic) {
                 else {
                     return Promise.resolve();
                 }
+            })
+            .then(function (ignore) {   // finally
+                self.stopSpinner();
             })
     };
 
@@ -22319,7 +22323,7 @@ var hic = (function (hic) {
 
             return Promise.all(promises)
                 .then(function (blocks) {
-                   
+
                     var s = computePercentile(blocks, 95);
 
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
@@ -23751,7 +23755,7 @@ var hic = (function (hic) {
         browser = new hic.Browser($hic_container, config);
 
 
-        if(config.displayMode) {
+        if (config.displayMode) {
             browser.contactMatrixView.displayMode = config.displayMode;
             browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
         }
@@ -24216,6 +24220,8 @@ var hic = (function (hic) {
         // If loading a single track remember its name, for error message
         errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name : "Error loading tracks";
 
+        self.contactMatrixView.startSpinner();
+
         Promise.all(inferTypes(trackConfigurations))
 
             .then(function (trackConfigurations) {
@@ -24256,19 +24262,16 @@ var hic = (function (hic) {
                     self.updateLayout();
                 }
 
-
-                // 2D tracks
-                if (promises2D.length > 0) {
-                    Promise.all(promises2D)
-                        .then(function (tracks2D) {
-                            self.tracks2D = self.tracks2D.concat(tracks2D);
-                            self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
-
-                        })
-                        .catch(function (error) {
-                            hic.presentError(errorPrefix, error);
-                        });
+                return Promise.all(promises2D);
+            })
+            .then(function (tracks2D) {
+                if(tracks2D && tracks2D.length > 0) {
+                    self.tracks2D = self.tracks2D.concat(tracks2D);
+                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
+            })
+            .then(function (ignore) {   // finally
+                self.contactMatrixView.stopSpinner();
             })
 
             .catch(function (error) {
@@ -24519,13 +24522,13 @@ var hic = (function (hic) {
                 }
                 self.controlDataset = dataset;
 
-                if(self.dataset) {
+                if (self.dataset) {
                     self.$contactMaplabel.text("A: " + self.dataset.name);
                 }
 
                 self.$controlMaplabel.text("B: " + dataset.name);
                 self.$controlMaplabel.attr('title', dataset.name);
-                
+
                 return loadControlNVI.call(self, dataset, config)
             })
 
@@ -25649,9 +25652,15 @@ var hic = (function (hic) {
                     }
 
                     if (dataRangeString) {
-                        r = dataRangeString.split("-");
-                        config.min = parseFloat(r[0]);
-                        config.max = parseFloat(r[1])
+                        if (dataRangeString.startsWith("-")) {
+                            r = dataRangeString.substring(1).split("-");
+                            config.min = -parseFloat(r[0]);
+                            config.max = parseFloat(r[1]);
+                        } else {
+                            r = dataRangeString.split("-");
+                            config.min = parseFloat(r[0]);
+                            config.max = parseFloat(r[1]);
+                        }
                     }
 
                     if (color) {
@@ -28279,7 +28288,9 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
-        this.color = config.color;    // If specified, this will override colors of individual records.
+        if(config.color && hic.validateColor(config.color)) {
+            this.color = this.color = config.color;    // If specified, this will override colors of individual records.
+        }
         this.repColor = features.length > 0 ? features[0].color : "black";
 
         features.forEach(function (f) {
@@ -29067,6 +29078,12 @@ var hic = (function (hic) {
         }
         igv.presentAlert(prefix + ": " + msg);
 
+    }
+
+    hic.validateColor = function (str) {
+        var div = document.createElement("div");
+        div.style.borderColor = str;
+        return div.style.borderColor != "";
     }
 
     var httpMessages = {

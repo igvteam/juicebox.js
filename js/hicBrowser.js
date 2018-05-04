@@ -547,6 +547,8 @@ var hic = (function (hic) {
         // If loading a single track remember its name, for error message
         errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name : "Error loading tracks";
 
+        self.contactMatrixView.startSpinner();
+
         Promise.all(inferTypes(trackConfigurations))
 
             .then(function (trackConfigurations) {
@@ -587,19 +589,16 @@ var hic = (function (hic) {
                     self.updateLayout();
                 }
 
-
-                // 2D tracks
-                if (promises2D.length > 0) {
-                    Promise.all(promises2D)
-                        .then(function (tracks2D) {
-                            self.tracks2D = self.tracks2D.concat(tracks2D);
-                            self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
-
-                        })
-                        .catch(function (error) {
-                            hic.presentError(errorPrefix, error);
-                        });
+                return Promise.all(promises2D);
+            })
+            .then(function (tracks2D) {
+                if(tracks2D && tracks2D.length > 0) {
+                    self.tracks2D = self.tracks2D.concat(tracks2D);
+                    self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
+            })
+            .then(function (ignore) {   // finally
+                self.contactMatrixView.stopSpinner();
             })
 
             .catch(function (error) {
