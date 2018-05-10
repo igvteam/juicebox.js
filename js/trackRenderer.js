@@ -160,15 +160,11 @@ var hic = (function (hic) {
 
         function setDataRange() {
 
-            this.tile = undefined;
+            this.tile = undefined
 
-
-            if (min !== undefined) {
-                this.track.dataRange.min = min;
-            }
-
-            if (max !== undefined) {
-                this.track.dataRange.max = max;
+            this.track.dataRange = {
+                min: min,
+                max: max
             }
 
             this.track.autscale = autoscale;
