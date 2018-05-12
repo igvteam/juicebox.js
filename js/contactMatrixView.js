@@ -434,7 +434,7 @@ var hic = (function (hic) {
                     }
 
                     dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
-                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, self.browser.eventBus))
                 }
             }
 
@@ -743,10 +743,10 @@ var hic = (function (hic) {
             var promises = [];
 
             var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
-            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization));
+            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
 
             if (zdControl) {
-                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
+                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
             }
 
             return Promise.all(promises);

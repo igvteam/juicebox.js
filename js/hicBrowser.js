@@ -131,6 +131,16 @@ var hic = (function (hic) {
                     browser.loadTracks(config.tracks);
                 }
             })
+            .then (function (ignore) {
+                var promises = [];
+                if(config.normVectorFiles) {
+                   config.normVectorFiles.forEach(function (nv) {
+                       promises.push(browser.loadNormalizationFile(nv));
+                   })
+                }
+                return Promise.all(promises);
+
+            })
 
             .then(function (ignore) {
                 if (typeof callback === "function") callback();
@@ -541,8 +551,7 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.loadTracks = function (trackConfigurations) {
 
-        var self = this,
-            errorPrefix;
+        var self = this, errorPrefix, promisesNV;
 
         // If loading a single track remember its name, for error message
         errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name : "Error loading tracks";
@@ -553,12 +562,11 @@ var hic = (function (hic) {
 
             .then(function (trackConfigurations) {
 
-
-                var trackXYPairs,
-                    promises2D;
+                var trackXYPairs, promises2D;
 
                 trackXYPairs = [];
                 promises2D = [];
+                promisesNV = [];
 
                 trackConfigurations.forEach(function (config) {
 
@@ -572,6 +580,11 @@ var hic = (function (hic) {
                         }
 
                         config.height = self.layoutController.track_height;
+
+                        if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+                            self.loadNormalizationFile(config.url);
+                            return;
+                        }
 
                         if (config.type === undefined) {
                             // Assume this is a 2D track
@@ -596,6 +609,9 @@ var hic = (function (hic) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
                     self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
+            })
+            .then(function (ignore) {
+                return Promise.all(promisesNV);
             })
             .then(function (ignore) {   // finally
                 self.contactMatrixView.stopSpinner();
@@ -642,6 +658,38 @@ var hic = (function (hic) {
             return promises;
         }
 
+
+    }
+
+
+    hic.Browser.prototype.loadNormalizationFile = function (url) {
+
+        var self = this;
+
+        if (!this.dataset) return;
+
+        self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
+
+        return this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+
+            .then(function (normVectors) {
+
+                Object.assign(self.dataset.normVectorCache, normVectors);
+
+                normVectors["types"].forEach(function (type) {
+
+                    if(!self.dataset.normalizationTypes) {
+                        self.dataset.normalizationTypes = [];
+                    }
+                    if (_.contains(self.dataset.normalizationTypes, type) === false) {
+                        self.dataset.normalizationTypes.push(type);
+                    }
+
+                    self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
+                });
+
+                return normVectors;
+            })
 
     }
 
@@ -1807,10 +1855,10 @@ var hic = (function (hic) {
             }
         }
 
-        if (this.normVectorFiles.length > 0) {
+        if (this.config.normVectorFiles.length > 0) {
 
             var normVectorString = "";
-            this.normVectorFiles.forEach(function (url) {
+            this.config.normVectorFiles.forEach(function (url) {
 
                 if (normVectorString.length > 0) normVectorString += "|||";
                 normVectorString += url;

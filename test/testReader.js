@@ -10,7 +10,7 @@ function runHicReaderTests() {
 
         var url = "../test/data/normVector/normVectors.nv",
             hicReader,
-            chromosomes = ["All", "chr1", "chr2"];
+            chromosomes = [{name: "all", index: 0}, {name: "chr1", index: 1}, {name: "chr2", index: 2}];
 
         createMockObjects();
 
@@ -43,7 +43,7 @@ function runHicReaderTests() {
         ok(hicReader);
 
 
-        hicReader.loadDataset()
+        hicReader.loadDataset({name: "intra_nofrag"})
 
             .then(function (dataset) {
 
@@ -126,7 +126,7 @@ function runHicReaderTests() {
         hicReader = new hic.HiCReader({url: url});
         ok(hicReader);
 
-        hicReader.loadDataset()
+        hicReader.loadDataset({name: "in-situ"})
             .then(function (dataset) {
 
                 equal(hicReader.magic, "HIC");

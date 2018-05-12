@@ -73,6 +73,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
         this.browser.eventBus.subscribe("NormalizationFileLoad", this);
+        this.browser.eventBus.subscribe("NormalizationExternalChange", this);
 
     };
 
@@ -108,6 +109,16 @@ var hic = (function (hic) {
             } else {
                 this.stopNotReady();
             }
+        }  else if ("NormalizationExternalChange" === event.type) {
+
+            var filter = this.$normalization_selector
+                .find('option')
+                .filter(function (index) {
+                    var s1 = this.value;
+                    var s2 = event.data;
+                    return s1 === s2;
+                })
+                .prop('selected', true);
         }
 
         function updateOptions() {
