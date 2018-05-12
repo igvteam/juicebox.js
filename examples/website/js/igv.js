@@ -14928,19 +14928,19 @@ Zlib.Zip.Flags = {
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Zip.FileHeaderSignature = [0x50, 0x4b, 0x01, 0x02];
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Zip.LocalFileHeaderSignature = [0x50, 0x4b, 0x03, 0x04];
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Zip.CentralDirectorySignature = [0x50, 0x4b, 0x05, 0x06];
 
@@ -15663,20 +15663,20 @@ Zlib.RawInflate.prototype.decompress = function() {
 };
 
 /**
- * @const
+ * @var
  * @type {number} max backward length for LZ77.
  */
 Zlib.RawInflate.MaxBackwardLength = 32768;
 
 /**
- * @const
+ * @var
  * @type {number} max copy length for LZ77.
  */
 Zlib.RawInflate.MaxCopyLength = 258;
 
 /**
  * huffman order
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.Order = (function(table) {
@@ -15685,7 +15685,7 @@ Zlib.RawInflate.Order = (function(table) {
 
 /**
  * huffman length code table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflate.LengthCodeTable = (function(table) {
@@ -15699,7 +15699,7 @@ Zlib.RawInflate.LengthCodeTable = (function(table) {
 
 /**
  * huffman length extra-bits table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.LengthExtraTable = (function(table) {
@@ -15711,7 +15711,7 @@ Zlib.RawInflate.LengthExtraTable = (function(table) {
 
 /**
  * huffman dist code table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflate.DistCodeTable = (function(table) {
@@ -15725,7 +15725,7 @@ Zlib.RawInflate.DistCodeTable = (function(table) {
 
 /**
  * huffman dist extra-bits table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflate.DistExtraTable = (function(table) {
@@ -15737,7 +15737,7 @@ Zlib.RawInflate.DistExtraTable = (function(table) {
 
 /**
  * fixed huffman length code table
- * @const
+ * @var
  * @type {!Array}
  */
 Zlib.RawInflate.FixedLiteralLengthTable = (function(table) {
@@ -15759,7 +15759,7 @@ Zlib.RawInflate.FixedLiteralLengthTable = (function(table) {
 
 /**
  * fixed huffman distance code table
- * @const
+ * @var
  * @type {!Array}
  */
 Zlib.RawInflate.FixedDistanceTable = (function(table) {
@@ -16574,20 +16574,20 @@ Zlib.RawInflateStream.prototype.decompress = function(newInput, ip) {
 };
 
 /**
- * @const
+ * @var
  * @type {number} max backward length for LZ77.
  */
 Zlib.RawInflateStream.MaxBackwardLength = 32768;
 
 /**
- * @const
+ * @var
  * @type {number} max copy length for LZ77.
  */
 Zlib.RawInflateStream.MaxCopyLength = 258;
 
 /**
  * huffman order
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.Order = (function(table) {
@@ -16596,7 +16596,7 @@ Zlib.RawInflateStream.Order = (function(table) {
 
 /**
  * huffman length code table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflateStream.LengthCodeTable = (function(table) {
@@ -16610,7 +16610,7 @@ Zlib.RawInflateStream.LengthCodeTable = (function(table) {
 
 /**
  * huffman length extra-bits table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.LengthExtraTable = (function(table) {
@@ -16622,7 +16622,7 @@ Zlib.RawInflateStream.LengthExtraTable = (function(table) {
 
 /**
  * huffman dist code table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint16Array)}
  */
 Zlib.RawInflateStream.DistCodeTable = (function(table) {
@@ -16636,7 +16636,7 @@ Zlib.RawInflateStream.DistCodeTable = (function(table) {
 
 /**
  * huffman dist extra-bits table.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint8Array)}
  */
 Zlib.RawInflateStream.DistExtraTable = (function(table) {
@@ -16648,7 +16648,7 @@ Zlib.RawInflateStream.DistExtraTable = (function(table) {
 
 /**
  * fixed huffman length code table
- * @const
+ * @var
  * @type {!Array}
  */
 Zlib.RawInflateStream.FixedLiteralLengthTable = (function(table) {
@@ -16670,7 +16670,7 @@ Zlib.RawInflateStream.FixedLiteralLengthTable = (function(table) {
 
 /**
  * fixed huffman distance code table
- * @const
+ * @var
  * @type {!Array}
  */
 Zlib.RawInflateStream.FixedDistanceTable = (function(table) {
@@ -17543,7 +17543,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   // check compression method
   member.cm = input[ip++];
   switch (member.cm) {
-    case 8: /* XXX: use Zlib const */
+    case 8: /* XXX: use Zlib var */
       break;
     default:
       throw new Error('unknown compression method: ' + member.cm);
@@ -17781,7 +17781,7 @@ Zlib.Gzip = function(input, opt_params) {
 
 /**
  * @type {number}
- * @const
+ * @var
  */
 Zlib.Gzip.DefaultBufferSize = 0x8000;
 
@@ -17822,7 +17822,7 @@ Zlib.Gzip.prototype.compress = function() {
   output[op++] = 0x8b;
 
   // check compression method
-  output[op++] = 8; /* XXX: use Zlib const */
+  output[op++] = 8; /* XXX: use Zlib var */
 
   // flags
   flg = 0;
@@ -18145,42 +18145,42 @@ Zlib.RawDeflate.CompressionType = {
 
 /**
  * LZ77 の最小マッチ長
- * @const
+ * @var
  * @type {number}
  */
 Zlib.RawDeflate.Lz77MinLength = 3;
 
 /**
  * LZ77 の最大マッチ長
- * @const
+ * @var
  * @type {number}
  */
 Zlib.RawDeflate.Lz77MaxLength = 258;
 
 /**
  * LZ77 のウィンドウサイズ
- * @const
+ * @var
  * @type {number}
  */
 Zlib.RawDeflate.WindowSize = 0x8000;
 
 /**
  * 最長の符号長
- * @const
+ * @var
  * @type {number}
  */
 Zlib.RawDeflate.MaxCodeLength = 16;
 
 /**
  * ハフマン符号の最大数値
- * @const
+ * @var
  * @type {number}
  */
 Zlib.RawDeflate.HUFMAX = 286;
 
 /**
  * 固定ハフマン符号の符号化テーブル
- * @const
+ * @var
  * @type {Array.<Array.<number, number>>}
  */
 Zlib.RawDeflate.FixedHuffmanTable = (function() {
@@ -18359,7 +18359,7 @@ function(blockArray, isFinalBlock) {
   var hdist;
   /** @type {number} */
   var hclen;
-  /** @const @type {Array.<number>} */
+  /** @var @type {Array.<number>} */
   var hclenOrder =
         [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
   /** @type {!(Array.<number>|Uint8Array)} */
@@ -18572,7 +18572,7 @@ Zlib.RawDeflate.Lz77Match = function(length, backwardDistance) {
 /**
  * 長さ符号テーブル.
  * [コード, 拡張ビット, 拡張ビット長] の配列となっている.
- * @const
+ * @var
  * @type {!(Array.<number>|Uint32Array)}
  */
 Zlib.RawDeflate.Lz77Match.LengthCodeTable = (function(table) {
@@ -18730,7 +18730,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var matchKey;
   /** @type {Object.<number, Array.<number>>} chained-hash-table */
   var table = {};
-  /** @const @type {number} */
+  /** @var @type {number} */
   var windowSize = Zlib.RawDeflate.WindowSize;
   /** @type {Array.<number>} match list */
   var matchList;
@@ -19303,19 +19303,19 @@ Zlib.Unzip.CompressionMethod = Zlib.Zip.CompressionMethod;
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Unzip.FileHeaderSignature = Zlib.Zip.FileHeaderSignature;
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Unzip.LocalFileHeaderSignature = Zlib.Zip.LocalFileHeaderSignature;
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  */
 Zlib.Unzip.CentralDirectorySignature = Zlib.Zip.CentralDirectorySignature;
 
@@ -19962,7 +19962,7 @@ Zlib.BitStream = function(buffer, bufferPosition) {
 
 /**
  * デフォルトブロックサイズ.
- * @const
+ * @var
  * @type {number}
  */
 Zlib.BitStream.DefaultBlockSize = 0x8000;
@@ -20092,7 +20092,7 @@ Zlib.BitStream.prototype.finish = function() {
 
 /**
  * 0-255 のビット順を反転したテーブル
- * @const
+ * @var
  * @type {!(Uint8Array|Array.<number>)}
  */
 Zlib.BitStream.ReverseTable = (function(table) {
@@ -20186,7 +20186,7 @@ Zlib.CRC32.single = function(num, crc) {
 
 /**
  * @type {Array.<number>}
- * @const
+ * @var
  * @private
  */
 Zlib.CRC32.Table_ = [
@@ -20237,7 +20237,7 @@ Zlib.CRC32.Table_ = [
 
 /**
  * @type {!(Array.<number>|Uint32Array)} CRC-32 Table.
- * @const
+ * @var
  */
 Zlib.CRC32.Table = ZLIB_CRC32_COMPACT ? (function() {
   /** @type {!(Array.<number>|Uint32Array)} */
@@ -20305,7 +20305,7 @@ Zlib.Deflate = function(input, opt_params) {
 };
 
 /**
- * @const
+ * @var
  * @type {number} デフォルトバッファサイズ.
  */
 Zlib.Deflate.DefaultBufferSize = 0x8000;
@@ -24909,10 +24909,10 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const BAI_MAGIC = 21578050;
-    const TABIX_MAGIC = 21578324;
-    const MAX_HEADER_SIZE = 100000000;   // IF the header is larger than this we can't read it !
-    const MAX_GZIP_BLOCK_SIZE = (1 << 16);
+    var BAI_MAGIC = 21578050;
+    var TABIX_MAGIC = 21578324;
+    var MAX_HEADER_SIZE = 100000000;   // IF the header is larger than this we can't read it !
+    var MAX_GZIP_BLOCK_SIZE = (1 << 16);
 
     /**
      * @param indexURL
@@ -25202,7 +25202,7 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
+    var MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
     
     /**
      * Class for reading a bam file
@@ -25814,8 +25814,8 @@ var igv = (function (igv) {
 
     var alignmentStartGap = 5;
     var downsampleRowHeight = 5;
-    const DEFAULT_COVERAGE_TRACK_HEIGHT = 50;
-    const DEFAULT_TRACK_HEIGHT = 300;
+    var DEFAULT_COVERAGE_TRACK_HEIGHT = 50;
+    var DEFAULT_TRACK_HEIGHT = 300;
 
     igv.BAMTrack = function (config) {
 
@@ -26945,9 +26945,9 @@ var igv = (function (igv) {
     var BAM1_MAGIC_BYTES = new Uint8Array([0x42, 0x41, 0x4d, 0x01]); // BAM\1
     var BAM1_MAGIC_NUMBER = readInt(BAM1_MAGIC_BYTES, 0);
 
-    const DEFAULT_SAMPLING_WINDOW_SIZE = 100;
-    const DEFAULT_SAMPLING_DEPTH = 50;
-    const MAXIMUM_SAMPLING_DEPTH = 2500;
+    var DEFAULT_SAMPLING_WINDOW_SIZE = 100;
+    var DEFAULT_SAMPLING_DEPTH = 50;
+    var MAXIMUM_SAMPLING_DEPTH = 2500;
 
     igv.BamUtils = {
 
@@ -27560,10 +27560,10 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
-    const DEFAULT_SAMPLING_WINDOW_SIZE = 100;
-    const DEFAULT_SAMPLING_DEPTH = 50;
-    const MAXIMUM_SAMPLING_DEPTH = 2500;
+    var MAX_GZIP_BLOCK_SIZE = 65536; // See BGZF compression format in SAM format specification
+    var DEFAULT_SAMPLING_WINDOW_SIZE = 100;
+    var DEFAULT_SAMPLING_DEPTH = 50;
+    var MAXIMUM_SAMPLING_DEPTH = 2500;
 
     /**
      * Class for reading a bam file
@@ -32916,7 +32916,7 @@ var igv = (function (igv) {
 
 var igv = (function (igv) {
 
-    const MAX_GZIP_BLOCK_SIZE = (1 << 16);
+    var MAX_GZIP_BLOCK_SIZE = (1 << 16);
 
     /**
      * Reader for "bed like" files (tab delimited files with 1 feature per line: bed, gff, vcf, etc)
@@ -34095,7 +34095,7 @@ var igv = (function (igv) {
 
 var igv = (function (igv) {
 
-    const MAX_GZIP_BLOCK_SIZE = (1 << 16);
+    var MAX_GZIP_BLOCK_SIZE = (1 << 16);
 
     /**
      * feature source for "bed like" files (tab delimited files with 1 feature per line: bed, gff, vcf, etc)
@@ -39713,7 +39713,7 @@ var igv = (function (igv) {
 
 var igv = (function (igv) {
 
-    const DEFAULT_POPOVER_WINDOW = 100000000;
+    var DEFAULT_POPOVER_WINDOW = 100000000;
 
     igv.GWASTrack = function (config) {
         this.config = config;
@@ -39940,8 +39940,8 @@ var igv = (function (igv) {
 var igv = (function (igv) {
 
 
-    const VARIANT = "VARIANT";
-    const TRAIT = "TRAIT";
+    var VARIANT = "VARIANT";
+    var TRAIT = "TRAIT";
     /**
      * @param url - url to the webservice
      * @constructor
@@ -44000,22 +44000,28 @@ var igv = (function (igv) {
 
         var plain, inflate;
 
-        if (compression === GZIP) {
-            inflate = new Zlib.Gunzip(new Uint8Array(arraybuffer));
-            plain = inflate.decompress();
-        }
-        else if (compression === BGZF) {
-            plain = new Uint8Array(igv.unbgzf(arraybuffer));
-        }
-        else {
-            plain = new Uint8Array(arraybuffer);
-        }
+        try {
+            if (compression === GZIP) {
+                inflate = new Zlib.Gunzip(new Uint8Array(arraybuffer));
+                plain = inflate.decompress();
+            }
+            else if (compression === BGZF) {
+                plain = new Uint8Array(igv.unbgzf(arraybuffer));
+            }
+            else {
+                plain = new Uint8Array(arraybuffer);
+            }
+            //
+            // var result = "";
+            // for (var i = 0, len = plain.length; i < len; i++) {
+            //    // result = result + String.fromCharCode(plain[i]);
+            // }
+            // return result;
 
-        var result = "";
-        for (var i = 0, len = plain.length; i < len; i++) {
-            result = result + String.fromCharCode(plain[i]);
+            return new TextDecoder().decode(plain)
+        } catch (e) {
+            consloe.log(e);
         }
-        return result;
     };
 
     /**
@@ -44026,7 +44032,7 @@ var igv = (function (igv) {
     }
 
 // Increments an anonymous usage count.  Count is anonymous, needed for our continued funding.  Please don't delete
-    const href = window.document.location.href;
+    var href = window.document.location.href;
     if (!(href.includes("localhost") || href.includes("127.0.0.1"))) {
         var url = "https://data.broadinstitute.org/igv/projects/current/counter_igvjs.php?version=" + "0";
         igv.xhr.load(url).then(function (ignore) {
