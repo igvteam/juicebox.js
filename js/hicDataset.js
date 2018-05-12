@@ -37,7 +37,8 @@ var hic = (function (hic) {
         this.blockCache = {};
         this.blockCacheKeys = [];
         this.normVectorCache = {};
-
+        this.normalizationTypes = ['NONE'];
+        
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
     };
@@ -69,7 +70,7 @@ var hic = (function (hic) {
     }
 
 
-    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization) {
+    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization, eventBus) {
 
         var self = this;
 
@@ -95,6 +96,9 @@ var hic = (function (hic) {
 
                                     if (nv1 === undefined || nv2 === undefined) {
                                         console.log("Undefined normalization vector for: " + normalization);
+                                        if(eventBus) {
+                                            eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
+                                        }
                                         return block;
                                     }
 
