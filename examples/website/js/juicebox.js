@@ -22317,7 +22317,7 @@ var hic = (function (hic) {
                     }
 
                     dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
-                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization))
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, self.browser.eventBus))
                 }
             }
 
@@ -22626,10 +22626,10 @@ var hic = (function (hic) {
             var promises = [];
 
             var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
-            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization));
+            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
 
             if (zdControl) {
-                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization));
+                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
             }
 
             return Promise.all(promises);
@@ -23804,6 +23804,16 @@ var hic = (function (hic) {
                     browser.loadTracks(config.tracks);
                 }
             })
+            .then (function (ignore) {
+                var promises = [];
+                if(config.normVectorFiles) {
+                   config.normVectorFiles.forEach(function (nv) {
+                       promises.push(browser.loadNormalizationFile(nv));
+                   })
+                }
+                return Promise.all(promises);
+
+            })
 
             .then(function (ignore) {
                 if (typeof callback === "function") callback();
@@ -24214,8 +24224,7 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.loadTracks = function (trackConfigurations) {
 
-        var self = this,
-            errorPrefix;
+        var self = this, errorPrefix, promisesNV;
 
         // If loading a single track remember its name, for error message
         errorPrefix = trackConfigurations.length == 1 ? "Error loading track " + trackConfigurations[0].name : "Error loading tracks";
@@ -24226,12 +24235,11 @@ var hic = (function (hic) {
 
             .then(function (trackConfigurations) {
 
-
-                var trackXYPairs,
-                    promises2D;
+                var trackXYPairs, promises2D;
 
                 trackXYPairs = [];
                 promises2D = [];
+                promisesNV = [];
 
                 trackConfigurations.forEach(function (config) {
 
@@ -24245,6 +24253,11 @@ var hic = (function (hic) {
                         }
 
                         config.height = self.layoutController.track_height;
+
+                        if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+                            self.loadNormalizationFile(config.url);
+                            return;
+                        }
 
                         if (config.type === undefined) {
                             // Assume this is a 2D track
@@ -24269,6 +24282,9 @@ var hic = (function (hic) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
                     self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
+            })
+            .then(function (ignore) {
+                return Promise.all(promisesNV);
             })
             .then(function (ignore) {   // finally
                 self.contactMatrixView.stopSpinner();
@@ -24315,6 +24331,38 @@ var hic = (function (hic) {
             return promises;
         }
 
+
+    }
+
+
+    hic.Browser.prototype.loadNormalizationFile = function (url) {
+
+        var self = this;
+
+        if (!this.dataset) return;
+
+        self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
+
+        return this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+
+            .then(function (normVectors) {
+
+                Object.assign(self.dataset.normVectorCache, normVectors);
+
+                normVectors["types"].forEach(function (type) {
+
+                    if(!self.dataset.normalizationTypes) {
+                        self.dataset.normalizationTypes = [];
+                    }
+                    if (_.contains(self.dataset.normalizationTypes, type) === false) {
+                        self.dataset.normalizationTypes.push(type);
+                    }
+
+                    self.eventBus.post(hic.Event("NormVectorIndexLoad", self.dataset));
+                });
+
+                return normVectors;
+            })
 
     }
 
@@ -25480,10 +25528,10 @@ var hic = (function (hic) {
             }
         }
 
-        if (this.normVectorFiles.length > 0) {
+        if (this.config.normVectorFiles.length > 0) {
 
             var normVectorString = "";
-            this.normVectorFiles.forEach(function (url) {
+            this.config.normVectorFiles.forEach(function (url) {
 
                 if (normVectorString.length > 0) normVectorString += "|||";
                 normVectorString += url;
@@ -26049,7 +26097,8 @@ var hic = (function (hic) {
         this.blockCache = {};
         this.blockCacheKeys = [];
         this.normVectorCache = {};
-
+        this.normalizationTypes = ['NONE'];
+        
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
     };
@@ -26081,7 +26130,7 @@ var hic = (function (hic) {
     }
 
 
-    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization) {
+    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization, eventBus) {
 
         var self = this;
 
@@ -26107,6 +26156,9 @@ var hic = (function (hic) {
 
                                     if (nv1 === undefined || nv2 === undefined) {
                                         console.log("Undefined normalization vector for: " + normalization);
+                                        if(eventBus) {
+                                            eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
+                                        }
                                         return block;
                                     }
 
@@ -26391,7 +26443,7 @@ var hic = (function (hic) {
 
         var self = this,
             dataset = new hic.Dataset(this);
-        
+
         dataset.name = config.name;
 
         return self.readHeader(dataset)
@@ -26601,11 +26653,6 @@ var hic = (function (hic) {
                 p0 = binaryParser.position;
                 self.normVectorIndex = {};
 
-                if (!dataset.normalizationTypes) {
-                    dataset.normalizationTypes = [];
-                }
-                dataset.normalizationTypes.push('NONE');
-
                 nEntries = binaryParser.getInt();
                 while (nEntries-- > 0) {
                     type = binaryParser.getString();
@@ -26785,12 +26832,7 @@ var hic = (function (hic) {
 
                 // Normalization vector index
                 if (undefined === self.normVectorIndex) self.normVectorIndex = {};
-
-                if (!dataset.normalizationTypes) {
-                    dataset.normalizationTypes = [];
-                }
-                dataset.normalizationTypes.push('NONE');
-
+                
                 p0 = binaryParser.position;
                 normalizationIndexPosition = range.start + p0;
 
@@ -27110,6 +27152,82 @@ var hic = (function (hic) {
             })
 
     }
+
+
+    hic.HiCReader.prototype.readNormalizationVectorFile = function (url, chromosomes) {
+
+        var self = this;
+        var options = igv.buildOptions({});    // Add oauth token, if any
+
+        return igv.xhr
+
+            .loadString(url, options)
+
+            .then(function (data) {
+
+                var lines = data.split('\n'),
+                    len = lines.length,
+                    line, i, type, chr, binSize, unit, tokens, values, v, key, chrIdx, chrMap, vectors, types;
+
+                types = new Set();
+                vectors = {};
+                chrMap = {};
+                chromosomes.forEach(function (chr) {
+                    chrMap[chr.name] = chr.index;
+                    if (chr.name.startsWith("chr")) {
+                        chrMap[chr.name.substring(3)] = chr.index;
+                    } else {
+                        chrMap["chr" + chr.name] = chr.index;
+                    }
+                })
+
+                for (i = 0; i < len; i++) {
+                    line = lines[i].trim();
+                    if (line.startsWith("vector")) {
+
+                        if (key) {
+                            vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values)
+                        }
+                        values = [];
+
+                        tokens = line.split("\t");
+                        type = tokens[1];
+                        chr = tokens[2];
+                        binSize = tokens[3];
+                        unit = tokens[4];
+
+
+                        chrIdx = chrMap[chr];
+                        if (chrIdx) {
+                            types.add(type);
+                            key = hic.getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
+                        } else {
+                            key = undefined;
+                            console.log("Unknown chromosome: " + chr);
+                        }
+
+
+                    }
+                    else {
+                        if (key && values) {
+                            v = (line.length === 0 || line == ".") ? NaN : parseFloat(line);
+                            values.push(v);
+                        }
+                    }
+                }
+
+                // Last one
+                if (key && values && values.length > 0) {
+                    vectors[key] = new hic.NormalizationVector(type, chrIdx, unit, binSize, values);
+                }
+
+                vectors.types = types;
+
+                return vectors;
+            })
+
+    };
+
 
     function MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
         this.chr1 = chr1;    // chromosome index
@@ -29725,6 +29843,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
         this.browser.eventBus.subscribe("NormalizationFileLoad", this);
+        this.browser.eventBus.subscribe("NormalizationExternalChange", this);
 
     };
 
@@ -29760,6 +29879,16 @@ var hic = (function (hic) {
             } else {
                 this.stopNotReady();
             }
+        }  else if ("NormalizationExternalChange" === event.type) {
+
+            var filter = this.$normalization_selector
+                .find('option')
+                .filter(function (index) {
+                    var s1 = this.value;
+                    var s2 = event.data;
+                    return s1 === s2;
+                })
+                .prop('selected', true);
         }
 
         function updateOptions() {

@@ -767,7 +767,7 @@ var hic = (function (hic) {
 
             .then(function (data) {
 
-                var lines = data.splitLines(),
+                var lines = data.split('\n'),
                     len = lines.length,
                     line, i, type, chr, binSize, unit, tokens, values, v, key, chrIdx, chrMap, vectors, types;
 
@@ -776,7 +776,6 @@ var hic = (function (hic) {
                 chrMap = {};
                 chromosomes.forEach(function (chr) {
                     chrMap[chr.name] = chr.index;
-                    // Hack for demo
                     if (chr.name.startsWith("chr")) {
                         chrMap[chr.name.substring(3)] = chr.index;
                     } else {
