@@ -1958,9 +1958,10 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if (normVectorString) {
-            config.normVectorFiles = normVectorString.split("|||");
-        }
+        // Norm vector file loading disabled -- too slow
+        // if (normVectorString) {
+        //     config.normVectorFiles = normVectorString.split("|||");
+        // }
 
         if (nvi) {
             config.nvi = paramDecodeV0(nvi, uriDecode);
