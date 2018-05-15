@@ -1855,19 +1855,17 @@ var hic = (function (hic) {
             }
         }
 
-        if (this.config.normVectorFiles.length > 0) {
-
-            var normVectorString = "";
-            this.config.normVectorFiles.forEach(function (url) {
-
-                if (normVectorString.length > 0) normVectorString += "|||";
-                normVectorString += url;
-
-            });
-
-            queryString.push(paramString("normVectorFiles", normVectorString));
-
-        }
+        // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+        //
+        //     var normVectorString = "";
+        //     this.config.normVectorFiles.forEach(function (url) {
+        //
+        //         if (normVectorString.length > 0) normVectorString += "|||";
+        //         normVectorString += url;
+        //
+        //     });
+        //     queryString.push(paramString("normVectorFiles", normVectorString));
+        // }
 
         return queryString.join("&");
 
