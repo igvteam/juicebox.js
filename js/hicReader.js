@@ -223,7 +223,7 @@ var hic = (function (hic) {
     hic.HiCReader.prototype.readNormExpectedValuesAndNormVectorIndex = function (dataset) {
 
         var self = this,
-            range;
+            range, nEntries, nviStart, byteCount;
 
         if (this.normExpectedValueVectorsPosition === undefined) {
             return Promise.resolve();
@@ -233,16 +233,14 @@ var hic = (function (hic) {
             return Promise.resolve(this.normVectorIndex);
         }
 
+        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition)
 
-        var nEntries, dataStart;
+            .then(function (nvi) {
 
-        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition, -1)
-
-            .then(function (nviStart) {
+                nviStart = nvi;
+                byteCount = 4;
 
                 range = {start: nviStart, size: 4}
-
-                dataStart = nviStart + 4;
 
                 return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
             })
@@ -254,43 +252,24 @@ var hic = (function (hic) {
                 binaryParser = new igv.BinaryParser(new DataView(data));
                 nEntries = binaryParser.getInt();
 
-                sizeEstimate = nEntries * 50;
-                range = {start: dataStart, size: sizeEstimate}
-
+                sizeEstimate = nEntries * 30;
+                range = {start: nviStart + byteCount, size: sizeEstimate}
                 return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
 
             })
             .then(function (data) {
-
-                var key, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes;
-
-                var binaryParser = new igv.BinaryParser(new DataView(data));
-
                 dataset.normalizedExpectedValueVectors = {};
-
-                // Normalization vector index
-                p0 = binaryParser.position;
                 self.normVectorIndex = {};
 
-                while (nEntries-- > 0) {
-                    type = binaryParser.getString();      //15
-                    chrIdx = binaryParser.getInt();       //4
-                    unit = binaryParser.getString();      //3
-                    binSize = binaryParser.getInt();      //4
-                    filePosition = binaryParser.getLong();  //8
-                    sizeInBytes = binaryParser.getInt();     //4
-                    key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+                return processEntries(nEntries, data)
+            })
 
-                    if (_.contains(dataset.normalizationTypes, type) === false) {
-                        dataset.normalizationTypes.push(type);
-                    }
-                    self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                }
+            .then(function (ignore) {
 
 
                 self.normalizationVectorIndexRange = {
-                    start: range.start + p0,
-                    size: binaryParser.position - p0
+                    start: nviStart,
+                    size: byteCount
                 };
 
                 return self;
@@ -301,6 +280,48 @@ var hic = (function (hic) {
                 console.error(e);
                 self.normalizationVectorIndexRange = undefined;
             })
+
+
+        function processEntries(nEntries, data) {
+
+            var key, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes, sizeEstimate;
+
+            var binaryParser = new igv.BinaryParser(new DataView(data));
+
+            while (nEntries-- > 0) {
+
+                if (binaryParser.available() < 100) {
+
+                    nEntries++;   // Reset counter as entry is not processed
+
+                    byteCount += binaryParser.position;
+
+                    sizeEstimate = Math.max(1000, nEntries * 30);
+                    range = {start: nviStart + byteCount, size: sizeEstimate}
+
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                        .then(function (data) {
+                            return processEntries(nEntries, data);
+                        })
+                }
+
+                type = binaryParser.getString();      //15
+                chrIdx = binaryParser.getInt();       //4
+                unit = binaryParser.getString();      //3
+                binSize = binaryParser.getInt();      //4
+                filePosition = binaryParser.getLong();  //8
+                sizeInBytes = binaryParser.getInt();     //4
+                key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                if (_.contains(dataset.normalizationTypes, type) === false) {
+                    dataset.normalizationTypes.push(type);
+                }
+                self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+
+            }
+            byteCount += binaryParser.position;
+            return Promise.resolve(self);
+        }
 
 
     };
