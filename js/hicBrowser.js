@@ -446,7 +446,7 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.startSpinner();
-    }
+    };
 
     hic.Browser.prototype.stopSpinner = function () {
 
@@ -455,17 +455,29 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.stopSpinner();
-    }
+    };
 
     hic.Browser.prototype.setDisplayMode = function (mode) {
         this.contactMatrixView.setDisplayMode(mode);
         this.eventBus.post(hic.Event("DisplayMode", mode));
-    }
+    };
 
     hic.Browser.prototype.getDisplayMode = function () {
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-    }
+    };
 
+    hic.Browser.prototype.toggleDisplayMode = function () {
+
+        var displayMode,
+            lut;
+
+        lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
+        displayMode = this.getDisplayMode();
+        if (lut[ displayMode ]) {
+            this.setDisplayMode(lut[ displayMode ]);
+            this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
+        }
+    };
 
     hic.Browser.prototype.getColorScale = function () {
 

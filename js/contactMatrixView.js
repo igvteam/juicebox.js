@@ -251,7 +251,7 @@ var hic = (function (hic) {
         if (!self.browser.dataset || self.initialImage) {
             return Promise.resolve();
         }
-        
+
         self.startSpinner();
         return getMatrices.call(self, state.chr1, state.chr2)
 
@@ -851,19 +851,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                {
-                    x: eFixed.pageX - $viewport.offset().left,
-                    y: eFixed.pageY - $viewport.offset().top
-                };
+                    {
+                        x: eFixed.pageX - $viewport.offset().left,
+                        y: eFixed.pageY - $viewport.offset().top
+                    };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
@@ -917,35 +917,30 @@ var hic = (function (hic) {
                 $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
             }
 
-            // Document level events
-            $(document).on({
+            // document level events
+            $(document).on('keydown.contact_matrix_view', function (e) {
+                if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                    self.willShowCrosshairs = true;
+                } else if ('t' === e.key) {
+                    self.browser.toggleDisplayMode();
+                }
+            });
 
-                keydown: function (e) {
-                    if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                        self.willShowCrosshairs = true;
-                    }
-                },
+            $(document).on('keyup.contact_matrix_view', function (e) {
+                self.browser.hideCrosshairs();
+                self.willShowCrosshairs = undefined;
+            });
 
-                keyup: function (e) {
-                    if (/*true === e.shiftKey*/true) {
-                        self.browser.hideCrosshairs();
-                        self.willShowCrosshairs = undefined;
-                    }
-                },
+            // for sweep-zoom allow user to sweep beyond viewport extent
+            // sweep area clamps since viewport mouse handlers stop firing
+            // when the viewport boundary is crossed.
+            $(document).on('mouseup.contact_matrix_view', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-                // for sweep-zoom allow user to sweep beyond viewport extent
-                // sweep area clamps since viewport mouse handlers stop firing
-                // when the viewport boundary is crossed.
-                mouseup: function (e) {
-
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isSweepZooming) {
-                        isSweepZooming = false;
-                        self.sweepZoom.commit();
-                    }
-
+                if (isSweepZooming) {
+                    isSweepZooming = false;
+                    self.sweepZoom.commit();
                 }
             });
         }
