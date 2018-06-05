@@ -47,6 +47,8 @@ var juicebox = (function (site) {
             $e;
 
 
+        hic.captionManager = new hic.CaptionManager($('#hic-caption'));
+
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
 

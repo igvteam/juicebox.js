@@ -922,11 +922,25 @@ div[id$="content-container"] {
   height: 120px;
   background-color: #3a8ab4; }
 
-.juicebox-app-clone-container {
+.juicebox-app-caption-container {
   display: flex;
-  flex-flow: row;
+  flex-flow: column;
   flex-wrap: wrap;
   justify-content: flex-start; }
+  .juicebox-app-caption-container .juicebox-app-clone-container {
+    display: flex;
+    flex-flow: row;
+    flex-wrap: wrap;
+    justify-content: flex-start; }
+  .juicebox-app-caption-container .hic-caption-container {
+    height: 64px;
+    width: 100%;
+    margin-top: 16px;
+    padding-top: 4px;
+    padding-left: 8px;
+    font-size: 18px;
+    color: #7f7f7f;
+    background-color: #efefef; }
 
 .juicebox-app-clone-button {
   cursor: pointer;
