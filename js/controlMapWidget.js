@@ -28,9 +28,7 @@ var hic = (function (hic) {
 
     hic.ControlMapWidget = function (browser, $parent) {
 
-        var self = this,
-            optionStrings,
-            $options;
+        var self = this;
 
         this.browser = browser;
 
@@ -43,25 +41,39 @@ var hic = (function (hic) {
         this.$control_map_selector = $('<select>');
         this.$control_map_selector.attr('name', 'control_map_selector');
         this.$control_map_selector.on('change', function (e) {
-            var value;
+            var value,
+                displayMode;
+
+            displayMode = browser.getDisplayMode();
+            console.log('Old Display Mode ' + displayMode);
+
             value = $(this).val();
             browser.setDisplayMode(value);
+
+            displayMode = browser.getDisplayMode();
+            console.log('New Display Mode ' + displayMode);
+
         });
         this.$container.append(this.$control_map_selector);
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
             updateOptions.call(self, browser);
             self.$container.show();
-        })
+        });
 
         browser.eventBus.subscribe("MapLoad", function (event) {
             if (!browser.controlDataset) {
                 self.$container.hide();
             }
-        })
+        });
 
     };
 
+    hic.ControlMapWidget.prototype.didToggleDisplayMode = function (displayMode) {
+        var str;
+        str = 'option[value' + '=' + displayMode + ']';
+        this.$control_map_selector.find(str).prop('selected', true);
+    };
 
     function updateOptions(browser) {
 
