@@ -21705,6 +21705,54 @@ var hic = (function (hic) {
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+var hic = (function (hic) {
+
+    hic.CaptionManager = function ($caption) {
+
+        var self = this;
+
+        this.$caption = $caption;
+
+        $caption.keyup(function (e) {
+            self.getCaption($(this));
+        });
+    };
+
+    hic.CaptionManager.prototype.getCaption = function ($caption) {
+        this.text = $caption.text();
+        console.log('caption ' + this.text);
+    };
+
+    hic.CaptionManager.prototype.setCaption = function (string) {
+        this.text = string;
+        this.$caption.text(string);
+    };
+
+    return hic;
+})(hic || {});
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including 
  * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
  * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
@@ -22134,7 +22182,7 @@ var hic = (function (hic) {
         if (!self.browser.dataset || self.initialImage) {
             return Promise.resolve();
         }
-        
+
         self.startSpinner();
         return getMatrices.call(self, state.chr1, state.chr2)
 
@@ -22734,19 +22782,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                {
-                    x: eFixed.pageX - $viewport.offset().left,
-                    y: eFixed.pageY - $viewport.offset().top
-                };
+                    {
+                        x: eFixed.pageX - $viewport.offset().left,
+                        y: eFixed.pageY - $viewport.offset().top
+                    };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
@@ -22800,35 +22848,30 @@ var hic = (function (hic) {
                 $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
             }
 
-            // Document level events
-            $(document).on({
+            // document level events
+            $(document).on('keydown.contact_matrix_view', function (e) {
+                if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                    self.willShowCrosshairs = true;
+                } else if ('t' === e.key) {
+                    self.browser.toggleDisplayMode();
+                }
+            });
 
-                keydown: function (e) {
-                    if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                        self.willShowCrosshairs = true;
-                    }
-                },
+            $(document).on('keyup.contact_matrix_view', function (e) {
+                self.browser.hideCrosshairs();
+                self.willShowCrosshairs = undefined;
+            });
 
-                keyup: function (e) {
-                    if (/*true === e.shiftKey*/true) {
-                        self.browser.hideCrosshairs();
-                        self.willShowCrosshairs = undefined;
-                    }
-                },
+            // for sweep-zoom allow user to sweep beyond viewport extent
+            // sweep area clamps since viewport mouse handlers stop firing
+            // when the viewport boundary is crossed.
+            $(document).on('mouseup.contact_matrix_view', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-                // for sweep-zoom allow user to sweep beyond viewport extent
-                // sweep area clamps since viewport mouse handlers stop firing
-                // when the viewport boundary is crossed.
-                mouseup: function (e) {
-
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isSweepZooming) {
-                        isSweepZooming = false;
-                        self.sweepZoom.commit();
-                    }
-
+                if (isSweepZooming) {
+                    isSweepZooming = false;
+                    self.sweepZoom.commit();
                 }
             });
         }
@@ -23246,9 +23289,7 @@ var hic = (function (hic) {
 
     hic.ControlMapWidget = function (browser, $parent) {
 
-        var self = this,
-            optionStrings,
-            $options;
+        var self = this;
 
         this.browser = browser;
 
@@ -23261,25 +23302,39 @@ var hic = (function (hic) {
         this.$control_map_selector = $('<select>');
         this.$control_map_selector.attr('name', 'control_map_selector');
         this.$control_map_selector.on('change', function (e) {
-            var value;
+            var value,
+                displayMode;
+
+            displayMode = browser.getDisplayMode();
+            console.log('Old Display Mode ' + displayMode);
+
             value = $(this).val();
             browser.setDisplayMode(value);
+
+            displayMode = browser.getDisplayMode();
+            console.log('New Display Mode ' + displayMode);
+
         });
         this.$container.append(this.$control_map_selector);
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
             updateOptions.call(self, browser);
             self.$container.show();
-        })
+        });
 
         browser.eventBus.subscribe("MapLoad", function (event) {
             if (!browser.controlDataset) {
                 self.$container.hide();
             }
-        })
+        });
 
     };
 
+    hic.ControlMapWidget.prototype.didToggleDisplayMode = function (displayMode) {
+        var str;
+        str = 'option[value' + '=' + displayMode + ']';
+        this.$control_map_selector.find(str).prop('selected', true);
+    };
 
     function updateOptions(browser) {
 
@@ -24119,7 +24174,7 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.startSpinner();
-    }
+    };
 
     hic.Browser.prototype.stopSpinner = function () {
 
@@ -24128,17 +24183,29 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.stopSpinner();
-    }
+    };
 
     hic.Browser.prototype.setDisplayMode = function (mode) {
         this.contactMatrixView.setDisplayMode(mode);
         this.eventBus.post(hic.Event("DisplayMode", mode));
-    }
+    };
 
     hic.Browser.prototype.getDisplayMode = function () {
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-    }
+    };
 
+    hic.Browser.prototype.toggleDisplayMode = function () {
+
+        var displayMode,
+            lut;
+
+        lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
+        displayMode = this.getDisplayMode();
+        if (lut[ displayMode ]) {
+            this.setDisplayMode(lut[ displayMode ]);
+            this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
+        }
+    };
 
     hic.Browser.prototype.getColorScale = function () {
 
@@ -25528,19 +25595,17 @@ var hic = (function (hic) {
             }
         }
 
-        if (this.config.normVectorFiles.length > 0) {
-
-            var normVectorString = "";
-            this.config.normVectorFiles.forEach(function (url) {
-
-                if (normVectorString.length > 0) normVectorString += "|||";
-                normVectorString += url;
-
-            });
-
-            queryString.push(paramString("normVectorFiles", normVectorString));
-
-        }
+        // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+        //
+        //     var normVectorString = "";
+        //     this.config.normVectorFiles.forEach(function (url) {
+        //
+        //         if (normVectorString.length > 0) normVectorString += "|||";
+        //         normVectorString += url;
+        //
+        //     });
+        //     queryString.push(paramString("normVectorFiles", normVectorString));
+        // }
 
         return queryString.join("&");
 
@@ -25631,9 +25696,10 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if (normVectorString) {
-            config.normVectorFiles = normVectorString.split("|||");
-        }
+        // Norm vector file loading disabled -- too slow
+        // if (normVectorString) {
+        //     config.normVectorFiles = normVectorString.split("|||");
+        // }
 
         if (nvi) {
             config.nvi = paramDecodeV0(nvi, uriDecode);
@@ -26621,7 +26687,7 @@ var hic = (function (hic) {
     hic.HiCReader.prototype.readNormExpectedValuesAndNormVectorIndex = function (dataset) {
 
         var self = this,
-            range;
+            range, nEntries, nviStart, byteCount;
 
         if (this.normExpectedValueVectorsPosition === undefined) {
             return Promise.resolve();
@@ -26631,47 +26697,43 @@ var hic = (function (hic) {
             return Promise.resolve(this.normVectorIndex);
         }
 
+        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition)
 
-        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition, -1)
+            .then(function (nvi) {
 
-            .then(function (nviStart) {
+                nviStart = nvi;
+                byteCount = 4;
 
-                range = {start: nviStart, size: 100000}
+                range = {start: nviStart, size: 4}
 
                 return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
             })
 
             .then(function (data) {
 
-                var key, nEntries, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes;
+                var range, binaryParser, sizeEstimate;
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
+                binaryParser = new igv.BinaryParser(new DataView(data));
+                nEntries = binaryParser.getInt();
 
+                sizeEstimate = nEntries * 30;
+                range = {start: nviStart + byteCount, size: sizeEstimate}
+                return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+            })
+            .then(function (data) {
                 dataset.normalizedExpectedValueVectors = {};
-
-                // Normalization vector index
-                p0 = binaryParser.position;
                 self.normVectorIndex = {};
 
-                nEntries = binaryParser.getInt();
-                while (nEntries-- > 0) {
-                    type = binaryParser.getString();
-                    chrIdx = binaryParser.getInt();
-                    unit = binaryParser.getString();
-                    binSize = binaryParser.getInt();
-                    filePosition = binaryParser.getLong();
-                    sizeInBytes = binaryParser.getInt();
-                    key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+                return processEntries(nEntries, data)
+            })
 
-                    if (_.contains(dataset.normalizationTypes, type) === false) {
-                        dataset.normalizationTypes.push(type);
-                    }
-                    self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                }
+            .then(function (ignore) {
+
 
                 self.normalizationVectorIndexRange = {
-                    start: range.start + p0,
-                    size: binaryParser.position - p0
+                    start: nviStart,
+                    size: byteCount
                 };
 
                 return self;
@@ -26682,6 +26744,48 @@ var hic = (function (hic) {
                 console.error(e);
                 self.normalizationVectorIndexRange = undefined;
             })
+
+
+        function processEntries(nEntries, data) {
+
+            var key, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes, sizeEstimate;
+
+            var binaryParser = new igv.BinaryParser(new DataView(data));
+
+            while (nEntries-- > 0) {
+
+                if (binaryParser.available() < 100) {
+
+                    nEntries++;   // Reset counter as entry is not processed
+
+                    byteCount += binaryParser.position;
+
+                    sizeEstimate = Math.max(1000, nEntries * 30);
+                    range = {start: nviStart + byteCount, size: sizeEstimate}
+
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                        .then(function (data) {
+                            return processEntries(nEntries, data);
+                        })
+                }
+
+                type = binaryParser.getString();      //15
+                chrIdx = binaryParser.getInt();       //4
+                unit = binaryParser.getString();      //3
+                binSize = binaryParser.getInt();      //4
+                filePosition = binaryParser.getLong();  //8
+                sizeInBytes = binaryParser.getInt();     //4
+                key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                if (_.contains(dataset.normalizationTypes, type) === false) {
+                    dataset.normalizationTypes.push(type);
+                }
+                self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+
+            }
+            byteCount += binaryParser.position;
+            return Promise.resolve(self);
+        }
 
 
     };
@@ -26832,7 +26936,7 @@ var hic = (function (hic) {
 
                 // Normalization vector index
                 if (undefined === self.normVectorIndex) self.normVectorIndex = {};
-                
+
                 p0 = binaryParser.position;
                 normalizationIndexPosition = range.start + p0;
 
