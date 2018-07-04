@@ -21705,6 +21705,54 @@ var hic = (function (hic) {
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+var hic = (function (hic) {
+
+    hic.CaptionManager = function ($caption) {
+
+        var self = this;
+
+        this.$caption = $caption;
+
+        $caption.keyup(function (e) {
+            self.getCaption($(this));
+        });
+    };
+
+    hic.CaptionManager.prototype.getCaption = function ($caption) {
+        this.text = $caption.text();
+        console.log('caption ' + this.text);
+    };
+
+    hic.CaptionManager.prototype.setCaption = function (string) {
+        this.text = string;
+        this.$caption.text(string);
+    };
+
+    return hic;
+})(hic || {});
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including 
  * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
  * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
@@ -22134,7 +22182,7 @@ var hic = (function (hic) {
         if (!self.browser.dataset || self.initialImage) {
             return Promise.resolve();
         }
-        
+
         self.startSpinner();
         return getMatrices.call(self, state.chr1, state.chr2)
 
@@ -22734,19 +22782,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                {
-                    x: eFixed.pageX - $viewport.offset().left,
-                    y: eFixed.pageY - $viewport.offset().top
-                };
+                    {
+                        x: eFixed.pageX - $viewport.offset().left,
+                        y: eFixed.pageY - $viewport.offset().top
+                    };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
@@ -22800,35 +22848,30 @@ var hic = (function (hic) {
                 $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
             }
 
-            // Document level events
-            $(document).on({
+            // document level events
+            $(document).on('keydown.contact_matrix_view', function (e) {
+                if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                    self.willShowCrosshairs = true;
+                } else if ('t' === e.key) {
+                    self.browser.toggleDisplayMode();
+                }
+            });
 
-                keydown: function (e) {
-                    if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                        self.willShowCrosshairs = true;
-                    }
-                },
+            $(document).on('keyup.contact_matrix_view', function (e) {
+                self.browser.hideCrosshairs();
+                self.willShowCrosshairs = undefined;
+            });
 
-                keyup: function (e) {
-                    if (/*true === e.shiftKey*/true) {
-                        self.browser.hideCrosshairs();
-                        self.willShowCrosshairs = undefined;
-                    }
-                },
+            // for sweep-zoom allow user to sweep beyond viewport extent
+            // sweep area clamps since viewport mouse handlers stop firing
+            // when the viewport boundary is crossed.
+            $(document).on('mouseup.contact_matrix_view', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-                // for sweep-zoom allow user to sweep beyond viewport extent
-                // sweep area clamps since viewport mouse handlers stop firing
-                // when the viewport boundary is crossed.
-                mouseup: function (e) {
-
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (isSweepZooming) {
-                        isSweepZooming = false;
-                        self.sweepZoom.commit();
-                    }
-
+                if (isSweepZooming) {
+                    isSweepZooming = false;
+                    self.sweepZoom.commit();
                 }
             });
         }
@@ -23247,8 +23290,12 @@ var hic = (function (hic) {
     hic.ControlMapWidget = function (browser, $parent) {
 
         var self = this,
-            optionStrings,
-            $options;
+            hash,
+            $exchange_container,
+            A,
+            B,
+            AOB,
+            BOA;
 
         this.browser = browser;
 
@@ -23260,60 +23307,181 @@ var hic = (function (hic) {
         // select
         this.$control_map_selector = $('<select>');
         this.$control_map_selector.attr('name', 'control_map_selector');
-        this.$control_map_selector.on('change', function (e) {
-            var value;
-            value = $(this).val();
-            browser.setDisplayMode(value);
-        });
         this.$container.append(this.$control_map_selector);
+
+        // a-b exchange icon
+        $exchange_container = $('<div>');
+        this.$container.append($exchange_container);
+
+        // a arrow
+        this.$img_a = $a_svg();
+        $exchange_container.append(this.$img_a);
+
+        // b arrow
+        this.$img_b = $b_svg();
+        $exchange_container.append(this.$img_b);
+
+        this.contactMapLUT =
+            [
+                { title:   'A', value:   'A', '$img': self.$img_a },
+                { title:   'B', value:   'B', '$img': self.$img_b },
+                { title: 'A/B', value: 'AOB', '$img': self.$img_a },
+                { title: 'B/A', value: 'BOA', '$img': self.$img_b }
+                //{title: 'A-B', value: 'AMB'}
+            ];
+
+        A = { other: 'B', '$hidden': self.$img_b, '$shown': self.$img_a };
+        B = { other: 'A', '$hidden': self.$img_a, '$shown': self.$img_b };
+
+        AOB = { other: 'BOA', '$hidden': self.$img_b, '$shown': self.$img_a };
+        BOA = { other: 'AOB', '$hidden': self.$img_a, '$shown': self.$img_b };
+
+        hash =
+            {
+                  'A': A,
+                  'B': B,
+                'AOB': AOB,
+                'BOA': BOA,
+            };
+
+        this.$control_map_selector.on('change', function (e) {
+            let value,
+                displayMode,
+                obj;
+
+            displayMode = browser.getDisplayMode();
+            console.log('Old Display Mode ' + displayMode);
+
+            value = $(this).val();
+
+            obj = hash[ value ];
+            obj.$hidden.hide();
+            obj.$shown.show();
+
+            browser.setDisplayMode(value);
+
+            displayMode = browser.getDisplayMode();
+            console.log('New Display Mode ' + displayMode);
+
+        });
+
+
+        $exchange_container.on('click', function (e) {
+            let displayMode,
+                value,
+                str;
+
+            // find new display mode
+            displayMode = browser.getDisplayMode();
+
+            // render new display mode
+            value = hash[ displayMode ].other;
+            browser.setDisplayMode(value);
+
+            // update exchange icon
+            hash[ value ].$hidden.hide();
+            hash[ value ].$shown.show();
+
+            // update select element
+            str = 'option[value=' + value + ']';
+            self.$control_map_selector.find( str ).prop('selected', true);
+
+        });
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
             updateOptions.call(self, browser);
             self.$container.show();
-        })
+        });
 
         browser.eventBus.subscribe("MapLoad", function (event) {
             if (!browser.controlDataset) {
                 self.$container.hide();
             }
-        })
+        });
 
     };
 
+    hic.ControlMapWidget.prototype.didToggleDisplayMode = function (displayMode) {
+        var str;
+        str = 'option[value' + '=' + displayMode + ']';
+        this.$control_map_selector.find(str).prop('selected', true);
+    };
 
     function updateOptions(browser) {
 
         var self = this,
-            optionStrings,
+            displayMode,
             option;
 
-        optionStrings =
-            [
-                {title: 'A', value: 'A'},
-                {title: 'B', value: 'B'},
-                {title: 'A/B', value: 'AOB'}
-                //{title: 'A-B', value: 'AMB'}
-            ];
+        displayMode = browser.getDisplayMode();
+
+        self.$img_a.hide();
+        self.$img_b.hide();
 
         this.$control_map_selector.empty();
-        optionStrings.forEach(function (o) {
-            var isSelected;
+        this.contactMapLUT.forEach(function (item) {
 
-            isSelected = browser.getDisplayMode() === o.value;
+            option = $('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
 
-            option = $('<option>')
-                .attr('title', o.title)
-                .attr('value', o.value)
-                .text(o.title);
-
-            if(isSelected) {
+            if(displayMode === item.value) {
                 option.attr('selected', true);
+                item.$img.show();
             }
 
             self.$control_map_selector.append(option);
         });
 
 
+    }
+
+    function $a_svg() {
+        let str,
+            a;
+
+        str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+            '    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Group</title>\n' +
+            '    <desc>Created with Sketch.</desc>\n' +
+            '    <defs></defs>\n' +
+            '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+            '        <g id="Group" transform="translate(1.000000, 1.000000)">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.17836594" fill="#F8F8F8" x="0" y="0" width="32" height="32" rx="3.68239356"></rect>\n' +
+            '            <g id="arrows" transform="translate(6.149597, 6.591484)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.589182969">\n' +
+            '                <path d="M24.4151546,8.24876545 L11.1585378,8.24876545 L11.1585378,6.48121654 C11.1585378,5.69635118 10.2061971,5.29990469 9.64982429,5.85627753 L6.70390944,8.80219238 C6.35879552,9.14734312 6.35879552,9.70691965 6.70390944,10.0520336 L9.64982429,12.9979484 C10.2032144,13.5513017 11.1585378,13.1624409 11.1585378,12.3730462 L11.1585378,10.6054973 L24.4151546,10.6054973 C24.9032558,10.6054973 25.298929,10.2098241 25.298929,9.72172287 L25.298929,9.1325399 C25.298929,8.64443864 24.9032558,8.24876545 24.4151546,8.24876545 Z" id="down-arrow" fill="#F8F8F8" transform="translate(15.872002, 9.426928) rotate(-90.000000) translate(-15.872002, -9.426928) "></path>\n' +
+            '                <path d="M12.3737276,8.24876545 L-0.882889175,8.24876545 L-0.882889175,6.48121654 C-0.882889175,5.69635118 -1.8352298,5.29990469 -2.39160264,5.85627753 L-5.33751748,8.80219238 C-5.68263141,9.14734312 -5.68263141,9.70691965 -5.33751748,10.0520336 L-2.39160264,12.9979484 C-1.83821254,13.5513017 -0.882889175,13.1624409 -0.882889175,12.3730462 L-0.882889175,10.6054973 L12.3737276,10.6054973 C12.8618289,10.6054973 13.2575021,10.2098241 13.2575021,9.72172287 L13.2575021,9.1325399 C13.2575021,8.64443864 12.8618289,8.24876545 12.3737276,8.24876545 Z" id="up-arrow" fill="#5F5F5F" transform="translate(3.830575, 9.426928) scale(1, -1) rotate(-90.000000) translate(-3.830575, -9.426928) "></path>\n' +
+            '            </g>\n' +
+            '        </g>\n' +
+            '    </g>\n' +
+            '</svg>';
+
+        a = str.split('\n').join(' ');
+
+        return $(a);
+    }
+
+    function $b_svg() {
+        let str,
+            b;
+
+        str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+            '    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Group</title>\n' +
+            '    <desc>Created with Sketch.</desc>\n' +
+            '    <defs></defs>\n' +
+            '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+            '        <g id="Group" transform="translate(1.000000, 1.000000)">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.17836594" fill="#F8F8F8" x="0" y="0" width="32" height="32" rx="3.68239356"></rect>\n' +
+            '            <g id="arrows" transform="translate(6.149597, 6.591484)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.589182969">\n' +
+            '                <path d="M24.4151546,8.24876545 L11.1585378,8.24876545 L11.1585378,6.48121654 C11.1585378,5.69635118 10.2061971,5.29990469 9.64982429,5.85627753 L6.70390944,8.80219238 C6.35879552,9.14734312 6.35879552,9.70691965 6.70390944,10.0520336 L9.64982429,12.9979484 C10.2032144,13.5513017 11.1585378,13.1624409 11.1585378,12.3730462 L11.1585378,10.6054973 L24.4151546,10.6054973 C24.9032558,10.6054973 25.298929,10.2098241 25.298929,9.72172287 L25.298929,9.1325399 C25.298929,8.64443864 24.9032558,8.24876545 24.4151546,8.24876545 Z" id="down-arrow" fill="#5F5F5F" transform="translate(15.872002, 9.426928) rotate(-90.000000) translate(-15.872002, -9.426928) "></path>\n' +
+            '                <path d="M12.3737276,8.24876545 L-0.882889175,8.24876545 L-0.882889175,6.48121654 C-0.882889175,5.69635118 -1.8352298,5.29990469 -2.39160264,5.85627753 L-5.33751748,8.80219238 C-5.68263141,9.14734312 -5.68263141,9.70691965 -5.33751748,10.0520336 L-2.39160264,12.9979484 C-1.83821254,13.5513017 -0.882889175,13.1624409 -0.882889175,12.3730462 L-0.882889175,10.6054973 L12.3737276,10.6054973 C12.8618289,10.6054973 13.2575021,10.2098241 13.2575021,9.72172287 L13.2575021,9.1325399 C13.2575021,8.64443864 12.8618289,8.24876545 12.3737276,8.24876545 Z" id="up-arrow" fill="#F8F8F8" transform="translate(3.830575, 9.426928) scale(1, -1) rotate(-90.000000) translate(-3.830575, -9.426928) "></path>\n' +
+            '            </g>\n' +
+            '        </g>\n' +
+            '    </g>\n' +
+            '</svg>';
+
+        b = str.split('\n').join(' ');
+
+        return $(b);
     }
 
     return hic;
@@ -24119,7 +24287,7 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.startSpinner();
-    }
+    };
 
     hic.Browser.prototype.stopSpinner = function () {
 
@@ -24128,17 +24296,29 @@ var hic = (function (hic) {
         }
 
         this.contactMatrixView.stopSpinner();
-    }
+    };
 
     hic.Browser.prototype.setDisplayMode = function (mode) {
         this.contactMatrixView.setDisplayMode(mode);
         this.eventBus.post(hic.Event("DisplayMode", mode));
-    }
+    };
 
     hic.Browser.prototype.getDisplayMode = function () {
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-    }
+    };
 
+    hic.Browser.prototype.toggleDisplayMode = function () {
+
+        var displayMode,
+            lut;
+
+        lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
+        displayMode = this.getDisplayMode();
+        if (lut[ displayMode ]) {
+            this.setDisplayMode(lut[ displayMode ]);
+            this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
+        }
+    };
 
     hic.Browser.prototype.getColorScale = function () {
 
@@ -25528,19 +25708,17 @@ var hic = (function (hic) {
             }
         }
 
-        if (this.config.normVectorFiles.length > 0) {
-
-            var normVectorString = "";
-            this.config.normVectorFiles.forEach(function (url) {
-
-                if (normVectorString.length > 0) normVectorString += "|||";
-                normVectorString += url;
-
-            });
-
-            queryString.push(paramString("normVectorFiles", normVectorString));
-
-        }
+        // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+        //
+        //     var normVectorString = "";
+        //     this.config.normVectorFiles.forEach(function (url) {
+        //
+        //         if (normVectorString.length > 0) normVectorString += "|||";
+        //         normVectorString += url;
+        //
+        //     });
+        //     queryString.push(paramString("normVectorFiles", normVectorString));
+        // }
 
         return queryString.join("&");
 
@@ -25631,9 +25809,10 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if (normVectorString) {
-            config.normVectorFiles = normVectorString.split("|||");
-        }
+        // Norm vector file loading disabled -- too slow
+        // if (normVectorString) {
+        //     config.normVectorFiles = normVectorString.split("|||");
+        // }
 
         if (nvi) {
             config.nvi = paramDecodeV0(nvi, uriDecode);
@@ -26621,7 +26800,7 @@ var hic = (function (hic) {
     hic.HiCReader.prototype.readNormExpectedValuesAndNormVectorIndex = function (dataset) {
 
         var self = this,
-            range;
+            range, nEntries, nviStart, byteCount;
 
         if (this.normExpectedValueVectorsPosition === undefined) {
             return Promise.resolve();
@@ -26631,47 +26810,43 @@ var hic = (function (hic) {
             return Promise.resolve(this.normVectorIndex);
         }
 
+        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition)
 
-        return skipExpectedValues.call(self, self.normExpectedValueVectorsPosition, -1)
+            .then(function (nvi) {
 
-            .then(function (nviStart) {
+                nviStart = nvi;
+                byteCount = 4;
 
-                range = {start: nviStart, size: 100000}
+                range = {start: nviStart, size: 4}
 
                 return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
             })
 
             .then(function (data) {
 
-                var key, nEntries, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes;
+                var range, binaryParser, sizeEstimate;
 
-                var binaryParser = new igv.BinaryParser(new DataView(data));
+                binaryParser = new igv.BinaryParser(new DataView(data));
+                nEntries = binaryParser.getInt();
 
+                sizeEstimate = nEntries * 30;
+                range = {start: nviStart + byteCount, size: sizeEstimate}
+                return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+            })
+            .then(function (data) {
                 dataset.normalizedExpectedValueVectors = {};
-
-                // Normalization vector index
-                p0 = binaryParser.position;
                 self.normVectorIndex = {};
 
-                nEntries = binaryParser.getInt();
-                while (nEntries-- > 0) {
-                    type = binaryParser.getString();
-                    chrIdx = binaryParser.getInt();
-                    unit = binaryParser.getString();
-                    binSize = binaryParser.getInt();
-                    filePosition = binaryParser.getLong();
-                    sizeInBytes = binaryParser.getInt();
-                    key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+                return processEntries(nEntries, data)
+            })
 
-                    if (_.contains(dataset.normalizationTypes, type) === false) {
-                        dataset.normalizationTypes.push(type);
-                    }
-                    self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-                }
+            .then(function (ignore) {
+
 
                 self.normalizationVectorIndexRange = {
-                    start: range.start + p0,
-                    size: binaryParser.position - p0
+                    start: nviStart,
+                    size: byteCount
                 };
 
                 return self;
@@ -26682,6 +26857,48 @@ var hic = (function (hic) {
                 console.error(e);
                 self.normalizationVectorIndexRange = undefined;
             })
+
+
+        function processEntries(nEntries, data) {
+
+            var key, type, unit, binSize, p0, chrIdx, filePosition, sizeInBytes, sizeEstimate;
+
+            var binaryParser = new igv.BinaryParser(new DataView(data));
+
+            while (nEntries-- > 0) {
+
+                if (binaryParser.available() < 100) {
+
+                    nEntries++;   // Reset counter as entry is not processed
+
+                    byteCount += binaryParser.position;
+
+                    sizeEstimate = Math.max(1000, nEntries * 30);
+                    range = {start: nviStart + byteCount, size: sizeEstimate}
+
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+                        .then(function (data) {
+                            return processEntries(nEntries, data);
+                        })
+                }
+
+                type = binaryParser.getString();      //15
+                chrIdx = binaryParser.getInt();       //4
+                unit = binaryParser.getString();      //3
+                binSize = binaryParser.getInt();      //4
+                filePosition = binaryParser.getLong();  //8
+                sizeInBytes = binaryParser.getInt();     //4
+                key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+                if (_.contains(dataset.normalizationTypes, type) === false) {
+                    dataset.normalizationTypes.push(type);
+                }
+                self.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+
+            }
+            byteCount += binaryParser.position;
+            return Promise.resolve(self);
+        }
 
 
     };
@@ -26832,7 +27049,7 @@ var hic = (function (hic) {
 
                 // Normalization vector index
                 if (undefined === self.normVectorIndex) self.normVectorIndex = {};
-                
+
                 p0 = binaryParser.position;
                 normalizationIndexPosition = range.start + p0;
 
