@@ -28,13 +28,7 @@ var hic = (function (hic) {
 
     hic.ControlMapWidget = function (browser, $parent) {
 
-        var self = this,
-            hash,
-            $exchange_container,
-            A,
-            B,
-            AOB,
-            BOA;
+        var self = this;
 
         this.browser = browser;
 
@@ -46,86 +40,21 @@ var hic = (function (hic) {
         // select
         this.$control_map_selector = $('<select>');
         this.$control_map_selector.attr('name', 'control_map_selector');
-        this.$container.append(this.$control_map_selector);
-
-        // a-b exchange icon
-        $exchange_container = $('<div>');
-        this.$container.append($exchange_container);
-
-        // a arrow
-        this.$img_a = $('<img />', { 'src':'../../img/a-b-map-exchange-a.svg', width:'32px', height:'32px' });
-        $exchange_container.append(this.$img_a);
-
-        // b arrow
-        this.$img_b = $('<img />', { 'src':'../../img/a-b-map-exchange-b.svg', width:'32px', height:'32px' });
-        $exchange_container.append(this.$img_b);
-
-        this.contactMapLUT =
-            [
-                { title:   'A', value:   'A', '$img': self.$img_a },
-                { title:   'B', value:   'B', '$img': self.$img_b },
-                { title: 'A/B', value: 'AOB', '$img': self.$img_a },
-                { title: 'B/A', value: 'BOA', '$img': self.$img_b }
-                //{title: 'A-B', value: 'AMB'}
-            ];
-
-        A = { other: 'B', '$hidden': self.$img_b, '$shown': self.$img_a };
-        B = { other: 'A', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        AOB = { other: 'BOA', '$hidden': self.$img_b, '$shown': self.$img_a };
-        BOA = { other: 'AOB', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        hash =
-            {
-                  'A': A,
-                  'B': B,
-                'AOB': AOB,
-                'BOA': BOA,
-            };
-
         this.$control_map_selector.on('change', function (e) {
-            let value,
-                displayMode,
-                obj;
+            var value,
+                displayMode;
 
             displayMode = browser.getDisplayMode();
             console.log('Old Display Mode ' + displayMode);
 
             value = $(this).val();
-
-            obj = hash[ value ];
-            obj.$hidden.hide();
-            obj.$shown.show();
-
             browser.setDisplayMode(value);
 
             displayMode = browser.getDisplayMode();
             console.log('New Display Mode ' + displayMode);
 
         });
-
-
-        $exchange_container.on('click', function (e) {
-            let displayMode,
-                value,
-                str;
-
-            // find new display mode
-            displayMode = browser.getDisplayMode();
-
-            // render new display mode
-            value = hash[ displayMode ].other;
-            browser.setDisplayMode(value);
-
-            // update exchange icon
-            hash[ value ].$hidden.hide();
-            hash[ value ].$shown.show();
-
-            // update select element
-            str = 'option[value=' + value + ']';
-            self.$control_map_selector.find( str ).prop('selected', true);
-
-        });
+        this.$container.append(this.$control_map_selector);
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
             updateOptions.call(self, browser);
@@ -149,22 +78,30 @@ var hic = (function (hic) {
     function updateOptions(browser) {
 
         var self = this,
-            displayMode,
+            optionStrings,
             option;
 
-        displayMode = browser.getDisplayMode();
-
-        self.$img_a.hide();
-        self.$img_b.hide();
+        optionStrings =
+            [
+                {title: 'A', value: 'A'},
+                {title: 'B', value: 'B'},
+                {title: 'A/B', value: 'AOB'}
+                //{title: 'A-B', value: 'AMB'}
+            ];
 
         this.$control_map_selector.empty();
-        this.contactMapLUT.forEach(function (item) {
+        optionStrings.forEach(function (o) {
+            var isSelected;
 
-            option = $('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
+            isSelected = browser.getDisplayMode() === o.value;
 
-            if(displayMode === item.value) {
+            option = $('<option>')
+                .attr('title', o.title)
+                .attr('value', o.value)
+                .text(o.title);
+
+            if(isSelected) {
                 option.attr('selected', true);
-                item.$img.show();
             }
 
             self.$control_map_selector.append(option);
