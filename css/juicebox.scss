@@ -886,15 +886,15 @@ $default-font-family: 'Open Sans', sans-serif;
   justify-content: flex-start;
   align-items: center;
 
+  div {
+    display: block;
+    margin-right: 2px;
+  }
+
   @include navbar-select;
 
   select {
     width: 75%;
-  }
-
-  div {
-    cursor: pointer;
-    margin-left: 4px;
   }
 
 }
