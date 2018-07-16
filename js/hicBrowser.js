@@ -467,16 +467,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.toggleDisplayMode = function () {
-
-        var displayMode,
-            lut;
-
-        lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
-        displayMode = this.getDisplayMode();
-        if (lut[ displayMode ]) {
-            this.setDisplayMode(lut[ displayMode ]);
-            this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
-        }
+        this.controlMapWidget.controlMapHash.toggleDisplayMode();
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -495,7 +486,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setColorScaleThreshold = function (threshold) {
         this.contactMatrixView.setColorScaleThreshold(threshold);
-    }
+    };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
         var xGuide,

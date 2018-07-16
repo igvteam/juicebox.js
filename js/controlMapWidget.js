@@ -29,11 +29,7 @@ var hic = (function (hic) {
     hic.ControlMapWidget = function (browser, $parent) {
 
         var self = this,
-            $exchange_container,
-            A,
-            B,
-            AOB,
-            BOA;
+            $exchange_container;
 
         this.browser = browser;
 
@@ -43,84 +39,18 @@ var hic = (function (hic) {
         $parent.append(this.$container);
 
         // select
-        this.$control_map_selector = $('<select>');
-        this.$control_map_selector.attr('name', 'control_map_selector');
-        this.$container.append(this.$control_map_selector);
+        this.$select = $('<select>');
+        this.$select.attr('name', 'control_map_selector');
+        this.$container.append(this.$select);
 
         // a-b exchange icon
         $exchange_container = $('<div>');
         this.$container.append($exchange_container);
 
-        // a arrow
-        this.$img_a = $a_svg();
-        $exchange_container.append(this.$img_a);
-
-        // b arrow
-        this.$img_b = $b_svg();
-        $exchange_container.append(this.$img_b);
-
-        A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: self.$img_b, $shown: self.$img_a };
-        B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: self.$img_a, $shown: self.$img_b };
-        AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: self.$img_b, $shown: self.$img_a };
-        BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: self.$img_a, $shown: self.$img_b };
-
-        this.contactMapHash =
-            {
-                  'A': A,
-                  'B': B,
-                'AOB': AOB,
-                'BOA': BOA,
-            };
-
-        this.$control_map_selector.on('change', function (e) {
-            let value,
-                displayMode,
-                obj;
-
-            displayMode = browser.getDisplayMode();
-            console.log('Old Display Mode ' + displayMode);
-
-            value = $(this).val();
-
-            obj = self.contactMapHash[ value ];
-
-            if (obj) {
-
-                obj.$hidden.hide();
-                obj.$shown.show();
-
-                browser.setDisplayMode(value);
-
-                displayMode = browser.getDisplayMode();
-                console.log('New Display Mode ' + displayMode);
-            }
-
-        });
-
-        $exchange_container.on('click', function (e) {
-            let displayMode,
-                value,
-                str;
-
-            // find new display mode
-            displayMode = browser.getDisplayMode();
-
-            // render new display mode
-            value = self.contactMapHash[ displayMode ].other;
-            browser.setDisplayMode(value);
-
-            // update exchange icon
-            self.contactMapHash[ value ].$hidden.hide();
-            self.contactMapHash[ value ].$shown.show();
-
-            // update select element
-            str = 'option[value=' + value + ']';
-            self.$control_map_selector.find( str ).prop('selected', true);
-
-        });
+        this.controlMapHash = new hic.ControlMapHash(browser, this.$select, $exchange_container, toggle_arrows_up(), toggle_arrows_down());
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
-            updateOptions.call(self, browser);
+            self.controlMapHash.updateOptions( self.browser.getDisplayMode() );
             self.$container.show();
         });
 
@@ -132,30 +62,96 @@ var hic = (function (hic) {
 
     };
 
-    hic.ControlMapWidget.prototype.didToggleDisplayMode = function (displayMode) {
-        var str;
-        str = 'option[value' + '=' + displayMode + ']';
-        this.$control_map_selector.find(str).prop('selected', true);
+    hic.ControlMapHash = function (browser, $select, $toggle, $img_a, $img_b) {
+
+        let self = this,
+            A,
+            B,
+            Cycle,
+            AOB,
+            BOA;
+
+        this.browser = browser;
+        this.$select = $select;
+        this.$toggle = $toggle;
+
+        // a arrow
+        this.$img_a = $img_a;
+        this.$toggle.append(this.$img_a);
+
+        // b arrow
+        this.$img_b = $img_b;
+        this.$toggle.append(this.$img_b);
+
+        A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: $img_b, $shown: $img_a };
+        B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: $img_a, $shown: $img_b };
+        Cycle   = { title: 'Cycle',   value: 'Cycle',   other: 'Cycle',   $hidden: $img_a, $shown: $img_b };
+        AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a };
+        BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b };
+
+        this.hash =
+            {
+                'A': A,
+                'B': B,
+                // 'Cycle': Cycle,
+                'AOB': AOB,
+                'BOA': BOA,
+            };
+
+        this.$select.on('change', function (e) {
+            let value;
+            value = $(this).val();
+            self.setDisplayMode( value );
+        });
+
+        this.$toggle.on('click', function (e) {
+            self.toggleDisplayMode();
+        });
+
     };
 
-    function updateOptions(browser) {
+    hic.ControlMapHash.prototype.toggleDisplayMode = function () {
 
-        var self = this,
-            displayMode,
-            option,
-            keys;
+        let displayModeOld,
+            displayModeNew,
+            str;
 
-        displayMode = browser.getDisplayMode();
+        displayModeOld = this.browser.getDisplayMode();
 
-        self.$img_a.hide();
-        self.$img_b.hide();
+        // render new display mode
+        displayModeNew = this.hash[ displayModeOld ].other;
+        this.browser.setDisplayMode(displayModeNew);
 
-        this.$control_map_selector.empty();
+        // update exchange icon
+        this.hash[ displayModeNew ].$hidden.hide();
+        this.hash[ displayModeNew ].$shown.show();
 
-        Object.keys(this.contactMapHash).forEach(function (key) {
-            let item;
+        // update select element
+        str = 'option[value=' + displayModeNew + ']';
 
-            item = self.contactMapHash [ key ];
+        this.$select.find( str ).prop('selected', true);
+
+    };
+
+    hic.ControlMapHash.prototype.setDisplayMode = function (displayMode) {
+        this.hash[ displayMode ].$hidden.hide();
+        this.hash[ displayMode ].$shown.show();
+        this.browser.setDisplayMode(displayMode);
+    };
+
+    hic.ControlMapHash.prototype.updateOptions = function (displayMode) {
+        let self = this;
+
+        this.$img_a.hide();
+        this.$img_b.hide();
+
+        this.$select.empty();
+
+        Object.keys(this.hash).forEach(function (key) {
+            let item,
+                option;
+
+            item = self.hash[ key ];
 
             option = $('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
 
@@ -164,14 +160,13 @@ var hic = (function (hic) {
                 item.$shown.show();
             }
 
-            self.$control_map_selector.append(option);
+            self.$select.append(option);
 
         });
 
+    };
 
-    }
-
-    function $a_svg() {
+    function toggle_arrows_up() {
         let str,
             a;
 
@@ -196,7 +191,7 @@ var hic = (function (hic) {
         return $(a);
     }
 
-    function $b_svg() {
+    function toggle_arrows_down() {
         let str,
             b;
 
