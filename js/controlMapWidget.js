@@ -29,7 +29,6 @@ var hic = (function (hic) {
     hic.ControlMapWidget = function (browser, $parent) {
 
         var self = this,
-            hash,
             $exchange_container,
             A,
             B,
@@ -60,22 +59,12 @@ var hic = (function (hic) {
         this.$img_b = $b_svg();
         $exchange_container.append(this.$img_b);
 
-        this.contactMapLUT =
-            [
-                { title:   'A', value:   'A', '$img': self.$img_a },
-                { title:   'B', value:   'B', '$img': self.$img_b },
-                { title: 'A/B', value: 'AOB', '$img': self.$img_a },
-                { title: 'B/A', value: 'BOA', '$img': self.$img_b }
-                //{title: 'A-B', value: 'AMB'}
-            ];
+        A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: self.$img_b, $shown: self.$img_a };
+        B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: self.$img_a, $shown: self.$img_b };
+        AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: self.$img_b, $shown: self.$img_a };
+        BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: self.$img_a, $shown: self.$img_b };
 
-        A = { other: 'B', '$hidden': self.$img_b, '$shown': self.$img_a };
-        B = { other: 'A', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        AOB = { other: 'BOA', '$hidden': self.$img_b, '$shown': self.$img_a };
-        BOA = { other: 'AOB', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        hash =
+        this.contactMapHash =
             {
                   'A': A,
                   'B': B,
@@ -93,17 +82,20 @@ var hic = (function (hic) {
 
             value = $(this).val();
 
-            obj = hash[ value ];
-            obj.$hidden.hide();
-            obj.$shown.show();
+            obj = self.contactMapHash[ value ];
 
-            browser.setDisplayMode(value);
+            if (obj) {
 
-            displayMode = browser.getDisplayMode();
-            console.log('New Display Mode ' + displayMode);
+                obj.$hidden.hide();
+                obj.$shown.show();
+
+                browser.setDisplayMode(value);
+
+                displayMode = browser.getDisplayMode();
+                console.log('New Display Mode ' + displayMode);
+            }
 
         });
-
 
         $exchange_container.on('click', function (e) {
             let displayMode,
@@ -114,12 +106,12 @@ var hic = (function (hic) {
             displayMode = browser.getDisplayMode();
 
             // render new display mode
-            value = hash[ displayMode ].other;
+            value = self.contactMapHash[ displayMode ].other;
             browser.setDisplayMode(value);
 
             // update exchange icon
-            hash[ value ].$hidden.hide();
-            hash[ value ].$shown.show();
+            self.contactMapHash[ value ].$hidden.hide();
+            self.contactMapHash[ value ].$shown.show();
 
             // update select element
             str = 'option[value=' + value + ']';
@@ -150,7 +142,8 @@ var hic = (function (hic) {
 
         var self = this,
             displayMode,
-            option;
+            option,
+            keys;
 
         displayMode = browser.getDisplayMode();
 
@@ -158,16 +151,21 @@ var hic = (function (hic) {
         self.$img_b.hide();
 
         this.$control_map_selector.empty();
-        this.contactMapLUT.forEach(function (item) {
+
+        Object.keys(this.contactMapHash).forEach(function (key) {
+            let item;
+
+            item = self.contactMapHash [ key ];
 
             option = $('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
 
             if(displayMode === item.value) {
                 option.attr('selected', true);
-                item.$img.show();
+                item.$shown.show();
             }
 
             self.$control_map_selector.append(option);
+
         });
 
 
