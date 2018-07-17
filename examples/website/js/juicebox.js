@@ -24315,7 +24315,7 @@ var hic = (function (hic) {
         lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
         displayMode = this.getDisplayMode();
         if (lut[ displayMode ]) {
-            this.setDisplayMode(lut[ displayMode ]);
+            this.setDisplayMode(lut[displayMode]);
             this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
         }
     };

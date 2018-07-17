@@ -921,8 +921,6 @@ var hic = (function (hic) {
             $(document).on('keydown.contact_matrix_view', function (e) {
                 if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
                     self.willShowCrosshairs = true;
-                } else if ('t' === e.key) {
-                    self.browser.toggleDisplayMode();
                 }
             });
 
