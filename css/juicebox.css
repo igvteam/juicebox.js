@@ -511,8 +511,6 @@
     font-family: "Open Sans", sans-serif;
     font-weight: 400;
     color: #5f5f5f; }
-  .hic-control-map-selector-container select {
-    width: 75%; }
   .hic-control-map-selector-container div {
     cursor: pointer;
     margin-left: 6px;

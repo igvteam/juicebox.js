@@ -888,10 +888,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
   @include navbar-select;
 
-  select {
-    width: 75%;
-  }
-
   div {
     cursor: pointer;
     margin-left: 6px;
