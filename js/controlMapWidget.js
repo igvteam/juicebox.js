@@ -230,7 +230,7 @@ var hic = (function (hic) {
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
             '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <title>Toggle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
@@ -255,7 +255,7 @@ var hic = (function (hic) {
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
             '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <title>Toggle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
@@ -280,7 +280,7 @@ var hic = (function (hic) {
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
             '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <title>Cycle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
@@ -305,7 +305,7 @@ var hic = (function (hic) {
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
             '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <title>Cycle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
