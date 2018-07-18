@@ -44,7 +44,7 @@ var hic = (function (hic) {
         this.$select.attr('name', 'control_map_selector');
         this.$container.append(this.$select);
 
-        // a-b exchange icon
+        // a-b toggle icon
         $toggle_container = $('<div>');
         this.$container.append($toggle_container);
 
@@ -94,7 +94,6 @@ var hic = (function (hic) {
 
         A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: $img_b, $shown: $img_a };
         B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: $img_a, $shown: $img_b };
-        Cycle   = { title: 'Cycle',   value: 'Cycle',   other: 'Cycle',   $hidden: $img_a, $shown: $img_b };
         AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a };
         BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b };
 
@@ -102,9 +101,8 @@ var hic = (function (hic) {
             {
                 'A': A,
                 'B': B,
-                // 'Cycle': Cycle,
                 'AOB': AOB,
-                'BOA': BOA,
+                // 'BOA': BOA,
             };
 
         this.$select.on('change', function (e) {
@@ -194,14 +192,7 @@ var hic = (function (hic) {
 
     hic.ControlMapHash.prototype.setDisplayMode = function (displayMode) {
 
-        this.hash[ displayMode ].$hidden.hide();
-        this.hash[ displayMode ].$shown.show();
-
-        if ('A' === displayMode || 'B' === displayMode) {
-            this.$cycle.show();
-        } else {
-            this.$cycle.hide();
-        }
+        setDisplayModeHelper.call(this, displayMode);
 
         this.browser.setDisplayMode(displayMode);
     };
@@ -227,12 +218,7 @@ var hic = (function (hic) {
                 option.attr('selected', true);
                 item.$shown.show();
 
-                if ('A' === displayMode || 'B' === displayMode) {
-                    self.$cycle.show();
-                } else {
-                    self.$cycle.hide();
-                }
-
+                setDisplayModeHelper.call(self, displayMode);
             }
 
             self.$select.append(option);
@@ -240,6 +226,21 @@ var hic = (function (hic) {
         });
 
     };
+
+    function setDisplayModeHelper (displayMode) {
+
+        this.hash[ displayMode ].$hidden.hide();
+        this.hash[ displayMode ].$shown.show();
+
+        if ('A' === displayMode || 'B' === displayMode) {
+            this.$cycle.show();
+            this.$toggle.show();
+        } else {
+            this.$cycle.hide();
+            this.$toggle.hide();
+        }
+
+    }
 
     function toggle_arrows_up() {
         let str,
