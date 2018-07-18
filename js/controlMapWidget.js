@@ -52,39 +52,6 @@ var hic = (function (hic) {
         $cycle_container = $('<div>');
         this.$container.append($cycle_container);
 
-
-        // cycle outline
-        this.$cycle_outline = cycle_outline();
-        $cycle_container.append(this.$cycle_outline);
-
-        // cycle solid
-        this.$cycle_solid = cycle_solid();
-        $cycle_container.append(this.$cycle_solid);
-        this.$cycle_solid.hide();
-
-        $cycle_container.on('click', function () {
-
-            if (self.cycleID) {
-
-                window.clearInterval(self.cycleID);
-                self.cycleID = undefined;
-
-                self.$cycle_solid.hide();
-                self.$cycle_outline.show();
-            } else {
-
-                self.cycleID = window.setInterval(function () {
-                    console.log('cycle maps');
-                    self.controlMapHash.toggleDisplayMode();
-                }, 2500);
-
-                self.$cycle_solid.show();
-                self.$cycle_outline.hide();
-            }
-        });
-
-        $cycle_container.hide();
-
         this.controlMapHash = new hic.ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
@@ -142,13 +109,63 @@ var hic = (function (hic) {
 
         this.$select.on('change', function (e) {
             let value;
+
+            self.disableDisplayModeCycle();
+
             value = $(this).val();
             self.setDisplayMode( value );
         });
 
         this.$toggle.on('click', function (e) {
+            self.disableDisplayModeCycle();
             self.toggleDisplayMode();
         });
+
+        // cycle outline
+        this.$cycle_outline = cycle_outline();
+        $cycle.append(this.$cycle_outline);
+
+        // cycle solid
+        this.$cycle_solid = cycle_solid();
+        $cycle.append(this.$cycle_solid);
+        this.$cycle_solid.hide();
+
+        $cycle.on('click', function () {
+            self.toggleDisplayModeCycle();
+        });
+
+        $cycle.hide();
+
+    };
+
+    hic.ControlMapHash.prototype.disableDisplayModeCycle = function () {
+
+        if (this.cycleID) {
+
+            window.clearInterval(this.cycleID);
+            this.cycleID = undefined;
+
+            this.$cycle_solid.hide();
+            this.$cycle_outline.show();
+        }
+
+    };
+
+    hic.ControlMapHash.prototype.toggleDisplayModeCycle = function () {
+        let self = this;
+
+        if (this.cycleID) {
+
+            this.disableDisplayModeCycle();
+        } else {
+
+            this.cycleID = window.setInterval(function () {
+                self.toggleDisplayMode();
+            }, 2500);
+
+            this.$cycle_solid.show();
+            this.$cycle_outline.hide();
+        }
 
     };
 
