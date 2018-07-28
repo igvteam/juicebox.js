@@ -22852,8 +22852,6 @@ var hic = (function (hic) {
             $(document).on('keydown.contact_matrix_view', function (e) {
                 if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
                     self.willShowCrosshairs = true;
-                } else if ('t' === e.key) {
-                    self.browser.toggleDisplayMode();
                 }
             });
 
@@ -23290,12 +23288,8 @@ var hic = (function (hic) {
     hic.ControlMapWidget = function (browser, $parent) {
 
         var self = this,
-            hash,
-            $exchange_container,
-            A,
-            B,
-            AOB,
-            BOA;
+            $toggle_container,
+            $cycle_container;
 
         this.browser = browser;
 
@@ -23305,91 +23299,25 @@ var hic = (function (hic) {
         $parent.append(this.$container);
 
         // select
-        this.$control_map_selector = $('<select>');
-        this.$control_map_selector.attr('name', 'control_map_selector');
-        this.$container.append(this.$control_map_selector);
+        this.$select = $('<select>');
+        this.$select.attr('name', 'control_map_selector');
+        this.$container.append(this.$select);
 
-        // a-b exchange icon
-        $exchange_container = $('<div>');
-        this.$container.append($exchange_container);
+        // a-b toggle icon
+        $toggle_container = $('<div>');
+        this.$container.append($toggle_container);
 
-        // a arrow
-        this.$img_a = $a_svg();
-        $exchange_container.append(this.$img_a);
+        // cycle button
+        $cycle_container = $('<div>');
+        this.$container.append($cycle_container);
 
-        // b arrow
-        this.$img_b = $b_svg();
-        $exchange_container.append(this.$img_b);
-
-        this.contactMapLUT =
-            [
-                { title:   'A', value:   'A', '$img': self.$img_a },
-                { title:   'B', value:   'B', '$img': self.$img_b },
-                { title: 'A/B', value: 'AOB', '$img': self.$img_a },
-                { title: 'B/A', value: 'BOA', '$img': self.$img_b }
-                //{title: 'A-B', value: 'AMB'}
-            ];
-
-        A = { other: 'B', '$hidden': self.$img_b, '$shown': self.$img_a };
-        B = { other: 'A', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        AOB = { other: 'BOA', '$hidden': self.$img_b, '$shown': self.$img_a };
-        BOA = { other: 'AOB', '$hidden': self.$img_a, '$shown': self.$img_b };
-
-        hash =
-            {
-                  'A': A,
-                  'B': B,
-                'AOB': AOB,
-                'BOA': BOA,
-            };
-
-        this.$control_map_selector.on('change', function (e) {
-            let value,
-                displayMode,
-                obj;
-
-            displayMode = browser.getDisplayMode();
-            console.log('Old Display Mode ' + displayMode);
-
-            value = $(this).val();
-
-            obj = hash[ value ];
-            obj.$hidden.hide();
-            obj.$shown.show();
-
-            browser.setDisplayMode(value);
-
-            displayMode = browser.getDisplayMode();
-            console.log('New Display Mode ' + displayMode);
-
-        });
-
-
-        $exchange_container.on('click', function (e) {
-            let displayMode,
-                value,
-                str;
-
-            // find new display mode
-            displayMode = browser.getDisplayMode();
-
-            // render new display mode
-            value = hash[ displayMode ].other;
-            browser.setDisplayMode(value);
-
-            // update exchange icon
-            hash[ value ].$hidden.hide();
-            hash[ value ].$shown.show();
-
-            // update select element
-            str = 'option[value=' + value + ']';
-            self.$control_map_selector.find( str ).prop('selected', true);
-
-        });
+        this.controlMapHash = new hic.ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
-            updateOptions.call(self, browser);
+            let displayMode;
+
+            displayMode = browser.getDisplayMode();
+            self.controlMapHash.updateOptions( browser.getDisplayMode() );
             self.$container.show();
         });
 
@@ -23401,54 +23329,193 @@ var hic = (function (hic) {
 
     };
 
-    hic.ControlMapWidget.prototype.didToggleDisplayMode = function (displayMode) {
-        var str;
-        str = 'option[value' + '=' + displayMode + ']';
-        this.$control_map_selector.find(str).prop('selected', true);
+    hic.ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
+
+        let self = this,
+            A,
+            B,
+            Cycle,
+            AOB,
+            BOA;
+
+        this.browser = browser;
+        this.$select = $select;
+        this.$toggle = $toggle;
+        this.$cycle = $cycle;
+
+        // a arrow
+        this.$img_a = $img_a;
+        this.$toggle.append(this.$img_a);
+
+        // b arrow
+        this.$img_b = $img_b;
+        this.$toggle.append(this.$img_b);
+
+        A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: $img_b, $shown: $img_a };
+        B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: $img_a, $shown: $img_b };
+        AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a };
+        BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b };
+
+        this.hash =
+            {
+                'A': A,
+                'B': B,
+                'AOB': AOB,
+                // 'BOA': BOA,
+            };
+
+        this.$select.on('change', function (e) {
+            let value;
+
+            self.disableDisplayModeCycle();
+
+            value = $(this).val();
+            self.setDisplayMode( value );
+        });
+
+        this.$toggle.on('click', function (e) {
+            self.disableDisplayModeCycle();
+            self.toggleDisplayMode();
+        });
+
+        // cycle outline
+        this.$cycle_outline = cycle_outline();
+        $cycle.append(this.$cycle_outline);
+
+        // cycle solid
+        this.$cycle_solid = cycle_solid();
+        $cycle.append(this.$cycle_solid);
+        this.$cycle_solid.hide();
+
+        $cycle.on('click', function () {
+            self.toggleDisplayModeCycle();
+        });
+
+        $cycle.hide();
+
     };
 
-    function updateOptions(browser) {
+    hic.ControlMapHash.prototype.disableDisplayModeCycle = function () {
 
-        var self = this,
-            displayMode,
-            option;
+        if (this.cycleID) {
 
-        displayMode = browser.getDisplayMode();
+            window.clearInterval(this.cycleID);
+            this.cycleID = undefined;
 
-        self.$img_a.hide();
-        self.$img_b.hide();
+            this.$cycle_solid.hide();
+            this.$cycle_outline.show();
+        }
 
-        this.$control_map_selector.empty();
-        this.contactMapLUT.forEach(function (item) {
+    };
+
+    hic.ControlMapHash.prototype.toggleDisplayModeCycle = function () {
+        let self = this;
+
+        if (this.cycleID) {
+
+            this.disableDisplayModeCycle();
+        } else {
+
+            this.cycleID = window.setInterval(function () {
+                self.toggleDisplayMode();
+            }, 2500);
+
+            this.$cycle_solid.show();
+            this.$cycle_outline.hide();
+        }
+
+    };
+
+    hic.ControlMapHash.prototype.toggleDisplayMode = function () {
+
+        let displayModeOld,
+            displayModeNew,
+            str;
+
+        displayModeOld = this.browser.getDisplayMode();
+
+        // render new display mode
+        displayModeNew = this.hash[ displayModeOld ].other;
+        this.browser.setDisplayMode(displayModeNew);
+
+        // update exchange icon
+        this.hash[ displayModeNew ].$hidden.hide();
+        this.hash[ displayModeNew ].$shown.show();
+
+        // update select element
+        str = 'option[value=' + displayModeNew + ']';
+
+        this.$select.find( str ).prop('selected', true);
+
+    };
+
+    hic.ControlMapHash.prototype.setDisplayMode = function (displayMode) {
+
+        setDisplayModeHelper.call(this, displayMode);
+
+        this.browser.setDisplayMode(displayMode);
+    };
+
+    hic.ControlMapHash.prototype.updateOptions = function (displayMode) {
+        let self = this;
+
+        this.$img_a.hide();
+        this.$img_b.hide();
+
+        this.$select.empty();
+
+        Object.keys(this.hash).forEach(function (key) {
+            let item,
+                option;
+
+            item = self.hash[ key ];
 
             option = $('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
 
             if(displayMode === item.value) {
+
                 option.attr('selected', true);
-                item.$img.show();
+                item.$shown.show();
+
+                setDisplayModeHelper.call(self, displayMode);
             }
 
-            self.$control_map_selector.append(option);
+            self.$select.append(option);
+
         });
 
+    };
+
+    function setDisplayModeHelper (displayMode) {
+
+        this.hash[ displayMode ].$hidden.hide();
+        this.hash[ displayMode ].$shown.show();
+
+        if ('A' === displayMode || 'B' === displayMode) {
+            this.$cycle.show();
+            this.$toggle.show();
+        } else {
+            this.$cycle.hide();
+            this.$toggle.hide();
+        }
 
     }
 
-    function $a_svg() {
+    function toggle_arrows_up() {
         let str,
             a;
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-            '    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Toggle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-            '        <g id="Group" transform="translate(1.000000, 1.000000)">\n' +
-            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.17836594" fill="#F8F8F8" x="0" y="0" width="32" height="32" rx="3.68239356"></rect>\n' +
-            '            <g id="arrows" transform="translate(6.149597, 6.591484)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.589182969">\n' +
-            '                <path d="M24.4151546,8.24876545 L11.1585378,8.24876545 L11.1585378,6.48121654 C11.1585378,5.69635118 10.2061971,5.29990469 9.64982429,5.85627753 L6.70390944,8.80219238 C6.35879552,9.14734312 6.35879552,9.70691965 6.70390944,10.0520336 L9.64982429,12.9979484 C10.2032144,13.5513017 11.1585378,13.1624409 11.1585378,12.3730462 L11.1585378,10.6054973 L24.4151546,10.6054973 C24.9032558,10.6054973 25.298929,10.2098241 25.298929,9.72172287 L25.298929,9.1325399 C25.298929,8.64443864 24.9032558,8.24876545 24.4151546,8.24876545 Z" id="down-arrow" fill="#F8F8F8" transform="translate(15.872002, 9.426928) rotate(-90.000000) translate(-15.872002, -9.426928) "></path>\n' +
-            '                <path d="M12.3737276,8.24876545 L-0.882889175,8.24876545 L-0.882889175,6.48121654 C-0.882889175,5.69635118 -1.8352298,5.29990469 -2.39160264,5.85627753 L-5.33751748,8.80219238 C-5.68263141,9.14734312 -5.68263141,9.70691965 -5.33751748,10.0520336 L-2.39160264,12.9979484 C-1.83821254,13.5513017 -0.882889175,13.1624409 -0.882889175,12.3730462 L-0.882889175,10.6054973 L12.3737276,10.6054973 C12.8618289,10.6054973 13.2575021,10.2098241 13.2575021,9.72172287 L13.2575021,9.1325399 C13.2575021,8.64443864 12.8618289,8.24876545 12.3737276,8.24876545 Z" id="up-arrow" fill="#5F5F5F" transform="translate(3.830575, 9.426928) scale(1, -1) rotate(-90.000000) translate(-3.830575, -9.426928) "></path>\n' +
+            '        <g id="Group">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+            '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
+            '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#F8F8F8" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
+            '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#5F5F5F" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
             '            </g>\n' +
             '        </g>\n' +
             '    </g>\n' +
@@ -23459,21 +23526,21 @@ var hic = (function (hic) {
         return $(a);
     }
 
-    function $b_svg() {
+    function toggle_arrows_down() {
         let str,
             b;
 
         str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-            '    <!-- Generator: Sketch 50.2 (55047) - http://www.bohemiancoding.com/sketch -->\n' +
-            '    <title>Group</title>\n' +
+            '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Toggle Maps</title>\n' +
             '    <desc>Created with Sketch.</desc>\n' +
             '    <defs></defs>\n' +
             '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-            '        <g id="Group" transform="translate(1.000000, 1.000000)">\n' +
-            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.17836594" fill="#F8F8F8" x="0" y="0" width="32" height="32" rx="3.68239356"></rect>\n' +
-            '            <g id="arrows" transform="translate(6.149597, 6.591484)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.589182969">\n' +
-            '                <path d="M24.4151546,8.24876545 L11.1585378,8.24876545 L11.1585378,6.48121654 C11.1585378,5.69635118 10.2061971,5.29990469 9.64982429,5.85627753 L6.70390944,8.80219238 C6.35879552,9.14734312 6.35879552,9.70691965 6.70390944,10.0520336 L9.64982429,12.9979484 C10.2032144,13.5513017 11.1585378,13.1624409 11.1585378,12.3730462 L11.1585378,10.6054973 L24.4151546,10.6054973 C24.9032558,10.6054973 25.298929,10.2098241 25.298929,9.72172287 L25.298929,9.1325399 C25.298929,8.64443864 24.9032558,8.24876545 24.4151546,8.24876545 Z" id="down-arrow" fill="#5F5F5F" transform="translate(15.872002, 9.426928) rotate(-90.000000) translate(-15.872002, -9.426928) "></path>\n' +
-            '                <path d="M12.3737276,8.24876545 L-0.882889175,8.24876545 L-0.882889175,6.48121654 C-0.882889175,5.69635118 -1.8352298,5.29990469 -2.39160264,5.85627753 L-5.33751748,8.80219238 C-5.68263141,9.14734312 -5.68263141,9.70691965 -5.33751748,10.0520336 L-2.39160264,12.9979484 C-1.83821254,13.5513017 -0.882889175,13.1624409 -0.882889175,12.3730462 L-0.882889175,10.6054973 L12.3737276,10.6054973 C12.8618289,10.6054973 13.2575021,10.2098241 13.2575021,9.72172287 L13.2575021,9.1325399 C13.2575021,8.64443864 12.8618289,8.24876545 12.3737276,8.24876545 Z" id="up-arrow" fill="#F8F8F8" transform="translate(3.830575, 9.426928) scale(1, -1) rotate(-90.000000) translate(-3.830575, -9.426928) "></path>\n' +
+            '        <g id="Group">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+            '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
+            '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#5F5F5F" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
+            '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#F8F8F8" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
             '            </g>\n' +
             '        </g>\n' +
             '    </g>\n' +
@@ -23482,6 +23549,56 @@ var hic = (function (hic) {
         b = str.split('\n').join(' ');
 
         return $(b);
+    }
+
+    function cycle_outline() {
+        let str,
+            b;
+
+        str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+            '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Cycle Maps</title>\n' +
+            '    <desc>Created with Sketch.</desc>\n' +
+            '    <defs></defs>\n' +
+            '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+            '        <g id="Group" fill="#F8F8F8">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+            '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.75">\n' +
+            '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
+            '            </g>\n' +
+            '        </g>\n' +
+            '    </g>\n' +
+            '</svg>';
+
+        b = str.split('\n').join(' ');
+
+        return $(b);
+
+    }
+
+    function cycle_solid() {
+        let str,
+            b;
+
+        str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+            '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+            '    <title>Cycle Maps</title>\n' +
+            '    <desc>Created with Sketch.</desc>\n' +
+            '    <defs></defs>\n' +
+            '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+            '        <g id="Group">\n' +
+            '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+            '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill="#5F5F5F" fill-rule="nonzero">\n' +
+            '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
+            '            </g>\n' +
+            '        </g>\n' +
+            '    </g>\n' +
+            '</svg>';
+
+        b = str.split('\n').join(' ');
+
+        return $(b);
+
     }
 
     return hic;
@@ -24308,16 +24425,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.toggleDisplayMode = function () {
-
-        var displayMode,
-            lut;
-
-        lut = this.controlDataset ? { 'A':'B', 'B':'A' } : {};
-        displayMode = this.getDisplayMode();
-        if (lut[ displayMode ]) {
-            this.setDisplayMode(lut[displayMode]);
-            this.controlMapWidget.didToggleDisplayMode(lut[ displayMode ]);
-        }
+        this.controlMapWidget.controlMapHash.toggleDisplayMode();
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -24336,7 +24444,7 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setColorScaleThreshold = function (threshold) {
         this.contactMatrixView.setColorScaleThreshold(threshold);
-    }
+    };
 
     hic.Browser.prototype.updateCrosshairs = function (coords) {
         var xGuide,
@@ -25708,6 +25816,14 @@ var hic = (function (hic) {
             }
         }
 
+        var captionDiv = document.getElementById('hic-caption');
+        if(captionDiv) {
+            var captionText = captionDiv.textContent;
+            if(captionText) {
+                queryString.push(paramString("caption", captionText));
+            }
+        }
+
         // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
         //
         //     var normVectorString = "";
@@ -25737,7 +25853,7 @@ var hic = (function (hic) {
     function decodeQuery(query, config, uriDecode) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
-            controlUrl, ratioColorScale, controlName, displayMode, controlNvi;
+            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText;
 
 
         hicUrl = query["hicUrl"];
@@ -25754,9 +25870,10 @@ var hic = (function (hic) {
         ratioColorScale = query["ratioColorScale"];
         displayMode = query["displayMode"];
         controlNvi = query["controlNvi"];
+        captionText = query["caption"];
 
         if (hicUrl) {
-            hicUrl = paramDecodeV0(hicUrl, uriDecode);
+            hicUrl = parapmDecode(hicUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
@@ -25765,10 +25882,10 @@ var hic = (function (hic) {
 
         }
         if (name) {
-            config.name = paramDecodeV0(name, uriDecode);
+            config.name = parapmDecode(name, uriDecode);
         }
         if (controlUrl) {
-            controlUrl = paramDecodeV0(controlUrl, uriDecode);
+            controlUrl = parapmDecode(controlUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (controlUrl.startsWith(key)) controlUrl = controlUrl.replace(key, value);
@@ -25776,25 +25893,25 @@ var hic = (function (hic) {
             config.controlUrl = controlUrl;
         }
         if (controlName) {
-            config.controlName = paramDecodeV0(controlName, uriDecode);
+            config.controlName = parapmDecode(controlName, uriDecode);
         }
 
         if (stateString) {
-            stateString = paramDecodeV0(stateString, uriDecode);
+            stateString = parapmDecode(stateString, uriDecode);
             config.state = destringifyStateV0(stateString);
 
         }
         if (colorScale) {
-            colorScale = paramDecodeV0(colorScale, uriDecode);
+            colorScale = parapmDecode(colorScale, uriDecode);
             config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (displayMode) {
-            config.displayMode = paramDecodeV0(displayMode, uriDecode);
+            config.displayMode = parapmDecode(displayMode, uriDecode);
         }
 
         if (trackString) {
-            trackString = paramDecodeV0(trackString, uriDecode);
+            trackString = parapmDecode(trackString, uriDecode);
             config.tracks = destringifyTracksV0(trackString);
 
             // If an oAuth token is provided append it to track configs.
@@ -25809,16 +25926,24 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
+        if(captionText) {
+            captionText = parapmDecode(captionText, uriDecode);
+            var captionDiv = document.getElementById("hic-caption");
+            if(captionDiv) {
+                captionDiv.textContent=captionText;
+            }
+        }
+
         // Norm vector file loading disabled -- too slow
         // if (normVectorString) {
         //     config.normVectorFiles = normVectorString.split("|||");
         // }
 
         if (nvi) {
-            config.nvi = paramDecodeV0(nvi, uriDecode);
+            config.nvi = parapmDecode(nvi, uriDecode);
         }
         if (controlNvi) {
-            config.controlNvi = paramDecodeV0(controlNvi, uriDecode);
+            config.controlNvi = parapmDecode(controlNvi, uriDecode);
         }
 
         function destringifyStateV0(string) {
@@ -25839,7 +25964,7 @@ var hic = (function (hic) {
             var trackStringList = tracks.split("|||"),
                 configList = [], keys, key, i, len;
 
-            _.each(trackStringList, function (trackString) {
+            trackStringList.forEach( function (trackString) {
                 var tokens,
                     url,
                     config,
@@ -25920,7 +26045,7 @@ var hic = (function (hic) {
         return s;
     }
 
-    function paramDecodeV0(str, uriDecode) {
+    function parapmDecode(str, uriDecode) {
 
         if (uriDecode) {
             return decodeURIComponent(str);   // Still more backward compatibility

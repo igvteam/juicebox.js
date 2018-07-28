@@ -364,7 +364,7 @@ var juicebox = (function (juicebox) {
             }
 
             else {
-                return format;
+                return format.toLowerCase();
             }
         }
     };

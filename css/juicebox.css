@@ -937,8 +937,7 @@ div[id$="content-container"] {
     margin-top: 16px;
     padding-top: 4px;
     padding-left: 8px;
-    font-size: 18px;
-    color: #7f7f7f;
+    font-size: medium;
     background-color: #efefef; }
 
 .juicebox-app-clone-button {
