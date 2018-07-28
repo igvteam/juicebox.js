@@ -575,7 +575,7 @@ var juicebox = (function (site) {
                     {'Lab': '20%'}
                 ];
 
-            encodeDatasource = new igv.EncodeDataSource(columnFormat);
+            encodeDatasource = new juicebox.EncodeDataSource(columnFormat);
 
             loadTracks = function (configurationList) {
                 hic.Browser.getCurrentBrowser().loadTracks(configurationList);
@@ -592,7 +592,7 @@ var juicebox = (function (site) {
                 browserHandler: loadTracks
             };
 
-            encodeTable = new igv.ModalTable(config);
+            encodeTable = new juicebox.ModalTable(config);
 
             encodeTable.loadData(genomeId);
 

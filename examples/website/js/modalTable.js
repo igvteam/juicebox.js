@@ -28,9 +28,9 @@
  * Created by dat on 4/18/17.
  */
 
-var igv = (function (igv) {
+var juicebox = (function (juicebox) {
 
-    igv.ModalTable = function (config) {
+    juicebox.ModalTable = function (config) {
 
         this.config = config;
         this.datasource = config.datasource;
@@ -60,7 +60,7 @@ var igv = (function (igv) {
                 configuration.$modalGoButton
             ];
 
-        _.each(list, function ($e) {
+        list.forEach( function ($e) {
             $e.unbind();
         });
 
@@ -87,68 +87,80 @@ var igv = (function (igv) {
         return result.length > 0 ? result : undefined;
     }
 
-    igv.ModalTable.prototype.willRetrieveData = function () {
+    juicebox.ModalTable.prototype.startSpinner = function () {
         this.$spinner.show();
+    };
+
+    juicebox.ModalTable.prototype.stopSpinner = function () {
+        this.$spinner.hide();
+    };
+
+    juicebox.ModalTable.prototype.hidePresentationButton = function () {
+        this.config.$modalPresentationButton.addClass('igv-app-disabled');
+        this.config.$modalPresentationButton.text('Genome not supported by ENCODE');
+    };
+
+    juicebox.ModalTable.prototype.willRetrieveData = function () {
+        //this.startSpinner();
         $('#hic-encode-modal-button').hide();
         $('#hic-encode-loading').show();
 
     };
 
-    igv.ModalTable.prototype.didRetrieveData = function () {
-        $('#hic-encode-loading').hide();
+    juicebox.ModalTable.prototype.didRetrieveData = function () {
+        //this.config.didRetrieveData();
         $('#hic-encode-modal-button').show();
-        this.buildTable(true);
+        $('#hic-encode-loading').hide();
     };
 
-    igv.ModalTable.prototype.didFailToRetrieveData = function () {
-        $('#hic-encode-loading').hide();
-        $('#hic-encode-modal-button').show();
-        this.$spinner.hide();
+    juicebox.ModalTable.prototype.didFailToRetrieveData = function () {
+        this.stopSpinner();
         this.buildTable(false);
     };
 
-    igv.ModalTable.prototype.loadData = function (genomeId) {
+    juicebox.ModalTable.prototype.loadData = function (genomeId) {
 
         var self = this,
             assembly;
 
         this.willRetrieveData();
 
-        assembly = igv.genomeIdLUT( genomeId);
-        this.datasource
-            .retrieveData(assembly)
-            .then(function (data) {
-                console.log('modaltable. then. received data ' + _.size(data));
-                self.datasource.data = data;
-                self.doRetrieveData = false;
+        assembly = juicebox.ModalTable.getAssembly( genomeId);
 
-                self.didRetrieveData();
-            })
-            .catch(function (e) {
-                self.didFailToRetrieveData();
-            });
+        if (assembly) {
+
+            this.datasource
+                .retrieveData(assembly, function (record) {
+                    // to bigwig only for now
+                    return record["Format"].toLowerCase() === "bigwig";
+                })
+                .then(function (data) {
+
+                    self.datasource.data = data;
+                    self.doRetrieveData = false;
+
+                    self.didRetrieveData();
+                    self.buildTable(true);
+
+                })
+                .catch(function (e) {
+                    self.didFailToRetrieveData();
+                });
+        }
+
     };
 
-    igv.ModalTable.prototype.buildTable = function (success) {
+    juicebox.ModalTable.prototype.buildTable = function (success) {
 
         var self = this;
 
         if (true === success) {
 
-            $('#hic-encode-modal-button').off('click');
-
             this.config.$modal.on('shown.bs.modal', function (e) {
 
                 if (true === self.doBuildTable) {
-
-                    console.log('building table ...');
-                    // self.$spinner.show();
-
                     self.tableWithDataAndColumns(self.datasource.tableData(self.datasource.data), self.datasource.tableColumns());
-
-                    console.log('... done building table');
-                    self.$spinner.hide();
-
+                    self.stopSpinner();
                     self.doBuildTable = false;
                 }
 
@@ -165,12 +177,6 @@ var igv = (function (igv) {
 
             });
 
-        } else {
-
-            $('#hic-encode-modal-button').on('click', function (e) {
-                igv.presentAlert('No ENCODE data available');
-                return false;
-            });
         }
 
         this.config.$modalTopCloseButton.on('click', function () {
@@ -183,25 +189,29 @@ var igv = (function (igv) {
 
     };
 
-    igv.ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
+    juicebox.ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
 
         var config;
 
-        this.$spinner.hide();
-
+        this.stopSpinner();
         config =
-            {
-                data: tableData,
-                columns: tableColumns,
-                paging: true,
-                scrollX: false,
-                scrollY: '400px',
-                scrollCollapse: false,
-                scroller: true,
-                fixedColumns: true
-            };
+        {
+            data: tableData,
+            columns: tableColumns,
 
+            autoWidth: false,
+
+            paging: true,
+
+            scrollX: true,
+            scrollY: '400px',
+            scroller: true,
+            scrollCollapse: true
+        };
+
+        console.log('ModalTable.tableWithDataAndColumns ...');
         this.$dataTables = this.$table.dataTable(config);
+        console.log('... tableWithDataAndColumns done');
 
         this.$table.find('tbody').on('click', 'tr', function () {
 
@@ -215,6 +225,23 @@ var igv = (function (igv) {
 
     };
 
-    return igv;
+    juicebox.ModalTable.getAssembly = function (genomeID) {
+        let lut,
+            assembly;
 
-})(igv || {});
+        lut =
+        {
+            dm3: 'dm3',
+            mm10: 'mm10',
+            hg19: 'hg19',
+            hg38: 'GRCh38'
+        };
+
+        assembly = lut[ genomeID ];
+
+        return assembly;
+    };
+
+    return juicebox;
+
+})(juicebox || {});

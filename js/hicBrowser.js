@@ -1858,6 +1858,14 @@ var hic = (function (hic) {
             }
         }
 
+        var captionDiv = document.getElementById('hic-caption');
+        if(captionDiv) {
+            var captionText = captionDiv.textContent;
+            if(captionText) {
+                queryString.push(paramString("caption", captionText));
+            }
+        }
+
         // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
         //
         //     var normVectorString = "";
@@ -1887,7 +1895,7 @@ var hic = (function (hic) {
     function decodeQuery(query, config, uriDecode) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
-            controlUrl, ratioColorScale, controlName, displayMode, controlNvi;
+            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText;
 
 
         hicUrl = query["hicUrl"];
@@ -1904,9 +1912,10 @@ var hic = (function (hic) {
         ratioColorScale = query["ratioColorScale"];
         displayMode = query["displayMode"];
         controlNvi = query["controlNvi"];
+        captionText = query["caption"];
 
         if (hicUrl) {
-            hicUrl = paramDecodeV0(hicUrl, uriDecode);
+            hicUrl = parapmDecode(hicUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
@@ -1915,10 +1924,10 @@ var hic = (function (hic) {
 
         }
         if (name) {
-            config.name = paramDecodeV0(name, uriDecode);
+            config.name = parapmDecode(name, uriDecode);
         }
         if (controlUrl) {
-            controlUrl = paramDecodeV0(controlUrl, uriDecode);
+            controlUrl = parapmDecode(controlUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (controlUrl.startsWith(key)) controlUrl = controlUrl.replace(key, value);
@@ -1926,25 +1935,25 @@ var hic = (function (hic) {
             config.controlUrl = controlUrl;
         }
         if (controlName) {
-            config.controlName = paramDecodeV0(controlName, uriDecode);
+            config.controlName = parapmDecode(controlName, uriDecode);
         }
 
         if (stateString) {
-            stateString = paramDecodeV0(stateString, uriDecode);
+            stateString = parapmDecode(stateString, uriDecode);
             config.state = destringifyStateV0(stateString);
 
         }
         if (colorScale) {
-            colorScale = paramDecodeV0(colorScale, uriDecode);
+            colorScale = parapmDecode(colorScale, uriDecode);
             config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (displayMode) {
-            config.displayMode = paramDecodeV0(displayMode, uriDecode);
+            config.displayMode = parapmDecode(displayMode, uriDecode);
         }
 
         if (trackString) {
-            trackString = paramDecodeV0(trackString, uriDecode);
+            trackString = parapmDecode(trackString, uriDecode);
             config.tracks = destringifyTracksV0(trackString);
 
             // If an oAuth token is provided append it to track configs.
@@ -1959,16 +1968,24 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
+        if(captionText) {
+            captionText = parapmDecode(captionText, uriDecode);
+            var captionDiv = document.getElementById("hic-caption");
+            if(captionDiv) {
+                captionDiv.textContent=captionText;
+            }
+        }
+
         // Norm vector file loading disabled -- too slow
         // if (normVectorString) {
         //     config.normVectorFiles = normVectorString.split("|||");
         // }
 
         if (nvi) {
-            config.nvi = paramDecodeV0(nvi, uriDecode);
+            config.nvi = parapmDecode(nvi, uriDecode);
         }
         if (controlNvi) {
-            config.controlNvi = paramDecodeV0(controlNvi, uriDecode);
+            config.controlNvi = parapmDecode(controlNvi, uriDecode);
         }
 
         function destringifyStateV0(string) {
@@ -1989,7 +2006,7 @@ var hic = (function (hic) {
             var trackStringList = tracks.split("|||"),
                 configList = [], keys, key, i, len;
 
-            _.each(trackStringList, function (trackString) {
+            trackStringList.forEach( function (trackString) {
                 var tokens,
                     url,
                     config,
@@ -2070,7 +2087,7 @@ var hic = (function (hic) {
         return s;
     }
 
-    function paramDecodeV0(str, uriDecode) {
+    function parapmDecode(str, uriDecode) {
 
         if (uriDecode) {
             return decodeURIComponent(str);   // Still more backward compatibility
