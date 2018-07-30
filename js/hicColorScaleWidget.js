@@ -143,7 +143,7 @@ var hic = (function (hic) {
 
         if ("DisplayMode" === event.type) {
 
-            if ("AOB" === event.data) {
+            if ("AOB" === event.data || "BOA" === event.data) {
                 this.$minusButton.show();
             }
             else {

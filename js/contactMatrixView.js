@@ -106,9 +106,12 @@ var hic = (function (hic) {
 
         switch (this.displayMode) {
             case 'AOB':
+            case 'BOA':
                 this.ratioColorScale = colorScale;
+                break;
             case 'AMB':
-                return diffColorScale = colorScale;
+                this.diffColorScale = colorScale;
+                break;
             default:
                 this.colorScale = colorScale;
         }
@@ -127,6 +130,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.getColorScale = function () {
         switch (this.displayMode) {
             case 'AOB':
+            case 'BOA':
                 return this.ratioColorScale;
             case 'AMB':
                 return this.diffColorScale;
@@ -404,8 +408,8 @@ var hic = (function (hic) {
 
         colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
 
-        if ('AOB' === self.displayMode) {
-            return Promise.resolve(self.colorScale);     // Don't adjust color scale for A/B.
+        if ('AOB' === self.displayMode || 'BOA' === self.displayMode) {
+            return Promise.resolve(self.ratioColorScale);     // Don't adjust color scale for A/B.
         }
 
         if (self.colorScaleCache[colorKey]) {
@@ -414,7 +418,7 @@ var hic = (function (hic) {
             if (changed) {
                 self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             }
-            return Promise.resolve();
+            return Promise.resolve(self.colorScale);
         }
 
         else {
@@ -549,11 +553,21 @@ var hic = (function (hic) {
 
                 .then(function (blocks) {
 
-                    var block = blocks[0],
-                        controlBlock,
-                        image;
+                    var averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock, image;
 
-                    if (blocks.length > 0) controlBlock = blocks[1];
+                    if("BOA" === self.displayMode) {
+                        ctrlAverageCount  = zd.averageCount;
+                        averageCount = zdControl ? zdControl.averageCount : 1;
+                        block = blocks[1];
+                        controlBlock = blocks[0];
+                    }else {
+                        averageCount = zd.averageCount;
+                        ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+                        block = blocks[0];
+                        if (blocks.length > 0) controlBlock = blocks[1];
+                    }
+                    averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
 
                     if (block && block.records.length > 0) {
                         image = drawBlock(block, controlBlock, transpose);
@@ -601,7 +615,7 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
-                        if ('AOB' === self.displayMode || 'AMB' === self.displayMode) {
+                        if ('AOB' === self.displayMode || 'BOA' === self.displayMode || 'AMB' === self.displayMode) {
                             controlRecords = {};
                             controlBlock.records.forEach(function (record) {
                                 controlRecords[record.getKey()] = record;
@@ -613,11 +627,6 @@ var hic = (function (hic) {
                         if (useImageData) {
                             id = ctx.getImageData(0, 0, image.width, image.height);
                         }
-
-                        var averageCount = zd.averageCount;
-                        var ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
-                        var averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
-
 
                         for (i = 0; i < block.records.length; i++) {
 
@@ -634,7 +643,7 @@ var hic = (function (hic) {
                             switch (self.displayMode) {
 
                                 case 'AOB':
-
+                                case 'BOA':
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
                                     if (!controlRec) {
@@ -851,19 +860,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    };
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                    {
-                        x: eFixed.pageX - $viewport.offset().left,
-                        y: eFixed.pageY - $viewport.offset().top
-                    };
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 

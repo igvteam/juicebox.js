@@ -102,7 +102,7 @@ var hic = (function (hic) {
                 'A': A,
                 'B': B,
                 'AOB': AOB,
-                // 'BOA': BOA,
+                'BOA': BOA
             };
 
         this.$select.on('change', function (e) {

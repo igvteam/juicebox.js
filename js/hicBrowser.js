@@ -476,6 +476,7 @@ var hic = (function (hic) {
 
         switch (this.getDisplayMode()) {
             case 'AOB':
+            case 'BOA':
                 return this.contactMatrixView.ratioColorScale;
             case 'AMB':
                 return this.contactMatrixView.diffColorScale;
