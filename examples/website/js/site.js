@@ -507,7 +507,7 @@ var juicebox = (function (site) {
 
     function loadHicFile(url, name) {
 
-        var synchState, browsersWithMaps, isControl, browser;
+        var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
@@ -521,23 +521,35 @@ var juicebox = (function (site) {
 
         browser = hic.Browser.getCurrentBrowser();
 
+        config = {url: url, name: name, isControl: isControl};
+
+        if (url.includes("?")) {
+            query = hic.extractQuery(url);
+            uriDecode = url.includes("%2C");
+            igv.Browser.decodeQuery(query, config, uriDecode);
+        }
+
+
         if (isControl) {
             browser
-                .loadHicControlFile({url: url, name: name, isControl: isControl})
+                .loadHicControlFile(config)
                 .then(function (dataset) {
 
                 });
         } else {
             browser.reset();
+
             browsersWithMaps = hic.allBrowsers.filter(function (browser) {
                 return browser.dataset !== undefined;
             });
 
             if (browsersWithMaps.length > 0) {
-                synchState = browsersWithMaps[0].getSyncState();
+                config["synchState"] = browsersWithMaps[0].getSyncState();
             }
+
+
             browser
-                .loadHicFile({url: url, name: name, isControl: isControl, synchState: synchState})
+                .loadHicFile(config)
                 .then(function (ignore) {
                     if (!isControl) {
                         hic.syncBrowsers(hic.allBrowsers);

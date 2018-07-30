@@ -76,7 +76,7 @@ var hic = (function (hic) {
             }
             query = hic.extractQuery(queryString);
             uriDecode = queryString.includes("%2C");
-            decodeQuery(query, config, uriDecode);
+            igv.Browser.decodeQuery(query, config, uriDecode);
         }
 
         browser = new hic.Browser($hic_container, config);
@@ -131,12 +131,12 @@ var hic = (function (hic) {
                     browser.loadTracks(config.tracks);
                 }
             })
-            .then (function (ignore) {
+            .then(function (ignore) {
                 var promises = [];
-                if(config.normVectorFiles) {
-                   config.normVectorFiles.forEach(function (nv) {
-                       promises.push(browser.loadNormalizationFile(nv));
-                   })
+                if (config.normVectorFiles) {
+                    config.normVectorFiles.forEach(function (nv) {
+                        promises.push(browser.loadNormalizationFile(nv));
+                    })
                 }
                 return Promise.all(promises);
 
@@ -609,7 +609,7 @@ var hic = (function (hic) {
                 return Promise.all(promises2D);
             })
             .then(function (tracks2D) {
-                if(tracks2D && tracks2D.length > 0) {
+                if (tracks2D && tracks2D.length > 0) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
                     self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
@@ -682,7 +682,7 @@ var hic = (function (hic) {
 
                 normVectors["types"].forEach(function (type) {
 
-                    if(!self.dataset.normalizationTypes) {
+                    if (!self.dataset.normalizationTypes) {
                         self.dataset.normalizationTypes = [];
                     }
                     if (_.contains(self.dataset.normalizationTypes, type) === false) {
@@ -757,13 +757,12 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader;
+            hicReader, queryString, query, uriDecode;
 
         if (!config.url) {
             console.log("No .hic url specified");
             return Promise.resolve(undefined);
         }
-
 
         self.contactMatrixView.startSpinner();
         this.isLoadingHICFile = true;
@@ -1860,10 +1859,13 @@ var hic = (function (hic) {
         }
 
         var captionDiv = document.getElementById('hic-caption');
-        if(captionDiv) {
+        if (captionDiv) {
             var captionText = captionDiv.textContent;
-            if(captionText) {
-                queryString.push(paramString("caption", captionText));
+            if (captionText) {
+                captionText = captionText.trim();
+                if (captionText) {
+                    queryString.push(paramString("caption", captionText));
+                }
             }
         }
 
@@ -1893,7 +1895,7 @@ var hic = (function (hic) {
      * @param query
      * @param config
      */
-    function decodeQuery(query, config, uriDecode) {
+    igv.Browser.decodeQuery = function (query, config, uriDecode) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
             controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText;
@@ -1969,11 +1971,11 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if(captionText) {
+        if (captionText) {
             captionText = parapmDecode(captionText, uriDecode);
             var captionDiv = document.getElementById("hic-caption");
-            if(captionDiv) {
-                captionDiv.textContent=captionText;
+            if (captionDiv) {
+                captionDiv.textContent = captionText;
             }
         }
 
@@ -2007,7 +2009,7 @@ var hic = (function (hic) {
             var trackStringList = tracks.split("|||"),
                 configList = [], keys, key, i, len;
 
-            trackStringList.forEach( function (trackString) {
+            trackStringList.forEach(function (trackString) {
                 var tokens,
                     url,
                     config,
