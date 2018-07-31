@@ -232,13 +232,16 @@ var hic = (function (hic) {
         this.hash[ displayMode ].$hidden.hide();
         this.hash[ displayMode ].$shown.show();
 
-        if ('A' === displayMode || 'B' === displayMode) {
-            this.$cycle.show();
-            this.$toggle.show();
-        } else {
-            this.$cycle.hide();
-            this.$toggle.hide();
-        }
+        this.$cycle.show();
+        this.$toggle.show();
+
+        // if ('A' === displayMode || 'B' === displayMode) {
+        //     this.$cycle.show();
+        //     this.$toggle.show();
+        // } else {
+        //     this.$cycle.hide();
+        //     this.$toggle.hide();
+        // }
 
     }
 
