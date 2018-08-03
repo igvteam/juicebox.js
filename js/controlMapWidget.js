@@ -69,6 +69,20 @@ var hic = (function (hic) {
         });
 
     };
+    
+    hic.ControlMapWidget.prototype.toggleDisplayMode = function () {
+        this.controlMapHash.toggleDisplayMode();
+    }
+    
+    hic.ControlMapWidget.prototype.toggleDisplayModeCycle = function () {
+        this.controlMapHash.toggleDisplayModeCycle();
+    }
+    
+    hic.ControlMapWidget.prototype.getDisplayModeCycle = function () {
+        return this.controlMapHash.cycleID;
+    }
+    
+    hic.ControlMapWidget.prototype
 
     hic.ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
 

@@ -143,6 +143,12 @@ var hic = (function (hic) {
             })
 
             .then(function (ignore) {
+                if(config.cycle) {
+                    browser.controlMapWidget.toggleDisplayModeCycle();
+                }
+            })
+
+            .then(function (ignore) {
                 if (typeof callback === "function") callback();
             })
 
@@ -467,7 +473,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.toggleDisplayMode = function () {
-        this.controlMapWidget.controlMapHash.toggleDisplayMode();
+        this.controlMapWidget.toggleDisplayMode();
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -1818,6 +1824,10 @@ var hic = (function (hic) {
                 queryString.push(paramString("controlNvi", nviString));
             }
 
+            if(this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+                queryString.push(paramString("cycle", "true"))
+            }
+
         }
 
 
@@ -1898,7 +1908,7 @@ var hic = (function (hic) {
     igv.Browser.decodeQuery = function (query, config, uriDecode) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
-            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText;
+            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
 
 
         hicUrl = query["hicUrl"];
@@ -1916,6 +1926,7 @@ var hic = (function (hic) {
         displayMode = query["displayMode"];
         controlNvi = query["controlNvi"];
         captionText = query["caption"];
+        cycle = query["cycle"];
 
         if (hicUrl) {
             hicUrl = parapmDecode(hicUrl, uriDecode);
@@ -1978,6 +1989,8 @@ var hic = (function (hic) {
                 captionDiv.textContent = captionText;
             }
         }
+
+        config.cycle = cycle;
 
         // Norm vector file loading disabled -- too slow
         // if (normVectorString) {
