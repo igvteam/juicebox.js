@@ -29,7 +29,6 @@ function runStrawTests() {
 
     }
 
-
     asyncTest("Version 7 file", function () {
 
         var url = "https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic",
@@ -51,6 +50,32 @@ function runStrawTests() {
                 start();
             })
             .catch(function (error) {
+                ok(false);
+                console.error(error);
+                start();
+            })
+    });
+
+    asyncTest("All chromosome", function () {
+
+        var url = "https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic",
+            normalization = "NONE",
+            units = "BP",
+            region1 = {
+                chr: "all"
+            },
+            binSize = undefined,
+            straw;
+
+        straw = new hic.Straw({url: url});
+
+        straw.getContactRecords(normalization,region1, region1, units, binSize)
+            .then( function(records) {
+                ok(records.length > 0);
+                start();
+            })
+            .catch(function (error) {
+                ok(false);
                 console.error(error);
                 start();
             })

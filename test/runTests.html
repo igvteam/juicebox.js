@@ -41,6 +41,11 @@
     <script src="../js/hicTrack2D.js"></script>
     <script src="../js/hicStraw.js"></script>
 
+    <script src="../vendor/colors.js"></script>
+    <script src="../vendor/jquery-ui.js"></script>
+    <script src="../vendor/throbber.js"></script>
+    <script src="../vendor/zlib_and_gzip.js"></script>
+
     <script src="testReader.js"></script>
     <script src="testColorScale.js"></script>
     <script src="testTrack2D.js"></script>
@@ -53,11 +58,11 @@
 <div id="qunit-fixture"></div>
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {
-      //  runTrack2DTests();
-      //  runColorTests();
+        runTrack2DTests();
+        runColorTests();
         runHicReaderTests();
-      //  runMathTests();
-      //  runStrawTests();
+        runMathTests();
+        runStrawTests();
     });
 </script>
 </body>

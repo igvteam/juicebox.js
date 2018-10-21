@@ -39,15 +39,19 @@ var hic = (function (hic) {
         var self = this,
             chr1 = region1.chr,
             chr2 = region2.chr,
-            x1 = region1.start / binsize, 
-            x2 = region1.end / binsize,
-            y1 = region2.start / binsize,
-            y2 = region2.end / binsize;
+            x1 = (region1.start === undefined) ? undefined :  region1.start / binsize,
+            x2 = (region1.end === undefined) ? undefined : region1.end / binsize,
+            y1 = (region2.start === undefined) ? undefined : region2.start / binsize,
+            y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
 
         return getDataset.call(self)
+
             .then(function (dataset) {
 
                 self.dataset = dataset;
+
+                if("ALL" === chr1.toUpperCase()) chr1 = chr1.toUpperCase();
+                if("ALL" === chr2.toUpperCase()) chr2 = chr2.toUpperCase();
 
                 var chr1idx = dataset.getChrIndexFromName(chr1),
                     chr2idx = dataset.getChrIndexFromName(chr2);
@@ -59,8 +63,9 @@ var hic = (function (hic) {
                 return dataset.getMatrix(chr1idx, chr2idx)
             })
             .then(function (matrix) {
+
                 // Find the requested resolution
-                var z = self.dataset.getZoomIndexForBinSize(binsize, units);
+                var z = undefined === binsize ? 0 : self.dataset.getZoomIndexForBinSize(binsize, units);
                 if (z === -1) {
                     throw new Error("Invalid bin size");
                 }
@@ -69,8 +74,8 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
                     col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount),
                     col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount),
-                    row1 = Math.floor(y1 / blockBinCount),
-                    row2 = Math.floor(y2 / blockBinCount),
+                    row1 = y1 === undefined ? 0 : Math.floor(y1 / blockBinCount),
+                    row2 = y2 === undefined ? zd.blockColumnCount :  Math.floor(y2 / blockBinCount),
                     row, column, sameChr, blockNumber,
                     promises = [];
 
@@ -91,15 +96,16 @@ var hic = (function (hic) {
                 return Promise.all(promises);
             })
             .then(function (blocks) {
+
                 var contactRecords = [];
 
                 blocks.forEach(function (block) {
-                    if (block === null) { // This is most likely caused by a base pair range outside the chromosome
+                    if (!block) { // This is most likely caused by a base pair range outside the chromosome
                         return;
                     }
                     block.records.forEach(function(rec) {
                         // TODO -- transpose?
-                        if(rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2) {
+                        if(x1 === undefined || (rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2)) {
                             contactRecords.push(rec);
                         }
                     });
