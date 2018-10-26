@@ -22037,9 +22037,12 @@ var hic = (function (hic) {
 
         switch (this.displayMode) {
             case 'AOB':
+            case 'BOA':
                 this.ratioColorScale = colorScale;
+                break;
             case 'AMB':
-                return diffColorScale = colorScale;
+                this.diffColorScale = colorScale;
+                break;
             default:
                 this.colorScale = colorScale;
         }
@@ -22058,6 +22061,7 @@ var hic = (function (hic) {
     hic.ContactMatrixView.prototype.getColorScale = function () {
         switch (this.displayMode) {
             case 'AOB':
+            case 'BOA':
                 return this.ratioColorScale;
             case 'AMB':
                 return this.diffColorScale;
@@ -22335,8 +22339,8 @@ var hic = (function (hic) {
 
         colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
 
-        if ('AOB' === self.displayMode) {
-            return Promise.resolve(self.colorScale);     // Don't adjust color scale for A/B.
+        if ('AOB' === self.displayMode || 'BOA' === self.displayMode) {
+            return Promise.resolve(self.ratioColorScale);     // Don't adjust color scale for A/B.
         }
 
         if (self.colorScaleCache[colorKey]) {
@@ -22345,7 +22349,7 @@ var hic = (function (hic) {
             if (changed) {
                 self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             }
-            return Promise.resolve();
+            return Promise.resolve(self.colorScale);
         }
 
         else {
@@ -22480,11 +22484,21 @@ var hic = (function (hic) {
 
                 .then(function (blocks) {
 
-                    var block = blocks[0],
-                        controlBlock,
-                        image;
+                    var averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock, image;
 
-                    if (blocks.length > 0) controlBlock = blocks[1];
+                    if("BOA" === self.displayMode) {
+                        ctrlAverageCount  = zd.averageCount;
+                        averageCount = zdControl ? zdControl.averageCount : 1;
+                        block = blocks[1];
+                        controlBlock = blocks[0];
+                    }else {
+                        averageCount = zd.averageCount;
+                        ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+                        block = blocks[0];
+                        if (blocks.length > 0) controlBlock = blocks[1];
+                    }
+                    averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
 
                     if (block && block.records.length > 0) {
                         image = drawBlock(block, controlBlock, transpose);
@@ -22532,7 +22546,7 @@ var hic = (function (hic) {
                         ctx = image.getContext('2d');
                         ctx.clearRect(0, 0, image.width, image.height);
 
-                        if ('AOB' === self.displayMode || 'AMB' === self.displayMode) {
+                        if ('AOB' === self.displayMode || 'BOA' === self.displayMode || 'AMB' === self.displayMode) {
                             controlRecords = {};
                             controlBlock.records.forEach(function (record) {
                                 controlRecords[record.getKey()] = record;
@@ -22544,11 +22558,6 @@ var hic = (function (hic) {
                         if (useImageData) {
                             id = ctx.getImageData(0, 0, image.width, image.height);
                         }
-
-                        var averageCount = zd.averageCount;
-                        var ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
-                        var averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
-
 
                         for (i = 0; i < block.records.length; i++) {
 
@@ -22565,7 +22574,7 @@ var hic = (function (hic) {
                             switch (self.displayMode) {
 
                                 case 'AOB':
-
+                                case 'BOA':
                                     key = rec.getKey();
                                     controlRec = controlRecords[key];
                                     if (!controlRec) {
@@ -22782,19 +22791,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    };
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                    {
-                        x: eFixed.pageX - $viewport.offset().left,
-                        y: eFixed.pageY - $viewport.offset().top
-                    };
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 
@@ -23328,6 +23337,20 @@ var hic = (function (hic) {
         });
 
     };
+    
+    hic.ControlMapWidget.prototype.toggleDisplayMode = function () {
+        this.controlMapHash.toggleDisplayMode();
+    }
+    
+    hic.ControlMapWidget.prototype.toggleDisplayModeCycle = function () {
+        this.controlMapHash.toggleDisplayModeCycle();
+    }
+    
+    hic.ControlMapWidget.prototype.getDisplayModeCycle = function () {
+        return this.controlMapHash.cycleID;
+    }
+    
+    hic.ControlMapWidget.prototype
 
     hic.ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
 
@@ -23361,7 +23384,7 @@ var hic = (function (hic) {
                 'A': A,
                 'B': B,
                 'AOB': AOB,
-                // 'BOA': BOA,
+                'BOA': BOA
             };
 
         this.$select.on('change', function (e) {
@@ -23491,13 +23514,16 @@ var hic = (function (hic) {
         this.hash[ displayMode ].$hidden.hide();
         this.hash[ displayMode ].$shown.show();
 
-        if ('A' === displayMode || 'B' === displayMode) {
-            this.$cycle.show();
-            this.$toggle.show();
-        } else {
-            this.$cycle.hide();
-            this.$toggle.hide();
-        }
+        this.$cycle.show();
+        this.$toggle.show();
+
+        // if ('A' === displayMode || 'B' === displayMode) {
+        //     this.$cycle.show();
+        //     this.$toggle.show();
+        // } else {
+        //     this.$cycle.hide();
+        //     this.$toggle.hide();
+        // }
 
     }
 
@@ -24034,7 +24060,7 @@ var hic = (function (hic) {
             }
             query = hic.extractQuery(queryString);
             uriDecode = queryString.includes("%2C");
-            decodeQuery(query, config, uriDecode);
+            igv.Browser.decodeQuery(query, config, uriDecode);
         }
 
         browser = new hic.Browser($hic_container, config);
@@ -24089,15 +24115,21 @@ var hic = (function (hic) {
                     browser.loadTracks(config.tracks);
                 }
             })
-            .then (function (ignore) {
+            .then(function (ignore) {
                 var promises = [];
-                if(config.normVectorFiles) {
-                   config.normVectorFiles.forEach(function (nv) {
-                       promises.push(browser.loadNormalizationFile(nv));
-                   })
+                if (config.normVectorFiles) {
+                    config.normVectorFiles.forEach(function (nv) {
+                        promises.push(browser.loadNormalizationFile(nv));
+                    })
                 }
                 return Promise.all(promises);
 
+            })
+
+            .then(function (ignore) {
+                if(config.cycle) {
+                    browser.controlMapWidget.toggleDisplayModeCycle();
+                }
             })
 
             .then(function (ignore) {
@@ -24425,7 +24457,7 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.toggleDisplayMode = function () {
-        this.controlMapWidget.controlMapHash.toggleDisplayMode();
+        this.controlMapWidget.toggleDisplayMode();
     };
 
     hic.Browser.prototype.getColorScale = function () {
@@ -24434,6 +24466,7 @@ var hic = (function (hic) {
 
         switch (this.getDisplayMode()) {
             case 'AOB':
+            case 'BOA':
                 return this.contactMatrixView.ratioColorScale;
             case 'AMB':
                 return this.contactMatrixView.diffColorScale;
@@ -24566,7 +24599,7 @@ var hic = (function (hic) {
                 return Promise.all(promises2D);
             })
             .then(function (tracks2D) {
-                if(tracks2D && tracks2D.length > 0) {
+                if (tracks2D && tracks2D.length > 0) {
                     self.tracks2D = self.tracks2D.concat(tracks2D);
                     self.eventBus.post(hic.Event("TrackLoad2D", self.tracks2D));
                 }
@@ -24639,7 +24672,7 @@ var hic = (function (hic) {
 
                 normVectors["types"].forEach(function (type) {
 
-                    if(!self.dataset.normalizationTypes) {
+                    if (!self.dataset.normalizationTypes) {
                         self.dataset.normalizationTypes = [];
                     }
                     if (_.contains(self.dataset.normalizationTypes, type) === false) {
@@ -24714,13 +24747,12 @@ var hic = (function (hic) {
     hic.Browser.prototype.loadHicFile = function (config) {
 
         var self = this,
-            hicReader;
+            hicReader, queryString, query, uriDecode;
 
         if (!config.url) {
             console.log("No .hic url specified");
             return Promise.resolve(undefined);
         }
-
 
         self.contactMatrixView.startSpinner();
         this.isLoadingHICFile = true;
@@ -25776,6 +25808,10 @@ var hic = (function (hic) {
                 queryString.push(paramString("controlNvi", nviString));
             }
 
+            if(this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+                queryString.push(paramString("cycle", "true"))
+            }
+
         }
 
 
@@ -25817,10 +25853,13 @@ var hic = (function (hic) {
         }
 
         var captionDiv = document.getElementById('hic-caption');
-        if(captionDiv) {
+        if (captionDiv) {
             var captionText = captionDiv.textContent;
-            if(captionText) {
-                queryString.push(paramString("caption", captionText));
+            if (captionText) {
+                captionText = captionText.trim();
+                if (captionText) {
+                    queryString.push(paramString("caption", captionText));
+                }
             }
         }
 
@@ -25850,10 +25889,10 @@ var hic = (function (hic) {
      * @param query
      * @param config
      */
-    function decodeQuery(query, config, uriDecode) {
+    igv.Browser.decodeQuery = function (query, config, uriDecode) {
 
         var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
-            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText;
+            controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
 
 
         hicUrl = query["hicUrl"];
@@ -25871,6 +25910,7 @@ var hic = (function (hic) {
         displayMode = query["displayMode"];
         controlNvi = query["controlNvi"];
         captionText = query["caption"];
+        cycle = query["cycle"];
 
         if (hicUrl) {
             hicUrl = parapmDecode(hicUrl, uriDecode);
@@ -25926,13 +25966,15 @@ var hic = (function (hic) {
             igv.FeatureTrack.selectedGene = selectedGene;
         }
 
-        if(captionText) {
+        if (captionText) {
             captionText = parapmDecode(captionText, uriDecode);
             var captionDiv = document.getElementById("hic-caption");
-            if(captionDiv) {
-                captionDiv.textContent=captionText;
+            if (captionDiv) {
+                captionDiv.textContent = captionText;
             }
         }
+
+        config.cycle = cycle;
 
         // Norm vector file loading disabled -- too slow
         // if (normVectorString) {
@@ -25964,7 +26006,7 @@ var hic = (function (hic) {
             var trackStringList = tracks.split("|||"),
                 configList = [], keys, key, i, len;
 
-            trackStringList.forEach( function (trackString) {
+            trackStringList.forEach(function (trackString) {
                 var tokens,
                     url,
                     config,
@@ -26306,7 +26348,7 @@ var hic = (function (hic) {
 
         if ("DisplayMode" === event.type) {
 
-            if ("AOB" === event.data) {
+            if ("AOB" === event.data || "BOA" === event.data) {
                 this.$minusButton.show();
             }
             else {
@@ -28623,15 +28665,19 @@ var hic = (function (hic) {
         var self = this,
             chr1 = region1.chr,
             chr2 = region2.chr,
-            x1 = region1.start / binsize, 
-            x2 = region1.end / binsize,
-            y1 = region2.start / binsize,
-            y2 = region2.end / binsize;
+            x1 = (region1.start === undefined) ? undefined :  region1.start / binsize,
+            x2 = (region1.end === undefined) ? undefined : region1.end / binsize,
+            y1 = (region2.start === undefined) ? undefined : region2.start / binsize,
+            y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
 
         return getDataset.call(self)
+
             .then(function (dataset) {
 
                 self.dataset = dataset;
+
+                if("ALL" === chr1.toUpperCase()) chr1 = chr1.toUpperCase();
+                if("ALL" === chr2.toUpperCase()) chr2 = chr2.toUpperCase();
 
                 var chr1idx = dataset.getChrIndexFromName(chr1),
                     chr2idx = dataset.getChrIndexFromName(chr2);
@@ -28643,8 +28689,9 @@ var hic = (function (hic) {
                 return dataset.getMatrix(chr1idx, chr2idx)
             })
             .then(function (matrix) {
+
                 // Find the requested resolution
-                var z = self.dataset.getZoomIndexForBinSize(binsize, units);
+                var z = undefined === binsize ? 0 : self.dataset.getZoomIndexForBinSize(binsize, units);
                 if (z === -1) {
                     throw new Error("Invalid bin size");
                 }
@@ -28653,8 +28700,8 @@ var hic = (function (hic) {
                     blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
                     col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount),
                     col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount),
-                    row1 = Math.floor(y1 / blockBinCount),
-                    row2 = Math.floor(y2 / blockBinCount),
+                    row1 = y1 === undefined ? 0 : Math.floor(y1 / blockBinCount),
+                    row2 = y2 === undefined ? zd.blockColumnCount :  Math.floor(y2 / blockBinCount),
                     row, column, sameChr, blockNumber,
                     promises = [];
 
@@ -28675,15 +28722,16 @@ var hic = (function (hic) {
                 return Promise.all(promises);
             })
             .then(function (blocks) {
+
                 var contactRecords = [];
 
                 blocks.forEach(function (block) {
-                    if (block === null) { // This is most likely caused by a base pair range outside the chromosome
+                    if (!block) { // This is most likely caused by a base pair range outside the chromosome
                         return;
                     }
                     block.records.forEach(function(rec) {
                         // TODO -- transpose?
-                        if(rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2) {
+                        if(x1 === undefined || (rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2)) {
                             contactRecords.push(rec);
                         }
                     });
