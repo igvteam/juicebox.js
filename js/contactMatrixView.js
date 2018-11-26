@@ -25,6 +25,8 @@
  * @author Jim Robinson
  */
 
+"use strict;"
+
 var hic = (function (hic) {
 
     const DRAG_THRESHOLD = 2;
@@ -78,7 +80,7 @@ var hic = (function (hic) {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
         this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
-        this.colorScaleCache = {};
+        this.colorScaleThresholdCache = {};
 
         // Set initial color scales.  These might be overriden / adjusted via parameters
         this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
@@ -115,13 +117,13 @@ var hic = (function (hic) {
             default:
                 this.colorScale = colorScale;
         }
-        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
+        this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
     };
 
     hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
 
         this.getColorScale().setThreshold(threshold);
-        this.colorScaleCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
+        this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
         this.imageTileCache = {};
         this.initialImage = undefined;
         this.repaint();
@@ -172,7 +174,7 @@ var hic = (function (hic) {
                 this.mouseHandlersEnabled = true;
             }
             this.clearCaches();
-            this.colorScaleCache = {};
+            this.colorScaleThresholdCache = {};
         }
 
         else {
@@ -188,7 +190,7 @@ var hic = (function (hic) {
 
             this.update();
         }
-    };
+    }
 
     function validateInitialImage(initialImage, state) {
 
@@ -407,14 +409,13 @@ var hic = (function (hic) {
         var self = this, colorKey, dataset;
 
         colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
-
         if ('AOB' === self.displayMode || 'BOA' === self.displayMode) {
             return Promise.resolve(self.ratioColorScale);     // Don't adjust color scale for A/B.
         }
 
-        if (self.colorScaleCache[colorKey]) {
-            var changed = self.colorScale.threshold !== self.colorScaleCache[colorKey];
-            self.colorScale.threshold = self.colorScaleCache[colorKey];
+        if (self.colorScaleThresholdCache[colorKey]) {
+            var changed = self.colorScale.threshold !== self.colorScaleThresholdCache[colorKey];
+            self.colorScale.threshold = self.colorScaleThresholdCache[colorKey];
             if (changed) {
                 self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
             }
@@ -422,7 +423,6 @@ var hic = (function (hic) {
         }
 
         else {
-
             var row, column, sameChr, blockNumber,
                 promises = [];
 
@@ -443,6 +443,7 @@ var hic = (function (hic) {
             }
 
             return Promise.all(promises)
+
                 .then(function (blocks) {
 
                     var s = computePercentile(blocks, 95);
@@ -451,10 +452,13 @@ var hic = (function (hic) {
 
                         if (0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
 
+                        self.colorScale = new hic.ColorScale(self.colorScale);
                         self.colorScale.threshold = s;
                         self.computeColorScale = false;
                         self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
                     }
+
+                    self.colorScaleThresholdCache[colorKey] = s;
 
                     return self.colorScale;
 
@@ -805,6 +809,8 @@ var hic = (function (hic) {
             mouseOver,
             lastWheelTime;
 
+        this.isDragging = false;
+
         if (!this.browser.isMobile) {
 
             $viewport.dblclick(function (e) {
@@ -889,7 +895,7 @@ var hic = (function (hic) {
 
                     } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
-                        isDragging = true;
+                        self.isDragging = true;
 
                         var dx = mouseLast.x - coords.x;
                         var dy = mouseLast.y - coords.y;
@@ -954,8 +960,8 @@ var hic = (function (hic) {
 
         function panMouseUpOrMouseOut(e) {
 
-            if (true === isDragging) {
-                isDragging = false;
+            if (true === self.isDragging) {
+                self.isDragging = false;
                 self.browser.eventBus.post(hic.Event("DragStopped"));
             }
 
@@ -1175,6 +1181,7 @@ var hic = (function (hic) {
         this.g = scale.g;
         this.b = scale.b;
     };
+
 
     hic.ColorScale.prototype.setThreshold = function (threshold) {
         this.threshold = threshold;
