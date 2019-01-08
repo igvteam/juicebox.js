@@ -541,7 +541,7 @@ var juicebox = (function (site) {
 
         config = {url: url, name: name, isControl: isControl};
 
-        if (url.includes("?")) {
+        if (typeof url === "string" && url.includes("?")) {
             query = hic.extractQuery(url);
             uriDecode = url.includes("%2C");
             igv.Browser.decodeQuery(query, config, uriDecode);
