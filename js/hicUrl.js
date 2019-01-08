@@ -112,24 +112,29 @@ var hic = (function (hic) {
 
         url = url + encodeURIComponent(queryString);
 
-        return self.shortenURL(url)
+        if (url.length > 2048) {
+            return Promise.resolve(url)
+        }
+        else {
+            return self.shortenURL(url)
 
-            .then(function (shortURL) {
+                .then(function (shortURL) {
 
-                // Now shorten a second time, with short url as a parameter.  This solves the problem of
-                // the expanded url (after a redirect) being over the browser limit.
+                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
+                    // the expanded url (after a redirect) being over the browser limit.
 
-                var idx, href, url;
+                    var idx, href, url;
 
-                href = window.location.href;
-                idx = href.indexOf("?");
-                if (idx > 0) {
-                    href = href.substr(0, idx);
-                }
+                    href = window.location.href;
+                    idx = href.indexOf("?");
+                    if (idx > 0) {
+                        href = href.substr(0, idx);
+                    }
 
-                url = href + "?juiceboxURL=" + shortURL;
-                return url;
-            })
+                    url = href + "?juiceboxURL=" + shortURL;
+                    return url;
+                })
+        }
     };
 
 
@@ -176,7 +181,13 @@ var hic = (function (hic) {
             })
 
             .then(function (json) {
-                return json.data.url;
+                // TODO check status code
+                if (500 === json.status_code) {
+                    igv.presentAlert("Error shortening URL: " + json.status_txt)
+                    return undefined
+                } else {
+                    return json.data.url;
+                }
             })
     };
 

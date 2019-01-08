@@ -120,7 +120,6 @@ var hic = (function (hic) {
             })
 
             .then(function (dataset) {
-
                 if (config.colorScale) {
                     // This must be done after dataset load
                     browser.contactMatrixView.setColorScale(config.colorScale);

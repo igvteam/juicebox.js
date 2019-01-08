@@ -116,6 +116,17 @@ var juicebox = (function (site) {
 
         $hic_share_url_modal = $('#hic-share-url-modal');
 
+        function maybeShortenURL(url) {
+            if(url.length < 2048) {
+                return hic.shortenURL(url)
+            }
+            else {
+                igv.presentAlert("URL too long to shorten")
+                return Promise.resolve(url)
+            }
+        }
+
+
         $hic_share_url_modal.on('show.bs.modal', function (e) {
 
             var queryString,
@@ -142,9 +153,11 @@ var juicebox = (function (site) {
                             $hic_embed_url.get(0).select();
                         });
 
-                    hic.shortenURL(jbUrl)
+                    maybeShortenURL(jbUrl)
 
                         .then(function (shortURL) {
+
+                            var shareUrl = shortURL || jbUrl
 
                             // Shorten second time
                             // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
@@ -154,7 +167,7 @@ var juicebox = (function (site) {
                                 $hic_share_url;
 
                             $hic_share_url = $('#hic-share-url');
-                            $hic_share_url.val(shortURL);
+                            $hic_share_url.val(shareUrl);
                             $hic_share_url.get(0).select();
 
                             tweetContainer = $('#tweetButtonContainer');
@@ -163,30 +176,35 @@ var juicebox = (function (site) {
                             {
                                 text: 'Contact map: '
                             };
-                            window.twttr.widgets
-                                .createShareButton(shortURL, tweetContainer.get(0), config)
-                                .then(function (el) {
-                                    console.log("Tweet button updated");
-                                });
 
-                            $('#emailButton').attr('href', 'mailto:?body=' + shortURL);
+                            $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
 
-                            // QR code generation
-                            if (qrcode) {
-                                qrcode.clear();
-                                $('hic-qr-code-image').empty();
-                            } else {
-                                config =
-                                {
-                                    width: 128,
-                                    height: 128,
-                                    correctLevel: QRCode.CorrectLevel.H
-                                };
 
-                                qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                            if(shareUrl.length < 100) {
+                                window.twttr.widgets
+                                    .createShareButton(shareUrl, tweetContainer.get(0), config)
+                                    .then(function (el) {
+                                        console.log("Tweet button updated");
+                                    });
+
+
+                                // QR code generation
+                                if (qrcode) {
+                                    qrcode.clear();
+                                    $('hic-qr-code-image').empty();
+                                } else {
+                                    config =
+                                        {
+                                            width: 128,
+                                            height: 128,
+                                            correctLevel: QRCode.CorrectLevel.H
+                                        };
+
+                                    qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                                }
+
+                                qrcode.makeCode(shareUrl);
                             }
-
-                            qrcode.makeCode(shortURL);
                         });
                 });
         });
