@@ -158,10 +158,20 @@ var hic = (function (hic) {
             var list;
 
             list = resolutions.map(function (resolution, index) {
-                var selected,
-                    pretty;
+                var selected, unit, pretty;
 
-                pretty = igv.numberFormatter( Math.round( resolution/divisor ) ) + (1e3 === divisor ? ' kb' : ' mb');
+                if(resolution >= 1e6) {
+                    divisor = 1e6
+                    unit = 'mb'
+                } else if(resolution >= 1e3) {
+                    divisor = 1e3
+                    unit = 'kb'
+                } else {
+                    divisor = 1
+                    unit = 'bp'
+                }
+
+                pretty = igv.numberFormatter( Math.round( resolution/divisor ) ) + ' ' + unit;
                 selected = selectedIndex === index;
 
                 return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected': '') + '>' + pretty + '</option>';
