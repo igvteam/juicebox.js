@@ -99,7 +99,7 @@ var hic = (function (hic) {
         if (!data) return null;
 
         var feature,
-            lines = data.splitLines(),
+            lines = igv.splitLines(data),
             len = lines.length,
             tokens,
             allFeatures = [],

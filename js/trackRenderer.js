@@ -84,7 +84,7 @@ var hic = (function (hic) {
 
             this.$menu_button.click(function (e) {
                 e.stopPropagation();
-                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self);
+                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
             });
 
             this.$viewport.on('click', function (e) {
@@ -132,6 +132,15 @@ var hic = (function (hic) {
 
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
+
+    };
+
+    hic.TrackRenderer.prototype.setTrackName = function (name) {
+
+        if ('x' === this.axis) {
+            this.track.name = name;
+            this.$label.text(name);
+        }
 
     };
 
@@ -225,27 +234,19 @@ var hic = (function (hic) {
                         self.canvasTransform(ctx);
 
                         self.drawConfiguration =
-                        {
-                            features: features,
-
-                            context: ctx,
-
-                            pixelWidth: lengthPixel,
-                            pixelHeight: Math.min(buffer.width, buffer.height),
-
-                            bpStart: startBP,
-                            bpEnd: endBP,
-
-                            bpPerPixel: genomicState.bpp,
-
-                            genomicState: genomicState,
-
-                            viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
-
-                            viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
-
-                            labelTransform: self.labelReflectionTransform
-                        };
+                            {
+                                features: features,
+                                context: ctx,
+                                pixelWidth: lengthPixel,
+                                pixelHeight: Math.min(buffer.width, buffer.height),
+                                bpStart: startBP,
+                                bpEnd: endBP,
+                                bpPerPixel: genomicState.bpp,
+                                genomicState: genomicState,
+                                viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
+                                viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
+                                labelTransform: self.labelReflectionTransform
+                            };
 
                         self.track.draw(self.drawConfiguration);
 
@@ -271,13 +272,11 @@ var hic = (function (hic) {
             chrName;
 
         genomicState = self.browser.genomicState(self.axis);
-        if (self.track.visibilityWindow && self.track.visibilityWindow > 0) {
-
-            if ((genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow)) {
+        if (!this.checkZoomIn()) {
                 self.tile = undefined;
                 self.ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
             }
-        }
+
 
         chrName = genomicState.chromosome.name;
 
@@ -296,6 +295,18 @@ var hic = (function (hic) {
         }
 
     };
+
+    hic.TrackRenderer.prototype.checkZoomIn = function () {
+
+        if (this.track.visibilityWindow && this.track.visibilityWindow > 0) {
+
+            if ((genomicState.bpp * Math.max(this.$canvas.width(), this.$canvas.height()) > this.track.visibilityWindow)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     hic.TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
 

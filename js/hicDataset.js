@@ -38,9 +38,11 @@ var hic = (function (hic) {
         this.blockCacheKeys = [];
         this.normVectorCache = {};
         this.normalizationTypes = ['NONE'];
-        
+
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
+
+        this.remote = (typeof this.url === 'string')
     };
 
     hic.Dataset.prototype.clearCaches = function () {
@@ -69,7 +71,6 @@ var hic = (function (hic) {
         }
     }
 
-
     hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization, eventBus) {
 
         var self = this;
@@ -96,7 +97,7 @@ var hic = (function (hic) {
 
                                     if (nv1 === undefined || nv2 === undefined) {
                                         console.log("Undefined normalization vector for: " + normalization);
-                                        if(eventBus) {
+                                        if (eventBus) {
                                             eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
                                         }
                                         return block;
@@ -119,7 +120,7 @@ var hic = (function (hic) {
 
                                         normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
 
-                                        normBlock.percentile95 = block.percentile95;
+                                        //normBlock.percentile95 = block.percentile95;
 
                                         return normBlock;
                                     }
@@ -184,7 +185,6 @@ var hic = (function (hic) {
         }
     };
 
-
     hic.Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
         var i,
             resolutionArray;
@@ -215,6 +215,68 @@ var hic = (function (hic) {
         return undefined;
     }
 
+    hic.Dataset.prototype.compareChromosomes = function (otherDataset) {
+        const chrs = this.chromosomes;
+        const otherChrs = otherDataset.chromosomes;
+        if(chrs.length !== otherChrs.length) {
+            return false;
+        }
+        for(let i = 0; i<chrs.length; i++) {
+            if(chrs[i].size !== otherChrs[i].size) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    hic.Dataset.prototype.getNormVectorIndex = async function (config) {
+
+        var self = this;
+
+        if (this.hicReader.normVectorIndex) {
+            return Promise.resolve(hicReader.normVectorIndex);
+        }
+        else {
+
+            // If NVI was not supplied, try fetching it
+            let nviKey;
+            if (!config.nvi && this.remote) {
+                const url = new URL(this.url)
+                nviKey = encodeURIComponent(url.hostname + url.pathname)
+                const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + nviKey, {
+                    method: 'GET',
+                    redirect: 'follow',
+                    mode: 'cors',
+                })
+                if (nviResponse.status === 200) {
+                    const nvi = await nviResponse.text()
+                    if (nvi) {
+                        config.nvi = nvi
+                    }
+                }
+            }
+            if (config.nvi) {
+                const nviArray = decodeURIComponent(config.nvi).split(",")
+                const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+                return self.hicReader.readNormVectorIndex(self, range)
+
+
+            } else {
+                return self.hicReader.readNormExpectedValuesAndNormVectorIndex(self)
+                    .then(function (ignore) {
+
+                        return self.hicReader.normVectorIndex;
+                    })
+                    .catch(function (error) {
+                        igv.presentAlert("Error loading normalization vectors");
+                        console.log(error);
+                    });
+            }
+
+        }
+    }
+
+
     hic.Block = function (blockNumber, zoomData, records) {
         this.blockNumber = blockNumber;
         this.zoomData = zoomData;
@@ -226,7 +288,7 @@ var hic = (function (hic) {
         this.bin2 = bin2;
         this.counts = counts;
     };
-    
+
     hic.ContactRecord.prototype.getKey = function () {
         return "" + this.bin1 + "_" + this.bin2;
     }

@@ -58,7 +58,7 @@ var hic = (function (hic) {
 
     function parseSearchResults(data) {
 
-        var lines = data.splitLines(),
+        var lines = igv.splitLines(data),
             linesTrimmed = [],
             results = [];
 

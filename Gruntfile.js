@@ -1,3 +1,5 @@
+const webpackConfig = require('./webpack.config.js');
+
 module.exports = function (grunt) {
 
     // 1. All configuration goes here
@@ -35,21 +37,10 @@ module.exports = function (grunt) {
                     'js/**/*.js',
                     'wrapper/footer.js'
                 ],
-                dest: 'dist/juicebox.js'
+                dest: 'tmp/juicebox.js'
             }
         },
 
-        uglify: {
-            options: {
-                mangle: false,
-                sourceMap: true
-            },
-
-            hic: {
-                src: 'dist/juicebox.js',
-                dest: 'dist/juicebox.min.js'
-            }
-        },
 
         copy: {
             css: {
@@ -67,27 +58,50 @@ module.exports = function (grunt) {
                 expand: true,
                 flatten: true,
                 src: 'css/juicebox.css',
-                dest: 'examples/website/css'
+                dest: 'website/css'
             },
             siteimg: {
                 expand: true,
                 flatten: true,
                 src: 'css/img/*',
-                dest: 'examples/website/css/img'
+                dest: 'website/css/img'
             },
             sitejs: {
                 expand: true,
                 flatten: true,
-                src: 'dist/juicebox*.js',
-                dest: 'examples/website/js'
+                src: 'dist/*.js',
+                dest: 'website/js'
             },
             sitemap: {
                 expand: true,
                 flatten: true,
-                src: 'dist/juicebox.min.map',
-                dest: 'examples/website/js'
+                src: 'dist/*.map',
+                dest: 'website/js'
             }
-        }
+        },
+
+        webpack: {
+            prod: webpackConfig
+        },
+
+        babel: {
+            options: {
+                sourceMap: true,
+                presets: ['@babel/preset-env'],
+                plugins: [["transform-remove-console", {"exclude": ["error", "warn"]}]]
+
+            },
+            dist: {
+                files: [
+                    {
+                        expand: true,
+                        cwd: 'js/',
+                        src: ['**/*.js'],
+                        dest: 'es5/'
+                    }
+                ]
+            }
+        },
     });
 
     // 3. Where we tell Grunt we plan to use this plug-in.
@@ -101,10 +115,14 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
+    grunt.loadNpmTasks('babel-core');
+    grunt.loadNpmTasks('grunt-babel');
+    grunt.loadNpmTasks('grunt-webpack');
+
     // 4. Where we tell Grunt what to do when we type "grunt" into the terminal.
     //grunt.registerTask('default', ['concat:igvexp', 'uglify:igvexp']);
     //grunt.registerTask('default', ['concat:igv', 'uglify:igv', 'md2html:igv']);
-    grunt.registerTask('default', ['concat:hic', 'uglify:hic', 'copy']);
+    grunt.registerTask('default', ['concat:hic', 'webpack:prod', 'copy']);
 
     grunt.task.registerTask('unittest', 'Run one unit test.', function (testname) {
 

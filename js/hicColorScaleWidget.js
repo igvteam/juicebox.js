@@ -44,22 +44,34 @@ var hic = (function (hic) {
         this.$minusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$minusButton);
         this.$minusButton.hide();
-        this.$minusColorPicker = createColorpicker.call(this, browser, this.$minusButton, '-');
-        this.$minusColorPicker.draggable();
-        this.$minusColorPicker.hide();
-        this.$minusButton.on('click', function (e) {
-            self.presentColorPicker($(this), self.$minusColorPicker);
+
+        this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
+            self.minusColorPicker.$container.hide()
         });
+
+        // this.minusColorPicker.$container.draggable();
+        this.minusColorPicker.$container.hide();
 
         // '+' color swatch
         rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
         this.$plusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$plusButton);
-        this.$plusColorPicker = createColorpicker.call(this, browser, this.$plusButton, '+');
-        this.$plusColorPicker.draggable();
-        this.$plusColorPicker.hide();
+
+        this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', function () {
+            self.plusColorPicker.$container.hide()
+        });
+
+        // this.plusColorPicker.$container.draggable();
+        this.plusColorPicker.$container.hide();
+
+
+
+        this.$minusButton.on('click', function (e) {
+            self.presentColorPicker($(this), self.minusColorPicker.$container);
+        });
+
         this.$plusButton.on('click', function (e) {
-            self.presentColorPicker($(this), self.$plusColorPicker);
+            self.presentColorPicker($(this), self.plusColorPicker.$container);
         });
 
 
@@ -120,7 +132,6 @@ var hic = (function (hic) {
     };
 
     hic.ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
-        var str;
 
         this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
         this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
@@ -128,9 +139,6 @@ var hic = (function (hic) {
         this.$presentingButton = $presentingButton;
         this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
 
-        str = this.$presentingButton.find('i').hasClass('fa-plus') ? '+' : '-';
-        // console.log('presenting button ' + str);
-        // this.$colorpicker.toggle();
         $colorpicker.show();
     };
 
@@ -154,46 +162,44 @@ var hic = (function (hic) {
 
     };
 
-    function createColorpicker(browser, $presentingButton, type) {
+    function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
-        var self = this,
-            $colorpicker,
-            config;
+        const config =
+            {
+                $parent: $presentingButton,
+                width: 456,
+                height: undefined,
+                closeHandler: closeHandler
+            };
 
-        config =
-        {
-            // width = (29 * swatch-width) + border-width + border-width
-            width: ((29 * 24) + 1 + 1),
-            classes: ['igv-position-absolute']
-        };
+        let colorPicker = new igv.genericContainer(config);
 
-        $colorpicker = igv.genericContainer(browser.$root, config, function () {
-            $colorpicker.toggle();
-        });
+        function colorHandler(hexString) {
+            var rgbString,
+                rgb;
 
-        igv.createColorSwatchSelector($colorpicker, function (colorName) {
-            var rgb;
+            $presentingButton.find('.fa-square').css({ color: hexString });
 
-            $presentingButton.find('.fa-square').css({color: colorName});
+            rgbString = igv.Color.hexToRgb(hexString);
 
-            rgb = colorName.split('(').pop().split(')').shift().split(',').map(function (str) {
-                return parseInt(str, 10);
-            });
+            rgb = rgbString
+                .split('(')
+                .pop()
+                .split(')')
+                .shift()
+                .split(',')
+                .map(function (str) { return parseInt(str, 10); });
 
-            browser.getColorScale().setColorComponents({
-                    r: rgb[0],
-                    g: rgb[1],
-                    b: rgb[2]
-                }, type
-            );
-            browser.repaint();
+            browser.getColorScale().setColorComponents({ r: rgb[0], g: rgb[1], b: rgb[2] }, type);
+            browser.repaintMatrix();
 
-        });
+        }
 
-        return $colorpicker;
+        igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
 
+
+        return colorPicker;
     }
-
     return hic;
 
 })

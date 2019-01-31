@@ -187,8 +187,6 @@ var hic = (function (hic) {
                     this.initialImage = undefined;
                 }
             }
-
-            this.update();
         }
     }
 
@@ -249,7 +247,7 @@ var hic = (function (hic) {
     /**
      * Return a promise to load all neccessary data
      */
-    hic.ContactMatrixView.prototype.readyToPaint = function () {
+    hic.ContactMatrixView.prototype.readyToPaint = async function () {
 
         var self = this,
             state = this.browser.state;
@@ -259,49 +257,44 @@ var hic = (function (hic) {
         }
 
         self.startSpinner();
-        return getMatrices.call(self, state.chr1, state.chr2)
 
-            .then(function (matrices) {
-
-                var matrix = matrices[0];
+        const matrices = await getMatrices.call(self, state.chr1, state.chr2)
 
 
-                if (matrix) {
-                    var zd = matrix.bpZoomData[state.zoom],
-                        blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
-                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
-                        widthInBins = self.$viewport.width() / pixelSizeInt,
-                        heightInBins = self.$viewport.height() / pixelSizeInt,
-                        blockCol1 = Math.floor(state.x / blockBinCount),
-                        blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
-                        blockRow1 = Math.floor(state.y / blockBinCount),
-                        blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, zdControl, promises = [];
+        var matrix = matrices[0];
 
-                    if (matrices.length > 1) {
-                        zdControl = matrices[1].bpZoomData[state.zoom];
-                    }
 
-                    return checkColorScale.call(self, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+        if (matrix) {
+            var zd = await matrix.bpZoomData[state.zoom],
+                blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
+                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
+                widthInBins = self.$viewport.width() / pixelSizeInt,
+                heightInBins = self.$viewport.height() / pixelSizeInt,
+                blockCol1 = Math.floor(state.x / blockBinCount),
+                blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
+                blockRow1 = Math.floor(state.y / blockBinCount),
+                blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
+                r, c, zdControl, promises = [];
 
-                        .then(function () {
+            if (matrices.length > 1) {
+                zdControl = matrices[1].bpZoomData[state.zoom];
+            }
 
-                            for (r = blockRow1; r <= blockRow2; r++) {
-                                for (c = blockCol1; c <= blockCol2; c++) {
-                                    promises.push(self.getImageTile(zd, zdControl, r, c, state));
-                                }
-                            }
+            await checkColorScale.call(self, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-                            return Promise.all(promises);
-                        })
+            for (r = blockRow1; r <= blockRow2; r++) {
+                for (c = blockCol1; c <= blockCol2; c++) {
+                    promises.push(self.getImageTile(zd, zdControl, r, c, state));
                 }
-                else {
-                    return Promise.resolve();
-                }
-            })
-            .then(function (ignore) {   // finally
-                self.stopSpinner();
-            })
+            }
+
+            await Promise.all(promises);
+
+        }
+
+
+        self.stopSpinner();
+
     };
 
 
@@ -450,7 +443,7 @@ var hic = (function (hic) {
 
                     if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
-                        if (0 === zd.chr1.index)  s *= 4;   // Heuristic for whole genome view
+                        if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
 
                         self.colorScale = new hic.ColorScale(self.colorScale);
                         self.colorScale.threshold = s;
@@ -559,12 +552,12 @@ var hic = (function (hic) {
 
                     var averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock, image;
 
-                    if("BOA" === self.displayMode) {
-                        ctrlAverageCount  = zd.averageCount;
+                    if ("BOA" === self.displayMode) {
+                        ctrlAverageCount = zd.averageCount;
                         averageCount = zdControl ? zdControl.averageCount : 1;
                         block = blocks[1];
                         controlBlock = blocks[0];
-                    }else {
+                    } else {
                         averageCount = zd.averageCount;
                         ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
                         block = blocks[0];
@@ -866,19 +859,19 @@ var hic = (function (hic) {
                 e.stopPropagation();
 
                 coords =
-                {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
 
                 // Sets pageX and pageY for browsers that don't support them
                 eFixed = $.event.fix(e);
 
                 xy =
-                {
-                    x: eFixed.pageX - $viewport.offset().left,
-                    y: eFixed.pageY - $viewport.offset().top
-                };
+                    {
+                        x: eFixed.pageX - $viewport.offset().left,
+                        y: eFixed.pageY - $viewport.offset().top
+                    };
 
                 self.browser.eventBus.post(hic.Event("UpdateContactMapMousePosition", xy, false));
 

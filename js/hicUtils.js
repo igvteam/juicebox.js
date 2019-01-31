@@ -342,6 +342,20 @@ var hic = (function (hic) {
         return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     }
 
+    igv.presentAlert = function (alert, $parent) {
+
+        var string;
+
+        string = alert.message || alert;
+
+        if (httpMessages.hasOwnProperty(string)) {
+            string = httpMessages[string];
+        }
+
+        igv.alertDialog.configure({ label: string });
+        igv.alertDialog.present($parent);
+    };
+
     hic.presentError = function(prefix, error) {
 
         var msg = error.message;
@@ -350,13 +364,13 @@ var hic = (function (hic) {
         }
         igv.presentAlert(prefix + ": " + msg);
 
-    }
+    };
 
     hic.validateColor = function (str) {
         var div = document.createElement("div");
         div.style.borderColor = str;
-        return div.style.borderColor != "";
-    }
+        return div.style.borderColor !== "";
+    };
 
     var httpMessages = {
         "401": "Access unauthorized",

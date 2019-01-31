@@ -48,171 +48,167 @@ var hic = (function (hic) {
 
         dataset.name = config.name;
 
-        return self.readHeader(dataset)
+        return readHeader(dataset)
 
             .then(function (ignore) {
-                return self.readFooter(dataset)
+                return readFooter(dataset)
             })
             .then(function (ignore) {
                 return dataset;
             })
 
+
+        function readHeader (dataset) {
+
+            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: 0, size: 64000}}))
+
+                .then(function (data) {
+
+                    var chr, binaryParser, nBpResolutions, nFragResolutions, nSites, nChrs, nAttributes, tmp;
+
+                    if (!data) {
+                        return undefined;
+                    }
+
+                    binaryParser = new igv.BinaryParser(new DataView(data));
+
+                    self.magic = binaryParser.getString();
+                    self.version = binaryParser.getInt();
+                    self.masterIndexPos = binaryParser.getLong();
+
+                    dataset.genomeId = binaryParser.getString();
+
+
+                    dataset.attributes = {};
+                    nAttributes = binaryParser.getInt();
+                    while (nAttributes-- > 0) {
+                        dataset.attributes[binaryParser.getString()] = binaryParser.getString();
+                    }
+
+                    dataset.chromosomes = [];
+                    nChrs = binaryParser.getInt(), i = 0;
+                    while (nChrs-- > 0) {
+                        chr = {
+                            index: i,
+                            name: binaryParser.getString(),
+                            size: binaryParser.getInt()
+                        };
+                        if (chr.name.toLowerCase() === "all") {
+                            self.wholeGenomeChromosome = chr;
+                            dataset.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
+                        }
+                        dataset.chromosomes.push(chr);
+                        i++;
+                    }
+
+                    self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
+
+                    dataset.bpResolutions = [];
+
+                    nBpResolutions = binaryParser.getInt();
+                    while (nBpResolutions-- > 0) {
+                        dataset.bpResolutions.push(binaryParser.getInt());
+                    }
+
+                    if (this.loadFragData) {
+                        dataset.fragResolutions = [];
+                        nFragResolutions = binaryParser.getInt();
+                        while (nFragResolutions-- > 0) {
+                            dataset.fragResolutions.push(binaryParser.getInt());
+                        }
+
+                        if (nFragResolutions > 0) {
+                            dataset.sites = [];
+                            nSites = binaryParser.getInt();
+                            while (nSites-- > 0) {
+                                dataset.sites.push(binaryParser.getInt());
+                            }
+                        }
+                    }
+
+                    // Attempt to determine genomeId if not recognized
+                    if (!Object.keys(knownGenomes).includes(dataset.genomeId)) {
+                        tmp = matchGenome(dataset.chromosomes);
+                        if (tmp) dataset.genomeId = tmp;
+                    }
+
+                    return self;
+
+                })
+
+        };
+
+        function readFooter (dataset) {
+
+            var range = {start: self.masterIndexPos, size: 4};
+
+            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+                .then(function (data) {
+
+                    var key, pos, size, binaryParser, nBytes;
+
+                    if (!data) {
+                        return null;
+                    }
+
+                    binaryParser = new igv.BinaryParser(new DataView(data));
+                    nBytes = binaryParser.getInt();
+                    range = {start: self.masterIndexPos + 4, size: nBytes};
+
+                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+
+                        .then(function (data) {
+
+                            if (!data) {
+                                return undefined;
+                            }
+
+                            var binaryParser = new igv.BinaryParser(new DataView(data));
+                            self.masterIndex = {};
+                            var nEntries = binaryParser.getInt();
+
+                            while (nEntries-- > 0) {
+                                key = binaryParser.getString();
+                                pos = binaryParser.getLong();
+                                size = binaryParser.getInt();
+                                self.masterIndex[key] = {start: pos, size: size};
+                            }
+
+                            dataset.expectedValueVectors = {};
+
+                            nEntries = binaryParser.getInt();
+
+                            // while (nEntries-- > 0) {
+                            //     type = "NONE";
+                            //     unit = binaryParser.getString();
+                            //     binSize = binaryParser.getInt();
+                            //     nValues = binaryParser.getInt();
+                            //     values = [];
+                            //     while (nValues-- > 0) {
+                            //         values.push(binaryParser.getDouble());
+                            //     }
+                            //
+                            //     nChrScaleFactors = binaryParser.getInt();
+                            //     normFactors = {};
+                            //     while (nChrScaleFactors-- > 0) {
+                            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+                            //     }
+                            //
+                            //     // key = unit + "_" + binSize + "_" + type;
+                            //     //  NOT USED YET SO DON'T STORE
+                            //     //  dataset.expectedValueVectors[key] =
+                            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+                            // }
+
+                            self.normExpectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
+
+                            return self;
+                        })
+                })
+        };
+
     }
-
-    hic.HiCReader.prototype.readHeader = function (dataset) {
-
-        var self = this;
-
-
-        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: {start: 0, size: 64000}}))
-
-            .then(function (data) {
-
-                var chr, binaryParser, nBpResolutions, nFragResolutions, nSites, nChrs, nAttributes, tmp;
-
-                if (!data) {
-                    return undefined;
-                }
-
-                binaryParser = new igv.BinaryParser(new DataView(data));
-
-                self.magic = binaryParser.getString();
-                self.version = binaryParser.getInt();
-                self.masterIndexPos = binaryParser.getLong();
-
-                dataset.genomeId = binaryParser.getString();
-
-
-                dataset.attributes = {};
-                nAttributes = binaryParser.getInt();
-                while (nAttributes-- > 0) {
-                    dataset.attributes[binaryParser.getString()] = binaryParser.getString();
-                }
-
-                dataset.chromosomes = [];
-                nChrs = binaryParser.getInt(), i = 0;
-                while (nChrs-- > 0) {
-                    chr = {
-                        index: i,
-                        name: binaryParser.getString(),
-                        size: binaryParser.getInt()
-                    };
-                    if (chr.name.toLowerCase() === "all") {
-                        self.wholeGenomeChromosome = chr;
-                        dataset.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
-                    }
-                    dataset.chromosomes.push(chr);
-                    i++;
-                }
-
-                self.chromosomes = dataset.chromosomes;  // Needed for certain reading functions
-
-                dataset.bpResolutions = [];
-
-                nBpResolutions = binaryParser.getInt();
-                while (nBpResolutions-- > 0) {
-                    dataset.bpResolutions.push(binaryParser.getInt());
-                }
-
-                if (this.loadFragData) {
-                    dataset.fragResolutions = [];
-                    nFragResolutions = binaryParser.getInt();
-                    while (nFragResolutions-- > 0) {
-                        dataset.fragResolutions.push(binaryParser.getInt());
-                    }
-
-                    if (nFragResolutions > 0) {
-                        dataset.sites = [];
-                        nSites = binaryParser.getInt();
-                        while (nSites-- > 0) {
-                            dataset.sites.push(binaryParser.getInt());
-                        }
-                    }
-                }
-
-                // Attempt to determine genomeId if not recognized
-                if (!Object.keys(knownGenomes).includes(dataset.genomeId)) {
-                    tmp = matchGenome(dataset.chromosomes);
-                    if (tmp) dataset.genomeId = tmp;
-                }
-
-                return self;
-
-            })
-
-    };
-
-    hic.HiCReader.prototype.readFooter = function (dataset) {
-
-        var self = this,
-            range = {start: self.masterIndexPos, size: 4};
-
-        return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
-
-            .then(function (data) {
-
-                var key, pos, size, binaryParser, nBytes;
-
-                if (!data) {
-                    return null;
-                }
-
-                binaryParser = new igv.BinaryParser(new DataView(data));
-                nBytes = binaryParser.getInt();
-                range = {start: self.masterIndexPos + 4, size: nBytes};
-
-                return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
-
-                    .then(function (data) {
-
-                        if (!data) {
-                            return undefined;
-                        }
-
-                        var binaryParser = new igv.BinaryParser(new DataView(data));
-                        self.masterIndex = {};
-                        var nEntries = binaryParser.getInt();
-
-                        while (nEntries-- > 0) {
-                            key = binaryParser.getString();
-                            pos = binaryParser.getLong();
-                            size = binaryParser.getInt();
-                            self.masterIndex[key] = {start: pos, size: size};
-                        }
-
-                        dataset.expectedValueVectors = {};
-
-                        nEntries = binaryParser.getInt();
-
-                        // while (nEntries-- > 0) {
-                        //     type = "NONE";
-                        //     unit = binaryParser.getString();
-                        //     binSize = binaryParser.getInt();
-                        //     nValues = binaryParser.getInt();
-                        //     values = [];
-                        //     while (nValues-- > 0) {
-                        //         values.push(binaryParser.getDouble());
-                        //     }
-                        //
-                        //     nChrScaleFactors = binaryParser.getInt();
-                        //     normFactors = {};
-                        //     while (nChrScaleFactors-- > 0) {
-                        //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                        //     }
-                        //
-                        //     // key = unit + "_" + binSize + "_" + type;
-                        //     //  NOT USED YET SO DON'T STORE
-                        //     //  dataset.expectedValueVectors[key] =
-                        //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                        // }
-
-                        self.normExpectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
-
-                        return self;
-                    })
-            })
-    };
-
     /**
      * This function is used when the position of the norm vector index is unknown.  We must read through the expected
      * values to find the index
@@ -272,7 +268,7 @@ var hic = (function (hic) {
                     size: byteCount
                 };
 
-                return self;
+                return self.normVectorIndex;
 
             })
             .catch(function (e) {

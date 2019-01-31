@@ -37,7 +37,66 @@ var hic = (function (hic) {
         }
     };
 
-    hic.TrackMenuReplacement.prototype.trackMenuItemListReplacement = function (popover, trackRenderer) {
+    hic.TrackMenuReplacement.prototype.trackMenuItemList_Replacement = function (popover, trackRenderer) {
+
+        var menuItems = [];
+
+        menuItems.push(hic.trackRenameMenuItem(trackRenderer));
+
+        if (trackRenderer.track.menuItemList) {
+            menuItems = menuItems.concat(trackRenderer.track.menuItemList());
+        }
+
+        menuItems.push('<hr/>');
+        menuItems.push(hic.trackRemovalMenuItem(trackRenderer));
+
+        return menuItems;
+    };
+
+    hic.trackRenameMenuItem = function (trackRenderer) {
+
+        var $e, menuClickHandler;
+
+        $e = $('<div>');
+        $e.text('Set track name');
+
+        menuClickHandler = function menuClickHandler() {
+
+            var dialogClickHandler;
+
+            dialogClickHandler = function dialogClickHandler() {
+                var value = trackRenderer.browser.inputDialog.$input.val().trim();
+                value = ('' === value || undefined === value) ? 'untitled' : value;
+                trackRenderer.setTrackName(value);
+            };
+
+            trackRenderer.browser.inputDialog.configure({
+                label: 'Track Name',
+                input: trackRenderer.track.name,
+                click: dialogClickHandler
+            });
+            trackRenderer.browser.inputDialog.present($(trackRenderer.trackDiv));
+        };
+
+        return { object: $e, click: menuClickHandler };
+    };
+
+    hic.trackRemovalMenuItem = function (trackRenderer) {
+
+        var $e, menuClickHandler;
+
+        $e = $('<div>');
+        $e.text('Remove track');
+
+        menuClickHandler = function menuClickHandler() {
+            var browser = trackRenderer.browser;
+            browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
+        };
+
+        return { object: $e, click: menuClickHandler };
+    };
+
+    hic.TrackMenuReplacement.prototype.DEPRICATED_trackMenuItemList_Replacement = function (popover, trackRenderer) {
 
         var self = this,
             menuItems = [],
@@ -54,11 +113,11 @@ var hic = (function (hic) {
                 trackRenderer.track.name,
                 function () {
 
-                    var value = igv.dialog.$dialogInput.val().trim();
-
-                    trackRenderer.track.name = ('' === value || undefined === value) ? 'untitled' : value;
-
-                    trackRenderer.$label.text(trackRenderer.track.name);
+                    // var value = igv.dialog.$dialogInput.val().trim();
+                    //
+                    // trackRenderer.track.name = ('' === value || undefined === value) ? 'untitled' : value;
+                    //
+                    // trackRenderer.$label.text(trackRenderer.track.name);
                 },
                 undefined));
 
@@ -89,35 +148,23 @@ var hic = (function (hic) {
         return all;
     };
 
-    hic.TrackMenuReplacement.prototype.trackMenuItemReplacement = function (popover, trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler, doAddTopBorder) {
+    hic.TrackMenuReplacement.prototype.trackMenuItem_Replacement = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {
 
         var $e,
             clickHandler;
 
         $e = $('<div>');
-
-        if (true === doAddTopBorder) {
-            $e.addClass('igv-track-menu-border-top');
-        }
-
         $e.text(menuItemLabel);
 
+        clickHandler = function () {
 
-        clickHandler = function(){
+            igv.inputDialog.configure(dialogLabelHandler, dialogInputValue, dialogClickHandler, undefined, undefined);
+            igv.inputDialog.show(trackRenderer.$viewport);
 
-            var $element;
-
-            // $element = $(trackRenderer.trackDiv);
-            $element = trackRenderer.$viewport;
-
-            igv.dialog.configure(dialogLabelHandler, dialogInputValue, dialogClickHandler);
-            igv.dialog.show($element);
-            popover.hide();
         };
 
-        $e.click(clickHandler);
+        return { object: $e, click: clickHandler };
 
-        return { object: $e, init: undefined };
     };
 
 

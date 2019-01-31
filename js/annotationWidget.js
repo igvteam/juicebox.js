@@ -133,7 +133,8 @@ var hic = (function (hic) {
         // $load_container.append($div);
         // $div.text('Blah');
 
-        this.$annotationPanel.draggable();
+        //this.$annotationPanel.draggable();
+        igv.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
         this.$annotationPanel.hide();
     }
 
@@ -213,7 +214,7 @@ var hic = (function (hic) {
 
 
         // color swatch selector button
-        $colorpickerButton = igv.colorSwatch(isTrack2D ? track.getColor() : track1D.color);
+        $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
         $row.append($colorpickerButton);
 
         // color swatch selector
@@ -323,6 +324,20 @@ var hic = (function (hic) {
             self.updateBody(trackList);
         });
     }
+
+    function annotationColorSwatch(rgbString) {
+        var $swatch,
+            $fa;
+
+        $swatch = $('<div>', {class: 'igv-color-swatch'});
+
+        $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
+        $swatch.append($fa);
+
+        $fa.css({color: rgbString});
+
+        return $swatch;
+    };
 
     function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
 
