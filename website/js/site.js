@@ -598,11 +598,15 @@ var juicebox = (function (site) {
 
             columnFormat =
                 [
-                    {'Assembly': '10%'},
                     {'Cell Type': '10%'},
                     {'Target': '10%'},
                     {'Assay Type': '20%'},
                     {'Output Type': '20%'},
+                    {'Bio Rep':'10%'},
+                    {'Tech Rep': '10%'},
+                    {'Format': '10%'},
+                    {'Experiment': '10%'},
+                    {'Accession': '10%'},
                     {'Lab': '20%'}
                 ];
 

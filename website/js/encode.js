@@ -82,13 +82,13 @@ var juicebox = (function (juicebox) {
                 "Cell Type": tokens[2],
                 "Assay Type": tokens[3],
                 "Target": tokens[4],
-                "Lab": tokens,
                 "Format": tokens[8],
                 "Output Type": tokens[7],
                 "Lab": tokens[9],
                 "url": "https://www.encodeproject.org" + tokens[10],
                 "Bio Rep": tokens[5],
-                "Tech Rep": tokens[6]
+                "Tech Rep": tokens[6],
+                "Accession": tokens[11]
             };
             constructName(record);
 
