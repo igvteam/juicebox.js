@@ -708,6 +708,14 @@ var hic = (function (hic) {
         self.$controlMaplabel.attr('title', "");
     }
 
+
+    hic.Browser.prototype.clearSession = function () {
+        // Clear current datasets.
+        this.dataset = undefined;
+        this.controlDataset = undefined;
+        this.setDisplayMode('A');
+    }
+
     /**
      * Load a .hic file
      *
@@ -722,6 +730,8 @@ var hic = (function (hic) {
             console.log("No .hic url specified");
             return undefined;
         }
+
+        this.clearSession();
 
         this.contactMatrixView.startSpinner();
         this.isLoadingHICFile = true;
