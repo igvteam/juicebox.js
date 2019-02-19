@@ -1,3 +1,7 @@
+#hicEncodeModal > .modal-dialog {
+  max-width: 90% !important;
+  width: 90% !important; }
+
 .hic-root {
   position: relative;
   left: 0;
