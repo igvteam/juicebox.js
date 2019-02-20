@@ -155,31 +155,55 @@ var hic = (function (hic) {
 
     };
 
+    // hic.TrackRenderer.prototype.dataRange = function () {
+    //     return this.track.dataRange ? this.track.dataRange : undefined;
+    // };
+
+    // hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
+    //
+    //     setDataRange.call(this.trackRenderPair.x);
+    //     setDataRange.call(this.trackRenderPair.y);
+    //
+    //     function setDataRange() {
+    //
+    //         this.tile = undefined
+    //
+    //         this.track.dataRange = {
+    //             min: min,
+    //             max: max
+    //         }
+    //
+    //         this.track.autscale = autoscale;
+    //     }
+    //
+    //     this.browser.renderTrackXY(this.trackRenderPair);
+    //
+    // };
+
+
     hic.TrackRenderer.prototype.dataRange = function () {
         return this.track.dataRange ? this.track.dataRange : undefined;
     };
 
     hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
 
-        setDataRange.call(this.trackRenderPair.x);
-        setDataRange.call(this.trackRenderPair.y);
-
-        function setDataRange() {
-
-            this.tile = undefined
-
-            this.track.dataRange = {
-                min: min,
-                max: max
-            }
-
-            this.track.autscale = autoscale;
+        if (min !== undefined) {
+            this.track.dataRange.min = min;
+            this.track.config.min = min;
         }
 
-        this.browser.renderTrackXY(this.trackRenderPair);
+        if (max !== undefined) {
+            this.track.dataRange.max = max;
+            this.track.config.max = max;
+        }
 
+        this.track.autoscale = autoscale;
+        this.track.config.autoScale = autoscale;
+
+        this.repaintViews();
     };
 
+    
     /**
      * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
      * and drawing tile if neccessary.
