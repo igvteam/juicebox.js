@@ -37,7 +37,7 @@ var hic = (function (hic) {
         }
     };
 
-    hic.TrackMenuReplacement.prototype.trackMenuItemList_Replacement = function (popover, trackRenderer) {
+    hic.TrackMenuReplacement.prototype.trackMenuItemList_Replacement = function (trackRenderer) {
 
         var menuItems = [];
 
@@ -94,58 +94,6 @@ var hic = (function (hic) {
         };
 
         return { object: $e, click: menuClickHandler };
-    };
-
-    hic.TrackMenuReplacement.prototype.DEPRICATED_trackMenuItemList_Replacement = function (popover, trackRenderer) {
-
-        var self = this,
-            menuItems = [],
-            all;
-
-        menuItems.push(
-            igv.trackMenuItem(
-                popover,
-                trackRenderer,
-                "Set track name",
-                function () {
-                    return "Track Name"
-                },
-                trackRenderer.track.name,
-                function () {
-
-                    // var value = igv.dialog.$dialogInput.val().trim();
-                    //
-                    // trackRenderer.track.name = ('' === value || undefined === value) ? 'untitled' : value;
-                    //
-                    // trackRenderer.$label.text(trackRenderer.track.name);
-                },
-                undefined));
-
-        all = [];
-        if (trackRenderer.track.menuItemList) {
-            all = menuItems.concat( igv.trackMenuItemListHelper(trackRenderer.track.menuItemList(popover)) );
-        }
-
-        all.push(
-            igv.trackMenuItem(
-                popover,
-                trackRenderer,
-                "Remove track",
-                function () {
-                    var label = "Remove " + trackRenderer.track.name;
-                    return '<div class="igv-dialog-label-centered">' + label + '</div>';
-                },
-                undefined,
-                function () {
-                    var browser;
-
-                    browser = trackRenderer.browser;
-                    browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
-                    popover.hide();
-                },
-                true));
-
-        return all;
     };
 
     hic.TrackMenuReplacement.prototype.trackMenuItem_Replacement = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {

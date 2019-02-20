@@ -1,3 +1,7 @@
+.igv-right-hand-gutter {
+  top: 0;
+  margin-top: 4px; }
+
 #hicEncodeModal > .modal-dialog {
   max-width: 90% !important;
   width: 90% !important; }
