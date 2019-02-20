@@ -520,19 +520,20 @@ var hic = (function (hic) {
      *
      * NOTE: public API function
      *
-     * @param trackConfigurations
+     * @param configs
      */
-    hic.Browser.prototype.loadTracks = async function (trackConfigurations) {
+    hic.Browser.prototype.loadTracks = async function (configs) {
 
         var self = this, errorPrefix;
 
         // If loading a single track remember its name, for error message
-        errorPrefix = 1 === trackConfigurations.length ? ("Error loading track " + trackConfigurations[0].name) : "Error loading tracks";
+        errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
 
         this.contactMatrixView.startSpinner();
 
         try {
-            const trackConfigurations = await Promise.all(inferTypes(trackConfigurations))
+            const ps = inferTypes(configs)
+            const trackConfigurations = await Promise.all(ps)
 
             var trackXYPairs, promises2D;
 
@@ -582,6 +583,7 @@ var hic = (function (hic) {
         }
         catch (error) {
             hic.presentError(errorPrefix, error);
+            console.error(error)
             this.contactMatrixView.stopSpinner();
         }
 
