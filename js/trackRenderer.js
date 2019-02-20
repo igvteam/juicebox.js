@@ -76,6 +76,10 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
+            // igvjs compatibility
+            this.track.trackView = this;
+            this.track.trackView.trackDiv = this.$viewport.get(0);
+
             igv.appendRightHandGutter.call(this, this.$viewport);
 
             // this.$menu_container = $('<div class="x-track-menu-container">');
@@ -89,23 +93,19 @@ var hic = (function (hic) {
             //     igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
             // });
 
-            this.$viewport.on('click', function (e) {
-                e.stopPropagation();
-                $container.find('.x-track-label').toggle();
-                $container.find('.x-track-menu-container').toggle();
-            });
+            // this.$viewport.on('click', function (e) {
+            //     e.stopPropagation();
+            //     $container.find('.x-track-label').toggle();
+            //     $container.find('.x-track-menu-container').toggle();
+            // });
 
-            if (doShowLabelAndGear) {
-                this.$label.show();
-                // this.$menu_container.show();
-            } else {
-                this.$label.hide();
-                // this.$menu_container.hide();
-            }
-
-            // compatibility with igv menus
-            this.track.trackView = this;
-            this.track.trackView.trackDiv = this.$viewport.get(0);
+            // if (doShowLabelAndGear) {
+            //     this.$label.show();
+            //     // this.$menu_container.show();
+            // } else {
+            //     this.$label.hide();
+            //     // this.$menu_container.hide();
+            // }
 
         }
 
