@@ -244,6 +244,71 @@ var hic = (function (hic) {
 
     }
 
+    hic.ContactMatrixView.prototype.getContactRecords = async function () {
+
+        var self = this,
+            state = this.browser.state;
+
+        if (!self.browser.dataset) {
+            return []
+        }
+
+        self.startSpinner();
+
+        // Get matrix for primary dataset, and optionally control
+        const matrices = await getMatrices.call(self, state.chr1, state.chr2)
+
+        const matrix = matrices[0];
+        const records = []
+        if (matrix) {
+            const zd = await matrix.bpZoomData[state.zoom]
+            const blockBinCount = zd.blockBinCount   // Dimension in bins of a block (width = height = blockBinCount)
+            const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
+            const widthInBins = self.$viewport.width() / pixelSizeInt
+            const heightInBins = self.$viewport.height() / pixelSizeInt
+            const col1 = Math.floor(state.x / blockBinCount)
+            const col2 = Math.floor((state.x + widthInBins) / blockBinCount)
+            const row1 = Math.floor(state.y / blockBinCount)
+            const row2 = Math.floor((state.y + heightInBins) / blockBinCount)
+            let zdControl
+            //
+            // if (matrices.length > 1) {
+            //     zdControl = matrices[1].bpZoomData[state.zoom];
+            // }
+
+            var row, column, sameChr, blockNumber,
+                promises = [];
+
+            sameChr = zd.chr1 === zd.chr2;
+
+            for (row = row1; row <= row2; row++) {
+                for (column = col1; column <= col2; column++) {
+                    if (sameChr && row < column) {
+                        blockNumber = column * zd.blockColumnCount + row;
+                    }
+                    else {
+                        blockNumber = row * zd.blockColumnCount + column;
+                    }
+
+                    const dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, state.normalization, self.browser.eventBus))
+                }
+            }
+
+            const blocks = await Promise.all(promises)
+
+            for (let block of blocks) {
+                if (block)
+                    for (let record of block.records) {
+                        records.push(record);
+                    }
+            }
+        }
+        self.stopSpinner();
+
+        return records;
+    }
+
     /**
      * Return a promise to load all neccessary data
      */
@@ -257,6 +322,8 @@ var hic = (function (hic) {
         }
 
         self.startSpinner();
+
+        const records = await this.getContactRecords();
 
         const matrices = await getMatrices.call(self, state.chr1, state.chr2)
 
