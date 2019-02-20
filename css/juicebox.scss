@@ -1041,6 +1041,9 @@ div[id$="x-track-container"] {
       width: 100%;
       margin-right: 0;
 
+      // Keep in sync with LayoutController.track_margin
+      margin-bottom: 2px;
+
       // canvas inserted here
 
       // x-track label
@@ -1257,7 +1260,9 @@ div[id$="content-container"] {
         display: block;
         position: relative;
         height: 100%;
-        margin-right: 0;
+
+        // Keep in sync with LayoutController.track_margin
+        margin-right: 2px;
 
         background-color: white;
 
