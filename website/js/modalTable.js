@@ -209,9 +209,7 @@ var juicebox = (function (juicebox) {
             scrollCollapse: true
         };
 
-        console.log('ModalTable.tableWithDataAndColumns ...');
         this.$dataTables = this.$table.dataTable(config);
-        console.log('... tableWithDataAndColumns done');
 
         this.$table.find('tbody').on('click', 'tr', function () {
 
