@@ -76,34 +76,31 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
-            this.$menu_container = $('<div class="x-track-menu-container">');
-            this.$viewport.append(this.$menu_container);
+            igv.appendRightHandGutter.call(this, this.$viewport);
 
-            this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
-            this.$menu_container.append(this.$menu_button);
+            // this.$menu_container = $('<div class="x-track-menu-container">');
+            // this.$viewport.append(this.$menu_container);
 
-            this.$menu_button.click(function (e) {
-                e.stopPropagation();
-                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
-            });
+            // this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
+            // this.$menu_container.append(this.$menu_button);
+
+            // this.$menu_button.click(function (e) {
+            //     e.stopPropagation();
+            //     igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
+            // });
 
             this.$viewport.on('click', function (e) {
-
                 e.stopPropagation();
-
-                // self.$label.toggle();
-                // self.$menu_container.toggle();
-
                 $container.find('.x-track-label').toggle();
                 $container.find('.x-track-menu-container').toggle();
             });
 
             if (doShowLabelAndGear) {
                 this.$label.show();
-                this.$menu_container.show();
+                // this.$menu_container.show();
             } else {
                 this.$label.hide();
-                this.$menu_container.hide();
+                // this.$menu_container.hide();
             }
 
             // compatibility with igv menus
