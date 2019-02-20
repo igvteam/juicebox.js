@@ -598,16 +598,16 @@ var juicebox = (function (site) {
 
             columnFormat =
                 [
-                    {'Cell Type': '10%'},
-                    {'Target': '10%'},
-                    {'Assay Type': '20%'},
-                    {'Output Type': '20%'},
-                    {'Bio Rep':'10%'},
-                    {'Tech Rep': '10%'},
-                    {'Format': '10%'},
-                    {'Experiment': '10%'},
-                    {'Accession': '10%'},
-                    {'Lab': '20%'}
+                    {title: 'Cell Type', width: '7%'},
+                    {title: 'Target', width: '8%'},
+                    {title: 'Assay Type', width:  '20%'},
+                    {title: 'Output Type', width:  '20%'},
+                    {title: 'Bio Rep', width: '5%'},
+                    {title: 'Tech Rep', width:  '5%'},
+                    {title: 'Format', width:  '5%'},
+                    {title: 'Experiment', width:  '7%'},
+                    {title: 'Accession', width:  '8%'},
+                    {title: 'Lab' , width: '20%'}
                 ];
 
             encodeDatasource = new juicebox.EncodeDataSource(columnFormat);

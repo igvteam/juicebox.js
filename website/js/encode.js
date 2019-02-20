@@ -92,7 +92,7 @@ var juicebox = (function (juicebox) {
             };
             constructName(record);
 
-            if(filter === undefined || filter(record)) {
+            if (filter === undefined || filter(record)) {
                 records.push(record);
             }
         }
@@ -124,6 +124,136 @@ var juicebox = (function (juicebox) {
         record["Name"] = name;
 
     }
+
+    function encodeSort(a, b) {
+        var aa1,
+            aa2,
+            cc1,
+            cc2,
+            tt1,
+            tt2;
+
+        aa1 = a['Assay Type'];
+        aa2 = b['Assay Type'];
+        cc1 = a['Cell Type'];
+        cc2 = b['Cell Type'];
+        tt1 = a['Target'];
+        tt2 = b['Target'];
+
+        if (aa1 === aa2) {
+            if (cc1 === cc2) {
+                if (tt1 === tt2) {
+                    return 0;
+                } else if (tt1 < tt2) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            } else if (cc1 < cc2) {
+                return -1;
+            } else {
+                return 1;
+            }
+        } else {
+            if (aa1 < aa2) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    }
+
+    juicebox.EncodeDataSource.prototype.tableData = function (data) {
+        var self = this,
+            mapped;
+
+        mapped = data.map(function (row) {
+
+            let displayKeys = self.columnFormat.map(function (col) {
+                return col.title
+            });
+
+            return displayKeys.map(function (key) {
+                return row[key];
+            })
+        })
+
+        return mapped;
+    };
+
+    juicebox.EncodeDataSource.prototype.tableColumns = function () {
+        return this.columnFormat;
+    };
+
+    juicebox.EncodeDataSource.prototype.dataAtRowIndex = function (data, index) {
+
+
+        let row = data[index];
+        let format = getFormat(row);
+
+        let type;
+        if (format === 'bedpe-domain') {
+            type = 'annotation';
+        } else if (format === 'bedpe-loop') {
+            type = 'interaction';
+        }
+
+        let obj =
+            {
+                url: row['url'],
+                color: encodeAntibodyColor(row['Target']),
+                name: row['Name'],
+                format: format,
+                type: type
+            };
+
+        return obj;
+
+        function encodeAntibodyColor(antibody) {
+
+            var colors,
+                key;
+
+            colors =
+                {
+                    DEFAULT: "rgb(3, 116, 178)",
+                    H3K27AC: "rgb(200, 0, 0)",
+                    H3K27ME3: "rgb(130, 0, 4)",
+                    H3K36ME3: "rgb(0, 0, 150)",
+                    H3K4ME1: "rgb(0, 150, 0)",
+                    H3K4ME2: "rgb(0, 150, 0)",
+                    H3K4ME3: "rgb(0, 150, 0)",
+                    H3K9AC: "rgb(100, 0, 0)",
+                    H3K9ME1: "rgb(100, 0, 0)"
+                };
+
+            if (undefined === antibody || '' === antibody || '-' === antibody) {
+                key = 'DEFAULT';
+            } else {
+                key = antibody.toUpperCase();
+            }
+
+            return colors[key];
+        }
+
+        function getFormat(row) {
+
+            let format = row['Format'],
+                outputType = row['Output Type'],
+                assayType = row['Assay Type'];
+
+            if (format === 'bedpe' && outputType && outputType.includes('domain')) {
+                return 'bedpe-domain';
+            } else if (format === 'tsv' && outputType.includes("interaction") && assayType.toLowerCase() === 'hic') {
+                return "bedpe-loop";
+            }
+
+            else {
+                return format.toLowerCase();
+            }
+        }
+    };
+
 
     function urlString(assembly, fileFormat) {
 
@@ -228,146 +358,6 @@ var juicebox = (function (juicebox) {
 
     }
 
-    function encodeSort(a, b) {
-        var aa1,
-            aa2,
-            cc1,
-            cc2,
-            tt1,
-            tt2;
-
-        aa1 = a['Assay Type'];
-        aa2 = b['Assay Type'];
-        cc1 = a['Cell Type'];
-        cc2 = b['Cell Type'];
-        tt1 = a['Target'];
-        tt2 = b['Target'];
-
-        if (aa1 === aa2) {
-            if (cc1 === cc2) {
-                if (tt1 === tt2) {
-                    return 0;
-                } else if (tt1 < tt2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else if (cc1 < cc2) {
-                return -1;
-            } else {
-                return 1;
-            }
-        } else {
-            if (aa1 < aa2) {
-                return -1;
-            } else {
-                return 1;
-            }
-        }
-    }
-
-    juicebox.EncodeDataSource.prototype.tableData = function (data) {
-        var self = this,
-            mapped;
-
-        mapped = data.map(function (row) {
-
-            let displayKeys = self.columnFormat.map(function (col) {
-                return Object.keys(col)[0];
-            });
-
-            return displayKeys.map(function (key) {
-                return row[key];
-            })
-        })
-
-        return mapped;
-    };
-
-    juicebox.EncodeDataSource.prototype.tableColumns = function () {
-
-        var columns;
-
-        columns = this.columnFormat.map(function (obj) {
-            var key,
-                val;
-
-            key = Object.keys(obj)[0];
-            val = obj[key];
-            return {title: key, width: val}
-        });
-
-        return columns;
-    };
-
-    juicebox.EncodeDataSource.prototype.dataAtRowIndex = function (data, index) {
-
-
-        let row = data[index];
-        let format = getFormat(row);
-
-        let type;
-        if (format === 'bedpe-domain') {
-            type = 'annotation';
-        } else if (format === 'bedpe-loop') {
-            type = 'interaction';
-        }
-
-        let obj =
-        {
-            url: row['url'],
-            color: encodeAntibodyColor(row['Target']),
-            name: row['Name'],
-            format: format,
-            type: type
-        };
-
-        return obj;
-
-        function encodeAntibodyColor(antibody) {
-
-            var colors,
-                key;
-
-            colors =
-            {
-                DEFAULT: "rgb(3, 116, 178)",
-                H3K27AC: "rgb(200, 0, 0)",
-                H3K27ME3: "rgb(130, 0, 4)",
-                H3K36ME3: "rgb(0, 0, 150)",
-                H3K4ME1: "rgb(0, 150, 0)",
-                H3K4ME2: "rgb(0, 150, 0)",
-                H3K4ME3: "rgb(0, 150, 0)",
-                H3K9AC: "rgb(100, 0, 0)",
-                H3K9ME1: "rgb(100, 0, 0)"
-            };
-
-            if (undefined === antibody || '' === antibody || '-' === antibody) {
-                key = 'DEFAULT';
-            } else {
-                key = antibody.toUpperCase();
-            }
-
-            return colors[key];
-        }
-
-        function getFormat(row) {
-
-            let format = row['Format'],
-                outputType = row['Output Type'],
-                assayType = row['Assay Type'];
-
-            if (format === 'bedpe' && outputType && outputType.includes('domain')) {
-                return 'bedpe-domain';
-            } else if(format === 'tsv' && outputType.includes("interaction") && assayType.toLowerCase() === 'hic') {
-                return "bedpe-loop";
-            }
-
-            else {
-                return format.toLowerCase();
-            }
-        }
-    };
 
     return juicebox;
 
