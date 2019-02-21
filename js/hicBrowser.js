@@ -1465,7 +1465,7 @@ var hic = (function (hic) {
         try {
             this.updating = true;
             this.contactMatrixView.startSpinner();
-            await this.contactMatrixView.readyToPaint();
+            this.contactMatrixView.update();
             for (let xyTrackRenderPair of this.trackRenderers) {
                 await xyTrackRenderPair.x.readyToPaint()
                 await xyTrackRenderPair.y.readyToPaint()
@@ -1475,7 +1475,7 @@ var hic = (function (hic) {
                 this.layoutController.xAxisRuler.locusChange(event);
                 this.layoutController.yAxisRuler.locusChange(event);
             }
-            this.contactMatrixView.repaint();
+            //this.contactMatrixView.repaint(imageTiles);
             this.renderTracks();
             this.stopSpinner();
             this.updating = false;

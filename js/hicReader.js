@@ -138,76 +138,64 @@ var hic = (function (hic) {
 
         };
 
-        function readFooter (dataset) {
+        async function readFooter() {
 
-            var range = {start: self.masterIndexPos, size: 4};
 
-            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            let range = {start: self.masterIndexPos, size: 8}
+            let data = await igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            if (!data) {
+                return null;
+            }
 
-                .then(function (data) {
+            let binaryParser = new igv.BinaryParser(new DataView(data))
+            const nBytes = binaryParser.getInt()   // Total size, master index + expected values
+            let nEntries = binaryParser.getInt()
 
-                    var key, pos, size, binaryParser, nBytes;
+            // Estimate the size of the master index. String length of key is unknown, be conservative (100 bytes)
+            const miSize = nEntries * (100 + 64 + 32)
+            range =  {start: self.masterIndexPos + 8, size: Math.min(miSize, nBytes - 4)}
+            data = await igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            binaryParser = new igv.BinaryParser(new DataView(data));
 
-                    if (!data) {
-                        return null;
-                    }
+            self.masterIndex = {}
+            while (nEntries-- > 0) {
+                const key = binaryParser.getString()
+                const pos = binaryParser.getLong()
+                const size = binaryParser.getInt()
+                self.masterIndex[key] = {start: pos, size: size}
+            }
 
-                    binaryParser = new igv.BinaryParser(new DataView(data));
-                    nBytes = binaryParser.getInt();
-                    range = {start: self.masterIndexPos + 4, size: nBytes};
+            self.expectedValueVectors = {}
 
-                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            //nEntries = binaryParser.getInt()
 
-                        .then(function (data) {
+            // Expected values
+            // while (nEntries-- > 0) {
+            //     type = "NONE";
+            //     unit = binaryParser.getString();
+            //     binSize = binaryParser.getInt();
+            //     nValues = binaryParser.getInt();
+            //     values = [];
+            //     while (nValues-- > 0) {
+            //         values.push(binaryParser.getDouble());
+            //     }
+            //
+            //     nChrScaleFactors = binaryParser.getInt();
+            //     normFactors = {};
+            //     while (nChrScaleFactors-- > 0) {
+            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+            //     }
+            //
+            //     // key = unit + "_" + binSize + "_" + type;
+            //     //  NOT USED YET SO DON'T STORE
+            //     //  dataset.expectedValueVectors[key] =
+            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+            // }
 
-                            if (!data) {
-                                return undefined;
-                            }
+            this.normExpectedValueVectorsPosition = this.masterIndexPos + 4 + nBytes;
 
-                            var binaryParser = new igv.BinaryParser(new DataView(data));
-                            self.masterIndex = {};
-                            var nEntries = binaryParser.getInt();
-
-                            while (nEntries-- > 0) {
-                                key = binaryParser.getString();
-                                pos = binaryParser.getLong();
-                                size = binaryParser.getInt();
-                                self.masterIndex[key] = {start: pos, size: size};
-                            }
-
-                            dataset.expectedValueVectors = {};
-
-                            nEntries = binaryParser.getInt();
-
-                            // while (nEntries-- > 0) {
-                            //     type = "NONE";
-                            //     unit = binaryParser.getString();
-                            //     binSize = binaryParser.getInt();
-                            //     nValues = binaryParser.getInt();
-                            //     values = [];
-                            //     while (nValues-- > 0) {
-                            //         values.push(binaryParser.getDouble());
-                            //     }
-                            //
-                            //     nChrScaleFactors = binaryParser.getInt();
-                            //     normFactors = {};
-                            //     while (nChrScaleFactors-- > 0) {
-                            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                            //     }
-                            //
-                            //     // key = unit + "_" + binSize + "_" + type;
-                            //     //  NOT USED YET SO DON'T STORE
-                            //     //  dataset.expectedValueVectors[key] =
-                            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                            // }
-
-                            self.normExpectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
-
-                            return self;
-                        })
-                })
+            return this;
         };
-
     }
     /**
      * This function is used when the position of the norm vector index is unknown.  We must read through the expected
