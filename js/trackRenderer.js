@@ -248,8 +248,10 @@ var hic = (function (hic) {
                     ctx = buffer.getContext("2d");
                     if (features) {
 
-                        if (features.length === 0) {
-                            console.log("Zero");
+                        if (typeof self.track.doAutoscale === 'function') {
+                            self.track.doAutoscale(allFeatures);
+                        } else {
+                            self.track.dataRange = igv.doAutoscale(features);
                         }
 
                         self.canvasTransform(ctx);
