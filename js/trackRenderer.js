@@ -82,6 +82,13 @@ var hic = (function (hic) {
 
             igv.appendRightHandGutter.call(this, this.$viewport);
 
+            this.$viewport.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $container.find('.x-track-label').toggle();
+                $container.find('.igv-right-hand-gutter').toggle();
+            });
+
         }
 
         this.configTrackTransforms();
