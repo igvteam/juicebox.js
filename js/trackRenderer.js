@@ -82,30 +82,12 @@ var hic = (function (hic) {
 
             igv.appendRightHandGutter.call(this, this.$viewport);
 
-            // this.$menu_container = $('<div class="x-track-menu-container">');
-            // this.$viewport.append(this.$menu_container);
-
-            // this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
-            // this.$menu_container.append(this.$menu_button);
-
-            // this.$menu_button.click(function (e) {
-            //     e.stopPropagation();
-            //     igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
-            // });
-
-            // this.$viewport.on('click', function (e) {
-            //     e.stopPropagation();
-            //     $container.find('.x-track-label').toggle();
-            //     $container.find('.x-track-menu-container').toggle();
-            // });
-
-            // if (doShowLabelAndGear) {
-            //     this.$label.show();
-            //     // this.$menu_container.show();
-            // } else {
-            //     this.$label.hide();
-            //     // this.$menu_container.hide();
-            // }
+            this.$viewport.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $container.find('.x-track-label').toggle();
+                $container.find('.igv-right-hand-gutter').toggle();
+            });
 
         }
 
@@ -203,7 +185,7 @@ var hic = (function (hic) {
         this.repaintViews();
     };
 
-    
+
     /**
      * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
      * and drawing tile if neccessary.

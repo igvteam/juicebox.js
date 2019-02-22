@@ -12,9 +12,14 @@ var hic = (function (hic) {
         createAllContainers.call(this, browser, $root);
 
         this.scrollbar_height = 20;
+
         this.axis_height = 32;
 
+        // track dimension
         this.track_height = 32;
+
+        // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
+        this.track_margin = 2;
 
     };
 
@@ -104,7 +109,7 @@ var hic = (function (hic) {
         id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
         browser.$controlMaplabel = $("<div>", {id: id});
         $map_container.append(browser.$controlMaplabel);
-        
+
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
         $upper_widget_container = $("<div>", {id: id});
@@ -432,7 +437,7 @@ var hic = (function (hic) {
             height_calc;
 
 
-        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * this.track_height;
+        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
 
         tokens = _.map([hic.LayoutController.navbarHeight(this.browser.config.figureMode), track_aggregate_height], function (number) {
             return number.toString() + 'px';

@@ -207,6 +207,15 @@ $default-font-family: 'Open Sans', sans-serif;
 .igv-right-hand-gutter {
   top: 0;
   margin-top: 4px;
+  background-color: transparent;
+  width: unset;
+}
+
+.igv-trackgear-container {
+  margin-left: unset;
+  color: $default-dark-color;
+  width: 14px;
+  height: 14px;
 }
 
 #hicEncodeModal > .modal-dialog {
@@ -1041,6 +1050,9 @@ div[id$="x-track-container"] {
       width: 100%;
       margin-right: 0;
 
+      // Keep in sync with LayoutController.track_margin
+      margin-bottom: 2px;
+
       // canvas inserted here
 
       // x-track label
@@ -1084,33 +1096,6 @@ div[id$="x-track-container"] {
         margin-left: -($track-height/2);
 
         background-color: rgba(255, 255, 255, 0);
-      }
-
-      // x-track menu container
-      .x-track-menu-container {
-        position: absolute;
-
-        display: inline-block;
-
-        top: 0;
-        right: 0;
-
-        width: $track-height;
-        height: $track-height;
-
-        font-size: 0.50 * $track-height;
-        text-align: center;
-
-        z-index: 1024;
-
-        color: $default-dark-color;
-      }
-
-      .x-track-menu-container:hover,
-      .x-track-menu-container:focus,
-      .x-track-menu-container:active {
-        cursor: pointer;
-        color: $default-dark-dark-color;
       }
 
     }
@@ -1257,7 +1242,9 @@ div[id$="content-container"] {
         display: block;
         position: relative;
         height: 100%;
-        margin-right: 0;
+
+        // Keep in sync with LayoutController.track_margin
+        margin-right: 2px;
 
         background-color: white;
 
