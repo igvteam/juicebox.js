@@ -120,13 +120,15 @@ var hic = (function (hic) {
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
     };
 
-    hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
+    hic.ContactMatrixView.prototype.setColorScaleThreshold = async function (threshold) {
 
         this.getColorScale().setThreshold(threshold);
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
         this.imageTileCache = {};
         this.initialImage = undefined;
-        this.repaint();
+        //this.repaint();
+        const tiles = await this.getImageTiles()
+        this.repaint(tiles);
     };
 
     hic.ContactMatrixView.prototype.getColorScale = function () {
