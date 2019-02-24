@@ -105,7 +105,6 @@ var hic = (function (hic) {
             createIGV($hic_container, browser, browser.trackMenuReplacement);
         }
 
-        await loadInitialImage(config)
         await loadControlFile(config)
         await setInitialDataset(browser, config)
         await browser.loadHicFile(config)
@@ -136,39 +135,7 @@ var hic = (function (hic) {
 
         return browser;
 
-        // Return a promise to load the initial image, if present
-        async function loadInitialImage(config) {
 
-            if (config.initialImage) {
-
-                return new Promise(function (resolve, reject) {
-
-                    initialImageImg = new Image();
-
-                    initialImageImg.onload = function () {
-
-                        if (typeof config.initialImage === 'string') {
-                            initialImageX = browser.state.x;
-                            initialImageY = browser.state.y;
-                        } else {
-                            initialImageX = config.initialImage.left || browser.state.x;
-                            initialImageY = config.initialImage.top || browser.state.y;
-                        }
-
-                        browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
-
-                        resolve(initialImageImg);
-                    }
-
-                    initialImageImg.onerror = function (error) {
-                        reject(error);
-                    }
-
-                    initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
-                });
-            }
-
-        }
 
         // Explicit set dataset, do not need to load.  Used by "interactive figures"
         function setInitialDataset(browser, config) {
@@ -237,6 +204,7 @@ var hic = (function (hic) {
         hicReader = new hic.HiCReader(config);
 
         const dataset = await hicReader.loadDataset(config)
+
         dataset.name = this.name;
 
         if (config.nvi) {

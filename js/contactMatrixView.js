@@ -95,15 +95,6 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
-    hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
-        this.initialImage = {
-            x: x,
-            y: y,
-            state: state.clone(),
-            img: image
-        }
-    };
-
     hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
 
         switch (this.displayMode) {
@@ -125,8 +116,6 @@ var hic = (function (hic) {
         this.getColorScale().setThreshold(threshold);
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
         this.imageTileCache = {};
-        this.initialImage = undefined;
-        //this.repaint();
         const tiles = await this.getImageTiles()
         this.repaint(tiles);
     };
@@ -184,33 +173,7 @@ var hic = (function (hic) {
                 this.clearCaches();
             }
 
-            if (this.initialImage) {
-                if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
-                    this.initialImage = undefined;
-                }
-            }
         }
-    }
-
-    function validateInitialImage(initialImage, state) {
-
-        if (initialImage.state.equals(state)) return true;
-
-        if (!(initialImage.state.chr1 === state.chr1 && initialImage.state.chr2 === state.chr2 &&
-            initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
-            initialImage.state.normalization === state.normalization)) return false;
-
-        // Now see if initial image fills view
-        var offsetX = (initialImage.x - state.x) * state.pixelSize,
-            offsetY = (initialImage.y - state.y) * state.pixelSize,
-            width = initialImage.img.width,
-            height = initialImage.img.height,
-            viewportWidth = this.$viewport.width(),
-            viewportHeight = this.$viewport.height();
-
-        // Viewport rectangle must be completely contained in image rectangle
-        return offsetX <= 0 && offsetY <= 0 && (width + offsetX) >= viewportWidth && (height + offsetY) >= viewportHeight;
-
     }
 
 
@@ -267,156 +230,6 @@ var hic = (function (hic) {
             this.stopSpinner()
             return undefined;
         }
-
-
-    };
-
-
-    /**
-     * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
-     * created previously in readyToPaint.   We could just fetch them from the cache and paint.
-     */
-    hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
-
-        if (!this.ctx) {
-            this.ctx = this.$canvas.get(0).getContext("2d");
-        }
-
-        if (imageTiles) {
-            this.draw(imageTiles);
-        }
-    }
-
-
-    function getMatrices(chr1, chr2) {
-
-        var promises = [];
-        if ('B' === this.displayMode && this.browser.controlDataset) {
-            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
-        }
-        else {
-            promises.push(this.browser.dataset.getMatrix(chr1, chr2));
-            if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
-                promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
-            }
-        }
-        return Promise.all(promises);
-    }
-
-    /**
-     * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
-     * data to computer scale.
-     *
-     * @param zd
-     * @param row1
-     * @param row2
-     * @param col1
-     * @param col2
-     * @param normalization
-     * @returns {*}
-     */
-    async function checkColorScale(zd, row1, row2, col1, col2, normalization) {
-
-        const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
-        if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
-            return this.ratioColorScale;     // Don't adjust color scale for A/B.
-        }
-
-        if (this.colorScaleThresholdCache[colorKey]) {
-            const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
-            this.colorScale.threshold = this.colorScaleThresholdCache[colorKey];
-            if (changed) {
-                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
-            }
-            return this.colorScale;
-        }
-
-        else {
-            const promises = [];
-            const sameChr = zd.chr1 === zd.chr2;
-            let blockNumber
-            for (let row = row1; row <= row2; row++) {
-                for (let column = col1; column <= col2; column++) {
-                    if (sameChr && row < column) {
-                        blockNumber = column * zd.blockColumnCount + row;
-                    }
-                    else {
-                        blockNumber = row * zd.blockColumnCount + column;
-                    }
-
-                    const dataset = ('B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset);
-                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
-                }
-            }
-
-            const blocks = await Promise.all(promises)
-
-            let s = computePercentile(blocks, 95);
-
-            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-
-                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
-
-                this.colorScale = new hic.ColorScale(this.colorScale);
-                this.colorScale.threshold = s;
-                this.computeColorScale = false;
-                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
-            }
-
-            this.colorScaleThresholdCache[colorKey] = s;
-
-            return this.colorScale;
-
-
-        }
-
-    }
-
-    hic.ContactMatrixView.prototype.draw = function (imageTiles) {
-
-        var self = this,
-            state = this.browser.state,
-            viewportWidth = self.$viewport.width(),
-            viewportHeight = self.$viewport.height(),
-            canvasWidth = this.$canvas.width(),
-            canvasHeight = this.$canvas.height();
-
-        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-            this.$canvas.width(viewportWidth);
-            this.$canvas.height(viewportHeight);
-            this.$canvas.attr('width', this.$viewport.width());
-            this.$canvas.attr('height', this.$viewport.height());
-        }
-
-        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-        imageTiles.forEach(function (imageTile) {
-
-            var image = imageTile.image,
-                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-
-            if (image != null) {
-                var row = imageTile.row,
-                    col = imageTile.column,
-                    x0 = imageTile.blockBinCount * col,
-                    y0 = imageTile.blockBinCount * row;
-                var offsetX = (x0 - state.x) * state.pixelSize;
-                var offsetY = (y0 - state.y) * state.pixelSize;
-                var scale = state.pixelSize / pixelSizeInt;
-                var scaledWidth = image.width * scale;
-                var scaledHeight = image.height * scale;
-                if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-                    offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-                    if (scale === 1) {
-                        self.ctx.drawImage(image, offsetX, offsetY);
-                    }
-                    else {
-                        self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-                    }
-                }
-            }
-        })
-
     };
 
     /**
@@ -661,6 +474,156 @@ var hic = (function (hic) {
 
         }
     };
+
+
+
+    /**
+     * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
+     * created previously in readyToPaint.   We could just fetch them from the cache and paint.
+     */
+    hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
+
+        if (!this.ctx) {
+            this.ctx = this.$canvas.get(0).getContext("2d");
+        }
+
+        if (imageTiles) {
+            this.draw(imageTiles);
+        }
+    }
+
+
+    function getMatrices(chr1, chr2) {
+
+        var promises = [];
+        if ('B' === this.displayMode && this.browser.controlDataset) {
+            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+        else {
+            promises.push(this.browser.dataset.getMatrix(chr1, chr2));
+            if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+                promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+            }
+        }
+        return Promise.all(promises);
+    }
+
+    /**
+     * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
+     * data to computer scale.
+     *
+     * @param zd
+     * @param row1
+     * @param row2
+     * @param col1
+     * @param col2
+     * @param normalization
+     * @returns {*}
+     */
+    async function checkColorScale(zd, row1, row2, col1, col2, normalization) {
+
+        const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
+        if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
+            return this.ratioColorScale;     // Don't adjust color scale for A/B.
+        }
+
+        if (this.colorScaleThresholdCache[colorKey]) {
+            const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
+            this.colorScale.threshold = this.colorScaleThresholdCache[colorKey];
+            if (changed) {
+                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
+            }
+            return this.colorScale;
+        }
+
+        else {
+            const promises = [];
+            const sameChr = zd.chr1 === zd.chr2;
+            let blockNumber
+            for (let row = row1; row <= row2; row++) {
+                for (let column = col1; column <= col2; column++) {
+                    if (sameChr && row < column) {
+                        blockNumber = column * zd.blockColumnCount + row;
+                    }
+                    else {
+                        blockNumber = row * zd.blockColumnCount + column;
+                    }
+
+                    const dataset = ('B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset);
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
+                }
+            }
+
+            const blocks = await Promise.all(promises)
+
+            let s = computePercentile(blocks, 95);
+
+            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+
+                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+
+                this.colorScale = new hic.ColorScale(this.colorScale);
+                this.colorScale.threshold = s;
+                this.computeColorScale = false;
+                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
+            }
+
+            this.colorScaleThresholdCache[colorKey] = s;
+
+            return this.colorScale;
+
+
+        }
+
+    }
+
+    hic.ContactMatrixView.prototype.draw = function (imageTiles) {
+
+        var self = this,
+            state = this.browser.state,
+            viewportWidth = self.$viewport.width(),
+            viewportHeight = self.$viewport.height(),
+            canvasWidth = this.$canvas.width(),
+            canvasHeight = this.$canvas.height();
+
+        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+            this.$canvas.width(viewportWidth);
+            this.$canvas.height(viewportHeight);
+            this.$canvas.attr('width', this.$viewport.width());
+            this.$canvas.attr('height', this.$viewport.height());
+        }
+
+        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        imageTiles.forEach(function (imageTile) {
+
+            var image = imageTile.image,
+                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+
+            if (image != null) {
+                var row = imageTile.row,
+                    col = imageTile.column,
+                    x0 = imageTile.blockBinCount * col,
+                    y0 = imageTile.blockBinCount * row;
+                var offsetX = (x0 - state.x) * state.pixelSize;
+                var offsetY = (y0 - state.y) * state.pixelSize;
+                var scale = state.pixelSize / pixelSizeInt;
+                var scaledWidth = image.width * scale;
+                var scaledHeight = image.height * scale;
+                if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+                    offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+                    if (scale === 1) {
+                        self.ctx.drawImage(image, offsetX, offsetY);
+                    }
+                    else {
+                        self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                    }
+                }
+            }
+        })
+
+    };
+
 
     function computePercentile(blockArray, p) {
 
