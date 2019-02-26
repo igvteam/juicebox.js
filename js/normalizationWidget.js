@@ -121,13 +121,13 @@ var hic = (function (hic) {
                 .prop('selected', true);
         }
 
-        function updateOptions() {
+        async function updateOptions() {
             var dataset = event.data,
                 normalizationTypes,
                 elements,
                 norm = this.browser.state.normalization;
 
-            normalizationTypes = dataset.normalizationTypes;
+            normalizationTypes = await dataset.getNormalizationOptions();
             if(normalizationTypes) {
                 elements = normalizationTypes.map(function (normalization) {
                     var label,

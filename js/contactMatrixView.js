@@ -197,6 +197,10 @@ var hic = (function (hic) {
         this.startSpinner();
 
         const state = this.browser.state;
+
+
+
+
         const matrices = await getMatrices.call(this, state.chr1, state.chr2)
 
         var matrix = matrices[0];

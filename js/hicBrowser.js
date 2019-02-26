@@ -203,7 +203,8 @@ var hic = (function (hic) {
         var hicReader;
         hicReader = new hic.HiCReader(config);
 
-        const dataset = await hicReader.loadDataset(config)
+        const straw = new HicStraw(config)
+        const dataset = await loadDataset(config)
 
         dataset.name = this.name;
 
@@ -604,7 +605,7 @@ var hic = (function (hic) {
 
         self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
 
-        return this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+        return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
 
             .then(function (normVectors) {
 
@@ -712,9 +713,7 @@ var hic = (function (hic) {
         this.$contactMaplabel.attr('title', name);
         config.name = name;
 
-
-        const hicReader = new hic.HiCReader(config);
-        const dataset = await hicReader.loadDataset(config)
+        const dataset = await loadDataset(config)
         this.dataset = dataset;
 
         const previousGenomeId = this.genome ? this.genome.id : undefined;
@@ -741,6 +740,20 @@ var hic = (function (hic) {
         // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
         // Let it load in the background
         const eventBus = this.eventBus
+
+        // If nvi is not supplied, try reading it from remote lambda service
+        if (!config.nvi && typeof config.url === "string") {
+            const url = new URL(config.url)
+            const key = encodeURIComponent(url.hostname + url.pathname)
+            const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
+            if (nviResponse.status === 200) {
+                const nvi = await nviResponse.text()
+                if (nvi) {
+                    config.nvi = nvi
+                }
+            }
+        }
+
         if (config.nvi) {
             await dataset.getNormVectorIndex(config)
             eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
@@ -783,8 +796,9 @@ var hic = (function (hic) {
         config.name = name
 
 
+        const straw = new HicStraw(config)
         const hicReader = new hic.HiCReader(config)
-        const dataset = await hicReader.loadDataset(config)
+        const dataset = await loadDataset(config)
 
         if (!this.dataset || areCompatible(this.dataset, dataset)) {
             this.controlDataset = dataset;
@@ -1506,8 +1520,8 @@ var hic = (function (hic) {
 
     function getNviString(dataset) {
 
-        if (dataset.hicReader.normalizationVectorIndexRange) {
-            var range = dataset.hicReader.normalizationVectorIndexRange,
+        if (dataset.hicFile.normalizationVectorIndexRange) {
+            var range = dataset.hicFile.normalizationVectorIndexRange,
                 nviString = String(range.start) + "," + String(range.size);
             return nviString
         }
@@ -1999,6 +2013,14 @@ var hic = (function (hic) {
 
     }
 
+    async function loadDataset(config) {
+
+        const straw = new HicStraw(config)
+        const hicFile = straw.hicFile
+        await hicFile.init()
+        return new hic.Dataset(hicFile)
+
+    }
 
     return hic;
 

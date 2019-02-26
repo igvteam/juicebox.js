@@ -24589,7 +24589,7 @@ var hic = (function (hic) {
 
         self.eventBus.post(hic.Event("NormalizationFileLoad", "start"));
 
-        return this.dataset.hicReader.readNormalizationVectorFile(url, this.dataset.chromosomes)
+        return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
 
             .then(function (normVectors) {
 
@@ -25491,8 +25491,8 @@ var hic = (function (hic) {
 
     function getNviString(dataset) {
 
-        if (dataset.hicReader.normalizationVectorIndexRange) {
-            var range = dataset.hicReader.normalizationVectorIndexRange,
+        if (dataset.hicFile.normalizationVectorIndexRange) {
+            var range = dataset.hicFile.normalizationVectorIndexRange,
                 nviString = String(range.start) + "," + String(range.size);
             return nviString
         }
@@ -26230,7 +26230,7 @@ var hic = (function (hic) {
 
 
     hic.Dataset = function (hicReader) {
-        this.hicReader = hicReader;
+        this.hicFile = hicReader;
         this.url = hicReader.path;
         this.matrixCache = {};
         this.blockCache = {};
@@ -26254,7 +26254,7 @@ var hic = (function (hic) {
     hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
 
         var self = this,
-            reader = this.hicReader,
+            reader = this.hicFile,
             key = "" + Math.min(chr1, chr2) + "_" + Math.max(chr1, chr2);
 
         if (this.matrixCache.hasOwnProperty(key)) {
@@ -26339,7 +26339,7 @@ var hic = (function (hic) {
             return Promise.resolve(this.blockCache[key]);
         } else {
 
-            var reader = self.hicReader;
+            var reader = self.hicFile;
 
             return reader.readBlock(blockNumber, zd)
 
@@ -26369,7 +26369,7 @@ var hic = (function (hic) {
             return Promise.resolve(this.normVectorCache[key]);
         } else {
 
-            var reader = self.hicReader;
+            var reader = self.hicFile;
 
             return reader.readNormalizationVector(type, chrIdx, unit, binSize)
 
@@ -26432,7 +26432,7 @@ var hic = (function (hic) {
 
         var self = this;
 
-        if (this.hicReader.normVectorIndex) {
+        if (this.hicFile.normVectorIndex) {
             return Promise.resolve(hicReader.normVectorIndex);
         }
         else {
@@ -26457,14 +26457,14 @@ var hic = (function (hic) {
             if (config.nvi) {
                 const nviArray = decodeURIComponent(config.nvi).split(",")
                 const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-                return self.hicReader.readNormVectorIndex(self, range)
+                return self.hicFile.readNormVectorIndex(self, range)
 
 
             } else {
-                return self.hicReader.readNormExpectedValuesAndNormVectorIndex(self)
+                return self.hicFile.readNormExpectedValuesAndNormVectorIndex(self)
                     .then(function (ignore) {
 
-                        return self.hicReader.normVectorIndex;
+                        return self.hicFile.normVectorIndex;
                     })
                     .catch(function (error) {
                         igv.presentAlert("Error loading normalization vectors");

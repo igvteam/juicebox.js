@@ -29,10 +29,18 @@
 
 var hic = (function (hic) {
 
+    const knownGenomes = {
 
-    hic.Dataset = function (hicReader) {
-        this.hicReader = hicReader;
-        this.url = hicReader.path;
+        "hg19": [249250621, 243199373, 198022430],
+        "hg38": [248956422, 242193529, 198295559],
+        "mm10": [195471971, 182113224, 160039680],
+        "mm9": [197195432, 181748087, 159599783]
+
+    }
+
+    hic.Dataset = function (hicFile) {
+
+        this.hicFile = hicFile;
         this.matrixCache = {};
         this.blockCache = {};
         this.blockCacheKeys = [];
@@ -42,8 +50,19 @@ var hic = (function (hic) {
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
 
-        this.remote = (typeof this.url === 'string')
-    };
+        this.genomeId = hicFile.genomeId
+        this.chromosomes = hicFile.chromosomes
+        this.bpResolutions = hicFile.bpResolutions
+        this.wholeGenomeChromosome = hicFile.wholeGenomeChromosome
+        this.wholeGenomeResolution = hicFile.wholeGenomeResolution
+
+        // Attempt to determine genomeId if not recognized
+        if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+            const tmp = matchGenome(this.chromosomes);
+            if (tmp) this.genomeId = tmp;
+        }
+
+    }
 
     hic.Dataset.prototype.clearCaches = function () {
         this.matrixCache = {};
@@ -52,135 +71,109 @@ var hic = (function (hic) {
         this.colorScaleCache = {};
     };
 
-    hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
+    hic.Dataset.prototype.getMatrix = async function (chr1, chr2) {
 
-        var self = this,
-            reader = this.hicReader,
-            key = "" + Math.min(chr1, chr2) + "_" + Math.max(chr1, chr2);
+        if (chr1 > chr2) {
+            const tmp = chr1
+            chr1 = chr2
+            chr2 = tmp
+        }
+        const key = `${chr1}_${chr2}`
 
         if (this.matrixCache.hasOwnProperty(key)) {
-            return Promise.resolve(self.matrixCache[key]);
+            return this.matrixCache[key];
 
         } else {
-            return reader.readMatrix(key)
+            const matrix = await this.hicFile.readMatrix(chr1, chr2)
+            this.matrixCache[key] = matrix;
+            return matrix;
 
-                .then(function (matrix) {
-                    self.matrixCache[key] = matrix;
-                    return matrix;
-                })
         }
     }
 
-    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization, eventBus) {
+    hic.Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normalization, eventBus) {
 
-        var self = this;
+        const block = await this.getBlock(zd, blockNumber)
 
-        return self.getBlock(zd, blockNumber)
+        if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
+            return block;
+        }
+        else {
+            // Get the norm vectors serially, its very likely they are the same and the second will be cached
+            const nv1 = await this.getNormalizationVector(normalization, zd.chr1, zd.zoom.unit, zd.zoom.binSize)
+            const nv2 = zd.chr1 === zd.chr2 ?
+                nv1 :
+                await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
-            .then(function (block) {
+            var normRecords = [],
+                normBlock;
 
-                if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-                    return block;
+            if (nv1 === undefined || nv2 === undefined) {
+                igv.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+                if (eventBus) {
+                    eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
                 }
-                else {
-                    // Get the norm vectors serially, its very likely they are the same and the second will be cached
-                    return self.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
+                return block;
+            }
 
-                        .then(function (nv1) {
+            else {
+                for (let record of block.records) {
 
-                            return self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
+                    const x = record.bin1
+                    const y = record.bin2
+                    const nvnv = nv1.data[x] * nv2.data[y];
 
-                                .then(function (nv2) {
-
-                                    var normRecords = [],
-                                        normBlock;
-
-                                    if (nv1 === undefined || nv2 === undefined) {
-                                        console.log("Undefined normalization vector for: " + normalization);
-                                        if (eventBus) {
-                                            eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
-                                        }
-                                        return block;
-                                    }
-
-                                    else {
-                                        block.records.forEach(function (record) {
-
-                                            var x = record.bin1,
-                                                y = record.bin2,
-                                                counts,
-                                                nvnv = nv1.data[x] * nv2.data[y];
-
-                                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                                counts = record.counts / nvnv;
-                                                //countArray.push(counts);
-                                                normRecords.push(new hic.ContactRecord(x, y, counts));
-                                            }
-                                        })
-
-                                        normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-                                        //normBlock.percentile95 = block.percentile95;
-
-                                        return normBlock;
-                                    }
-                                })
-                        })
+                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                        const counts = record.counts / nvnv;
+                        normRecords.push(new hic.ContactRecord(x, y, counts));
+                    }
                 }
-            })
+
+                normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+                //normBlock.percentile95 = block.percentile95;
+
+                return normBlock;
+            }
+
+        }
+
     }
 
-    hic.Dataset.prototype.getBlock = function (zd, blockNumber) {
+    hic.Dataset.prototype.getBlock = async function (zd, blockNumber) {
 
-        var self = this,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
+        const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
 
         if (this.blockCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.blockCache[key]);
+            return this.blockCache[key];
+
         } else {
 
-            var reader = self.hicReader;
+            const block = await this.hicFile.readBlock(blockNumber, zd)
+            if (this.blockCacheKeys.length > this.blockCacheLimit) {
+                delete this.blockCache[this.blockCacheKeys[0]];
+                this.blockCacheKeys.shift();
+            }
+            this.blockCacheKeys.push(key);
+            this.blockCache[key] = block;
 
-            return reader.readBlock(blockNumber, zd)
-
-                .then(function (block) {
-
-                    if (self.blockCacheKeys.length > self.blockCacheLimit) {
-                        delete self.blockCache[self.blockCacheKeys[0]];
-                        self.blockCacheKeys.shift();
-                    }
-
-                    self.blockCacheKeys.push(key);
-                    self.blockCache[key] = block;
-
-                    return block;
-
-                })
+            return block;
 
         }
     };
 
-    hic.Dataset.prototype.getNormalizationVector = function (type, chrIdx, unit, binSize) {
+    hic.Dataset.prototype.getNormalizationVector = async function (type, chrIdx, unit, binSize) {
 
-        var self = this,
-            key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+        const key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
         if (this.normVectorCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.normVectorCache[key]);
+            return this.normVectorCache[key];
         } else {
 
-            var reader = self.hicReader;
+            const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize)
+            this.normVectorCache[key] = nv;
+            return nv;
 
-            return reader.readNormalizationVector(type, chrIdx, unit, binSize)
-
-                .then(function (nv) {
-
-                    self.normVectorCache[key] = nv;
-
-                    return nv;
-
-                })
 
         }
     };
@@ -218,62 +211,25 @@ var hic = (function (hic) {
     hic.Dataset.prototype.compareChromosomes = function (otherDataset) {
         const chrs = this.chromosomes;
         const otherChrs = otherDataset.chromosomes;
-        if(chrs.length !== otherChrs.length) {
+        if (chrs.length !== otherChrs.length) {
             return false;
         }
-        for(let i = 0; i<chrs.length; i++) {
-            if(chrs[i].size !== otherChrs[i].size) {
+        for (let i = 0; i < chrs.length; i++) {
+            if (chrs[i].size !== otherChrs[i].size) {
                 return false;
             }
         }
         return true;
     }
 
-    hic.Dataset.prototype.getNormVectorIndex = async function (config) {
+    hic.Dataset.prototype.getNormVectorIndex = async function () {
+        return this.hicFile.getNormVectorIndex()
 
-        var self = this;
+    }
 
-        if (this.hicReader.normVectorIndex) {
-            return Promise.resolve(hicReader.normVectorIndex);
-        }
-        else {
+    hic.Dataset.prototype.getNormalizationOptions = async function () {
 
-            // If NVI was not supplied, try fetching it
-            let nviKey;
-            if (!config.nvi && this.remote) {
-                const url = new URL(this.url)
-                nviKey = encodeURIComponent(url.hostname + url.pathname)
-                const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + nviKey, {
-                    method: 'GET',
-                    redirect: 'follow',
-                    mode: 'cors',
-                })
-                if (nviResponse.status === 200) {
-                    const nvi = await nviResponse.text()
-                    if (nvi) {
-                        config.nvi = nvi
-                    }
-                }
-            }
-            if (config.nvi) {
-                const nviArray = decodeURIComponent(config.nvi).split(",")
-                const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-                return self.hicReader.readNormVectorIndex(self, range)
-
-
-            } else {
-                return self.hicReader.readNormExpectedValuesAndNormVectorIndex(self)
-                    .then(function (ignore) {
-
-                        return self.hicReader.normVectorIndex;
-                    })
-                    .catch(function (error) {
-                        igv.presentAlert("Error loading normalization vectors");
-                        console.log(error);
-                    });
-            }
-
-        }
+        return this.hicFile.getNormalizationOptions()
     }
 
 
@@ -291,6 +247,27 @@ var hic = (function (hic) {
 
     hic.ContactRecord.prototype.getKey = function () {
         return "" + this.bin1 + "_" + this.bin2;
+    }
+
+
+    function matchGenome(chromosomes) {
+
+
+        var keys = Object.keys(knownGenomes),
+            i, l;
+
+        if (chromosomes.length < 4) return undefined;
+
+        for (i = 0; i < keys.length; i++) {
+            l = knownGenomes[keys[i]];
+            if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
+                return keys[i];
+            }
+        }
+
+        return undefined;
+
+
     }
 
 

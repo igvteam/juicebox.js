@@ -32,7 +32,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $("<div>", { class:'hic-resolution-selector-container',  title:'Resolution' });
+        this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
         $parent.append(this.$container);
 
         // label container
@@ -70,8 +70,8 @@ var hic = (function (hic) {
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-        this.$resolution_lock.removeClass( (true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-        this.$resolution_lock.addClass(    (true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+        this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+        this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
@@ -96,7 +96,7 @@ var hic = (function (hic) {
 
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
-            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+            list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
 
             htmlString = optionListHTML(list, selectedIndex, divisor);
             this.$resolution_selector.empty();
@@ -108,7 +108,7 @@ var hic = (function (hic) {
                     return index === selectedIndex;
                 })
                 .prop('selected', true);
-            
+
 
         } else if (event.type === "MapLoad") {
 
@@ -121,7 +121,6 @@ var hic = (function (hic) {
         } else if (event.type === "ControlMapLoad") {
 
 
-
         }
 
         function harmonizeContactAndControlResolutuionOptions($options, resolutions) {
@@ -132,13 +131,13 @@ var hic = (function (hic) {
 
             // reset
             $options.removeAttr('disabled');
-            $options.each(function( index ) {
+            $options.each(function (index) {
                 var $option,
                     str;
 
                 $option = $(this);
                 str = $option.data('resolution');
-                if (undefined === dictionary[ str ]) {
+                if (undefined === dictionary[str]) {
                     $option.attr('disabled', 'disabled');
                 }
 
@@ -147,7 +146,7 @@ var hic = (function (hic) {
             function resolutionDictionary(list) {
                 var d = {};
                 list.forEach(function (resolution) {
-                    d[ resolution.toString() ] = resolution;
+                    d[resolution.toString()] = resolution;
                 });
                 return d;
             }
@@ -160,10 +159,10 @@ var hic = (function (hic) {
             list = resolutions.map(function (resolution, index) {
                 var selected, unit, pretty;
 
-                if(resolution >= 1e6) {
+                if (resolution >= 1e6) {
                     divisor = 1e6
                     unit = 'mb'
-                } else if(resolution >= 1e3) {
+                } else if (resolution >= 1e3) {
                     divisor = 1e3
                     unit = 'kb'
                 } else {
@@ -171,10 +170,13 @@ var hic = (function (hic) {
                     unit = 'bp'
                 }
 
-                pretty = igv.numberFormatter( Math.round( resolution/divisor ) ) + ' ' + unit;
+                pretty = igv.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
                 selected = selectedIndex === index;
 
-                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected': '') + '>' + pretty + '</option>';
+                if (resolution)
+                    return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+                else
+                    return ''
             });
 
             return list.join('');
