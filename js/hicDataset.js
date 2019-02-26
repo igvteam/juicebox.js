@@ -73,6 +73,8 @@ var hic = (function (hic) {
 
     hic.Dataset.prototype.getMatrix = async function (chr1, chr2) {
 
+        console.trace();
+
         if (chr1 > chr2) {
             const tmp = chr1
             chr1 = chr2
