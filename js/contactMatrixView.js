@@ -253,7 +253,7 @@ var hic = (function (hic) {
             return Promise.resolve(this.imageTileCache[key])
 
         } else {
-            const sameChr = zd.chr1 === zd.chr2
+            const sameChr = zd.chr1.index === zd.chr2.index
             const blockBinCount = zd.blockBinCount
             const blockColumnCount = zd.blockColumnCount
             const widthInBins = zd.blockBinCount
@@ -402,9 +402,10 @@ var hic = (function (hic) {
                 //Draw 2D tracks
                 ctx.save();
                 ctx.lineWidth = 2;
-                this.browser.tracks2D.forEach(function (track2D) {
+                for(let track2D of this.browser.tracks2D) {
 
                     if (track2D.isVisible) {
+
                         var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
 
                         if (features) {
@@ -439,7 +440,7 @@ var hic = (function (hic) {
                             })
                         }
                     }
-                });
+                }
 
                 ctx.restore();
 
@@ -544,6 +545,7 @@ var hic = (function (hic) {
         if ('B' === this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
         }
+
         else {
             promises.push(this.browser.dataset.getMatrix(chr1, chr2));
             if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
@@ -583,7 +585,7 @@ var hic = (function (hic) {
 
         else {
             const promises = [];
-            const sameChr = zd.chr1 === zd.chr2;
+            const sameChr = zd.chr1.index === zd.chr2.index;
             let blockNumber
             for (let row = row1; row <= row2; row++) {
                 for (let column = col1; column <= col2; column++) {

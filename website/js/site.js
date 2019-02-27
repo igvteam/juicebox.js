@@ -454,6 +454,7 @@ var juicebox = (function (site) {
                 browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])}, syncBrowsers);
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 browser.eventBus.subscribe("MapLoad", checkBDropdown);
+
                 if (parts && parts.length > 1) {
                     for (i = 1; i < parts.length; i++) {
                         browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
@@ -465,6 +466,11 @@ var juicebox = (function (site) {
                 browser = await hic.createBrowser($container.get(0), {});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 browser.eventBus.subscribe("MapLoad", checkBDropdown);
+            }
+
+            // Must manually trigger the genome change event on initial load
+            if(browser && browser.genome) {
+                genomeChangeListener.receiveEvent({data: browser.genome.id})
             }
         }
 

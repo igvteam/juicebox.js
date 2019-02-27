@@ -703,6 +703,7 @@ var hic = (function (hic) {
 
             const previousGenomeId = this.genome ? this.genome.id : undefined;
             this.genome = new hic.Genome(this.dataset.genomeId, this.dataset.chromosomes);
+
             // TODO -- this is not going to work with browsers on different assemblies on the same page.
             igv.browser.genome = this.genome;
 
