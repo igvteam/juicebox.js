@@ -1478,6 +1478,11 @@ var hic = (function (hic) {
         }
     }
 
+    function getBlockString(dataset) {
+
+
+    }
+
 // parseUri 1.2.2
 // (c) Steven Levithan <stevenlevithan.com>
 // MIT License
@@ -1962,6 +1967,7 @@ var hic = (function (hic) {
 
     async function loadDataset(config) {
 
+        const url = config.url
 
         // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
         if (config.url instanceof File) {
@@ -1972,8 +1978,9 @@ var hic = (function (hic) {
         const straw = new HicStraw(config)
         const hicFile = straw.hicFile
         await hicFile.init()
-        return new hic.Dataset(hicFile)
-
+        const dataset = new hic.Dataset(hicFile)
+        dataset.url = url
+        return dataset
     }
 
     return hic;

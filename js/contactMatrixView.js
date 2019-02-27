@@ -189,7 +189,6 @@ var hic = (function (hic) {
      */
     hic.ContactMatrixView.prototype.getImageTiles = async function () {
 
-
         if (!this.browser.dataset) {
             return;
         }
@@ -231,7 +230,7 @@ var hic = (function (hic) {
             this.stopSpinner()
             return undefined;
         }
-    };
+    }
 
     /**
      * Returns a promise for an image tile
@@ -247,11 +246,11 @@ var hic = (function (hic) {
         const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
         const useImageData = pixelSizeInt === 1
         const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-            "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
+            "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
 
         if (this.imageTileCache.hasOwnProperty(key)) {
 
-            return Promise.resolve(this.imageTileCache[key]);
+            return Promise.resolve(this.imageTileCache[key])
 
         } else {
             const sameChr = zd.chr1 === zd.chr2
@@ -259,6 +258,7 @@ var hic = (function (hic) {
             const blockColumnCount = zd.blockColumnCount
             const widthInBins = zd.blockBinCount
             const transpose = sameChr && row < column
+
             let blockNumber
             if (sameChr && row < column) {
                 blockNumber = column * blockColumnCount + row;
@@ -269,47 +269,42 @@ var hic = (function (hic) {
             const blocks = await getNormalizedBlocks.call(this, zd, zdControl, blockNumber, state.normalization)
 
 
-            let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock;
+            let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock
             if ("BOA" === this.displayMode) {
                 ctrlAverageCount = zd.averageCount;
-                averageCount = zdControl ? zdControl.averageCount : 1;
-                block = blocks[1];
-                controlBlock = blocks[0];
+                averageCount = zdControl ? zdControl.averageCount : 1
+                block = blocks[1]
+                controlBlock = blocks[0]
             } else {
-                averageCount = zd.averageCount;
-                ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
-                block = blocks[0];
-                if (blocks.length > 0) controlBlock = blocks[1];
+                averageCount = zd.averageCount
+                ctrlAverageCount = zdControl ? zdControl.averageCount : 1
+                block = blocks[0]
+                if (blocks.length > 0) controlBlock = blocks[1]
             }
-            averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+            averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
 
 
             let image;
             if (block && block.records.length > 0) {
                 image = drawBlock.call(this, block, controlBlock, transpose);
+
+
             }
             else {
                 //console.log("No block for " + blockNumber);
             }
-            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image};
+            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
 
 
             if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
-                delete this.imageTileCache[this.imageTileCacheKeys[0]];
-                this.imageTileCacheKeys.shift();
+                delete this.imageTileCache[this.imageTileCacheKeys[0]]
+                this.imageTileCacheKeys.shift()
             }
 
-            this.imageTileCache[key] = imageTile;
+            this.imageTileCache[key] = imageTile
 
             return imageTile;
 
-            function setPixel(imageData, x, y, r, g, b, a) {
-                index = (x + y * imageData.width) * 4;
-                imageData.data[index + 0] = r;
-                imageData.data[index + 1] = g;
-                imageData.data[index + 2] = b;
-                imageData.data[index + 3] = a;
-            }
 
             // Actual drawing happens here
             function drawBlock(block, controlBlock, transpose) {
@@ -459,6 +454,15 @@ var hic = (function (hic) {
                 return image;
             }
 
+
+            function setPixel(imageData, x, y, r, g, b, a) {
+                const index = (x + y * imageData.width) * 4;
+                imageData.data[index + 0] = r;
+                imageData.data[index + 1] = g;
+                imageData.data[index + 2] = b;
+                imageData.data[index + 3] = a;
+            }
+
         }
 
         function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
@@ -479,8 +483,7 @@ var hic = (function (hic) {
 
 
     /**
-     * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
-     * created previously in readyToPaint.   We could just fetch them from the cache and paint.
+     * Repaint the map.
      */
     hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
 
@@ -489,7 +492,48 @@ var hic = (function (hic) {
         }
 
         if (imageTiles) {
-            this.draw(imageTiles);
+            var self = this,
+                state = this.browser.state,
+                viewportWidth = self.$viewport.width(),
+                viewportHeight = self.$viewport.height(),
+                canvasWidth = this.$canvas.width(),
+                canvasHeight = this.$canvas.height();
+
+            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+                this.$canvas.width(viewportWidth);
+                this.$canvas.height(viewportHeight);
+                this.$canvas.attr('width', this.$viewport.width());
+                this.$canvas.attr('height', this.$viewport.height());
+            }
+
+            self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            imageTiles.forEach(function (imageTile) {
+
+                var image = imageTile.image,
+                    pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+
+                if (image != null) {
+                    var row = imageTile.row,
+                        col = imageTile.column,
+                        x0 = imageTile.blockBinCount * col,
+                        y0 = imageTile.blockBinCount * row;
+                    var offsetX = (x0 - state.x) * state.pixelSize;
+                    var offsetY = (y0 - state.y) * state.pixelSize;
+                    var scale = state.pixelSize / pixelSizeInt;
+                    var scaledWidth = image.width * scale;
+                    var scaledHeight = image.height * scale;
+                    if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+                        offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+                        if (scale === 1) {
+                            self.ctx.drawImage(image, offsetX, offsetY);
+                        }
+                        else {
+                            self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                        }
+                    }
+                }
+            })
         }
     }
 
@@ -577,53 +621,6 @@ var hic = (function (hic) {
         }
 
     }
-
-    hic.ContactMatrixView.prototype.draw = function (imageTiles) {
-
-        var self = this,
-            state = this.browser.state,
-            viewportWidth = self.$viewport.width(),
-            viewportHeight = self.$viewport.height(),
-            canvasWidth = this.$canvas.width(),
-            canvasHeight = this.$canvas.height();
-
-        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-            this.$canvas.width(viewportWidth);
-            this.$canvas.height(viewportHeight);
-            this.$canvas.attr('width', this.$viewport.width());
-            this.$canvas.attr('height', this.$viewport.height());
-        }
-
-        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-        imageTiles.forEach(function (imageTile) {
-
-            var image = imageTile.image,
-                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-
-            if (image != null) {
-                var row = imageTile.row,
-                    col = imageTile.column,
-                    x0 = imageTile.blockBinCount * col,
-                    y0 = imageTile.blockBinCount * row;
-                var offsetX = (x0 - state.x) * state.pixelSize;
-                var offsetY = (y0 - state.y) * state.pixelSize;
-                var scale = state.pixelSize / pixelSizeInt;
-                var scaledWidth = image.width * scale;
-                var scaledHeight = image.height * scale;
-                if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-                    offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-                    if (scale === 1) {
-                        self.ctx.drawImage(image, offsetX, offsetY);
-                    }
-                    else {
-                        self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-                    }
-                }
-            }
-        })
-
-    };
 
 
     function computePercentile(blockArray, p) {
