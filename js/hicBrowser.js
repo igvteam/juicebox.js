@@ -81,7 +81,6 @@ var hic = (function (hic) {
 
         browser = new hic.Browser($hic_container, config);
 
-
         if (config.displayMode) {
             browser.contactMatrixView.displayMode = config.displayMode;
             browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
