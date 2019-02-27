@@ -1,3 +1,15 @@
+.igv-right-hand-gutter {
+  top: 0;
+  margin-top: 4px;
+  background-color: transparent;
+  width: unset; }
+
+.igv-trackgear-container {
+  margin-left: unset;
+  color: #5f5f5f;
+  width: 14px;
+  height: 14px; }
+
 #hicEncodeModal > .modal-dialog {
   max-width: 90% !important;
   width: 90% !important; }
@@ -612,7 +624,8 @@ div[id$="x-track-container"] {
       cursor: pointer;
       position: relative;
       width: 100%;
-      margin-right: 0; }
+      margin-right: 0;
+      margin-bottom: 2px; }
       div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-label {
         display: inline-block;
         position: absolute;
@@ -640,22 +653,6 @@ div[id$="x-track-container"] {
         height: 32px;
         margin-left: -16px;
         background-color: rgba(255, 255, 255, 0); }
-      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container {
-        position: absolute;
-        display: inline-block;
-        top: 0;
-        right: 0;
-        width: 32px;
-        height: 32px;
-        font-size: 16px;
-        text-align: center;
-        z-index: 1024;
-        color: #5f5f5f; }
-      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:hover,
-      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:focus,
-      div[id$="x-track-container"] div[id$="x-tracks"] .x-track-canvas-container .x-track-menu-container:active {
-        cursor: pointer;
-        color: #373737; }
 
 div[id$="content-container"] {
   display: flex;
@@ -740,7 +737,7 @@ div[id$="content-container"] {
         display: block;
         position: relative;
         height: 100%;
-        margin-right: 0;
+        margin-right: 2px;
         background-color: white; }
         div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-tracks"] .y-track-canvas-container .y-track-spinner {
           display: block;

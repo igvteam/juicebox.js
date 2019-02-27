@@ -21997,15 +21997,6 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("ControlMapLoad", this);
     };
 
-    hic.ContactMatrixView.prototype.setInitialImage = function (x, y, image, state) {
-        this.initialImage = {
-            x: x,
-            y: y,
-            state: state.clone(),
-            img: image
-        }
-    };
-
     hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
 
         switch (this.displayMode) {
@@ -22022,13 +22013,13 @@ var hic = (function (hic) {
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
     };
 
-    hic.ContactMatrixView.prototype.setColorScaleThreshold = function (threshold) {
+    hic.ContactMatrixView.prototype.setColorScaleThreshold = async function (threshold) {
 
         this.getColorScale().setThreshold(threshold);
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
         this.imageTileCache = {};
-        this.initialImage = undefined;
-        this.repaint();
+        const tiles = await this.getImageTiles()
+        this.repaint(tiles);
     };
 
     hic.ContactMatrixView.prototype.getColorScale = function () {
@@ -22084,193 +22075,326 @@ var hic = (function (hic) {
                 this.clearCaches();
             }
 
-            if (this.initialImage) {
-                if (!validateInitialImage.call(this, this.initialImage, event.data.state)) {
-                    this.initialImage = undefined;
-                }
-            }
         }
     }
 
-    function validateInitialImage(initialImage, state) {
 
-        if (initialImage.state.equals(state)) return true;
+    hic.ContactMatrixView.prototype.update = async function () {
 
-        if (!(initialImage.state.chr1 === state.chr1 && initialImage.state.chr2 === state.chr2 &&
-            initialImage.state.zoom === state.zoom && initialImage.state.pixelSize === state.pixelSize &&
-            initialImage.state.normalization === state.normalization)) return false;
-
-        // Now see if initial image fills view
-        var offsetX = (initialImage.x - state.x) * state.pixelSize,
-            offsetY = (initialImage.y - state.y) * state.pixelSize,
-            width = initialImage.img.width,
-            height = initialImage.img.height,
-            viewportWidth = this.$viewport.width(),
-            viewportHeight = this.$viewport.height();
-
-        // Viewport rectangle must be completely contained in image rectangle
-        return offsetX <= 0 && offsetY <= 0 && (width + offsetX) >= viewportWidth && (height + offsetY) >= viewportHeight;
-
+        const tiles = await this.getImageTiles()
+        this.repaint(tiles);
     }
 
-    function drawStaticImage(image) {
-        var viewportWidth = this.$viewport.width(),
-            viewportHeight = this.$viewport.height(),
-            canvasWidth = this.$canvas.width(),
-            canvasHeight = this.$canvas.height(),
-            state = this.browser.state,
-            offsetX = (image.x - state.x) * state.pixelSize,
-            offsetY = (image.y - state.y) * state.pixelSize;
-        if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-            this.$canvas.width(viewportWidth);
-            this.$canvas.height(viewportHeight);
-            this.$canvas.attr('width', this.$viewport.width());
-            this.$canvas.attr('height', this.$viewport.height());
-        }
-        this.ctx.drawImage(image.img, offsetX, offsetY);
-    }
-
-
-    hic.ContactMatrixView.prototype.update = function () {
-
-        var self = this;
-
-        this.readyToPaint()
-            .then(function (ignore) {
-
-                self.repaint();
-            })
-            .catch(function (error) {
-                console.error(error);
-            })
-
-    }
 
     /**
      * Return a promise to load all neccessary data
      */
-    hic.ContactMatrixView.prototype.readyToPaint = async function () {
+    hic.ContactMatrixView.prototype.getImageTiles = async function () {
 
-        var self = this,
-            state = this.browser.state;
 
-        if (!self.browser.dataset || self.initialImage) {
-            return Promise.resolve();
+        if (!this.browser.dataset) {
+            return;
         }
 
-        self.startSpinner();
+        this.startSpinner();
 
-        const matrices = await getMatrices.call(self, state.chr1, state.chr2)
+        const state = this.browser.state;
 
+        const matrices = await getMatrices.call(this, state.chr1, state.chr2)
 
         var matrix = matrices[0];
-
-
         if (matrix) {
-            var zd = await matrix.bpZoomData[state.zoom],
-                blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
-                pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
-                widthInBins = self.$viewport.width() / pixelSizeInt,
-                heightInBins = self.$viewport.height() / pixelSizeInt,
-                blockCol1 = Math.floor(state.x / blockBinCount),
-                blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
-                blockRow1 = Math.floor(state.y / blockBinCount),
-                blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                r, c, zdControl, promises = [];
+            const zd = await matrix.bpZoomData[state.zoom]
+            const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
+            const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
+            const widthInBins = this.$viewport.width() / pixelSizeInt
+            const heightInBins = this.$viewport.height() / pixelSizeInt
+            const blockCol1 = Math.floor(state.x / blockBinCount)
+            const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount)
+            const blockRow1 = Math.floor(state.y / blockBinCount)
+            const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
+            await checkColorScale.call(this, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+
+            let zdControl
             if (matrices.length > 1) {
                 zdControl = matrices[1].bpZoomData[state.zoom];
             }
 
-            await checkColorScale.call(self, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
-
-            for (r = blockRow1; r <= blockRow2; r++) {
-                for (c = blockCol1; c <= blockCol2; c++) {
-                    promises.push(self.getImageTile(zd, zdControl, r, c, state));
+            const promises = []
+            for (let r = blockRow1; r <= blockRow2; r++) {
+                for (let c = blockCol1; c <= blockCol2; c++) {
+                    promises.push(this.getImageTile(zd, zdControl, r, c, state));
                 }
             }
+            this.stopSpinner();
+            return Promise.all(promises);
+        } else {
+            this.stopSpinner()
+            return undefined;
+        }
+    };
 
-            await Promise.all(promises);
+    /**
+     * Returns a promise for an image tile
+     *
+     * @param zd
+     * @param row
+     * @param column
+     * @param state
+     * @returns {*}
+     */
+    hic.ContactMatrixView.prototype.getImageTile = async function (zd, zdControl, row, column, state) {
+
+        const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
+        const useImageData = pixelSizeInt === 1
+        const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
+            "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
+
+        if (this.imageTileCache.hasOwnProperty(key)) {
+
+            return Promise.resolve(this.imageTileCache[key]);
+
+        } else {
+            const sameChr = zd.chr1 === zd.chr2
+            const blockBinCount = zd.blockBinCount
+            const blockColumnCount = zd.blockColumnCount
+            const widthInBins = zd.blockBinCount
+            const transpose = sameChr && row < column
+            let blockNumber
+            if (sameChr && row < column) {
+                blockNumber = column * blockColumnCount + row;
+            }
+            else {
+                blockNumber = row * blockColumnCount + column;
+            }
+            const blocks = await getNormalizedBlocks.call(this, zd, zdControl, blockNumber, state.normalization)
+
+
+            let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock;
+            if ("BOA" === this.displayMode) {
+                ctrlAverageCount = zd.averageCount;
+                averageCount = zdControl ? zdControl.averageCount : 1;
+                block = blocks[1];
+                controlBlock = blocks[0];
+            } else {
+                averageCount = zd.averageCount;
+                ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+                block = blocks[0];
+                if (blocks.length > 0) controlBlock = blocks[1];
+            }
+            averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
+
+            let image;
+            if (block && block.records.length > 0) {
+                image = drawBlock.call(this, block, controlBlock, transpose);
+            }
+            else {
+                //console.log("No block for " + blockNumber);
+            }
+            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image};
+
+
+            if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
+                delete this.imageTileCache[this.imageTileCacheKeys[0]];
+                this.imageTileCacheKeys.shift();
+            }
+
+            this.imageTileCache[key] = imageTile;
+
+            return imageTile;
+
+            function setPixel(imageData, x, y, r, g, b, a) {
+                index = (x + y * imageData.width) * 4;
+                imageData.data[index + 0] = r;
+                imageData.data[index + 1] = g;
+                imageData.data[index + 2] = b;
+                imageData.data[index + 3] = a;
+            }
+
+            // Actual drawing happens here
+            function drawBlock(block, controlBlock, transpose) {
+
+                var imageSize = Math.ceil(widthInBins * pixelSizeInt)
+                const blockNumber = block.blockNumber;
+                const row = Math.floor(blockNumber / blockColumnCount);
+                const col = blockNumber - row * blockColumnCount;
+                const x0 = blockBinCount * col;
+                const y0 = blockBinCount * row;
+
+                const image = document.createElement('canvas');
+                image.width = imageSize;
+                image.height = imageSize;
+                const ctx = image.getContext('2d');
+                ctx.clearRect(0, 0, image.width, image.height);
+
+                const controlRecords = {};
+                if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
+
+                    controlBlock.records.forEach(function (record) {
+                        controlRecords[record.getKey()] = record;
+                    })
+                }
+
+                let id
+                if (useImageData) {
+                    id = ctx.getImageData(0, 0, image.width, image.height);
+                }
+
+                for (let i = 0; i < block.records.length; i++) {
+
+                    const rec = block.records[i];
+                    let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
+                    let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
+
+                    if (transpose) {
+                        t = y;
+                        y = x;
+                        x = t;
+                    }
+
+                    let color
+                    switch (this.displayMode) {
+
+                        case 'AOB':
+                        case 'BOA':
+                            let key = rec.getKey();
+                            let controlRec = controlRecords[key];
+                            if (!controlRec) {
+                                continue;    // Skip
+                            }
+                            let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
+
+                            color = this.ratioColorScale.getColor(score);
+
+                            break;
+
+                        case 'AMB':
+                            key = rec.getKey();
+                            controlRec = controlRecords[key];
+                            if (!controlRec) {
+                                continue;    // Skip
+                            }
+                            score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                            color = this.diffColorScale.getColor(score);
+
+                            break;
+
+                        default:    // Either 'A' or 'B'
+                            color = this.colorScale.getColor(rec.counts);
+                    }
+
+
+                    if (useImageData) {
+                        // TODO -- verify that this bitblting is faster than fillRect
+                        setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                        if (sameChr && row === col) {
+                            setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                        }
+                    }
+                    else {
+                        ctx.fillStyle = color.rgb;
+                        ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
+                        if (sameChr && row === col) {
+                            ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
+                        }
+                    }
+                }
+                if (useImageData) {
+                    ctx.putImageData(id, 0, 0);
+                }
+
+                //Draw 2D tracks
+                ctx.save();
+                ctx.lineWidth = 2;
+                this.browser.tracks2D.forEach(function (track2D) {
+
+                    if (track2D.isVisible) {
+                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+
+                        if (features) {
+                            features.forEach(function (f) {
+
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var w = x2 - x1;
+                                var h = y2 - y1;
+
+                                if (transpose) {
+                                    t = y1;
+                                    y1 = x1;
+                                    x1 = t;
+
+                                    t = h;
+                                    h = w;
+                                    w = t;
+                                }
+
+                                var dim = Math.max(image.width, image.height);
+                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                    ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                    ctx.strokeRect(x1, y1, w, h);
+                                    if (sameChr && row === col) {
+                                        ctx.strokeRect(y1, x1, h, w);
+                                    }
+                                }
+                            })
+                        }
+                    }
+                });
+
+                ctx.restore();
+
+                // Uncomment to reveal tile boundaries for debugging.
+                // ctx.fillStyle = "rgb(255,255,255)";
+                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+
+                var t1 = (new Date()).getTime();
+
+                //console.log(t1 - t0);
+
+                return image;
+            }
 
         }
 
+        function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
+            var promises = [];
 
-        self.stopSpinner();
+            var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
+            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
 
+            if (zdControl) {
+                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
+            }
+
+            return Promise.all(promises);
+
+        }
     };
+
 
 
     /**
      * Repaint the map.  This function is more complex than it needs to be,   all image tiles should have been
      * created previously in readyToPaint.   We could just fetch them from the cache and paint.
      */
-    hic.ContactMatrixView.prototype.repaint = function () {
+    hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
 
-        var self = this,
-            state = this.browser.state,
-            zd;
-
-        if (!self.browser.dataset) return;
-
-        if (!self.ctx) {
-            self.ctx = this.$canvas.get(0).getContext("2d");
+        if (!this.ctx) {
+            this.ctx = this.$canvas.get(0).getContext("2d");
         }
 
-        if (self.initialImage) {
-            drawStaticImage.call(this, this.initialImage);
-            return;
+        if (imageTiles) {
+            this.draw(imageTiles);
         }
-
-        if (self.updating) {
-            return;
-        }
-
-
-        getMatrices.call(self, state.chr1, state.chr2)
-
-            .then(function (matrices) {
-
-                var matrix = matrices[0];
-
-                if (matrix) {
-
-                    zd = matrix.bpZoomData[state.zoom];
-
-                    var blockBinCount = zd.blockBinCount,   // Dimension in bins of a block (width = height = blockBinCount)
-                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
-                        widthInBins = self.$viewport.width() / pixelSizeInt,
-                        heightInBins = self.$viewport.height() / pixelSizeInt,
-                        blockCol1 = Math.floor(state.x / blockBinCount),
-                        blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount),
-                        blockRow1 = Math.floor(state.y / blockBinCount),
-                        blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount),
-                        r, c, zdControl, promises = [];
-
-                    if (matrices.length > 1) zdControl = matrices[1].bpZoomData[state.zoom];
-
-                    for (r = blockRow1; r <= blockRow2; r++) {
-                        for (c = blockCol1; c <= blockCol2; c++) {
-                            promises.push(self.getImageTile(zd, zdControl, r, c, state));
-                        }
-                    }
-
-                    return Promise.all(promises);
-                }
-                else {
-                    return Promise.resolve(undefined);
-                }
-            })
-            .then(function (imageTiles) {
-                self.updating = false;
-                if (imageTiles) {
-                    self.draw(imageTiles, zd);
-                }
-            })
-            .catch(function (error) {
-                self.updating = false;
-                console.error(error);
-            })
     }
+
 
     function getMatrices(chr1, chr2) {
 
@@ -22299,32 +22423,28 @@ var hic = (function (hic) {
      * @param normalization
      * @returns {*}
      */
-    function checkColorScale(zd, row1, row2, col1, col2, normalization) {
+    async function checkColorScale(zd, row1, row2, col1, col2, normalization) {
 
-        var self = this, colorKey, dataset;
-
-        colorKey = colorScaleKey(self.browser.state, self.displayMode);   // This doesn't feel right, state should be an argument
-        if ('AOB' === self.displayMode || 'BOA' === self.displayMode) {
-            return Promise.resolve(self.ratioColorScale);     // Don't adjust color scale for A/B.
+        const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
+        if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
+            return this.ratioColorScale;     // Don't adjust color scale for A/B.
         }
 
-        if (self.colorScaleThresholdCache[colorKey]) {
-            var changed = self.colorScale.threshold !== self.colorScaleThresholdCache[colorKey];
-            self.colorScale.threshold = self.colorScaleThresholdCache[colorKey];
+        if (this.colorScaleThresholdCache[colorKey]) {
+            const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
+            this.colorScale.threshold = this.colorScaleThresholdCache[colorKey];
             if (changed) {
-                self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
+                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
             }
-            return Promise.resolve(self.colorScale);
+            return this.colorScale;
         }
 
         else {
-            var row, column, sameChr, blockNumber,
-                promises = [];
-
-            sameChr = zd.chr1 === zd.chr2;
-
-            for (row = row1; row <= row2; row++) {
-                for (column = col1; column <= col2; column++) {
+            const promises = [];
+            const sameChr = zd.chr1 === zd.chr2;
+            let blockNumber
+            for (let row = row1; row <= row2; row++) {
+                for (let column = col1; column <= col2; column++) {
                     if (sameChr && row < column) {
                         blockNumber = column * zd.blockColumnCount + row;
                     }
@@ -22332,41 +22452,38 @@ var hic = (function (hic) {
                         blockNumber = row * zd.blockColumnCount + column;
                     }
 
-                    dataset = ('B' === self.displayMode ? self.browser.controlDataset : self.browser.dataset);
-                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, self.browser.eventBus))
+                    const dataset = ('B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset);
+                    promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
                 }
             }
 
-            return Promise.all(promises)
+            const blocks = await Promise.all(promises)
 
-                .then(function (blocks) {
+            let s = computePercentile(blocks, 95);
 
-                    var s = computePercentile(blocks, 95);
+            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
-                    if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
 
-                        if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+                this.colorScale = new hic.ColorScale(this.colorScale);
+                this.colorScale.threshold = s;
+                this.computeColorScale = false;
+                this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
+            }
 
-                        self.colorScale = new hic.ColorScale(self.colorScale);
-                        self.colorScale.threshold = s;
-                        self.computeColorScale = false;
-                        self.browser.eventBus.post(hic.Event("ColorScale", self.colorScale));
-                    }
+            this.colorScaleThresholdCache[colorKey] = s;
 
-                    self.colorScaleThresholdCache[colorKey] = s;
+            return this.colorScale;
 
-                    return self.colorScale;
 
-                })
         }
 
     }
 
-    hic.ContactMatrixView.prototype.draw = function (imageTiles, zd) {
+    hic.ContactMatrixView.prototype.draw = function (imageTiles) {
 
         var self = this,
             state = this.browser.state,
-            blockBinCount = zd.blockBinCount,
             viewportWidth = self.$viewport.width(),
             viewportHeight = self.$viewport.height(),
             canvasWidth = this.$canvas.width(),
@@ -22389,8 +22506,8 @@ var hic = (function (hic) {
             if (image != null) {
                 var row = imageTile.row,
                     col = imageTile.column,
-                    x0 = blockBinCount * col,
-                    y0 = blockBinCount * row;
+                    x0 = imageTile.blockBinCount * col,
+                    y0 = imageTile.blockBinCount * row;
                 var offsetX = (x0 - state.x) * state.pixelSize;
                 var offsetY = (y0 - state.y) * state.pixelSize;
                 var scale = state.pixelSize / pixelSizeInt;
@@ -22410,257 +22527,6 @@ var hic = (function (hic) {
 
     };
 
-    /**
-     * Returns a promise for an image tile
-     *
-     * @param zd
-     * @param row
-     * @param column
-     * @param state
-     * @returns {*}
-     */
-    hic.ContactMatrixView.prototype.getImageTile = function (zd, zdControl, row, column, state) {
-
-        var self = this,
-            sameChr = zd.chr1 === zd.chr2,
-            pixelSizeInt = Math.max(1, Math.floor(state.pixelSize)),
-            useImageData = pixelSizeInt === 1,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-                "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
-
-        if (this.imageTileCache.hasOwnProperty(key)) {
-
-            return Promise.resolve(this.imageTileCache[key]);
-
-        } else {
-
-            var blockBinCount = zd.blockBinCount,
-                blockColumnCount = zd.blockColumnCount,
-                widthInBins = zd.blockBinCount,
-                transpose = sameChr && row < column,
-                blockNumber,
-                t;
-
-            if (sameChr && row < column) {
-                blockNumber = column * blockColumnCount + row;
-            }
-            else {
-                blockNumber = row * blockColumnCount + column;
-            }
-
-            return getNormalizedBlocks.call(self, zd, zdControl, blockNumber, state.normalization)
-
-                .then(function (blocks) {
-
-                    var averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock, image;
-
-                    if ("BOA" === self.displayMode) {
-                        ctrlAverageCount = zd.averageCount;
-                        averageCount = zdControl ? zdControl.averageCount : 1;
-                        block = blocks[1];
-                        controlBlock = blocks[0];
-                    } else {
-                        averageCount = zd.averageCount;
-                        ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
-                        block = blocks[0];
-                        if (blocks.length > 0) controlBlock = blocks[1];
-                    }
-                    averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
-
-
-                    if (block && block.records.length > 0) {
-                        image = drawBlock(block, controlBlock, transpose);
-                    }
-                    else {
-                        //console.log("No block for " + blockNumber);
-                    }
-
-                    var imageTile = {row: row, column: column, image: image};
-
-
-                    if (self.imageTileCacheKeys.length > self.imageTileCacheLimit) {
-                        delete self.imageTileCache[self.imageTileCacheKeys[0]];
-                        self.imageTileCacheKeys.shift();
-                    }
-
-                    self.imageTileCache[key] = imageTile;
-
-                    return imageTile;
-
-                    function setPixel(imageData, x, y, r, g, b, a) {
-                        index = (x + y * imageData.width) * 4;
-                        imageData.data[index + 0] = r;
-                        imageData.data[index + 1] = g;
-                        imageData.data[index + 2] = b;
-                        imageData.data[index + 3] = a;
-                    }
-
-                    // Actual drawing happens here
-                    function drawBlock(block, controlBlock, transpose) {
-
-                        var imageSize = Math.ceil(widthInBins * pixelSizeInt),
-                            blockNumber, row, col, x0, y0, image, ctx, id, i, rec, x, y, color,
-                            controlRecords, controlRec, key, score;
-
-                        blockNumber = block.blockNumber;
-                        row = Math.floor(blockNumber / blockColumnCount);
-                        col = blockNumber - row * blockColumnCount;
-                        x0 = blockBinCount * col;
-                        y0 = blockBinCount * row;
-
-                        image = document.createElement('canvas');
-                        image.width = imageSize;
-                        image.height = imageSize;
-                        ctx = image.getContext('2d');
-                        ctx.clearRect(0, 0, image.width, image.height);
-
-                        if ('AOB' === self.displayMode || 'BOA' === self.displayMode || 'AMB' === self.displayMode) {
-                            controlRecords = {};
-                            controlBlock.records.forEach(function (record) {
-                                controlRecords[record.getKey()] = record;
-                            })
-
-
-                        }
-
-                        if (useImageData) {
-                            id = ctx.getImageData(0, 0, image.width, image.height);
-                        }
-
-                        for (i = 0; i < block.records.length; i++) {
-
-                            rec = block.records[i];
-                            x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
-                            y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
-
-                            if (transpose) {
-                                t = y;
-                                y = x;
-                                x = t;
-                            }
-
-                            switch (self.displayMode) {
-
-                                case 'AOB':
-                                case 'BOA':
-                                    key = rec.getKey();
-                                    controlRec = controlRecords[key];
-                                    if (!controlRec) {
-                                        continue;    // Skip
-                                    }
-                                    score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
-
-                                    color = self.ratioColorScale.getColor(score);
-
-                                    break;
-
-                                case 'AMB':
-                                    key = rec.getKey();
-                                    controlRec = controlRecords[key];
-                                    if (!controlRec) {
-                                        continue;    // Skip
-                                    }
-                                    score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
-
-                                    color = self.diffColorScale.getColor(score);
-
-                                    break;
-
-                                default:    // Either 'A' or 'B'
-                                    color = self.colorScale.getColor(rec.counts);
-                            }
-
-
-                            if (useImageData) {
-                                // TODO -- verify that this bitblting is faster than fillRect
-                                setPixel(id, x, y, color.red, color.green, color.blue, 255);
-                                if (sameChr && row === col) {
-                                    setPixel(id, y, x, color.red, color.green, color.blue, 255);
-                                }
-                            }
-                            else {
-                                ctx.fillStyle = color.rgb;
-                                ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
-                                if (sameChr && row === col) {
-                                    ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
-                                }
-                            }
-                        }
-                        if (useImageData) {
-                            ctx.putImageData(id, 0, 0);
-                        }
-
-                        //Draw 2D tracks
-                        ctx.save();
-                        ctx.lineWidth = 2;
-                        self.browser.tracks2D.forEach(function (track2D) {
-
-                            if (track2D.isVisible) {
-                                var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-
-                                if (features) {
-                                    features.forEach(function (f) {
-
-                                        var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                        var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                        var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                        var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                        var w = x2 - x1;
-                                        var h = y2 - y1;
-
-                                        if (transpose) {
-                                            t = y1;
-                                            y1 = x1;
-                                            x1 = t;
-
-                                            t = h;
-                                            h = w;
-                                            w = t;
-                                        }
-
-                                        var dim = Math.max(image.width, image.height);
-                                        if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                            ctx.strokeStyle = track2D.color ? track2D.color : f.color;
-                                            ctx.strokeRect(x1, y1, w, h);
-                                            if (sameChr && row === col) {
-                                                ctx.strokeRect(y1, x1, h, w);
-                                            }
-                                        }
-                                    })
-                                }
-                            }
-                        });
-
-                        ctx.restore();
-
-                        // Uncomment to reveal tile boundaries for debugging.
-                        // ctx.fillStyle = "rgb(255,255,255)";
-                        // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
-
-                        var t1 = (new Date()).getTime();
-
-                        //console.log(t1 - t0);
-
-                        return image;
-                    }
-                })
-        }
-
-        function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
-            var promises = [];
-
-            var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
-            promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
-
-            if (zdControl) {
-                promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
-            }
-
-            return Promise.all(promises);
-
-        }
-    };
 
     function computePercentile(blockArray, p) {
 
@@ -23983,15 +23849,15 @@ var hic = (function (hic) {
 
 var hic = (function (hic) {
 
-    var defaultPixelSize, defaultState;
-    var MAX_PIXEL_SIZE = 12;
-    var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-    var defaultSize =
+    const defaultPixelSize = 1
+    const MAX_PIXEL_SIZE = 12;
+    const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
+    const defaultSize =
         {
             width: 640,
             height: 640
         };
-
+    let defaultState;
 
     hic.allBrowsers = [];
 
@@ -24060,7 +23926,6 @@ var hic = (function (hic) {
             createIGV($hic_container, browser, browser.trackMenuReplacement);
         }
 
-        await loadInitialImage(config)
         await loadControlFile(config)
         await setInitialDataset(browser, config)
         await browser.loadHicFile(config)
@@ -24091,39 +23956,6 @@ var hic = (function (hic) {
 
         return browser;
 
-        // Return a promise to load the initial image, if present
-        async function loadInitialImage(config) {
-
-            if (config.initialImage) {
-
-                return new Promise(function (resolve, reject) {
-
-                    initialImageImg = new Image();
-
-                    initialImageImg.onload = function () {
-
-                        if (typeof config.initialImage === 'string') {
-                            initialImageX = browser.state.x;
-                            initialImageY = browser.state.y;
-                        } else {
-                            initialImageX = config.initialImage.left || browser.state.x;
-                            initialImageY = config.initialImage.top || browser.state.y;
-                        }
-
-                        browser.contactMatrixView.setInitialImage(initialImageX, initialImageY, initialImageImg, browser.state);
-
-                        resolve(initialImageImg);
-                    }
-
-                    initialImageImg.onerror = function (error) {
-                        reject(error);
-                    }
-
-                    initialImageImg.src = (typeof config.initialImage === 'string') ? config.initialImage : config.initialImage.imageURL;
-                });
-            }
-
-        }
 
         // Explicit set dataset, do not need to load.  Used by "interactive figures"
         function setInitialDataset(browser, config) {
@@ -24138,8 +23970,7 @@ var hic = (function (hic) {
                 browser.eventBus.post(hic.Event("GenomeChange", browser.genome.id));
                 browser.eventBus.post(hic.Event("MapLoad", browser.dataset));
                 return Promise.resolve(config.dataset);
-            }
-            else {
+            } else {
                 return Promise.resolve(undefined);
             }
         }
@@ -24191,7 +24022,10 @@ var hic = (function (hic) {
         var hicReader;
         hicReader = new hic.HiCReader(config);
 
-        const dataset = await hicReader.loadDataset(config)
+        const straw = new HicStraw(config)
+        const dataset = await loadDataset(config)
+        dataset.name = name
+
         dataset.name = this.name;
 
         if (config.nvi) {
@@ -24200,8 +24034,7 @@ var hic = (function (hic) {
 
             await hicReader.readNormVectorIndex(dataset, range)
             return dataset;
-        }
-        else {
+        } else {
             return dataset;
         }
 
@@ -24364,20 +24197,10 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.startSpinner = function () {
-
-        if (true === this.isLoadingHICFile) {
-            this.$user_interaction_shield.show();
-        }
-
         this.contactMatrixView.startSpinner();
     };
 
     hic.Browser.prototype.stopSpinner = function () {
-
-        if (!this.isLoadingHICFile) {
-            this.$user_interaction_shield.hide();
-        }
-
         this.contactMatrixView.stopSpinner();
     };
 
@@ -24460,8 +24283,7 @@ var hic = (function (hic) {
             gs.chromosome = this.dataset.chromosomes[this.state.chr1];
             gs.startBP = this.state.x * bpResolution;
             gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
-        }
-        else {
+        } else {
             gs.chromosome = this.dataset.chromosomes[this.state.chr2];
             gs.startBP = this.state.y * bpResolution;
             gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
@@ -24475,19 +24297,20 @@ var hic = (function (hic) {
      *
      * NOTE: public API function
      *
-     * @param trackConfigurations
+     * @param configs
      */
-    hic.Browser.prototype.loadTracks = async function (trackConfigurations) {
+    hic.Browser.prototype.loadTracks = async function (configs) {
 
         var self = this, errorPrefix;
 
         // If loading a single track remember its name, for error message
-        errorPrefix = 1 === trackConfigurations.length ? ("Error loading track " + trackConfigurations[0].name) : "Error loading tracks";
+        errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
 
         this.contactMatrixView.startSpinner();
 
         try {
-            const trackConfigurations = await Promise.all(inferTypes(trackConfigurations))
+            const ps = inferTypes(configs)
+            const trackConfigurations = await Promise.all(ps)
 
             var trackXYPairs, promises2D;
 
@@ -24511,8 +24334,7 @@ var hic = (function (hic) {
                     if (config.type === undefined) {
                         // Assume this is a 2D track
                         promises2D.push(hic.loadTrack2D(config));
-                    }
-                    else {
+                    } else {
                         var track = igv.createTrack(config, this);
                         trackXYPairs.push({x: track, y: track});
                     }
@@ -24534,9 +24356,9 @@ var hic = (function (hic) {
 
             this.contactMatrixView.stopSpinner();
 
-        }
-        catch (error) {
+        } catch (error) {
             hic.presentError(errorPrefix, error);
+            console.error(error)
             this.contactMatrixView.stopSpinner();
         }
 
@@ -24562,9 +24384,7 @@ var hic = (function (hic) {
                             return config;
                         })
                     );
-                }
-
-                else {
+                } else {
                     igv.inferTrackTypes(config);
                     if (!config.name) {
                         config.name = hic.extractFilename(config.url);
@@ -24688,53 +24508,66 @@ var hic = (function (hic) {
 
         this.clearSession();
 
-        this.contactMatrixView.startSpinner();
-        this.isLoadingHICFile = true;
+        try {
+            this.contactMatrixView.startSpinner();
+            this.$user_interaction_shield.show();
 
-        const name = await extractName(config)
-        const prefix = this.controlDataset ? "A: " : "";
-        this.$contactMaplabel.text(prefix + name);
-        this.$contactMaplabel.attr('title', name);
-        config.name = name;
+            const name = await extractName(config)
+            const prefix = this.controlDataset ? "A: " : "";
+            this.$contactMaplabel.text(prefix + name);
+            this.$contactMaplabel.attr('title', name);
+            config.name = name;
 
+            this.dataset = await loadDataset(config)
+            this.dataset.name = name
 
-        const hicReader = new hic.HiCReader(config);
-        const dataset = await hicReader.loadDataset(config)
-        this.dataset = dataset;
+            const previousGenomeId = this.genome ? this.genome.id : undefined;
+            this.genome = new hic.Genome(this.dataset.genomeId, this.dataset.chromosomes);
+            // TODO -- this is not going to work with browsers on different assemblies on the same page.
+            igv.browser.genome = this.genome;
 
-        const previousGenomeId = this.genome ? this.genome.id : undefined;
-        this.genome = new hic.Genome(this.dataset.genomeId, this.dataset.chromosomes);
-        // TODO -- this is not going to work with browsers on different assemblies on the same page.
-        igv.browser.genome = this.genome;
+            if (this.genome.id !== previousGenomeId) {
+                this.eventBus.post(hic.Event("GenomeChange", this.genome.id));
+            }
+            this.eventBus.post(hic.Event("MapLoad", this.dataset));
 
-        if (this.genome.id !== previousGenomeId) {
-            this.eventBus.post(hic.Event("GenomeChange", this.genome.id));
-        }
-        this.eventBus.post(hic.Event("MapLoad", this.dataset));
-
-        this.isLoadingHICFile = false;
-        this.stopSpinner();
-
-        if (config.state) {
-            this.setState(config.state);
-        } else if (config.synchState && this.canBeSynched(config.synchState)) {
-            this.syncState(config.synchState);
-        } else {
-            this.setState(defaultState.clone());
+            if (config.state) {
+                this.setState(config.state);
+            } else if (config.synchState && this.canBeSynched(config.synchState)) {
+                this.syncState(config.synchState);
+            } else {
+                this.setState(defaultState.clone());
+            }
+        } finally {
+            this.$user_interaction_shield.hide();
+            this.stopSpinner();
         }
 
         // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
         // Let it load in the background
         const eventBus = this.eventBus
-        if (config.nvi) {
-            await dataset.getNormVectorIndex(config)
-            eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+
+        // If nvi is not supplied, try reading it from remote lambda service
+        if (!config.nvi && typeof config.url === "string") {
+            const url = new URL(config.url)
+            const key = encodeURIComponent(url.hostname + url.pathname)
+            const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
+            if (nviResponse.status === 200) {
+                const nvi = await nviResponse.text()
+                if (nvi) {
+                    config.nvi = nvi
+                }
+            }
         }
-        else {
-            dataset.getNormVectorIndex(config)
+
+        if (config.nvi) {
+            await this.dataset.getNormVectorIndex(config)
+            eventBus.post(hic.Event("NormVectorIndexLoad", this.dataset));
+        } else {
+            this.dataset.getNormVectorIndex(config)
                 .then(function (nvi) {
                     if (!config.isControl) {
-                        eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
+                        eventBus.post(hic.Event("NormVectorIndexLoad", this.dataset));
                     }
                 })
         }
@@ -24760,36 +24593,34 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.loadHicControlFile = async function (config) {
 
-        this.isLoadingHICFile = true
-        this.controlUrl = config.url
+        this.$user_interaction_shield.show()
         this.contactMatrixView.startSpinner()
 
-        const name = await extractName(config)
-        config.name = name
+        try {
+            this.controlUrl = config.url
+            const name = await extractName(config)
+            config.name = name
 
+            const controlDataset = await loadDataset(config)
+            controlDataset.name = name
 
-        const hicReader = new hic.HiCReader(config)
-        const dataset = await hicReader.loadDataset(config)
+            if (!this.dataset || areCompatible(this.dataset, controlDataset)) {
+                this.controlDataset = controlDataset;
+                if (this.dataset) {
+                    this.$contactMaplabel.text("A: " + this.dataset.name);
+                }
+                this.$controlMaplabel.text("B: " + controlDataset.name);
+                this.$controlMaplabel.attr('title', controlDataset.name);
 
-        if (!this.dataset || areCompatible(this.dataset, dataset)) {
-            this.controlDataset = dataset;
-            if (this.dataset) {
-                this.$contactMaplabel.text("A: " + this.dataset.name);
+                //For the control dataset, block until the norm vector index is loaded
+                await controlDataset.getNormVectorIndex(config)
+                this.eventBus.post(hic.Event("ControlMapLoad", this.controlDataset));
+                this.update();
+            } else {
+                igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
             }
-            this.$controlMaplabel.text("B: " + dataset.name);
-            this.$controlMaplabel.attr('title', dataset.name);
-
-            //For the control dataset, block until the norm vector index is loaded
-            await dataset.getNormVectorIndex(config)
-
-            this.isLoadingHICFile = false;
-            this.stopSpinner();
-            this.eventBus.post(hic.Event("ControlMapLoad", this.controlDataset));
-            this.contactMatrixView.update();
-        }
-        else {
-            igv.presentAlert('"B" map genome (' + dataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
-            this.isLoadingHICFile = false;
+        } finally {
+            this.$user_interaction_shield.hide();
             this.stopSpinner();
         }
 
@@ -24861,8 +24692,7 @@ var hic = (function (hic) {
                 yLocus = xLocus;
                 self.state.selectedGene = loci[0].trim();
                 self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
-            }
-            else {
+            } else {
                 alert('No feature found with name "' + loci[0] + '"');
             }
 
@@ -24870,8 +24700,7 @@ var hic = (function (hic) {
 
             if (xLocus.wholeChr && yLocus.wholeChr) {
                 self.setChromosomes(xLocus.chr, yLocus.chr);
-            }
-            else {
+            } else {
                 self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
             }
         }
@@ -24918,8 +24747,7 @@ var hic = (function (hic) {
             extent = parts[1].split("-");
             if (extent.length !== 2) {
                 return undefined;
-            }
-            else {
+            } else {
                 numeric = extent[0].replace(/\,/g, '');
                 locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
 
@@ -24940,87 +24768,82 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
 
-        const bpResolutions = this.dataset.bpResolutions
-        let currentResolution
-        let newResolution
-        let newZoom
-        let newPixelSize
-        let zoomChanged
-
-        currentResolution = bpResolutions[this.state.zoom];
-
         if (this.state.chr1 === 0) {
-
-            this.zoomAndCenter(1, anchorPx, anchorPy);
-            return;
-
-        }
-
-        if (this.resolutionLocked ||
-            (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
-            (this.state.zoom === 0 && scaleFactor < 1)) {
-            // Can't change resolution level, must adjust pixel size
-            newResolution = currentResolution;
-            newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
-            newZoom = this.state.zoom;
-            zoomChanged = false;
+            await this.zoomAndCenter(1, anchorPx, anchorPy);
         }
         else {
-            const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-            newResolution = bpResolutions[newZoom];
-            zoomChanged = newZoom !== this.state.zoom;
-            newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
-        }
+            try {
+                this.startSpinner()
 
-        const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+                const bpResolutions = this.dataset.bpResolutions
+                const currentResolution = bpResolutions[this.state.zoom];
+
+                let newResolution
+                let newZoom
+                let newPixelSize
+                let zoomChanged
+
+                if (this.resolutionLocked ||
+                    (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
+                    (this.state.zoom === 0 && scaleFactor < 1)) {
+                    // Can't change resolution level, must adjust pixel size
+                    newResolution = currentResolution;
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
+                    newZoom = this.state.zoom;
+                    zoomChanged = false;
+                } else {
+                    const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
+                    newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+                    newResolution = bpResolutions[newZoom];
+                    zoomChanged = newZoom !== this.state.zoom;
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
+                }
+                const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
 
 
-        if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
-            this.setChromosomes(0, 0);
-        }
-        else {
-            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
+                if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
+                    this.setChromosomes(0, 0);
+                } else {
+                    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
 
-            const state = this.state;
+                    const state = this.state;
 
-            newPixelSize = Math.max(newPixelSize, minPS);
+                    newPixelSize = Math.max(newPixelSize, minPS);
 
-            // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-            const gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
-            const gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
+                    // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
+                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
 
-            state.x = gx / newResolution - anchorPx / newPixelSize;
-            state.y = gy / newResolution - anchorPy / newPixelSize;
+                    state.x = gx / newResolution - anchorPx / newPixelSize;
+                    state.y = gy / newResolution - anchorPy / newPixelSize;
 
-            state.zoom = newZoom;
-            state.pixelSize = newPixelSize;
+                    state.zoom = newZoom;
+                    state.pixelSize = newPixelSize;
 
-            this.clamp();
-            this.eventBus.post(hic.Event("LocusChange", {
-                state: state,
-                resolutionChanged: zoomChanged
-            }));
-
+                    this.clamp();
+                    this.eventBus.post(hic.Event("LocusChange", {
+                        state: state,
+                        resolutionChanged: zoomChanged
+                    }));
+                }
+            } finally {
+                this.stopSpinner()
+            }
         }
 
     }
 
     hic.Browser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
 
-        var self = this;
-
-        if (this.resolutionLocked || self.state.chr1 === 0) {   // Resolution locked OR whole genome view
+        if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
             this.zoomAndCenter(direction, centerPX, centerPY);
-        }
-        else {
-            const z = await minZoom.call(self, self.state.chr1, self.state.chr2)
-            var newZoom = self.state.zoom + direction;
+        } else {
+            const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+            var newZoom = this.state.zoom + direction;
             if (direction < 0 && newZoom < z) {
-                self.setChromosomes(0, 0);
-            }
-            else {
-                self.zoomAndCenter(direction, centerPX, centerPY);
+                this.setChromosomes(0, 0);
+            } else {
+                this.zoomAndCenter(direction, centerPX, centerPY);
             }
 
         }
@@ -25038,16 +24861,11 @@ var hic = (function (hic) {
                 chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX),
                 chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
             this.setChromosomes(chrX.index, chrY.index);
-        }
-
-        else {
-            var self = this,
-                bpResolutions = this.dataset.bpResolutions,
-                viewDimensions = this.contactMatrixView.getViewDimensions(),
-                dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2,
-                dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2,
-                newPixelSize, shiftRatio;
-
+        } else {
+            const bpResolutions = this.dataset.bpResolutions
+            const viewDimensions = this.contactMatrixView.getViewDimensions()
+            const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
+            const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
 
             this.state.x += (dx / this.state.pixelSize);
             this.state.y += (dy / this.state.pixelSize);
@@ -25057,78 +24875,84 @@ var hic = (function (hic) {
                 (direction < 0 && this.state.zoom === 0)) {
 
                 const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-
-
-                var state = self.state;
-
-                newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)),
+                const state = this.state;
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)),
                     minPS);
 
-                shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
                 state.pixelSize = newPixelSize;
                 state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
                 state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
-                self.clamp();
-                self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
+                this.clamp();
+                this.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
 
             } else {
                 this.setZoom(this.state.zoom + direction);
             }
         }
+
     };
 
     hic.Browser.prototype.setZoom = async function (zoom) {
 
-        var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter, newYCenter,
-            newPixelSize, zoomChanged,
-            self = this;
-        ;
+        try {
+            this.startSpinner()
+            var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
+                newYCenter,
+                newPixelSize, zoomChanged,
+                self = this;
 
-        // Shift x,y to maintain center, if possible
-        bpResolutions = this.dataset.bpResolutions;
-        currentResolution = bpResolutions[this.state.zoom];
-        viewDimensions = this.contactMatrixView.getViewDimensions();
-        xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-        yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
-        newResolution = bpResolutions[zoom];
-        newXCenter = xCenter * (currentResolution / newResolution);
-        newYCenter = yCenter * (currentResolution / newResolution);
 
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
+            // Shift x,y to maintain center, if possible
+            bpResolutions = this.dataset.bpResolutions;
+            currentResolution = bpResolutions[this.state.zoom];
+            viewDimensions = this.contactMatrixView.getViewDimensions();
+            xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
+            yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+            newResolution = bpResolutions[zoom];
+            newXCenter = xCenter * (currentResolution / newResolution);
+            newYCenter = yCenter * (currentResolution / newResolution);
 
-        var state = self.state;
-        newPixelSize = Math.max(defaultPixelSize, minPS);
-        zoomChanged = (state.zoom !== zoom);
+            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
 
-        state.zoom = zoom;
-        state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
-        state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
-        state.pixelSize = newPixelSize;
-        self.clamp();
+            var state = self.state;
+            newPixelSize = Math.max(defaultPixelSize, minPS);
+            zoomChanged = (state.zoom !== zoom);
 
-        self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+            state.zoom = zoom;
+            state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
+            state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
+            state.pixelSize = newPixelSize;
+            self.clamp();
+
+            self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+        } finally {
+            this.stopSpinner()
+        }
 
     };
 
     hic.Browser.prototype.setChromosomes = async function (chr1, chr2) {
 
-        var self = this;
+        try {
+            this.startSpinner()
 
-        this.state.chr1 = Math.min(chr1, chr2);
-        this.state.chr2 = Math.max(chr1, chr2);
-        this.state.x = 0;
-        this.state.y = 0;
+            this.state.chr1 = Math.min(chr1, chr2);
+            this.state.chr2 = Math.max(chr1, chr2);
+            this.state.x = 0;
+            this.state.y = 0;
 
-        const z = await minZoom.call(this, chr1, chr2)
-        self.state.zoom = z;
+            const z = await minZoom.call(this, chr1, chr2)
+            this.state.zoom = z;
 
-        const minPS = await minPixelSize.call(self, self.state.chr1, self.state.chr2, self.state.zoom)
-        self.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
-        self.eventBus.post(hic.Event("LocusChange", {state: self.state, resolutionChanged: true}));
-
-
-    };
+            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+            this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
+            this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: true}));
+        } finally {
+            this.stopSpinner()
+        }
+    }
 
     hic.Browser.prototype.updateLayout = function () {
 
@@ -25282,7 +25106,6 @@ var hic = (function (hic) {
         var self = this;
 
         if (!this.dataset) return;
-        if (self.updating) return;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
@@ -25388,37 +25211,16 @@ var hic = (function (hic) {
     /**
      * Update the maps and tracks.
      *
-     * Data load functions for tracks and the map are not neccessarily thread safe.   Although JS is single-threaded,
-     * the ascyncronous nature of XmLHttpRequests makes it possible to call these functions multiple times
-     * simultaneously.   To prevent this we check for an update in progress before proceeding.   If an update
-     * is in progress the call to self is deferred with a timeout until the currently executing update completes.
-     *
-     * This might involve asynchronous data loads,  insure that all data loads are complete
-     * before painting track.
-     *
      * @param event
      */
     hic.Browser.prototype.update = async function (event) {
 
-        const self = this;
-
-        // Allow only 1 update at a time, if an update is in progress queue up until its finished
-        if (this.updating) {
-            if (this.updateTimer) {
-                clearTimeout(this.updateTimer);
-            }
-            this.updateTimer = setTimeout(function () {
-                    self.update(event);
-                    self.updateTimer = null;
-                },
-                100)
-            return;
-        }
-
         try {
-            this.updating = true;
-            this.contactMatrixView.startSpinner();
-            await this.contactMatrixView.readyToPaint();
+            this.startSpinner();
+
+            // First get all data for map and tracks, then repaint
+            const tiles = await this.contactMatrixView.getImageTiles()
+
             for (let xyTrackRenderPair of this.trackRenderers) {
                 await xyTrackRenderPair.x.readyToPaint()
                 await xyTrackRenderPair.y.readyToPaint()
@@ -25428,15 +25230,13 @@ var hic = (function (hic) {
                 this.layoutController.xAxisRuler.locusChange(event);
                 this.layoutController.yAxisRuler.locusChange(event);
             }
-            this.contactMatrixView.repaint();
+
+            this.contactMatrixView.repaint(tiles);
             this.renderTracks();
             this.stopSpinner();
-            this.updating = false;
 
-        } catch (error) {
-            self.stopSpinner();
-            self.updating = false;
-            console.error(error);
+        } finally{
+            this.stopSpinner();
         }
     }
 
@@ -25456,15 +25256,14 @@ var hic = (function (hic) {
 // Set default values for config properties
     function setDefaults(config) {
 
-        defaultPixelSize = 1;
+
         defaultState = new hic.State(0, 0, 0, 0, 0, defaultPixelSize, "NONE");
 
         if (config.figureMode === true) {
             config.showLocusGoto = false;
             config.showHicContactMapLabel = false;
             config.showChromosomeSelector = false;
-        }
-        else {
+        } else {
             if (undefined === config.width) {
                 config.width = defaultSize.width;
             }
@@ -25495,8 +25294,7 @@ var hic = (function (hic) {
             var range = dataset.hicFile.normalizationVectorIndexRange,
                 nviString = String(range.start) + "," + String(range.size);
             return nviString
-        }
-        else {
+        } else {
             return undefined;
         }
     }
@@ -25889,8 +25687,7 @@ var hic = (function (hic) {
 
         if (uriDecode) {
             return decodeURIComponent(str);   // Still more backward compatibility
-        }
-        else {
+        } else {
             var s = replaceAll(str, '%26', '&');
             s = replaceAll(s, '%20', ' ');
             s = replaceAll(s, '+', ' ');
@@ -25984,6 +25781,21 @@ var hic = (function (hic) {
 
     }
 
+    async function loadDataset(config) {
+
+
+        // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
+        if (config.url instanceof File) {
+            config.file = new hic.LocalFile(config.url)
+            delete config.url
+        }
+
+        const straw = new HicStraw(config)
+        const hicFile = straw.hicFile
+        await hicFile.init()
+        return new hic.Dataset(hicFile)
+
+    }
 
     return hic;
 
@@ -26228,10 +26040,18 @@ var hic = (function (hic) {
 
 var hic = (function (hic) {
 
+    const knownGenomes = {
 
-    hic.Dataset = function (hicReader) {
-        this.hicFile = hicReader;
-        this.url = hicReader.path;
+        "hg19": [249250621, 243199373, 198022430],
+        "hg38": [248956422, 242193529, 198295559],
+        "mm10": [195471971, 182113224, 160039680],
+        "mm9": [197195432, 181748087, 159599783]
+
+    }
+
+    hic.Dataset = function (hicFile) {
+
+        this.hicFile = hicFile;
         this.matrixCache = {};
         this.blockCache = {};
         this.blockCacheKeys = [];
@@ -26241,8 +26061,19 @@ var hic = (function (hic) {
         // Cache at most 10 blocks
         this.blockCacheLimit = hic.isMobile() ? 4 : 10;
 
-        this.remote = (typeof this.url === 'string')
-    };
+        this.genomeId = hicFile.genomeId
+        this.chromosomes = hicFile.chromosomes
+        this.bpResolutions = hicFile.bpResolutions
+        this.wholeGenomeChromosome = hicFile.wholeGenomeChromosome
+        this.wholeGenomeResolution = hicFile.wholeGenomeResolution
+
+        // Attempt to determine genomeId if not recognized
+        if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+            const tmp = matchGenome(this.chromosomes);
+            if (tmp) this.genomeId = tmp;
+        }
+
+    }
 
     hic.Dataset.prototype.clearCaches = function () {
         this.matrixCache = {};
@@ -26251,135 +26082,111 @@ var hic = (function (hic) {
         this.colorScaleCache = {};
     };
 
-    hic.Dataset.prototype.getMatrix = function (chr1, chr2) {
+    hic.Dataset.prototype.getMatrix = async function (chr1, chr2) {
 
-        var self = this,
-            reader = this.hicFile,
-            key = "" + Math.min(chr1, chr2) + "_" + Math.max(chr1, chr2);
+        console.trace();
+
+        if (chr1 > chr2) {
+            const tmp = chr1
+            chr1 = chr2
+            chr2 = tmp
+        }
+        const key = `${chr1}_${chr2}`
 
         if (this.matrixCache.hasOwnProperty(key)) {
-            return Promise.resolve(self.matrixCache[key]);
+            return this.matrixCache[key];
 
         } else {
-            return reader.readMatrix(key)
+            const matrix = await this.hicFile.readMatrix(chr1, chr2)
+            this.matrixCache[key] = matrix;
+            return matrix;
 
-                .then(function (matrix) {
-                    self.matrixCache[key] = matrix;
-                    return matrix;
-                })
         }
     }
 
-    hic.Dataset.prototype.getNormalizedBlock = function (zd, blockNumber, normalization, eventBus) {
+    hic.Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normalization, eventBus) {
 
-        var self = this;
+        const block = await this.getBlock(zd, blockNumber)
 
-        return self.getBlock(zd, blockNumber)
+        if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
+            return block;
+        }
+        else {
+            // Get the norm vectors serially, its very likely they are the same and the second will be cached
+            const nv1 = await this.getNormalizationVector(normalization, zd.chr1, zd.zoom.unit, zd.zoom.binSize)
+            const nv2 = zd.chr1 === zd.chr2 ?
+                nv1 :
+                await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
-            .then(function (block) {
+            var normRecords = [],
+                normBlock;
 
-                if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-                    return block;
+            if (nv1 === undefined || nv2 === undefined) {
+                igv.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+                if (eventBus) {
+                    eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
                 }
-                else {
-                    // Get the norm vectors serially, its very likely they are the same and the second will be cached
-                    return self.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
+                return block;
+            }
 
-                        .then(function (nv1) {
+            else {
+                for (let record of block.records) {
 
-                            return self.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
+                    const x = record.bin1
+                    const y = record.bin2
+                    const nvnv = nv1.data[x] * nv2.data[y];
 
-                                .then(function (nv2) {
-
-                                    var normRecords = [],
-                                        normBlock;
-
-                                    if (nv1 === undefined || nv2 === undefined) {
-                                        console.log("Undefined normalization vector for: " + normalization);
-                                        if (eventBus) {
-                                            eventBus.post(new hic.Event("NormalizationExternalChange", "NONE"));
-                                        }
-                                        return block;
-                                    }
-
-                                    else {
-                                        block.records.forEach(function (record) {
-
-                                            var x = record.bin1,
-                                                y = record.bin2,
-                                                counts,
-                                                nvnv = nv1.data[x] * nv2.data[y];
-
-                                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                                counts = record.counts / nvnv;
-                                                //countArray.push(counts);
-                                                normRecords.push(new hic.ContactRecord(x, y, counts));
-                                            }
-                                        })
-
-                                        normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-                                        //normBlock.percentile95 = block.percentile95;
-
-                                        return normBlock;
-                                    }
-                                })
-                        })
+                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                        const counts = record.counts / nvnv;
+                        normRecords.push(new hic.ContactRecord(x, y, counts));
+                    }
                 }
-            })
+
+                normBlock = new hic.Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+                //normBlock.percentile95 = block.percentile95;
+
+                return normBlock;
+            }
+
+        }
+
     }
 
-    hic.Dataset.prototype.getBlock = function (zd, blockNumber) {
+    hic.Dataset.prototype.getBlock = async function (zd, blockNumber) {
 
-        var self = this,
-            key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
+        const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
 
         if (this.blockCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.blockCache[key]);
+            return this.blockCache[key];
+
         } else {
 
-            var reader = self.hicFile;
+            const block = await this.hicFile.readBlock(blockNumber, zd)
+            if (this.blockCacheKeys.length > this.blockCacheLimit) {
+                delete this.blockCache[this.blockCacheKeys[0]];
+                this.blockCacheKeys.shift();
+            }
+            this.blockCacheKeys.push(key);
+            this.blockCache[key] = block;
 
-            return reader.readBlock(blockNumber, zd)
-
-                .then(function (block) {
-
-                    if (self.blockCacheKeys.length > self.blockCacheLimit) {
-                        delete self.blockCache[self.blockCacheKeys[0]];
-                        self.blockCacheKeys.shift();
-                    }
-
-                    self.blockCacheKeys.push(key);
-                    self.blockCache[key] = block;
-
-                    return block;
-
-                })
+            return block;
 
         }
     };
 
-    hic.Dataset.prototype.getNormalizationVector = function (type, chrIdx, unit, binSize) {
+    hic.Dataset.prototype.getNormalizationVector = async function (type, chrIdx, unit, binSize) {
 
-        var self = this,
-            key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+        const key = hic.getNormalizationVectorKey(type, chrIdx, unit, binSize);
 
         if (this.normVectorCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.normVectorCache[key]);
+            return this.normVectorCache[key];
         } else {
 
-            var reader = self.hicFile;
+            const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize)
+            this.normVectorCache[key] = nv;
+            return nv;
 
-            return reader.readNormalizationVector(type, chrIdx, unit, binSize)
-
-                .then(function (nv) {
-
-                    self.normVectorCache[key] = nv;
-
-                    return nv;
-
-                })
 
         }
     };
@@ -26417,62 +26224,25 @@ var hic = (function (hic) {
     hic.Dataset.prototype.compareChromosomes = function (otherDataset) {
         const chrs = this.chromosomes;
         const otherChrs = otherDataset.chromosomes;
-        if(chrs.length !== otherChrs.length) {
+        if (chrs.length !== otherChrs.length) {
             return false;
         }
-        for(let i = 0; i<chrs.length; i++) {
-            if(chrs[i].size !== otherChrs[i].size) {
+        for (let i = 0; i < chrs.length; i++) {
+            if (chrs[i].size !== otherChrs[i].size) {
                 return false;
             }
         }
         return true;
     }
 
-    hic.Dataset.prototype.getNormVectorIndex = async function (config) {
+    hic.Dataset.prototype.getNormVectorIndex = async function () {
+        return this.hicFile.getNormVectorIndex()
 
-        var self = this;
+    }
 
-        if (this.hicFile.normVectorIndex) {
-            return Promise.resolve(hicReader.normVectorIndex);
-        }
-        else {
+    hic.Dataset.prototype.getNormalizationOptions = async function () {
 
-            // If NVI was not supplied, try fetching it
-            let nviKey;
-            if (!config.nvi && this.remote) {
-                const url = new URL(this.url)
-                nviKey = encodeURIComponent(url.hostname + url.pathname)
-                const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + nviKey, {
-                    method: 'GET',
-                    redirect: 'follow',
-                    mode: 'cors',
-                })
-                if (nviResponse.status === 200) {
-                    const nvi = await nviResponse.text()
-                    if (nvi) {
-                        config.nvi = nvi
-                    }
-                }
-            }
-            if (config.nvi) {
-                const nviArray = decodeURIComponent(config.nvi).split(",")
-                const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-                return self.hicFile.readNormVectorIndex(self, range)
-
-
-            } else {
-                return self.hicFile.readNormExpectedValuesAndNormVectorIndex(self)
-                    .then(function (ignore) {
-
-                        return self.hicFile.normVectorIndex;
-                    })
-                    .catch(function (error) {
-                        igv.presentAlert("Error loading normalization vectors");
-                        console.log(error);
-                    });
-            }
-
-        }
+        return this.hicFile.getNormalizationOptions()
     }
 
 
@@ -26490,6 +26260,27 @@ var hic = (function (hic) {
 
     hic.ContactRecord.prototype.getKey = function () {
         return "" + this.bin1 + "_" + this.bin2;
+    }
+
+
+    function matchGenome(chromosomes) {
+
+
+        var keys = Object.keys(knownGenomes),
+            i, l;
+
+        if (chromosomes.length < 4) return undefined;
+
+        for (i = 0; i < keys.length; i++) {
+            l = knownGenomes[keys[i]];
+            if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
+                return keys[i];
+            }
+        }
+
+        return undefined;
+
+
     }
 
 
@@ -26737,76 +26528,64 @@ var hic = (function (hic) {
 
         };
 
-        function readFooter (dataset) {
+        async function readFooter() {
 
-            var range = {start: self.masterIndexPos, size: 4};
 
-            return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            let range = {start: self.masterIndexPos, size: 8}
+            let data = await igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            if (!data) {
+                return null;
+            }
 
-                .then(function (data) {
+            let binaryParser = new igv.BinaryParser(new DataView(data))
+            const nBytes = binaryParser.getInt()   // Total size, master index + expected values
+            let nEntries = binaryParser.getInt()
 
-                    var key, pos, size, binaryParser, nBytes;
+            // Estimate the size of the master index. String length of key is unknown, be conservative (100 bytes)
+            const miSize = nEntries * (100 + 64 + 32)
+            range =  {start: self.masterIndexPos + 8, size: Math.min(miSize, nBytes - 4)}
+            data = await igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            binaryParser = new igv.BinaryParser(new DataView(data));
 
-                    if (!data) {
-                        return null;
-                    }
+            self.masterIndex = {}
+            while (nEntries-- > 0) {
+                const key = binaryParser.getString()
+                const pos = binaryParser.getLong()
+                const size = binaryParser.getInt()
+                self.masterIndex[key] = {start: pos, size: size}
+            }
 
-                    binaryParser = new igv.BinaryParser(new DataView(data));
-                    nBytes = binaryParser.getInt();
-                    range = {start: self.masterIndexPos + 4, size: nBytes};
+            self.expectedValueVectors = {}
 
-                    return igv.xhr.loadArrayBuffer(self.path, igv.buildOptions(self.config, {range: range}))
+            //nEntries = binaryParser.getInt()
 
-                        .then(function (data) {
+            // Expected values
+            // while (nEntries-- > 0) {
+            //     type = "NONE";
+            //     unit = binaryParser.getString();
+            //     binSize = binaryParser.getInt();
+            //     nValues = binaryParser.getInt();
+            //     values = [];
+            //     while (nValues-- > 0) {
+            //         values.push(binaryParser.getDouble());
+            //     }
+            //
+            //     nChrScaleFactors = binaryParser.getInt();
+            //     normFactors = {};
+            //     while (nChrScaleFactors-- > 0) {
+            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+            //     }
+            //
+            //     // key = unit + "_" + binSize + "_" + type;
+            //     //  NOT USED YET SO DON'T STORE
+            //     //  dataset.expectedValueVectors[key] =
+            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+            // }
 
-                            if (!data) {
-                                return undefined;
-                            }
+            this.normExpectedValueVectorsPosition = this.masterIndexPos + 4 + nBytes;
 
-                            var binaryParser = new igv.BinaryParser(new DataView(data));
-                            self.masterIndex = {};
-                            var nEntries = binaryParser.getInt();
-
-                            while (nEntries-- > 0) {
-                                key = binaryParser.getString();
-                                pos = binaryParser.getLong();
-                                size = binaryParser.getInt();
-                                self.masterIndex[key] = {start: pos, size: size};
-                            }
-
-                            dataset.expectedValueVectors = {};
-
-                            nEntries = binaryParser.getInt();
-
-                            // while (nEntries-- > 0) {
-                            //     type = "NONE";
-                            //     unit = binaryParser.getString();
-                            //     binSize = binaryParser.getInt();
-                            //     nValues = binaryParser.getInt();
-                            //     values = [];
-                            //     while (nValues-- > 0) {
-                            //         values.push(binaryParser.getDouble());
-                            //     }
-                            //
-                            //     nChrScaleFactors = binaryParser.getInt();
-                            //     normFactors = {};
-                            //     while (nChrScaleFactors-- > 0) {
-                            //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-                            //     }
-                            //
-                            //     // key = unit + "_" + binSize + "_" + type;
-                            //     //  NOT USED YET SO DON'T STORE
-                            //     //  dataset.expectedValueVectors[key] =
-                            //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-                            // }
-
-                            self.normExpectedValueVectorsPosition = self.masterIndexPos + 4 + nBytes;
-
-                            return self;
-                        })
-                })
+            return this;
         };
-
     }
     /**
      * This function is used when the position of the norm vector index is unknown.  We must read through the expected
@@ -27610,7 +27389,7 @@ var hic = (function (hic) {
 
         this.browser = browser;
 
-        this.$container = $("<div>", { class:'hic-resolution-selector-container',  title:'Resolution' });
+        this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
         $parent.append(this.$container);
 
         // label container
@@ -27648,8 +27427,8 @@ var hic = (function (hic) {
     };
 
     hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-        this.$resolution_lock.removeClass( (true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-        this.$resolution_lock.addClass(    (true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+        this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+        this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
     };
 
     hic.ResolutionSelector.prototype.receiveEvent = function (event) {
@@ -27674,7 +27453,7 @@ var hic = (function (hic) {
 
             selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
             divisor = isWholeGenome ? 1e6 : 1e3;
-            list = isWholeGenome ? [ this.browser.dataset.wholeGenomeResolution ] : this.browser.dataset.bpResolutions;
+            list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
 
             htmlString = optionListHTML(list, selectedIndex, divisor);
             this.$resolution_selector.empty();
@@ -27686,7 +27465,7 @@ var hic = (function (hic) {
                     return index === selectedIndex;
                 })
                 .prop('selected', true);
-            
+
 
         } else if (event.type === "MapLoad") {
 
@@ -27699,7 +27478,6 @@ var hic = (function (hic) {
         } else if (event.type === "ControlMapLoad") {
 
 
-
         }
 
         function harmonizeContactAndControlResolutuionOptions($options, resolutions) {
@@ -27710,13 +27488,13 @@ var hic = (function (hic) {
 
             // reset
             $options.removeAttr('disabled');
-            $options.each(function( index ) {
+            $options.each(function (index) {
                 var $option,
                     str;
 
                 $option = $(this);
                 str = $option.data('resolution');
-                if (undefined === dictionary[ str ]) {
+                if (undefined === dictionary[str]) {
                     $option.attr('disabled', 'disabled');
                 }
 
@@ -27725,7 +27503,7 @@ var hic = (function (hic) {
             function resolutionDictionary(list) {
                 var d = {};
                 list.forEach(function (resolution) {
-                    d[ resolution.toString() ] = resolution;
+                    d[resolution.toString()] = resolution;
                 });
                 return d;
             }
@@ -27738,10 +27516,10 @@ var hic = (function (hic) {
             list = resolutions.map(function (resolution, index) {
                 var selected, unit, pretty;
 
-                if(resolution >= 1e6) {
+                if (resolution >= 1e6) {
                     divisor = 1e6
                     unit = 'mb'
-                } else if(resolution >= 1e3) {
+                } else if (resolution >= 1e3) {
                     divisor = 1e3
                     unit = 'kb'
                 } else {
@@ -27749,10 +27527,13 @@ var hic = (function (hic) {
                     unit = 'bp'
                 }
 
-                pretty = igv.numberFormatter( Math.round( resolution/divisor ) ) + ' ' + unit;
+                pretty = igv.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
                 selected = selectedIndex === index;
 
-                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected': '') + '>' + pretty + '</option>';
+                if (resolution)
+                    return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+                else
+                    return ''
             });
 
             return list.join('');
@@ -29504,9 +29285,14 @@ var hic = (function (hic) {
         createAllContainers.call(this, browser, $root);
 
         this.scrollbar_height = 20;
+
         this.axis_height = 32;
 
+        // track dimension
         this.track_height = 32;
+
+        // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
+        this.track_margin = 2;
 
     };
 
@@ -29596,7 +29382,7 @@ var hic = (function (hic) {
         id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
         browser.$controlMaplabel = $("<div>", {id: id});
         $map_container.append(browser.$controlMaplabel);
-        
+
         // upper widget container
         id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
         $upper_widget_container = $("<div>", {id: id});
@@ -29924,7 +29710,7 @@ var hic = (function (hic) {
             height_calc;
 
 
-        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * this.track_height;
+        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
 
         tokens = _.map([hic.LayoutController.navbarHeight(this.browser.config.figureMode), track_aggregate_height], function (number) {
             return number.toString() + 'px';
@@ -29982,6 +29768,69 @@ var hic = (function (hic) {
     return hic;
 })(hic || {});
 
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+var hic = (function (hic) {
+
+    hic.LocalFile = class {
+
+        constructor(file) {
+            this.file = file
+        }
+
+        async read(position, length) {
+
+            const file = this.file;
+
+            return new Promise(function (fullfill, reject) {
+
+                const fileReader = new FileReader();
+
+                fileReader.onload = function (e) {
+                    fullfill(fileReader.result);
+                };
+
+                fileReader.onerror = function (e) {
+                    console.err("Error reading local file " + localfile.name);
+                    reject(null, fileReader);
+                };
+
+                if (position !== undefined) {
+                    const blob = file.slice(position, position + length);
+                    fileReader.readAsArrayBuffer(blob);
+
+                } else {
+                    fileReader.readAsArrayBuffer(file);
+
+                }
+
+            });
+        }
+    }
+
+    return hic;
+})(hic || {});
 /*
  *  The MIT License (MIT)
  *
@@ -30167,13 +30016,13 @@ var hic = (function (hic) {
                 .prop('selected', true);
         }
 
-        function updateOptions() {
+        async function updateOptions() {
             var dataset = event.data,
                 normalizationTypes,
                 elements,
                 norm = this.browser.state.normalization;
 
-            normalizationTypes = dataset.normalizationTypes;
+            normalizationTypes = await dataset.getNormalizationOptions();
             if(normalizationTypes) {
                 elements = normalizationTypes.map(function (normalization) {
                     var label,
@@ -30633,7 +30482,7 @@ var hic = (function (hic) {
         }
     };
 
-    hic.TrackMenuReplacement.prototype.trackMenuItemList_Replacement = function (popover, trackRenderer) {
+    hic.TrackMenuReplacement.prototype.trackMenuItemList_Replacement = function (trackRenderer) {
 
         var menuItems = [];
 
@@ -30690,58 +30539,6 @@ var hic = (function (hic) {
         };
 
         return { object: $e, click: menuClickHandler };
-    };
-
-    hic.TrackMenuReplacement.prototype.DEPRICATED_trackMenuItemList_Replacement = function (popover, trackRenderer) {
-
-        var self = this,
-            menuItems = [],
-            all;
-
-        menuItems.push(
-            igv.trackMenuItem(
-                popover,
-                trackRenderer,
-                "Set track name",
-                function () {
-                    return "Track Name"
-                },
-                trackRenderer.track.name,
-                function () {
-
-                    // var value = igv.dialog.$dialogInput.val().trim();
-                    //
-                    // trackRenderer.track.name = ('' === value || undefined === value) ? 'untitled' : value;
-                    //
-                    // trackRenderer.$label.text(trackRenderer.track.name);
-                },
-                undefined));
-
-        all = [];
-        if (trackRenderer.track.menuItemList) {
-            all = menuItems.concat( igv.trackMenuItemListHelper(trackRenderer.track.menuItemList(popover)) );
-        }
-
-        all.push(
-            igv.trackMenuItem(
-                popover,
-                trackRenderer,
-                "Remove track",
-                function () {
-                    var label = "Remove " + trackRenderer.track.name;
-                    return '<div class="igv-dialog-label-centered">' + label + '</div>';
-                },
-                undefined,
-                function () {
-                    var browser;
-
-                    browser = trackRenderer.browser;
-                    browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
-                    popover.hide();
-                },
-                true));
-
-        return all;
     };
 
     hic.TrackMenuReplacement.prototype.trackMenuItem_Replacement = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {
@@ -30846,39 +30643,18 @@ var hic = (function (hic) {
 
         if ('x' === this.axis) {
 
-            this.$menu_container = $('<div class="x-track-menu-container">');
-            this.$viewport.append(this.$menu_container);
-
-            this.$menu_button = $('<i class="fa fa-cog" aria-hidden="true">');
-            this.$menu_container.append(this.$menu_button);
-
-            this.$menu_button.click(function (e) {
-                e.stopPropagation();
-                igv.popover.presentTrackGearMenu(e.pageX, e.pageY, self, igv.browser);
-            });
-
-            this.$viewport.on('click', function (e) {
-
-                e.stopPropagation();
-
-                // self.$label.toggle();
-                // self.$menu_container.toggle();
-
-                $container.find('.x-track-label').toggle();
-                $container.find('.x-track-menu-container').toggle();
-            });
-
-            if (doShowLabelAndGear) {
-                this.$label.show();
-                this.$menu_container.show();
-            } else {
-                this.$label.hide();
-                this.$menu_container.hide();
-            }
-
-            // compatibility with igv menus
+            // igvjs compatibility
             this.track.trackView = this;
             this.track.trackView.trackDiv = this.$viewport.get(0);
+
+            igv.appendRightHandGutter.call(this, this.$viewport);
+
+            this.$viewport.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $container.find('.x-track-label').toggle();
+                $container.find('.igv-right-hand-gutter').toggle();
+            });
 
         }
 
@@ -30928,30 +30704,54 @@ var hic = (function (hic) {
 
     };
 
+    // hic.TrackRenderer.prototype.dataRange = function () {
+    //     return this.track.dataRange ? this.track.dataRange : undefined;
+    // };
+
+    // hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
+    //
+    //     setDataRange.call(this.trackRenderPair.x);
+    //     setDataRange.call(this.trackRenderPair.y);
+    //
+    //     function setDataRange() {
+    //
+    //         this.tile = undefined
+    //
+    //         this.track.dataRange = {
+    //             min: min,
+    //             max: max
+    //         }
+    //
+    //         this.track.autscale = autoscale;
+    //     }
+    //
+    //     this.browser.renderTrackXY(this.trackRenderPair);
+    //
+    // };
+
+
     hic.TrackRenderer.prototype.dataRange = function () {
         return this.track.dataRange ? this.track.dataRange : undefined;
     };
 
     hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
 
-        setDataRange.call(this.trackRenderPair.x);
-        setDataRange.call(this.trackRenderPair.y);
-
-        function setDataRange() {
-
-            this.tile = undefined
-
-            this.track.dataRange = {
-                min: min,
-                max: max
-            }
-
-            this.track.autscale = autoscale;
+        if (min !== undefined) {
+            this.track.dataRange.min = min;
+            this.track.config.min = min;
         }
 
-        this.browser.renderTrackXY(this.trackRenderPair);
+        if (max !== undefined) {
+            this.track.dataRange.max = max;
+            this.track.config.max = max;
+        }
 
+        this.track.autoscale = autoscale;
+        this.track.config.autoScale = autoscale;
+
+        this.repaintViews();
     };
+
 
     /**
      * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
@@ -30997,8 +30797,10 @@ var hic = (function (hic) {
                     ctx = buffer.getContext("2d");
                     if (features) {
 
-                        if (features.length === 0) {
-                            console.log("Zero");
+                        if (typeof self.track.doAutoscale === 'function') {
+                            self.track.doAutoscale(allFeatures);
+                        } else {
+                            self.track.dataRange = igv.doAutoscale(features);
                         }
 
                         self.canvasTransform(ctx);

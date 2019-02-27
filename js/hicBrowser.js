@@ -376,12 +376,10 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.startSpinner = function () {
-        this.updating = true;
         this.contactMatrixView.startSpinner();
     };
 
     hic.Browser.prototype.stopSpinner = function () {
-        this.updating = false;
         this.contactMatrixView.stopSpinner();
     };
 
@@ -796,7 +794,7 @@ var hic = (function (hic) {
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
                 this.eventBus.post(hic.Event("ControlMapLoad", this.controlDataset));
-                this.contactMatrixView.update();
+                this.update();
             } else {
                 igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
             }
@@ -949,8 +947,6 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
 
-        //if (this.updating) return;
-
         if (this.state.chr1 === 0) {
             await this.zoomAndCenter(1, anchorPx, anchorPy);
         }
@@ -1018,8 +1014,6 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
 
-       // if (this.updating) return
-
         if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
             this.zoomAndCenter(direction, centerPX, centerPY);
         } else {
@@ -1081,8 +1075,6 @@ var hic = (function (hic) {
 
     hic.Browser.prototype.setZoom = async function (zoom) {
 
-       // if (this.updating) return;
-
         try {
             this.startSpinner()
             var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
@@ -1121,8 +1113,6 @@ var hic = (function (hic) {
     };
 
     hic.Browser.prototype.setChromosomes = async function (chr1, chr2) {
-
-       // if (this.updating) return;
 
         try {
             this.startSpinner()
@@ -1295,7 +1285,6 @@ var hic = (function (hic) {
         var self = this;
 
         if (!this.dataset) return;
-       // if (self.updating) return;
 
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
@@ -1401,37 +1390,16 @@ var hic = (function (hic) {
     /**
      * Update the maps and tracks.
      *
-     * Data load functions for tracks and the map are not neccessarily thread safe.   Although JS is single-threaded,
-     * the ascyncronous nature of XmLHttpRequests makes it possible to call these functions multiple times
-     * simultaneously.   To prevent this we check for an update in progress before proceeding.   If an update
-     * is in progress the call to self is deferred with a timeout until the currently executing update completes.
-     *
-     * This might involve asynchronous data loads,  insure that all data loads are complete
-     * before painting track.
-     *
      * @param event
      */
     hic.Browser.prototype.update = async function (event) {
 
-        const self = this;
-
-        // Allow only 1 update at a time, if an update is in progress queue up until its finished
-        // if (this.updating) {
-        //     if (this.updateTimer) {
-        //         clearTimeout(this.updateTimer);
-        //     }
-        //     this.updateTimer = setTimeout(function () {
-        //             self.update(event);
-        //             self.updateTimer = null;
-        //         },
-        //         100)
-        //     return;
-        // }
-
         try {
-            this.updating = true;
-            this.contactMatrixView.startSpinner();
-            this.contactMatrixView.update();
+            this.startSpinner();
+
+            // First get all data for map and tracks, then repaint
+            const tiles = await this.contactMatrixView.getImageTiles()
+
             for (let xyTrackRenderPair of this.trackRenderers) {
                 await xyTrackRenderPair.x.readyToPaint()
                 await xyTrackRenderPair.y.readyToPaint()
@@ -1441,15 +1409,13 @@ var hic = (function (hic) {
                 this.layoutController.xAxisRuler.locusChange(event);
                 this.layoutController.yAxisRuler.locusChange(event);
             }
-            //this.contactMatrixView.repaint(imageTiles);
+
+            this.contactMatrixView.repaint(tiles);
             this.renderTracks();
             this.stopSpinner();
-            this.updating = false;
 
-        } catch (error) {
-            self.stopSpinner();
-            self.updating = false;
-            console.error(error);
+        } finally{
+            this.stopSpinner();
         }
     }
 
