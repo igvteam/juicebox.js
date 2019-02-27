@@ -34,6 +34,7 @@ module.exports = function (grunt) {
                     'vendor/colors.js',
                     'vendor/qrcode.js',
                     'vendor/zlib_and_gzip.js',
+                    'vendor/hic-straw.js',
                     'js/**/*.js',
                     'wrapper/footer.js'
                 ],
