@@ -39,7 +39,7 @@ var hic = (function (hic) {
     let defaultState;
 
     hic.allBrowsers = [];
-    
+
     hic.createBrowser = async function (hic_container, config, callback) {
 
         var browser,
@@ -1077,7 +1077,7 @@ var hic = (function (hic) {
     hic.Browser.prototype.setZoom = async function (zoom) {
 
         try {
-            this.startSpinner()
+            // this.startSpinner()
             var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
                 newYCenter,
                 newPixelSize, zoomChanged,
@@ -1108,7 +1108,7 @@ var hic = (function (hic) {
 
             self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
         } finally {
-            this.stopSpinner()
+            // this.stopSpinner()
         }
 
     };
