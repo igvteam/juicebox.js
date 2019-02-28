@@ -137,32 +137,6 @@ var hic = (function (hic) {
 
     };
 
-    // hic.TrackRenderer.prototype.dataRange = function () {
-    //     return this.track.dataRange ? this.track.dataRange : undefined;
-    // };
-
-    // hic.TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
-    //
-    //     setDataRange.call(this.trackRenderPair.x);
-    //     setDataRange.call(this.trackRenderPair.y);
-    //
-    //     function setDataRange() {
-    //
-    //         this.tile = undefined
-    //
-    //         this.track.dataRange = {
-    //             min: min,
-    //             max: max
-    //         }
-    //
-    //         this.track.autscale = autoscale;
-    //     }
-    //
-    //     this.browser.renderTrackXY(this.trackRenderPair);
-    //
-    // };
-
-
     hic.TrackRenderer.prototype.dataRange = function () {
         return this.track.dataRange ? this.track.dataRange : undefined;
     };
@@ -182,7 +156,7 @@ var hic = (function (hic) {
         this.track.autoscale = autoscale;
         this.track.config.autoScale = autoscale;
 
-        this.repaintViews();
+        this.repaint();
     };
 
 
