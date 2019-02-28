@@ -200,6 +200,7 @@ var hic = (function (hic) {
         const matrices = await getMatrices.call(this, state.chr1, state.chr2)
 
         var matrix = matrices[0];
+
         if (matrix) {
             const zd = await matrix.bpZoomData[state.zoom]
             const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
@@ -241,6 +242,8 @@ var hic = (function (hic) {
      * @param state
      * @returns {*}
      */
+    const drawsInProgress = new Set()
+
     hic.ContactMatrixView.prototype.getImageTile = async function (zd, zdControl, row, column, state) {
 
         const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
@@ -250,9 +253,15 @@ var hic = (function (hic) {
 
         if (this.imageTileCache.hasOwnProperty(key)) {
 
-            return Promise.resolve(this.imageTileCache[key])
+            return this.imageTileCache[key]
 
         } else {
+            if(drawsInProgress.has(key)) {
+                return    // TODO return a "load in progress" image,  or an image at a coarser resolution
+            }
+
+            drawsInProgress.add(key)
+
             const sameChr = zd.chr1.index === zd.chr2.index
             const blockBinCount = zd.blockBinCount
             const blockColumnCount = zd.blockColumnCount
@@ -303,6 +312,8 @@ var hic = (function (hic) {
 
             this.imageTileCache[key] = imageTile
 
+            drawsInProgress.delete(key)
+
             return imageTile;
 
 
@@ -342,7 +353,7 @@ var hic = (function (hic) {
                     let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
 
                     if (transpose) {
-                        t = y;
+                        const t = y;
                         y = x;
                         x = t;
                     }
@@ -511,26 +522,28 @@ var hic = (function (hic) {
 
             imageTiles.forEach(function (imageTile) {
 
-                var image = imageTile.image,
-                    pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+                if(imageTile) {
+                    var image = imageTile.image,
+                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
 
-                if (image != null) {
-                    var row = imageTile.row,
-                        col = imageTile.column,
-                        x0 = imageTile.blockBinCount * col,
-                        y0 = imageTile.blockBinCount * row;
-                    var offsetX = (x0 - state.x) * state.pixelSize;
-                    var offsetY = (y0 - state.y) * state.pixelSize;
-                    var scale = state.pixelSize / pixelSizeInt;
-                    var scaledWidth = image.width * scale;
-                    var scaledHeight = image.height * scale;
-                    if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-                        offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-                        if (scale === 1) {
-                            self.ctx.drawImage(image, offsetX, offsetY);
-                        }
-                        else {
-                            self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                    if (image != null) {
+                        var row = imageTile.row,
+                            col = imageTile.column,
+                            x0 = imageTile.blockBinCount * col,
+                            y0 = imageTile.blockBinCount * row;
+                        var offsetX = (x0 - state.x) * state.pixelSize;
+                        var offsetY = (y0 - state.y) * state.pixelSize;
+                        var scale = state.pixelSize / pixelSizeInt;
+                        var scaledWidth = image.width * scale;
+                        var scaledHeight = image.height * scale;
+                        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+                            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+                            if (scale === 1) {
+                                self.ctx.drawImage(image, offsetX, offsetY);
+                            }
+                            else {
+                                self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                            }
                         }
                     }
                 }
