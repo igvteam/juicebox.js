@@ -39,9 +39,7 @@ var hic = (function (hic) {
     let defaultState;
 
     hic.allBrowsers = [];
-
-
-    // Callback used to  sync browsers
+    
     hic.createBrowser = async function (hic_container, config, callback) {
 
         var browser,
@@ -530,6 +528,7 @@ var hic = (function (hic) {
             if (tracks2D && tracks2D.length > 0) {
                 this.tracks2D = self.tracks2D.concat(tracks2D);
                 this.eventBus.post(hic.Event("TrackLoad2D", this.tracks2D));
+                this.contactMatrixView.update()
             }
 
             const normVectors = await Promise.all(promisesNV)

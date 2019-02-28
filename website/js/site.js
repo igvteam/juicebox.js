@@ -451,7 +451,7 @@ var juicebox = (function (site) {
 
                 q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
                 parts = q.split("},{");
-                browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])}, syncBrowsers);
+                browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])});
                 browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 browser.eventBus.subscribe("MapLoad", checkBDropdown);
 
@@ -461,6 +461,7 @@ var juicebox = (function (site) {
                         browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                         browser.eventBus.subscribe("MapLoad", checkBDropdown);
                     }
+                    syncBrowsers();
                 }
             } else {
                 browser = await hic.createBrowser($container.get(0), {});
