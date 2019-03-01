@@ -83,7 +83,7 @@ var hic = (function (hic) {
         this.colorScaleThresholdCache = {};
 
         // Set initial color scales.  These might be overriden / adjusted via parameters
-        this.colorScale = new hic.ColorScale({high: 2000, r: 255, g: 0, b: 0});
+        this.colorScale = new ColorScale({high: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
         // this.diffColorScale = new RatioColorScale(100, false);
 
@@ -256,7 +256,7 @@ var hic = (function (hic) {
             return this.imageTileCache[key]
 
         } else {
-            if(drawsInProgress.has(key)) {
+            if (drawsInProgress.has(key)) {
                 return    // TODO return a "load in progress" image,  or an image at a coarser resolution
             }
 
@@ -319,7 +319,7 @@ var hic = (function (hic) {
 
             // Actual drawing happens here
             function drawBlock(block, controlBlock, transpose) {
-
+                console.log("draw block")
                 var imageSize = Math.ceil(widthInBins * pixelSizeInt)
                 const blockNumber = block.blockNumber;
                 const row = Math.floor(blockNumber / blockColumnCount);
@@ -335,10 +335,9 @@ var hic = (function (hic) {
 
                 const controlRecords = {};
                 if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
-
-                    controlBlock.records.forEach(function (record) {
-                        controlRecords[record.getKey()] = record;
-                    })
+                    for (let record of controlBlock.records) {
+                        controlRecords[record.getKey()] = record
+                    }
                 }
 
                 let id
@@ -413,7 +412,7 @@ var hic = (function (hic) {
                 //Draw 2D tracks
                 ctx.save();
                 ctx.lineWidth = 2;
-                for(let track2D of this.browser.tracks2D) {
+                for (let track2D of this.browser.tracks2D) {
 
                     if (track2D.isVisible) {
 
@@ -493,7 +492,6 @@ var hic = (function (hic) {
     };
 
 
-
     /**
      * Repaint the map.
      */
@@ -522,7 +520,7 @@ var hic = (function (hic) {
 
             imageTiles.forEach(function (imageTile) {
 
-                if(imageTile) {
+                if (imageTile) {
                     var image = imageTile.image,
                         pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
 
@@ -622,7 +620,7 @@ var hic = (function (hic) {
 
                 if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
 
-                this.colorScale = new hic.ColorScale(this.colorScale);
+                this.colorScale = new ColorScale(this.colorScale);
                 this.colorScale.threshold = s;
                 this.computeColorScale = false;
                 this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
@@ -1046,29 +1044,35 @@ var hic = (function (hic) {
     }
 
 
-    hic.ColorScale = function (scale) {
+    ColorScale = function (scale) {
         this.threshold = scale.threshold;
         this.r = scale.r;
         this.g = scale.g;
         this.b = scale.b;
+        this.cache = []
+        this.nbins = 200
+        this.binsize = this.threshold / this.nbins
     };
 
 
-    hic.ColorScale.prototype.setThreshold = function (threshold) {
+    ColorScale.prototype.setThreshold = function (threshold) {
         this.threshold = threshold;
+        this.cache = {}
+        this.binsize = this.threshold / this.nbins
     }
 
-    hic.ColorScale.prototype.getThreshold = function () {
+    ColorScale.prototype.getThreshold = function () {
         return this.threshold;
     }
 
-    hic.ColorScale.prototype.setColorComponents = function (components) {
+    ColorScale.prototype.setColorComponents = function (components) {
         this.r = components.r;
         this.g = components.g;
         this.b = components.b;
+        this.cache = []
     }
 
-    hic.ColorScale.prototype.getColorComponents = function () {
+    ColorScale.prototype.getColorComponents = function () {
         return {
             r: this.r,
             g: this.g,
@@ -1077,37 +1081,42 @@ var hic = (function (hic) {
     }
 
 
-    hic.ColorScale.prototype.equals = function (cs) {
+    ColorScale.prototype.equals = function (cs) {
         return JSON.stringify(this) === JSON.stringify(cs);
     };
 
-    hic.ColorScale.prototype.getColor = function (value) {
-        var scale = this, r, g, b, frac, diff, low, lowR, lowG, lowB;
+    ColorScale.prototype.getColor = function (value) {
 
-        low = 0;
-        lowR = 255;
-        lowB = 255;
-        lowG = 255;
+        const bin = Math.floor(Math.min(this.threshold, value) / this.binsize)
+        let color = this.cache[bin]
+        if (!color) {
+            const low = 0;
+            const lowR = 255;
+            const lowB = 255;
+            const lowG = 255;
 
-        if (value <= low) value = low;
-        else if (value >= scale.threshold) value = scale.threshold;
+            if (value <= low) value = low;
+            else if (value >= this.threshold) value = this.threshold;
 
-        diff = scale.threshold - low;
+            const diff = this.threshold - low;
 
-        frac = (value - low) / diff;
-        r = Math.floor(lowR + frac * (scale.r - lowR));
-        g = Math.floor(lowG + frac * (scale.g - lowG));
-        b = Math.floor(lowB + frac * (scale.b - lowB));
+            const frac = (value - low) / diff;
+            const r = Math.floor(lowR + frac * (this.r - lowR));
+            const g = Math.floor(lowG + frac * (this.g - lowG));
+            const b = Math.floor(lowB + frac * (this.b - lowB));
 
-        return {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        };
-    };
+            color = {
+                red: r,
+                green: g,
+                blue: b,
+                rgb: "rgb(" + r + "," + g + "," + b + ")"
+            }
+            this.cache[bin] = color
+        }
+        return color
+    }
 
-    hic.ColorScale.prototype.stringify = function () {
+    ColorScale.prototype.stringify = function () {
         return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
     };
 
@@ -1115,13 +1124,13 @@ var hic = (function (hic) {
 
         this.threshold = threshold;
 
-        this.positiveScale = new hic.ColorScale({
+        this.positiveScale = new ColorScale({
             threshold: Math.log(threshold),
             r: 255,
             g: 0,
             b: 0
         });
-        this.negativeScale = new hic.ColorScale(
+        this.negativeScale = new ColorScale(
             {
                 threshold: Math.log(threshold),
                 r: 0,
@@ -1203,7 +1212,7 @@ var hic = (function (hic) {
                 g: tokens[2],
                 b: tokens[3]
             };
-            return new hic.ColorScale(cs);
+            return new ColorScale(cs);
         }
 
     };
