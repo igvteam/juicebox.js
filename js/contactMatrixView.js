@@ -83,7 +83,7 @@ var hic = (function (hic) {
         this.colorScaleThresholdCache = {};
 
         // Set initial color scales.  These might be overriden / adjusted via parameters
-        this.colorScale = new ColorScale({high: 2000, r: 255, g: 0, b: 0});
+        this.colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
         this.ratioColorScale = new RatioColorScale(5);
         // this.diffColorScale = new RatioColorScale(100, false);
 
@@ -1050,14 +1050,14 @@ var hic = (function (hic) {
         this.g = scale.g;
         this.b = scale.b;
         this.cache = []
-        this.nbins = 200
+        this.nbins = 2000
         this.binsize = this.threshold / this.nbins
     };
 
 
     ColorScale.prototype.setThreshold = function (threshold) {
         this.threshold = threshold;
-        this.cache = {}
+        this.cache = []
         this.binsize = this.threshold / this.nbins
     }
 
