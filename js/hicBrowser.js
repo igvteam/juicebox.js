@@ -42,28 +42,17 @@ var hic = (function (hic) {
 
     hic.createBrowser = async function (hic_container, config, callback) {
 
-        var browser,
-            queryString,
-            query,
-            isFigureMode,
-            initialImageImg,
-            initialImageX,
-            initialImageY,
-            uriDecode,
-            apiKey,
-            $hic_container;
-
-        $hic_container = $(hic_container);
+        const $hic_container = $(hic_container);
 
         setDefaults(config);
 
-        apiKey = config.apiKey;
+        const apiKey = config.apiKey;
         if (apiKey) {
             igv.setApiKey(apiKey);
             hic.apiKey = apiKey;
         }
 
-        queryString = config.queryString || config.href;   // href for backward compatibility
+        let queryString = config.queryString || config.href;   // href for backward compatibility
         if (queryString === undefined && config.initFromUrl !== false) {
             queryString = window.location.href;
         }
@@ -72,25 +61,20 @@ var hic = (function (hic) {
             if (!queryString.includes("?")) {
                 queryString = "?" + queryString;
             }
-            query = hic.extractQuery(queryString);
-            uriDecode = queryString.includes("%2C");
+            const query = hic.extractQuery(queryString);
+            const uriDecode = queryString.includes("%2C");
             igv.Browser.decodeQuery(query, config, uriDecode);
         }
 
-        browser = new hic.Browser($hic_container, config);
+        const browser = new hic.Browser($hic_container, config);
 
-        if (config.displayMode) {
-            browser.contactMatrixView.displayMode = config.displayMode;
-            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
-        }
-
+        browser.eventBus.hold()
 
         hic.allBrowsers.push(browser);
 
         hic.Browser.setCurrentBrowser(browser);
 
-        isFigureMode = (config.figureMode && true === config.figureMode);
-        if (!isFigureMode && hic.allBrowsers.length > 1) {
+        if (hic.allBrowsers.length > 1) {
             hic.allBrowsers.forEach(function (b) {
                 b.$browser_panel_delete_button.show();
             });
@@ -102,10 +86,24 @@ var hic = (function (hic) {
             createIGV($hic_container, browser, browser.trackMenuReplacement);
         }
 
-        await loadControlFile(config)
-        await setInitialDataset(browser, config)
-        await browser.loadHicFile(config)
+        ///////////////////////////////////
+        browser.contactMatrixView.startSpinner();
+        browser.$user_interaction_shield.show();
 
+        const hasControl = config.controlUrl !== undefined
+
+        // if (!config.name) config.name = await extractName(config)
+        // const prefix = hasControl ? "A: " : "";
+        // browser.$contactMaplabel.text(prefix + config.name);
+        // browser.$contactMaplabel.attr('title', config.name);
+
+        await browser.loadHicFile(config, true)
+        await loadControlFile(config)
+
+        if (config.displayMode) {
+            browser.contactMatrixView.displayMode = config.displayMode;
+            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
+        }
         if (config.colorScale) {
             // This must be done after dataset load
             browser.contactMatrixView.setColorScale(config.colorScale);
@@ -124,19 +122,24 @@ var hic = (function (hic) {
         }
         await Promise.all(promises);
 
+        browser.eventBus.release()
+
         if (config.cycle) {
             browser.controlMapWidget.toggleDisplayModeCycle();
-        } else {
-            browser.update()
         }
 
+        browser.update()
+
         if (typeof callback === "function") callback();
+
+        browser.contactMatrixView.stopSpinner();
+        browser.$user_interaction_shield.hide();
 
         return browser;
 
 
         // Explicit set dataset, do not need to load.  Used by "interactive figures"
-        function setInitialDataset(browser, config) {
+        async function setInitialDataset(browser, config) {
 
             if (config.dataset) {
                 config.dataset.name = config.name;
@@ -147,23 +150,23 @@ var hic = (function (hic) {
                 igv.browser.genome = browser.genome;
                 browser.eventBus.post(hic.Event("GenomeChange", browser.genome.id));
                 browser.eventBus.post(hic.Event("MapLoad", browser.dataset));
-                return Promise.resolve(config.dataset);
+                return config.dataset;
             } else {
-                return Promise.resolve(undefined);
+                return undefined;
             }
         }
 
         // Load the control file, if any
-        function loadControlFile(config) {
+        async function loadControlFile(config) {
             if (config.controlUrl) {
                 return browser.loadHicControlFile({
                     url: config.controlUrl,
                     name: config.controlName,
                     nvi: config.controlNvi,
                     isControl: true
-                });
+                }, true);
             } else {
-                return Promise.resolve(undefined);
+                return undefined;
             }
         }
     };
@@ -528,7 +531,6 @@ var hic = (function (hic) {
             if (tracks2D && tracks2D.length > 0) {
                 this.tracks2D = self.tracks2D.concat(tracks2D);
                 this.eventBus.post(hic.Event("TrackLoad2D", this.tracks2D));
-                this.contactMatrixView.update()
             }
 
             const normVectors = await Promise.all(promisesNV)
@@ -652,7 +654,7 @@ var hic = (function (hic) {
         self.dataset = undefined;
         self.controlDataset = undefined;
         self.layoutController.removeAllTrackXYPairs();
-        self.contactMatrixView.clearCaches();
+        self.contactMatrixView.clearImageCaches();
         self.tracks2D = [];
         self.tracks = [];
 
@@ -678,7 +680,7 @@ var hic = (function (hic) {
      * @return a promise for a dataset
      * @param config
      */
-    hic.Browser.prototype.loadHicFile = async function (config) {
+    hic.Browser.prototype.loadHicFile = async function (config, noUpdates) {
 
         if (!config.url) {
             console.log("No .hic url specified");
@@ -688,8 +690,11 @@ var hic = (function (hic) {
         this.clearSession();
 
         try {
-            this.contactMatrixView.startSpinner();
-            this.$user_interaction_shield.show();
+
+            if (!noUpdates) {
+                this.contactMatrixView.startSpinner();
+                this.$user_interaction_shield.show();
+            }
 
             const name = await extractName(config)
             const prefix = this.controlDataset ? "A: " : "";
@@ -719,8 +724,10 @@ var hic = (function (hic) {
                 this.setState(defaultState.clone());
             }
         } finally {
-            this.$user_interaction_shield.hide();
-            this.stopSpinner();
+            if (!noUpdates) {
+                this.$user_interaction_shield.hide();
+                this.stopSpinner();
+            }
         }
 
         // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
@@ -771,7 +778,7 @@ var hic = (function (hic) {
      * @return a promise for a dataset
      * @param config
      */
-    hic.Browser.prototype.loadHicControlFile = async function (config) {
+    hic.Browser.prototype.loadHicControlFile = async function (config, noUpdates) {
 
         this.$user_interaction_shield.show()
         this.contactMatrixView.startSpinner()
@@ -795,13 +802,18 @@ var hic = (function (hic) {
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
                 this.eventBus.post(hic.Event("ControlMapLoad", this.controlDataset));
-                this.update();
+
+                if (!noUpdates) {
+                    this.update();
+                }
             } else {
                 igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
             }
         } finally {
-            this.$user_interaction_shield.hide();
-            this.stopSpinner();
+            if(!noUpdates) {
+                this.$user_interaction_shield.hide();
+                this.stopSpinner();
+            }
         }
 
 
@@ -1193,7 +1205,6 @@ var hic = (function (hic) {
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
         this.state.pixelSize = Math.max(state.pixelSize, minPS);
         this.eventBus.post(new hic.Event("LocusChange", {state: this.state, resolutionChanged: true}));
-
     };
 
 
@@ -1277,7 +1288,6 @@ var hic = (function (hic) {
 
         this.state.normalization = normalization;
         this.eventBus.post(hic.Event("NormalizationChange", this.state.normalization))
-        this.repaintMatrix();
     };
 
 
@@ -1348,7 +1358,7 @@ var hic = (function (hic) {
         this.state.y = newYBin;
         this.state.pixelSize = newPixelSize;
 
-        this.contactMatrixView.clearCaches();
+        this.contactMatrixView.clearImageCaches();
         this.eventBus.post(hic.Event("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
 
     };
@@ -1415,7 +1425,7 @@ var hic = (function (hic) {
             this.renderTracks();
             this.stopSpinner();
 
-        } finally{
+        } finally {
             this.stopSpinner();
         }
     }

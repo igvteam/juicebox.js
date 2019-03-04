@@ -55,9 +55,6 @@ var hic = (function (hic) {
         this.controlMapHash = new hic.ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
 
         browser.eventBus.subscribe("ControlMapLoad", function (event) {
-            let displayMode;
-
-            displayMode = browser.getDisplayMode();
             self.controlMapHash.updateOptions( browser.getDisplayMode() );
             self.$container.show();
         });
@@ -66,6 +63,10 @@ var hic = (function (hic) {
             if (!browser.controlDataset) {
                 self.$container.hide();
             }
+        });
+
+        browser.eventBus.subscribe("DisplayMode", function (event) {
+            self.controlMapHash.updateOptions( event.data );
         });
 
     };

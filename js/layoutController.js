@@ -29,14 +29,9 @@ var hic = (function (hic) {
     hic.LayoutController.nav_bar_widget_container_height = 36;
     hic.LayoutController.nav_bar_shim_height = 4;
 
-    hic.LayoutController.navbarHeight = function (figureMode) {
+    hic.LayoutController.navbarHeight = function () {
         var height;
-        if (true === figureMode) {
-            height = hic.LayoutController.nav_bar_label_height;
-        } else {
-            height = (2 * hic.LayoutController.nav_bar_label_height) + (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
-        }
-        // console.log('navbar height ' + height);
+        height = (2 * hic.LayoutController.nav_bar_label_height) + (2 * hic.LayoutController.nav_bar_widget_container_height) + hic.LayoutController.nav_bar_shim_height;
         return height;
     };
 
@@ -54,21 +49,16 @@ var hic = (function (hic) {
         $navbar_container = $('<div class="hic-navbar-container">');
         $root.append($navbar_container);
 
-        if (true === browser.config.figureMode) {
-            $navbar_container.height(hic.LayoutController.navbarHeight(browser.config.figureMode));
-        } else {
 
-            $navbar_container.on('click', function (e) {
-                e.stopPropagation();
-                e.preventDefault();
-                hic.Browser.setCurrentBrowser(browser);
-            });
-
-        }
+        $navbar_container.on('click', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            hic.Browser.setCurrentBrowser(browser);
+        });
 
         // container: contact map label | menu button | browser delete button
         id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
-        $map_container = $("<div>", { id: id });
+        $map_container = $("<div>", {id: id});
         $navbar_container.append($map_container);
 
         // contact map label
@@ -77,18 +67,21 @@ var hic = (function (hic) {
         $map_container.append(browser.$contactMaplabel);
 
         // navbar button container
-        $e = $("<div>", { class: 'hic-nav-bar-button-container' });
+        $e = $("<div>", {class: 'hic-nav-bar-button-container'});
         $map_container.append($e);
 
         // menu present/dismiss button
-        browser.$menuPresentDismiss = $("<i>", { class: 'fa fa-bars fa-lg', 'title':'Present menu' });
+        browser.$menuPresentDismiss = $("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
         $e.append(browser.$menuPresentDismiss);
         browser.$menuPresentDismiss.on('click', function (e) {
             browser.toggleMenu();
         });
 
         // browser delete button
-        browser.$browser_panel_delete_button = $("<i>", { class: 'fa fa-minus-circle fa-lg', 'title':'Delete browser panel' });
+        browser.$browser_panel_delete_button = $("<i>", {
+            class: 'fa fa-minus-circle fa-lg',
+            'title': 'Delete browser panel'
+        });
         $e.append(browser.$browser_panel_delete_button);
 
         browser.$browser_panel_delete_button.on('click', function (e) {
@@ -102,7 +95,7 @@ var hic = (function (hic) {
 
         // container: control map label
         id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
-        $map_container = $("<div>", { id: id });
+        $map_container = $("<div>", {id: id});
         $navbar_container.append($map_container);
 
         // control map label
@@ -122,30 +115,21 @@ var hic = (function (hic) {
         browser.resolutionSelector = new hic.ResolutionSelector(browser, $upper_widget_container);
         browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
-        if (true === browser.config.figureMode) {
-            browser.$contactMaplabel.addClass('hidden-text');
-            $upper_widget_container.hide();
-        } else {
 
-            // lower widget container
-            id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-            $lower_widget_container = $("<div>", {id: id});
-            $navbar_container.append($lower_widget_container);
+        // lower widget container
+        id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
+        $lower_widget_container = $("<div>", {id: id});
+        $navbar_container.append($lower_widget_container);
 
-            // colorscale
-            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
+        // colorscale
+        browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $lower_widget_container);
 
-            // control map
-            browser.controlMapWidget = new hic.ControlMapWidget(browser, $lower_widget_container);
+        // control map
+        browser.controlMapWidget = new hic.ControlMapWidget(browser, $lower_widget_container);
 
-            // normalization
-            browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
+        // normalization
+        browser.normalizationSelector = new hic.NormalizationWidget(browser, $lower_widget_container);
 
-            // resolution widget
-            // browser.resolutionSelector = new hic.ResolutionSelector(browser, $lower_widget_container);
-            // browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-        }
 
     }
 
@@ -182,21 +166,8 @@ var hic = (function (hic) {
         this.$content_container = $("<div>", {id: id});
         $root.append(this.$content_container);
 
-        // If we are in mini-mode we must recalculate the content container height
-        // to coinside with the root browser container height
-        if (true === browser.config.figureMode) {
-            tokens = _.map([hic.LayoutController.navbarHeight(browser.config.figureMode)], function (number) {
-                return number.toString() + 'px';
-            });
-            height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-            this.$content_container.css('height', height_calc);
-        }
-
-
         // menu
         createMenu(browser, $root);
-
 
         // container: x-axis
         id = browser.id + '_' + 'x-axis-container';
@@ -269,37 +240,22 @@ var hic = (function (hic) {
         // chromosome select widget
         browser.chromosomeSelector = new hic.ChromosomeSelectorWidget(browser, $menu);
 
-        if (true === browser.config.figureMode) {
-
-            browser.chromosomeSelector.$container.hide();
-
-            // colorscale
-            browser.colorscaleWidget = new hic.ColorScaleWidget(browser, $menu);
-
-            // normalization
-            browser.normalizationSelector = new hic.NormalizationWidget(browser, $menu);
-
-            // resolution widget
-            browser.resolutionSelector = new hic.ResolutionSelector(browser, $menu);
-            browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-        }
-
         config =
-        {
-            title: '2D Annotations',
-            loadTitle: 'Load:',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
+            {
+                title: '2D Annotations',
+                loadTitle: 'Load:',
+                alertMessage: 'No 2D annotations currently loaded for this map'
+            };
         browser.annotation2DWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
             return browser.tracks2D;
         });
 
         config =
-        {
-            title: 'Tracks',
-            loadTitle: 'Load Tracks:',
-            alertMessage: 'No tracks currently loaded for this map'
-        };
+            {
+                title: 'Tracks',
+                loadTitle: 'Load Tracks:',
+                alertMessage: 'No tracks currently loaded for this map'
+            };
 
         browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
             return browser.trackRenderers;
@@ -335,7 +291,6 @@ var hic = (function (hic) {
             self.browser.trackRenderers.push(trackRendererPair);
 
         });
-
 
 
     }
@@ -439,7 +394,7 @@ var hic = (function (hic) {
 
         track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
 
-        tokens = _.map([hic.LayoutController.navbarHeight(this.browser.config.figureMode), track_aggregate_height], function (number) {
+        tokens = _.map([hic.LayoutController.navbarHeight(), track_aggregate_height], function (number) {
             return number.toString() + 'px';
         });
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -484,7 +439,7 @@ var hic = (function (hic) {
         var count;
 
         this.browser.$root.width(size.width);
-        this.browser.$root.height(size.height + hic.LayoutController.navbarHeight(this.browser.config.figureMode));
+        this.browser.$root.height(size.height + hic.LayoutController.navbarHeight());
 
         count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
         this.doLayoutTrackXYPairCount(count);

@@ -39,6 +39,8 @@ var hic = (function (hic) {
 
         // Map eventType -> list of subscribers
         this.subscribers = {};
+
+        this.stack = []
     };
 
     hic.EventBus.prototype.subscribe = function (eventType, object) {
@@ -54,23 +56,41 @@ var hic = (function (hic) {
 
     hic.EventBus.prototype.post = function (event) {
 
-        var self = this,
-            eventType = event.type,
-            subscriberList = this.subscribers[eventType];
+        const eventType = event.type
 
-        if (subscriberList) {
-            subscriberList.forEach(function (subscriber) {
-
-                if ("function" === typeof subscriber.receiveEvent) {
-                    subscriber.receiveEvent(event);
-                } else if ("function" === typeof subscriber) {
-                    subscriber(event);
-                }
-
-            });
+        if(this.hold) {
+            this.stack.push(event)
         }
+            else {
+            const subscriberList = this.subscribers[eventType];
 
-    };
+            if (subscriberList) {
+                for (let subscriber of subscriberList) {
+
+                    if ("function" === typeof subscriber.receiveEvent) {
+                        subscriber.receiveEvent(event);
+                    } else if ("function" === typeof subscriber) {
+                        subscriber(event);
+                    }
+                }
+            }
+        }
+    }
+
+    hic.EventBus.prototype.hold = function() {
+        this.hold = true;
+
+    }
+
+    hic.EventBus.prototype.release = function () {
+        this.hold = false;
+        for(let event of this.stack) {
+            this.post(event)
+        }
+        this.stack = []
+    }
+
+
 
     hic.Event = function (type, data, propogate) {
         return {

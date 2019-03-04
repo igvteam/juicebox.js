@@ -204,7 +204,7 @@ var hic = (function (hic) {
                     track.isVisible = true;
                 }
 
-                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.clearImageCaches();
                 self.browser.contactMatrixView.update();
 
             });
@@ -313,7 +313,7 @@ var hic = (function (hic) {
 
                 trackList.splice(index, 1);
 
-                self.browser.contactMatrixView.clearCaches();
+                self.browser.contactMatrixView.clearImageCaches();
                 self.browser.contactMatrixView.update();
 
                 self.browser.eventBus.post(hic.Event('TrackLoad2D', trackList));

@@ -93,6 +93,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("MapLoad", this)
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("ControlMapLoad", this);
+        this.browser.eventBus.subscribe("ColorChange", this)
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
@@ -134,7 +135,7 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
         this.displayMode = mode;
-        this.clearCaches();
+        this.clearImageCaches();
         this.update();
     }
 
@@ -142,7 +143,7 @@ var hic = (function (hic) {
         return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
     }
 
-    hic.ContactMatrixView.prototype.clearCaches = function () {
+    hic.ContactMatrixView.prototype.clearImageCaches = function () {
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
     };
@@ -164,20 +165,22 @@ var hic = (function (hic) {
                 addMouseHandlers.call(this, this.$viewport);
                 this.mouseHandlersEnabled = true;
             }
-            this.clearCaches();
+            this.clearImageCaches();
             this.colorScaleThresholdCache = {};
         }
 
         else {
-            if ("NormalizationChange" === event.type || "TrackLoad2D" === event.type || "TrackState2D" === event.type) {
-                this.clearCaches();
-            }
+            if ("LocusChange" !== event.type) {
+                this.clearImageCaches();
 
+            }
+            this.update();
         }
     }
 
-
     hic.ContactMatrixView.prototype.update = async function () {
+
+        if (this.disableUpdates) return
 
         const tiles = await this.getImageTiles()
         this.repaint(tiles);
@@ -250,7 +253,6 @@ var hic = (function (hic) {
         const useImageData = pixelSizeInt === 1
         const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
             "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
-
         if (this.imageTileCache.hasOwnProperty(key)) {
 
             return this.imageTileCache[key]
@@ -259,7 +261,6 @@ var hic = (function (hic) {
             if (drawsInProgress.has(key)) {
                 return    // TODO return a "load in progress" image,  or an image at a coarser resolution
             }
-
             drawsInProgress.add(key)
 
             const sameChr = zd.chr1.index === zd.chr2.index
@@ -319,8 +320,8 @@ var hic = (function (hic) {
 
             // Actual drawing happens here
             function drawBlock(block, controlBlock, transpose) {
-                console.log("draw block")
-                var imageSize = Math.ceil(widthInBins * pixelSizeInt)
+
+                const imageSize = Math.ceil(widthInBins * pixelSizeInt)
                 const blockNumber = block.blockNumber;
                 const row = Math.floor(blockNumber / blockColumnCount);
                 const col = blockNumber - row * blockColumnCount;
@@ -725,7 +726,7 @@ var hic = (function (hic) {
 
             });
 
-            $viewport.on('mousemove', hic.throttle(function (e) {
+            $viewport.on('mousemove', function (e) {
 
                 var coords,
                     eFixed,
@@ -782,7 +783,8 @@ var hic = (function (hic) {
                 }
 
 
-            }, 10));
+            })
+            //, 10));
 
             $viewport.on('mouseup', panMouseUpOrMouseOut);
 
@@ -797,9 +799,7 @@ var hic = (function (hic) {
             // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
             // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
 
-            if (!self.browser.figureMode) {
-                $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
-            }
+            $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
 
             // document level events
             $(document).on('keydown.contact_matrix_view', function (e) {
@@ -1141,8 +1141,8 @@ var hic = (function (hic) {
 
     RatioColorScale.prototype.setThreshold = function (threshold) {
         this.threshold = threshold;
-        this.positiveScale.threshold = Math.log(threshold);
-        this.negativeScale.threshold = Math.log(threshold);
+        this.positiveScale.setThreshold(Math.log(threshold));
+        this.negativeScale.setThreshold(Math.log(threshold));
     }
 
     RatioColorScale.prototype.getThreshold = function () {

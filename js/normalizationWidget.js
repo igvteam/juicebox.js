@@ -52,7 +52,7 @@ var hic = (function (hic) {
 
         // label
         $label = $('<div>');
-        $label.text( (true === browser.config.figureMode) ? 'Normalization' : 'Norm');
+        $label.text( 'Norm');
         this.$container.append($label);
         // $label.hide();
 
@@ -90,13 +90,14 @@ var hic = (function (hic) {
     hic.NormalizationWidget.prototype.receiveEvent = function (event) {
 
         // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
-        if ("MapLoad" === event.type) {
-            // TODO -- start norm widget "not ready" state
-            this.startNotReady();
-
-            updateOptions.call(this);
-
-        } else if ("NormVectorIndexLoad" === event.type) {
+        // if ("MapLoad" === event.type) {
+        //     // TODO -- start norm widget "not ready" state
+        //     this.startNotReady();
+        //
+        //     updateOptions.call(this);
+        //
+        // } else
+            if ("NormVectorIndexLoad" === event.type) {
 
             updateOptions.call(this);
 
