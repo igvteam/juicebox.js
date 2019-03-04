@@ -100,6 +100,10 @@ var hic = (function (hic) {
         await browser.loadHicFile(config, true)
         await loadControlFile(config)
 
+        if(config.cycle) {
+            config.displayMode = "A"
+        }
+
         if (config.displayMode) {
             browser.contactMatrixView.displayMode = config.displayMode;
             browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
