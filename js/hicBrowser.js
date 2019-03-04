@@ -123,12 +123,12 @@ var hic = (function (hic) {
         await Promise.all(promises);
 
         browser.eventBus.release()
-        
-        if (config.cycle) {
-            browser.controlMapWidget.toggleDisplayModeCycle();
-        } else {
+
+        // if (config.cycle) {
+        //     browser.controlMapWidget.toggleDisplayModeCycle();
+        // } else {
             browser.update()
-        }
+ //       }
 
         if (typeof callback === "function") callback();
 
