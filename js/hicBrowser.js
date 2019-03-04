@@ -123,12 +123,12 @@ var hic = (function (hic) {
         await Promise.all(promises);
 
         browser.eventBus.release()
-
+        
         if (config.cycle) {
             browser.controlMapWidget.toggleDisplayModeCycle();
+        } else {
+            browser.update()
         }
-
-        browser.update()
 
         if (typeof callback === "function") callback();
 
@@ -751,10 +751,11 @@ var hic = (function (hic) {
             await this.dataset.getNormVectorIndex(config)
             eventBus.post(hic.Event("NormVectorIndexLoad", this.dataset));
         } else {
-            this.dataset.getNormVectorIndex(config)
+            const dataset = this.dataset
+            dataset.getNormVectorIndex(config)
                 .then(function (nvi) {
                     if (!config.isControl) {
-                        eventBus.post(hic.Event("NormVectorIndexLoad", this.dataset));
+                        eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                     }
                 })
         }
@@ -810,7 +811,7 @@ var hic = (function (hic) {
                 igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
             }
         } finally {
-            if(!noUpdates) {
+            if (!noUpdates) {
                 this.$user_interaction_shield.hide();
                 this.stopSpinner();
             }
