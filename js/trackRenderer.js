@@ -70,11 +70,11 @@ var hic = (function (hic) {
                 self.$colorpickerContainer.hide();
             });
 
-            this.$colorpickerContainer.hide();
-
             igv.createColorSwatchSelector(this.$colorpickerContainer, function (color) {
                 self.setColor(color);
             });
+
+            this.$colorpickerContainer.hide();
 
         }
 
@@ -365,11 +365,16 @@ var hic = (function (hic) {
         $header = $('<div>');
         $container.append($header);
 
+        $header.on('click.header.trackrenderer', function (event) {
+            event.stopPropagation();
+            // event sink
+        });
+
         // close button
         $fa = $("<i>", { class:'fa fa-times' });
         $header.append($fa);
 
-        $fa.on('click.trackrenderer', function (event) {
+        $fa.on('click.closer.trackrenderer', function (event) {
             event.stopPropagation();
             closeHandler();
         });
