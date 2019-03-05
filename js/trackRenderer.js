@@ -21,9 +21,7 @@ var hic = (function (hic) {
         var self = this,
             str,
             doShowLabelAndGear,
-            $x_track_label,
-            $x_track_menu_container,
-            spinner;
+            $x_track_label;
 
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
@@ -55,15 +53,6 @@ var hic = (function (hic) {
             this.$viewport.append(this.$label);
         }
 
-        // IGV STYLE SPINNER
-        // spinner = igv.spinner("24px")
-        // if ('x' === this.axis) {
-        //     spinner.style.position = "absolute";
-        //     spinner.style.left = "0px";
-        //     spinner.style.top = "0px"
-        // }
-        // this.$viewport[0].appendChild(spinner);
-
         // track spinner container
         this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
         this.$viewport.append(this.$spinner);
@@ -73,6 +62,21 @@ var hic = (function (hic) {
         this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 32, padding: 7});
         this.throbber.appendTo(this.$spinner.get(0));
         this.stopSpinner();
+
+        if ('x' === this.axis) {
+
+            // color swatch selector
+            this.$colorpickerContainer = createColorpickerContainer(this.$viewport, { width: 512 }, function () {
+                self.$colorpickerContainer.hide();
+            });
+
+            this.$colorpickerContainer.hide();
+
+            igv.createColorSwatchSelector(this.$colorpickerContainer, function (color) {
+                self.setColor(color);
+            });
+
+        }
 
         if ('x' === this.axis) {
 
@@ -112,6 +116,13 @@ var hic = (function (hic) {
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
 
+    };
+
+    hic.TrackRenderer.prototype.presentColorPicker = function () {
+        const bbox = this.trackDiv.getBoundingClientRect();
+        this.colorPicker.origin = {x: bbox.x, y: 0};
+        this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
+        this.colorPicker.$container.show();
     };
 
     hic.TrackRenderer.prototype.setTrackName = function (name) {
@@ -330,6 +341,46 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.isLoading = function () {
         return !(undefined === this.loading);
     };
+
+    function createColorpickerContainer($parent, config, closeHandler) {
+
+        var $container,
+            $header,
+            $fa;
+
+        $container = $('<div>', { class:'hic-color-swatch-container' });
+        $parent.append($container);
+
+        // width
+        if (config && config.width) {
+            $container.width(config.width);
+        }
+
+        // height
+        if (config && config.height) {
+            $container.height(config.height);
+        }
+
+        // header
+        $header = $('<div>');
+        $container.append($header);
+
+        // close button
+        $fa = $("<i>", { class:'fa fa-times' });
+        $header.append($fa);
+
+        $fa.on('click.trackrenderer', function (event) {
+            event.stopPropagation();
+            closeHandler();
+        });
+
+        return $container;
+    }
+
+
+
+
+
 
     Tile = function (chr, startBP, endBP, bpp, buffer) {
         this.chr = chr;

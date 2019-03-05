@@ -676,6 +676,10 @@ $default-font-family: 'Open Sans', sans-serif;
 // menu - annotation panel - color picker
 .hic-color-swatch-container {
 
+  position: absolute;
+
+  z-index: 4096;
+
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -683,6 +687,8 @@ $default-font-family: 'Open Sans', sans-serif;
   align-items: center;
 
   width: 100%;
+
+  background-color: white;
 
   div:first-child {
     display: flex;

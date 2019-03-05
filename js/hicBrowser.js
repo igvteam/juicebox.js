@@ -80,10 +80,8 @@ var hic = (function (hic) {
             });
         }
 
-        browser.trackMenuReplacement = new hic.TrackMenuReplacement(browser);
-
         if (undefined === igv.browser) {
-            createIGV($hic_container, browser, browser.trackMenuReplacement);
+            createIGV($hic_container, browser);
         }
 
         ///////////////////////////////////
@@ -1951,7 +1949,7 @@ var hic = (function (hic) {
 
 
     // mock igv browser objects for igv.js compatibility
-    function createIGV($hic_container, hicBrowser, trackMenuReplacement) {
+    function createIGV($hic_container, hicBrowser) {
 
         igv.browser =
             {
@@ -1961,13 +1959,8 @@ var hic = (function (hic) {
                 trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
             };
 
-        igv.trackMenuItem = function () {
-            return trackMenuReplacement.trackMenuItem_Replacement.apply(trackMenuReplacement, arguments);
-        };
-
-        igv.trackMenuItemList = function () {
-            return trackMenuReplacement.trackMenuItemList_Replacement.apply(trackMenuReplacement, arguments);
-        };
+        // replace IGV functions with HIC equivalents
+        hic.IGVReplacements(igv);
 
         igv.popover = new igv.Popover($hic_container, igv.browser);
 
