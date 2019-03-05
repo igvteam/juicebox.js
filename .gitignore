@@ -16,3 +16,4 @@ local
 /.idea
 /hic-viz.iml
 *.js.iml
+igv.js
