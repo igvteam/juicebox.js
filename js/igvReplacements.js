@@ -51,7 +51,7 @@ var hic = (function (hic) {
         $e.text('Set track color');
 
         clickHandler = function () {
-            trackRender.$colorpickerContainer.show();
+            trackRender.colorPicker.$container.show();
         };
 
         return { object: $e, click: clickHandler };

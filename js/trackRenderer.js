@@ -63,19 +63,10 @@ var hic = (function (hic) {
         this.throbber.appendTo(this.$spinner.get(0));
         this.stopSpinner();
 
+        // color picker
         if ('x' === this.axis) {
-
-            // color swatch selector
-            this.$colorpickerContainer = createColorpickerContainer(this.$viewport, { width: 512 }, function () {
-                self.$colorpickerContainer.hide();
-            });
-
-            igv.createColorSwatchSelector(this.$colorpickerContainer, function (color) {
-                self.setColor(color);
-            });
-
-            this.$colorpickerContainer.hide();
-
+            this.colorPicker = createColorPicker_ColorScaleWidget_version(this.$viewport, () => { this.colorPicker.$container.hide(); }, (color) => { this.setColor(color); });
+            this.colorPicker.$container.hide();
         }
 
         if ('x' === this.axis) {
@@ -297,7 +288,6 @@ var hic = (function (hic) {
         return true;
     }
 
-
     hic.TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
 
         if (tile) {
@@ -342,44 +332,22 @@ var hic = (function (hic) {
         return !(undefined === this.loading);
     };
 
-    function createColorpickerContainer($parent, config, closeHandler) {
+    // ColorScaleWidget version of color picker
+    function createColorPicker_ColorScaleWidget_version($parent, closeHandler, colorHandler) {
 
-        var $container,
-            $header,
-            $fa;
+        const config =
+            {
+                $parent: $parent,
+                width: 456,
+                height: undefined,
+                closeHandler: closeHandler
+            };
 
-        $container = $('<div>', { class:'hic-color-swatch-container' });
-        $parent.append($container);
+        let genericContainer = new igv.genericContainer(config);
 
-        // width
-        if (config && config.width) {
-            $container.width(config.width);
-        }
+        igv.createColorSwatchSelector(genericContainer.$container, colorHandler);
 
-        // height
-        if (config && config.height) {
-            $container.height(config.height);
-        }
-
-        // header
-        $header = $('<div>');
-        $container.append($header);
-
-        $header.on('click.header.trackrenderer', function (event) {
-            event.stopPropagation();
-            // event sink
-        });
-
-        // close button
-        $fa = $("<i>", { class:'fa fa-times' });
-        $header.append($fa);
-
-        $fa.on('click.closer.trackrenderer', function (event) {
-            event.stopPropagation();
-            closeHandler();
-        });
-
-        return $container;
+        return genericContainer;
     }
 
 
