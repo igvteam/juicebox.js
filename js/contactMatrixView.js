@@ -57,6 +57,7 @@ var hic = (function (hic) {
         this.$fa_spinner.css("top", "40%");
         this.$fa_spinner.css("display", "none");
         this.$viewport.append(this.$fa_spinner);
+        this.spinnerCount = 0
 
         // ruler sweeper widget surface
         this.sweepZoom = new hic.SweepZoom(browser, this.$viewport);
@@ -79,7 +80,7 @@ var hic = (function (hic) {
         this.displayMode = 'A';
         this.imageTileCache = {};
         this.imageTileCacheKeys = [];
-        this.imageTileCacheLimit = browser.isMobile ? 4 : 20;
+        this.imageTileCacheLimit = 4; //browser.isMobile ? 4 : 20;
         this.colorScaleThresholdCache = {};
 
         // Set initial color scales.  These might be overriden / adjusted via parameters
@@ -94,6 +95,7 @@ var hic = (function (hic) {
         this.browser.eventBus.subscribe("LocusChange", this);
         this.browser.eventBus.subscribe("ControlMapLoad", this);
         this.browser.eventBus.subscribe("ColorChange", this)
+        //this.browser.eventBus.subscribe("DragStopped", this)
     };
 
     hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
@@ -117,8 +119,7 @@ var hic = (function (hic) {
         this.getColorScale().setThreshold(threshold);
         this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
         this.imageTileCache = {};
-        const tiles = await this.getImageTiles()
-        this.repaint(tiles);
+        this.update()
     };
 
     hic.ContactMatrixView.prototype.getColorScale = function () {
@@ -170,9 +171,8 @@ var hic = (function (hic) {
         }
 
         else {
-            if ("LocusChange" !== event.type) {
+            if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
                 this.clearImageCaches();
-
             }
             this.update();
         }
@@ -180,23 +180,22 @@ var hic = (function (hic) {
 
     hic.ContactMatrixView.prototype.update = async function () {
 
-        if (this.disableUpdates) return
+        if (this.disableUpdates) return   // This flag is set during browser startup
 
-        const tiles = await this.getImageTiles()
-        this.repaint(tiles);
+        this.repaint()
+
+        //this.repaint(tiles);
     }
 
 
     /**
      * Return a promise to load all neccessary data
      */
-    hic.ContactMatrixView.prototype.getImageTiles = async function () {
+    hic.ContactMatrixView.prototype.repaint = async function () {
 
         if (!this.browser.dataset) {
             return;
         }
-
-        this.startSpinner();
 
         const state = this.browser.state;
 
@@ -205,6 +204,23 @@ var hic = (function (hic) {
         var matrix = matrices[0];
 
         if (matrix) {
+            if (!this.ctx) {
+                this.ctx = this.$canvas.get(0).getContext("2d");
+            }
+
+            const state = this.browser.state
+            const viewportWidth = this.$viewport.width()
+            const viewportHeight = this.$viewport.height()
+            const canvasWidth = this.$canvas.width()
+            const canvasHeight = this.$canvas.height()
+            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+                this.$canvas.width(viewportWidth);
+                this.$canvas.height(viewportHeight);
+                this.$canvas.attr('width', this.$viewport.width());
+                this.$canvas.attr('height', this.$viewport.height());
+            }
+            this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
             const zd = await matrix.bpZoomData[state.zoom]
             const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
             const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
@@ -222,17 +238,14 @@ var hic = (function (hic) {
                 zdControl = matrices[1].bpZoomData[state.zoom];
             }
 
-            const promises = []
+
+            const repaintAll = []
             for (let r = blockRow1; r <= blockRow2; r++) {
                 for (let c = blockCol1; c <= blockCol2; c++) {
-                    promises.push(this.getImageTile(zd, zdControl, r, c, state));
+                    const tile = await this.getImageTile(zd, zdControl, r, c, state)
+                    this.paintTile(tile)
                 }
             }
-            this.stopSpinner();
-            return Promise.all(promises);
-        } else {
-            this.stopSpinner()
-            return undefined;
         }
     }
 
@@ -247,24 +260,57 @@ var hic = (function (hic) {
      */
     const drawsInProgress = new Set()
 
+    const inProgressCache = {}
+
+    function inProgressTile(imageSize) {
+
+        let image = inProgressCache[imageSize]
+        if (!image) {
+            image = document.createElement('canvas');
+            image.width = imageSize;
+            image.height = imageSize;
+            const ctx = image.getContext('2d');
+            ctx.font = '24px sans-serif';
+            ctx.fillStyle = 'rgb(230, 230, 230)'
+            ctx.fillRect(0, 0, image.width, image.height)
+            ctx.fillStyle = 'black'
+            for (let i = 100; i < imageSize; i += 300) {
+                for (let j = 100; j < imageSize; j += 300) {
+                    ctx.fillText('Loading...', i, j);
+                }
+            }
+            inProgressCache[imageSize] = image
+        }
+        return image;
+    }
+
     hic.ContactMatrixView.prototype.getImageTile = async function (zd, zdControl, row, column, state) {
 
         const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
         const useImageData = pixelSizeInt === 1
+        const blockBinCount = zd.blockBinCount
         const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
             "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
         if (this.imageTileCache.hasOwnProperty(key)) {
-
             return this.imageTileCache[key]
 
         } else {
             if (drawsInProgress.has(key)) {
-                return    // TODO return a "load in progress" image,  or an image at a coarser resolution
+                const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
+                const image = inProgressTile(imageSize)
+                return {
+                    row: row,
+                    column: column,
+                    blockBinCount: blockBinCount,
+                    image: image,
+                    inProgress: true
+                }  // TODO return an image at a coarser resolution if avaliable
             }
             drawsInProgress.add(key)
 
+            console.log("Start load for " + key)
+            this.startSpinner()
             const sameChr = zd.chr1.index === zd.chr2.index
-            const blockBinCount = zd.blockBinCount
             const blockColumnCount = zd.blockColumnCount
             const widthInBins = zd.blockBinCount
             const transpose = sameChr && row < column
@@ -297,8 +343,6 @@ var hic = (function (hic) {
             let image;
             if (block && block.records.length > 0) {
                 image = drawBlock.call(this, block, controlBlock, transpose);
-
-
             }
             else {
                 //console.log("No block for " + blockNumber);
@@ -314,7 +358,8 @@ var hic = (function (hic) {
             this.imageTileCache[key] = imageTile
 
             drawsInProgress.delete(key)
-
+console.log("Finish load for " + key)
+            this.stopSpinner()
             return imageTile;
 
 
@@ -496,60 +541,67 @@ var hic = (function (hic) {
     /**
      * Repaint the map.
      */
-    hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
+    // hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
+    //
+    //     if (!this.ctx) {
+    //         this.ctx = this.$canvas.get(0).getContext("2d");
+    //     }
+    //
+    //     if (imageTiles) {
+    //         const state = this.browser.state
+    //         const viewportWidth = this.$viewport.width()
+    //         const viewportHeight = this.$viewport.height()
+    //         const canvasWidth = this.$canvas.width()
+    //         const canvasHeight = this.$canvas.height()
+    //
+    //         if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+    //             this.$canvas.width(viewportWidth);
+    //             this.$canvas.height(viewportHeight);
+    //             this.$canvas.attr('width', this.$viewport.width());
+    //             this.$canvas.attr('height', this.$viewport.height());
+    //         }
+    //
+    //         this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    //
+    //         for (let imageTile of imageTiles) {
+    //             if (imageTile) {
+    //                 this.paintTile(state, viewportWidth, viewportHeight, imageTile)
+    //             }
+    //         }
+    //     }
+    // }
 
-        if (!this.ctx) {
-            this.ctx = this.$canvas.get(0).getContext("2d");
-        }
+    hic.ContactMatrixView.prototype.paintTile = function (imageTile) {
 
-        if (imageTiles) {
-            var self = this,
-                state = this.browser.state,
-                viewportWidth = self.$viewport.width(),
-                viewportHeight = self.$viewport.height(),
-                canvasWidth = this.$canvas.width(),
-                canvasHeight = this.$canvas.height();
+        const state = this.browser.state
+        const viewportWidth = this.$viewport.width()
+        const viewportHeight = this.$viewport.height()
 
-            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-                this.$canvas.width(viewportWidth);
-                this.$canvas.height(viewportHeight);
-                this.$canvas.attr('width', this.$viewport.width());
-                this.$canvas.attr('height', this.$viewport.height());
-            }
+        var image = imageTile.image,
+            pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
 
-            self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-
-            imageTiles.forEach(function (imageTile) {
-
-                if (imageTile) {
-                    var image = imageTile.image,
-                        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-
-                    if (image != null) {
-                        var row = imageTile.row,
-                            col = imageTile.column,
-                            x0 = imageTile.blockBinCount * col,
-                            y0 = imageTile.blockBinCount * row;
-                        var offsetX = (x0 - state.x) * state.pixelSize;
-                        var offsetY = (y0 - state.y) * state.pixelSize;
-                        var scale = state.pixelSize / pixelSizeInt;
-                        var scaledWidth = image.width * scale;
-                        var scaledHeight = image.height * scale;
-                        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-                            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-                            if (scale === 1) {
-                                self.ctx.drawImage(image, offsetX, offsetY);
-                            }
-                            else {
-                                self.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-                            }
-                        }
-                    }
+        if (image != null) {
+            var row = imageTile.row,
+                col = imageTile.column,
+                x0 = imageTile.blockBinCount * col,
+                y0 = imageTile.blockBinCount * row;
+            var offsetX = (x0 - state.x) * state.pixelSize;
+            var offsetY = (y0 - state.y) * state.pixelSize;
+            var scale = state.pixelSize / pixelSizeInt;
+            var scaledWidth = image.width * scale;
+            var scaledHeight = image.height * scale;
+            if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+                offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+                this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
+                if (scale === 1) {
+                    this.ctx.drawImage(image, offsetX, offsetY);
                 }
-            })
+                else {
+                    this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+                }
+            }
         }
     }
-
 
     function getMatrices(chr1, chr2) {
 
@@ -613,7 +665,9 @@ var hic = (function (hic) {
                 }
             }
 
+            this.startSpinner()
             const blocks = await Promise.all(promises)
+            this.stopSpinner()
 
             let s = computePercentile(blocks, 95);
 
@@ -657,13 +711,15 @@ var hic = (function (hic) {
         if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
             this.browser.$user_interaction_shield.show();
         }
-
         this.$fa_spinner.css("display", "inline-block");
+        this.spinnerCount++
+        console.log("show spinner " + this.spinnerCount)
     };
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
-
-        this.$fa_spinner.css("display", "none");
+        this.spinnerCount--
+        console.log("hide spinner " + this.spinnerCount)
+        if(0 === this.spinnerCount) this.$fa_spinner.css("display", "none");
 
     };
 
@@ -973,8 +1029,6 @@ var hic = (function (hic) {
             else {
                 // Assuming 1 finger movement is a drag
 
-                if (self.updating) return;   // Don't overwhelm browser
-
                 var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
                     offsetX = touchCoords.x,
                     offsetY = touchCoords.y;
@@ -982,6 +1036,7 @@ var hic = (function (hic) {
                     var dx = lastTouch.x - offsetX,
                         dy = lastTouch.y - offsetY;
                     if (!isNaN(dx) && !isNaN(dy)) {
+                        self.isDragging = true
                         self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
                     }
                 }
@@ -994,7 +1049,7 @@ var hic = (function (hic) {
                 };
             }
 
-        }, 20);
+        }, 50);
 
         viewport.ontouchend = function (ev) {
 
@@ -1021,6 +1076,9 @@ var hic = (function (hic) {
                     lastTouch = undefined;
                     self.browser.pinchZoom(anchorPx, anchorPy, scale);
                 }
+            } else if (self.isDragging) {
+                self.isDragging = false;
+                self.browser.eventBus.post(hic.Event("DragStopped"));
             }
 
             // a touch end always ends a pinch

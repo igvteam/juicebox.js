@@ -128,11 +128,13 @@ var hic = (function (hic) {
 
         browser.eventBus.release()
 
-        // if (config.cycle) {
-        //     browser.controlMapWidget.toggleDisplayModeCycle();
-        // } else {
+
+
+        if (config.cycle) {
+            browser.controlMapWidget.toggleDisplayModeCycle();
+        } else {
             browser.update()
- //       }
+        }
 
         if (typeof callback === "function") callback();
 
@@ -288,6 +290,7 @@ var hic = (function (hic) {
         this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
         this.resolutionLocked = false;
         this.eventBus = new hic.EventBus();
+
 
         this.id = _.uniqueId('browser_');
         this.trackRenderers = [];
@@ -1413,9 +1416,6 @@ var hic = (function (hic) {
         try {
             this.startSpinner();
 
-            // First get all data for map and tracks, then repaint
-            const tiles = await this.contactMatrixView.getImageTiles()
-
             for (let xyTrackRenderPair of this.trackRenderers) {
                 await xyTrackRenderPair.x.readyToPaint()
                 await xyTrackRenderPair.y.readyToPaint()
@@ -1426,12 +1426,13 @@ var hic = (function (hic) {
                 this.layoutController.yAxisRuler.locusChange(event);
             }
 
-            this.contactMatrixView.repaint(tiles);
             this.renderTracks();
             this.stopSpinner();
+            this.contactMatrixView.update();
+
 
         } finally {
-            this.stopSpinner();
+
         }
     }
 
