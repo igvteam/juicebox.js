@@ -87,59 +87,61 @@ var hic = (function (hic) {
         }
 
         ///////////////////////////////////
-        browser.contactMatrixView.startSpinner();
-        browser.$user_interaction_shield.show();
+        try {
+            browser.contactMatrixView.startSpinner();
+            browser.$user_interaction_shield.show();
 
-        const hasControl = config.controlUrl !== undefined
+            const hasControl = config.controlUrl !== undefined
 
-        // if (!config.name) config.name = await extractName(config)
-        // const prefix = hasControl ? "A: " : "";
-        // browser.$contactMaplabel.text(prefix + config.name);
-        // browser.$contactMaplabel.attr('title', config.name);
+            // if (!config.name) config.name = await extractName(config)
+            // const prefix = hasControl ? "A: " : "";
+            // browser.$contactMaplabel.text(prefix + config.name);
+            // browser.$contactMaplabel.attr('title', config.name);
 
-        await browser.loadHicFile(config, true)
-        await loadControlFile(config)
+            await browser.loadHicFile(config, true)
+            await loadControlFile(config)
 
-        if(config.cycle) {
-            config.displayMode = "A"
+            if (config.cycle) {
+                config.displayMode = "A"
+            }
+
+            if (config.displayMode) {
+                browser.contactMatrixView.displayMode = config.displayMode;
+                browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
+            }
+            if (config.colorScale) {
+                // This must be done after dataset load
+                browser.contactMatrixView.setColorScale(config.colorScale);
+                browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
+            }
+
+            var promises = [];
+            if (config.tracks) {
+                promises.push(browser.loadTracks(config.tracks))
+            }
+
+            if (config.normVectorFiles) {
+                config.normVectorFiles.forEach(function (nv) {
+                    promises.push(browser.loadNormalizationFile(nv));
+                })
+            }
+            await Promise.all(promises);
+
+            browser.eventBus.release()
+
+
+            if (config.cycle) {
+                browser.controlMapWidget.toggleDisplayModeCycle();
+            } else {
+                browser.update()
+            }
+
+            if (typeof callback === "function") callback();
+        } finally {
+            browser.contactMatrixView.stopSpinner();
+            browser.$user_interaction_shield.hide();
         }
 
-        if (config.displayMode) {
-            browser.contactMatrixView.displayMode = config.displayMode;
-            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
-        }
-        if (config.colorScale) {
-            // This must be done after dataset load
-            browser.contactMatrixView.setColorScale(config.colorScale);
-            browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
-        }
-
-        var promises = [];
-        if (config.tracks) {
-            promises.push(browser.loadTracks(config.tracks))
-        }
-
-        if (config.normVectorFiles) {
-            config.normVectorFiles.forEach(function (nv) {
-                promises.push(browser.loadNormalizationFile(nv));
-            })
-        }
-        await Promise.all(promises);
-
-        browser.eventBus.release()
-
-
-
-        if (config.cycle) {
-            browser.controlMapWidget.toggleDisplayModeCycle();
-        } else {
-            browser.update()
-        }
-
-        if (typeof callback === "function") callback();
-
-        browser.contactMatrixView.stopSpinner();
-        browser.$user_interaction_shield.hide();
 
         return browser;
 
@@ -494,9 +496,8 @@ var hic = (function (hic) {
         // If loading a single track remember its name, for error message
         errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
 
-        this.contactMatrixView.startSpinner();
-
         try {
+            this.contactMatrixView.startSpinner();
             const ps = inferTypes(configs)
             const trackConfigurations = await Promise.all(ps)
 
@@ -542,11 +543,11 @@ var hic = (function (hic) {
 
             const normVectors = await Promise.all(promisesNV)
 
-            this.contactMatrixView.stopSpinner();
-
         } catch (error) {
             hic.presentError(errorPrefix, error);
             console.error(error)
+
+        } finally {
             this.contactMatrixView.stopSpinner();
         }
 
@@ -788,10 +789,9 @@ var hic = (function (hic) {
      */
     hic.Browser.prototype.loadHicControlFile = async function (config, noUpdates) {
 
-        this.$user_interaction_shield.show()
-        this.contactMatrixView.startSpinner()
-
         try {
+            this.$user_interaction_shield.show()
+            this.contactMatrixView.startSpinner()
             this.controlUrl = config.url
             const name = await extractName(config)
             config.name = name
@@ -818,10 +818,8 @@ var hic = (function (hic) {
                 igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
             }
         } finally {
-            if (!noUpdates) {
-                this.$user_interaction_shield.hide();
-                this.stopSpinner();
-            }
+            this.$user_interaction_shield.hide();
+            this.stopSpinner();
         }
 
 
@@ -1427,12 +1425,10 @@ var hic = (function (hic) {
             }
 
             this.renderTracks();
-            this.stopSpinner();
             this.contactMatrixView.update();
 
-
         } finally {
-
+            this.stopSpinner();
         }
     }
 
