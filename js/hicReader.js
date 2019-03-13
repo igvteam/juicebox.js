@@ -409,7 +409,7 @@ var hic = (function (hic) {
                 //normFactors[binaryParser.getInt()] = binaryParser.getDouble();
             }
 
-            console.log("Size = " + (binaryParser.position - p0));
+            //console.log("Size = " + (binaryParser.position - p0));
 
             return true;
             // key = unit + "_" + binSize + "_" + type;

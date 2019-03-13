@@ -184,7 +184,6 @@ var hic = (function (hic) {
 
         this.repaint()
 
-        //this.repaint(tiles);
     }
 
 
@@ -219,7 +218,7 @@ var hic = (function (hic) {
                 this.$canvas.attr('width', this.$viewport.width());
                 this.$canvas.attr('height', this.$viewport.height());
             }
-            
+
 
             const zd = await matrix.bpZoomData[state.zoom]
             const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
@@ -238,13 +237,21 @@ var hic = (function (hic) {
                 zdControl = matrices[1].bpZoomData[state.zoom];
             }
 
-
-            const repaintAll = []
             for (let r = blockRow1; r <= blockRow2; r++) {
                 for (let c = blockCol1; c <= blockCol2; c++) {
                     const tile = await this.getImageTile(zd, zdControl, r, c, state)
                     this.paintTile(tile)
                 }
+            }
+
+            // Record genomic extent of current canvas
+            this.genomicExtent = {
+                chr1: state.chr1,
+                chr2: state.chr2,
+                x: state.x * zd.zoom.binSize,
+                y: state.y * zd.zoom.binSize,
+                w: viewportWidth * zd.zoom.binSize / pixelSizeInt,
+                h: viewportHeight * zd.zoom.binSize / pixelSizeInt
             }
         }
     }
@@ -296,7 +303,7 @@ var hic = (function (hic) {
 
         } else {
             if (drawsInProgress.has(key)) {
-console.log("In progress")
+                //console.log("In progress")
                 const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
                 const image = inProgressTile(imageSize)
                 return {
@@ -309,7 +316,7 @@ console.log("In progress")
             }
             drawsInProgress.add(key)
 
-console.log("Start load for " + key)
+            //console.log("Start load for " + key)
             try {
                 this.startSpinner()
                 const sameChr = zd.chr1.index === zd.chr2.index
@@ -520,7 +527,7 @@ console.log("Start load for " + key)
                     imageData.data[index + 3] = a;
                 }
             } finally {
- console.log("Finish load for " + key)
+                //console.log("Finish load for " + key)
                 this.stopSpinner()
             }
         }
@@ -541,38 +548,20 @@ console.log("Start load for " + key)
     };
 
 
-    /**
-     * Repaint the map.
-     */
-    // hic.ContactMatrixView.prototype.repaint = async function (imageTiles) {
-    //
-    //     if (!this.ctx) {
-    //         this.ctx = this.$canvas.get(0).getContext("2d");
-    //     }
-    //
-    //     if (imageTiles) {
-    //         const state = this.browser.state
-    //         const viewportWidth = this.$viewport.width()
-    //         const viewportHeight = this.$viewport.height()
-    //         const canvasWidth = this.$canvas.width()
-    //         const canvasHeight = this.$canvas.height()
-    //
-    //         if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-    //             this.$canvas.width(viewportWidth);
-    //             this.$canvas.height(viewportHeight);
-    //             this.$canvas.attr('width', this.$viewport.width());
-    //             this.$canvas.attr('height', this.$viewport.height());
-    //         }
-    //
-    //         this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-    //
-    //         for (let imageTile of imageTiles) {
-    //             if (imageTile) {
-    //                 this.paintTile(state, viewportWidth, viewportHeight, imageTile)
-    //             }
-    //         }
-    //     }
-    // }
+    hic.ContactMatrixView.prototype.zoomIn = function (cx, cy, scale) {
+
+        if(scale > 1) return   // Zoom out not supported
+
+        const viewportWidth = this.$viewport.width()
+        const viewportHeight = this.$viewport.height()
+        const sWidth = scale * viewportWidth
+        const sHeight = scale * viewportHeight
+        const sx = cx - sWidth / 2
+        const sy = cy - sHeight / 2
+        const img = this.$canvas[0]
+        this.ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+
+    }
 
     hic.ContactMatrixView.prototype.paintTile = function (imageTile) {
 
@@ -581,18 +570,18 @@ console.log("Start load for " + key)
         const viewportHeight = this.$viewport.height()
 
         var image = imageTile.image,
-            pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+            pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
 
         if (image != null) {
-            var row = imageTile.row,
-                col = imageTile.column,
-                x0 = imageTile.blockBinCount * col,
-                y0 = imageTile.blockBinCount * row;
-            var offsetX = (x0 - state.x) * state.pixelSize;
-            var offsetY = (y0 - state.y) * state.pixelSize;
-            var scale = state.pixelSize / pixelSizeInt;
-            var scaledWidth = image.width * scale;
-            var scaledHeight = image.height * scale;
+            const row = imageTile.row
+            const col = imageTile.column
+            const x0 = imageTile.blockBinCount * col
+            const y0 = imageTile.blockBinCount * row
+            const offsetX = (x0 - state.x) * state.pixelSize
+            const offsetY = (y0 - state.y) * state.pixelSize
+            const scale = state.pixelSize / pixelSizeInt
+            const scaledWidth = image.width * scale
+            const scaledHeight = image.height * scale
             if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
                 offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
                 this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)

@@ -351,7 +351,7 @@ var hic = (function (hic) {
             this.browser.updateLayout();
 
         } else {
-            console.log('No more tracks.');
+            //console.log('No more tracks.');
         }
 
     };
@@ -379,7 +379,7 @@ var hic = (function (hic) {
 
 
         } else {
-            console.log('No more tracks.');
+            //console.log('No more tracks.');
         }
 
     };

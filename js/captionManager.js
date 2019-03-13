@@ -35,7 +35,6 @@ var hic = (function (hic) {
 
     hic.CaptionManager.prototype.getCaption = function ($caption) {
         this.text = $caption.text();
-        console.log('caption ' + this.text);
     };
 
     hic.CaptionManager.prototype.setCaption = function (string) {

@@ -395,8 +395,7 @@ var hic = (function (hic) {
         chrSize = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].size : chromosomes[this.browser.state.chr2].size;
 
         if (options.chrName === "all") {
-            // drawAll.call(this);
-            console.log('draw whole genome');
+
         } else {
 
             igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: igv.Color.rgbColor(255, 255, 255)});

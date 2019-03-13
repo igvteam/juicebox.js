@@ -1000,8 +1000,10 @@ var hic = (function (hic) {
 
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
+                    // Zoom out to whole genome
                     this.setChromosomes(0, 0);
                 } else {
+
                     const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
 
                     const state = this.state;
@@ -1019,6 +1021,9 @@ var hic = (function (hic) {
                     state.pixelSize = newPixelSize;
 
                     this.clamp();
+
+                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, newResolution / currentResolution)
+
                     this.eventBus.post(hic.Event("LocusChange", {
                         state: state,
                         resolutionChanged: zoomChanged
@@ -1087,13 +1092,16 @@ var hic = (function (hic) {
                 this.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
 
             } else {
-                this.setZoom(this.state.zoom + direction);
+                const r = bpResolutions[this.state.zoom + direction] / bpResolutions[this.state.zoom]
+                this.contactMatrixView.zoomIn(centerPX, centerPY, r)
+
+                this.setZoom(this.state.zoom + direction, centerPY, centerPY);
             }
         }
 
     };
 
-    hic.Browser.prototype.setZoom = async function (zoom) {
+    hic.Browser.prototype.setZoom = async function (zoom, cpx, cpy) {
 
         try {
             // this.startSpinner()
@@ -1124,6 +1132,8 @@ var hic = (function (hic) {
             state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
             state.pixelSize = newPixelSize;
             self.clamp();
+
+            //self.contactMatrixView.zoomIn()
 
             self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
         } finally {
