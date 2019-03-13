@@ -1080,8 +1080,7 @@ var hic = (function (hic) {
 
                 const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
                 const state = this.state;
-                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)),
-                    minPS);
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
                 const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
                 state.pixelSize = newPixelSize;
@@ -1092,9 +1091,6 @@ var hic = (function (hic) {
                 this.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: false}));
 
             } else {
-                const r = bpResolutions[this.state.zoom + direction] / bpResolutions[this.state.zoom]
-                this.contactMatrixView.zoomIn(centerPX, centerPY, r)
-
                 this.setZoom(this.state.zoom + direction, centerPY, centerPY);
             }
         }
@@ -1133,7 +1129,7 @@ var hic = (function (hic) {
             state.pixelSize = newPixelSize;
             self.clamp();
 
-            //self.contactMatrixView.zoomIn()
+            self.contactMatrixView.zoomIn()
 
             self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
         } finally {
