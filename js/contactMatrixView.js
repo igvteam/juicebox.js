@@ -219,7 +219,7 @@ var hic = (function (hic) {
                 this.$canvas.attr('width', this.$viewport.width());
                 this.$canvas.attr('height', this.$viewport.height());
             }
-            this.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
 
             const zd = await matrix.bpZoomData[state.zoom]
             const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
@@ -296,6 +296,7 @@ var hic = (function (hic) {
 
         } else {
             if (drawsInProgress.has(key)) {
+console.log("In progress")
                 const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
                 const image = inProgressTile(imageSize)
                 return {
@@ -308,7 +309,7 @@ var hic = (function (hic) {
             }
             drawsInProgress.add(key)
 
-            console.log("Start load for " + key)
+console.log("Start load for " + key)
             try {
                 this.startSpinner()
                 const sameChr = zd.chr1.index === zd.chr2.index
@@ -519,6 +520,7 @@ var hic = (function (hic) {
                     imageData.data[index + 3] = a;
                 }
             } finally {
+ console.log("Finish load for " + key)
                 this.stopSpinner()
             }
         }
@@ -714,15 +716,15 @@ var hic = (function (hic) {
         }
         this.$fa_spinner.css("display", "inline-block");
         this.spinnerCount++
-        console.log("show spinner " + this.spinnerCount)
-    };
+    }
 
     hic.ContactMatrixView.prototype.stopSpinner = function () {
         this.spinnerCount--
-        console.log("hide spinner " + this.spinnerCount)
-        if (0 === this.spinnerCount) this.$fa_spinner.css("display", "none");
-
-    };
+        if (0 === this.spinnerCount) {
+            this.$fa_spinner.css("display", "none")
+        }
+        this.spinnerCount = Math.max(0, this.spinnerCount)   // This should not be neccessary
+    }
 
 
     function addMouseHandlers($viewport) {
