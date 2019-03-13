@@ -1022,7 +1022,7 @@ var hic = (function (hic) {
 
                     this.clamp();
 
-                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, newResolution / currentResolution)
+                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1/scaleFactor)
 
                     this.eventBus.post(hic.Event("LocusChange", {
                         state: state,
