@@ -559,8 +559,14 @@ var hic = (function (hic) {
         const sx = cx - sWidth / 2
         const sy = cy - sHeight / 2
         const img = this.$canvas[0]
-        //this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
-        this.ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+
+        const backCanvas = document.createElement('canvas');
+        backCanvas.width = img.width;
+        backCanvas.height = img.height;
+        const backCtx = backCanvas.getContext('2d');
+        backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+        this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
+        this.ctx.drawImage(backCanvas, 0, 0)
 
     }
 
