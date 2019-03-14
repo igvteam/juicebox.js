@@ -244,6 +244,19 @@ var hic = (function (hic) {
                     }
                 }
 
+                // const p = []
+                // for (let r = blockRow1; r <= blockRow2; r++) {
+                //     for (let c = blockCol1; c <= blockCol2; c++) {
+                //         p.push(this.getImageTile(zd, zdControl, r, c, state))
+                //     }
+                // }
+                //
+                // const tiles = await Promise.all(p)
+                // for(let tile of tiles) {
+                //     this.paintTile(tile)
+                // }
+
+
                 // Record genomic extent of current canvas
                 this.genomicExtent = {
                     chr1: state.chr1,
