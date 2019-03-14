@@ -119,7 +119,7 @@ var hic = (function (hic) {
             this.getColorScale().setThreshold(threshold);
             this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
             this.imageTileCache = {};
-            this.update()
+            await this.update()
         };
 
         hic.ContactMatrixView.prototype.getColorScale = function () {
@@ -137,7 +137,7 @@ var hic = (function (hic) {
         hic.ContactMatrixView.prototype.setDisplayMode = async function (mode) {
             this.displayMode = mode;
             this.clearImageCaches();
-            this.update();
+            await this.update();
         }
 
         function colorScaleKey(state, displayMode) {
@@ -359,7 +359,7 @@ var hic = (function (hic) {
                     var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
 
 
-                    if(this.imageTileCacheLimit > 0) {
+                    if (this.imageTileCacheLimit > 0) {
                         if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
                             delete this.imageTileCache[this.imageTileCacheKeys[0]]
                             this.imageTileCacheKeys.shift()
@@ -568,7 +568,7 @@ var hic = (function (hic) {
                 }
 
                 // Zoom out not supported
-                if(newGenomicExtent.w > this.genomicExtent.w) return
+                if (newGenomicExtent.w > this.genomicExtent.w) return
 
                 const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
                 const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
@@ -681,25 +681,29 @@ var hic = (function (hic) {
                     }
                 }
 
-                this.startSpinner()
-                const blocks = await Promise.all(promises)
-                this.stopSpinner()
+                try {
+                    this.startSpinner()
+                    const blocks = await Promise.all(promises)
+                    this.stopSpinner()
 
-                let s = computePercentile(blocks, 95);
+                    let s = computePercentile(blocks, 95);
 
-                if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+                    if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
-                    if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+                        if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
 
-                    this.colorScale = new ColorScale(this.colorScale);
-                    this.colorScale.setThreshold(s);
-                    this.computeColorScale = false;
-                    this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
+                        this.colorScale = new ColorScale(this.colorScale);
+                        this.colorScale.setThreshold(s);
+                        this.computeColorScale = false;
+                        this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
+                    }
+
+                    this.colorScaleThresholdCache[colorKey] = s;
+
+                    return this.colorScale;
+                } finally {
+                    this.stopSpinner()
                 }
-
-                this.colorScaleThresholdCache[colorKey] = s;
-
-                return this.colorScale;
 
 
             }
