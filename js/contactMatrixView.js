@@ -115,7 +115,7 @@ var hic = (function (hic) {
 
             this.getColorScale().setThreshold(threshold);
             this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
-            this.update()
+            await this.update()
         };
 
         hic.ContactMatrixView.prototype.getColorScale = function () {
@@ -130,9 +130,9 @@ var hic = (function (hic) {
             }
         };
 
-        hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
+        hic.ContactMatrixView.prototype.setDisplayMode = async function (mode) {
             this.displayMode = mode;
-            this.update();
+            await this.update();
         }
 
         function colorScaleKey(state, displayMode) {
@@ -147,7 +147,7 @@ var hic = (function (hic) {
             }
         };
 
-        hic.ContactMatrixView.prototype.receiveEvent = function (event) {
+        hic.ContactMatrixView.prototype.receiveEvent = async function (event) {
 
             if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
 
@@ -161,7 +161,7 @@ var hic = (function (hic) {
             }
 
             else {
-                this.update();
+                await this.update();
             }
         }
 
@@ -544,20 +544,20 @@ var hic = (function (hic) {
                 // Zoom out not supported
                 if (newGenomicExtent.w > this.genomicExtent.w) return
 
-                // const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
-                // const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
-                // const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth
-                // const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight
-                // const img = this.$canvas[0]
-                //
-                // const backCanvas = document.createElement('canvas');
-                // backCanvas.width = img.width;
-                // backCanvas.height = img.height;
-                // const backCtx = backCanvas.getContext('2d');
-                // backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
-                //
-                // this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
-                // this.ctx.drawImage(backCanvas, 0, 0)
+                const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
+                const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
+                const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth
+                const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight
+                const img = this.$canvas[0]
+
+                const backCanvas = document.createElement('canvas');
+                backCanvas.width = img.width;
+                backCanvas.height = img.height;
+                const backCtx = backCanvas.getContext('2d');
+                backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+
+                this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
+                this.ctx.drawImage(backCanvas, 0, 0)
             }
         }
 
@@ -630,7 +630,7 @@ var hic = (function (hic) {
 
             if (this.colorScaleThresholdCache[colorKey]) {
                 const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
-                this.colorScale.threshold = this.colorScaleThresholdCache[colorKey];
+                this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
                 if (changed) {
                     this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
                 }
@@ -666,7 +666,7 @@ var hic = (function (hic) {
                     if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
 
                     this.colorScale = new ColorScale(this.colorScale);
-                    this.colorScale.threshold = s;
+                    this.colorScale.setThreshold(s);
                     this.computeColorScale = false;
                     this.browser.eventBus.post(hic.Event("ColorScale", this.colorScale));
                 }
@@ -680,7 +680,6 @@ var hic = (function (hic) {
 
         }
 
-
         function computePercentile(blockArray, p) {
 
             var array = [];
@@ -691,9 +690,7 @@ var hic = (function (hic) {
                     }
                 }
             });
-
             return hic.Math.percentile(array, p);
-
         }
 
         hic.ContactMatrixView.prototype.startSpinner = function () {
