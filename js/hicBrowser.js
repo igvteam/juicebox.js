@@ -662,7 +662,6 @@ var hic = (function (hic) {
         self.dataset = undefined;
         self.controlDataset = undefined;
         self.layoutController.removeAllTrackXYPairs();
-        self.contactMatrixView.clearImageCaches();
         self.tracks2D = [];
         self.tracks = [];
 
