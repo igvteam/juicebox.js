@@ -78,9 +78,6 @@ var hic = (function (hic) {
             $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
 
             this.displayMode = 'A';
-            this.imageTileCache = {};
-            this.imageTileCacheKeys = [];
-            this.imageTileCacheLimit = 4; //browser.isMobile ? 4 : 20;
             this.colorScaleThresholdCache = {};
 
             // Set initial color scales.  These might be overriden / adjusted via parameters
@@ -118,7 +115,6 @@ var hic = (function (hic) {
 
             this.getColorScale().setThreshold(threshold);
             this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
-            this.imageTileCache = {};
             this.update()
         };
 
@@ -136,7 +132,6 @@ var hic = (function (hic) {
 
         hic.ContactMatrixView.prototype.setDisplayMode = function (mode) {
             this.displayMode = mode;
-            this.clearImageCaches();
             this.update();
         }
 
@@ -144,10 +139,6 @@ var hic = (function (hic) {
             return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
         }
 
-        hic.ContactMatrixView.prototype.clearImageCaches = function () {
-            this.imageTileCache = {};
-            this.imageTileCacheKeys = [];
-        };
 
         hic.ContactMatrixView.prototype.getViewDimensions = function () {
             return {
@@ -166,14 +157,10 @@ var hic = (function (hic) {
                     addMouseHandlers.call(this, this.$viewport);
                     this.mouseHandlersEnabled = true;
                 }
-                this.clearImageCaches();
                 this.colorScaleThresholdCache = {};
             }
 
             else {
-                if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
-                    this.clearImageCaches();
-                }
                 this.update();
             }
         }
@@ -298,241 +285,228 @@ var hic = (function (hic) {
             const blockBinCount = zd.blockBinCount
             const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
                 "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
-            if (this.imageTileCache.hasOwnProperty(key)) {
-                return this.imageTileCache[key]
 
-            } else {
-                if (drawsInProgress.has(key)) {
-                    //console.log("In progress")
-                    const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
-                    const image = inProgressTile(imageSize)
-                    return {
-                        row: row,
-                        column: column,
-                        blockBinCount: blockBinCount,
-                        image: image,
-                        inProgress: true
-                    }  // TODO return an image at a coarser resolution if avaliable
-                }
-                drawsInProgress.add(key)
-
-                //console.log("Start load for " + key)
-                try {
-                    this.startSpinner()
-                    const sameChr = zd.chr1.index === zd.chr2.index
-                    const blockColumnCount = zd.blockColumnCount
-                    const widthInBins = zd.blockBinCount
-                    const transpose = sameChr && row < column
-
-                    let blockNumber
-                    if (sameChr && row < column) {
-                        blockNumber = column * blockColumnCount + row;
-                    }
-                    else {
-                        blockNumber = row * blockColumnCount + column;
-                    }
-                    const blocks = await getNormalizedBlocks.call(this, zd, zdControl, blockNumber, state.normalization)
-
-
-                    let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock
-                    if ("BOA" === this.displayMode) {
-                        ctrlAverageCount = zd.averageCount;
-                        averageCount = zdControl ? zdControl.averageCount : 1
-                        block = blocks[1]
-                        controlBlock = blocks[0]
-                    } else {
-                        averageCount = zd.averageCount
-                        ctrlAverageCount = zdControl ? zdControl.averageCount : 1
-                        block = blocks[0]
-                        if (blocks.length > 0) controlBlock = blocks[1]
-                    }
-                    averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
-
-
-                    let image;
-                    if (block && block.records.length > 0) {
-                        image = drawBlock.call(this, block, controlBlock, transpose);
-                    }
-                    else {
-                        //console.log("No block for " + blockNumber);
-                    }
-                    var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
-
-
-                    if(this.imageTileCacheLimit > 0) {
-                        if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
-                            delete this.imageTileCache[this.imageTileCacheKeys[0]]
-                            this.imageTileCacheKeys.shift()
-                        }
-                        this.imageTileCache[key] = imageTile
-
-                    }
-
-                    drawsInProgress.delete(key)
-                    return imageTile;
-
-
-                    // Actual drawing happens here
-                    function drawBlock(block, controlBlock, transpose) {
-
-                        const imageSize = Math.ceil(widthInBins * pixelSizeInt)
-                        const blockNumber = block.blockNumber;
-                        const row = Math.floor(blockNumber / blockColumnCount);
-                        const col = blockNumber - row * blockColumnCount;
-                        const x0 = blockBinCount * col;
-                        const y0 = blockBinCount * row;
-
-                        const image = document.createElement('canvas');
-                        image.width = imageSize;
-                        image.height = imageSize;
-                        const ctx = image.getContext('2d');
-                        //ctx.clearRect(0, 0, image.width, image.height);
-
-                        const controlRecords = {};
-                        if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
-                            for (let record of controlBlock.records) {
-                                controlRecords[record.getKey()] = record
-                            }
-                        }
-
-                        let id
-                        if (useImageData) {
-                            id = ctx.getImageData(0, 0, image.width, image.height);
-                        }
-
-                        for (let i = 0; i < block.records.length; i++) {
-
-                            const rec = block.records[i];
-                            let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
-                            let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
-
-                            if (transpose) {
-                                const t = y;
-                                y = x;
-                                x = t;
-                            }
-
-                            let color
-                            switch (this.displayMode) {
-
-                                case 'AOB':
-                                case 'BOA':
-                                    let key = rec.getKey();
-                                    let controlRec = controlRecords[key];
-                                    if (!controlRec) {
-                                        continue;    // Skip
-                                    }
-                                    let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
-
-                                    color = this.ratioColorScale.getColor(score);
-
-                                    break;
-
-                                case 'AMB':
-                                    key = rec.getKey();
-                                    controlRec = controlRecords[key];
-                                    if (!controlRec) {
-                                        continue;    // Skip
-                                    }
-                                    score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
-
-                                    color = this.diffColorScale.getColor(score);
-
-                                    break;
-
-                                default:    // Either 'A' or 'B'
-                                    color = this.colorScale.getColor(rec.counts);
-                            }
-
-
-                            if (useImageData) {
-                                // TODO -- verify that this bitblting is faster than fillRect
-                                setPixel(id, x, y, color.red, color.green, color.blue, 255);
-                                if (sameChr && row === col) {
-                                    setPixel(id, y, x, color.red, color.green, color.blue, 255);
-                                }
-                            }
-                            else {
-                                ctx.fillStyle = color.rgb;
-                                ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
-                                if (sameChr && row === col) {
-                                    ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
-                                }
-                            }
-                        }
-                        if (useImageData) {
-                            ctx.putImageData(id, 0, 0);
-                        }
-
-                        //Draw 2D tracks
-                        ctx.save();
-                        ctx.lineWidth = 2;
-                        for (let track2D of this.browser.tracks2D) {
-
-                            if (track2D.isVisible) {
-
-                                var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-
-                                if (features) {
-                                    features.forEach(function (f) {
-
-                                        var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                        var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                        var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                        var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                        var w = x2 - x1;
-                                        var h = y2 - y1;
-
-                                        if (transpose) {
-                                            t = y1;
-                                            y1 = x1;
-                                            x1 = t;
-
-                                            t = h;
-                                            h = w;
-                                            w = t;
-                                        }
-
-                                        var dim = Math.max(image.width, image.height);
-                                        if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                            ctx.strokeStyle = track2D.color ? track2D.color : f.color;
-                                            ctx.strokeRect(x1, y1, w, h);
-                                            if (sameChr && row === col) {
-                                                ctx.strokeRect(y1, x1, h, w);
-                                            }
-                                        }
-                                    })
-                                }
-                            }
-                        }
-
-                        ctx.restore();
-
-                        // Uncomment to reveal tile boundaries for debugging.
-                        // ctx.fillStyle = "rgb(255,255,255)";
-                        // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
-
-                        var t1 = (new Date()).getTime();
-
-                        //console.log(t1 - t0);
-
-                        return image;
-                    }
-
-
-                    function setPixel(imageData, x, y, r, g, b, a) {
-                        const index = (x + y * imageData.width) * 4;
-                        imageData.data[index + 0] = r;
-                        imageData.data[index + 1] = g;
-                        imageData.data[index + 2] = b;
-                        imageData.data[index + 3] = a;
-                    }
-                } finally {
-                    //console.log("Finish load for " + key)
-                    this.stopSpinner()
-                }
+            if (drawsInProgress.has(key)) {
+                //console.log("In progress")
+                const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
+                const image = inProgressTile(imageSize)
+                return {
+                    row: row,
+                    column: column,
+                    blockBinCount: blockBinCount,
+                    image: image,
+                    inProgress: true
+                }  // TODO return an image at a coarser resolution if avaliable
             }
+            drawsInProgress.add(key)
+
+            //console.log("Start load for " + key)
+            try {
+                this.startSpinner()
+                const sameChr = zd.chr1.index === zd.chr2.index
+                const blockColumnCount = zd.blockColumnCount
+                const widthInBins = zd.blockBinCount
+                const transpose = sameChr && row < column
+
+                let blockNumber
+                if (sameChr && row < column) {
+                    blockNumber = column * blockColumnCount + row;
+                }
+                else {
+                    blockNumber = row * blockColumnCount + column;
+                }
+                const blocks = await getNormalizedBlocks.call(this, zd, zdControl, blockNumber, state.normalization)
+
+
+                let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock
+                if ("BOA" === this.displayMode) {
+                    ctrlAverageCount = zd.averageCount;
+                    averageCount = zdControl ? zdControl.averageCount : 1
+                    block = blocks[1]
+                    controlBlock = blocks[0]
+                } else {
+                    averageCount = zd.averageCount
+                    ctrlAverageCount = zdControl ? zdControl.averageCount : 1
+                    block = blocks[0]
+                    if (blocks.length > 0) controlBlock = blocks[1]
+                }
+                averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
+
+
+                let image;
+                if (block && block.records.length > 0) {
+                    image = drawBlock.call(this, block, controlBlock, transpose);
+                }
+                else {
+                    //console.log("No block for " + blockNumber);
+                }
+                var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
+
+                drawsInProgress.delete(key)
+                return imageTile;
+
+
+                // Actual drawing happens here
+                function drawBlock(block, controlBlock, transpose) {
+
+                    const imageSize = Math.ceil(widthInBins * pixelSizeInt)
+                    const blockNumber = block.blockNumber;
+                    const row = Math.floor(blockNumber / blockColumnCount);
+                    const col = blockNumber - row * blockColumnCount;
+                    const x0 = blockBinCount * col;
+                    const y0 = blockBinCount * row;
+
+                    const image = document.createElement('canvas');
+                    image.width = imageSize;
+                    image.height = imageSize;
+                    const ctx = image.getContext('2d');
+                    //ctx.clearRect(0, 0, image.width, image.height);
+
+                    const controlRecords = {};
+                    if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
+                        for (let record of controlBlock.records) {
+                            controlRecords[record.getKey()] = record
+                        }
+                    }
+
+                    let id
+                    if (useImageData) {
+                        id = ctx.getImageData(0, 0, image.width, image.height);
+                    }
+
+                    for (let i = 0; i < block.records.length; i++) {
+
+                        const rec = block.records[i];
+                        let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
+                        let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
+
+                        if (transpose) {
+                            const t = y;
+                            y = x;
+                            x = t;
+                        }
+
+                        let color
+                        switch (this.displayMode) {
+
+                            case 'AOB':
+                            case 'BOA':
+                                let key = rec.getKey();
+                                let controlRec = controlRecords[key];
+                                if (!controlRec) {
+                                    continue;    // Skip
+                                }
+                                let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
+
+                                color = this.ratioColorScale.getColor(score);
+
+                                break;
+
+                            case 'AMB':
+                                key = rec.getKey();
+                                controlRec = controlRecords[key];
+                                if (!controlRec) {
+                                    continue;    // Skip
+                                }
+                                score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                                color = this.diffColorScale.getColor(score);
+
+                                break;
+
+                            default:    // Either 'A' or 'B'
+                                color = this.colorScale.getColor(rec.counts);
+                        }
+
+
+                        if (useImageData) {
+                            // TODO -- verify that this bitblting is faster than fillRect
+                            setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                            if (sameChr && row === col) {
+                                setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                            }
+                        }
+                        else {
+                            ctx.fillStyle = color.rgb;
+                            ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
+                            if (sameChr && row === col) {
+                                ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
+                            }
+                        }
+                    }
+                    if (useImageData) {
+                        ctx.putImageData(id, 0, 0);
+                    }
+
+                    //Draw 2D tracks
+                    ctx.save();
+                    ctx.lineWidth = 2;
+                    for (let track2D of this.browser.tracks2D) {
+
+                        if (track2D.isVisible) {
+
+                            var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+
+                            if (features) {
+                                features.forEach(function (f) {
+
+                                    var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                    var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                    var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                    var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                    var w = x2 - x1;
+                                    var h = y2 - y1;
+
+                                    if (transpose) {
+                                        t = y1;
+                                        y1 = x1;
+                                        x1 = t;
+
+                                        t = h;
+                                        h = w;
+                                        w = t;
+                                    }
+
+                                    var dim = Math.max(image.width, image.height);
+                                    if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                        ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                        ctx.strokeRect(x1, y1, w, h);
+                                        if (sameChr && row === col) {
+                                            ctx.strokeRect(y1, x1, h, w);
+                                        }
+                                    }
+                                })
+                            }
+                        }
+                    }
+
+                    ctx.restore();
+
+                    // Uncomment to reveal tile boundaries for debugging.
+                    // ctx.fillStyle = "rgb(255,255,255)";
+                    // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+
+                    var t1 = (new Date()).getTime();
+
+                    //console.log(t1 - t0);
+
+                    return image;
+                }
+
+
+                function setPixel(imageData, x, y, r, g, b, a) {
+                    const index = (x + y * imageData.width) * 4;
+                    imageData.data[index + 0] = r;
+                    imageData.data[index + 1] = g;
+                    imageData.data[index + 2] = b;
+                    imageData.data[index + 3] = a;
+                }
+            } finally {
+                //console.log("Finish load for " + key)
+                this.stopSpinner()
+            }
+
 
             function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
                 var promises = [];
@@ -568,7 +542,7 @@ var hic = (function (hic) {
                 }
 
                 // Zoom out not supported
-                if(newGenomicExtent.w > this.genomicExtent.w) return
+                if (newGenomicExtent.w > this.genomicExtent.w) return
 
                 // const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
                 // const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
