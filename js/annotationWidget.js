@@ -204,6 +204,7 @@ var hic = (function (hic) {
                     track.isVisible = true;
                 }
 
+                self.browser.contactMatrixView.clearImageCaches();
                 self.browser.contactMatrixView.update();
 
             });
