@@ -1129,7 +1129,7 @@ var hic = (function (hic) {
             state.pixelSize = newPixelSize;
             self.clamp();
 
-            self.contactMatrixView.zoomIn()
+            await self.contactMatrixView.zoomIn()
 
             self.eventBus.post(hic.Event("LocusChange", {state: state, resolutionChanged: zoomChanged}));
         } finally {

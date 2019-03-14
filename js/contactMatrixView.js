@@ -359,12 +359,14 @@ var hic = (function (hic) {
                     var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
 
 
-                    if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
-                        delete this.imageTileCache[this.imageTileCacheKeys[0]]
-                        this.imageTileCacheKeys.shift()
-                    }
+                    if(this.imageTileCacheLimit > 0) {
+                        if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
+                            delete this.imageTileCache[this.imageTileCacheKeys[0]]
+                            this.imageTileCacheKeys.shift()
+                        }
+                        this.imageTileCache[key] = imageTile
 
-                    this.imageTileCache[key] = imageTile
+                    }
 
                     drawsInProgress.delete(key)
                     return imageTile;
@@ -384,7 +386,7 @@ var hic = (function (hic) {
                         image.width = imageSize;
                         image.height = imageSize;
                         const ctx = image.getContext('2d');
-                        ctx.clearRect(0, 0, image.width, image.height);
+                        //ctx.clearRect(0, 0, image.width, image.height);
 
                         const controlRecords = {};
                         if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
@@ -565,19 +567,23 @@ var hic = (function (hic) {
                     h: viewportHeight * zd.zoom.binSize / state.pixelSize
                 }
 
-                const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
-                const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
-                const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth
-                const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight
-                const img = this.$canvas[0]
+                // Zoom out not supported
+                if(newGenomicExtent.w > this.genomicExtent.w) return
 
-                const backCanvas = document.createElement('canvas');
-                backCanvas.width = img.width;
-                backCanvas.height = img.height;
-                const backCtx = backCanvas.getContext('2d');
-                backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
-                this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
-                this.ctx.drawImage(backCanvas, 0, 0)
+                // const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
+                // const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
+                // const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth
+                // const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight
+                // const img = this.$canvas[0]
+                //
+                // const backCanvas = document.createElement('canvas');
+                // backCanvas.width = img.width;
+                // backCanvas.height = img.height;
+                // const backCtx = backCanvas.getContext('2d');
+                // backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+                //
+                // this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
+                // this.ctx.drawImage(backCanvas, 0, 0)
             }
         }
 
