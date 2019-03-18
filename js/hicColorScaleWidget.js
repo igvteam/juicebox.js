@@ -113,19 +113,14 @@ var hic = (function (hic) {
 
     };
 
-    hic.ColorScaleWidget.prototype.receiveEvent = function ({ type, data }) {
+    hic.ColorScaleWidget.prototype.receiveEvent = function (event) {
 
-        if ('ColorScale' === type) {
+        if ('ColorScale' === event.type) {
+            this.$high_colorscale_input.val(event.data.threshold);
+            this.$plusButton.find('.fa-square').css({ color: igv.Color.rgbColor(event.data.r, event.data.g, event.data.b) })
+        } else if ("DisplayMode" === event.type) {
 
-            const { threshold } = data;
-            this.$high_colorscale_input.val(threshold);
-
-            const { r, g, b } = data;
-            this.$plusButton.find('.fa-square').css({ color: igv.Color.rgbColor(r, g, b) })
-
-        } else if ("DisplayMode" === type) {
-
-            if ("AOB" === data || "BOA" === data) {
+            if ("AOB" === event.data || "BOA" === event.data) {
                 this.$minusButton.show();
             } else {
                 this.$minusButton.hide();
