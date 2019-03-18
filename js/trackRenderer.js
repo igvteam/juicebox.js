@@ -21,9 +21,7 @@ var hic = (function (hic) {
         var self = this,
             str,
             doShowLabelAndGear,
-            $x_track_label,
-            $x_track_menu_container,
-            spinner;
+            $x_track_label;
 
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
@@ -55,15 +53,6 @@ var hic = (function (hic) {
             this.$viewport.append(this.$label);
         }
 
-        // IGV STYLE SPINNER
-        // spinner = igv.spinner("24px")
-        // if ('x' === this.axis) {
-        //     spinner.style.position = "absolute";
-        //     spinner.style.left = "0px";
-        //     spinner.style.top = "0px"
-        // }
-        // this.$viewport[0].appendChild(spinner);
-
         // track spinner container
         this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
         this.$viewport.append(this.$spinner);
@@ -73,6 +62,12 @@ var hic = (function (hic) {
         this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 32, padding: 7});
         this.throbber.appendTo(this.$spinner.get(0));
         this.stopSpinner();
+
+        // color picker
+        if ('x' === this.axis) {
+            this.colorPicker = createColorPicker_ColorScaleWidget_version(this.$viewport, () => { this.colorPicker.$container.hide(); }, (color) => { this.setColor(color); });
+            this.colorPicker.$container.hide();
+        }
 
         if ('x' === this.axis) {
 
@@ -112,6 +107,13 @@ var hic = (function (hic) {
         this.$canvas.height(this.$viewport.height());
         this.$canvas.attr('height', this.$viewport.height());
 
+    };
+
+    hic.TrackRenderer.prototype.presentColorPicker = function () {
+        const bbox = this.trackDiv.getBoundingClientRect();
+        this.colorPicker.origin = {x: bbox.x, y: 0};
+        this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
+        this.colorPicker.$container.show();
     };
 
     hic.TrackRenderer.prototype.setTrackName = function (name) {
@@ -284,7 +286,6 @@ var hic = (function (hic) {
         return true;
     }
 
-
     hic.TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
 
         if (tile) {
@@ -328,6 +329,29 @@ var hic = (function (hic) {
     hic.TrackRenderer.prototype.isLoading = function () {
         return !(undefined === this.loading);
     };
+
+    // ColorScaleWidget version of color picker
+    function createColorPicker_ColorScaleWidget_version($parent, closeHandler, colorHandler) {
+
+        const config =
+            {
+                $parent: $parent,
+                width: 456,
+                height: undefined,
+                closeHandler: closeHandler
+            };
+
+        let genericContainer = new igv.genericContainer(config);
+
+        igv.createColorSwatchSelector(genericContainer.$container, colorHandler);
+
+        return genericContainer;
+    }
+
+
+
+
+
 
     Tile = function (chr, startBP, endBP, bpp, buffer) {
         this.chr = chr;

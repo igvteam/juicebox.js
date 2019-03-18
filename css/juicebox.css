@@ -348,12 +348,15 @@
     background-color: #f7f7f7; }
 
 .hic-color-swatch-container {
+  position: absolute;
+  z-index: 4096;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-  width: 100%; }
+  width: 100%;
+  background-color: white; }
   .hic-color-swatch-container div:first-child {
     display: flex;
     flex-flow: row;

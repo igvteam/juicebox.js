@@ -250,16 +250,16 @@ var hic = (function (hic) {
             return browser.tracks2D;
         });
 
-        config =
-            {
-                title: 'Tracks',
-                loadTitle: 'Load Tracks:',
-                alertMessage: 'No tracks currently loaded for this map'
-            };
-
-        browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
-            return browser.trackRenderers;
-        });
+        // config =
+        //     {
+        //         title: 'Tracks',
+        //         loadTitle: 'Load Tracks:',
+        //         alertMessage: 'No tracks currently loaded for this map'
+        //     };
+        //
+        // browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
+        //     return browser.trackRenderers;
+        // });
 
         browser.$menu = $menu;
 

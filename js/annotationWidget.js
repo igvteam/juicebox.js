@@ -188,7 +188,6 @@ var hic = (function (hic) {
 
         // track hide/show
         if (isTrack2D) {
-
             str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
             $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
             $row.append($hideShowTrack);
@@ -208,9 +207,7 @@ var hic = (function (hic) {
                 self.browser.contactMatrixView.update();
 
             });
-
         }
-
 
 
         // color swatch selector button
@@ -337,7 +334,7 @@ var hic = (function (hic) {
         $fa.css({color: rgbString});
 
         return $swatch;
-    };
+    }
 
     function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
 
