@@ -657,18 +657,16 @@ var hic = (function (hic) {
 
 
     hic.Browser.prototype.reset = function () {
-        var self = this;
-        self.dataset = undefined;
-        self.controlDataset = undefined;
-        self.layoutController.removeAllTrackXYPairs();
-        self.contactMatrixView.clearImageCaches();
-        self.tracks2D = [];
-        self.tracks = [];
-
-        self.$contactMaplabel.text("");
-        self.$contactMaplabel.attr('title', "");
-        self.$controlMaplabel.text("");
-        self.$controlMaplabel.attr('title', "");
+        this.layoutController.removeAllTrackXYPairs();
+        this.contactMatrixView.clearImageCaches();
+        this.tracks2D = [];
+        this.tracks = [];
+        this.$contactMaplabel.text("");
+        this.$contactMaplabel.attr('title', "");
+        this.$controlMaplabel.text("");
+        this.$controlMaplabel.attr('title', "");
+        this.dataset = undefined;
+        this.controlDataset = undefined;
     }
 
 
