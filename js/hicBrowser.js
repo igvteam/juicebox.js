@@ -127,8 +127,9 @@ var hic = (function (hic) {
             }
             await Promise.all(promises);
 
+            const tmp = browser.contactMatrixView.colorScaleThresholdCache;
             browser.eventBus.release()
-
+            browser.contactMatrixView.colorScaleThresholdCache = tmp
 
             if (config.cycle) {
                 browser.controlMapWidget.toggleDisplayModeCycle();
