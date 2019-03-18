@@ -4,19 +4,19 @@
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
  * following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
  * portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
  */
@@ -40,7 +40,7 @@ var hic = (function (hic) {
 
 
         // '-' color swatch
-        rgbString = getRGBString('-', "blue");                    // TODO -- get the default from browser.
+        rgbString = getRGBString(browser, '-', "blue");                    // TODO -- get the default from browser.
         this.$minusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$minusButton);
         this.$minusButton.hide();
@@ -49,11 +49,10 @@ var hic = (function (hic) {
             self.minusColorPicker.$container.hide()
         });
 
-        // this.minusColorPicker.$container.draggable();
         this.minusColorPicker.$container.hide();
 
         // '+' color swatch
-        rgbString = getRGBString('+', "red");                     // TODO -- get the default from browser
+        rgbString = getRGBString(browser, '+', "red");                     // TODO -- get the default from browser
         this.$plusButton = hic.colorSwatch(rgbString);
         this.$container.append(this.$plusButton);
 
@@ -61,10 +60,7 @@ var hic = (function (hic) {
             self.plusColorPicker.$container.hide()
         });
 
-        // this.plusColorPicker.$container.draggable();
         this.plusColorPicker.$container.hide();
-
-
 
         this.$minusButton.on('click', function (e) {
             self.presentColorPicker($(this), self.minusColorPicker.$container);
@@ -76,7 +72,6 @@ var hic = (function (hic) {
 
 
         // threshold
-        // this.$high_colorscale_input = $('<input type="text" placeholder="">');
         this.$high_colorscale_input = $('<input>', { 'type': 'text', 'placeholder': '', 'title': 'color scale input'});
         this.$container.append(this.$high_colorscale_input);
         this.$high_colorscale_input.on('change', function (e) {
@@ -116,18 +111,22 @@ var hic = (function (hic) {
             self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
         }
 
-        function getRGBString(type, defaultColor) {
-            var colorScale, comps;
+    };
 
-            colorScale = browser.getColorScale();
-            if (colorScale) {
-                comps = colorScale.getColorComponents(type);
-                return igv.Color.rgbColor(comps.r, comps.g, comps.b);
-            }
-            else {
-                return defaultColor;
+    hic.ColorScaleWidget.prototype.receiveEvent = function (event) {
+
+        if ('ColorScale' === event.type) {
+            this.$high_colorscale_input.val(event.data.threshold);
+            this.$plusButton.find('.fa-square').css({ color: igv.Color.rgbColor(event.data.r, event.data.g, event.data.b) })
+        } else if ("DisplayMode" === event.type) {
+
+            if ("AOB" === event.data || "BOA" === event.data) {
+                this.$minusButton.show();
+            } else {
+                this.$minusButton.hide();
             }
         }
+
 
     };
 
@@ -142,25 +141,18 @@ var hic = (function (hic) {
         $colorpicker.show();
     };
 
-    hic.ColorScaleWidget.prototype.receiveEvent = function (event) {
+    function getRGBString(browser, type, defaultColor) {
+        var colorScale, comps;
 
-        var colorScale;
-
-        colorScale = this.browser.getColorScale();
-        this.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
-
-        if ("DisplayMode" === event.type) {
-
-            if ("AOB" === event.data || "BOA" === event.data) {
-                this.$minusButton.show();
-            }
-            else {
-                this.$minusButton.hide();
-            }
+        colorScale = browser.getColorScale();
+        if (colorScale) {
+            comps = colorScale.getColorComponents(type);
+            return igv.Color.rgbColor(comps.r, comps.g, comps.b);
         }
-
-
-    };
+        else {
+            return defaultColor;
+        }
+    }
 
     function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
@@ -200,6 +192,7 @@ var hic = (function (hic) {
 
         return colorPicker;
     }
+
     return hic;
 
 })

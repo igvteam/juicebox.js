@@ -34,9 +34,9 @@ var hic = (function (hic) {
             $fa,
             str;
 
-        $swatch = $('<div>', {class: 'igv-color-swatch'});
+        $swatch = $('<div>', { class: 'igv-color-swatch' });
 
-        $fa = $('<i>', { class: 'fa fa-square fa-2x', 'aria-hidden': 'true', 'title': 'Present color swatches' });
+        $fa = $('<i>', { class: 'fa fa-square fa-2x', 'title': 'Present color swatches' });
         $swatch.append($fa);
         $fa.css({ color: rgbString });
 
