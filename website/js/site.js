@@ -42,8 +42,6 @@ var juicebox = (function (site) {
             $appContainer,
             query,
             $hic_share_url_modal,
-            contact_map_dropdown_id,
-            control_map_dropdown_id,
             $e;
 
 
@@ -394,7 +392,8 @@ var juicebox = (function (site) {
 
         $e = $('button[id$=-map-dropdown]');
         $e.parent().on('show.bs.dropdown', function () {
-            site.currentContactMapDropdownButton = $(this).children('.dropdown-toggle').attr('id');
+            const id = $(this).children('.dropdown-toggle').attr('id');
+            site.currentContactMapDropdownButtonID = id;
         });
 
         $e.parent().on('hide.bs.dropdown', function () {
@@ -475,53 +474,6 @@ var juicebox = (function (site) {
             }
         }
 
-        function syncBrowsers() {
-            hic.syncBrowsers(hic.allBrowsers);
-        }
-
-        function populatePulldown(menu) {
-
-            var parent;
-
-            parent = $("#" + menu.id);
-
-            igv.xhr.loadString(menu.items)
-
-                .then(function (data) {
-                    var lines = igv.splitLines(data),
-                        len = lines.length,
-                        tokens,
-                        i;
-
-                    for (i = 0; i < len; i++) {
-                        tokens = lines[i].split('\t');
-                        if (tokens.length > 1) {
-                            parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
-                        }
-
-                    }
-                    parent.selectpicker("refresh");
-                })
-                .catch(function (error) {
-                    console.log(error);
-                })
-        }
-
-        function checkBDropdown() {
-            updateBDropdown(hic.Browser.getCurrentBrowser());
-        }
-
-        function updateBDropdown(browser) {
-            if (browser) {
-                if (browser.dataset) {
-                    $('#hic-control-map-dropdown').removeClass('disabled');
-                }
-                else {
-                    $('#hic-control-map-dropdown').addClass('disabled');
-                }
-            }
-        }
-
         hic.eventBus.subscribe("BrowserSelect", function (event) {
             updateBDropdown(event.data);
             var browser = event.data;
@@ -529,6 +481,30 @@ var juicebox = (function (site) {
 
     };
 
+    function syncBrowsers() {
+
+        hic.syncBrowsers(hic.allBrowsers);
+
+        for (let browser of hic.allBrowsers) {
+            updateBDropdown(browser);
+        }
+
+    }
+
+    function checkBDropdown() {
+        updateBDropdown(hic.Browser.getCurrentBrowser());
+    }
+
+    function updateBDropdown(browser) {
+        if (browser) {
+            if (browser.dataset) {
+                $('#hic-control-map-dropdown').removeClass('disabled');
+            }
+            else {
+                $('#hic-control-map-dropdown').addClass('disabled');
+            }
+        }
+    }
 
     function loadHicFile(url, name) {
 
@@ -542,7 +518,7 @@ var juicebox = (function (site) {
             synchState = browsersWithMaps[0].getSyncState();
         }
 
-        isControl = site.currentContactMapDropdownButton === control_map_dropdown_id;
+        isControl = site.currentContactMapDropdownButtonID === control_map_dropdown_id;
 
         browser = hic.Browser.getCurrentBrowser();
 
@@ -585,6 +561,33 @@ var juicebox = (function (site) {
         }
     }
 
+    function populatePulldown(menu) {
+
+        var parent;
+
+        parent = $("#" + menu.id);
+
+        igv.xhr.loadString(menu.items)
+
+            .then(function (data) {
+                var lines = igv.splitLines(data),
+                    len = lines.length,
+                    tokens,
+                    i;
+
+                for (i = 0; i < len; i++) {
+                    tokens = lines[i].split('\t');
+                    if (tokens.length > 1) {
+                        parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
+                    }
+
+                }
+                parent.selectpicker("refresh");
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
 
     function createEncodeTable(genomeId) {
 
