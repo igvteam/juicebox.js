@@ -80,7 +80,7 @@ var hic = (function (hic) {
             this.displayMode = 'A';
             this.imageTileCache = {};
             this.imageTileCacheKeys = [];
-            this.imageTileCacheLimit = 4; //browser.isMobile ? 4 : 20;
+            this.imageTileCacheLimit = 8; //8 is the minimum number required to support A/B cycling
             this.colorScaleThresholdCache = {};
 
             // Set initial color scales.  These might be overriden / adjusted via parameters
@@ -182,7 +182,7 @@ var hic = (function (hic) {
 
             if (this.disableUpdates) return   // This flag is set during browser startup
 
-            this.repaint()
+            await this.repaint()
 
         }
 
@@ -196,76 +196,76 @@ var hic = (function (hic) {
                 return;
             }
 
+            if (!this.ctx) {
+                this.ctx = this.$canvas.get(0).getContext("2d");
+            }
+
+            const viewportWidth = this.$viewport.width()
+            const viewportHeight = this.$viewport.height()
+            const canvasWidth = this.$canvas.width()
+            const canvasHeight = this.$canvas.height()
+            if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+                this.$canvas.width(viewportWidth);
+                this.$canvas.height(viewportHeight);
+                this.$canvas.attr('width', this.$viewport.width());
+                this.$canvas.attr('height', this.$viewport.height());
+            }
+
+            let zd;
+            let zdControl;
+            let matrix;
             const state = this.browser.state;
+            switch (this.displayMode) {
+                case 'A':
+                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
+                    zd = await matrix.bpZoomData[state.zoom]
+                    break;
+                case 'B':
+                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
+                    zd = await matrix.bpZoomData[state.zoom]
+                    break;
+                case 'AOB':
+                case 'AMB':
+                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
+                    zd = await matrix.bpZoomData[state.zoom]
+                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
+                    zdControl = await matrix.bpZoomData[state.zoom]
+                    break;
+                case 'BOA':
+                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
+                    zd = await matrix.bpZoomData[state.zoom]
+                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
+                    zdControl = await matrix.bpZoomData[state.zoom]
+                    break;
+            }
 
-            const matrices = await getMatrices.call(this, state.chr1, state.chr2)
 
-            var matrix = matrices[0];
+            const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
+            const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
+            const widthInBins = this.$viewport.width() / pixelSizeInt
+            const heightInBins = this.$viewport.height() / pixelSizeInt
+            const blockCol1 = Math.floor(state.x / blockBinCount)
+            const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount)
+            const blockRow1 = Math.floor(state.y / blockBinCount)
+            const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-            if (matrix) {
-                if (!this.ctx) {
-                    this.ctx = this.$canvas.get(0).getContext("2d");
+            await checkColorScale.call(this, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+
+            for (let r = blockRow1; r <= blockRow2; r++) {
+                for (let c = blockCol1; c <= blockCol2; c++) {
+                    const tile = await this.getImageTile(zd, zdControl, r, c, state)
+                    this.paintTile(tile)
                 }
+            }
 
-                const state = this.browser.state
-                const viewportWidth = this.$viewport.width()
-                const viewportHeight = this.$viewport.height()
-                const canvasWidth = this.$canvas.width()
-                const canvasHeight = this.$canvas.height()
-                if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-                    this.$canvas.width(viewportWidth);
-                    this.$canvas.height(viewportHeight);
-                    this.$canvas.attr('width', this.$viewport.width());
-                    this.$canvas.attr('height', this.$viewport.height());
-                }
-
-
-                const zd = await matrix.bpZoomData[state.zoom]
-                const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
-                const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-                const widthInBins = this.$viewport.width() / pixelSizeInt
-                const heightInBins = this.$viewport.height() / pixelSizeInt
-                const blockCol1 = Math.floor(state.x / blockBinCount)
-                const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount)
-                const blockRow1 = Math.floor(state.y / blockBinCount)
-                const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
-
-                await checkColorScale.call(this, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
-
-                let zdControl
-                if (matrices.length > 1) {
-                    zdControl = matrices[1].bpZoomData[state.zoom];
-                }
-
-                for (let r = blockRow1; r <= blockRow2; r++) {
-                    for (let c = blockCol1; c <= blockCol2; c++) {
-                        const tile = await this.getImageTile(zd, zdControl, r, c, state)
-                        this.paintTile(tile)
-                    }
-                }
-
-                // const p = []
-                // for (let r = blockRow1; r <= blockRow2; r++) {
-                //     for (let c = blockCol1; c <= blockCol2; c++) {
-                //         p.push(this.getImageTile(zd, zdControl, r, c, state))
-                //     }
-                // }
-                //
-                // const tiles = await Promise.all(p)
-                // for(let tile of tiles) {
-                //     this.paintTile(tile)
-                // }
-
-
-                // Record genomic extent of current canvas
-                this.genomicExtent = {
-                    chr1: state.chr1,
-                    chr2: state.chr2,
-                    x: state.x * zd.zoom.binSize,
-                    y: state.y * zd.zoom.binSize,
-                    w: viewportWidth * zd.zoom.binSize / state.pixelSize,
-                    h: viewportHeight * zd.zoom.binSize / state.pixelSize
-                }
+            // Record genomic extent of current canvas
+            this.genomicExtent = {
+                chr1: state.chr1,
+                chr2: state.chr2,
+                x: state.x * zd.zoom.binSize,
+                y: state.y * zd.zoom.binSize,
+                w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+                h: viewportHeight * zd.zoom.binSize / state.pixelSize
             }
         }
 

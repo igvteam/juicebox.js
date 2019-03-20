@@ -393,8 +393,8 @@ var hic = (function (hic) {
         this.contactMatrixView.stopSpinner();
     };
 
-    hic.Browser.prototype.setDisplayMode = function (mode) {
-        this.contactMatrixView.setDisplayMode(mode);
+    hic.Browser.prototype.setDisplayMode = async function (mode) {
+        await this.contactMatrixView.setDisplayMode(mode);
         this.eventBus.post(hic.Event("DisplayMode", mode));
     };
 

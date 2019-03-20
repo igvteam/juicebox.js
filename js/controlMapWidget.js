@@ -28,9 +28,7 @@ var hic = (function (hic) {
 
     hic.ControlMapWidget = function (browser, $parent) {
 
-        var self = this,
-            $toggle_container,
-            $cycle_container;
+        const self = this
 
         this.browser = browser;
 
@@ -45,11 +43,11 @@ var hic = (function (hic) {
         this.$container.append(this.$select);
 
         // a-b toggle icon
-        $toggle_container = $('<div>');
+        const $toggle_container = $('<div>');
         this.$container.append($toggle_container);
 
         // cycle button
-        $cycle_container = $('<div>');
+        const $cycle_container = $('<div>');
         this.$container.append($cycle_container);
 
         this.controlMapHash = new hic.ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
@@ -87,12 +85,7 @@ var hic = (function (hic) {
 
     hic.ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
 
-        let self = this,
-            A,
-            B,
-            Cycle,
-            AOB,
-            BOA;
+        const self = this
 
         this.browser = browser;
         this.$select = $select;
@@ -107,10 +100,10 @@ var hic = (function (hic) {
         this.$img_b = $img_b;
         this.$toggle.append(this.$img_b);
 
-        A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: $img_b, $shown: $img_a };
-        B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: $img_a, $shown: $img_b };
-        AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a };
-        BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b };
+        const A   = { title: 'A',   value: 'A',   other: 'B',   $hidden: $img_b, $shown: $img_a };
+        const B   = { title: 'B',   value: 'B',   other: 'A',   $hidden: $img_a, $shown: $img_b };
+        const AOB = { title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a };
+        const BOA = { title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b };
 
         this.hash =
             {
@@ -155,7 +148,7 @@ var hic = (function (hic) {
 
         if (this.cycleID) {
 
-            window.clearInterval(this.cycleID);
+            clearTimeout(this.cycleID);
             this.cycleID = undefined;
 
             this.$cycle_solid.hide();
@@ -172,17 +165,22 @@ var hic = (function (hic) {
             this.disableDisplayModeCycle();
         } else {
 
-            this.cycleID = window.setInterval(function () {
-                self.toggleDisplayMode();
-            }, 2500);
+            doToggle()
 
             this.$cycle_solid.show();
             this.$cycle_outline.hide();
         }
 
+        function doToggle() {
+            self.cycleID = setTimeout(async function () {
+                await self.toggleDisplayMode()
+                doToggle()
+            }, 2500)
+        }
+
     };
 
-    hic.ControlMapHash.prototype.toggleDisplayMode = function () {
+    hic.ControlMapHash.prototype.toggleDisplayMode = async function () {
 
         let displayModeOld,
             displayModeNew,
@@ -192,7 +190,7 @@ var hic = (function (hic) {
 
         // render new display mode
         displayModeNew = this.hash[ displayModeOld ].other;
-        this.browser.setDisplayMode(displayModeNew);
+        await this.browser.setDisplayMode(displayModeNew);
 
         // update exchange icon
         this.hash[ displayModeNew ].$hidden.hide();
