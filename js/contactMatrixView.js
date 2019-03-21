@@ -174,7 +174,7 @@ var hic = (function (hic) {
                 if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
                     this.clearImageCaches();
                 }
-                this.update();
+                await this.update();
             }
         }
 
@@ -210,33 +210,34 @@ var hic = (function (hic) {
                 this.$canvas.attr('width', this.$viewport.width());
                 this.$canvas.attr('height', this.$viewport.height());
             }
-
-            let zd;
-            let zdControl;
-            let matrix;
             const state = this.browser.state;
+
+            let ds;
+            let dsControl;
             switch (this.displayMode) {
                 case 'A':
-                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
-                    zd = await matrix.bpZoomData[state.zoom]
+                    ds = this.browser.dataset
                     break;
                 case 'B':
-                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
-                    zd = await matrix.bpZoomData[state.zoom]
+                    ds = this.browser.controlDataset
                     break;
                 case 'AOB':
                 case 'AMB':
-                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
-                    zd = await matrix.bpZoomData[state.zoom]
-                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
-                    zdControl = await matrix.bpZoomData[state.zoom]
+                    ds = this.browser.dataset
+                    dsControl = this.browser.controlDataset
                     break;
                 case 'BOA':
-                    matrix = await this.browser.controlDataset.getMatrix(state.chr1, state.chr2)
-                    zd = await matrix.bpZoomData[state.zoom]
-                    matrix = await this.browser.dataset.getMatrix(state.chr1, state.chr2)
-                    zdControl = await matrix.bpZoomData[state.zoom]
-                    break;
+                    ds = this.browser.controlDataset
+                    dsControl = this.browser.dataset
+            }
+
+            const matrix = await ds.getMatrix(state.chr1, state.chr2)
+            const zd = matrix.bpZoomData[state.zoom]
+
+            let zdControl;
+            if (dsControl) {
+                const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2)
+                zdControl = matrixControl.bpZoomData[state.zoom]
             }
 
 
@@ -249,11 +250,11 @@ var hic = (function (hic) {
             const blockRow1 = Math.floor(state.y / blockBinCount)
             const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-            await checkColorScale.call(this, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+            await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
             for (let r = blockRow1; r <= blockRow2; r++) {
                 for (let c = blockCol1; c <= blockCol2; c++) {
-                    const tile = await this.getImageTile(zd, zdControl, r, c, state)
+                    const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
                     this.paintTile(tile)
                 }
             }
@@ -304,7 +305,7 @@ var hic = (function (hic) {
             return image;
         }
 
-        hic.ContactMatrixView.prototype.getImageTile = async function (zd, zdControl, row, column, state) {
+        hic.ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zdControl, row, column, state) {
 
             const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
             const useImageData = pixelSizeInt === 1
@@ -344,22 +345,17 @@ var hic = (function (hic) {
                     else {
                         blockNumber = row * blockColumnCount + column;
                     }
-                    const blocks = await getNormalizedBlocks.call(this, zd, zdControl, blockNumber, state.normalization)
 
-
-                    let averageCount, ctrlAverageCount, averageAcrossMapAndControl, block, controlBlock
-                    if ("BOA" === this.displayMode) {
-                        ctrlAverageCount = zd.averageCount;
-                        averageCount = zdControl ? zdControl.averageCount : 1
-                        block = blocks[1]
-                        controlBlock = blocks[0]
-                    } else {
-                        averageCount = zd.averageCount
-                        ctrlAverageCount = zdControl ? zdControl.averageCount : 1
-                        block = blocks[0]
-                        if (blocks.length > 0) controlBlock = blocks[1]
+                    // Get blocks
+                    const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalizatio, this.browser.eventBus)
+                    let controlBlock
+                    if (zdControl) {
+                        controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalizatio, this.browser.eventBus)
                     }
-                    averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
+
+                    const averageCount = zd.averageCount
+                    const ctrlAverageCount = zdControl ? zdControl.averageCount : 1
+                    const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
 
 
                     let image;
@@ -547,14 +543,13 @@ var hic = (function (hic) {
                 }
             }
 
-            function getNormalizedBlocks(zd, zdControl, blockNumber, normalization) {
+            function getNormalizedBlocks(ds, dsControl, zd, zdControl, blockNumber, normalization) {
                 var promises = [];
 
-                var dataset = 'B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset;
-                promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
+                promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
 
                 if (zdControl) {
-                    promises.push(this.browser.controlDataset.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
+                    promises.push(dsControl.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
                 }
 
                 return Promise.all(promises);
@@ -660,7 +655,7 @@ var hic = (function (hic) {
          * @param normalization
          * @returns {*}
          */
-        async function checkColorScale(zd, row1, row2, col1, col2, normalization) {
+        async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
 
             const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
             if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
@@ -689,8 +684,7 @@ var hic = (function (hic) {
                             blockNumber = row * zd.blockColumnCount + column;
                         }
 
-                        const dataset = ('B' === this.displayMode ? this.browser.controlDataset : this.browser.dataset);
-                        promises.push(dataset.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
+                        promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
                     }
                 }
 
