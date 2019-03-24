@@ -347,10 +347,10 @@ var hic = (function (hic) {
                     }
 
                     // Get blocks
-                    const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalizatio, this.browser.eventBus)
+                    const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalization, this.browser.eventBus)
                     let controlBlock
                     if (zdControl) {
-                        controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalizatio, this.browser.eventBus)
+                        controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalization, this.browser.eventBus)
                     }
 
                     const averageCount = zd.averageCount
