@@ -52,8 +52,7 @@ var juicebox = (function (site) {
 
         if (config.urlShortener) {
             hic.setURLShortener(config.urlShortener);
-        }
-        else {
+        } else {
             $("#hic-share-button").hide();
         }
 
@@ -103,8 +102,7 @@ var juicebox = (function (site) {
                     createBrowsers(query)
                         .then(postCreateBrowser)
                 })
-        }
-        else {
+        } else {
             createBrowsers(query)
                 .then(postCreateBrowser)
         }
@@ -122,8 +120,7 @@ var juicebox = (function (site) {
             function maybeShortenURL(url) {
                 if (url.length < 2048) {
                     return hic.shortenURL(url)
-                }
-                else {
+                } else {
                     igv.presentAlert("URL too long to shorten")
                     return Promise.resolve(url)
                 }
@@ -381,8 +378,7 @@ var juicebox = (function (site) {
                 success = document.execCommand('copy');
                 if (success) {
                     $('#hic-share-url-modal').modal('hide');
-                }
-                else {
+                } else {
                     alert("Copy not successful");
                 }
             });
@@ -393,8 +389,7 @@ var juicebox = (function (site) {
                 success = document.execCommand('copy');
                 if (success) {
                     $('#hic-share-url-modal').modal('hide');
-                }
-                else {
+                } else {
                     alert("Copy not successful");
                 }
             });
@@ -473,17 +468,24 @@ var juicebox = (function (site) {
                         browser.eventBus.subscribe("MapLoad", checkBDropdown);
 
                         if (parts && parts.length > 1) {
+                            const p = [];
                             for (i = 1; i < parts.length; i++) {
-                                browser = await
-                                hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])});
-                                browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                                browser.eventBus.subscribe("MapLoad", checkBDropdown);
+                                p.push(
+                                    hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+                                        .then(function (browser) {
+                                            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                                            browser.eventBus.subscribe("MapLoad", checkBDropdown);
+                                        })
+                                )
                             }
-                            syncBrowsers();
+                            Promise.all(p)
+                                .then(function (browserList) {
+                                    syncBrowsers();
+                                })
                         }
 
                         // Must manually trigger the genome change event on initial load
-                        if(browser && browser.genome) {
+                        if (browser && browser.genome) {
                             genomeChangeListener.receiveEvent({data: browser.genome.id})
                         }
 
@@ -497,7 +499,7 @@ var juicebox = (function (site) {
                         browser.eventBus.subscribe("MapLoad", checkBDropdown);
 
                         // Must manually trigger the genome change event on initial load
-                        if(browser && browser.genome) {
+                        if (browser && browser.genome) {
                             genomeChangeListener.receiveEvent({data: browser.genome.id})
                         }
 
@@ -526,8 +528,7 @@ var juicebox = (function (site) {
         if (browser) {
             if (browser.dataset) {
                 $('#hic-control-map-dropdown').removeClass('disabled');
-            }
-            else {
+            } else {
                 $('#hic-control-map-dropdown').addClass('disabled');
             }
         }
@@ -637,14 +638,14 @@ var juicebox = (function (site) {
                 [
                     {title: 'Cell Type', width: '7%'},
                     {title: 'Target', width: '8%'},
-                    {title: 'Assay Type', width:  '20%'},
-                    {title: 'Output Type', width:  '20%'},
+                    {title: 'Assay Type', width: '20%'},
+                    {title: 'Output Type', width: '20%'},
                     {title: 'Bio Rep', width: '5%'},
-                    {title: 'Tech Rep', width:  '5%'},
-                    {title: 'Format', width:  '5%'},
-                    {title: 'Experiment', width:  '7%'},
-                    {title: 'Accession', width:  '8%'},
-                    {title: 'Lab' , width: '20%'}
+                    {title: 'Tech Rep', width: '5%'},
+                    {title: 'Format', width: '5%'},
+                    {title: 'Experiment', width: '7%'},
+                    {title: 'Accession', width: '8%'},
+                    {title: 'Lab', width: '20%'}
                 ];
 
             encodeDatasource = new juicebox.EncodeDataSource(columnFormat);
@@ -654,15 +655,15 @@ var juicebox = (function (site) {
             };
 
             config =
-            {
-                $modal: $('#hicEncodeModal'),
-                $modalBody: $('#encodeModalBody'),
-                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                $modalGoButton: $('#encodeModalGoButton'),
-                datasource: encodeDatasource,
-                browserHandler: loadTracks
-            };
+                {
+                    $modal: $('#hicEncodeModal'),
+                    $modalBody: $('#encodeModalBody'),
+                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                    $modalGoButton: $('#encodeModalGoButton'),
+                    datasource: encodeDatasource,
+                    browserHandler: loadTracks
+                };
 
             encodeTable = new juicebox.ModalTable(config);
 
