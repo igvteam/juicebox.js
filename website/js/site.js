@@ -705,6 +705,12 @@ var juicebox = (function (site) {
     }
 
     function igvSupports(path) {
+
+        // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
+        if(path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
+            return false;
+        }
+
         var config = {url: path};
         igv.inferTrackTypes(config);
         return config.type !== undefined;

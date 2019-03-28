@@ -519,7 +519,7 @@ var hic = (function (hic) {
                         promisesNV.push(this.loadNormalizationFile(config.url))
                     }
 
-                    if (config.type === undefined) {
+                    if (config.type === undefined || "interaction" === config.type) {
                         // Assume this is a 2D track
                         promises2D.push(hic.loadTrack2D(config));
                     } else {
