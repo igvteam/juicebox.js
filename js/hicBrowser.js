@@ -758,7 +758,7 @@ var hic = (function (hic) {
         } else {
             const dataset = this.dataset
             dataset.getNormVectorIndex(config)
-                .then(function (nvi) {
+                .then(function (normVectorIndex) {
                     if (!config.isControl) {
                         eventBus.post(hic.Event("NormVectorIndexLoad", dataset));
                     }
@@ -1486,13 +1486,14 @@ var hic = (function (hic) {
 
     function getNviString(dataset) {
 
-        if (dataset.hicFile.normalizationVectorIndexRange) {
-            var range = dataset.hicFile.normalizationVectorIndexRange,
-                nviString = String(range.start) + "," + String(range.size);
-            return nviString
-        } else {
-            return undefined;
-        }
+        return dataset.hicFile.config.nvi
+        // if (dataset.hicFile.normalizationVectorIndexRange) {
+        //     var range = dataset.hicFile.normalizationVectorIndexRange,
+        //         nviString = String(range.start) + "," + String(range.size);
+        //     return nviString
+        // } else {
+        //     return undefined;
+        // }
     }
 
     function getBlockString(dataset) {
