@@ -29,6 +29,13 @@
 
 var hic = (function (hic) {
 
+    hic.Track2DDisplaceModes =
+        {
+            displayAllMatrix: 'displayAllMatrix',
+            displayLowerMatrix: 'displayLowerMatrix',
+            displayUpperMatrix: 'displayUpperMatrix'
+        };
+
     hic.Track2D = function (config, features) {
 
         var self = this;
@@ -38,6 +45,9 @@ var hic = (function (hic) {
         this.featureMap = {};
         this.featureCount = 0;
         this.isVisible = true;
+
+        this.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+
         if(config.color && hic.validateColor(config.color)) {
             this.color = this.color = config.color;    // If specified, this will override colors of individual records.
         }
@@ -58,7 +68,7 @@ var hic = (function (hic) {
         });
 
     };
-    
+
     hic.Track2D.prototype.getColor = function() {
         return this.color || this.repColor;
     }
