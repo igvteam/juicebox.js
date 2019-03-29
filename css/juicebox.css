@@ -308,24 +308,36 @@
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
     width: 100%;
     height: 40px;
     background-color: white;
     cursor: default; }
-    .hic-annotation-panel-container .hic-annotation-modal-row div:first-child {
+    .hic-annotation-panel-container .hic-annotation-modal-row > div:first-child {
       display: block;
       margin-left: 8px;
       margin-right: 4px;
       text-align: left;
       text-overflow: ellipsis;
       width: 384px; }
-    .hic-annotation-panel-container .hic-annotation-modal-row i.fa {
+    .hic-annotation-panel-container .hic-annotation-modal-row > i.fa {
       display: block;
-      margin-left: 32px;
-      margin-right: 32px;
       color: #5f5f5f; }
+    .hic-annotation-panel-container .hic-annotation-modal-row > i.fa:last-child {
+      margin-right: 32px; }
+    .hic-annotation-panel-container .hic-annotation-modal-row .matrix-diagonal-widget-container {
+      cursor: pointer;
+      width: 16px;
+      height: 16px;
+      background-repeat: no-repeat;
+      background-size: 16px 16px; }
+    .hic-annotation-panel-container .hic-annotation-modal-row .matrix-diagonal-widget-all {
+      background: url(img/matrix-diagonal-all.svg); }
+    .hic-annotation-panel-container .hic-annotation-modal-row .matrix-diagonal-widget-lower {
+      background: url(img/matrix-diagonal-lower.svg); }
+    .hic-annotation-panel-container .hic-annotation-modal-row .matrix-diagonal-widget-upper {
+      background: url(img/matrix-diagonal-upper.svg); }
     .hic-annotation-panel-container .hic-annotation-modal-row .up-down-arrow-container {
       display: flex;
       flex-flow: row;

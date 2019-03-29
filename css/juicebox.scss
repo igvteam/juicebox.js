@@ -41,6 +41,8 @@ $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-heigh
 
 $hic-annotation-modal-row-height: 40px;
 
+$matrix-diagonal-widget-container-size: 16px;
+
 //
 $default-light-color: #f7f7f7;
 $default-medium-color: #a6a6a6;
@@ -614,7 +616,7 @@ $default-font-family: 'Open Sans', sans-serif;
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
 
     width: 100%;
@@ -624,7 +626,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
     cursor: default;
 
-    div:first-child {
+    >div:first-child {
       display: block;
       margin-left: 8px;
       margin-right: 4px;
@@ -633,11 +635,37 @@ $default-font-family: 'Open Sans', sans-serif;
       width: 384px;
     }
 
-    i.fa {
+    >i.fa {
       display: block;
-      margin-left: 32px;
-      margin-right: 32px;
+      //margin-left: 32px;
+      //margin-right: 32px;
       color: $default-dark-color;
+    }
+
+    >i.fa:last-child {
+      margin-right: 32px;
+    }
+    .matrix-diagonal-widget-container {
+
+      cursor: pointer;
+
+      width: $matrix-diagonal-widget-container-size;
+      height: $matrix-diagonal-widget-container-size;
+
+      background-repeat: no-repeat;
+      background-size: $matrix-diagonal-widget-container-size $matrix-diagonal-widget-container-size;
+    }
+
+    .matrix-diagonal-widget-all {
+      background: url(img/matrix-diagonal-all.svg);
+    }
+
+    .matrix-diagonal-widget-lower {
+      background: url(img/matrix-diagonal-lower.svg);
+    }
+
+    .matrix-diagonal-widget-upper {
+      background: url(img/matrix-diagonal-upper.svg);
     }
 
     .up-down-arrow-container {
