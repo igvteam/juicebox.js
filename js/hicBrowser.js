@@ -139,6 +139,7 @@ var hic = (function (hic) {
         } finally {
             browser.contactMatrixView.stopSpinner();
             browser.$user_interaction_shield.hide();
+            console.log('browser created')
         }
 
 

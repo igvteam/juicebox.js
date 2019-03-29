@@ -96,6 +96,8 @@ var hic = (function (hic) {
             this.browser.eventBus.subscribe("ControlMapLoad", this);
             this.browser.eventBus.subscribe("ColorChange", this)
             //this.browser.eventBus.subscribe("DragStopped", this)
+
+            this.drawsInProgress = new Set()
         };
 
         hic.ContactMatrixView.prototype.setColorScale = function (colorScale) {
@@ -279,7 +281,6 @@ var hic = (function (hic) {
          * @param state
          * @returns {*}
          */
-        const drawsInProgress = new Set()
 
         const inProgressCache = {}
 
@@ -316,7 +317,7 @@ var hic = (function (hic) {
                 return this.imageTileCache[key]
 
             } else {
-                if (drawsInProgress.has(key)) {
+                if (this.drawsInProgress.has(key)) {
                     //console.log("In progress")
                     const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
                     const image = inProgressTile(imageSize)
@@ -327,10 +328,10 @@ var hic = (function (hic) {
                         image: image,
                         inProgress: true
                     }  // TODO return an image at a coarser resolution if avaliable
-                }
-                drawsInProgress.add(key)
 
-                //console.log("Start load for " + key)
+                }
+                this.drawsInProgress.add(key)
+
                 try {
                     this.startSpinner()
                     const sameChr = zd.chr1.index === zd.chr2.index
@@ -377,9 +378,8 @@ var hic = (function (hic) {
 
                     }
 
-                    drawsInProgress.delete(key)
+                    this.drawsInProgress.delete(key)
                     return imageTile;
-
 
                     // Actual drawing happens here
                     function drawBlock(block, controlBlock, transpose) {
