@@ -184,8 +184,6 @@ var hic = (function (hic) {
         $e.text(isTrack2D ? track.config.name : track1D.config.name);
         $row.append($e);
 
-
-
         // track hide/show
         if (isTrack2D) {
             str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
@@ -209,6 +207,13 @@ var hic = (function (hic) {
             });
         }
 
+        // matrix diagonal widget
+        const $matrix_diagonal_div = $('<div>', { class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all' });
+        $row.append($matrix_diagonal_div);
+        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
+            e.preventDefault();
+            matrixDiagionalWidgetHandler($matrix_diagonal_div);
+        });
 
         // color swatch selector button
         $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
@@ -320,6 +325,22 @@ var hic = (function (hic) {
 
             self.updateBody(trackList);
         });
+    }
+
+    function matrixDiagionalWidgetHandler($icon) {
+
+            if ($icon.hasClass('matrix-diagonal-widget-all')) {
+                $icon.removeClass('matrix-diagonal-widget-all');
+                $icon.addClass('matrix-diagonal-widget-lower');
+            } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+                $icon.removeClass('matrix-diagonal-widget-lower');
+                $icon.addClass('matrix-diagonal-widget-upper');
+            } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+                $icon.removeClass('matrix-diagonal-widget-upper');
+                $icon.addClass('matrix-diagonal-widget-all');
+            } else {
+                $icon.addClass('matrix-diagonal-widget-all');
+            }
     }
 
     function annotationColorSwatch(rgbString) {
