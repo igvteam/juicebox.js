@@ -207,13 +207,17 @@ var hic = (function (hic) {
             });
         }
 
-        // matrix diagonal widget
-        const $matrix_diagonal_div = $('<div>', { class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all' });
-        $row.append($matrix_diagonal_div);
-        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
-            e.preventDefault();
-            matrixDiagionalWidgetHandler($matrix_diagonal_div);
-        });
+        if (isTrack2D) {
+
+            // matrix diagonal widget
+            const $matrix_diagonal_div = $('<div>', { class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all' });
+            $row.append($matrix_diagonal_div);
+            $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
+                e.preventDefault();
+                matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
+            });
+
+        }
 
         // color swatch selector button
         $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
@@ -327,19 +331,30 @@ var hic = (function (hic) {
         });
     }
 
-    function matrixDiagionalWidgetHandler($icon) {
+    function matrixDiagionalWidgetHandler($icon, track2D) {
 
             if ($icon.hasClass('matrix-diagonal-widget-all')) {
+
                 $icon.removeClass('matrix-diagonal-widget-all');
+
                 $icon.addClass('matrix-diagonal-widget-lower');
+                track2D.displayMode = hic.Track2DDisplaceModes.displayLowerMatrix;
             } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+
                 $icon.removeClass('matrix-diagonal-widget-lower');
+
                 $icon.addClass('matrix-diagonal-widget-upper');
+                track2D.displayMode = hic.Track2DDisplaceModes.displayUpperMatrix;
             } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+
                 $icon.removeClass('matrix-diagonal-widget-upper');
+
                 $icon.addClass('matrix-diagonal-widget-all');
+                track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
             } else {
+
                 $icon.addClass('matrix-diagonal-widget-all');
+                track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
             }
     }
 
