@@ -1407,11 +1407,6 @@ var hic = (function (hic) {
         try {
             this.startSpinner();
 
-            for (let xyTrackRenderPair of this.trackRenderers) {
-                await xyTrackRenderPair.x.readyToPaint()
-                await xyTrackRenderPair.y.readyToPaint()
-            }
-
             if (event !== undefined && "LocusChange" === event.type) {
                 this.layoutController.xAxisRuler.locusChange(event);
                 this.layoutController.yAxisRuler.locusChange(event);
