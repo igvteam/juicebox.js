@@ -139,7 +139,6 @@ var hic = (function (hic) {
         } finally {
             browser.contactMatrixView.stopSpinner();
             browser.$user_interaction_shield.hide();
-            console.log('browser created')
         }
 
 
@@ -532,7 +531,7 @@ var hic = (function (hic) {
 
             if (trackXYPairs.length > 0) {
                 this.layoutController.tracksLoaded(trackXYPairs);
-                this.updateLayout();
+                await this.updateLayout();
             }
 
             const tracks2D = await Promise.all(promises2D)
@@ -560,7 +559,7 @@ var hic = (function (hic) {
 
                 if (url && typeof url === "string" && url.includes("drive.google.com")) {
 
-                    promises.push(igv.Google.getDriveFileInfo(config.url)
+                    promises.push(igv.google.getDriveFileInfo(config.url)
 
                         .then(function (json) {
                             // Temporarily switch URL to infer tipes
@@ -635,25 +634,16 @@ var hic = (function (hic) {
      *
      * @param xy
      */
-    hic.Browser.prototype.renderTrackXY = function (xy) {
+    hic.Browser.prototype.renderTrackXY = async function (xy) {
 
-        var self = this;
+        try {
+            this.startSpinner()
+            await xy.x.repaint();
+            await xy.y.repaint();
+        } finally {
+            this.stopSpinner()
+        }
 
-        xy.x.readyToPaint()
-
-            .then(function (ignore) {
-                return xy.y.readyToPaint();
-            })
-
-            .then(function (ignore) {
-                self.stopSpinner();
-                xy.x.repaint();
-                xy.y.repaint();
-            })
-            .catch(function (error) {
-                self.stopSpinner();
-                console.error(error);
-            })
     }
 
 
@@ -819,8 +809,6 @@ var hic = (function (hic) {
             this.$user_interaction_shield.hide();
             this.stopSpinner();
         }
-
-
     }
 
 
@@ -833,7 +821,7 @@ var hic = (function (hic) {
     async function extractName(config) {
 
         if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-            const json = await igv.Google.getDriveFileInfo(config.url)
+            const json = await igv.google.getDriveFileInfo(config.url)
             return json.originalFilename;
         } else {
             if (config.name === undefined) {
@@ -1020,7 +1008,7 @@ var hic = (function (hic) {
 
                     this.clamp();
 
-                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1/scaleFactor)
+                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
 
                     this.eventBus.post(hic.Event("LocusChange", {
                         state: state,
@@ -1157,7 +1145,7 @@ var hic = (function (hic) {
         }
     }
 
-    hic.Browser.prototype.updateLayout = function () {
+    hic.Browser.prototype.updateLayout = async function () {
 
         var self = this;
         this.clamp();
@@ -1175,7 +1163,7 @@ var hic = (function (hic) {
         this.layoutController.xAxisRuler.update();
         this.layoutController.yAxisRuler.update();
 
-        this.update();
+        await this.update();
 
     };
 
