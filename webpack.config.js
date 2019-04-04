@@ -24,7 +24,7 @@
 const path = require('path')
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry:  './tmp/juicebox.js',
     target: 'web',
     output: {

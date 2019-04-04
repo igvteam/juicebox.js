@@ -1964,19 +1964,24 @@ var hic = (function (hic) {
 
     async function loadDataset(config) {
 
-        const url = config.url
-
         // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
         if (config.url instanceof File) {
-            config.file = new hic.LocalFile(config.url)
+            config.blob = config.url
+            //config.file = new hic.LocalFile(config.url)
             delete config.url
+        } else {
+            // If this is a google url, add api KEY
+            if(config.url.indexOf("drive.google.com") >= 0) {
+                config.url = igv.google.driveDownloadURL(config.url)
+                config.apiKey = igv.google.apiKey
+            }
         }
 
         const straw = new HicStraw(config)
         const hicFile = straw.hicFile
         await hicFile.init()
         const dataset = new hic.Dataset(hicFile)
-        dataset.url = url
+        dataset.url = config.url
         return dataset
     }
 
