@@ -822,7 +822,7 @@ var hic = (function (hic) {
 
         if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
             const json = await igv.google.getDriveFileInfo(config.url)
-            return json.originalFilename;
+            return json.name;
         } else {
             if (config.name === undefined) {
                 return hic.extractFilename(config.url);
