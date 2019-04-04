@@ -324,7 +324,11 @@ var juicebox = (function (site) {
                     path = $(this).val();
                     name = $(this).find('option:selected').text();
 
-                    hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                    const config = {url: path, name: name}
+                    if(path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
+                        config.indexed = false   //UCSC files are never indexed
+                    }
+                    hic.Browser.getCurrentBrowser().loadTracks([config]);
                 }
 
                 $('#hic-annotation-select-modal').modal('hide');
