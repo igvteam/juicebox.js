@@ -1971,7 +1971,7 @@ var hic = (function (hic) {
             delete config.url
         } else {
             // If this is a google url, add api KEY
-            if(config.url.indexOf("drive.google.com") >= 0) {
+            if(config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
                 config.url = igv.google.driveDownloadURL(config.url)
                 config.apiKey = igv.google.apiKey
             }
