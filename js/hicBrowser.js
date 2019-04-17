@@ -1695,7 +1695,7 @@ var hic = (function (hic) {
         cycle = query["cycle"];
 
         if (hicUrl) {
-            hicUrl = parapmDecode(hicUrl, uriDecode);
+            hicUrl = paramDecode(hicUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (hicUrl.startsWith(key)) hicUrl = hicUrl.replace(key, value);
@@ -1704,10 +1704,10 @@ var hic = (function (hic) {
 
         }
         if (name) {
-            config.name = parapmDecode(name, uriDecode);
+            config.name = paramDecode(name, uriDecode);
         }
         if (controlUrl) {
-            controlUrl = parapmDecode(controlUrl, uriDecode);
+            controlUrl = paramDecode(controlUrl, uriDecode);
             Object.keys(urlShortcuts).forEach(function (key) {
                 var value = urlShortcuts[key];
                 if (controlUrl.startsWith(key)) controlUrl = controlUrl.replace(key, value);
@@ -1715,25 +1715,25 @@ var hic = (function (hic) {
             config.controlUrl = controlUrl;
         }
         if (controlName) {
-            config.controlName = parapmDecode(controlName, uriDecode);
+            config.controlName = paramDecode(controlName, uriDecode);
         }
 
         if (stateString) {
-            stateString = parapmDecode(stateString, uriDecode);
+            stateString = paramDecode(stateString, uriDecode);
             config.state = destringifyStateV0(stateString);
 
         }
         if (colorScale) {
-            colorScale = parapmDecode(colorScale, uriDecode);
+            colorScale = paramDecode(colorScale, uriDecode);
             config.colorScale = hic.destringifyColorScale(colorScale);
         }
 
         if (displayMode) {
-            config.displayMode = parapmDecode(displayMode, uriDecode);
+            config.displayMode = paramDecode(displayMode, uriDecode);
         }
 
         if (trackString) {
-            trackString = parapmDecode(trackString, uriDecode);
+            trackString = paramDecode(trackString, uriDecode);
             config.tracks = destringifyTracksV0(trackString);
 
             // If an oAuth token is provided append it to track configs.
@@ -1749,7 +1749,7 @@ var hic = (function (hic) {
         }
 
         if (captionText) {
-            captionText = parapmDecode(captionText, uriDecode);
+            captionText = paramDecode(captionText, uriDecode);
             var captionDiv = document.getElementById("hic-caption");
             if (captionDiv) {
                 captionDiv.textContent = captionText;
@@ -1764,10 +1764,10 @@ var hic = (function (hic) {
         // }
 
         if (nvi) {
-            config.nvi = parapmDecode(nvi, uriDecode);
+            config.nvi = paramDecode(nvi, uriDecode);
         }
         if (controlNvi) {
-            config.controlNvi = parapmDecode(controlNvi, uriDecode);
+            config.controlNvi = paramDecode(controlNvi, uriDecode);
         }
 
         function destringifyStateV0(string) {
@@ -1869,7 +1869,7 @@ var hic = (function (hic) {
         return s;
     }
 
-    function parapmDecode(str, uriDecode) {
+    function paramDecode(str, uriDecode) {
 
         if (uriDecode) {
             return decodeURIComponent(str);   // Still more backward compatibility
