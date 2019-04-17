@@ -57,15 +57,6 @@
     <!-- Juicebox JS -->
     <script src="js/juicebox.min.js"></script>
     <script src="js/hic-straw.js"></script>
-    <!-- Site JS-->
-    <script src="js/site.js"></script>
-
-    <!-- IGV Modal Table JS -->
-    <script src="js/modalTable.js"></script>
-    <script src="js/encode.js"></script>
-
-
-
 
     <!-- Google Analytics -->
     <script src="../js/analytics.js"></script>
@@ -626,47 +617,7 @@
     </div>
 </div>
 
-<script type="text/javascript">
-
-    $(document).ready(function () {
-
-        var config = {
-            mapMenu: {
-                id: 'dataset_selector',
-                items: 'res/mapMenuData.txt'
-            },
-            trackMenu: {
-                id: 'annotation-selector',
-                items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_$GENOME_ID.txt'
-            },
-            trackMenu2D: {
-                id: 'annotation-2D-selector',
-                items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
-            },
-
-            // URL shortener(s).  Optional.   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
-            // If more than 1 shortener is defined the first is used to shorten URLs
-            urlShortener: [
-                {
-                    provider: "bitly",
-                    apiKey: "ABCD",        // TODO -- replace with your Bitly access token, or function to fetch token
-                    hostname: 'bit.ly'
-                },
-                {
-                    provider: "google",
-                    apiKey: "ABCD",        // TODO -- replace with your Google API Key, or function to fetch key
-                    hostname: "goo.gl"
-                }
-            ],
-
-            apiKey: "ABCD",   // Optional.  TODO -- replace with your Google API Key if supporting Google Drive
-
-        };
-
-        juicebox.init($('#app-container'), config);
-    });
-
-</script>
+<script src="js/bundle.js"></script>
 
 </body>
 

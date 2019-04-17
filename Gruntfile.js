@@ -1,4 +1,5 @@
 const webpackConfig = require('./webpack.config.js');
+const webackSiteConfig = require('./webpack.config.site.js');
 
 module.exports = function (grunt) {
 
@@ -81,7 +82,8 @@ module.exports = function (grunt) {
         },
 
         webpack: {
-            prod: webpackConfig
+            prod: webpackConfig,
+            site: webackSiteConfig
         },
 
         babel: {
@@ -122,7 +124,7 @@ module.exports = function (grunt) {
     // 4. Where we tell Grunt what to do when we type "grunt" into the terminal.
     //grunt.registerTask('default', ['concat:igvexp', 'uglify:igvexp']);
     //grunt.registerTask('default', ['concat:igv', 'uglify:igv', 'md2html:igv']);
-    grunt.registerTask('default', ['concat:hic', 'webpack:prod', 'copy']);
+    grunt.registerTask('default', ['concat:hic', 'webpack:prod', 'webpack:site', 'copy']);
 
     grunt.task.registerTask('unittest', 'Run one unit test.', function (testname) {
 

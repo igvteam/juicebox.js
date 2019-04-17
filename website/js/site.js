@@ -27,701 +27,707 @@
  * Page (site specific) code for the example pages.
  *
  */
-var juicebox = (function (site) {
 
-    var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
-        encodeTable,
-        lastGenomeId,
-        qrcode,
-        contact_map_dropdown_id = 'hic-contact-map-dropdown',
-        control_map_dropdown_id = 'hic-control-map-dropdown';
+import ModalTable from './modalTable'
+import EncodeDataSource from './encode'
+//import QRCode from './qrcode'
 
-    site.init = function ($container, config) {
+const juicebox = {}
 
-        var genomeChangeListener,
-            $appContainer,
-            query,
-            $hic_share_url_modal,
-            $e;
+export default juicebox
+
+var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
+    encodeTable,
+    lastGenomeId,
+    qrcode,
+    contact_map_dropdown_id = 'hic-contact-map-dropdown',
+    control_map_dropdown_id = 'hic-control-map-dropdown';
+
+juicebox.init = function ($container, config) {
+
+    var genomeChangeListener,
+        $appContainer,
+        query,
+        $hic_share_url_modal,
+        $e;
 
 
-        hic.captionManager = new hic.CaptionManager($('#hic-caption'));
+    hic.captionManager = new hic.CaptionManager($('#hic-caption'));
 
-        $('#hic-encode-modal-button').hide();
-        $('#hic-encode-loading').show();
+    $('#hic-encode-modal-button').hide();
+    $('#hic-encode-loading').show();
 
-        if (config.urlShortener) {
-            hic.setURLShortener(config.urlShortener);
-        } else {
-            $("#hic-share-button").hide();
-        }
+    if (config.urlShortener) {
+        hic.setURLShortener(config.urlShortener);
+    } else {
+        $("#hic-share-button").hide();
+    }
 
-        genomeChangeListener = {
+    genomeChangeListener = {
 
-            receiveEvent: function (event) {
-                var genomeId = event.data;
+        receiveEvent: function (event) {
+            var genomeId = event.data;
 
-                if (lastGenomeId !== genomeId) {
+            if (lastGenomeId !== genomeId) {
 
-                    // lastGenomeId = genomeId;
+                // lastGenomeId = genomeId;
 
-                    if (config.trackMenu) {
-                        var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
-                        loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
-                    }
-
-                    if (config.trackMenu2D) {
-                        var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
-                        loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
-                    }
-
-                    createEncodeTable(genomeId);
+                if (config.trackMenu) {
+                    var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
+                    loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
                 }
+
+                if (config.trackMenu2D) {
+                    var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
+                    loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
+                }
+
+                createEncodeTable(genomeId);
             }
-        };
+        }
+    };
 
 
-        config = config || {};
+    config = config || {};
 
-        $appContainer = $container;
+    $appContainer = $container;
 
-        apiKey = config.apiKey;
-        if (apiKey) {
-            if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
-            hic.setApiKey(apiKey);
+    apiKey = config.apiKey;
+    if (apiKey) {
+        if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
+        hic.setApiKey(apiKey);
+    }
+
+    query = hic.extractQuery(window.location.href);
+
+    if (query && query.hasOwnProperty("juiceboxURL")) {
+
+        hic.expandURL(query["juiceboxURL"])
+            .then(function (jbURL) {
+
+                query = hic.extractQuery(jbURL);
+                createBrowsers(query)
+                    .then(postCreateBrowser)
+            })
+    } else {
+        createBrowsers(query)
+            .then(postCreateBrowser)
+    }
+
+
+    function postCreateBrowser() {
+
+
+        if (config.mapMenu) {
+            populatePulldown(config.mapMenu);
         }
 
-        query = hic.extractQuery(window.location.href);
+        $hic_share_url_modal = $('#hic-share-url-modal');
 
-        if (query && query.hasOwnProperty("juiceboxURL")) {
-
-            hic.expandURL(query["juiceboxURL"])
-                .then(function (jbURL) {
-
-                    query = hic.extractQuery(jbURL);
-                    createBrowsers(query)
-                        .then(postCreateBrowser)
-                })
-        } else {
-            createBrowsers(query)
-                .then(postCreateBrowser)
-        }
-
-
-        function postCreateBrowser() {
-
-
-            if (config.mapMenu) {
-                populatePulldown(config.mapMenu);
+        function maybeShortenURL(url) {
+            if (url.length < 2048) {
+                return hic.shortenURL(url)
+            } else {
+                igv.presentAlert("URL too long to shorten")
+                return Promise.resolve(url)
             }
-
-            $hic_share_url_modal = $('#hic-share-url-modal');
-
-            function maybeShortenURL(url) {
-                if (url.length < 2048) {
-                    return hic.shortenURL(url)
-                } else {
-                    igv.presentAlert("URL too long to shorten")
-                    return Promise.resolve(url)
-                }
-            }
-
-
-            $hic_share_url_modal.on('show.bs.modal', function (e) {
-
-                var queryString,
-                    href,
-                    idx;
-
-                href = new String(window.location.href);
-
-                // This js file is specific to the aidenlab site, and we know we have only juicebox parameters.
-                // Strip href of current parameters, if any
-                idx = href.indexOf("?");
-                if (idx > 0) href = href.substring(0, idx);
-
-                hic.shortJuiceboxURL(href)
-
-                    .then(function (jbUrl) {
-
-                        getEmbeddableSnippet(jbUrl)
-                            .then(function (embedSnippet) {
-                                var $hic_embed_url;
-
-                                $hic_embed_url = $('#hic-embed');
-                                $hic_embed_url.val(embedSnippet);
-                                $hic_embed_url.get(0).select();
-                            });
-
-                        maybeShortenURL(jbUrl)
-
-                            .then(function (shortURL) {
-
-                                var shareUrl = shortURL || jbUrl
-
-                                // Shorten second time
-                                // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
-
-                                var tweetContainer,
-                                    config,
-                                    $hic_share_url;
-
-                                $hic_share_url = $('#hic-share-url');
-                                $hic_share_url.val(shareUrl);
-                                $hic_share_url.get(0).select();
-
-                                tweetContainer = $('#tweetButtonContainer');
-                                tweetContainer.empty();
-                                config =
-                                    {
-                                        text: 'Contact map: '
-                                    };
-
-                                $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
-
-
-                                if (shareUrl.length < 100) {
-                                    window.twttr.widgets
-                                        .createShareButton(shareUrl, tweetContainer.get(0), config)
-                                        .then(function (el) {
-                                            console.log("Tweet button updated");
-                                        });
-
-
-                                    // QR code generation
-                                    if (qrcode) {
-                                        qrcode.clear();
-                                        $('hic-qr-code-image').empty();
-                                    } else {
-                                        config =
-                                            {
-                                                width: 128,
-                                                height: 128,
-                                                correctLevel: QRCode.CorrectLevel.H
-                                            };
-
-                                        qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
-                                    }
-
-                                    qrcode.makeCode(shareUrl);
-                                }
-                            });
-                    });
-            });
-
-            $hic_share_url_modal.on('hidden.bs.modal', function (e) {
-                $('#hic-embed-container').hide();
-                $('#hic-qr-code-image').hide();
-            });
-
-            $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
-                var browser;
-
-                browser = hic.Browser.getCurrentBrowser();
-                if (undefined === browser || undefined === browser.dataset) {
-                    igv.presentAlert('Contact map must be loaded and selected before loading tracks');
-                }
-            });
-
-            $('#hic-embed-button').on('click', function (e) {
-                $('#hic-qr-code-image').hide();
-                $('#hic-embed-container').toggle();
-            });
-
-            $('#hic-qr-code-button').on('click', function (e) {
-                $('#hic-embed-container').hide();
-                $('#hic-qr-code-image').toggle();
-            });
-
-            $('#dataset_selector').on('change', function (e) {
-                var $selected,
-                    url,
-                    browser;
-
-                url = $(this).val();
-                $selected = $(this).find('option:selected');
-
-                browser = hic.Browser.getCurrentBrowser();
-                if (undefined === browser) {
-                    igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
-                } else {
-                    loadHicFile(url, $selected.text());
-                }
-
-                $('#hic-contact-map-select-modal').modal('hide');
-                $(this).find('option').removeAttr("selected");
-
-            });
-
-            $('.selectpicker').selectpicker();
-
-            $('#hic-load-local-file').on('change', function (e) {
-
-                var file,
-                    suffix;
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-
-                    file = ($(this).get(0).files)[0];
-
-                    suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
-
-                    if ('hic' === suffix) {
-                        loadHicFile(file, file.name);
-                    } else {
-                        hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
-                    }
-                }
-
-                $(this).val("");
-                $('#hic-load-local-file-modal').modal('hide');
-
-            });
-
-            $('#hic-load-url').on('change', function (e) {
-                var url,
-                    suffix,
-                    paramIdx,
-                    path;
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-                    url = $(this).val();
-                    loadHicFile(url);
-                }
-
-                $(this).val("");
-                $('#hic-load-url-modal').modal('hide');
-
-            });
-
-            $('#track-load-url').on('change', function (e) {
-                var url;
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-                    url = $(this).val();
-                    hic.Browser.getCurrentBrowser().loadTracks([{url: url}]);
-                }
-
-                $(this).val("");
-                $('#track-load-url-modal').modal('hide');
-
-            });
-
-            $('#annotation-selector').on('change', function (e) {
-                var path,
-                    name;
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-
-                    path = $(this).val();
-                    name = $(this).find('option:selected').text();
-
-                    const config = {url: path, name: name}
-                    if(path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
-                        config.indexed = false   //UCSC files are never indexed
-                    }
-                    hic.Browser.getCurrentBrowser().loadTracks([config]);
-                }
-
-                $('#hic-annotation-select-modal').modal('hide');
-                $(this).find('option').removeAttr("selected");
-
-            });
-
-            $('#annotation-2D-selector').on('change', function (e) {
-                var path,
-                    name;
-
-                if (undefined === hic.Browser.getCurrentBrowser()) {
-                    igv.presentAlert('ERROR: you must select a map panel.');
-                } else {
-
-                    path = $(this).val();
-                    name = $(this).find('option:selected').text();
-
-                    hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
-                }
-
-                $('#hic-annotation-2D-select-modal').modal('hide');
-                $(this).find('option').removeAttr("selected");
-            });
-
-            $('.juicebox-app-clone-button').on('click', function (e) {
-
-                var browser,
-                    config;
-
-                config =
-                    {
-                        initFromUrl: false,
-                        updateHref: false
-                    };
-
-                hic.createBrowser($container.get(0), config)
-
-                    .then(function (browser) {
-
-                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-                        hic.Browser.setCurrentBrowser(browser);
-                    })
-
-            });
-
-            $('#hic-copy-link').on('click', function (e) {
-                var success;
-                $('#hic-share-url')[0].select();
-                success = document.execCommand('copy');
-                if (success) {
-                    $('#hic-share-url-modal').modal('hide');
-                } else {
-                    alert("Copy not successful");
-                }
-            });
-
-            $('#hic-embed-copy-link').on('click', function (e) {
-                var success;
-                $('#hic-embed')[0].select();
-                success = document.execCommand('copy');
-                if (success) {
-                    $('#hic-share-url-modal').modal('hide');
-                } else {
-                    alert("Copy not successful");
-                }
-            });
-
-            $e = $('button[id$=-map-dropdown]');
-            $e.parent().on('show.bs.dropdown', function () {
-                const id = $(this).children('.dropdown-toggle').attr('id');
-                site.currentContactMapDropdownButtonID = id;
-            });
-
-            $e.parent().on('hide.bs.dropdown', function () {
-                console.log("hide contact/control map");
-            });
-
-            hic.eventBus.subscribe("BrowserSelect", function (event) {
-                updateBDropdown(event.data);
-            });
         }
 
-        function getEmbeddableSnippet(jbUrl) {
 
-            return new Promise(function (fulfill, reject) {
-                var idx, embedUrl, params, width, height;
+        $hic_share_url_modal.on('show.bs.modal', function (e) {
 
-                idx = jbUrl.indexOf("?");
-                params = jbUrl.substring(idx);
-                embedUrl = (config.embedTarget || getEmbedTarget()) + params;
-                width = $appContainer.width() + 50;
-                height = $appContainer.height();
-                fulfill('<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
+            var queryString,
+                href,
+                idx;
 
-                // Disable shortening the embedUrl for now -- we don't want to bake in the embedTarget
-                // shortenURL(embedUrl)
-                //     .then(function (shortURL) {
-                //         fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
-                //     });
-            });
-
-        }
-
-        /**
-         * Get the default embed html target.  Assumes an "embed.html" file in same directory as this page
-         */
-        function getEmbedTarget() {
-
-            var href, idx;
             href = new String(window.location.href);
 
+            // This js file is specific to the aidenlab site, and we know we have only juicebox parameters.
+            // Strip href of current parameters, if any
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            idx = href.lastIndexOf("/");
-            return href.substring(0, idx) + "/embed.html"
+            hic.shortJuiceboxURL(href)
 
-        }
+                .then(function (jbUrl) {
 
-        function createBrowsers(query) {
+                    getEmbeddableSnippet(jbUrl)
+                        .then(function (embedSnippet) {
+                            var $hic_embed_url;
 
-            var parts, q, browser, i;
+                            $hic_embed_url = $('#hic-embed');
+                            $hic_embed_url.val(embedSnippet);
+                            $hic_embed_url.get(0).select();
+                        });
 
-            if (query && query.hasOwnProperty("juicebox")) {
-                q = query["juicebox"];
+                    maybeShortenURL(jbUrl)
 
-                if (q.startsWith("%7B")) {
-                    q = decodeURIComponent(q);
+                        .then(function (shortURL) {
+
+                            var shareUrl = shortURL || jbUrl
+
+                            // Shorten second time
+                            // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
+
+                            var tweetContainer,
+                                config,
+                                $hic_share_url;
+
+                            $hic_share_url = $('#hic-share-url');
+                            $hic_share_url.val(shareUrl);
+                            $hic_share_url.get(0).select();
+
+                            tweetContainer = $('#tweetButtonContainer');
+                            tweetContainer.empty();
+                            config =
+                                {
+                                    text: 'Contact map: '
+                                };
+
+                            $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
+
+
+                            if (shareUrl.length < 100) {
+                                window.twttr.widgets
+                                    .createShareButton(shareUrl, tweetContainer.get(0), config)
+                                    .then(function (el) {
+                                        console.log("Tweet button updated");
+                                    });
+
+
+                                // QR code generation
+                                if (qrcode) {
+                                    qrcode.clear();
+                                    $('hic-qr-code-image').empty();
+                                } else {
+                                    config =
+                                        {
+                                            width: 128,
+                                            height: 128,
+                                            correctLevel: QRCode.CorrectLevel.H
+                                        };
+
+                                    qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                                }
+
+                                qrcode.makeCode(shareUrl);
+                            }
+                        });
+                });
+        });
+
+        $hic_share_url_modal.on('hidden.bs.modal', function (e) {
+            $('#hic-embed-container').hide();
+            $('#hic-qr-code-image').hide();
+        });
+
+        $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
+            var browser;
+
+            browser = hic.Browser.getCurrentBrowser();
+            if (undefined === browser || undefined === browser.dataset) {
+                igv.presentAlert('Contact map must be loaded and selected before loading tracks');
+            }
+        });
+
+        $('#hic-embed-button').on('click', function (e) {
+            $('#hic-qr-code-image').hide();
+            $('#hic-embed-container').toggle();
+        });
+
+        $('#hic-qr-code-button').on('click', function (e) {
+            $('#hic-embed-container').hide();
+            $('#hic-qr-code-image').toggle();
+        });
+
+        $('#dataset_selector').on('change', function (e) {
+            var $selected,
+                url,
+                browser;
+
+            url = $(this).val();
+            $selected = $(this).find('option:selected');
+
+            browser = hic.Browser.getCurrentBrowser();
+            if (undefined === browser) {
+                igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
+            } else {
+                loadHicFile(url, $selected.text());
+            }
+
+            $('#hic-contact-map-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+
+        });
+
+        $('.selectpicker').selectpicker();
+
+        $('#hic-load-local-file').on('change', function (e) {
+
+            var file,
+                suffix;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                file = ($(this).get(0).files)[0];
+
+                suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
+
+                if ('hic' === suffix) {
+                    loadHicFile(file, file.name);
+                } else {
+                    hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                }
+            }
+
+            $(this).val("");
+            $('#hic-load-local-file-modal').modal('hide');
+
+        });
+
+        $('#hic-load-url').on('change', function (e) {
+            var url,
+                suffix,
+                paramIdx,
+                path;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                url = $(this).val();
+                loadHicFile(url);
+            }
+
+            $(this).val("");
+            $('#hic-load-url-modal').modal('hide');
+
+        });
+
+        $('#track-load-url').on('change', function (e) {
+            var url;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+                url = $(this).val();
+                hic.Browser.getCurrentBrowser().loadTracks([{url: url}]);
+            }
+
+            $(this).val("");
+            $('#track-load-url-modal').modal('hide');
+
+        });
+
+        $('#annotation-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                const config = {url: path, name: name}
+                if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
+                    config.indexed = false   //UCSC files are never indexed
+                }
+                hic.Browser.getCurrentBrowser().loadTracks([config]);
+            }
+
+            $('#hic-annotation-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+
+        });
+
+        $('#annotation-2D-selector').on('change', function (e) {
+            var path,
+                name;
+
+            if (undefined === hic.Browser.getCurrentBrowser()) {
+                igv.presentAlert('ERROR: you must select a map panel.');
+            } else {
+
+                path = $(this).val();
+                name = $(this).find('option:selected').text();
+
+                hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+            }
+
+            $('#hic-annotation-2D-select-modal').modal('hide');
+            $(this).find('option').removeAttr("selected");
+        });
+
+        $('.juicebox-app-clone-button').on('click', function (e) {
+
+            var browser,
+                config;
+
+            config =
+                {
+                    initFromUrl: false,
+                    updateHref: false
+                };
+
+            hic.createBrowser($container.get(0), config)
+
+                .then(function (browser) {
+
+                    browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+
+                    hic.Browser.setCurrentBrowser(browser);
+                })
+
+        });
+
+        $('#hic-copy-link').on('click', function (e) {
+            var success;
+            $('#hic-share-url')[0].select();
+            success = document.execCommand('copy');
+            if (success) {
+                $('#hic-share-url-modal').modal('hide');
+            } else {
+                alert("Copy not successful");
+            }
+        });
+
+        $('#hic-embed-copy-link').on('click', function (e) {
+            var success;
+            $('#hic-embed')[0].select();
+            success = document.execCommand('copy');
+            if (success) {
+                $('#hic-share-url-modal').modal('hide');
+            } else {
+                alert("Copy not successful");
+            }
+        });
+
+        $e = $('button[id$=-map-dropdown]');
+        $e.parent().on('show.bs.dropdown', function () {
+            const id = $(this).children('.dropdown-toggle').attr('id');
+            juicebox.currentContactMapDropdownButtonID = id;
+        });
+
+        $e.parent().on('hide.bs.dropdown', function () {
+            console.log("hide contact/control map");
+        });
+
+        hic.eventBus.subscribe("BrowserSelect", function (event) {
+            updateBDropdown(event.data);
+        });
+    }
+
+    function getEmbeddableSnippet(jbUrl) {
+
+        return new Promise(function (fulfill, reject) {
+            var idx, embedUrl, params, width, height;
+
+            idx = jbUrl.indexOf("?");
+            params = jbUrl.substring(idx);
+            embedUrl = (config.embedTarget || getEmbedTarget()) + params;
+            width = $appContainer.width() + 50;
+            height = $appContainer.height();
+            fulfill('<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
+
+            // Disable shortening the embedUrl for now -- we don't want to bake in the embedTarget
+            // shortenURL(embedUrl)
+            //     .then(function (shortURL) {
+            //         fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
+            //     });
+        });
+
+    }
+
+    /**
+     * Get the default embed html target.  Assumes an "embed.html" file in same directory as this page
+     */
+    function getEmbedTarget() {
+
+        var href, idx;
+        href = new String(window.location.href);
+
+        idx = href.indexOf("?");
+        if (idx > 0) href = href.substring(0, idx);
+
+        idx = href.lastIndexOf("/");
+        return href.substring(0, idx) + "/embed.html"
+
+    }
+
+    async function createBrowsers(query) {
+
+        var parts, q, browser, i;
+
+        if (query && query.hasOwnProperty("juicebox")) {
+            q = query["juicebox"];
+
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+
+            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+            parts = q.split("},{");
+
+            const browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])})
+
+
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            browser.eventBus.subscribe("MapLoad", checkBDropdown);
+
+            if (parts && parts.length > 1) {
+
+                for (i = 1; i < parts.length; i++) {
+                    const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+                    b.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                    b.eventBus.subscribe("MapLoad", checkBDropdown);
                 }
 
-                q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-                parts = q.split("},{");
+                syncBrowsers()
 
-                return hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])})
+                // Parallel loading
+                // Promise.all(p)
+                //     .then(function (browserList) {
+                //         syncBrowsers();
+                //     })
 
-                    .then(function (browser) {
-
-                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                        browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-                        if (parts && parts.length > 1) {
-                            const p = [];
-                            for (i = 1; i < parts.length; i++) {
-                                p.push(
-                                    hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
-                                        .then(function (browser) {
-                                            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                                            browser.eventBus.subscribe("MapLoad", checkBDropdown);
-                                        })
-                                )
-                            }
-                            Promise.all(p)
-                                .then(function (browserList) {
-                                    syncBrowsers();
-                                })
-                        }
-
-                        // Must manually trigger the genome change event on initial load
-                        if (browser && browser.genome) {
-                            genomeChangeListener.receiveEvent({data: browser.genome.id})
-                        }
-
-                        return browser
-                    })
-
-            } else {
-                return hic.createBrowser($container.get(0), {})
-                    .then(function (browser) {
-                        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                        browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-                        // Must manually trigger the genome change event on initial load
-                        if (browser && browser.genome) {
-                            genomeChangeListener.receiveEvent({data: browser.genome.id})
-                        }
-
-                        return browser
-                    })
             }
 
-
-        }
-
-
-    };
-
-    function syncBrowsers() {
-        hic.syncBrowsers(hic.allBrowsers);
-        for (let browser of hic.allBrowsers) {
-            updateBDropdown(browser);
-        }
-    }
-
-    function checkBDropdown() {
-        updateBDropdown(hic.Browser.getCurrentBrowser());
-    }
-
-    function updateBDropdown(browser) {
-        if (browser) {
-            if (browser.dataset) {
-                $('#hic-control-map-dropdown').removeClass('disabled');
-            } else {
-                $('#hic-control-map-dropdown').addClass('disabled');
+            // Must manually trigger the genome change event on initial load
+            if (browser && browser.genome) {
+                genomeChangeListener.receiveEvent({data: browser.genome.id})
             }
+
+            return browser
+
+
+        } else {
+            const browser = await hic.createBrowser($container.get(0), {})
+
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            browser.eventBus.subscribe("MapLoad", checkBDropdown);
+
+            // Must manually trigger the genome change event on initial load
+            if (browser && browser.genome) {
+                genomeChangeListener.receiveEvent({data: browser.genome.id})
+            }
+
+            return browser
+
         }
+
+
     }
 
-    function loadHicFile(url, name) {
 
-        var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
+};
+
+function syncBrowsers() {
+    hic.syncBrowsers(hic.allBrowsers);
+    for (let browser of hic.allBrowsers) {
+        updateBDropdown(browser);
+    }
+}
+
+function checkBDropdown() {
+    updateBDropdown(hic.Browser.getCurrentBrowser());
+}
+
+function updateBDropdown(browser) {
+    if (browser) {
+        if (browser.dataset) {
+            $('#hic-control-map-dropdown').removeClass('disabled');
+        } else {
+            $('#hic-control-map-dropdown').addClass('disabled');
+        }
+    }
+}
+
+function loadHicFile(url, name) {
+
+    var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
+
+    browsersWithMaps = hic.allBrowsers.filter(function (browser) {
+        return browser.dataset !== undefined;
+    });
+
+    if (browsersWithMaps.length > 0) {
+        synchState = browsersWithMaps[0].getSyncState();
+    }
+
+    isControl = juicebox.currentContactMapDropdownButtonID === control_map_dropdown_id;
+
+    browser = hic.Browser.getCurrentBrowser();
+
+    config = {url: url, name: name, isControl: isControl};
+
+
+    if (igv.isString(url) && url.includes("?")) {
+        query = hic.extractQuery(url);
+        uriDecode = url.includes("%2C");
+        igv.Browser.decodeQuery(query, config, uriDecode);
+    }
+
+
+    if (isControl) {
+        browser
+            .loadHicControlFile(config)
+            .then(function (dataset) {
+
+            });
+    } else {
+        browser.reset();
 
         browsersWithMaps = hic.allBrowsers.filter(function (browser) {
             return browser.dataset !== undefined;
         });
 
         if (browsersWithMaps.length > 0) {
-            synchState = browsersWithMaps[0].getSyncState();
-        }
-
-        isControl = site.currentContactMapDropdownButtonID === control_map_dropdown_id;
-
-        browser = hic.Browser.getCurrentBrowser();
-
-        config = {url: url, name: name, isControl: isControl};
-
-
-        if (igv.isString(url) && url.includes("?")) {
-            query = hic.extractQuery(url);
-            uriDecode = url.includes("%2C");
-            igv.Browser.decodeQuery(query, config, uriDecode);
+            config["synchState"] = browsersWithMaps[0].getSyncState();
         }
 
 
-        if (isControl) {
-            browser
-                .loadHicControlFile(config)
-                .then(function (dataset) {
-
-                });
-        } else {
-            browser.reset();
-
-            browsersWithMaps = hic.allBrowsers.filter(function (browser) {
-                return browser.dataset !== undefined;
-            });
-
-            if (browsersWithMaps.length > 0) {
-                config["synchState"] = browsersWithMaps[0].getSyncState();
-            }
-
-
-            browser
-                .loadHicFile(config)
-                .then(function (ignore) {
-                    if (!isControl) {
-                        hic.syncBrowsers(hic.allBrowsers);
-                    }
-                    $('#hic-control-map-dropdown').removeClass('disabled');
-                });
-        }
-    }
-
-    function populatePulldown(menu) {
-
-        var parent;
-
-        parent = $("#" + menu.id);
-
-        igv.xhr.loadString(menu.items)
-
-            .then(function (data) {
-                var lines = igv.splitLines(data),
-                    len = lines.length,
-                    tokens,
-                    i;
-
-                for (i = 0; i < len; i++) {
-                    tokens = lines[i].split('\t');
-                    if (tokens.length > 1) {
-                        parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
-                    }
-
+        browser
+            .loadHicFile(config)
+            .then(function (ignore) {
+                if (!isControl) {
+                    hic.syncBrowsers(hic.allBrowsers);
                 }
-                parent.selectpicker("refresh");
-            })
-            .catch(function (error) {
-                console.log(error);
-            })
+                $('#hic-control-map-dropdown').removeClass('disabled');
+            });
     }
+}
 
-    function createEncodeTable(genomeId) {
+function populatePulldown(menu) {
 
-        var config,
-            columnFormat,
-            encodeDatasource,
-            loadTracks;
+    var parent;
 
-        if (encodeTable && genomeId === lastGenomeId) {
-            // do nothing
-        } else {
+    parent = $("#" + menu.id);
 
-            lastGenomeId = genomeId;
+    igv.xhr.loadString(menu.items)
 
-            if (encodeTable) {
-                discardEncodeTable();
+        .then(function (data) {
+            var lines = igv.splitLines(data),
+                len = lines.length,
+                tokens,
+                i;
+
+            for (i = 0; i < len; i++) {
+                tokens = lines[i].split('\t');
+                if (tokens.length > 1) {
+                    parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
+                }
+
             }
+            parent.selectpicker("refresh");
+        })
+        .catch(function (error) {
+            console.log(error);
+        })
+}
 
-            columnFormat =
-                [
-                    {title: 'Cell Type', width: '7%'},
-                    {title: 'Target', width: '8%'},
-                    {title: 'Assay Type', width: '20%'},
-                    {title: 'Output Type', width: '20%'},
-                    {title: 'Bio Rep', width: '5%'},
-                    {title: 'Tech Rep', width: '5%'},
-                    {title: 'Format', width: '5%'},
-                    {title: 'Experiment', width: '7%'},
-                    {title: 'Accession', width: '8%'},
-                    {title: 'Lab', width: '20%'}
-                ];
+function createEncodeTable(genomeId) {
 
-            encodeDatasource = new juicebox.EncodeDataSource(columnFormat);
+    var config,
+        columnFormat,
+        encodeDatasource,
+        loadTracks;
 
-            loadTracks = function (configurationList) {
-                hic.Browser.getCurrentBrowser().loadTracks(configurationList);
+    if (encodeTable && genomeId === lastGenomeId) {
+        // do nothing
+    } else {
+
+        lastGenomeId = genomeId;
+
+        if (encodeTable) {
+            discardEncodeTable();
+        }
+
+        columnFormat =
+            [
+                {title: 'Cell Type', width: '7%'},
+                {title: 'Target', width: '8%'},
+                {title: 'Assay Type', width: '20%'},
+                {title: 'Output Type', width: '20%'},
+                {title: 'Bio Rep', width: '5%'},
+                {title: 'Tech Rep', width: '5%'},
+                {title: 'Format', width: '5%'},
+                {title: 'Experiment', width: '7%'},
+                {title: 'Accession', width: '8%'},
+                {title: 'Lab', width: '20%'}
+            ];
+
+        encodeDatasource = new EncodeDataSource(columnFormat);
+
+        loadTracks = function (configurationList) {
+            hic.Browser.getCurrentBrowser().loadTracks(configurationList);
+        };
+
+        config =
+            {
+                $modal: $('#hicEncodeModal'),
+                $modalBody: $('#encodeModalBody'),
+                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+                $modalGoButton: $('#encodeModalGoButton'),
+                datasource: encodeDatasource,
+                browserHandler: loadTracks
             };
 
-            config =
-                {
-                    $modal: $('#hicEncodeModal'),
-                    $modalBody: $('#encodeModalBody'),
-                    $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                    $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                    $modalGoButton: $('#encodeModalGoButton'),
-                    datasource: encodeDatasource,
-                    browserHandler: loadTracks
-                };
+        encodeTable = new ModalTable(config);
 
-            encodeTable = new juicebox.ModalTable(config);
-
-            encodeTable.loadData(genomeId);
-
-        }
+        encodeTable.loadData(genomeId);
 
     }
 
-    function discardEncodeTable() {
-        encodeTable = undefined;
+}
+
+function discardEncodeTable() {
+    encodeTable = undefined;
+}
+
+function loadAnnotationSelector($container, url, type) {
+
+    var elements;
+
+    $container.empty();
+
+    elements = [];
+    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+    igv.xhr
+        .loadString(url)
+        .then(function (data) {
+            var lines = data ? igv.splitLines(data) : [];
+            lines.forEach(function (line) {
+                var tokens = line.split('\t');
+                if (tokens.length > 1 && ("2D" === type || igvSupports(tokens[1]))) {
+                    elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
+                }
+            });
+            $container.append(elements.join(''));
+
+        })
+        .catch(function (error) {
+            console.log("Error loading track menu: " + url + "  " + error);
+        })
+}
+
+function igvSupports(path) {
+
+    // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
+    if (path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
+        return false;
     }
 
-    function loadAnnotationSelector($container, url, type) {
+    var config = {url: path};
+    igv.inferTrackTypes(config);
+    return config.type !== undefined;
 
-        var elements;
+}
 
-        $container.empty();
 
-        elements = [];
-        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
 
-        igv.xhr
-            .loadString(url)
-            .then(function (data) {
-                var lines = data ? igv.splitLines(data) : [];
-                lines.forEach(function (line) {
-                    var tokens = line.split('\t');
-                    if (tokens.length > 1 && ("2D" === type || igvSupports(tokens[1]))) {
-                        elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
-                    }
-                });
-                $container.append(elements.join(''));
-
-            })
-            .catch(function (error) {
-                console.log("Error loading track menu: " + url + "  " + error);
-            })
-    }
-
-    function igvSupports(path) {
-
-        // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
-        if(path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
-            return false;
-        }
-
-        var config = {url: path};
-        igv.inferTrackTypes(config);
-        return config.type !== undefined;
-
-    }
-
-    return site;
-
-})({});
 

@@ -28,173 +28,172 @@
  * Created by dat on 4/18/17.
  */
 
-var juicebox = (function (juicebox) {
 
-    juicebox.ModalTable = function (config) {
+const ModalTable = function (config) {
 
-        this.config = config;
-        this.datasource = config.datasource;
-        this.browserHandler = config.browserHandler;
+    this.config = config;
+    this.datasource = config.datasource;
+    this.browserHandler = config.browserHandler;
 
-        teardownModalDOM(config);
-        this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
-        config.$modalBody.append(this.$table);
-        this.doRetrieveData = true;
-        this.doBuildTable = true;
+    teardownModalDOM(config);
+    this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
+    config.$modalBody.append(this.$table);
+    this.doRetrieveData = true;
+    this.doBuildTable = true;
 
-        this.$spinner = $('<div>');
-        this.$table.append(this.$spinner);
+    this.$spinner = $('<div>');
+    this.$table.append(this.$spinner);
 
-        this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
-    };
+    this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
+};
 
-    function teardownModalDOM(configuration) {
+function teardownModalDOM(configuration) {
 
-        var list;
+    var list;
 
-        list =
-            [
-                configuration.$modal,
-                configuration.$modalTopCloseButton,
-                configuration.$modalBottomCloseButton,
-                configuration.$modalGoButton
-            ];
+    list =
+        [
+            configuration.$modal,
+            configuration.$modalTopCloseButton,
+            configuration.$modalBottomCloseButton,
+            configuration.$modalGoButton
+        ];
 
-        list.forEach( function ($e) {
-            $e.unbind();
+    list.forEach(function ($e) {
+        $e.unbind();
+    });
+
+    configuration.$modalBody.empty();
+}
+
+function getSelectedTableRowsData($rows) {
+
+    var self = this,
+        dt,
+        result;
+
+    result = [];
+    if ($rows.length > 0) {
+
+        $rows.removeClass('selected');
+
+        dt = self.$table.DataTable();
+        $rows.each(function () {
+            result.push(self.datasource.dataAtRowIndex(self.datasource.data, dt.row(this).index()));
         });
-
-        configuration.$modalBody.empty();
     }
 
-    function getSelectedTableRowsData($rows) {
+    return result.length > 0 ? result : undefined;
+}
 
-        var self = this,
-            dt,
-            result;
+ModalTable.prototype.startSpinner = function () {
+    this.$spinner.show();
+};
 
-        result = [];
-        if ($rows.length > 0) {
+ModalTable.prototype.stopSpinner = function () {
+    this.$spinner.hide();
+};
 
-            $rows.removeClass('selected');
+ModalTable.prototype.hidePresentationButton = function () {
+    this.config.$modalPresentationButton.addClass('igv-app-disabled');
+    this.config.$modalPresentationButton.text('Genome not supported by ENCODE');
+};
 
-            dt = self.$table.DataTable();
-            $rows.each(function() {
-                result.push( self.datasource.dataAtRowIndex(self.datasource.data, dt.row(this).index()) );
+ModalTable.prototype.willRetrieveData = function () {
+    //this.startSpinner();
+    $('#hic-encode-modal-button').hide();
+    $('#hic-encode-loading').show();
+
+};
+
+ModalTable.prototype.didRetrieveData = function () {
+    //this.config.didRetrieveData();
+    $('#hic-encode-modal-button').show();
+    $('#hic-encode-loading').hide();
+};
+
+ModalTable.prototype.didFailToRetrieveData = function () {
+    this.stopSpinner();
+    this.buildTable(false);
+};
+
+ModalTable.prototype.loadData = function (genomeId) {
+
+    var self = this,
+        assembly;
+
+    this.willRetrieveData();
+
+    assembly = ModalTable.getAssembly(genomeId);
+
+    if (assembly) {
+
+        this.datasource
+            .retrieveData(assembly, function (record) {
+                // to bigwig only for now
+                return record["Format"].toLowerCase() === "bigwig";
+            })
+            .then(function (data) {
+
+                self.datasource.data = data;
+                self.doRetrieveData = false;
+
+                self.didRetrieveData();
+                self.buildTable(true);
+
+            })
+            .catch(function (e) {
+                self.didFailToRetrieveData();
             });
-        }
-
-        return result.length > 0 ? result : undefined;
     }
 
-    juicebox.ModalTable.prototype.startSpinner = function () {
-        this.$spinner.show();
-    };
+};
 
-    juicebox.ModalTable.prototype.stopSpinner = function () {
-        this.$spinner.hide();
-    };
+ModalTable.prototype.buildTable = function (success) {
 
-    juicebox.ModalTable.prototype.hidePresentationButton = function () {
-        this.config.$modalPresentationButton.addClass('igv-app-disabled');
-        this.config.$modalPresentationButton.text('Genome not supported by ENCODE');
-    };
+    var self = this;
 
-    juicebox.ModalTable.prototype.willRetrieveData = function () {
-        //this.startSpinner();
-        $('#hic-encode-modal-button').hide();
-        $('#hic-encode-loading').show();
+    if (true === success) {
 
-    };
+        this.config.$modal.on('shown.bs.modal', function (e) {
 
-    juicebox.ModalTable.prototype.didRetrieveData = function () {
-        //this.config.didRetrieveData();
-        $('#hic-encode-modal-button').show();
-        $('#hic-encode-loading').hide();
-    };
+            if (true === self.doBuildTable) {
+                self.tableWithDataAndColumns(self.datasource.tableData(self.datasource.data), self.datasource.tableColumns());
+                self.stopSpinner();
+                self.doBuildTable = false;
+            }
 
-    juicebox.ModalTable.prototype.didFailToRetrieveData = function () {
-        this.stopSpinner();
-        this.buildTable(false);
-    };
-
-    juicebox.ModalTable.prototype.loadData = function (genomeId) {
-
-        var self = this,
-            assembly;
-
-        this.willRetrieveData();
-
-        assembly = juicebox.ModalTable.getAssembly( genomeId);
-
-        if (assembly) {
-
-            this.datasource
-                .retrieveData(assembly, function (record) {
-                    // to bigwig only for now
-                    return record["Format"].toLowerCase() === "bigwig";
-                })
-                .then(function (data) {
-
-                    self.datasource.data = data;
-                    self.doRetrieveData = false;
-
-                    self.didRetrieveData();
-                    self.buildTable(true);
-
-                })
-                .catch(function (e) {
-                    self.didFailToRetrieveData();
-                });
-        }
-
-    };
-
-    juicebox.ModalTable.prototype.buildTable = function (success) {
-
-        var self = this;
-
-        if (true === success) {
-
-            this.config.$modal.on('shown.bs.modal', function (e) {
-
-                if (true === self.doBuildTable) {
-                    self.tableWithDataAndColumns(self.datasource.tableData(self.datasource.data), self.datasource.tableColumns());
-                    self.stopSpinner();
-                    self.doBuildTable = false;
-                }
-
-            });
-
-            this.config.$modalGoButton.on('click', function () {
-                var selected;
-
-                selected = getSelectedTableRowsData.call(self, self.$dataTables.$('tr.selected'));
-
-                if (selected) {
-                    self.browserHandler(selected);
-                }
-
-            });
-
-        }
-
-        this.config.$modalTopCloseButton.on('click', function () {
-            $('tr.selected').removeClass('selected');
         });
 
-        this.config.$modalBottomCloseButton.on('click', function () {
-            $('tr.selected').removeClass('selected');
+        this.config.$modalGoButton.on('click', function () {
+            var selected;
+
+            selected = getSelectedTableRowsData.call(self, self.$dataTables.$('tr.selected'));
+
+            if (selected) {
+                self.browserHandler(selected);
+            }
+
         });
 
-    };
+    }
 
-    juicebox.ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
+    this.config.$modalTopCloseButton.on('click', function () {
+        $('tr.selected').removeClass('selected');
+    });
 
-        var config;
+    this.config.$modalBottomCloseButton.on('click', function () {
+        $('tr.selected').removeClass('selected');
+    });
 
-        this.stopSpinner();
-        config =
+};
+
+ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
+
+    var config;
+
+    this.stopSpinner();
+    config =
         {
             data: tableData,
             columns: tableColumns,
@@ -209,25 +208,25 @@ var juicebox = (function (juicebox) {
             scrollCollapse: true
         };
 
-        this.$dataTables = this.$table.dataTable(config);
+    this.$dataTables = this.$table.dataTable(config);
 
-        this.$table.find('tbody').on('click', 'tr', function () {
+    this.$table.find('tbody').on('click', 'tr', function () {
 
-            if ($(this).hasClass('selected')) {
-                $(this).removeClass('selected');
-            } else {
-                $(this).addClass('selected');
-            }
+        if ($(this).hasClass('selected')) {
+            $(this).removeClass('selected');
+        } else {
+            $(this).addClass('selected');
+        }
 
-        });
+    });
 
-    };
+};
 
-    juicebox.ModalTable.getAssembly = function (genomeID) {
-        let lut,
-            assembly;
+ModalTable.getAssembly = function (genomeID) {
+    let lut,
+        assembly;
 
-        lut =
+    lut =
         {
             dm3: 'dm3',
             mm10: 'mm10',
@@ -235,11 +234,10 @@ var juicebox = (function (juicebox) {
             hg38: 'GRCh38'
         };
 
-        assembly = lut[ genomeID ];
+    assembly = lut[genomeID];
 
-        return assembly;
-    };
+    return assembly;
+};
 
-    return juicebox;
 
-})(juicebox || {});
+export default ModalTable
