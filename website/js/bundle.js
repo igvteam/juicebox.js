@@ -672,6 +672,10 @@ ModalTable.getAssembly = function (genomeID) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modalTable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modalTable */ "./website/js/modalTable.js");
 /* harmony import */ var _encode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode */ "./website/js/encode.js");
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 /*
  *  The MIT License (MIT)
  *
@@ -1030,90 +1034,176 @@ juicebox.init = function ($container, config) {
     return href.substring(0, idx) + "/embed.html";
   }
 
-  function createBrowsers(query) {
-    var parts, q, browser, i;
+  function createBrowsers(_x) {
+    return _createBrowsers.apply(this, arguments);
+  }
 
-    if (query && query.hasOwnProperty("juicebox")) {
-      q = query["juicebox"];
+  function _createBrowsers() {
+    _createBrowsers = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee(query) {
+      var parts, q, browser, i, _browser, promises, browsers, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, b, _browser2;
 
-      if (q.startsWith("%7B")) {
-        q = decodeURIComponent(q);
-      }
+      return regeneratorRuntime.wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              if (!(query && query.hasOwnProperty("juicebox"))) {
+                _context.next = 40;
+                break;
+              }
 
-      q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
+              q = query["juicebox"];
 
-      parts = q.split("},{");
-      return hic.createBrowser($container.get(0), {
-        queryString: decodeURIComponent(parts[0])
-      }).then(function (browser) {
-        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-        browser.eventBus.subscribe("MapLoad", checkBDropdown);
+              if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+              }
 
-        if (parts && parts.length > 1) {
-          var p = [];
+              q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
 
-          for (i = 1; i < parts.length; i++) {
-            p.push(hic.createBrowser($container.get(0), {
-              queryString: decodeURIComponent(parts[i])
-            }).then(function (browser) {
-              browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-              browser.eventBus.subscribe("MapLoad", checkBDropdown);
-            }));
+              parts = q.split("},{");
+              _context.next = 7;
+              return hic.createBrowser($container.get(0), {
+                queryString: decodeURIComponent(parts[0])
+              });
+
+            case 7:
+              _browser = _context.sent;
+
+              _browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+
+              _browser.eventBus.subscribe("MapLoad", checkBDropdown);
+
+              if (!(parts && parts.length > 1)) {
+                _context.next = 36;
+                break;
+              }
+
+              promises = [];
+
+              for (i = 1; i < parts.length; i++) {
+                promises.push(hic.createBrowser($container.get(0), {
+                  queryString: decodeURIComponent(parts[i])
+                })); //const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+                // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                // b.eventBus.subscribe("MapLoad", checkBDropdown);
+              }
+
+              _context.next = 15;
+              return Promise.all(promises);
+
+            case 15:
+              browsers = _context.sent;
+              _iteratorNormalCompletion = true;
+              _didIteratorError = false;
+              _iteratorError = undefined;
+              _context.prev = 19;
+
+              for (_iterator = browsers[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                b = _step.value;
+                b.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                b.eventBus.subscribe("MapLoad", checkBDropdown);
+              }
+
+              _context.next = 27;
+              break;
+
+            case 23:
+              _context.prev = 23;
+              _context.t0 = _context["catch"](19);
+              _didIteratorError = true;
+              _iteratorError = _context.t0;
+
+            case 27:
+              _context.prev = 27;
+              _context.prev = 28;
+
+              if (!_iteratorNormalCompletion && _iterator.return != null) {
+                _iterator.return();
+              }
+
+            case 30:
+              _context.prev = 30;
+
+              if (!_didIteratorError) {
+                _context.next = 33;
+                break;
+              }
+
+              throw _iteratorError;
+
+            case 33:
+              return _context.finish(30);
+
+            case 34:
+              return _context.finish(27);
+
+            case 35:
+              syncBrowsers();
+
+            case 36:
+              // Must manually trigger the genome change event on initial load
+              if (_browser && _browser.genome) {
+                genomeChangeListener.receiveEvent({
+                  data: _browser.genome.id
+                });
+              }
+
+              return _context.abrupt("return", _browser);
+
+            case 40:
+              _context.next = 42;
+              return hic.createBrowser($container.get(0), {});
+
+            case 42:
+              _browser2 = _context.sent;
+
+              _browser2.eventBus.subscribe("GenomeChange", genomeChangeListener);
+
+              _browser2.eventBus.subscribe("MapLoad", checkBDropdown); // Must manually trigger the genome change event on initial load
+
+
+              if (_browser2 && _browser2.genome) {
+                genomeChangeListener.receiveEvent({
+                  data: _browser2.genome.id
+                });
+              }
+
+              return _context.abrupt("return", _browser2);
+
+            case 47:
+            case "end":
+              return _context.stop();
           }
-
-          Promise.all(p).then(function (browserList) {
-            syncBrowsers();
-          });
-        } // Must manually trigger the genome change event on initial load
-
-
-        if (browser && browser.genome) {
-          genomeChangeListener.receiveEvent({
-            data: browser.genome.id
-          });
         }
-
-        return browser;
-      });
-    } else {
-      return hic.createBrowser($container.get(0), {}).then(function (browser) {
-        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-        browser.eventBus.subscribe("MapLoad", checkBDropdown); // Must manually trigger the genome change event on initial load
-
-        if (browser && browser.genome) {
-          genomeChangeListener.receiveEvent({
-            data: browser.genome.id
-          });
-        }
-
-        return browser;
-      });
-    }
+      }, _callee, this, [[19, 23, 27, 35], [28,, 30, 34]]);
+    }));
+    return _createBrowsers.apply(this, arguments);
   }
 };
 
 function syncBrowsers() {
   hic.syncBrowsers(hic.allBrowsers);
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator = hic.allBrowsers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var browser = _step.value;
+    for (var _iterator2 = hic.allBrowsers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var browser = _step2.value;
       updateBDropdown(browser);
     }
   } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
   } finally {
     try {
-      if (!_iteratorNormalCompletion && _iterator.return != null) {
-        _iterator.return();
+      if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
+        _iterator2.return();
       }
     } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
+      if (_didIteratorError2) {
+        throw _iteratorError2;
       }
     }
   }
