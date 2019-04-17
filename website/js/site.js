@@ -479,19 +479,22 @@ juicebox.init = function ($container, config) {
 
             if (parts && parts.length > 1) {
 
+                const promises = []
                 for (i = 1; i < parts.length; i++) {
-                    const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+                    promises.push(hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])}))
+                    //const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+                    // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                    // b.eventBus.subscribe("MapLoad", checkBDropdown);
+                }
+
+                const browsers = await Promise.all(promises)
+
+                for (let b of browsers) {
                     b.eventBus.subscribe("GenomeChange", genomeChangeListener);
                     b.eventBus.subscribe("MapLoad", checkBDropdown);
                 }
 
                 syncBrowsers()
-
-                // Parallel loading
-                // Promise.all(p)
-                //     .then(function (browserList) {
-                //         syncBrowsers();
-                //     })
 
             }
 
