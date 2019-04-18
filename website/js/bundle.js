@@ -747,7 +747,7 @@ function () {
                             q = decodeURIComponent(q);
                           }
                         } else if (query && query.hasOwnProperty("juiceboxData")) {
-                          q = decompressQueryParameter(query["juiceboxData"]);
+                          q = hic.decompressQueryParameter(query["juiceboxData"]);
                         }
 
                         if (!q) {
@@ -1444,44 +1444,6 @@ function igvSupports(path) {
   };
   igv.inferTrackTypes(config);
   return config.type !== undefined;
-}
-
-function decompressQueryParameter(enc) {
-  enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
-  var compressedString = atob(enc);
-  var compressedBytes = [];
-
-  for (var i = 0; i < compressedString.length; i++) {
-    compressedBytes.push(compressedString.charCodeAt(i));
-  }
-
-  var bytes = new Zlib.RawInflate(compressedBytes).decompress();
-  var str = '';
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
-
-  try {
-    for (var _iterator3 = bytes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var b = _step3.value;
-      str += String.fromCharCode(b);
-    }
-  } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
-      }
-    }
-  }
-
-  return str;
 }
 
 /***/ })

@@ -462,7 +462,7 @@ juicebox.init = async function ($container, config) {
                 q = decodeURIComponent(q);
             }
         } else if (query && query.hasOwnProperty("juiceboxData")) {
-            q = decompressQueryParameter(query["juiceboxData"])
+            q = hic.decompressQueryParameter(query["juiceboxData"])
         }
 
 
@@ -731,24 +731,6 @@ function igvSupports(path) {
 
 }
 
-function decompressQueryParameter(enc) {
-
-    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
-
-    const compressedString = atob(enc);
-    const compressedBytes = [];
-    for (let i = 0; i < compressedString.length; i++) {
-        compressedBytes.push(compressedString.charCodeAt(i));
-    }
-    const bytes = new Zlib.RawInflate(compressedBytes).decompress();
-
-    let str = ''
-    for (let b of bytes) {
-        str += String.fromCharCode(b)
-    }
-
-    return str;
-}
 
 
 

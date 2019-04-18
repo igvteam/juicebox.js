@@ -135,7 +135,7 @@ var hic = (function (hic) {
         }
         else if (queryMap.hasOwnProperty("juiceboxData")) {
             const compressed = queryMap["juiceboxData"]
-            q = decompressQueryParameter(compressed)
+            q = hic.decompressQueryParameter(compressed)
         }
 
         if (q) {
@@ -150,6 +150,25 @@ var hic = (function (hic) {
         else {
             return undefined
         }
+    }
+
+    hic.decompressQueryParameter = function (enc) {
+
+        enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+
+        const compressedString = atob(enc);
+        const compressedBytes = [];
+        for (let i = 0; i < compressedString.length; i++) {
+            compressedBytes.push(compressedString.charCodeAt(i));
+        }
+        const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+
+        let str = ''
+        for (let b of bytes) {
+            str += String.fromCharCode(b)
+        }
+
+        return str;
     }
 
 
@@ -335,24 +354,24 @@ var hic = (function (hic) {
         return enc;
     }
 
-    function decompressQueryParameter(enc) {
-
-        enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
-
-        const compressedString = atob(enc);
-        const compressedBytes = [];
-        for (let i = 0; i < compressedString.length; i++) {
-            compressedBytes.push(compressedString.charCodeAt(i));
-        }
-        const bytes = new Zlib.RawInflate(compressedBytes).decompress();
-
-        let str = ''
-        for (let b of bytes) {
-            str += String.fromCharCode(b)
-        }
-
-        return str;
-    }
+    // function decompressQueryParameter(enc) {
+    //
+    //     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+    //
+    //     const compressedString = atob(enc);
+    //     const compressedBytes = [];
+    //     for (let i = 0; i < compressedString.length; i++) {
+    //         compressedBytes.push(compressedString.charCodeAt(i));
+    //     }
+    //     const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+    //
+    //     let str = ''
+    //     for (let b of bytes) {
+    //         str += String.fromCharCode(b)
+    //     }
+    //
+    //     return str;
+    // }
 
 
     return hic;
