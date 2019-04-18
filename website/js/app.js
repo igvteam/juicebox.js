@@ -55,7 +55,7 @@ $(document).ready(function () {
                 apiKey: "ABCD",        // TODO -- replace with your Google API Key
                 hostname: "goo.gl"
             }
-            
+
         ],
 
         apiKey: "ABCD",   // TODO -- replace with your Google API Key

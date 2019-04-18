@@ -30,7 +30,6 @@
 
 import ModalTable from './modalTable'
 import EncodeDataSource from './encode'
-import  {compressQueryParameter, decompressQueryParameter} from './urlQueryUtils'
 //import QRCode from './qrcode'
 
 const juicebox = {}
@@ -44,7 +43,7 @@ var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly 
     contact_map_dropdown_id = 'hic-contact-map-dropdown',
     control_map_dropdown_id = 'hic-control-map-dropdown';
 
-juicebox.init = function ($container, config) {
+juicebox.init = async function ($container, config) {
 
     var genomeChangeListener,
         $appContainer,
@@ -103,16 +102,14 @@ juicebox.init = function ($container, config) {
 
     if (query && query.hasOwnProperty("juiceboxURL")) {
 
-        hic.expandURL(query["juiceboxURL"])
-            .then(function (jbURL) {
-
+        const jbURL = await hic.expandURL(query["juiceboxURL"])
                 query = hic.extractQuery(jbURL);
                 createBrowsers(query)
                     .then(postCreateBrowser)
-            })
+
     } else {
-        createBrowsers(query)
-            .then(postCreateBrowser)
+        const b = await createBrowsers(query)
+        postCreateBrowser(b)
     }
 
 
@@ -734,6 +731,24 @@ function igvSupports(path) {
 
 }
 
+function decompressQueryParameter(enc) {
+
+    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+
+    const compressedString = atob(enc);
+    const compressedBytes = [];
+    for (let i = 0; i < compressedString.length; i++) {
+        compressedBytes.push(compressedString.charCodeAt(i));
+    }
+    const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+
+    let str = ''
+    for (let b of bytes) {
+        str += String.fromCharCode(b)
+    }
+
+    return str;
+}
 
 
 
