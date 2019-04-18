@@ -148,15 +148,15 @@ $(document).ready(function () {
     // "Share" button.
     // NOTE: you must provide an API key (Google) or access token (Bitly) to use these services on your site
     urlShortener: [{
-      provider: "google",
-      apiKey: "ABCD",
-      // TODO -- replace with your Google API Key
-      hostname: "goo.gl"
-    }, {
       provider: "bitly",
       apiKey: "ABCD",
       // TODO -- replace with your Bitly access token
       hostname: 'bit.ly'
+    }, {
+      provider: "google",
+      apiKey: "ABCD",
+      // TODO -- replace with your Google API Key
+      hostname: "goo.gl"
     }],
     apiKey: "ABCD" // TODO -- replace with your Google API Key
 
