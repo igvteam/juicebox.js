@@ -672,6 +672,7 @@ ModalTable.getAssembly = function (genomeID) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _modalTable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./modalTable */ "./website/js/modalTable.js");
 /* harmony import */ var _encode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode */ "./website/js/encode.js");
+/* harmony import */ var _urlQueryUtils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./urlQueryUtils */ "./website/js/urlQueryUtils.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -679,7 +680,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 /*
  *  The MIT License (MIT)
  *
- * Copyright (c) 2016-2017 The Regents of the University of California
+ * Copyright (c) 2019 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including
@@ -705,6 +706,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  * Page (site specific) code for the example pages.
  *
  */
+
 
  //import QRCode from './qrcode'
 
@@ -786,55 +788,76 @@ juicebox.init = function ($container, config) {
       }
     }
 
-    $hic_share_url_modal.on('show.bs.modal', function (e) {
-      var queryString, href, idx;
-      href = new String(window.location.href); // This js file is specific to the aidenlab site, and we know we have only juicebox parameters.
-      // Strip href of current parameters, if any
+    $hic_share_url_modal.on('show.bs.modal',
+    /*#__PURE__*/
+    function () {
+      var _ref = _asyncToGenerator(
+      /*#__PURE__*/
+      regeneratorRuntime.mark(function _callee(e) {
+        var queryString, href, idx, jbUrl, shareUrl, tweetContainer, config, $hic_share_url;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                href = new String(window.location.href); // This js file is specific to the aidenlab site, and we know we have only juicebox parameters.
+                // Strip href of current parameters, if any
 
-      idx = href.indexOf("?");
-      if (idx > 0) href = href.substring(0, idx);
-      hic.shortJuiceboxURL(href).then(function (jbUrl) {
-        getEmbeddableSnippet(jbUrl).then(function (embedSnippet) {
-          var $hic_embed_url;
-          $hic_embed_url = $('#hic-embed');
-          $hic_embed_url.val(embedSnippet);
-          $hic_embed_url.get(0).select();
-        });
-        maybeShortenURL(jbUrl).then(function (shortURL) {
-          var shareUrl = shortURL || jbUrl; // Shorten second time
-          // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
+                idx = href.indexOf("?");
+                if (idx > 0) href = href.substring(0, idx);
+                _context.next = 5;
+                return hic.shortJuiceboxURL(href);
 
-          var tweetContainer, config, $hic_share_url;
-          $hic_share_url = $('#hic-share-url');
-          $hic_share_url.val(shareUrl);
-          $hic_share_url.get(0).select();
-          tweetContainer = $('#tweetButtonContainer');
-          tweetContainer.empty();
-          config = {
-            text: 'Contact map: '
-          };
-          $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
+              case 5:
+                jbUrl = _context.sent;
+                getEmbeddableSnippet(jbUrl).then(function (embedSnippet) {
+                  var $hic_embed_url;
+                  $hic_embed_url = $('#hic-embed');
+                  $hic_embed_url.val(embedSnippet);
+                  $hic_embed_url.get(0).select();
+                });
+                shareUrl = jbUrl; // Shorten second time
+                // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
 
-          if (shareUrl.length < 100) {
-            window.twttr.widgets.createShareButton(shareUrl, tweetContainer.get(0), config).then(function (el) {}); // QR code generation
+                $hic_share_url = $('#hic-share-url');
+                $hic_share_url.val(shareUrl);
+                $hic_share_url.get(0).select();
+                tweetContainer = $('#tweetButtonContainer');
+                tweetContainer.empty();
+                config = {
+                  text: 'Contact map: '
+                };
+                $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
 
-            if (qrcode) {
-              qrcode.clear();
-              $('hic-qr-code-image').empty();
-            } else {
-              config = {
-                width: 128,
-                height: 128,
-                correctLevel: QRCode.CorrectLevel.H
-              };
-              qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                if (shareUrl.length < 100) {
+                  window.twttr.widgets.createShareButton(shareUrl, tweetContainer.get(0), config).then(function (el) {}); // QR code generation
+
+                  if (qrcode) {
+                    qrcode.clear();
+                    $('hic-qr-code-image').empty();
+                  } else {
+                    config = {
+                      width: 128,
+                      height: 128,
+                      correctLevel: QRCode.CorrectLevel.H
+                    };
+                    qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                  }
+
+                  qrcode.makeCode(shareUrl);
+                }
+
+              case 16:
+              case "end":
+                return _context.stop();
             }
-
-            qrcode.makeCode(shareUrl);
           }
-        });
-      });
-    });
+        }, _callee, this);
+      }));
+
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }());
     $hic_share_url_modal.on('hidden.bs.modal', function (e) {
       $('#hic-embed-container').hide();
       $('#hic-qr-code-image').hide();
@@ -1034,48 +1057,52 @@ juicebox.init = function ($container, config) {
     return href.substring(0, idx) + "/embed.html";
   }
 
-  function createBrowsers(_x) {
+  function createBrowsers(_x2) {
     return _createBrowsers.apply(this, arguments);
   }
 
   function _createBrowsers() {
     _createBrowsers = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee(query) {
-      var parts, q, browser, i, _browser, promises, browsers, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, b, _browser2;
+    regeneratorRuntime.mark(function _callee2(query) {
+      var parts, browser, i, q, _browser, promises, browsers, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, b, _browser2;
 
-      return regeneratorRuntime.wrap(function _callee$(_context) {
+      return regeneratorRuntime.wrap(function _callee2$(_context2) {
         while (1) {
-          switch (_context.prev = _context.next) {
+          switch (_context2.prev = _context2.next) {
             case 0:
-              if (!(query && query.hasOwnProperty("juicebox"))) {
-                _context.next = 40;
-                break;
+              if (query && query.hasOwnProperty("juicebox")) {
+                q = query["juicebox"];
+
+                if (q.startsWith("%7B")) {
+                  q = decodeURIComponent(q);
+                }
+              } else if (query && query.hasOwnProperty("juiceboxData")) {
+                q = Object(_urlQueryUtils__WEBPACK_IMPORTED_MODULE_2__["decompressQueryParameter"])(query["juiceboxData"]);
               }
 
-              q = query["juicebox"];
-
-              if (q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
+              if (!q) {
+                _context2.next = 39;
+                break;
               }
 
               q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
 
               parts = q.split("},{");
-              _context.next = 7;
+              _context2.next = 6;
               return hic.createBrowser($container.get(0), {
                 queryString: decodeURIComponent(parts[0])
               });
 
-            case 7:
-              _browser = _context.sent;
+            case 6:
+              _browser = _context2.sent;
 
               _browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
               _browser.eventBus.subscribe("MapLoad", checkBDropdown);
 
               if (!(parts && parts.length > 1)) {
-                _context.next = 36;
+                _context2.next = 35;
                 break;
               }
 
@@ -1089,15 +1116,15 @@ juicebox.init = function ($container, config) {
                 // b.eventBus.subscribe("MapLoad", checkBDropdown);
               }
 
-              _context.next = 15;
+              _context2.next = 14;
               return Promise.all(promises);
 
-            case 15:
-              browsers = _context.sent;
+            case 14:
+              browsers = _context2.sent;
               _iteratorNormalCompletion = true;
               _didIteratorError = false;
               _iteratorError = undefined;
-              _context.prev = 19;
+              _context2.prev = 18;
 
               for (_iterator = browsers[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                 b = _step.value;
@@ -1105,43 +1132,43 @@ juicebox.init = function ($container, config) {
                 b.eventBus.subscribe("MapLoad", checkBDropdown);
               }
 
-              _context.next = 27;
+              _context2.next = 26;
               break;
 
-            case 23:
-              _context.prev = 23;
-              _context.t0 = _context["catch"](19);
+            case 22:
+              _context2.prev = 22;
+              _context2.t0 = _context2["catch"](18);
               _didIteratorError = true;
-              _iteratorError = _context.t0;
+              _iteratorError = _context2.t0;
 
-            case 27:
-              _context.prev = 27;
-              _context.prev = 28;
+            case 26:
+              _context2.prev = 26;
+              _context2.prev = 27;
 
               if (!_iteratorNormalCompletion && _iterator.return != null) {
                 _iterator.return();
               }
 
-            case 30:
-              _context.prev = 30;
+            case 29:
+              _context2.prev = 29;
 
               if (!_didIteratorError) {
-                _context.next = 33;
+                _context2.next = 32;
                 break;
               }
 
               throw _iteratorError;
 
+            case 32:
+              return _context2.finish(29);
+
             case 33:
-              return _context.finish(30);
+              return _context2.finish(26);
 
             case 34:
-              return _context.finish(27);
-
-            case 35:
               syncBrowsers();
 
-            case 36:
+            case 35:
               // Must manually trigger the genome change event on initial load
               if (_browser && _browser.genome) {
                 genomeChangeListener.receiveEvent({
@@ -1149,14 +1176,14 @@ juicebox.init = function ($container, config) {
                 });
               }
 
-              return _context.abrupt("return", _browser);
+              return _context2.abrupt("return", _browser);
 
-            case 40:
-              _context.next = 42;
+            case 39:
+              _context2.next = 41;
               return hic.createBrowser($container.get(0), {});
 
-            case 42:
-              _browser2 = _context.sent;
+            case 41:
+              _browser2 = _context2.sent;
 
               _browser2.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
@@ -1169,14 +1196,14 @@ juicebox.init = function ($container, config) {
                 });
               }
 
-              return _context.abrupt("return", _browser2);
+              return _context2.abrupt("return", _browser2);
 
-            case 47:
+            case 46:
             case "end":
-              return _context.stop();
+              return _context2.stop();
           }
         }
-      }, _callee, this, [[19, 23, 27, 35], [28,, 30, 34]]);
+      }, _callee2, this, [[18, 22, 26, 34], [27,, 29, 33]]);
     }));
     return _createBrowsers.apply(this, arguments);
   }
@@ -1386,6 +1413,105 @@ function igvSupports(path) {
   igv.inferTrackTypes(config);
   return config.type !== undefined;
 }
+
+/***/ }),
+
+/***/ "./website/js/urlQueryUtils.js":
+/*!*************************************!*\
+  !*** ./website/js/urlQueryUtils.js ***!
+  \*************************************/
+/*! exports provided: compressQueryParameter, decompressQueryParameter */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "compressQueryParameter", function() { return compressQueryParameter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decompressQueryParameter", function() { return decompressQueryParameter; });
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+/*
+ * Author: Jim Robinson
+ */
+function compressQueryParameter(str) {
+  var bytes, deflate, compressedBytes, compressedString, enc;
+  bytes = [];
+
+  for (var i = 0; i < str.length; i++) {
+    bytes.push(str.charCodeAt(i));
+  }
+
+  compressedBytes = new Zlib.RawDeflate(bytes).compress(); // UInt8Arry
+
+  compressedString = String.fromCharCode.apply(null, compressedBytes); // Convert to string
+
+  enc = btoa(compressedString);
+  enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-'); // URL safe
+  //console.log(json);
+  //console.log(enc);
+
+  return enc;
+}
+
+function decompressQueryParameter(enc) {
+  enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
+  var compressedString = atob(enc);
+  var compressedBytes = [];
+
+  for (var i = 0; i < compressedString.length; i++) {
+    compressedBytes.push(compressedString.charCodeAt(i));
+  }
+
+  var bytes = new Zlib.RawInflate(compressedBytes).decompress();
+  var str = '';
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = bytes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var b = _step.value;
+      str += String.fromCharCode(b);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return != null) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return str;
+}
+
+
 
 /***/ })
 

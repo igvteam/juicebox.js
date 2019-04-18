@@ -24,6 +24,7 @@
 /**
  * Created by dat on 3/8/17.
  */
+
 var hic = (function (hic) {
 
     var urlShorteners;
@@ -97,12 +98,10 @@ var hic = (function (hic) {
         return Promise.resolve(url);
     }
 
-    hic.shortJuiceboxURL = function (base) {
+    hic.shortJuiceboxURL = async function (base) {
 
         var url, queryString,
             self = this;
-
-        url = base + "?juicebox=";
 
         queryString = "{";
         hic.allBrowsers.forEach(function (browser, index) {
@@ -110,50 +109,46 @@ var hic = (function (hic) {
             queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
         });
 
-        url = url + encodeURIComponent(queryString);
+        const compressedString = compressQueryParameter(queryString)
+
+        url = base + "?juiceboxData=" + compressedString
 
         if (url.length > 2048) {
-            return Promise.resolve(url)
+            return url
         }
         else {
             return self.shortenURL(url)
-
-                .then(function (shortURL) {
-
-                    // Now shorten a second time, with short url as a parameter.  This solves the problem of
-                    // the expanded url (after a redirect) being over the browser limit.
-
-                    var idx, href, url;
-
-                    href = window.location.href;
-                    idx = href.indexOf("?");
-                    if (idx > 0) {
-                        href = href.substr(0, idx);
-                    }
-
-                    url = href + "?juiceboxURL=" + shortURL;
-                    return url;
-                })
         }
     };
 
 
     hic.decodeJBUrl = function (jbURL) {
 
-        var q, parts, config;
+        let q
+        const queryMap = hic.extractQuery(jbURL)
 
-        q = hic.extractQuery(jbURL)["juicebox"];
-
-        if (q.startsWith("%7B")) {
-            q = decodeURIComponent(q);
+        if (queryMap.hasOwnProperty("juicebox")) {
+            q = queryMap["juicebox"];
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+        }
+        else if (queryMap.hasOwnProperty("juiceboxData")) {
+            const compressed = queryMap["juiceboxData"]
+            q = decompressQueryParameter(compressed)
         }
 
-        q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-        parts = q.split("},{");
+        if (q) {
+            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+            const parts = q.split("},{");
 
-        return {
-            queryString: decodeURIComponent(parts[0]),
-            oauthToken: oauthToken
+            return {
+                queryString: decodeURIComponent(parts[0]),
+                oauthToken: oauthToken
+            }
+        }
+        else {
+            return undefined
         }
     }
 
@@ -318,6 +313,45 @@ var hic = (function (hic) {
             .catch(function (error) {
                 console.error(error);
             })
+    }
+
+
+    function compressQueryParameter(str) {
+
+        var bytes, deflate, compressedBytes, compressedString, enc;
+
+        bytes = [];
+        for (var i = 0; i < str.length; i++) {
+            bytes.push(str.charCodeAt(i));
+        }
+        compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+        compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
+        enc = btoa(compressedString);
+        enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
+
+        //console.log(json);
+        //console.log(enc);
+
+        return enc;
+    }
+
+    function decompressQueryParameter(enc) {
+
+        enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+
+        const compressedString = atob(enc);
+        const compressedBytes = [];
+        for (let i = 0; i < compressedString.length; i++) {
+            compressedBytes.push(compressedString.charCodeAt(i));
+        }
+        const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+
+        let str = ''
+        for (let b of bytes) {
+            str += String.fromCharCode(b)
+        }
+
+        return str;
     }
 
 

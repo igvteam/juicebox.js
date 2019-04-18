@@ -1,7 +1,7 @@
 /*
  *  The MIT License (MIT)
  *
- * Copyright (c) 2016-2017 The Regents of the University of California
+ * Copyright (c) 2019 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including
@@ -30,6 +30,7 @@
 
 import ModalTable from './modalTable'
 import EncodeDataSource from './encode'
+import  {compressQueryParameter, decompressQueryParameter} from './urlQueryUtils'
 //import QRCode from './qrcode'
 
 const juicebox = {}
@@ -134,7 +135,7 @@ juicebox.init = function ($container, config) {
         }
 
 
-        $hic_share_url_modal.on('show.bs.modal', function (e) {
+        $hic_share_url_modal.on('show.bs.modal', async function (e) {
 
             var queryString,
                 href,
@@ -147,73 +148,67 @@ juicebox.init = function ($container, config) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            hic.shortJuiceboxURL(href)
+            const jbUrl = await hic.shortJuiceboxURL(href)
 
-                .then(function (jbUrl) {
+            getEmbeddableSnippet(jbUrl)
+                .then(function (embedSnippet) {
+                    var $hic_embed_url;
 
-                    getEmbeddableSnippet(jbUrl)
-                        .then(function (embedSnippet) {
-                            var $hic_embed_url;
-
-                            $hic_embed_url = $('#hic-embed');
-                            $hic_embed_url.val(embedSnippet);
-                            $hic_embed_url.get(0).select();
-                        });
-
-                    maybeShortenURL(jbUrl)
-
-                        .then(function (shortURL) {
-
-                            var shareUrl = shortURL || jbUrl
-
-                            // Shorten second time
-                            // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
-
-                            var tweetContainer,
-                                config,
-                                $hic_share_url;
-
-                            $hic_share_url = $('#hic-share-url');
-                            $hic_share_url.val(shareUrl);
-                            $hic_share_url.get(0).select();
-
-                            tweetContainer = $('#tweetButtonContainer');
-                            tweetContainer.empty();
-                            config =
-                                {
-                                    text: 'Contact map: '
-                                };
-
-                            $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
-
-
-                            if (shareUrl.length < 100) {
-                                window.twttr.widgets
-                                    .createShareButton(shareUrl, tweetContainer.get(0), config)
-                                    .then(function (el) {
-                                        console.log("Tweet button updated");
-                                    });
-
-
-                                // QR code generation
-                                if (qrcode) {
-                                    qrcode.clear();
-                                    $('hic-qr-code-image').empty();
-                                } else {
-                                    config =
-                                        {
-                                            width: 128,
-                                            height: 128,
-                                            correctLevel: QRCode.CorrectLevel.H
-                                        };
-
-                                    qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
-                                }
-
-                                qrcode.makeCode(shareUrl);
-                            }
-                        });
+                    $hic_embed_url = $('#hic-embed');
+                    $hic_embed_url.val(embedSnippet);
+                    $hic_embed_url.get(0).select();
                 });
+
+
+            var shareUrl = jbUrl
+
+            // Shorten second time
+            // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
+
+            var tweetContainer,
+                config,
+                $hic_share_url;
+
+            $hic_share_url = $('#hic-share-url');
+            $hic_share_url.val(shareUrl);
+            $hic_share_url.get(0).select();
+
+            tweetContainer = $('#tweetButtonContainer');
+            tweetContainer.empty();
+            config =
+                {
+                    text: 'Contact map: '
+                };
+
+            $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
+
+
+            if (shareUrl.length < 100) {
+                window.twttr.widgets
+                    .createShareButton(shareUrl, tweetContainer.get(0), config)
+                    .then(function (el) {
+                        console.log("Tweet button updated");
+                    });
+
+
+                // QR code generation
+                if (qrcode) {
+                    qrcode.clear();
+                    $('hic-qr-code-image').empty();
+                } else {
+                    config =
+                        {
+                            width: 128,
+                            height: 128,
+                            correctLevel: QRCode.CorrectLevel.H
+                        };
+
+                    qrcode = new QRCode(document.getElementById("hic-qr-code-image"), config);
+                }
+
+                qrcode.makeCode(shareUrl);
+            }
+
         });
 
         $hic_share_url_modal.on('hidden.bs.modal', function (e) {
@@ -459,7 +454,9 @@ juicebox.init = function ($container, config) {
 
     async function createBrowsers(query) {
 
-        var parts, q, browser, i;
+        var parts, browser, i;
+
+        let q;
 
         if (query && query.hasOwnProperty("juicebox")) {
             q = query["juicebox"];
@@ -467,6 +464,12 @@ juicebox.init = function ($container, config) {
             if (q.startsWith("%7B")) {
                 q = decodeURIComponent(q);
             }
+        } else if (query && query.hasOwnProperty("juiceboxData")) {
+            q = decompressQueryParameter(query["juiceboxData"])
+        }
+
+
+        if (q) {
 
             q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
             parts = q.split("},{");
