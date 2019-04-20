@@ -24,6 +24,7 @@
 /**
  * Created by jrobinso on 6/29/17.
  */
+import Track2D from '../js/hicTrack2D'
 
 function runTrack2DTests() {
 
@@ -33,7 +34,7 @@ function runTrack2DTests() {
             track2D;
 
 
-        hic.loadTrack2D({url: url})
+        Track2D.loadTrack2D({url: url})
             .then(function (track2D) {
                 equal(track2D.featureCount, 16);
                 start();

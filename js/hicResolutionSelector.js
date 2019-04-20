@@ -25,166 +25,161 @@
  * Created by dat on 3/4/17.
  */
 
-var hic = (function (hic) {
+const ResolutionSelector = function (browser, $parent) {
+    var self = this;
 
-    hic.ResolutionSelector = function (browser, $parent) {
-        var self = this;
+    this.browser = browser;
 
-        this.browser = browser;
+    this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
+    $parent.append(this.$container);
 
-        this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
-        $parent.append(this.$container);
+    // label container
+    this.$label_container = $('<div id="hic-resolution-label-container">');
+    this.$container.append(this.$label_container);
 
-        // label container
-        this.$label_container = $('<div id="hic-resolution-label-container">');
-        this.$container.append(this.$label_container);
+    // Resolution (kb)
+    this.$label = $("<div>");
+    this.$label_container.append(this.$label);
+    this.$label.text('Resolution (kb)');
+    this.$label.hide();
 
-        // Resolution (kb)
-        this.$label = $("<div>");
-        this.$label_container.append(this.$label);
-        this.$label.text('Resolution (kb)');
-        this.$label.hide();
+    // lock/unlock
+    this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
+    this.$label_container.append(this.$resolution_lock);
+    this.$label_container.on('click', function (e) {
+        self.browser.resolutionLocked = !(self.browser.resolutionLocked);
+        self.setResolutionLock(self.browser.resolutionLocked);
+    });
 
-        // lock/unlock
-        this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
-        this.$label_container.append(this.$resolution_lock);
-        this.$label_container.on('click', function (e) {
-            self.browser.resolutionLocked = !(self.browser.resolutionLocked);
-            self.setResolutionLock(self.browser.resolutionLocked);
-        });
+    this.$resolution_selector = $('<select name="select">');
+    this.$container.append(this.$resolution_selector);
 
-        this.$resolution_selector = $('<select name="select">');
-        this.$container.append(this.$resolution_selector);
+    this.$resolution_selector.attr('name', 'resolution_selector');
 
-        this.$resolution_selector.attr('name', 'resolution_selector');
-
-        this.$resolution_selector.on('change', function (e) {
-            var zoomIndex = parseInt($(this).val());
-            self.browser.setZoom(zoomIndex);
-        });
+    this.$resolution_selector.on('change', function (e) {
+        var zoomIndex = parseInt($(this).val());
+        self.browser.setZoom(zoomIndex);
+    });
 
 
-        this.browser.eventBus.subscribe("LocusChange", this);
-        this.browser.eventBus.subscribe("MapLoad", this);
-        this.browser.eventBus.subscribe("ControlMapLoad", this);
-    };
+    this.browser.eventBus.subscribe("LocusChange", this);
+    this.browser.eventBus.subscribe("MapLoad", this);
+    this.browser.eventBus.subscribe("ControlMapLoad", this);
+};
 
-    hic.ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-        this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-        this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
-    };
+ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
+    this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+    this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+};
 
-    hic.ResolutionSelector.prototype.receiveEvent = function (event) {
+ResolutionSelector.prototype.receiveEvent = function (event) {
 
-        var self = this,
-            htmlString,
-            selectedIndex,
-            isWholeGenome,
-            divisor,
-            list;
+    var self = this,
+        htmlString,
+        selectedIndex,
+        isWholeGenome,
+        divisor,
+        list;
 
-        if (event.type === "LocusChange") {
+    if (event.type === "LocusChange") {
 
-            if (true === event.data.resolutionChanged) {
-                this.browser.resolutionLocked = false;
-                self.setResolutionLock(this.browser.resolutionLocked);
-            }
-
-            isWholeGenome = (0 === event.data.state.chr1);
-
-            this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-
-            selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
-            divisor = isWholeGenome ? 1e6 : 1e3;
-            list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
-
-            htmlString = optionListHTML(list, selectedIndex, divisor);
-            this.$resolution_selector.empty();
-            this.$resolution_selector.append(htmlString);
-
-            this.$resolution_selector
-                .find('option')
-                .filter(function (index) {
-                    return index === selectedIndex;
-                })
-                .prop('selected', true);
-
-
-        } else if (event.type === "MapLoad") {
-
+        if (true === event.data.resolutionChanged) {
             this.browser.resolutionLocked = false;
-            this.setResolutionLock(this.browser.resolutionLocked);
-
-            htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
-            this.$resolution_selector.empty();
-            this.$resolution_selector.append(htmlString);
-        } else if (event.type === "ControlMapLoad") {
-
-
+            self.setResolutionLock(this.browser.resolutionLocked);
         }
 
-        function harmonizeContactAndControlResolutuionOptions($options, resolutions) {
+        isWholeGenome = (0 === event.data.state.chr1);
 
-            var dictionary;
+        this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
 
-            dictionary = resolutionDictionary(resolutions);
+        selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
+        divisor = isWholeGenome ? 1e6 : 1e3;
+        list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
 
-            // reset
-            $options.removeAttr('disabled');
-            $options.each(function (index) {
-                var $option,
-                    str;
+        htmlString = optionListHTML(list, selectedIndex, divisor);
+        this.$resolution_selector.empty();
+        this.$resolution_selector.append(htmlString);
 
-                $option = $(this);
-                str = $option.data('resolution');
-                if (undefined === dictionary[str]) {
-                    $option.attr('disabled', 'disabled');
-                }
+        this.$resolution_selector
+            .find('option')
+            .filter(function (index) {
+                return index === selectedIndex;
+            })
+            .prop('selected', true);
 
-            });
 
-            function resolutionDictionary(list) {
-                var d = {};
-                list.forEach(function (resolution) {
-                    d[resolution.toString()] = resolution;
-                });
-                return d;
+    } else if (event.type === "MapLoad") {
+
+        this.browser.resolutionLocked = false;
+        this.setResolutionLock(this.browser.resolutionLocked);
+
+        htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
+        this.$resolution_selector.empty();
+        this.$resolution_selector.append(htmlString);
+    } else if (event.type === "ControlMapLoad") {
+
+
+    }
+
+    function harmonizeContactAndControlResolutuionOptions($options, resolutions) {
+
+        var dictionary;
+
+        dictionary = resolutionDictionary(resolutions);
+
+        // reset
+        $options.removeAttr('disabled');
+        $options.each(function (index) {
+            var $option,
+                str;
+
+            $option = $(this);
+            str = $option.data('resolution');
+            if (undefined === dictionary[str]) {
+                $option.attr('disabled', 'disabled');
             }
 
-        }
+        });
 
-        function optionListHTML(resolutions, selectedIndex, divisor) {
-            var list;
-
-            list = resolutions.map(function (resolution, index) {
-                var selected, unit, pretty;
-
-                if (resolution >= 1e6) {
-                    divisor = 1e6
-                    unit = 'mb'
-                } else if (resolution >= 1e3) {
-                    divisor = 1e3
-                    unit = 'kb'
-                } else {
-                    divisor = 1
-                    unit = 'bp'
-                }
-
-                pretty = igv.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
-                selected = selectedIndex === index;
-
-                if (resolution)
-                    return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
-                else
-                    return ''
+        function resolutionDictionary(list) {
+            var d = {};
+            list.forEach(function (resolution) {
+                d[resolution.toString()] = resolution;
             });
-
-            return list.join('');
+            return d;
         }
 
-    };
+    }
 
-    return hic;
+    function optionListHTML(resolutions, selectedIndex, divisor) {
+        var list;
 
-})
-(hic || {});
+        list = resolutions.map(function (resolution, index) {
+            var selected, unit, pretty;
+
+            if (resolution >= 1e6) {
+                divisor = 1e6
+                unit = 'mb'
+            } else if (resolution >= 1e3) {
+                divisor = 1e3
+                unit = 'kb'
+            } else {
+                divisor = 1
+                unit = 'bp'
+            }
+
+            pretty = igv.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
+            selected = selectedIndex === index;
+
+            if (resolution)
+                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+            else
+                return ''
+        });
+
+        return list.join('');
+    }
+
+};
+
+export default ResolutionSelector

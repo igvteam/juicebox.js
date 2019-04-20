@@ -27,144 +27,143 @@
  */
 
 
-var hic = (function (hic) {
+import hic from './hic'
 
-    hic.Track2DDisplaceModes =
-        {
-            displayAllMatrix: 'displayAllMatrix',
-            displayLowerMatrix: 'displayLowerMatrix',
-            displayUpperMatrix: 'displayUpperMatrix'
-        };
+const Track2D = function (config, features) {
 
-    hic.Track2D = function (config, features) {
+    var self = this;
 
-        var self = this;
+    this.config = config;
+    this.name = config.name;
+    this.featureMap = {};
+    this.featureCount = 0;
+    this.isVisible = true;
 
-        this.config = config;
-        this.name = config.name;
-        this.featureMap = {};
-        this.featureCount = 0;
-        this.isVisible = true;
+    this.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
 
-        this.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
-
-        if(config.color && hic.validateColor(config.color)) {
-            this.color = this.color = config.color;    // If specified, this will override colors of individual records.
-        }
-        this.repColor = features.length > 0 ? features[0].color : "black";
-
-        features.forEach(function (f) {
-
-            self.featureCount++;
-
-            var key = getKey(f.chr1, f.chr2),
-                list = self.featureMap[key];
-
-            if (!list) {
-                list = [];
-                self.featureMap[key] = list;
-            }
-            list.push(f);
-        });
-
-    };
-
-    hic.Track2D.prototype.getColor = function() {
-        return this.color || this.repColor;
+    if (config.color && validateColor(config.color)) {
+        this.color = this.color = config.color;    // If specified, this will override colors of individual records.
     }
+    this.repColor = features.length > 0 ? features[0].color : "black";
 
-    hic.Track2D.prototype.getFeatures = function (chr1, chr2) {
-        var key = getKey(chr1, chr2),
-            features = this.featureMap[key];
+    features.forEach(function (f) {
 
-        return features || this.featureMap[getAltKey(chr1, chr2)];
-    };
+        self.featureCount++;
 
-    hic.loadTrack2D = function (config) {
+        var key = getKey(f.chr1, f.chr2),
+            list = self.featureMap[key];
 
-        return igv.xhr.loadString(config.url, igv.buildOptions(config))
-
-            .then(function (data) {
-
-                var features = parseData(data, isBedPE(config));
-
-                return new hic.Track2D(config, features);
-            })
-    }
-
-    function isBedPE(config) {
-
-        if (typeof config.url === "string") {
-            return config.url.toLowerCase().indexOf(".bedpe") > 0;
-        } else if (typeof config.name === "string") {
-            return config.name.toLowerCase().indexOf(".bedpe") > 0;
+        if (!list) {
+            list = [];
+            self.featureMap[key] = list;
         }
-        else {
-            return true;  // Default
-        }
+        list.push(f);
+    });
+
+};
+
+Track2D.loadTrack2D = function (config) {
+
+    return igv.xhr.loadString(config.url, igv.buildOptions(config))
+
+        .then(function (data) {
+
+            var features = parseData(data, isBedPE(config));
+
+            return new hic.Track2D(config, features);
+        })
+}
+
+Track2D.prototype.getColor = function () {
+    return this.color || this.repColor;
+}
+
+Track2D.prototype.getFeatures = function (chr1, chr2) {
+    var key = getKey(chr1, chr2),
+        features = this.featureMap[key];
+
+    return features || this.featureMap[getAltKey(chr1, chr2)];
+};
+
+
+function isBedPE(config) {
+
+    if (typeof config.url === "string") {
+        return config.url.toLowerCase().indexOf(".bedpe") > 0;
+    } else if (typeof config.name === "string") {
+        return config.name.toLowerCase().indexOf(".bedpe") > 0;
     }
+    else {
+        return true;  // Default
+    }
+}
 
-    function parseData(data, isBedPE) {
+function parseData(data, isBedPE) {
 
-        if (!data) return null;
+    if (!data) return null;
 
-        var feature,
-            lines = igv.splitLines(data),
-            len = lines.length,
-            tokens,
-            allFeatures = [],
-            line,
-            i,
-            delimiter = "\t",
-            start,
-            colorColumn;
+    var feature,
+        lines = igv.splitLines(data),
+        len = lines.length,
+        tokens,
+        allFeatures = [],
+        line,
+        i,
+        delimiter = "\t",
+        start,
+        colorColumn;
 
-        start = isBedPE ? 0 : 1;
-        colorColumn = isBedPE ? 10 : 6;
+    start = isBedPE ? 0 : 1;
+    colorColumn = isBedPE ? 10 : 6;
 
-        for (i = start; i < len; i++) {
+    for (i = start; i < len; i++) {
 
-            line = lines[i];
+        line = lines[i];
 
-            if(line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
-                continue;
-            }
-
-            tokens = lines[i].split(delimiter);
-            if (tokens.length < 7) {
-                //console.log("Could not parse line: " + line);
-                continue;
-            }
-
-            feature = {
-                chr1: tokens[0],
-                x1: parseInt(tokens[1]),
-                x2: parseInt(tokens[2]),
-                chr2: tokens[3],
-                y1: parseInt(tokens[4]),
-                y2: parseInt(tokens[5]),
-                color: "rgb(" + tokens[colorColumn] + ")"
-            }
-
-            if(!Number.isNaN(feature.x1)) {
-                allFeatures.push(feature);
-            }
+        if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+            continue;
         }
 
-        return allFeatures;
+        tokens = lines[i].split(delimiter);
+        if (tokens.length < 7) {
+            //console.log("Could not parse line: " + line);
+            continue;
+        }
+
+        feature = {
+            chr1: tokens[0],
+            x1: parseInt(tokens[1]),
+            x2: parseInt(tokens[2]),
+            chr2: tokens[3],
+            y1: parseInt(tokens[4]),
+            y2: parseInt(tokens[5]),
+            color: "rgb(" + tokens[colorColumn] + ")"
+        }
+
+        if (!Number.isNaN(feature.x1)) {
+            allFeatures.push(feature);
+        }
     }
 
-    function getKey(chr1, chr2) {
-        return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
-    }
+    return allFeatures;
+}
 
-    function getAltKey(chr1, chr2) {
-        var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
-            chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
-        return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
-    }
+function getKey(chr1, chr2) {
+    return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
+}
 
-    return hic;
+function getAltKey(chr1, chr2) {
+    var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
+        chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
+    return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
+}
 
-})
-(hic || {});
+
+function validateColor(str) {
+    var div = document.createElement("div");
+    div.style.borderColor = str;
+    return div.style.borderColor !== "";
+}
+
+
+export default Track2D

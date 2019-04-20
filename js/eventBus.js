@@ -31,86 +31,60 @@
  * Barebones event bus.
  */
 
-var hic = (function (hic) {
+const EventBus = function () {
 
 
-    hic.EventBus = function () {
+    // Map eventType -> list of subscribers
+    this.subscribers = {};
 
+    this.stack = []
+};
 
-        // Map eventType -> list of subscribers
-        this.subscribers = {};
+EventBus.prototype.subscribe = function (eventType, object) {
 
-        this.stack = []
-    };
+    var subscriberList = this.subscribers[eventType];
+    if (subscriberList == undefined) {
+        subscriberList = [];
+        this.subscribers[eventType] = subscriberList;
+    }
+    subscriberList.push(object);
 
-    hic.EventBus.prototype.subscribe = function (eventType, object) {
+};
 
-        var subscriberList = this.subscribers[eventType];
-        if (subscriberList == undefined) {
-            subscriberList = [];
-            this.subscribers[eventType] = subscriberList;
-        }
-        subscriberList.push(object);
+EventBus.prototype.post = function (event) {
 
-    };
+    const eventType = event.type
 
-    hic.EventBus.prototype.post = function (event) {
+    if (this.hold) {
+        this.stack.push(event)
+    }
+    else {
+        const subscriberList = this.subscribers[eventType];
 
-        const eventType = event.type
+        if (subscriberList) {
+            for (let subscriber of subscriberList) {
 
-        if(this.hold) {
-            this.stack.push(event)
-        }
-            else {
-            const subscriberList = this.subscribers[eventType];
-
-            if (subscriberList) {
-                for (let subscriber of subscriberList) {
-
-                    if ("function" === typeof subscriber.receiveEvent) {
-                        subscriber.receiveEvent(event);
-                    } else if ("function" === typeof subscriber) {
-                        subscriber(event);
-                    }
+                if ("function" === typeof subscriber.receiveEvent) {
+                    subscriber.receiveEvent(event);
+                } else if ("function" === typeof subscriber) {
+                    subscriber(event);
                 }
             }
         }
     }
+}
 
-    hic.EventBus.prototype.hold = function() {
-        this.hold = true;
+EventBus.prototype.hold = function () {
+    this.hold = true;
 
+}
+
+EventBus.prototype.release = function () {
+    this.hold = false;
+    for (let event of this.stack) {
+        this.post(event)
     }
+    this.stack = []
+}
 
-    hic.EventBus.prototype.release = function () {
-        this.hold = false;
-        for(let event of this.stack) {
-            this.post(event)
-        }
-        this.stack = []
-    }
-
-
-
-    hic.Event = function (type, data, propogate) {
-        return {
-            type: type,
-            data: data || {},
-            propogate: propogate !== undefined ? propogate : true     // Default to true
-        }
-    };
-    
-
-    /**
-     * The global event bus.  For events outside the scope of a single browser.
-     *
-     * @type {hic.EventBus}
-     */
-    hic.eventBus = new hic.EventBus();
-
-
-
-    return hic;
-
-})
-(hic || {});
+export default EventBus

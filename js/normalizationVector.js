@@ -27,35 +27,30 @@
  */
 
 
-var hic = (function (hic) {
+const NormalizationVector = function (type, chrIdx, unit, resolution, values) {
 
 
-    hic.NormalizationVector = function (type, chrIdx, unit, resolution, values) {
-     
-
-        var mean = hic.Math.mean(values), i;
-        if (mean > 0) {
-            for (i = 0; i < values.length; i++) {
-                values[i] /= mean;
-            }
+    var mean = hic.Math.mean(values), i;
+    if (mean > 0) {
+        for (i = 0; i < values.length; i++) {
+            values[i] /= mean;
         }
-        
-        this.type = type;
-        this.chrIdx = chrIdx;
-        this.unit = unit;
-        this.resolution = resolution;
-        this.data = values;
     }
 
-    hic.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {
-        return type + "_" + chrIdx + "_" + unit + "_" + resolution;
-    }
+    this.type = type;
+    this.chrIdx = chrIdx;
+    this.unit = unit;
+    this.resolution = resolution;
+    this.data = values;
+}
 
-    hic.NormalizationVector.prototype.getKey = function () {
-        return NormalizationVector.getKey(this.type, this.chrIdx, this.unit, this.resolution);
-    }
+NormalizationVector.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {
+    return type + "_" + chrIdx + "_" + unit + "_" + resolution;
+}
 
-    return hic;
+NormalizationVector.prototype.getKey = function () {
+    return NormalizationVector.getKey(this.type, this.chrIdx, this.unit, this.resolution);
+}
 
-})
-(hic || {});
+
+export default NormalizationVector

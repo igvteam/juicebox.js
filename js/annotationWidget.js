@@ -20,392 +20,391 @@
  * THE SOFTWARE.
  *
  */
+import Track2D from './hicTrack2D'
+import HICEvent from './hicEvent'
+import hic from './hic'
 
-var hic = (function (hic) {
+const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 
-    hic.AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
+    var $container;
 
-        var $container;
+    this.browser = browser;
+    this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        this.browser = browser;
-        this.trackListRetrievalCallback = trackListRetrievalCallback;
+    $container = $("<div>", {class: 'hic-annotation-presentation-button-container'});
+    $parent.append($container);
 
-        $container = $("<div>", { class: 'hic-annotation-presentation-button-container' });
-        $parent.append($container);
+    annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
 
-        annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
+    annotationPanel.call(this, this.browser.$root, config.title);
 
-        annotationPanel.call(this, this.browser.$root, config.title);
+};
 
-    };
+AnnotationWidget.prototype.updateBody = function (tracks) {
 
-    hic.AnnotationWidget.prototype.updateBody = function (tracks) {
+    var self = this,
+        trackRenderers,
+        isTrack2D,
+        zi;
 
-        var self = this,
-            trackRenderers,
-            isTrack2D,
-            zi;
+    self.$annotationPanel.find('.hic-annotation-row-container').remove();
 
-        self.$annotationPanel.find('.hic-annotation-row-container').remove();
+    isTrack2D = (_.first(tracks) instanceof Track2D);
 
-        isTrack2D = (_.first(tracks) instanceof hic.Track2D);
-
-        if (isTrack2D) {
-            // Reverse list to present layers in "z" order.
-            for(zi = tracks.length - 1; zi >= 0; zi--) {
-                annotationPanelRow.call(self, self.$annotationPanel, tracks[ zi ]);
-            }
-        } else {
-            trackRenderers = tracks;
-            _.each(trackRenderers, function (trackRenderer) {
-                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
-            });
+    if (isTrack2D) {
+        // Reverse list to present layers in "z" order.
+        for (zi = tracks.length - 1; zi >= 0; zi--) {
+            annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
         }
-
-    };
-
-    function annotationPresentationButton($parent, title, alertMessage) {
-        var self = this,
-            $button;
-
-        $button = $('<button>', { type: 'button' });
-        $button.text(title);
-        $parent.append($button);
-
-        $button.on('click', function () {
-            var list;
-
-            list = self.trackListRetrievalCallback();
-            if (list.length > 0) {
-                self.updateBody(self.trackListRetrievalCallback());
-                self.$annotationPanel.toggle();
-            } else {
-                igv.presentAlert(alertMessage);
-            }
-
-            self.browser.hideMenu();
+    } else {
+        trackRenderers = tracks;
+        _.each(trackRenderers, function (trackRenderer) {
+            annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
         });
     }
 
-    function annotationPanel($parent, title) {
+};
 
-        var self = this,
-            $panel_header,
-            $load_container,
-            $div,
-            $fa;
+function annotationPresentationButton($parent, title, alertMessage) {
+    var self = this,
+        $button;
 
-        this.$annotationPanel = $('<div>', { class:'hic-annotation-panel-container' });
-        $parent.append(this.$annotationPanel);
+    $button = $('<button>', {type: 'button'});
+    $button.text(title);
+    $parent.append($button);
 
-        // close button container
-        $panel_header = $('<div>', { class:'hic-annotation-panel-header' });
-        this.$annotationPanel.append($panel_header);
+    $button.on('click', function () {
+        var list;
 
-        // panel title
-        $div = $('<div>');
-        $div.text(title);
-        $panel_header.append($div);
-
-        // close button
-        $div = $('<div>', { class:'hic-menu-close-button' });
-        $panel_header.append($div);
-
-        $fa = $("<i>", { class:'fa fa-times' });
-        $div.append($fa);
-
-        $fa.on('click', function (e) {
+        list = self.trackListRetrievalCallback();
+        if (list.length > 0) {
+            self.updateBody(self.trackListRetrievalCallback());
             self.$annotationPanel.toggle();
-        });
+        } else {
+            igv.presentAlert(alertMessage);
+        }
 
-        // TODO: Continue changes for load functions added to side panel
-        // load container
-        // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
-        // this.$annotationPanel.append($load_container);
-        //
-        // // Load
-        // $div = $('<div>');
-        // $load_container.append($div);
-        // $div.text('Load:');
-        //
-        // // Blah
-        // $div = $('<div>');
-        // $load_container.append($div);
-        // $div.text('Blah');
+        self.browser.hideMenu();
+    });
+}
 
-        //this.$annotationPanel.draggable();
-        igv.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
-        this.$annotationPanel.hide();
+function annotationPanel($parent, title) {
+
+    var self = this,
+        $panel_header,
+        $load_container,
+        $div,
+        $fa;
+
+    this.$annotationPanel = $('<div>', {class: 'hic-annotation-panel-container'});
+    $parent.append(this.$annotationPanel);
+
+    // close button container
+    $panel_header = $('<div>', {class: 'hic-annotation-panel-header'});
+    this.$annotationPanel.append($panel_header);
+
+    // panel title
+    $div = $('<div>');
+    $div.text(title);
+    $panel_header.append($div);
+
+    // close button
+    $div = $('<div>', {class: 'hic-menu-close-button'});
+    $panel_header.append($div);
+
+    $fa = $("<i>", {class: 'fa fa-times'});
+    $div.append($fa);
+
+    $fa.on('click', function (e) {
+        self.$annotationPanel.toggle();
+    });
+
+    // TODO: Continue changes for load functions added to side panel
+    // load container
+    // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
+    // this.$annotationPanel.append($load_container);
+    //
+    // // Load
+    // $div = $('<div>');
+    // $load_container.append($div);
+    // $div.text('Load:');
+    //
+    // // Blah
+    // $div = $('<div>');
+    // $load_container.append($div);
+    // $div.text('Blah');
+
+    //this.$annotationPanel.draggable();
+    igv.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
+    this.$annotationPanel.hide();
+}
+
+function annotationPanelRow($container, track) {
+    var self = this,
+        $colorpickerContainer,
+        $colorpickerButton,
+        $colorpicker,
+        $row_container,
+        $row,
+        $hideShowTrack,
+        $deleteTrack,
+        $upTrack,
+        $downTrack,
+        $e,
+        $o,
+        hidden_color = '#f7f7f7',
+        str,
+        isTrack2D,
+        trackList,
+        xyTrackRendererPair,
+        trackRenderer,
+        track1D,
+        index,
+        upp,
+        dwn;
+
+    isTrack2D = (track instanceof hic.Track2D);
+    trackList = this.trackListRetrievalCallback();
+
+    if (false === isTrack2D) {
+        xyTrackRendererPair = track;
+        track1D = xyTrackRendererPair.x.track;
+        trackRenderer = xyTrackRendererPair.x.track.trackView;
     }
 
-    function annotationPanelRow($container, track) {
-        var self = this,
-            $colorpickerContainer,
-            $colorpickerButton,
-            $colorpicker,
-            $row_container,
-            $row,
-            $hideShowTrack,
-            $deleteTrack,
-            $upTrack,
-            $downTrack,
-            $e,
-            $o,
-            hidden_color = '#f7f7f7',
-            str,
-            isTrack2D,
-            trackList,
-            xyTrackRendererPair,
-            trackRenderer,
-            track1D,
-            index,
-            upp,
-            dwn;
+    // row container
+    $row_container = $('<div>', {class: 'hic-annotation-row-container'});
+    $container.append($row_container);
 
-        isTrack2D = (track instanceof hic.Track2D);
-        trackList = this.trackListRetrievalCallback();
+    // one row
+    $row = $('<div>', {class: 'hic-annotation-modal-row'});
+    $row_container.append($row);
 
-        if (false === isTrack2D) {
-            xyTrackRendererPair = track;
-            track1D = xyTrackRendererPair.x.track;
-            trackRenderer = xyTrackRendererPair.x.track.trackView;
-        }
+    // track name
+    $e = $("<div>");
+    $e.text(isTrack2D ? track.config.name : track1D.config.name);
+    $row.append($e);
 
-        // row container
-        $row_container = $('<div>', {class: 'hic-annotation-row-container'});
-        $container.append($row_container);
+    // track hide/show
+    if (isTrack2D) {
+        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
+        $row.append($hideShowTrack);
+        $hideShowTrack.on('click', function (e) {
 
-        // one row
-        $row = $('<div>', {class: 'hic-annotation-modal-row'});
-        $row_container.append($row);
+            if ($hideShowTrack.hasClass('fa-eye')) {
+                $hideShowTrack.addClass('fa-eye-slash');
+                $hideShowTrack.removeClass('fa-eye');
+                track.isVisible = false;
+            } else {
+                $hideShowTrack.addClass('fa-eye');
+                $hideShowTrack.removeClass('fa-eye-slash');
+                track.isVisible = true;
+            }
 
-        // track name
-        $e = $("<div>");
-        $e.text(isTrack2D ? track.config.name : track1D.config.name);
-        $row.append($e);
+            self.browser.contactMatrixView.clearImageCaches();
+            self.browser.contactMatrixView.update();
 
-        // track hide/show
+        });
+    }
+
+    if (isTrack2D) {
+
+        // matrix diagonal widget
+        const $matrix_diagonal_div = $('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
+        $row.append($matrix_diagonal_div);
+        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
+            e.preventDefault();
+            matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
+        });
+
+    }
+
+    // color swatch selector button
+    $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
+    $row.append($colorpickerButton);
+
+    // color swatch selector
+    $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
+        $row.next('.hic-color-swatch-container').toggle();
+    });
+
+    $colorpickerButton.on('click', function (e) {
+        $row.next('.hic-color-swatch-container').toggle();
+    });
+
+    $colorpickerContainer.hide();
+
+    igv.createColorSwatchSelector($colorpickerContainer, function (color) {
+        var $swatch;
+
+        $swatch = $row.find('.fa-square');
+        $swatch.css({'color': color});
+
         if (isTrack2D) {
-            str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-            $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
-            $row.append($hideShowTrack);
-            $hideShowTrack.on('click', function (e) {
-
-                if ($hideShowTrack.hasClass('fa-eye')) {
-                    $hideShowTrack.addClass('fa-eye-slash');
-                    $hideShowTrack.removeClass('fa-eye');
-                    track.isVisible = false;
-                } else {
-                    $hideShowTrack.addClass('fa-eye');
-                    $hideShowTrack.removeClass('fa-eye-slash');
-                    track.isVisible = true;
-                }
-
-                self.browser.contactMatrixView.clearImageCaches();
-                self.browser.contactMatrixView.update();
-
-            });
+            track.color = color;
+            self.browser.eventBus.post(HICEvent('TrackState2D', track));
+        } else {
+            trackRenderer.setColor(color);
         }
 
+    });
+
+
+    // track up/down
+    $e = $('<div>', {class: 'up-down-arrow-container'});
+    $row.append($e);
+
+    $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
+    $e.append($upTrack);
+
+    $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
+    $e.append($downTrack);
+
+    if (1 === _.size(trackList)) {
+        $upTrack.css('color', hidden_color);
+        $downTrack.css('color', hidden_color);
+    } else if (track === _.first(trackList)) {
+        $o = isTrack2D ? $downTrack : $upTrack;
+        $o.css('color', hidden_color);
+    } else if (track === _.last(trackList)) {
+        $o = isTrack2D ? $upTrack : $downTrack;
+        $o.css('color', hidden_color);
+    }
+
+    index = _.indexOf(trackList, track);
+
+    upp = function (e) {
+
+        track = trackList[(index + 1)];
+        trackList[(index + 1)] = trackList[index];
+        trackList[index] = track;
         if (isTrack2D) {
-
-            // matrix diagonal widget
-            const $matrix_diagonal_div = $('<div>', { class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all' });
-            $row.append($matrix_diagonal_div);
-            $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
-                e.preventDefault();
-                matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
-            });
-
-        }
-
-        // color swatch selector button
-        $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
-        $row.append($colorpickerButton);
-
-        // color swatch selector
-        $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
-            $row.next('.hic-color-swatch-container').toggle();
-        });
-
-        $colorpickerButton.on('click', function (e) {
-            $row.next('.hic-color-swatch-container').toggle();
-        });
-
-        $colorpickerContainer.hide();
-
-        igv.createColorSwatchSelector($colorpickerContainer, function (color) {
-            var $swatch;
-
-            $swatch = $row.find('.fa-square');
-            $swatch.css({ 'color': color });
-
-            if (isTrack2D) {
-                track.color = color;
-                self.browser.eventBus.post(hic.Event('TrackState2D', track));
-            } else {
-                trackRenderer.setColor(color);
-            }
-
-        });
-
-
-        // track up/down
-        $e = $('<div>', {class: 'up-down-arrow-container'});
-        $row.append($e);
-
-        $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
-        $e.append($upTrack);
-
-        $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
-        $e.append($downTrack);
-
-        if (1 === _.size(trackList)) {
-            $upTrack.css('color', hidden_color);
-            $downTrack.css('color', hidden_color);
-        } else if (track === _.first(trackList)) {
-            $o = isTrack2D ? $downTrack : $upTrack;
-            $o.css('color', hidden_color);
-        } else if (track === _.last(trackList)) {
-            $o = isTrack2D ? $upTrack : $downTrack;
-            $o.css('color', hidden_color);
-        }
-
-        index = _.indexOf(trackList, track);
-
-        upp = function (e) {
-
-            track = trackList[(index + 1)];
-            trackList[(index + 1)] = trackList[index];
-            trackList[index] = track;
-            if (isTrack2D) {
-                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
-                self.updateBody(trackList);
-            } else {
-                self.browser.updateLayout();
-                self.updateBody(trackList);
-            }
-        };
-
-        dwn = function (e) {
-
-            track = trackList[(index - 1)];
-            trackList[(index - 1)] = trackList[index];
-            trackList[index] = track;
-            if (isTrack2D) {
-                self.browser.eventBus.post(hic.Event('TrackState2D', trackList));
-                self.updateBody(trackList);
-            } else {
-                self.browser.updateLayout();
-                self.updateBody(trackList);
-            }
-        };
-
-        $upTrack.on('click', isTrack2D ? upp : dwn);
-
-        $downTrack.on('click', isTrack2D ? dwn : upp);
-
-
-
-        // track delete
-        $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
-        $row.append($deleteTrack);
-        $deleteTrack.on('click', function (e) {
-            var index;
-
-            if (isTrack2D) {
-
-                index = _.indexOf(trackList, track);
-
-                trackList.splice(index, 1);
-
-                self.browser.contactMatrixView.clearImageCaches();
-                self.browser.contactMatrixView.update();
-
-                self.browser.eventBus.post(hic.Event('TrackLoad2D', trackList));
-            } else {
-                self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
-            }
-
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
             self.updateBody(trackList);
-        });
-    }
+        } else {
+            self.browser.updateLayout();
+            self.updateBody(trackList);
+        }
+    };
 
-    function matrixDiagionalWidgetHandler($icon, track2D) {
+    dwn = function (e) {
 
-            if ($icon.hasClass('matrix-diagonal-widget-all')) {
+        track = trackList[(index - 1)];
+        trackList[(index - 1)] = trackList[index];
+        trackList[index] = track;
+        if (isTrack2D) {
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+            self.updateBody(trackList);
+        } else {
+            self.browser.updateLayout();
+            self.updateBody(trackList);
+        }
+    };
 
-                $icon.removeClass('matrix-diagonal-widget-all');
+    $upTrack.on('click', isTrack2D ? upp : dwn);
 
-                $icon.addClass('matrix-diagonal-widget-lower');
-                track2D.displayMode = hic.Track2DDisplaceModes.displayLowerMatrix;
-            } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+    $downTrack.on('click', isTrack2D ? dwn : upp);
 
-                $icon.removeClass('matrix-diagonal-widget-lower');
 
-                $icon.addClass('matrix-diagonal-widget-upper');
-                track2D.displayMode = hic.Track2DDisplaceModes.displayUpperMatrix;
-            } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+    // track delete
+    $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
+    $row.append($deleteTrack);
+    $deleteTrack.on('click', function (e) {
+        var index;
 
-                $icon.removeClass('matrix-diagonal-widget-upper');
+        if (isTrack2D) {
 
-                $icon.addClass('matrix-diagonal-widget-all');
-                track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
-            } else {
+            index = _.indexOf(trackList, track);
 
-                $icon.addClass('matrix-diagonal-widget-all');
-                track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
-            }
-    }
+            trackList.splice(index, 1);
 
-    function annotationColorSwatch(rgbString) {
-        var $swatch,
-            $fa;
+            self.browser.contactMatrixView.clearImageCaches();
+            self.browser.contactMatrixView.update();
 
-        $swatch = $('<div>', {class: 'igv-color-swatch'});
-
-        $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
-        $swatch.append($fa);
-
-        $fa.css({color: rgbString});
-
-        return $swatch;
-    }
-
-    function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
-
-        var $container,
-            $header,
-            $fa;
-
-        $container = $('<div>', { class:'hic-color-swatch-container' });
-        $parent.append($container);
-
-        // width
-        if (config && config.width) {
-            $container.width(config.width);
+            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+        } else {
+            self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
         }
 
-        // height
-        if (config && config.height) {
-            $container.height(config.height);
-        }
+        self.updateBody(trackList);
+    });
+}
 
-        // header
-        $header = $('<div>');
-        $container.append($header);
+function matrixDiagionalWidgetHandler($icon, track2D) {
 
-        // close button
-        $fa = $("<i>", { class:'fa fa-times' });
-        $header.append($fa);
+    if ($icon.hasClass('matrix-diagonal-widget-all')) {
 
-        $fa.on('click', function (e) {
-            closeHandler();
-        });
+        $icon.removeClass('matrix-diagonal-widget-all');
 
-        return $container;
+        $icon.addClass('matrix-diagonal-widget-lower');
+        track2D.displayMode = hic.Track2DDisplaceModes.displayLowerMatrix;
+    } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+
+        $icon.removeClass('matrix-diagonal-widget-lower');
+
+        $icon.addClass('matrix-diagonal-widget-upper');
+        track2D.displayMode = hic.Track2DDisplaceModes.displayUpperMatrix;
+    } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+
+        $icon.removeClass('matrix-diagonal-widget-upper');
+
+        $icon.addClass('matrix-diagonal-widget-all');
+        track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+    } else {
+
+        $icon.addClass('matrix-diagonal-widget-all');
+        track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+    }
+}
+
+function annotationColorSwatch(rgbString) {
+    var $swatch,
+        $fa;
+
+    $swatch = $('<div>', {class: 'igv-color-swatch'});
+
+    $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
+    $swatch.append($fa);
+
+    $fa.css({color: rgbString});
+
+    return $swatch;
+}
+
+function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
+
+    var $container,
+        $header,
+        $fa;
+
+    $container = $('<div>', {class: 'hic-color-swatch-container'});
+    $parent.append($container);
+
+    // width
+    if (config && config.width) {
+        $container.width(config.width);
     }
 
-    return hic;
-})(hic || {});
+    // height
+    if (config && config.height) {
+        $container.height(config.height);
+    }
 
+    // header
+    $header = $('<div>');
+    $container.append($header);
+
+    // close button
+    $fa = $("<i>", {class: 'fa fa-times'});
+    $header.append($fa);
+
+    $fa.on('click', function (e) {
+        closeHandler();
+    });
+
+    return $container;
+}
+
+
+export default AnnotationWidget

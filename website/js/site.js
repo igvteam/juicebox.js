@@ -30,6 +30,10 @@
 
 import ModalTable from './modalTable'
 import EncodeDataSource from './encode'
+import Browser from '../../js/hicBrowser'
+import urlUtils from '../../js/hicUrl'
+import hic from '../../js/hic'
+//import CaptionManager from '../../js/captionManager'
 //import QRCode from './qrcode'
 
 const juicebox = {}
@@ -52,13 +56,13 @@ juicebox.init = async function ($container, config) {
         $e;
 
 
-    hic.captionManager = new hic.CaptionManager($('#hic-caption'));
+    //hic.captionManager = new CaptionManager($('#hic-caption'));
 
     $('#hic-encode-modal-button').hide();
     $('#hic-encode-loading').show();
 
     if (config.urlShortener) {
-        hic.setURLShortener(config.urlShortener);
+        urlUtils.setURLShortener(config.urlShortener);
     } else {
         $("#hic-share-button").hide();
     }
@@ -102,7 +106,7 @@ juicebox.init = async function ($container, config) {
 
     if (query && query.hasOwnProperty("juiceboxURL")) {
 
-        const jbURL = await hic.expandURL(query["juiceboxURL"])
+        const jbURL = await urlUtils.expandURL(query["juiceboxURL"])
                 query = hic.extractQuery(jbURL);
                 createBrowsers(query)
                     .then(postCreateBrowser)
@@ -124,7 +128,7 @@ juicebox.init = async function ($container, config) {
 
         function maybeShortenURL(url) {
             if (url.length < 2048) {
-                return hic.shortenURL(url)
+                return urlUtils.shortenURL(url)
             } else {
                 igv.presentAlert("URL too long to shorten")
                 return Promise.resolve(url)
@@ -145,7 +149,7 @@ juicebox.init = async function ($container, config) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            const jbUrl = await hic.shortJuiceboxURL(href)
+            const jbUrl = await urlUtils.shortJuiceboxURL(href)
 
             getEmbeddableSnippet(jbUrl)
                 .then(function (embedSnippet) {
@@ -216,7 +220,7 @@ juicebox.init = async function ($container, config) {
         $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
             var browser;
 
-            browser = hic.Browser.getCurrentBrowser();
+            browser = Browser.getCurrentBrowser();
             if (undefined === browser || undefined === browser.dataset) {
                 igv.presentAlert('Contact map must be loaded and selected before loading tracks');
             }
@@ -240,7 +244,7 @@ juicebox.init = async function ($container, config) {
             url = $(this).val();
             $selected = $(this).find('option:selected');
 
-            browser = hic.Browser.getCurrentBrowser();
+            browser = Browser.getCurrentBrowser();
             if (undefined === browser) {
                 igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
@@ -259,7 +263,7 @@ juicebox.init = async function ($container, config) {
             var file,
                 suffix;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -270,7 +274,7 @@ juicebox.init = async function ($container, config) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                    Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -285,7 +289,7 @@ juicebox.init = async function ($container, config) {
                 paramIdx,
                 path;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
@@ -300,11 +304,11 @@ juicebox.init = async function ($container, config) {
         $('#track-load-url').on('change', function (e) {
             var url;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                hic.Browser.getCurrentBrowser().loadTracks([{url: url}]);
+                Browser.getCurrentBrowser().loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -316,7 +320,7 @@ juicebox.init = async function ($container, config) {
             var path,
                 name;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -327,7 +331,7 @@ juicebox.init = async function ($container, config) {
                 if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                     config.indexed = false   //UCSC files are never indexed
                 }
-                hic.Browser.getCurrentBrowser().loadTracks([config]);
+                Browser.getCurrentBrowser().loadTracks([config]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -339,14 +343,14 @@ juicebox.init = async function ($container, config) {
             var path,
                 name;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === Browser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -370,7 +374,7 @@ juicebox.init = async function ($container, config) {
 
                     browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
-                    hic.Browser.setCurrentBrowser(browser);
+                    Browser.setCurrentBrowser(browser);
                 })
 
         });
@@ -462,7 +466,7 @@ juicebox.init = async function ($container, config) {
                 q = decodeURIComponent(q);
             }
         } else if (query && query.hasOwnProperty("juiceboxData")) {
-            q = hic.decompressQueryParameter(query["juiceboxData"])
+            q = urlUtils.decompressQueryParameter(query["juiceboxData"])
         }
 
 
@@ -535,7 +539,7 @@ function syncBrowsers() {
 }
 
 function checkBDropdown() {
-    updateBDropdown(hic.Browser.getCurrentBrowser());
+    updateBDropdown(Browser.getCurrentBrowser());
 }
 
 function updateBDropdown(browser) {
@@ -562,7 +566,7 @@ function loadHicFile(url, name) {
 
     isControl = juicebox.currentContactMapDropdownButtonID === control_map_dropdown_id;
 
-    browser = hic.Browser.getCurrentBrowser();
+    browser = Browser.getCurrentBrowser();
 
     config = {url: url, name: name, isControl: isControl};
 
@@ -665,7 +669,7 @@ function createEncodeTable(genomeId) {
         encodeDatasource = new EncodeDataSource(columnFormat);
 
         loadTracks = function (configurationList) {
-            hic.Browser.getCurrentBrowser().loadTracks(configurationList);
+            Browser.getCurrentBrowser().loadTracks(configurationList);
         };
 
         config =

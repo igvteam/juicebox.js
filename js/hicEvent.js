@@ -20,24 +20,16 @@
  * THE SOFTWARE.
  *
  */
-const CaptionManager = function ($caption) {
 
-    var self = this;
 
-    this.$caption = $caption;
 
-    $caption.keyup(function (e) {
-        self.getCaption($(this));
-    });
+const HICEvent = function (type, data, propogate) {
+    return {
+        type: type,
+        data: data || {},
+        propogate: propogate !== undefined ? propogate : true     // Default to true
+    }
 };
 
-CaptionManager.prototype.getCaption = function ($caption) {
-    this.text = $caption.text();
-};
 
-CaptionManager.prototype.setCaption = function (string) {
-    this.text = string;
-    this.$caption.text(string);
-};
-
-export default CaptionManager
+export default HICEvent

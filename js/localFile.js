@@ -21,43 +21,40 @@
  *
  */
 
-var hic = (function (hic) {
+const LocalFile = class {
 
-    hic.LocalFile = class {
-
-        constructor(file) {
-            this.file = file
-        }
-
-        async read(position, length) {
-
-            const file = this.file;
-
-            return new Promise(function (fullfill, reject) {
-
-                const fileReader = new FileReader();
-
-                fileReader.onload = function (e) {
-                    fullfill(fileReader.result);
-                };
-
-                fileReader.onerror = function (e) {
-                    console.err("Error reading local file " + localfile.name);
-                    reject(null, fileReader);
-                };
-
-                if (position !== undefined) {
-                    const blob = file.slice(position, position + length);
-                    fileReader.readAsArrayBuffer(blob);
-
-                } else {
-                    fileReader.readAsArrayBuffer(file);
-
-                }
-
-            });
-        }
+    constructor(file) {
+        this.file = file
     }
 
-    return hic;
-})(hic || {});
+    async read(position, length) {
+
+        const file = this.file;
+
+        return new Promise(function (fullfill, reject) {
+
+            const fileReader = new FileReader();
+
+            fileReader.onload = function (e) {
+                fullfill(fileReader.result);
+            };
+
+            fileReader.onerror = function (e) {
+                console.err("Error reading local file " + localfile.name);
+                reject(null, fileReader);
+            };
+
+            if (position !== undefined) {
+                const blob = file.slice(position, position + length);
+                fileReader.readAsArrayBuffer(blob);
+
+            } else {
+                fileReader.readAsArrayBuffer(file);
+
+            }
+
+        });
+    }
+}
+
+export default LocalFile

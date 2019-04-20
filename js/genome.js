@@ -27,132 +27,125 @@
  */
 
 
-var hic = (function (hic) {
+/**
+ *
+ * @param id
+ * @param chromosomes -- an array of hic.Chromosome objects.
+ * @constructor
+ */
+const Genome = function (id, chromosomes) {
+
+    var self = this;
+
+    this.id = id;
+    this.chromosomes = chromosomes;
+    this.chromosomeLookupTable = {};
+
+    // Alias for size for igv compatibility
+    this.genomeLength = 0;
+    this.chromosomes.forEach(function (c) {
+        c.bpLength = c.size;
+        if ('all' !== c.name.toLowerCase()) {
+            self.genomeLength += c.size;
+        }
+    })
 
     /**
-     * 
-     * @param id
-     * @param chromosomes -- an array of hic.Chromosome objects.  
-     * @constructor
+     * Maps the official chromosome name to an alias.  Deals with
+     * 1 <-> chr1,  chrM <-> MT,  IV <-> chr4, etc.
+     * @param str
      */
-    hic.Genome = function (id, chromosomes) {
+    var chrAliasTable = {};
 
-        var self = this;
+    // The standard mappings
+    chromosomes.forEach(function (chromosome) {
+        var name = chromosome.name,
+            alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
+        chrAliasTable[alias] = name;
+        if (name === "chrM") chrAliasTable["MT"] = "chrM";
+        if (name === "MT") chrAliasTable["chrmM"] = "MT";
 
-        this.id = id;
-        this.chromosomes = chromosomes;
-        this.chromosomeLookupTable = {};
-
-        // Alias for size for igv compatibility
-        this.genomeLength = 0;
-        this.chromosomes.forEach(function (c) {
-            c.bpLength = c.size;
-            if('all' !== c.name.toLowerCase()) {
-                self.genomeLength += c.size;
-            }
-        })
-
-        /**
-         * Maps the official chromosome name to an alias.  Deals with
-         * 1 <-> chr1,  chrM <-> MT,  IV <-> chr4, etc.
-         * @param str
-         */
-        var chrAliasTable = {};
-
-        // The standard mappings
-        chromosomes.forEach(function (chromosome) {
-            var name = chromosome.name,
-                alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
-            chrAliasTable[alias] = name;
-            if (name === "chrM") chrAliasTable["MT"] = "chrM";
-            if (name === "MT") chrAliasTable["chrmM"] = "MT";
-
-            self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
-        });
+        self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
+    });
 
 
-        this.chrAliasTable = chrAliasTable;
+    this.chrAliasTable = chrAliasTable;
 
+}
+
+Genome.prototype.getChromosomeName = function (str) {
+    var chr = this.chrAliasTable[str];
+    return chr ? chr : str;
+};
+
+Genome.prototype.getChromosome = function (str) {
+    var chrname = this.getChromosomeName(str).toLowerCase();
+    return this.chromosomeLookupTable[chrname];
+};
+
+/**
+ * Return the genome coordinate for the give chromosome and position.
+ */
+Genome.prototype.getGenomeCoordinate = function (chr, bp) {
+    return this.getCumulativeOffset(chr.name) + bp;
+};
+
+Genome.prototype.getChromsosomeForCoordinate = function (bp) {
+    var i = 0,
+        offset = 0,
+        l;
+
+    for (i = 1; i < this.chromosomes.length; i++) {
+        l = this.chromosomes[i].size;
+        if (offset + l > bp) return this.chromosomes[i];
+        offset += l;
     }
+    return this.chromosomes[this.chromosomes.length - 1];
 
-    hic.Genome.prototype.getChromosomeName = function (str) {
-        var chr = this.chrAliasTable[str];
-        return chr ? chr : str;
-    };
+}
 
-    hic.Genome.prototype.getChromosome = function (str) {
-        var chrname = this.getChromosomeName(str).toLowerCase();
-        return this.chromosomeLookupTable[chrname];
-    };
 
-    /**
-     * Return the genome coordinate for the give chromosome and position.
-     */
-    hic.Genome.prototype.getGenomeCoordinate = function (chr, bp) {
-        return this.getCumulativeOffset(chr.name) + bp;
-    };
+/**
+ * Return the offset in genome coordinates (kb) of the start of the given chromosome
+ */
+Genome.prototype.getCumulativeOffset = function (chr) {
 
-    hic.Genome.prototype.getChromsosomeForCoordinate = function (bp) {
-        var i = 0,
-            offset = 0,
-            l;
+    var queryChr;
 
-        for (i = 1; i < this.chromosomes.length; i++) {
-            l = this.chromosomes[i].size;
-            if (offset + l > bp) return this.chromosomes[i];
-            offset += l;
-        }
-        return this.chromosomes[this.chromosomes.length - 1];
+    queryChr = this.getChromosomeName(chr);
 
+    if (this.cumulativeOffsets === undefined) {
+        computeCumulativeOffsets.call(this);
     }
+    return this.cumulativeOffsets[queryChr];
+};
 
+function computeCumulativeOffsets() {
+    var self = this,
+        list,
+        cumulativeOffsets,
+        offset,
+        i,
+        chromosome;
 
-    /**
-     * Return the offset in genome coordinates (kb) of the start of the given chromosome
-     */
-    hic.Genome.prototype.getCumulativeOffset = function (chr) {
+    cumulativeOffsets = {};
+    offset = 0;
+    // Skip first chromosome (its chr all).
+    for (i = 1; i < self.chromosomes.length; i++) {
 
-        var queryChr;
+        chromosome = self.chromosomes[i];
+        cumulativeOffsets[chromosome.name] = Math.floor(offset);
 
-        queryChr = this.getChromosomeName(chr);
-
-        if (this.cumulativeOffsets === undefined) {
-            computeCumulativeOffsets.call(this);
-        }
-        return this.cumulativeOffsets[queryChr];
-    };
-
-    function computeCumulativeOffsets() {
-        var self = this,
-            list,
-            cumulativeOffsets,
-            offset,
-            i,
-            chromosome;
-
-        cumulativeOffsets = {};
-        offset = 0;
-        // Skip first chromosome (its chr all).
-        for (i = 1; i < self.chromosomes.length; i++) {
-
-            chromosome = self.chromosomes[i];
-            cumulativeOffsets[chromosome.name] = Math.floor(offset);
-
-            // Genome coordinates are in KB.  Beware 32-bit max value limit
-            offset += (chromosome.size); // / 1000);
-        }
-        self.cumulativeOffsets = cumulativeOffsets;
-
+        // Genome coordinates are in KB.  Beware 32-bit max value limit
+        offset += (chromosome.size); // / 1000);
     }
+    self.cumulativeOffsets = cumulativeOffsets;
 
-    // Required for igv.js
-    hic.Genome.prototype.getGenomeLength = function () {
-        return this.genomeLength;
-    }
+}
 
+// Required for igv.js
+Genome.prototype.getGenomeLength = function () {
+    return this.genomeLength;
+}
 
-    return hic;
-
-})
-(hic || {});
-
+export default Genome
