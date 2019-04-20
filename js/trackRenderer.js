@@ -57,10 +57,7 @@ var hic = (function (hic) {
         this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
         this.$viewport.append(this.$spinner);
 
-        // throbber
-        // size: see $hic-viewport-spinner-size in .scss files
-        this.throbber = Throbber({color: 'rgb(64, 64, 64)', size: 32, padding: 7});
-        this.throbber.appendTo(this.$spinner.get(0));
+
         this.stopSpinner();
 
         // color picker
@@ -290,25 +287,11 @@ var hic = (function (hic) {
     };
 
     hic.TrackRenderer.prototype.startSpinner = function () {
-
         this.browser.startSpinner();
-
-        //igv.startSpinnerAtParentElement(this.$viewport[0]);
-
-        //    this.$spinner.show();
-        //    this.throbber.start();
-        //    console.log("Spinner show");
     };
 
     hic.TrackRenderer.prototype.stopSpinner = function () {
-
         this.browser.stopSpinner();
-
-        //igv.stopSpinnerAtParentElement(this.$viewport[0]);
-
-        //    this.throbber.stop();
-        //    this.$spinner.hide();
-        //    console.log("Spinner stop");
     };
 
     hic.TrackRenderer.prototype.isLoading = function () {
