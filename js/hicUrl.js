@@ -25,6 +25,7 @@
  * Created by dat on 3/8/17.
  */
 
+import hic from './hic'
 
 var urlShorteners;
 
@@ -182,29 +183,31 @@ var BitlyURL = function (config) {
 }
 
 
-BitlyURL.prototype.shortenURL = function (url) {
+BitlyURL.prototype.shortenURL = async function (url) {
 
     var self = this;
 
     if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
 
-    return getApiKey.call(this)
+    try {
+        const key = await getApiKey.call(this)
 
-        .then(function (key) {
-            var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
+        var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
 
-            return igv.xhr.loadJson(endpoint, {})
-        })
+        const json = await igv.xhr.loadJson(endpoint, {})
 
-        .then(function (json) {
-            // TODO check status code
-            if (500 === json.status_code) {
-                igv.presentAlert("Error shortening URL: " + json.status_txt)
-                return undefined
-            } else {
-                return json.data.url;
-            }
-        })
+        // TODO check status code
+        if (500 === json.status_code) {
+            igv.presentAlert("Error shortening URL: " + json.status_txt)
+            return url
+        } else {
+            return json.data.url;
+        }
+    } catch (e) {
+        igv.presentAlert("Error shortening URL: " + e)
+        return url
+    }
+
 };
 
 
@@ -287,26 +290,15 @@ GoogleURL.prototype.expandURL = function (url) {
         })
 }
 
-function getApiKey() {
+async function getApiKey() {
 
     var self = this, token;
 
     if (typeof self.apiKey === "string") {
-        return Promise.resolve(self.apiKey);
+        return self.apiKey
     }
     else if (typeof self.apiKey === "function") {
-
-        token = self.apiKey();
-
-        if (typeof token.then === "function") {
-            return token.then(function (key) {
-                self.apiKey = key;
-                return key;
-            })
-        } else {
-            self.apiKey = token;
-            return Promise.resolve(token);
-        }
+        return await self.apiKey();
     }
     else {
         throw new Error("Unknown apiKey type: " + this.apiKey);
@@ -315,25 +307,17 @@ function getApiKey() {
 
 
 // Example function for fetching an api key.
-function fetchBitlyApiKey() {
-    return igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
-        .then(function (json) {
-            return json["apiKey"];
-        })
-        .catch(function (error) {
-            console.error(error);
-        })
+async function fetchBitlyApiKey() {
+    const json = await igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
+    return json["apiKey"];
+
 }
 
 // Example function for fetching an api key.
-function fetchGoogleApiKey() {
-    return igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {})
-        .then(function (json) {
-            return json["apiKey"];
-        })
-        .catch(function (error) {
-            console.error(error);
-        })
+async function fetchGoogleApiKey() {
+    const json = await igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {})
+    return json["apiKey"];
+
 }
 
 

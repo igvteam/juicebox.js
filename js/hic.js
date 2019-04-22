@@ -298,7 +298,7 @@ const hic = {
 
             gid = canonicalGenomeId(b1.dataset.genomeId);
 
-            if (areCompatible(browsers[0].dataset, b1.dataset)) {
+            if (hic.areCompatible(browsers[0].dataset, b1.dataset)) {
                 browsers.forEach(function (b2) {
                     if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
                         b1.synchedBrowsers.push(b2);
@@ -329,6 +329,16 @@ const hic = {
             }
         }
 
+    },
+
+    /**
+     * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
+     * different IDs are used (e.g. GRCh38 vs hg38)
+     * @param d1
+     * @param d2
+     */
+    areCompatible: function (d1, d2) {
+        return (d1.genomeId === d2.genomeId) || d1.compareChromosomes(d2)
     },
 
 
@@ -382,7 +392,6 @@ const hic = {
     isMobile: function () {
         return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
     },
-
 
 
     extractFilename: function (urlOrFile) {

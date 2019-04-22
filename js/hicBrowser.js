@@ -33,6 +33,7 @@ import LayoutController from './layoutController'
 import HICEvent from './hicEvent'
 import Dataset from './hicDataset'
 import Genome from './genome'
+import State from './hicState'
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -513,16 +514,6 @@ Browser.prototype.loadHicFile = async function (config, noUpdates) {
 }
 
 /**
- * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
- * different IDs are used (e.g. GRCh38 vs hg38)
- * @param d1
- * @param d2
- */
-function areCompatible(d1, d2) {
-    return (d1.genomeId === d2.genomeId) || d1.compareChromosomes(d2)
-}
-
-/**
  * Load a .hic file for a control map
  *
  * NOTE: public API function
@@ -542,7 +533,7 @@ Browser.prototype.loadHicControlFile = async function (config, noUpdates) {
         const controlDataset = await loadDataset(config)
         controlDataset.name = name
 
-        if (!this.dataset || areCompatible(this.dataset, controlDataset)) {
+        if (!this.dataset || hic.areCompatible(this.dataset, controlDataset)) {
             this.controlDataset = controlDataset;
             if (this.dataset) {
                 this.$contactMaplabel.text("A: " + this.dataset.name);
@@ -1494,7 +1485,7 @@ igv.Browser.decodeQuery = function (query, config, uriDecode) {
 
     function destringifyStateV0(string) {
         var tokens = string.split(",");
-        return new hic.State(
+        return new State(
             parseInt(tokens[0]),    // chr1
             parseInt(tokens[1]),    // chr2
             parseFloat(tokens[2]), // zoom
@@ -1682,7 +1673,11 @@ async function loadDataset(config) {
 
 
 function presentError (prefix, error) {
-
+    const httpMessages = {
+        "401": "Access unauthorized",
+        "403": "Access forbidden",
+        "404": "Not found"
+    }
     var msg = error.message;
     if (httpMessages.hasOwnProperty(msg)) {
         msg = httpMessages[msg];

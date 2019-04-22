@@ -1,6 +1,9 @@
 /**
  * Created by dat on 4/5/17.
  */
+
+import hic from './hic'
+
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 
     this.browser = browser;
