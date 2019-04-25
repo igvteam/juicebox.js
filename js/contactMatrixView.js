@@ -24,7 +24,7 @@
 /**
  * @author Jim Robinson
  */
-
+import $ from "../vendor/jquery-1.12.4"
 import ColorScale from './colorScale'
 import RatioColorScale from './ratioColorScale'
 import ScrollbarWidget from './scrollbarWidget'

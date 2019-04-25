@@ -24,6 +24,8 @@
 /**
  * Created by dat on 3/7/17.
  */
+import $ from "../vendor/jquery-1.12.4"
+import _ from "../vendor/underscore"
 
 const ScrollbarWidget = function (browser) {
 

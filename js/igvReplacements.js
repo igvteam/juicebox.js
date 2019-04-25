@@ -1,7 +1,7 @@
 /**
  * Created by dat on 5/7/17.
  */
-
+import $ from "../vendor/jquery-1.12.4"
 
 const igvReplacements = function (igv) {
 

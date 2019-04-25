@@ -1,7 +1,8 @@
 /**
  * Created by dat on 4/4/17.
  */
-
+import $ from "../vendor/jquery-1.12.4"
+import _ from "../vendor/underscore"
 import Browser from './hicBrowser'
 import ContactMatrixView from './contactMatrixView'
 import ChromosomeSelectorWidget from './chromosomeSelectorWidget'

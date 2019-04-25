@@ -22,7 +22,7 @@
  */
 
 import juicebox from './site'
-
+import $ from '../../vendor/jquery-1.12.4'
 
 $(document).ready(function () {
 

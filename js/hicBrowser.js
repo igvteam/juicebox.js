@@ -25,6 +25,8 @@
  * @author Jim Robinson
  */
 
+import $ from "../vendor/jquery-1.12.4"
+import _ from "../vendor/underscore"
 import hic from './hic'
 import Track2D from './hicTrack2D'
 import igvReplacements from './igvReplacements'
@@ -34,6 +36,7 @@ import HICEvent from './hicEvent'
 import Dataset from './hicDataset'
 import Genome from './genome'
 import State from './hicState'
+import Straw from '../vendor/hic-straw_es6'
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -1663,7 +1666,7 @@ async function loadDataset(config) {
         }
     }
 
-    const straw = new HicStraw(config)
+    const straw = new Straw(config)
     const hicFile = straw.hicFile
     await hicFile.init()
     const dataset = new Dataset(hicFile)

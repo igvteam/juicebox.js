@@ -21,14 +21,21 @@
  *
  */
 
+import $ from "../vendor/jquery-1.12.4"
 import Browser from './hicBrowser'
 import ColorScale from './colorScale'
 import State from './hicState'
 import EventBus from './eventBus'
 import HICEvent from './hicEvent'
 import igvReplacements from "./igvReplacements"
+import _ from "../vendor/underscore"
+import GoogleURL from "./googleURL";
+import BitlyURL from "./bitlyURL";
+import Zlib from "../vendor/zlib_and_gzip";
 
 const defaultPixelSize = 1
+
+const urlShorteners = [];
 
 const hic = {
 
@@ -461,6 +468,147 @@ const hic = {
         context.setTransform(1, 0, 0, 1, 0, 0);
     },
 
+    setURLShortener: function (shortenerConfigs) {
+
+        if (!shortenerConfigs || shortenerConfigs === "none") {
+
+        } else {
+            shortenerConfigs.forEach(function (config) {
+                urlShorteners.push(getShortener(config));
+            })
+        }
+
+        function getShortener(shortener) {
+            if (shortener.provider) {
+                if (shortener.provider === "google") {
+                    return new GoogleURL(shortener);
+                }
+                else if (shortener.provider === "bitly") {
+                    return new BitlyURL(shortener);
+                }
+                else {
+                    igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
+                }
+            }
+            else {    // Custom
+                if (typeof shortener.shortenURL === "function" &&
+                    typeof shortener.expandURL === "function" &&
+                    typeof shortener.hostname === "string") {
+                    return shortener;
+                }
+                else {
+                    igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'")
+                }
+            }
+        }
+    },
+
+    shortenURL: function (url) {
+        if (urlShorteners) {
+            return urlShorteners[0].shortenURL(url);
+        }
+        else {
+            return Promise.resolve(url);
+        }
+    },
+
+    /**
+     * Returns a promise to expand the URL
+     */
+    expandURL: function (url) {
+
+        var urlObject = new URL(url),
+            hostname = urlObject.hostname,
+            i,
+            expander;
+
+        if (urlShorteners) {
+            for (i = 0; i < urlShorteners.length; i++) {
+                expander = urlShorteners[i];
+                if (hostname === expander.hostname) {
+                    return expander.expandURL(url);
+                }
+            }
+        }
+
+        igv.presentAlert("No expanders for URL: " + url);
+
+        return Promise.resolve(url);
+    },
+
+    shortJuiceboxURL: async function (base) {
+
+        var url, queryString,
+            self = this;
+
+        queryString = "{";
+        hic.allBrowsers.forEach(function (browser, index) {
+            queryString += encodeURIComponent(browser.getQueryString());
+            queryString += (index === hic.allBrowsers.length - 1 ? "}" : "},{");
+        });
+
+        const compressedString = compressQueryParameter(queryString)
+
+        url = base + "?juiceboxData=" + compressedString
+
+        if (url.length > 2048) {
+            return url
+        }
+        else {
+            return self.shortenURL(url)
+        }
+    },
+
+
+    decodeJBUrl: function (jbURL) {
+
+        let q
+        const queryMap = hic.extractQuery(jbURL)
+
+        if (queryMap.hasOwnProperty("juicebox")) {
+            q = queryMap["juicebox"];
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+        }
+        else if (queryMap.hasOwnProperty("juiceboxData")) {
+            const compressed = queryMap["juiceboxData"]
+            q = this.decompressQueryParameter(compressed)
+        }
+
+        if (q) {
+            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+            const parts = q.split("},{");
+
+            return {
+                queryString: decodeURIComponent(parts[0]),
+                oauthToken: oauthToken
+            }
+        }
+        else {
+            return undefined
+        }
+    },
+
+    decompressQueryParameter: function (enc) {
+
+        enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+
+        const compressedString = atob(enc);
+        const compressedBytes = [];
+        for (let i = 0; i < compressedString.length; i++) {
+            compressedBytes.push(compressedString.charCodeAt(i));
+        }
+        const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+
+        let str = ''
+        for (let b of bytes) {
+            str += String.fromCharCode(b)
+        }
+
+        return str;
+    },
+
     Track2DDisplaceModes: {
         displayAllMatrix: 'displayAllMatrix',
         displayLowerMatrix: 'displayLowerMatrix',
@@ -528,5 +676,44 @@ function createIGV($hic_container, hicBrowser) {
 
 }
 
+
+
+function compressQueryParameter(str) {
+
+    var bytes, deflate, compressedBytes, compressedString, enc;
+
+    bytes = [];
+    for (var i = 0; i < str.length; i++) {
+        bytes.push(str.charCodeAt(i));
+    }
+    compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
+    enc = btoa(compressedString);
+    enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
+
+    //console.log(json);
+    //console.log(enc);
+
+    return enc;
+}
+
+// function decompressQueryParameter(enc) {
+//
+//     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
+//
+//     const compressedString = atob(enc);
+//     const compressedBytes = [];
+//     for (let i = 0; i < compressedString.length; i++) {
+//         compressedBytes.push(compressedString.charCodeAt(i));
+//     }
+//     const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+//
+//     let str = ''
+//     for (let b of bytes) {
+//         str += String.fromCharCode(b)
+//     }
+//
+//     return str;
+// }
 
 export default hic

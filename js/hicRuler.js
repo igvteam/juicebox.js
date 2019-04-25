@@ -26,7 +26,8 @@
  * @author Jim Robinson
  */
 
-
+import $ from "../vendor/jquery-1.12.4"
+import _ from "../vendor/underscore"
 
 const Ruler = function (browser, axis, $parent) {
     var id;

@@ -22,25 +22,7 @@ module.exports = function (grunt) {
         connect: {
             uses_defaults: {}
         },
-
-        concat: {
-            hic: {
-                src: [
-                    'wrapper/header.js',
-                    'vendor/jquery-1.12.4.js',
-                    'vendor/zlib_and_gzip.js',
-                    'vendor/underscore.js',
-                    'vendor/colors.js',
-                    'vendor/qrcode.js',
-                    'vendor/zlib_and_gzip.js',
-                    'js/**/*.js',
-                    'wrapper/footer.js'
-                ],
-                dest: 'tmp/juicebox.js'
-            }
-        },
-
-
+        
         copy: {
             css: {
                 expand: true,
@@ -84,24 +66,6 @@ module.exports = function (grunt) {
             site: webackSiteConfig
         },
 
-        babel: {
-            options: {
-                sourceMap: true,
-                presets: ['@babel/preset-env'],
-                plugins: [["transform-remove-console", {"exclude": ["error", "warn"]}]]
-
-            },
-            dist: {
-                files: [
-                    {
-                        expand: true,
-                        cwd: 'js/',
-                        src: ['**/*.js'],
-                        dest: 'es5/'
-                    }
-                ]
-            }
-        },
     });
 
     // 3. Where we tell Grunt we plan to use this plug-in.
@@ -115,14 +79,12 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-copy');
 
-    grunt.loadNpmTasks('babel-core');
-    grunt.loadNpmTasks('grunt-babel');
     grunt.loadNpmTasks('grunt-webpack');
 
     // 4. Where we tell Grunt what to do when we type "grunt" into the terminal.
     //grunt.registerTask('default', ['concat:igvexp', 'uglify:igvexp']);
     //grunt.registerTask('default', ['concat:igv', 'uglify:igv', 'md2html:igv']);
-    grunt.registerTask('default', ['concat:hic', 'webpack:prod', 'webpack:site', 'copy']);
+    grunt.registerTask('default', ['webpack:prod', 'webpack:site', 'copy']);
 
     grunt.task.registerTask('unittest', 'Run one unit test.', function (testname) {
 

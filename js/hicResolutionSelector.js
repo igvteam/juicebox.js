@@ -24,6 +24,7 @@
 /**
  * Created by dat on 3/4/17.
  */
+import $ from "../vendor/jquery-1.12.4"
 
 const ResolutionSelector = function (browser, $parent) {
     var self = this;

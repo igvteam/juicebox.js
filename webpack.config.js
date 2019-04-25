@@ -24,14 +24,15 @@
 const path = require('path')
 
 module.exports = {
-    mode: 'production',
-    entry:  './tmp/juicebox.js',
+    mode: 'development', //'production',
+    entry:  './js/index.js',
     target: 'web',
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'juicebox.min.js',
-        library: 'hic',
-        libraryTarget: 'umd'
+        library: 'juicebox',
+        libraryTarget: 'umd',
+        umdNamedDefine: true
     },
     module: {
         rules: [

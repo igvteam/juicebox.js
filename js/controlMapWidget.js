@@ -24,6 +24,9 @@
 /**
  * Created by dat on 3/21/17.
  */
+
+import $ from "../vendor/jquery-1.12.4"
+
 const ControlMapWidget = function (browser, $parent) {
 
     const self = this

@@ -23,6 +23,8 @@
 import Track2D from './hicTrack2D'
 import HICEvent from './hicEvent'
 import hic from './hic'
+import $ from "../vendor/jquery-1.12.4"
+import _ from "../vendor/underscore"
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 

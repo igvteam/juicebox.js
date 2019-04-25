@@ -31,8 +31,8 @@
 import ModalTable from './modalTable'
 import EncodeDataSource from './encode'
 import Browser from '../../js/hicBrowser'
-import urlUtils from '../../js/hicUrl'
 import hic from '../../js/hic'
+import $ from '../../vendor/jquery-1.12.4'
 //import CaptionManager from '../../js/captionManager'
 //import QRCode from './qrcode'
 
@@ -62,7 +62,7 @@ juicebox.init = async function ($container, config) {
     $('#hic-encode-loading').show();
 
     if (config.urlShortener) {
-        urlUtils.setURLShortener(config.urlShortener);
+        hic.setURLShortener(config.urlShortener);
     } else {
         $("#hic-share-button").hide();
     }
@@ -106,7 +106,7 @@ juicebox.init = async function ($container, config) {
 
     if (query && query.hasOwnProperty("juiceboxURL")) {
 
-        const jbURL = await urlUtils.expandURL(query["juiceboxURL"])
+        const jbURL = await hic.expandURL(query["juiceboxURL"])
                 query = hic.extractQuery(jbURL);
                 createBrowsers(query)
                     .then(postCreateBrowser)
@@ -128,7 +128,7 @@ juicebox.init = async function ($container, config) {
 
         function maybeShortenURL(url) {
             if (url.length < 2048) {
-                return urlUtils.shortenURL(url)
+                return hic.shortenURL(url)
             } else {
                 igv.presentAlert("URL too long to shorten")
                 return Promise.resolve(url)
@@ -149,7 +149,7 @@ juicebox.init = async function ($container, config) {
             idx = href.indexOf("?");
             if (idx > 0) href = href.substring(0, idx);
 
-            const jbUrl = await urlUtils.shortJuiceboxURL(href)
+            const jbUrl = await hic.shortJuiceboxURL(href)
 
             getEmbeddableSnippet(jbUrl)
                 .then(function (embedSnippet) {
@@ -466,7 +466,7 @@ juicebox.init = async function ($container, config) {
                 q = decodeURIComponent(q);
             }
         } else if (query && query.hasOwnProperty("juiceboxData")) {
-            q = urlUtils.decompressQueryParameter(query["juiceboxData"])
+            q = hic.decompressQueryParameter(query["juiceboxData"])
         }
 
 
