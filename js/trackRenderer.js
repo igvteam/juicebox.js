@@ -3,7 +3,7 @@
  */
 import $ from "../vendor/jquery-1.12.4"
 import _ from "../vendor/underscore"
-import hic from './hic'
+import  * as hic from './hic'
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 

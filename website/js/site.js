@@ -28,26 +28,27 @@
  *
  */
 
+// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import
+// $ here, need the jquery from the page.
+
 import ModalTable from './modalTable'
 import EncodeDataSource from './encode'
 import Browser from '../../js/hicBrowser'
-import hic from '../../js/hic'
-import $ from '../../vendor/jquery-1.12.4'
-//import CaptionManager from '../../js/captionManager'
+import  * as hic from '../../js/hic'
+
 //import QRCode from './qrcode'
 
 const juicebox = {}
 
 export default juicebox
 
-var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
-    encodeTable,
+var encodeTable,
     lastGenomeId,
     qrcode,
     contact_map_dropdown_id = 'hic-contact-map-dropdown',
     control_map_dropdown_id = 'hic-control-map-dropdown';
 
-juicebox.init = async function ($container, config) {
+juicebox.init = async function (container, config) {
 
     var genomeChangeListener,
         $appContainer,
@@ -63,8 +64,6 @@ juicebox.init = async function ($container, config) {
 
     if (config.urlShortener) {
         hic.setURLShortener(config.urlShortener);
-    } else {
-        $("#hic-share-button").hide();
     }
 
     genomeChangeListener = {
@@ -91,33 +90,28 @@ juicebox.init = async function ($container, config) {
         }
     };
 
-
     config = config || {};
 
-    $appContainer = $container;
+    $appContainer = $(container);
 
-    apiKey = config.apiKey;
-    if (apiKey) {
-        if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
-        hic.setApiKey(apiKey);
-    }
+    await hic.initApp(container, config)
 
-    query = hic.extractQuery(window.location.href);
-
-    if (query && query.hasOwnProperty("juiceboxURL")) {
-
-        const jbURL = await hic.expandURL(query["juiceboxURL"])
-                query = hic.extractQuery(jbURL);
-                createBrowsers(query)
-                    .then(postCreateBrowser)
-
-    } else {
-        const b = await createBrowsers(query)
-        postCreateBrowser(b)
-    }
+    postCreateBrowser()
 
 
     function postCreateBrowser() {
+
+        for (let browser of hic.allBrowsers) {
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            browser.eventBus.subscribe("MapLoad", checkBDropdown);
+            updateBDropdown(browser);
+        }
+
+
+        // Must manually trigger the genome change event on initial load
+        if (Browser.currentBrowser && Browser.currentBrowser.genome) {
+            genomeChangeListener.receiveEvent({data: Browser.currentBrowser.genome.id})
+        }
 
 
         if (config.mapMenu) {
@@ -453,90 +447,8 @@ juicebox.init = async function ($container, config) {
 
     }
 
-    async function createBrowsers(query) {
-
-        var parts, browser, i;
-
-        let q;
-
-        if (query && query.hasOwnProperty("juicebox")) {
-            q = query["juicebox"];
-
-            if (q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
-            }
-        } else if (query && query.hasOwnProperty("juiceboxData")) {
-            q = hic.decompressQueryParameter(query["juiceboxData"])
-        }
-
-
-        if (q) {
-
-            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-            parts = q.split("},{");
-
-            const browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])})
-
-
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-            if (parts && parts.length > 1) {
-
-                const promises = []
-                for (i = 1; i < parts.length; i++) {
-                    promises.push(hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])}))
-                    //const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
-                    // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                    // b.eventBus.subscribe("MapLoad", checkBDropdown);
-                }
-
-                const browsers = await Promise.all(promises)
-
-                for (let b of browsers) {
-                    b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                    b.eventBus.subscribe("MapLoad", checkBDropdown);
-                }
-
-                syncBrowsers()
-
-            }
-
-            // Must manually trigger the genome change event on initial load
-            if (browser && browser.genome) {
-                genomeChangeListener.receiveEvent({data: browser.genome.id})
-            }
-
-            return browser
-
-
-        } else {
-            const browser = await hic.createBrowser($container.get(0), {})
-
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-            // Must manually trigger the genome change event on initial load
-            if (browser && browser.genome) {
-                genomeChangeListener.receiveEvent({data: browser.genome.id})
-            }
-
-            return browser
-
-        }
-
-
-    }
-
-
 };
 
-function syncBrowsers() {
-    hic.syncBrowsers(hic.allBrowsers);
-    for (let browser of hic.allBrowsers) {
-        updateBDropdown(browser);
-    }
-}
 
 function checkBDropdown() {
     updateBDropdown(Browser.getCurrentBrowser());

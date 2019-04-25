@@ -27,7 +27,7 @@
 
 import $ from "../vendor/jquery-1.12.4"
 import _ from "../vendor/underscore"
-import hic from './hic'
+import  * as hic from './hic'
 import Track2D from './hicTrack2D'
 import igvReplacements from './igvReplacements'
 import EventBus from'./eventBus'
@@ -41,7 +41,8 @@ import Straw from '../vendor/hic-straw_es6'
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
-let defaultState;
+
+const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE")
 
 
 const Browser = function ($app_container, config) {
@@ -81,7 +82,7 @@ const Browser = function ($app_container, config) {
 
     this.hideCrosshairs();
 
-    this.state = config.state ? config.state : hic.defaultState.clone();
+    this.state = config.state ? config.state : defaultState.clone();
 
     this.eventBus.subscribe("LocusChange", this);
 
@@ -476,7 +477,7 @@ Browser.prototype.loadHicFile = async function (config, noUpdates) {
         } else if (config.synchState && this.canBeSynched(config.synchState)) {
             this.syncState(config.synchState);
         } else {
-            this.setState(hic.defaultState.clone());
+            this.setState(defaultState.clone());
         }
     } finally {
         if (!noUpdates) {

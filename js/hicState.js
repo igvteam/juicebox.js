@@ -29,44 +29,48 @@
 
 const State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
 
-        if(chr1 !== undefined) {
-            if (chr1 <= chr2) {
-                this.chr1 = chr1;
-                this.chr2 = chr2;
-                this.x = x;
-                this.y = y;
-            }
-            else {
-                // Transpose
-                this.chr1 = chr2;
-                this.chr2 = chr1;
-                this.x = y;
-                this.y = x;
-            }
-            this.zoom = zoom;
-            this.pixelSize = pixelSize;
+    if (Number.isNaN(pixelSize)) {
+        pixelSize = 1
+    }
 
-            if ("undefined" === normalization) {
-                console.log("No normalization defined !!!");
-                normalization = undefined;
-            }
-
-            this.normalization = normalization;
+    if (chr1 !== undefined) {
+        if (chr1 <= chr2) {
+            this.chr1 = chr1;
+            this.chr2 = chr2;
+            this.x = x;
+            this.y = y;
         }
-    };
+        else {
+            // Transpose
+            this.chr1 = chr2;
+            this.chr2 = chr1;
+            this.x = y;
+            this.y = x;
+        }
+        this.zoom = zoom;
+        this.pixelSize = pixelSize;
 
-    State.prototype.stringify = function () {
-        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
-    }
+        if ("undefined" === normalization) {
+            console.log("No normalization defined !!!");
+            normalization = undefined;
+        }
 
-    State.prototype.clone = function () {
-        return Object.assign(new State(), this);
+        this.normalization = normalization;
     }
+};
 
-    State.prototype.equals = function(state) {
-        var s1 = JSON.stringify(this);
-        var s2 = JSON.stringify(state);
-        return s1 === s2;
-    }
+State.prototype.stringify = function () {
+    return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
+}
+
+State.prototype.clone = function () {
+    return Object.assign(new State(), this);
+}
+
+State.prototype.equals = function (state) {
+    var s1 = JSON.stringify(this);
+    var s2 = JSON.stringify(state);
+    return s1 === s2;
+}
 
 export default State

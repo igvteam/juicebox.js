@@ -24,6 +24,6 @@
 // File provided for webpack entry point.   Result after translation to ES5 will be a global with a single
 // "hic" property.
 
-import hic from './hic'
+import  * as hic from './hic'
 
 export {hic}

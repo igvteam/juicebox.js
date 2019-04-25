@@ -26,7 +26,7 @@
  * @author Jim Robinson
  */
 
-import hic from './hic'
+import  * as hic from './hic'
 import NormalizationVector from './normalizationVector'
 import HICEvent from './hicEvent'
 

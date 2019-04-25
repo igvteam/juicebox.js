@@ -31,8 +31,7 @@ import ScrollbarWidget from './scrollbarWidget'
 import SweepZoom from './sweepZoom'
 import HICEvent from './hicEvent'
 import HICMath from './hicMath'
-import hic from './hic'
-
+import  * as hic from './hic'
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;

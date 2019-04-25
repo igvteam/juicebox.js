@@ -27,7 +27,8 @@
  */
 
 
-import hic from './hic'
+import  * as hic from './hic'
+import {Track2DDisplaceModes} from './globals'
 
 const Track2D = function (config, features) {
 
@@ -39,7 +40,7 @@ const Track2D = function (config, features) {
     this.featureCount = 0;
     this.isVisible = true;
 
-    this.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+    this.displayMode = Track2DDisplaceModes.displayAllMatrix;
 
     if (config.color && validateColor(config.color)) {
         this.color = this.color = config.color;    // If specified, this will override colors of individual records.

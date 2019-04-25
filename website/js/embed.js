@@ -21,40 +21,18 @@
  *
  */
 
-const path = require('path')
 
-module.exports = {
-    mode: 'development', //'production',
-    entry:  './js/hic.js',
-    target: 'web',
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'juicebox.min.js',
-        library: 'hic',
-        libraryTarget: 'umd',
-        umdNamedDefine: true
-    },
-    module: {
-        rules: [
-            {
-                exclude: /node_modules/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: [
-                            ["@babel/preset-env", {
-                                "targets": {
-                                    // The % refers to the global coverage of users from browserslist
-                                    "browsers":  ">0.1%"
-                                }
-                            }]
-                        ],
-                        plugins: [["transform-remove-console", {"exclude": ["error", "warn"]}]]
-                    },
+import * as hic from '../../js/hic'
 
-                },
-            },
-        ],
-    },
-    devtool: "source-map"
-}
+document.addEventListener("DOMContentLoaded", function () {
+
+
+    var query = hic.extractQuery(window.location.href);
+    var container = document.getElementById("app-container");
+
+    hic.initApp(container, {})
+        .then(function (ignore) {
+            hic.updateAllBrowsers()
+        })
+
+})

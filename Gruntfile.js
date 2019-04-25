@@ -22,7 +22,7 @@ module.exports = function (grunt) {
         connect: {
             uses_defaults: {}
         },
-        
+
         copy: {
             css: {
                 expand: true,

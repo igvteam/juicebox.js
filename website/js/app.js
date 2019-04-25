@@ -62,6 +62,6 @@ $(document).ready(function () {
 
     };
 
-    juicebox.init($('#app-container'), config);
+    juicebox.init($('#app-container')[0], config);
 })
 

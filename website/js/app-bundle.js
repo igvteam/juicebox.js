@@ -110,6 +110,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _hic__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./hic */ "./js/hic.js");
 /* harmony import */ var _vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../vendor/jquery-1.12.4 */ "./vendor/jquery-1.12.4.js");
 /* harmony import */ var _vendor_underscore__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../vendor/underscore */ "./vendor/underscore.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
 /*
  *  The MIT License (MIT)
  *
@@ -132,6 +133,7 @@ __webpack_require__.r(__webpack_exports__);
  * THE SOFTWARE.
  *
  */
+
 
 
 
@@ -268,7 +270,7 @@ function annotationPanelRow($container, track) {
       index,
       upp,
       dwn;
-  isTrack2D = track instanceof _hic__WEBPACK_IMPORTED_MODULE_2__["default"].Track2D;
+  isTrack2D = track instanceof _hic__WEBPACK_IMPORTED_MODULE_2__["Track2D"];
   trackList = this.trackListRetrievalCallback();
 
   if (false === isTrack2D) {
@@ -440,18 +442,18 @@ function matrixDiagionalWidgetHandler($icon, track2D) {
   if ($icon.hasClass('matrix-diagonal-widget-all')) {
     $icon.removeClass('matrix-diagonal-widget-all');
     $icon.addClass('matrix-diagonal-widget-lower');
-    track2D.displayMode = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].Track2DDisplaceModes.displayLowerMatrix;
+    track2D.displayMode = _globals__WEBPACK_IMPORTED_MODULE_5__["Track2DDisplaceModes"].displayLowerMatrix;
   } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
     $icon.removeClass('matrix-diagonal-widget-lower');
     $icon.addClass('matrix-diagonal-widget-upper');
-    track2D.displayMode = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].Track2DDisplaceModes.displayUpperMatrix;
+    track2D.displayMode = _globals__WEBPACK_IMPORTED_MODULE_5__["Track2DDisplaceModes"].displayUpperMatrix;
   } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
     $icon.removeClass('matrix-diagonal-widget-upper');
     $icon.addClass('matrix-diagonal-widget-all');
-    track2D.displayMode = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].Track2DDisplaceModes.displayAllMatrix;
+    track2D.displayMode = _globals__WEBPACK_IMPORTED_MODULE_5__["Track2DDisplaceModes"].displayAllMatrix;
   } else {
     $icon.addClass('matrix-diagonal-widget-all');
-    track2D.displayMode = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].Track2DDisplaceModes.displayAllMatrix;
+    track2D.displayMode = _globals__WEBPACK_IMPORTED_MODULE_5__["Track2DDisplaceModes"].displayAllMatrix;
   }
 }
 
@@ -2299,7 +2301,7 @@ function addTouchHandlers($viewport) {
     }
   };
 
-  viewport.ontouchmove = _hic__WEBPACK_IMPORTED_MODULE_7__["default"].throttle(function (ev) {
+  viewport.ontouchmove = _hic__WEBPACK_IMPORTED_MODULE_7__["throttle"](function (ev) {
     var touchCoords1, touchCoords2, t;
     ev.preventDefault();
     ev.stopPropagation();
@@ -2985,6 +2987,47 @@ Genome.prototype.getGenomeLength = function () {
 
 /***/ }),
 
+/***/ "./js/globals.js":
+/*!***********************!*\
+  !*** ./js/globals.js ***!
+  \***********************/
+/*! exports provided: Track2DDisplaceModes */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Track2DDisplaceModes", function() { return Track2DDisplaceModes; });
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+var Track2DDisplaceModes = {
+  displayAllMatrix: 'displayAllMatrix',
+  displayLowerMatrix: 'displayLowerMatrix',
+  displayUpperMatrix: 'displayUpperMatrix'
+};
+
+
+/***/ }),
+
 /***/ "./js/googleURL.js":
 /*!*************************!*\
   !*** ./js/googleURL.js ***!
@@ -3146,11 +3189,38 @@ function _fetchGoogleApiKey() {
 /*!*******************!*\
   !*** ./js/hic.js ***!
   \*******************/
-/*! exports provided: default */
+/*! exports provided: defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, extractQuery, deleteBrowserPanel, syncBrowsers, areCompatible, destringifyColorScale, destringifyState, isMobile, extractFilename, igvSupports, throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext, setURLShortener, shortenURL, expandURL, shortJuiceboxURL, decompressQueryParameter, initApp, expandJuiceboxUrl, createBrowsers, updateAllBrowsers */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "defaultPixelSize", function() { return defaultPixelSize; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eventBus", function() { return eventBus; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "allBrowsers", function() { return allBrowsers; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "apiKey", function() { return apiKey; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createBrowser", function() { return createBrowser; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractQuery", function() { return extractQuery; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "deleteBrowserPanel", function() { return deleteBrowserPanel; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "syncBrowsers", function() { return syncBrowsers; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "areCompatible", function() { return areCompatible; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "destringifyColorScale", function() { return destringifyColorScale; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "destringifyState", function() { return destringifyState; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isMobile", function() { return isMobile; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extractFilename", function() { return extractFilename; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "igvSupports", function() { return igvSupports; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "throttle", function() { return throttle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "reflectionRotationWithContext", function() { return reflectionRotationWithContext; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "reflectionAboutYAxisAtOffsetWithContext", function() { return reflectionAboutYAxisAtOffsetWithContext; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "identityTransformWithContext", function() { return identityTransformWithContext; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setURLShortener", function() { return setURLShortener; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shortenURL", function() { return shortenURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "expandURL", function() { return expandURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shortJuiceboxURL", function() { return shortJuiceboxURL; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "decompressQueryParameter", function() { return decompressQueryParameter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initApp", function() { return initApp; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "expandJuiceboxUrl", function() { return expandJuiceboxUrl; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createBrowsers", function() { return createBrowsers; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "updateAllBrowsers", function() { return updateAllBrowsers; });
 /* harmony import */ var _vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../vendor/jquery-1.12.4 */ "./vendor/jquery-1.12.4.js");
 /* harmony import */ var _hicBrowser__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./hicBrowser */ "./js/hicBrowser.js");
 /* harmony import */ var _colorScale__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./colorScale */ "./js/colorScale.js");
@@ -3199,676 +3269,784 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 
 
+var apiKey;
 var defaultPixelSize = 1;
 var urlShorteners = [];
-var hic = {
-  defaultPixelSize: defaultPixelSize,
-  defaultSize: {
-    width: 640,
-    height: 640
-  },
-  defaultState: new _hicState__WEBPACK_IMPORTED_MODULE_3__["default"](0, 0, 0, 0, 0, defaultPixelSize, "NONE"),
-
+var defaultSize = {
+  width: 640,
+  height: 640
   /**
    * The global event bus.  For events outside the scope of a single browser.
    *
    * @type {EventBus}
    */
-  eventBus: new _eventBus__WEBPACK_IMPORTED_MODULE_4__["default"](),
-  allBrowsers: [],
-  createBrowser: function () {
-    var _createBrowser = _asyncToGenerator(
-    /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee3(hic_container, config, callback) {
-      var $hic_container, apiKey, queryString, query, uriDecode, browser, hasControl, promises, tmp, setInitialDataset, _setInitialDataset, loadControlFile, _loadControlFile;
-
-      return regeneratorRuntime.wrap(function _callee3$(_context3) {
-        while (1) {
-          switch (_context3.prev = _context3.next) {
-            case 0:
-              _loadControlFile = function _ref4() {
-                _loadControlFile = _asyncToGenerator(
-                /*#__PURE__*/
-                regeneratorRuntime.mark(function _callee2(config) {
-                  return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                    while (1) {
-                      switch (_context2.prev = _context2.next) {
-                        case 0:
-                          if (!config.controlUrl) {
-                            _context2.next = 4;
-                            break;
-                          }
-
-                          return _context2.abrupt("return", browser.loadHicControlFile({
-                            url: config.controlUrl,
-                            name: config.controlName,
-                            nvi: config.controlNvi,
-                            isControl: true
-                          }, true));
-
-                        case 4:
-                          return _context2.abrupt("return", undefined);
-
-                        case 5:
-                        case "end":
-                          return _context2.stop();
-                      }
-                    }
-                  }, _callee2, this);
-                }));
-                return _loadControlFile.apply(this, arguments);
-              };
-
-              loadControlFile = function _ref3(_x6) {
-                return _loadControlFile.apply(this, arguments);
-              };
-
-              _setInitialDataset = function _ref2() {
-                _setInitialDataset = _asyncToGenerator(
-                /*#__PURE__*/
-                regeneratorRuntime.mark(function _callee(browser, config) {
-                  return regeneratorRuntime.wrap(function _callee$(_context) {
-                    while (1) {
-                      switch (_context.prev = _context.next) {
-                        case 0:
-                          if (!config.dataset) {
-                            _context.next = 12;
-                            break;
-                          }
-
-                          config.dataset.name = config.name;
-                          browser.$contactMaplabel.text(config.name);
-                          browser.$contactMaplabel.attr('title', config.name);
-                          browser.dataset = config.dataset;
-                          browser.genome = new hic.Genome(browser.dataset.genomeId, browser.dataset.chromosomes);
-                          igv.browser.genome = browser.genome;
-                          browser.eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_5__["default"])("GenomeChange", browser.genome.id));
-                          browser.eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_5__["default"])("MapLoad", browser.dataset));
-                          return _context.abrupt("return", config.dataset);
-
-                        case 12:
-                          return _context.abrupt("return", undefined);
-
-                        case 13:
-                        case "end":
-                          return _context.stop();
-                      }
-                    }
-                  }, _callee, this);
-                }));
-                return _setInitialDataset.apply(this, arguments);
-              };
-
-              setInitialDataset = function _ref(_x4, _x5) {
-                return _setInitialDataset.apply(this, arguments);
-              };
-
-              $hic_container = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_0__["default"])(hic_container);
-              setDefaults(config);
-              apiKey = config.apiKey;
-
-              if (apiKey) {
-                igv.setApiKey(apiKey);
-                hic.apiKey = apiKey;
-              }
-
-              queryString = config.queryString || config.href; // href for backward compatibility
-
-              if (queryString === undefined && config.initFromUrl !== false) {
-                queryString = window.location.href;
-              }
-
-              if (queryString) {
-                if (!queryString.includes("?")) {
-                  queryString = "?" + queryString;
-                }
-
-                query = hic.extractQuery(queryString);
-                uriDecode = queryString.includes("%2C");
-                igv.Browser.decodeQuery(query, config, uriDecode);
-              }
-
-              browser = new _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"]($hic_container, config);
-              browser.eventBus.hold();
-              hic.allBrowsers.push(browser);
-              _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(browser);
-
-              if (hic.allBrowsers.length > 1) {
-                hic.allBrowsers.forEach(function (b) {
-                  b.$browser_panel_delete_button.show();
-                });
-              }
-
-              if (undefined === igv.browser) {
-                createIGV($hic_container, browser);
-              } ///////////////////////////////////
-
-
-              _context3.prev = 17;
-              browser.contactMatrixView.startSpinner();
-              browser.$user_interaction_shield.show();
-              hasControl = config.controlUrl !== undefined; // if (!config.name) config.name = await extractName(config)
-              // const prefix = hasControl ? "A: " : "";
-              // browser.$contactMaplabel.text(prefix + config.name);
-              // browser.$contactMaplabel.attr('title', config.name);
-
-              _context3.next = 23;
-              return browser.loadHicFile(config, true);
-
-            case 23:
-              _context3.next = 25;
-              return loadControlFile(config);
-
-            case 25:
-              if (config.cycle) {
-                config.displayMode = "A";
-              }
-
-              if (config.displayMode) {
-                browser.contactMatrixView.displayMode = config.displayMode;
-                browser.eventBus.post({
-                  type: "DisplayMode",
-                  data: config.displayMode
-                });
-              }
-
-              if (config.colorScale) {
-                // This must be done after dataset load
-                browser.contactMatrixView.setColorScale(config.colorScale);
-                browser.eventBus.post({
-                  type: "ColorScale",
-                  data: browser.contactMatrixView.getColorScale()
-                });
-              }
-
-              promises = [];
-
-              if (config.tracks) {
-                promises.push(browser.loadTracks(config.tracks));
-              }
-
-              if (config.normVectorFiles) {
-                config.normVectorFiles.forEach(function (nv) {
-                  promises.push(browser.loadNormalizationFile(nv));
-                });
-              }
-
-              _context3.next = 33;
-              return Promise.all(promises);
-
-            case 33:
-              tmp = browser.contactMatrixView.colorScaleThresholdCache;
-              browser.eventBus.release();
-              browser.contactMatrixView.colorScaleThresholdCache = tmp;
-
-              if (config.cycle) {
-                browser.controlMapWidget.toggleDisplayModeCycle();
-              } else {
-                browser.update();
-              }
-
-              if (typeof callback === "function") callback();
-
-            case 38:
-              _context3.prev = 38;
-              browser.contactMatrixView.stopSpinner();
-              browser.$user_interaction_shield.hide();
-              return _context3.finish(38);
-
-            case 42:
-              return _context3.abrupt("return", browser);
-
-            case 43:
-            case "end":
-              return _context3.stop();
-          }
-        }
-      }, _callee3, this, [[17,, 38, 42]]);
-    }));
-
-    function createBrowser(_x, _x2, _x3) {
-      return _createBrowser.apply(this, arguments);
-    }
-
-    return createBrowser;
-  }(),
-  setApiKey: function setApiKey(key) {
-    this.apiKey = key;
-    igv.setApiKey(key);
-  },
-  extractQuery: function extractQuery(uri) {
-    var i1, i2, i, j, s, query, tokens;
-    query = {};
-    i1 = uri.indexOf("?");
-    i2 = uri.lastIndexOf("#");
-
-    if (i1 >= 0) {
-      if (i2 < 0) i2 = uri.length;
-
-      for (i = i1 + 1; i < i2;) {
-        j = uri.indexOf("&", i);
-        if (j < 0) j = i2;
-        s = uri.substring(i, j);
-        tokens = s.split("=", 2);
-
-        if (tokens.length === 2) {
-          query[tokens[0]] = tokens[1];
-        }
-
-        i = j + 1;
-      }
-    }
-
-    return query;
-  },
-  deleteBrowserPanel: function deleteBrowserPanel(browser) {
-    if (browser === _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].getCurrentBrowser()) {
-      _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(undefined);
-    }
-
-    hic.allBrowsers.splice(_vendor_underscore__WEBPACK_IMPORTED_MODULE_7__["default"].indexOf(hic.allBrowsers, browser), 1);
-    browser.$root.remove();
-    browser = undefined;
-
-    if (1 === hic.allBrowsers.length) {
-      _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(hic.allBrowsers[0]);
-      _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].getCurrentBrowser().$browser_panel_delete_button.hide();
-    }
-  },
-
-  /**
-   * Load a dataset outside the context of a browser.  Purpose is to "pre load" a shared dataset when
-   * instantiating multiple browsers in a page.
-   *
-   * @param config
-   */
-  loadDataset: function (_loadDataset) {
-    function loadDataset(_x7) {
-      return _loadDataset.apply(this, arguments);
-    }
-
-    loadDataset.toString = function () {
-      return _loadDataset.toString();
-    };
-
-    return loadDataset;
-  }(
-  /*#__PURE__*/
-  function () {
-    var _ref5 = _asyncToGenerator(
-    /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee4(config) {
-      var name, hicReader, straw, dataset, nviArray, range;
-      return regeneratorRuntime.wrap(function _callee4$(_context4) {
-        while (1) {
-          switch (_context4.prev = _context4.next) {
-            case 0:
-              _context4.next = 2;
-              return extractName(config);
-
-            case 2:
-              name = _context4.sent;
-              config.name = name;
-              hicReader = new hic.HiCReader(config);
-              straw = new HicStraw(config);
-              _context4.next = 8;
-              return loadDataset(config);
-
-            case 8:
-              dataset = _context4.sent;
-              dataset.name = name;
-              dataset.name = this.name;
-
-              if (!config.nvi) {
-                _context4.next = 18;
-                break;
-              }
-
-              nviArray = decodeURIComponent(config.nvi).split(","), range = {
-                start: parseInt(nviArray[0]),
-                size: parseInt(nviArray[1])
-              };
-              _context4.next = 15;
-              return hicReader.readNormVectorIndex(dataset, range);
-
-            case 15:
-              return _context4.abrupt("return", dataset);
-
-            case 18:
-              return _context4.abrupt("return", dataset);
-
-            case 19:
-            case "end":
-              return _context4.stop();
-          }
-        }
-      }, _callee4, this);
-    }));
-
-    return function (_x8) {
-      return _ref5.apply(this, arguments);
-    };
-  }()),
-  syncBrowsers: function syncBrowsers(browsers) {
-    var browsersWithMaps, genome, incompatibleDatasets, gid;
-    browsersWithMaps = browsers.filter(function (b) {
-      return b.dataset !== undefined;
-    });
-
-    if (browsersWithMaps.length < 2) {
-      // Nothing to sync
-      return;
-    } // Canonical browser is the first one, arbitrarily
-
-
-    genome = canonicalGenomeId(browsers[0].dataset.genomeId); // Sync compatible maps only
-
-    incompatibleDatasets = [];
-    browsersWithMaps.forEach(function (b1) {
-      gid = canonicalGenomeId(b1.dataset.genomeId);
-
-      if (hic.areCompatible(browsers[0].dataset, b1.dataset)) {
-        browsers.forEach(function (b2) {
-          if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
-            b1.synchedBrowsers.push(b2);
-          }
-        });
-      } else {
-        incompatibleDatasets.push(b1.dataset.genomeId);
-      }
-    });
-
-    if (incompatibleDatasets.length > 0) {
-      igv.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
-    }
-
-    function canonicalGenomeId(genomeId) {
-      switch (genomeId) {
-        case "GRCh38":
-          return "hg38";
-
-        case "GRCh37":
-          return "hg19";
-
-        case "GRCm38":
-          return "mm10";
-
-        default:
-          return genomeId;
-      }
-    }
-  },
-
-  /**
-   * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
-   * different IDs are used (e.g. GRCh38 vs hg38)
-   * @param d1
-   * @param d2
-   */
-  areCompatible: function areCompatible(d1, d2) {
-    return d1.genomeId === d2.genomeId || d1.compareChromosomes(d2);
-  },
-  destringifyColorScale: function destringifyColorScale(string) {
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-      pnstr = string.substring(2).split(":");
-      ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-      ratioCS.positiveScale = foo(pnstr[1]);
-      ratioCS.negativeScale = foo(pnstr[2]);
-      return ratioCS;
-    } else {
-      return foo(string);
-    }
-
-    function foo(str) {
-      var cs, tokens;
-      tokens = str.split(",");
-      cs = {
-        threshold: tokens[0],
-        r: tokens[1],
-        g: tokens[2],
-        b: tokens[3]
-      };
-      return new _colorScale__WEBPACK_IMPORTED_MODULE_2__["default"](cs);
-    }
-  },
-  destringifyState: function destringifyState(string) {
-    var tokens = string.split(",");
-    return new _hicState__WEBPACK_IMPORTED_MODULE_3__["default"](parseInt(tokens[0]), // chr1
-    parseInt(tokens[1]), // chr2
-    parseFloat(tokens[2]), // zoom
-    parseFloat(tokens[3]), // x
-    parseFloat(tokens[4]), // y
-    parseFloat(tokens[5]), // pixelSize
-    tokens.length > 6 ? tokens[6] : "NONE" // normalization
-    );
-  },
-  isMobile: function isMobile() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  },
-  extractFilename: function extractFilename(urlOrFile) {
-    var idx, str;
-
-    if (igv.isFilePath(urlOrFile)) {
-      return urlOrFile.name;
-    } else {
-      str = urlOrFile.split('?').shift();
-      idx = urlOrFile.lastIndexOf("/");
-      return idx > 0 ? str.substring(idx + 1) : str;
-    }
-  },
-  igvSupports: function igvSupports(path) {
-    var config = {
-      url: path
-    };
-    igv.inferTrackTypes(config);
-    return config.type !== undefined;
-  },
-  throttle: function throttle(fn, threshhold, scope) {
-    var last, deferTimer;
-    threshhold || (threshhold = 200);
-    return function () {
-      var context, now, args;
-      context = scope || this;
-      now = +new Date();
-      args = arguments;
-
-      if (last && now < last + threshhold) {
-        // hold on to it
-        clearTimeout(deferTimer);
-        deferTimer = setTimeout(function () {
-          last = now;
-          fn.apply(context, args);
-        }, threshhold);
-      } else {
-        last = now;
-        fn.apply(context, args);
-      }
-    };
-  },
-  reflectionRotationWithContext: function reflectionRotationWithContext(context) {
-    context.scale(-1, 1);
-    context.rotate(Math.PI / 2.0);
-  },
-  reflectionAboutYAxisAtOffsetWithContext: function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
-    context.translate(exe, 0);
-    context.scale(-1, 1);
-    context.translate(-exe, 0);
-  },
-  identityTransformWithContext: function identityTransformWithContext(context) {
-    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-    context.setTransform(1, 0, 0, 1, 0, 0);
-  },
-  setURLShortener: function setURLShortener(shortenerConfigs) {
-    if (!shortenerConfigs || shortenerConfigs === "none") {} else {
-      shortenerConfigs.forEach(function (config) {
-        urlShorteners.push(getShortener(config));
-      });
-    }
-
-    function getShortener(shortener) {
-      if (shortener.provider) {
-        if (shortener.provider === "google") {
-          return new _googleURL__WEBPACK_IMPORTED_MODULE_8__["default"](shortener);
-        } else if (shortener.provider === "bitly") {
-          return new _bitlyURL__WEBPACK_IMPORTED_MODULE_9__["default"](shortener);
-        } else {
-          igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
-        }
-      } else {
-        // Custom
-        if (typeof shortener.shortenURL === "function" && typeof shortener.expandURL === "function" && typeof shortener.hostname === "string") {
-          return shortener;
-        } else {
-          igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'");
-        }
-      }
-    }
-  },
-  shortenURL: function shortenURL(url) {
-    if (urlShorteners) {
-      return urlShorteners[0].shortenURL(url);
-    } else {
-      return Promise.resolve(url);
-    }
-  },
-
-  /**
-   * Returns a promise to expand the URL
-   */
-  expandURL: function expandURL(url) {
-    var urlObject = new URL(url),
-        hostname = urlObject.hostname,
-        i,
-        expander;
-
-    if (urlShorteners) {
-      for (i = 0; i < urlShorteners.length; i++) {
-        expander = urlShorteners[i];
-
-        if (hostname === expander.hostname) {
-          return expander.expandURL(url);
-        }
-      }
-    }
-
-    igv.presentAlert("No expanders for URL: " + url);
-    return Promise.resolve(url);
-  },
-  shortJuiceboxURL: function () {
-    var _shortJuiceboxURL = _asyncToGenerator(
-    /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee5(base) {
-      var url, queryString, self, compressedString;
-      return regeneratorRuntime.wrap(function _callee5$(_context5) {
-        while (1) {
-          switch (_context5.prev = _context5.next) {
-            case 0:
-              self = this;
-              queryString = "{";
-              hic.allBrowsers.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += index === hic.allBrowsers.length - 1 ? "}" : "},{";
-              });
-              compressedString = compressQueryParameter(queryString);
-              url = base + "?juiceboxData=" + compressedString;
-
-              if (!(url.length > 2048)) {
-                _context5.next = 9;
-                break;
-              }
-
-              return _context5.abrupt("return", url);
-
-            case 9:
-              return _context5.abrupt("return", self.shortenURL(url));
-
-            case 10:
-            case "end":
-              return _context5.stop();
-          }
-        }
-      }, _callee5, this);
-    }));
-
-    function shortJuiceboxURL(_x9) {
-      return _shortJuiceboxURL.apply(this, arguments);
-    }
-
-    return shortJuiceboxURL;
-  }(),
-  decodeJBUrl: function decodeJBUrl(jbURL) {
-    var q;
-    var queryMap = hic.extractQuery(jbURL);
-
-    if (queryMap.hasOwnProperty("juicebox")) {
-      q = queryMap["juicebox"];
-
-      if (q.startsWith("%7B")) {
-        q = decodeURIComponent(q);
-      }
-    } else if (queryMap.hasOwnProperty("juiceboxData")) {
-      var compressed = queryMap["juiceboxData"];
-      q = this.decompressQueryParameter(compressed);
-    }
-
-    if (q) {
-      q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
-
-      var parts = q.split("},{");
-      return {
-        queryString: decodeURIComponent(parts[0]),
-        oauthToken: oauthToken
-      };
-    } else {
-      return undefined;
-    }
-  },
-  decompressQueryParameter: function decompressQueryParameter(enc) {
-    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
-    var compressedString = atob(enc);
-    var compressedBytes = [];
-
-    for (var i = 0; i < compressedString.length; i++) {
-      compressedBytes.push(compressedString.charCodeAt(i));
-    }
-
-    var bytes = new _vendor_zlib_and_gzip__WEBPACK_IMPORTED_MODULE_10__["default"].RawInflate(compressedBytes).decompress();
-    var str = '';
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
-
-    try {
-      for (var _iterator = bytes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var b = _step.value;
-        str += String.fromCharCode(b);
-      }
-    } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
-    } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return != null) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
-    }
-
-    return str;
-  },
-  Track2DDisplaceModes: {
-    displayAllMatrix: 'displayAllMatrix',
-    displayLowerMatrix: 'displayLowerMatrix',
-    displayUpperMatrix: 'displayUpperMatrix'
-  } // Set default values for config properties
 
 };
+var eventBus = new _eventBus__WEBPACK_IMPORTED_MODULE_4__["default"]();
+var allBrowsers = [];
+
+function updateAllBrowsers() {
+  return _updateAllBrowsers.apply(this, arguments);
+}
+
+function _updateAllBrowsers() {
+  _updateAllBrowsers = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee() {
+    var _i, b;
+
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _i = 0;
+
+          case 1:
+            if (!(_i < allBrowsers.length)) {
+              _context.next = 8;
+              break;
+            }
+
+            b = allBrowsers[_i];
+            _context.next = 5;
+            return b.update();
+
+          case 5:
+            _i++;
+            _context.next = 1;
+            break;
+
+          case 8:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this);
+  }));
+  return _updateAllBrowsers.apply(this, arguments);
+}
+
+function createBrowser(_x, _x2, _x3) {
+  return _createBrowser.apply(this, arguments);
+}
+
+function _createBrowser() {
+  _createBrowser = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee4(hic_container, config, callback) {
+    var $hic_container, queryString, query, uriDecode, browser, hasControl, promises, tmp, setInitialDataset, _setInitialDataset, loadControlFile, _loadControlFile;
+
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _loadControlFile = function _ref4() {
+              _loadControlFile = _asyncToGenerator(
+              /*#__PURE__*/
+              regeneratorRuntime.mark(function _callee3(config) {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        if (!config.controlUrl) {
+                          _context3.next = 4;
+                          break;
+                        }
+
+                        return _context3.abrupt("return", browser.loadHicControlFile({
+                          url: config.controlUrl,
+                          name: config.controlName,
+                          nvi: config.controlNvi,
+                          isControl: true
+                        }, true));
+
+                      case 4:
+                        return _context3.abrupt("return", undefined);
+
+                      case 5:
+                      case "end":
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3, this);
+              }));
+              return _loadControlFile.apply(this, arguments);
+            };
+
+            loadControlFile = function _ref3(_x12) {
+              return _loadControlFile.apply(this, arguments);
+            };
+
+            _setInitialDataset = function _ref2() {
+              _setInitialDataset = _asyncToGenerator(
+              /*#__PURE__*/
+              regeneratorRuntime.mark(function _callee2(browser, config) {
+                return regeneratorRuntime.wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        if (!config.dataset) {
+                          _context2.next = 12;
+                          break;
+                        }
+
+                        config.dataset.name = config.name;
+                        browser.$contactMaplabel.text(config.name);
+                        browser.$contactMaplabel.attr('title', config.name);
+                        browser.dataset = config.dataset;
+                        browser.genome = new Genome(browser.dataset.genomeId, browser.dataset.chromosomes);
+                        igv.browser.genome = browser.genome;
+                        browser.eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_5__["default"])("GenomeChange", browser.genome.id));
+                        browser.eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_5__["default"])("MapLoad", browser.dataset));
+                        return _context2.abrupt("return", config.dataset);
+
+                      case 12:
+                        return _context2.abrupt("return", undefined);
+
+                      case 13:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2, this);
+              }));
+              return _setInitialDataset.apply(this, arguments);
+            };
+
+            setInitialDataset = function _ref(_x10, _x11) {
+              return _setInitialDataset.apply(this, arguments);
+            };
+
+            $hic_container = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_0__["default"])(hic_container);
+            setDefaults(config);
+            apiKey = config.apiKey;
+
+            if (apiKey) {
+              igv.setApiKey(apiKey);
+            }
+
+            queryString = config.queryString || config.href; // href for backward compatibility
+
+            if (queryString === undefined && config.initFromUrl !== false) {
+              queryString = window.location.href;
+            }
+
+            if (queryString) {
+              if (!queryString.includes("?")) {
+                queryString = "?" + queryString;
+              }
+
+              query = extractQuery(queryString);
+              uriDecode = queryString.includes("%2C");
+              igv.Browser.decodeQuery(query, config, uriDecode);
+            }
+
+            browser = new _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"]($hic_container, config);
+            browser.eventBus.hold();
+            allBrowsers.push(browser);
+            _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(browser);
+
+            if (allBrowsers.length > 1) {
+              allBrowsers.forEach(function (b) {
+                b.$browser_panel_delete_button.show();
+              });
+            }
+
+            if (undefined === igv.browser) {
+              createIGV($hic_container, browser);
+            } ///////////////////////////////////
+
+
+            _context4.prev = 17;
+            browser.contactMatrixView.startSpinner();
+            browser.$user_interaction_shield.show();
+            hasControl = config.controlUrl !== undefined; // if (!config.name) config.name = await extractName(config)
+            // const prefix = hasControl ? "A: " : "";
+            // browser.$contactMaplabel.text(prefix + config.name);
+            // browser.$contactMaplabel.attr('title', config.name);
+
+            _context4.next = 23;
+            return browser.loadHicFile(config, true);
+
+          case 23:
+            _context4.next = 25;
+            return loadControlFile(config);
+
+          case 25:
+            if (config.cycle) {
+              config.displayMode = "A";
+            }
+
+            if (config.displayMode) {
+              browser.contactMatrixView.displayMode = config.displayMode;
+              browser.eventBus.post({
+                type: "DisplayMode",
+                data: config.displayMode
+              });
+            }
+
+            if (config.colorScale) {
+              // This must be done after dataset load
+              browser.contactMatrixView.setColorScale(config.colorScale);
+              browser.eventBus.post({
+                type: "ColorScale",
+                data: browser.contactMatrixView.getColorScale()
+              });
+            }
+
+            promises = [];
+
+            if (config.tracks) {
+              promises.push(browser.loadTracks(config.tracks));
+            }
+
+            if (config.normVectorFiles) {
+              config.normVectorFiles.forEach(function (nv) {
+                promises.push(browser.loadNormalizationFile(nv));
+              });
+            }
+
+            _context4.next = 33;
+            return Promise.all(promises);
+
+          case 33:
+            tmp = browser.contactMatrixView.colorScaleThresholdCache;
+            browser.eventBus.release();
+            browser.contactMatrixView.colorScaleThresholdCache = tmp;
+
+            if (config.cycle) {
+              browser.controlMapWidget.toggleDisplayModeCycle();
+            } else {
+              browser.update();
+            }
+
+            if (typeof callback === "function") callback();
+
+          case 38:
+            _context4.prev = 38;
+            browser.contactMatrixView.stopSpinner();
+            browser.$user_interaction_shield.hide();
+            return _context4.finish(38);
+
+          case 42:
+            return _context4.abrupt("return", browser);
+
+          case 43:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4, this, [[17,, 38, 42]]);
+  }));
+  return _createBrowser.apply(this, arguments);
+}
+
+function setApiKey(key) {
+  apiKey = key;
+  igv.setApiKey(key);
+}
+
+function extractQuery(uri) {
+  var i1, i2, i, j, s, query, tokens;
+  query = {};
+  i1 = uri.indexOf("?");
+  i2 = uri.lastIndexOf("#");
+
+  if (i1 >= 0) {
+    if (i2 < 0) i2 = uri.length;
+
+    for (i = i1 + 1; i < i2;) {
+      j = uri.indexOf("&", i);
+      if (j < 0) j = i2;
+      s = uri.substring(i, j);
+      tokens = s.split("=", 2);
+
+      if (tokens.length === 2) {
+        query[tokens[0]] = tokens[1];
+      }
+
+      i = j + 1;
+    }
+  }
+
+  return query;
+}
+
+function deleteBrowserPanel(browser) {
+  if (browser === _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].getCurrentBrowser()) {
+    _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(undefined);
+  }
+
+  allBrowsers.splice(_vendor_underscore__WEBPACK_IMPORTED_MODULE_7__["default"].indexOf(allBrowsers, browser), 1);
+  browser.$root.remove();
+  browser = undefined;
+
+  if (1 === allBrowsers.length) {
+    _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].setCurrentBrowser(allBrowsers[0]);
+    _hicBrowser__WEBPACK_IMPORTED_MODULE_1__["default"].getCurrentBrowser().$browser_panel_delete_button.hide();
+  }
+}
+
+function syncBrowsers(browsers) {
+  var browsersWithMaps, genome, incompatibleDatasets, gid;
+  browsersWithMaps = browsers.filter(function (b) {
+    return b.dataset !== undefined;
+  });
+
+  if (browsersWithMaps.length < 2) {
+    // Nothing to sync
+    return;
+  } // Canonical browser is the first one, arbitrarily
+
+
+  genome = canonicalGenomeId(browsers[0].dataset.genomeId); // Sync compatible maps only
+
+  incompatibleDatasets = [];
+  browsersWithMaps.forEach(function (b1) {
+    gid = canonicalGenomeId(b1.dataset.genomeId);
+
+    if (areCompatible(browsers[0].dataset, b1.dataset)) {
+      browsers.forEach(function (b2) {
+        if (b1 !== b2 && !b1.synchedBrowsers.includes(b2)) {
+          b1.synchedBrowsers.push(b2);
+        }
+      });
+    } else {
+      incompatibleDatasets.push(b1.dataset.genomeId);
+    }
+  });
+
+  if (incompatibleDatasets.length > 0) {
+    igv.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
+  }
+
+  function canonicalGenomeId(genomeId) {
+    switch (genomeId) {
+      case "GRCh38":
+        return "hg38";
+
+      case "GRCh37":
+        return "hg19";
+
+      case "GRCm38":
+        return "mm10";
+
+      default:
+        return genomeId;
+    }
+  }
+}
+/**
+ * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
+ * different IDs are used (e.g. GRCh38 vs hg38)
+ * @param d1
+ * @param d2
+ */
+
+
+function areCompatible(d1, d2) {
+  return d1.genomeId === d2.genomeId || d1.compareChromosomes(d2);
+}
+
+function destringifyColorScale(string) {
+  var pnstr, ratioCS;
+
+  if (string.startsWith("R:")) {
+    pnstr = string.substring(2).split(":");
+    ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+    ratioCS.positiveScale = foo(pnstr[1]);
+    ratioCS.negativeScale = foo(pnstr[2]);
+    return ratioCS;
+  } else {
+    return foo(string);
+  }
+
+  function foo(str) {
+    var cs, tokens;
+    tokens = str.split(",");
+    cs = {
+      threshold: tokens[0],
+      r: tokens[1],
+      g: tokens[2],
+      b: tokens[3]
+    };
+    return new _colorScale__WEBPACK_IMPORTED_MODULE_2__["default"](cs);
+  }
+}
+
+function destringifyState(string) {
+  var tokens = string.split(",");
+  return new _hicState__WEBPACK_IMPORTED_MODULE_3__["default"](parseInt(tokens[0]), // chr1
+  parseInt(tokens[1]), // chr2
+  parseFloat(tokens[2]), // zoom
+  parseFloat(tokens[3]), // x
+  parseFloat(tokens[4]), // y
+  parseFloat(tokens[5]), // pixelSize
+  tokens.length > 6 ? tokens[6] : "NONE" // normalization
+  );
+}
+
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function extractFilename(urlOrFile) {
+  var idx, str;
+
+  if (igv.isFilePath(urlOrFile)) {
+    return urlOrFile.name;
+  } else {
+    str = urlOrFile.split('?').shift();
+    idx = urlOrFile.lastIndexOf("/");
+    return idx > 0 ? str.substring(idx + 1) : str;
+  }
+}
+
+function igvSupports(path) {
+  var config = {
+    url: path
+  };
+  igv.inferTrackTypes(config);
+  return config.type !== undefined;
+}
+
+function throttle(fn, threshhold, scope) {
+  var last, deferTimer;
+  threshhold || (threshhold = 200);
+  return function () {
+    var context, now, args;
+    context = scope || this;
+    now = +new Date();
+    args = arguments;
+
+    if (last && now < last + threshhold) {
+      // hold on to it
+      clearTimeout(deferTimer);
+      deferTimer = setTimeout(function () {
+        last = now;
+        fn.apply(context, args);
+      }, threshhold);
+    } else {
+      last = now;
+      fn.apply(context, args);
+    }
+  };
+}
+
+function reflectionRotationWithContext(context) {
+  context.scale(-1, 1);
+  context.rotate(Math.PI / 2.0);
+}
+
+function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
+  context.translate(exe, 0);
+  context.scale(-1, 1);
+  context.translate(-exe, 0);
+}
+
+function identityTransformWithContext(context) {
+  // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+  context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function setURLShortener(shortenerConfigs) {
+  if (!shortenerConfigs || shortenerConfigs === "none") {} else {
+    shortenerConfigs.forEach(function (config) {
+      urlShorteners.push(getShortener(config));
+    });
+  }
+
+  function getShortener(shortener) {
+    if (shortener.provider) {
+      if (shortener.provider === "google") {
+        return new _googleURL__WEBPACK_IMPORTED_MODULE_8__["default"](shortener);
+      } else if (shortener.provider === "bitly") {
+        return new _bitlyURL__WEBPACK_IMPORTED_MODULE_9__["default"](shortener);
+      } else {
+        igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
+      }
+    } else {
+      // Custom
+      if (typeof shortener.shortenURL === "function" && typeof shortener.expandURL === "function" && typeof shortener.hostname === "string") {
+        return shortener;
+      } else {
+        igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'");
+      }
+    }
+  }
+}
+
+function shortenURL(url) {
+  if (urlShorteners) {
+    return urlShorteners[0].shortenURL(url);
+  } else {
+    return Promise.resolve(url);
+  }
+}
+
+function expandURL(url) {
+  var urlObject = new URL(url),
+      hostname = urlObject.hostname,
+      i,
+      expander;
+
+  if (urlShorteners) {
+    for (i = 0; i < urlShorteners.length; i++) {
+      expander = urlShorteners[i];
+
+      if (hostname === expander.hostname) {
+        return expander.expandURL(url);
+      }
+    }
+  }
+
+  igv.presentAlert("No expanders for URL: " + url);
+  return Promise.resolve(url);
+}
+
+function shortJuiceboxURL(_x4) {
+  return _shortJuiceboxURL.apply(this, arguments);
+}
+
+function _shortJuiceboxURL() {
+  _shortJuiceboxURL = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee5(base) {
+    var url, queryString, self, compressedString;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            self = this;
+            queryString = "{";
+            allBrowsers.forEach(function (browser, index) {
+              queryString += encodeURIComponent(browser.getQueryString());
+              queryString += index === allBrowsers.length - 1 ? "}" : "},{";
+            });
+            compressedString = compressQueryParameter(queryString);
+            url = base + "?juiceboxData=" + compressedString;
+
+            if (!(url.length > 2048)) {
+              _context5.next = 9;
+              break;
+            }
+
+            return _context5.abrupt("return", url);
+
+          case 9:
+            return _context5.abrupt("return", self.shortenURL(url));
+
+          case 10:
+          case "end":
+            return _context5.stop();
+        }
+      }
+    }, _callee5, this);
+  }));
+  return _shortJuiceboxURL.apply(this, arguments);
+}
+
+function decompressQueryParameter(enc) {
+  enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
+  var compressedString = atob(enc);
+  var compressedBytes = [];
+
+  for (var i = 0; i < compressedString.length; i++) {
+    compressedBytes.push(compressedString.charCodeAt(i));
+  }
+
+  var bytes = new _vendor_zlib_and_gzip__WEBPACK_IMPORTED_MODULE_10__["default"].RawInflate(compressedBytes).decompress();
+  var str = '';
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = bytes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var b = _step.value;
+      str += String.fromCharCode(b);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return != null) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return str;
+}
+
+function initApp(_x5, _x6) {
+  return _initApp.apply(this, arguments);
+}
+
+function _initApp() {
+  _initApp = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee6(container, config) {
+    var apiKey, query, b;
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            apiKey = config.apiKey;
+
+            if (apiKey) {
+              if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
+              setApiKey(apiKey);
+            }
+
+            query = extractQuery(window.location.href);
+            _context6.next = 5;
+            return expandJuiceboxUrl(query);
+
+          case 5:
+            query = _context6.sent;
+            _context6.next = 8;
+            return createBrowsers(container, query);
+
+          case 8:
+            b = _context6.sent;
+            syncBrowsers(allBrowsers);
+
+          case 10:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6, this);
+  }));
+  return _initApp.apply(this, arguments);
+}
+
+function expandJuiceboxUrl(_x7) {
+  return _expandJuiceboxUrl.apply(this, arguments);
+}
+
+function _expandJuiceboxUrl() {
+  _expandJuiceboxUrl = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee7(query) {
+    var jbURL;
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      while (1) {
+        switch (_context7.prev = _context7.next) {
+          case 0:
+            if (!(query && query.hasOwnProperty("juiceboxURL"))) {
+              _context7.next = 7;
+              break;
+            }
+
+            _context7.next = 3;
+            return expandURL(query["juiceboxURL"]);
+
+          case 3:
+            jbURL = _context7.sent;
+            return _context7.abrupt("return", extractQuery(jbURL));
+
+          case 7:
+            return _context7.abrupt("return", query);
+
+          case 8:
+          case "end":
+            return _context7.stop();
+        }
+      }
+    }, _callee7, this);
+  }));
+  return _expandJuiceboxUrl.apply(this, arguments);
+}
+
+function createBrowsers(_x8, _x9) {
+  return _createBrowsers.apply(this, arguments);
+} // Set default values for config properties
+
+
+function _createBrowsers() {
+  _createBrowsers = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee8(container, query) {
+    var parts, browser, i, q, _browser, promises, browsers, _browser2;
+
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      while (1) {
+        switch (_context8.prev = _context8.next) {
+          case 0:
+            if (query && query.hasOwnProperty("juicebox")) {
+              q = query["juicebox"];
+
+              if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+              }
+            } else if (query && query.hasOwnProperty("juiceboxData")) {
+              q = decompressQueryParameter(query["juiceboxData"]);
+            }
+
+            if (!q) {
+              _context8.next = 16;
+              break;
+            }
+
+            q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
+
+            parts = q.split("},{");
+            _context8.next = 6;
+            return createBrowser(container, {
+              queryString: decodeURIComponent(parts[0])
+            });
+
+          case 6:
+            _browser = _context8.sent;
+
+            if (!(parts && parts.length > 1)) {
+              _context8.next = 13;
+              break;
+            }
+
+            promises = [];
+
+            for (i = 1; i < parts.length; i++) {
+              promises.push(createBrowser(container, {
+                queryString: decodeURIComponent(parts[i])
+              })); //const b = await createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
+              // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
+              // b.eventBus.subscribe("MapLoad", checkBDropdown);
+            }
+
+            _context8.next = 12;
+            return Promise.all(promises);
+
+          case 12:
+            browsers = _context8.sent;
+
+          case 13:
+            return _context8.abrupt("return", _browser);
+
+          case 16:
+            _context8.next = 18;
+            return createBrowser(container, {});
+
+          case 18:
+            _browser2 = _context8.sent;
+            return _context8.abrupt("return", _browser2);
+
+          case 20:
+          case "end":
+            return _context8.stop();
+        }
+      }
+    }, _callee8, this);
+  }));
+  return _createBrowsers.apply(this, arguments);
+}
 
 function setDefaults(config) {
   if (config.figureMode === true) {
@@ -3877,11 +4055,11 @@ function setDefaults(config) {
     config.showChromosomeSelector = false;
   } else {
     if (undefined === config.width) {
-      config.width = hic.defaultSize.width;
+      config.width = defaultSize.width;
     }
 
     if (undefined === config.height) {
-      config.height = hic.defaultSize.height;
+      config.height = defaultSize.height;
     }
 
     if (undefined === config.showLocusGoto) {
@@ -3957,9 +4135,10 @@ function compressQueryParameter(str) {
 //
 //     return str;
 // }
+//export default hic
 
 
-/* harmony default export */ __webpack_exports__["default"] = (hic);
+
 
 /***/ }),
 
@@ -4028,7 +4207,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
 var MAX_PIXEL_SIZE = 12;
 var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-var defaultState;
+var defaultState = new _hicState__WEBPACK_IMPORTED_MODULE_10__["default"](0, 0, 0, 0, 0, 1, "NONE");
 
 var Browser = function Browser($app_container, config) {
   this.config = config;
@@ -4041,7 +4220,7 @@ var Browser = function Browser($app_container, config) {
   this.tracks2D = [];
   this.normVectorFiles = [];
   this.synchedBrowsers = [];
-  this.isMobile = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].isMobile();
+  this.isMobile = _hic__WEBPACK_IMPORTED_MODULE_2__["isMobile"]();
   this.$root = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_0__["default"])('<div class="hic-root unselect">');
 
   if (config.width) {
@@ -4062,13 +4241,13 @@ var Browser = function Browser($app_container, config) {
   this.$root.append(this.$user_interaction_shield);
   this.$user_interaction_shield.hide();
   this.hideCrosshairs();
-  this.state = config.state ? config.state : _hic__WEBPACK_IMPORTED_MODULE_2__["default"].defaultState.clone();
+  this.state = config.state ? config.state : defaultState.clone();
   this.eventBus.subscribe("LocusChange", this);
 };
 
 Browser.getCurrentBrowser = function () {
-  if (_hic__WEBPACK_IMPORTED_MODULE_2__["default"].allBrowsers.length === 1) {
-    return _hic__WEBPACK_IMPORTED_MODULE_2__["default"].allBrowsers[0];
+  if (_hic__WEBPACK_IMPORTED_MODULE_2__["allBrowsers"].length === 1) {
+    return _hic__WEBPACK_IMPORTED_MODULE_2__["allBrowsers"][0];
   } else {
     return Browser.currentBrowser;
   }
@@ -4092,7 +4271,7 @@ Browser.setCurrentBrowser = function (browser) {
 
     browser.$root.addClass('hic-root-selected');
     Browser.currentBrowser = browser;
-    _hic__WEBPACK_IMPORTED_MODULE_2__["default"].eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_7__["default"])("BrowserSelect", browser));
+    _hic__WEBPACK_IMPORTED_MODULE_2__["eventBus"].post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_7__["default"])("BrowserSelect", browser));
   }
 };
 
@@ -4273,7 +4452,7 @@ function () {
                   igv.inferTrackTypes(config);
 
                   if (!config.name) {
-                    config.name = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].extractFilename(config.url);
+                    config.name = _hic__WEBPACK_IMPORTED_MODULE_2__["extractFilename"](config.url);
                   }
 
                   promises.push(Promise.resolve(config));
@@ -4575,7 +4754,7 @@ function () {
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
               this.syncState(config.synchState);
             } else {
-              this.setState(_hic__WEBPACK_IMPORTED_MODULE_2__["default"].defaultState.clone());
+              this.setState(defaultState.clone());
             }
 
           case 22:
@@ -4693,7 +4872,7 @@ function () {
             controlDataset = _context5.sent;
             controlDataset.name = name;
 
-            if (!(!this.dataset || _hic__WEBPACK_IMPORTED_MODULE_2__["default"].areCompatible(this.dataset, controlDataset))) {
+            if (!(!this.dataset || _hic__WEBPACK_IMPORTED_MODULE_2__["areCompatible"](this.dataset, controlDataset))) {
               _context5.next = 23;
               break;
             }
@@ -4780,7 +4959,7 @@ function _extractName() {
               break;
             }
 
-            return _context15.abrupt("return", _hic__WEBPACK_IMPORTED_MODULE_2__["default"].extractFilename(config.url));
+            return _context15.abrupt("return", _hic__WEBPACK_IMPORTED_MODULE_2__["extractFilename"](config.url));
 
           case 11:
             return _context15.abrupt("return", config.name);
@@ -4838,7 +5017,7 @@ function () {
             }
 
             _context6.next = 5;
-            return _hic__WEBPACK_IMPORTED_MODULE_2__["default"].geneSearch(this.genome.id, loci[0].trim());
+            return _hic__WEBPACK_IMPORTED_MODULE_2__["geneSearch"](this.genome.id, loci[0].trim());
 
           case 5:
             result = _context6.sent;
@@ -5190,7 +5369,7 @@ function () {
           case 12:
             minPS = _context10.sent;
             state = self.state;
-            newPixelSize = Math.max(_hic__WEBPACK_IMPORTED_MODULE_2__["default"].defaultPixelSize, minPS);
+            newPixelSize = Math.max(_hic__WEBPACK_IMPORTED_MODULE_2__["defaultPixelSize"], minPS);
             zoomChanged = state.zoom !== zoom;
             state.zoom = zoom;
             state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
@@ -5251,7 +5430,7 @@ function () {
 
           case 12:
             minPS = _context11.sent;
-            this.state.pixelSize = Math.min(100, Math.max(_hic__WEBPACK_IMPORTED_MODULE_2__["default"].defaultPixelSize, minPS));
+            this.state.pixelSize = Math.min(100, Math.max(_hic__WEBPACK_IMPORTED_MODULE_2__["defaultPixelSize"], minPS));
             this.eventBus.post(Object(_hicEvent__WEBPACK_IMPORTED_MODULE_7__["default"])("LocusChange", {
               state: this.state,
               resolutionChanged: true
@@ -5883,7 +6062,7 @@ igv.Browser.decodeQuery = function (query, config, uriDecode) {
 
   if (colorScale) {
     colorScale = paramDecode(colorScale, uriDecode);
-    config.colorScale = _hic__WEBPACK_IMPORTED_MODULE_2__["default"].destringifyColorScale(colorScale);
+    config.colorScale = _hic__WEBPACK_IMPORTED_MODULE_2__["destringifyColorScale"](colorScale);
   }
 
   if (displayMode) {
@@ -6447,7 +6626,7 @@ var Dataset = function Dataset(hicFile) {
   this.normVectorCache = {};
   this.normalizationTypes = ['NONE']; // Cache at most 10 blocks
 
-  this.blockCacheLimit = _hic__WEBPACK_IMPORTED_MODULE_0__["default"].isMobile() ? 4 : 10;
+  this.blockCacheLimit = _hic__WEBPACK_IMPORTED_MODULE_0__["isMobile"]() ? 4 : 10;
   this.genomeId = hicFile.genomeId;
   this.chromosomes = hicFile.chromosomes;
   this.bpResolutions = hicFile.bpResolutions;
@@ -7942,6 +8121,10 @@ __webpack_require__.r(__webpack_exports__);
  * @author Jim Robinson
  */
 var State = function State(chr1, chr2, zoom, x, y, pixelSize, normalization) {
+  if (Number.isNaN(pixelSize)) {
+    pixelSize = 1;
+  }
+
   if (chr1 !== undefined) {
     if (chr1 <= chr2) {
       this.chr1 = chr1;
@@ -7995,6 +8178,7 @@ State.prototype.equals = function (state) {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _hic__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./hic */ "./js/hic.js");
+/* harmony import */ var _globals__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./globals */ "./js/globals.js");
 /*
  *  The MIT License (MIT)
  *
@@ -8023,6 +8207,7 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
+
 var Track2D = function Track2D(config, features) {
   var self = this;
   this.config = config;
@@ -8030,7 +8215,7 @@ var Track2D = function Track2D(config, features) {
   this.featureMap = {};
   this.featureCount = 0;
   this.isVisible = true;
-  this.displayMode = _hic__WEBPACK_IMPORTED_MODULE_0__["default"].Track2DDisplaceModes.displayAllMatrix;
+  this.displayMode = _globals__WEBPACK_IMPORTED_MODULE_1__["Track2DDisplaceModes"].displayAllMatrix;
 
   if (config.color && validateColor(config.color)) {
     this.color = this.color = config.color; // If specified, this will override colors of individual records.
@@ -8054,7 +8239,7 @@ var Track2D = function Track2D(config, features) {
 Track2D.loadTrack2D = function (config) {
   return igv.xhr.loadString(config.url, igv.buildOptions(config)).then(function (data) {
     var features = parseData(data, isBedPE(config));
-    return new _hic__WEBPACK_IMPORTED_MODULE_0__["default"].Track2D(config, features);
+    return new _hic__WEBPACK_IMPORTED_MODULE_0__["Track2D"](config, features);
   });
 };
 
@@ -8385,7 +8570,7 @@ function createNavBar(browser, $root) {
   });
   $e.append(browser.$browser_panel_delete_button);
   browser.$browser_panel_delete_button.on('click', function (e) {
-    _hic__WEBPACK_IMPORTED_MODULE_13__["default"].deleteBrowserPanel(browser);
+    _hic__WEBPACK_IMPORTED_MODULE_13__["deleteBrowserPanel"](browser);
   }); // hide delete buttons for now. Delete button is only
   // if there is more then one browser instance.
 
@@ -9402,8 +9587,8 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
 };
 
 TrackRenderer.prototype.configTrackTransforms = function () {
-  this.canvasTransform = 'y' === this.axis ? _hic__WEBPACK_IMPORTED_MODULE_2__["default"].reflectionRotationWithContext : _hic__WEBPACK_IMPORTED_MODULE_2__["default"].identityTransformWithContext;
-  this.labelReflectionTransform = 'y' === this.axis ? _hic__WEBPACK_IMPORTED_MODULE_2__["default"].reflectionAboutYAxisAtOffsetWithContext : function (context, exe) {
+  this.canvasTransform = 'y' === this.axis ? _hic__WEBPACK_IMPORTED_MODULE_2__["reflectionRotationWithContext"] : _hic__WEBPACK_IMPORTED_MODULE_2__["identityTransformWithContext"];
+  this.labelReflectionTransform = 'y' === this.axis ? _hic__WEBPACK_IMPORTED_MODULE_2__["reflectionAboutYAxisAtOffsetWithContext"] : function (context, exe) {
     /* nuthin */
   };
 };
@@ -27274,7 +27459,7 @@ Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_1__["default"])(document).
     apiKey: "ABCD" // TODO -- replace with your Google API Key
 
   };
-  _site__WEBPACK_IMPORTED_MODULE_0__["default"].init(Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_1__["default"])('#app-container'), config);
+  _site__WEBPACK_IMPORTED_MODULE_0__["default"].init(Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_1__["default"])('#app-container')[0], config);
 });
 
 /***/ }),
@@ -27787,7 +27972,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _encode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./encode */ "./website/js/encode.js");
 /* harmony import */ var _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../js/hicBrowser */ "./js/hicBrowser.js");
 /* harmony import */ var _js_hic__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../js/hic */ "./js/hic.js");
-/* harmony import */ var _vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../vendor/jquery-1.12.4 */ "./vendor/jquery-1.12.4.js");
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -27821,18 +28005,16 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  * Page (site specific) code for the example pages.
  *
  */
+// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import
+// $ here, need the jquery from the page.
 
 
 
-
- //import CaptionManager from '../../js/captionManager'
-//import QRCode from './qrcode'
+ //import QRCode from './qrcode'
 
 var juicebox = {};
 /* harmony default export */ __webpack_exports__["default"] = (juicebox);
-var apiKey = "ABCD",
-    // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
-encodeTable,
+var encodeTable,
     lastGenomeId,
     qrcode,
     contact_map_dropdown_id = 'hic-contact-map-dropdown',
@@ -27843,166 +28025,12 @@ juicebox.init =
 function () {
   var _ref = _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee3($container, config) {
-    var genomeChangeListener, $appContainer, query, $hic_share_url_modal, $e, jbURL, b, postCreateBrowser, getEmbeddableSnippet, getEmbedTarget, createBrowsers, _createBrowsers;
-
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+  regeneratorRuntime.mark(function _callee2(container, config) {
+    var genomeChangeListener, $appContainer, query, $hic_share_url_modal, $e, postCreateBrowser, getEmbeddableSnippet, getEmbedTarget;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
-            _createBrowsers = function _ref7() {
-              _createBrowsers = _asyncToGenerator(
-              /*#__PURE__*/
-              regeneratorRuntime.mark(function _callee2(query) {
-                var parts, browser, i, q, _browser, promises, browsers, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _b, _browser2;
-
-                return regeneratorRuntime.wrap(function _callee2$(_context2) {
-                  while (1) {
-                    switch (_context2.prev = _context2.next) {
-                      case 0:
-                        if (query && query.hasOwnProperty("juicebox")) {
-                          q = query["juicebox"];
-
-                          if (q.startsWith("%7B")) {
-                            q = decodeURIComponent(q);
-                          }
-                        } else if (query && query.hasOwnProperty("juiceboxData")) {
-                          q = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].decompressQueryParameter(query["juiceboxData"]);
-                        }
-
-                        if (!q) {
-                          _context2.next = 39;
-                          break;
-                        }
-
-                        q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
-
-                        parts = q.split("},{");
-                        _context2.next = 6;
-                        return _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].createBrowser($container.get(0), {
-                          queryString: decodeURIComponent(parts[0])
-                        });
-
-                      case 6:
-                        _browser = _context2.sent;
-
-                        _browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-                        _browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-                        if (!(parts && parts.length > 1)) {
-                          _context2.next = 35;
-                          break;
-                        }
-
-                        promises = [];
-
-                        for (i = 1; i < parts.length; i++) {
-                          promises.push(_js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].createBrowser($container.get(0), {
-                            queryString: decodeURIComponent(parts[i])
-                          })); //const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
-                          // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                          // b.eventBus.subscribe("MapLoad", checkBDropdown);
-                        }
-
-                        _context2.next = 14;
-                        return Promise.all(promises);
-
-                      case 14:
-                        browsers = _context2.sent;
-                        _iteratorNormalCompletion = true;
-                        _didIteratorError = false;
-                        _iteratorError = undefined;
-                        _context2.prev = 18;
-
-                        for (_iterator = browsers[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                          _b = _step.value;
-
-                          _b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-                          _b.eventBus.subscribe("MapLoad", checkBDropdown);
-                        }
-
-                        _context2.next = 26;
-                        break;
-
-                      case 22:
-                        _context2.prev = 22;
-                        _context2.t0 = _context2["catch"](18);
-                        _didIteratorError = true;
-                        _iteratorError = _context2.t0;
-
-                      case 26:
-                        _context2.prev = 26;
-                        _context2.prev = 27;
-
-                        if (!_iteratorNormalCompletion && _iterator.return != null) {
-                          _iterator.return();
-                        }
-
-                      case 29:
-                        _context2.prev = 29;
-
-                        if (!_didIteratorError) {
-                          _context2.next = 32;
-                          break;
-                        }
-
-                        throw _iteratorError;
-
-                      case 32:
-                        return _context2.finish(29);
-
-                      case 33:
-                        return _context2.finish(26);
-
-                      case 34:
-                        syncBrowsers();
-
-                      case 35:
-                        // Must manually trigger the genome change event on initial load
-                        if (_browser && _browser.genome) {
-                          genomeChangeListener.receiveEvent({
-                            data: _browser.genome.id
-                          });
-                        }
-
-                        return _context2.abrupt("return", _browser);
-
-                      case 39:
-                        _context2.next = 41;
-                        return _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].createBrowser($container.get(0), {});
-
-                      case 41:
-                        _browser2 = _context2.sent;
-
-                        _browser2.eventBus.subscribe("GenomeChange", genomeChangeListener);
-
-                        _browser2.eventBus.subscribe("MapLoad", checkBDropdown); // Must manually trigger the genome change event on initial load
-
-
-                        if (_browser2 && _browser2.genome) {
-                          genomeChangeListener.receiveEvent({
-                            data: _browser2.genome.id
-                          });
-                        }
-
-                        return _context2.abrupt("return", _browser2);
-
-                      case 46:
-                      case "end":
-                        return _context2.stop();
-                    }
-                  }
-                }, _callee2, this, [[18, 22, 26, 34], [27,, 29, 33]]);
-              }));
-              return _createBrowsers.apply(this, arguments);
-            };
-
-            createBrowsers = function _ref6(_x4) {
-              return _createBrowsers.apply(this, arguments);
-            };
-
             getEmbedTarget = function _ref5() {
               var href, idx;
               href = new String(window.location.href);
@@ -28029,15 +28057,48 @@ function () {
             };
 
             postCreateBrowser = function _ref3() {
+              var _iteratorNormalCompletion = true;
+              var _didIteratorError = false;
+              var _iteratorError = undefined;
+
+              try {
+                for (var _iterator = _js_hic__WEBPACK_IMPORTED_MODULE_3__["allBrowsers"][Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                  var browser = _step.value;
+                  browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+                  browser.eventBus.subscribe("MapLoad", checkBDropdown);
+                  updateBDropdown(browser);
+                } // Must manually trigger the genome change event on initial load
+
+              } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+              } finally {
+                try {
+                  if (!_iteratorNormalCompletion && _iterator.return != null) {
+                    _iterator.return();
+                  }
+                } finally {
+                  if (_didIteratorError) {
+                    throw _iteratorError;
+                  }
+                }
+              }
+
+              if (_js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].currentBrowser && _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].currentBrowser.genome) {
+                genomeChangeListener.receiveEvent({
+                  data: _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].currentBrowser.genome.id
+                });
+              }
+
               if (config.mapMenu) {
                 populatePulldown(config.mapMenu);
               }
 
-              $hic_share_url_modal = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-share-url-modal');
+              $hic_share_url_modal = $('#hic-share-url-modal');
 
               function maybeShortenURL(url) {
                 if (url.length < 2048) {
-                  return _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].shortenURL(url);
+                  return _js_hic__WEBPACK_IMPORTED_MODULE_3__["shortenURL"](url);
                 } else {
                   igv.presentAlert("URL too long to shorten");
                   return Promise.resolve(url);
@@ -28061,35 +28122,35 @@ function () {
                           idx = href.indexOf("?");
                           if (idx > 0) href = href.substring(0, idx);
                           _context.next = 5;
-                          return _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].shortJuiceboxURL(href);
+                          return _js_hic__WEBPACK_IMPORTED_MODULE_3__["shortJuiceboxURL"](href);
 
                         case 5:
                           jbUrl = _context.sent;
                           getEmbeddableSnippet(jbUrl).then(function (embedSnippet) {
                             var $hic_embed_url;
-                            $hic_embed_url = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed');
+                            $hic_embed_url = $('#hic-embed');
                             $hic_embed_url.val(embedSnippet);
                             $hic_embed_url.get(0).select();
                           });
                           shareUrl = jbUrl; // Shorten second time
                           // e.g. converts https://aidenlab.org/juicebox?juiceboxURL=https://goo.gl/WUb1mL  to https://goo.gl/ERHp5u
 
-                          $hic_share_url = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-share-url');
+                          $hic_share_url = $('#hic-share-url');
                           $hic_share_url.val(shareUrl);
                           $hic_share_url.get(0).select();
-                          tweetContainer = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#tweetButtonContainer');
+                          tweetContainer = $('#tweetButtonContainer');
                           tweetContainer.empty();
                           config = {
                             text: 'Contact map: '
                           };
-                          Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
+                          $('#emailButton').attr('href', 'mailto:?body=' + shareUrl);
 
                           if (shareUrl.length < 100) {
                             window.twttr.widgets.createShareButton(shareUrl, tweetContainer.get(0), config).then(function (el) {}); // QR code generation
 
                             if (qrcode) {
                               qrcode.clear();
-                              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('hic-qr-code-image').empty();
+                              $('hic-qr-code-image').empty();
                             } else {
                               config = {
                                 width: 128,
@@ -28115,10 +28176,10 @@ function () {
                 };
               }());
               $hic_share_url_modal.on('hidden.bs.modal', function (e) {
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed-container').hide();
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-qr-code-image').hide();
+                $('#hic-embed-container').hide();
+                $('#hic-qr-code-image').hide();
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
+              $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
                 var browser;
                 browser = _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser();
 
@@ -28126,18 +28187,18 @@ function () {
                   igv.presentAlert('Contact map must be loaded and selected before loading tracks');
                 }
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed-button').on('click', function (e) {
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-qr-code-image').hide();
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed-container').toggle();
+              $('#hic-embed-button').on('click', function (e) {
+                $('#hic-qr-code-image').hide();
+                $('#hic-embed-container').toggle();
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-qr-code-button').on('click', function (e) {
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed-container').hide();
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-qr-code-image').toggle();
+              $('#hic-qr-code-button').on('click', function (e) {
+                $('#hic-embed-container').hide();
+                $('#hic-qr-code-image').toggle();
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#dataset_selector').on('change', function (e) {
+              $('#dataset_selector').on('change', function (e) {
                 var $selected, url, browser;
-                url = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val();
-                $selected = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option:selected');
+                url = $(this).val();
+                $selected = $(this).find('option:selected');
                 browser = _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser();
 
                 if (undefined === browser) {
@@ -28146,17 +28207,17 @@ function () {
                   loadHicFile(url, $selected.text());
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-contact-map-select-modal').modal('hide');
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option').removeAttr("selected");
+                $('#hic-contact-map-select-modal').modal('hide');
+                $(this).find('option').removeAttr("selected");
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('.selectpicker').selectpicker();
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-load-local-file').on('change', function (e) {
+              $('.selectpicker').selectpicker();
+              $('#hic-load-local-file').on('change', function (e) {
                 var file, suffix;
 
                 if (undefined === _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser()) {
                   igv.presentAlert('ERROR: you must select a map panel.');
                 } else {
-                  file = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).get(0).files[0];
+                  file = $(this).get(0).files[0];
                   suffix = file.name.substr(file.name.lastIndexOf('.') + 1);
 
                   if ('hic' === suffix) {
@@ -28169,45 +28230,45 @@ function () {
                   }
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val("");
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-load-local-file-modal').modal('hide');
+                $(this).val("");
+                $('#hic-load-local-file-modal').modal('hide');
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-load-url').on('change', function (e) {
+              $('#hic-load-url').on('change', function (e) {
                 var url, suffix, paramIdx, path;
 
                 if (undefined === _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser()) {
                   igv.presentAlert('ERROR: you must select a map panel.');
                 } else {
-                  url = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val();
+                  url = $(this).val();
                   loadHicFile(url);
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val("");
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-load-url-modal').modal('hide');
+                $(this).val("");
+                $('#hic-load-url-modal').modal('hide');
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#track-load-url').on('change', function (e) {
+              $('#track-load-url').on('change', function (e) {
                 var url;
 
                 if (undefined === _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser()) {
                   igv.presentAlert('ERROR: you must select a map panel.');
                 } else {
-                  url = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val();
+                  url = $(this).val();
                   _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser().loadTracks([{
                     url: url
                   }]);
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val("");
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#track-load-url-modal').modal('hide');
+                $(this).val("");
+                $('#track-load-url-modal').modal('hide');
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#annotation-selector').on('change', function (e) {
+              $('#annotation-selector').on('change', function (e) {
                 var path, name;
 
                 if (undefined === _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser()) {
                   igv.presentAlert('ERROR: you must select a map panel.');
                 } else {
-                  path = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val();
-                  name = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option:selected').text();
+                  path = $(this).val();
+                  name = $(this).find('option:selected').text();
                   var _config = {
                     url: path,
                     name: name
@@ -28220,78 +28281,76 @@ function () {
                   _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser().loadTracks([_config]);
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-annotation-select-modal').modal('hide');
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option').removeAttr("selected");
+                $('#hic-annotation-select-modal').modal('hide');
+                $(this).find('option').removeAttr("selected");
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#annotation-2D-selector').on('change', function (e) {
+              $('#annotation-2D-selector').on('change', function (e) {
                 var path, name;
 
                 if (undefined === _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser()) {
                   igv.presentAlert('ERROR: you must select a map panel.');
                 } else {
-                  path = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).val();
-                  name = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option:selected').text();
+                  path = $(this).val();
+                  name = $(this).find('option:selected').text();
                   _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser().loadTracks([{
                     url: path,
                     name: name
                   }]);
                 }
 
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-annotation-2D-select-modal').modal('hide');
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).find('option').removeAttr("selected");
+                $('#hic-annotation-2D-select-modal').modal('hide');
+                $(this).find('option').removeAttr("selected");
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('.juicebox-app-clone-button').on('click', function (e) {
+              $('.juicebox-app-clone-button').on('click', function (e) {
                 var browser, config;
                 config = {
                   initFromUrl: false,
                   updateHref: false
                 };
-                _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].createBrowser($container.get(0), config).then(function (browser) {
+                _js_hic__WEBPACK_IMPORTED_MODULE_3__["createBrowser"]($container.get(0), config).then(function (browser) {
                   browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
                   _js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].setCurrentBrowser(browser);
                 });
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-copy-link').on('click', function (e) {
+              $('#hic-copy-link').on('click', function (e) {
                 var success;
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-share-url')[0].select();
+                $('#hic-share-url')[0].select();
                 success = document.execCommand('copy');
 
                 if (success) {
-                  Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-share-url-modal').modal('hide');
+                  $('#hic-share-url-modal').modal('hide');
                 } else {
                   alert("Copy not successful");
                 }
               });
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed-copy-link').on('click', function (e) {
+              $('#hic-embed-copy-link').on('click', function (e) {
                 var success;
-                Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-embed')[0].select();
+                $('#hic-embed')[0].select();
                 success = document.execCommand('copy');
 
                 if (success) {
-                  Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-share-url-modal').modal('hide');
+                  $('#hic-share-url-modal').modal('hide');
                 } else {
                   alert("Copy not successful");
                 }
               });
-              $e = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('button[id$=-map-dropdown]');
+              $e = $('button[id$=-map-dropdown]');
               $e.parent().on('show.bs.dropdown', function () {
-                var id = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])(this).children('.dropdown-toggle').attr('id');
+                var id = $(this).children('.dropdown-toggle').attr('id');
                 juicebox.currentContactMapDropdownButtonID = id;
               });
               $e.parent().on('hide.bs.dropdown', function () {});
-              _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].eventBus.subscribe("BrowserSelect", function (event) {
+              _js_hic__WEBPACK_IMPORTED_MODULE_3__["eventBus"].subscribe("BrowserSelect", function (event) {
                 updateBDropdown(event.data);
               });
             };
 
             //hic.captionManager = new CaptionManager($('#hic-caption'));
-            Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-encode-modal-button').hide();
-            Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-encode-loading').show();
+            $('#hic-encode-modal-button').hide();
+            $('#hic-encode-loading').show();
 
             if (config.urlShortener) {
-              _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].setURLShortener(config.urlShortener);
-            } else {
-              Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])("#hic-share-button").hide();
+              _js_hic__WEBPACK_IMPORTED_MODULE_3__["setURLShortener"](config.urlShortener);
             }
 
             genomeChangeListener = {
@@ -28302,12 +28361,12 @@ function () {
                   // lastGenomeId = genomeId;
                   if (config.trackMenu) {
                     var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
-                    loadAnnotationSelector(Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#' + config.trackMenu.id), tracksURL, "1D");
+                    loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
                   }
 
                   if (config.trackMenu2D) {
                     var annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
-                    loadAnnotationSelector(Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#' + config.trackMenu2D.id), annotations2dURL, "2D");
+                    loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
                   }
 
                   createEncodeTable(genomeId);
@@ -28315,78 +28374,25 @@ function () {
               }
             };
             config = config || {};
-            $appContainer = $container;
-            apiKey = config.apiKey;
+            $appContainer = $(container);
+            _context2.next = 11;
+            return _js_hic__WEBPACK_IMPORTED_MODULE_3__["initApp"](container, config);
 
-            if (apiKey) {
-              if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
-              _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].setApiKey(apiKey);
-            }
+          case 11:
+            postCreateBrowser();
 
-            query = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].extractQuery(window.location.href);
-
-            if (!(query && query.hasOwnProperty("juiceboxURL"))) {
-              _context3.next = 22;
-              break;
-            }
-
-            _context3.next = 17;
-            return _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].expandURL(query["juiceboxURL"]);
-
-          case 17:
-            jbURL = _context3.sent;
-            query = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].extractQuery(jbURL);
-            createBrowsers(query).then(postCreateBrowser);
-            _context3.next = 26;
-            break;
-
-          case 22:
-            _context3.next = 24;
-            return createBrowsers(query);
-
-          case 24:
-            b = _context3.sent;
-            postCreateBrowser(b);
-
-          case 26:
+          case 12:
           case "end":
-            return _context3.stop();
+            return _context2.stop();
         }
       }
-    }, _callee3, this);
+    }, _callee2, this);
   }));
 
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
 }();
-
-function syncBrowsers() {
-  _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].syncBrowsers(_js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].allBrowsers);
-  var _iteratorNormalCompletion2 = true;
-  var _didIteratorError2 = false;
-  var _iteratorError2 = undefined;
-
-  try {
-    for (var _iterator2 = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].allBrowsers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var browser = _step2.value;
-      updateBDropdown(browser);
-    }
-  } catch (err) {
-    _didIteratorError2 = true;
-    _iteratorError2 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-        _iterator2.return();
-      }
-    } finally {
-      if (_didIteratorError2) {
-        throw _iteratorError2;
-      }
-    }
-  }
-}
 
 function checkBDropdown() {
   updateBDropdown(_js_hicBrowser__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser());
@@ -28395,16 +28401,16 @@ function checkBDropdown() {
 function updateBDropdown(browser) {
   if (browser) {
     if (browser.dataset) {
-      Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-control-map-dropdown').removeClass('disabled');
+      $('#hic-control-map-dropdown').removeClass('disabled');
     } else {
-      Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-control-map-dropdown').addClass('disabled');
+      $('#hic-control-map-dropdown').addClass('disabled');
     }
   }
 }
 
 function loadHicFile(url, name) {
   var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
-  browsersWithMaps = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].allBrowsers.filter(function (browser) {
+  browsersWithMaps = _js_hic__WEBPACK_IMPORTED_MODULE_3__["allBrowsers"].filter(function (browser) {
     return browser.dataset !== undefined;
   });
 
@@ -28421,7 +28427,7 @@ function loadHicFile(url, name) {
   };
 
   if (igv.isString(url) && url.includes("?")) {
-    query = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].extractQuery(url);
+    query = _js_hic__WEBPACK_IMPORTED_MODULE_3__["extractQuery"](url);
     uriDecode = url.includes("%2C");
     igv.Browser.decodeQuery(query, config, uriDecode);
   }
@@ -28430,7 +28436,7 @@ function loadHicFile(url, name) {
     browser.loadHicControlFile(config).then(function (dataset) {});
   } else {
     browser.reset();
-    browsersWithMaps = _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].allBrowsers.filter(function (browser) {
+    browsersWithMaps = _js_hic__WEBPACK_IMPORTED_MODULE_3__["allBrowsers"].filter(function (browser) {
       return browser.dataset !== undefined;
     });
 
@@ -28440,17 +28446,17 @@ function loadHicFile(url, name) {
 
     browser.loadHicFile(config).then(function (ignore) {
       if (!isControl) {
-        _js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].syncBrowsers(_js_hic__WEBPACK_IMPORTED_MODULE_3__["default"].allBrowsers);
+        _js_hic__WEBPACK_IMPORTED_MODULE_3__["syncBrowsers"](_js_hic__WEBPACK_IMPORTED_MODULE_3__["allBrowsers"]);
       }
 
-      Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hic-control-map-dropdown').removeClass('disabled');
+      $('#hic-control-map-dropdown').removeClass('disabled');
     });
   }
 }
 
 function populatePulldown(menu) {
   var parent;
-  parent = Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])("#" + menu.id);
+  parent = $("#" + menu.id);
   igv.xhr.loadString(menu.items).then(function (data) {
     var lines = igv.splitLines(data),
         len = lines.length,
@@ -28461,7 +28467,7 @@ function populatePulldown(menu) {
       tokens = lines[i].split('\t');
 
       if (tokens.length > 1) {
-        parent.append(Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'));
+        parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'));
       }
     }
 
@@ -28518,11 +28524,11 @@ function createEncodeTable(genomeId) {
     };
 
     config = {
-      $modal: Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#hicEncodeModal'),
-      $modalBody: Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#encodeModalBody'),
-      $modalTopCloseButton: Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#encodeModalTopCloseButton'),
-      $modalBottomCloseButton: Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#encodeModalBottomCloseButton'),
-      $modalGoButton: Object(_vendor_jquery_1_12_4__WEBPACK_IMPORTED_MODULE_4__["default"])('#encodeModalGoButton'),
+      $modal: $('#hicEncodeModal'),
+      $modalBody: $('#encodeModalBody'),
+      $modalTopCloseButton: $('#encodeModalTopCloseButton'),
+      $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
+      $modalGoButton: $('#encodeModalGoButton'),
       datasource: encodeDatasource,
       browserHandler: loadTracks
     };

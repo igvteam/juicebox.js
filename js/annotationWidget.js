@@ -22,9 +22,10 @@
  */
 import Track2D from './hicTrack2D'
 import HICEvent from './hicEvent'
-import hic from './hic'
+import  * as hic from './hic'
 import $ from "../vendor/jquery-1.12.4"
 import _ from "../vendor/underscore"
+import {Track2DDisplaceModes} from './globals'
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 
@@ -340,23 +341,23 @@ function matrixDiagionalWidgetHandler($icon, track2D) {
         $icon.removeClass('matrix-diagonal-widget-all');
 
         $icon.addClass('matrix-diagonal-widget-lower');
-        track2D.displayMode = hic.Track2DDisplaceModes.displayLowerMatrix;
+        track2D.displayMode = Track2DDisplaceModes.displayLowerMatrix;
     } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
 
         $icon.removeClass('matrix-diagonal-widget-lower');
 
         $icon.addClass('matrix-diagonal-widget-upper');
-        track2D.displayMode = hic.Track2DDisplaceModes.displayUpperMatrix;
+        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix;
     } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
 
         $icon.removeClass('matrix-diagonal-widget-upper');
 
         $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
     } else {
 
         $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = hic.Track2DDisplaceModes.displayAllMatrix;
+        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
     }
 }
 
