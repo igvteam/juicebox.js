@@ -25,18 +25,17 @@
  * @author Jim Robinson
  */
 
-import $ from "../vendor/jquery-1.12.4"
-import _ from "../vendor/underscore"
-import  * as hic from './hic'
-import Track2D from './hicTrack2D'
-import igvReplacements from './igvReplacements'
-import EventBus from'./eventBus'
-import LayoutController from './layoutController'
-import HICEvent from './hicEvent'
-import Dataset from './hicDataset'
-import Genome from './genome'
-import State from './hicState'
-import Straw from '../vendor/hic-straw_es6'
+import $ from "../vendor/jquery-1.12.4.js"
+import _ from "../vendor/underscore.js"
+import  * as hic from './hic.js'
+import Track2D from './hicTrack2D.js'
+import EventBus from'./eventBus.js'
+import LayoutController from './layoutController.js'
+import HICEvent from './hicEvent.js'
+import Dataset from './hicDataset.js'
+import Genome from './genome.js'
+import State from './hicState.js'
+import Straw from '../vendor/hic-straw_es6.js'
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";

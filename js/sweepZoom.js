@@ -24,7 +24,7 @@
 /**
  * Created by dat on 3/14/17.
  */
-import $ from "../vendor/jquery-1.12.4"
+import $ from "../vendor/jquery-1.12.4.js"
 
 const SweepZoom = function (browser, $target) {
     var id;

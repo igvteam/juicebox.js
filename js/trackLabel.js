@@ -1,7 +1,7 @@
 /**
  * Created by dat on 5/3/17.
  */
-import $ from "../vendor/jquery-1.12.4"
+import $ from "../vendor/jquery-1.12.4.js"
 
 const TrackLabel = function ($track) {
 

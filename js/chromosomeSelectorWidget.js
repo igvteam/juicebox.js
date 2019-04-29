@@ -24,8 +24,8 @@
 /**
  * Created by dat on 3/22/17.
  */
-import $ from "../vendor/jquery-1.12.4"
-import _ from "../vendor/underscore"
+import $ from "../vendor/jquery-1.12.4.js"
+import _ from "../vendor/underscore.js"
 
 const ChromosomeSelectorWidget = function (browser, $parent) {
 

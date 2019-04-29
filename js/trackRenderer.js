@@ -1,9 +1,9 @@
 /**
  * Created by dat on 4/5/17.
  */
-import $ from "../vendor/jquery-1.12.4"
-import _ from "../vendor/underscore"
-import  * as hic from './hic'
+import $ from "../vendor/jquery-1.12.4.js"
+import _ from "../vendor/underscore.js"
+import  * as hic from './hic.js'
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 

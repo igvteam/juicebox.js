@@ -20,12 +20,12 @@
  * THE SOFTWARE.
  *
  */
-import Track2D from './hicTrack2D'
-import HICEvent from './hicEvent'
-import  * as hic from './hic'
-import $ from "../vendor/jquery-1.12.4"
-import _ from "../vendor/underscore"
-import {Track2DDisplaceModes} from './globals'
+import Track2D from './hicTrack2D.js'
+import HICEvent from './hicEvent.js'
+import  * as hic from './hic.js'
+import $ from "../vendor/jquery-1.12.4.js"
+import _ from "../vendor/underscore.js"
+import {Track2DDisplaceModes} from './globals.js'
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 

@@ -24,14 +24,14 @@
 /**
  * @author Jim Robinson
  */
-import $ from "../vendor/jquery-1.12.4"
-import ColorScale from './colorScale'
-import RatioColorScale from './ratioColorScale'
-import ScrollbarWidget from './scrollbarWidget'
-import SweepZoom from './sweepZoom'
-import HICEvent from './hicEvent'
-import HICMath from './hicMath'
-import  * as hic from './hic'
+import $ from "../vendor/jquery-1.12.4.js"
+import ColorScale from './colorScale.js'
+import RatioColorScale from './ratioColorScale.js'
+import ScrollbarWidget from './scrollbarWidget.js'
+import SweepZoom from './sweepZoom.js'
+import HICEvent from './hicEvent.js'
+import HICMath from './hicMath.js'
+import  * as hic from './hic.js'
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;

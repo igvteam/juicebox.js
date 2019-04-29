@@ -26,9 +26,9 @@
  * @author Jim Robinson
  */
 
-import  * as hic from './hic'
-import NormalizationVector from './normalizationVector'
-import HICEvent from './hicEvent'
+import  * as hic from './hic.js'
+import NormalizationVector from './normalizationVector.js'
+import HICEvent from './hicEvent.js'
 
 const knownGenomes = {
 

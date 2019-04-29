@@ -1,20 +1,20 @@
 /**
  * Created by dat on 4/4/17.
  */
-import $ from "../vendor/jquery-1.12.4"
-import _ from "../vendor/underscore"
-import Browser from './hicBrowser'
-import ContactMatrixView from './contactMatrixView'
-import ChromosomeSelectorWidget from './chromosomeSelectorWidget'
-import ControlMapWidget from './controlMapWidget'
-import LocusGoto from './hicLocusGoto'
-import ResolutionSelector from './hicResolutionSelector'
-import ColorScaleWidget from './hicColorScaleWidget'
-import NormalizationWidget from './normalizationWidget'
-import Ruler from './hicRuler'
-import TrackRenderer from './trackRenderer'
-import AnnotationWidget from './annotationWidget'
-import  * as hic from './hic'
+import $ from "../vendor/jquery-1.12.4.js"
+import _ from "../vendor/underscore.js"
+import Browser from './hicBrowser.js'
+import ContactMatrixView from './contactMatrixView.js'
+import ChromosomeSelectorWidget from './chromosomeSelectorWidget.js'
+import ControlMapWidget from './controlMapWidget.js'
+import LocusGoto from './hicLocusGoto.js'
+import ResolutionSelector from './hicResolutionSelector.js'
+import ColorScaleWidget from './hicColorScaleWidget.js'
+import NormalizationWidget from './normalizationWidget.js'
+import Ruler from './hicRuler.js'
+import TrackRenderer from './trackRenderer.js'
+import AnnotationWidget from './annotationWidget.js'
+import  * as hic from './hic.js'
 
 const LayoutController = function (browser, $root) {
 

@@ -22,7 +22,7 @@
  */
 
 
-import * as hic from '../../js/hic'
+import * as hic from '../../js/hic.js'
 
 document.addEventListener("DOMContentLoaded", function () {
 

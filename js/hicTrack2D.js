@@ -27,8 +27,8 @@
  */
 
 
-import  * as hic from './hic'
-import {Track2DDisplaceModes} from './globals'
+import  * as hic from './hic.js'
+import {Track2DDisplaceModes} from './globals.js'
 
 const Track2D = function (config, features) {
 

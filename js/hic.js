@@ -21,17 +21,17 @@
  *
  */
 
-import $ from "../vendor/jquery-1.12.4"
-import Browser from './hicBrowser'
-import ColorScale from './colorScale'
-import State from './hicState'
-import EventBus from './eventBus'
-import HICEvent from './hicEvent'
-import igvReplacements from "./igvReplacements"
-import _ from "../vendor/underscore"
-import GoogleURL from "./googleURL";
-import BitlyURL from "./bitlyURL";
-import Zlib from "../vendor/zlib_and_gzip";
+import $ from "../vendor/jquery-1.12.4.js"
+import Browser from './hicBrowser.js'
+import ColorScale from './colorScale.js'
+import State from './hicState.js'
+import EventBus from './eventBus.js'
+import HICEvent from './hicEvent.js'
+import igvReplacements from "./igvReplacements.js"
+import _ from "../vendor/underscore.js"
+import GoogleURL from "./googleURL.js";
+import BitlyURL from "./bitlyURL.js";
+import Zlib from "../vendor/zlib_and_gzip.js";
 
 let apiKey
 

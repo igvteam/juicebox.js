@@ -31,10 +31,10 @@
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import
 // $ here, need the jquery from the page.
 
-import ModalTable from './modalTable'
-import EncodeDataSource from './encode'
-import Browser from '../../js/hicBrowser'
-import  * as hic from '../../js/hic'
+import ModalTable from './modalTable.js'
+import EncodeDataSource from './encode.js'
+import Browser from '../../js/hicBrowser.js'
+import  * as hic from '../../js/hic.js'
 
 //import QRCode from './qrcode'
 
