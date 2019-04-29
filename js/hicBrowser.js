@@ -28,13 +28,14 @@
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
 import  * as hic from './hic.js'
-import Track2D from './hicTrack2D.js'
+import Track2D from './track2D.js'
 import EventBus from'./eventBus.js'
 import LayoutController from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
+import geneSearch from './geneSearch.js'
 import Straw from '../vendor/hic-straw_es6.js'
 
 const MAX_PIXEL_SIZE = 12;
@@ -44,7 +45,7 @@ const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE")
 
 
-const Browser = function ($app_container, config) {
+const HICBrowser = function ($app_container, config) {
 
     this.config = config;
     this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
@@ -88,45 +89,45 @@ const Browser = function ($app_container, config) {
 };
 
 
-Browser.getCurrentBrowser = function () {
+HICBrowser.getCurrentBrowser = function () {
 
     if (hic.allBrowsers.length === 1) {
         return hic.allBrowsers[0];
     } else {
-        return Browser.currentBrowser;
+        return HICBrowser.currentBrowser;
     }
 
 };
 
-Browser.setCurrentBrowser = function (browser) {
+HICBrowser.setCurrentBrowser = function (browser) {
 
     // unselect current browser
     if (undefined === browser) {
 
-        if (Browser.currentBrowser) {
-            Browser.currentBrowser.$root.removeClass('hic-root-selected');
+        if (HICBrowser.currentBrowser) {
+            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
         }
 
-        Browser.currentBrowser = browser;
+        HICBrowser.currentBrowser = browser;
         return;
     }
 
 
-    if (browser !== Browser.currentBrowser) {
+    if (browser !== HICBrowser.currentBrowser) {
 
-        if (Browser.currentBrowser) {
-            Browser.currentBrowser.$root.removeClass('hic-root-selected');
+        if (HICBrowser.currentBrowser) {
+            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
         }
 
         browser.$root.addClass('hic-root-selected');
-        Browser.currentBrowser = browser;
+        HICBrowser.currentBrowser = browser;
 
         hic.eventBus.post(HICEvent("BrowserSelect", browser));
     }
 
 };
 
-Browser.prototype.toggleMenu = function () {
+HICBrowser.prototype.toggleMenu = function () {
 
     if (this.$menu.is(':visible')) {
         this.hideMenu();
@@ -136,36 +137,36 @@ Browser.prototype.toggleMenu = function () {
 
 };
 
-Browser.prototype.showMenu = function () {
+HICBrowser.prototype.showMenu = function () {
     this.$menu.show();
 };
 
-Browser.prototype.hideMenu = function () {
+HICBrowser.prototype.hideMenu = function () {
     this.$menu.hide();
 };
 
-Browser.prototype.startSpinner = function () {
+HICBrowser.prototype.startSpinner = function () {
     this.contactMatrixView.startSpinner();
 };
 
-Browser.prototype.stopSpinner = function () {
+HICBrowser.prototype.stopSpinner = function () {
     this.contactMatrixView.stopSpinner();
 };
 
-Browser.prototype.setDisplayMode = async function (mode) {
+HICBrowser.prototype.setDisplayMode = async function (mode) {
     await this.contactMatrixView.setDisplayMode(mode);
     this.eventBus.post(HICEvent("DisplayMode", mode));
 };
 
-Browser.prototype.getDisplayMode = function () {
+HICBrowser.prototype.getDisplayMode = function () {
     return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
 };
 
-Browser.prototype.toggleDisplayMode = function () {
+HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
 };
 
-Browser.prototype.getColorScale = function () {
+HICBrowser.prototype.getColorScale = function () {
 
     if (!this.contactMatrixView) return undefined;
 
@@ -180,11 +181,11 @@ Browser.prototype.getColorScale = function () {
     }
 };
 
-Browser.prototype.setColorScaleThreshold = function (threshold) {
+HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
     this.contactMatrixView.setColorScaleThreshold(threshold);
 };
 
-Browser.prototype.updateCrosshairs = function (coords) {
+HICBrowser.prototype.updateCrosshairs = function (coords) {
     var xGuide,
         yGuide;
 
@@ -199,7 +200,7 @@ Browser.prototype.updateCrosshairs = function (coords) {
 
 };
 
-Browser.prototype.hideCrosshairs = function () {
+HICBrowser.prototype.hideCrosshairs = function () {
 
     this.contactMatrixView.$x_guide.hide();
     this.layoutController.$x_track_guide.hide();
@@ -209,7 +210,7 @@ Browser.prototype.hideCrosshairs = function () {
 
 };
 
-Browser.prototype.showCrosshairs = function () {
+HICBrowser.prototype.showCrosshairs = function () {
 
     this.contactMatrixView.$x_guide.show();
     this.layoutController.$x_track_guide.show();
@@ -218,7 +219,7 @@ Browser.prototype.showCrosshairs = function () {
     this.layoutController.$y_track_guide.show();
 };
 
-Browser.prototype.genomicState = function (axis) {
+HICBrowser.prototype.genomicState = function (axis) {
     var gs,
         bpResolution;
 
@@ -247,7 +248,7 @@ Browser.prototype.genomicState = function (axis) {
  *
  * @param configs
  */
-Browser.prototype.loadTracks = async function (configs) {
+HICBrowser.prototype.loadTracks = async function (configs) {
 
     var self = this, errorPrefix;
 
@@ -348,7 +349,7 @@ Browser.prototype.loadTracks = async function (configs) {
 }
 
 
-Browser.prototype.loadNormalizationFile = function (url) {
+HICBrowser.prototype.loadNormalizationFile = function (url) {
 
     var self = this;
 
@@ -380,7 +381,7 @@ Browser.prototype.loadNormalizationFile = function (url) {
 }
 
 
-Browser.prototype.renderTracks = function () {
+HICBrowser.prototype.renderTracks = function () {
     var self = this;
     this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
         self.renderTrackXY(xyTrackRenderPair);
@@ -393,7 +394,7 @@ Browser.prototype.renderTracks = function () {
  *
  * @param xy
  */
-Browser.prototype.renderTrackXY = async function (xy) {
+HICBrowser.prototype.renderTrackXY = async function (xy) {
 
     try {
         this.startSpinner()
@@ -406,7 +407,7 @@ Browser.prototype.renderTrackXY = async function (xy) {
 }
 
 
-Browser.prototype.reset = function () {
+HICBrowser.prototype.reset = function () {
     this.layoutController.removeAllTrackXYPairs();
     this.contactMatrixView.clearImageCaches();
     this.tracks2D = [];
@@ -420,7 +421,7 @@ Browser.prototype.reset = function () {
 }
 
 
-Browser.prototype.clearSession = function () {
+HICBrowser.prototype.clearSession = function () {
     // Clear current datasets.
     this.dataset = undefined;
     this.controlDataset = undefined;
@@ -435,7 +436,7 @@ Browser.prototype.clearSession = function () {
  * @return a promise for a dataset
  * @param config
  */
-Browser.prototype.loadHicFile = async function (config, noUpdates) {
+HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
 
     if (!config.url) {
         console.log("No .hic url specified");
@@ -524,7 +525,7 @@ Browser.prototype.loadHicFile = async function (config, noUpdates) {
  * @return a promise for a dataset
  * @param config
  */
-Browser.prototype.loadHicControlFile = async function (config, noUpdates) {
+HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
 
     try {
         this.$user_interaction_shield.show()
@@ -598,7 +599,7 @@ function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
 }
 
-Browser.prototype.parseGotoInput = async function (string) {
+HICBrowser.prototype.parseGotoInput = async function (string) {
 
     var self = this,
         loci = string.split(' '),
@@ -617,7 +618,7 @@ Browser.prototype.parseGotoInput = async function (string) {
 
     if (xLocus === undefined) {
         // Try a gene name search.
-        const result = await hic.geneSearch(this.genome.id, loci[0].trim())
+        const result = await geneSearch(this.genome.id, loci[0].trim())
 
         if (result) {
             igv.selectedGene = loci[0].trim();
@@ -640,7 +641,7 @@ Browser.prototype.parseGotoInput = async function (string) {
 
 };
 
-Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
+HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
     var z;
     for (z = resolutionArray.length - 1; z > 0; z--) {
         if (resolutionArray[z] >= targetResolution) {
@@ -650,7 +651,7 @@ Browser.prototype.findMatchingZoomIndex = function (targetResolution, resolution
     return 0;
 };
 
-Browser.prototype.parseLocusString = function (locus) {
+HICBrowser.prototype.parseLocusString = function (locus) {
 
     var self = this,
         parts,
@@ -699,7 +700,7 @@ Browser.prototype.parseLocusString = function (locus) {
  * @param anchorPx -- anchor position in pixels (should not move after transformation)
  * @param anchorPy
  */
-Browser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
+HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
 
     if (this.state.chr1 === 0) {
         await this.zoomAndCenter(1, anchorPx, anchorPy);
@@ -771,7 +772,7 @@ Browser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
 
 }
 
-Browser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
+HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
 
     if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
         this.zoomAndCenter(direction, centerPX, centerPY);
@@ -789,7 +790,7 @@ Browser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY
 }
 
 // Zoom in response to a double-click
-Browser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
+HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
     if (!this.dataset) return;
 
@@ -832,7 +833,7 @@ Browser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY)
 
 };
 
-Browser.prototype.setZoom = async function (zoom, cpx, cpy) {
+HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
 
     try {
         // this.startSpinner()
@@ -873,7 +874,7 @@ Browser.prototype.setZoom = async function (zoom, cpx, cpy) {
 
 };
 
-Browser.prototype.setChromosomes = async function (chr1, chr2) {
+HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
 
     try {
         this.startSpinner()
@@ -894,7 +895,7 @@ Browser.prototype.setChromosomes = async function (chr1, chr2) {
     }
 }
 
-Browser.prototype.updateLayout = async function () {
+HICBrowser.prototype.updateLayout = async function () {
 
     var self = this;
     this.clamp();
@@ -946,7 +947,7 @@ async function minPixelSize(chr1, chr2, z) {
  * Set the matrix state.  Used to restore state from a bookmark
  * @param state  browser state
  */
-Browser.prototype.setState = async function (state) {
+HICBrowser.prototype.setState = async function (state) {
 
     this.state = state;
     // Possibly adjust pixel size
@@ -960,7 +961,7 @@ Browser.prototype.setState = async function (state) {
  * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
  * and resolution arrays
  */
-Browser.prototype.getSyncState = function () {
+HICBrowser.prototype.getSyncState = function () {
     return {
         chr1Name: this.dataset.chromosomes[this.state.chr1].name,
         chr2Name: this.dataset.chromosomes[this.state.chr2].name,
@@ -975,7 +976,7 @@ Browser.prototype.getSyncState = function () {
  * Return true if this browser can be synched to the given state
  * @param syncState
  */
-Browser.prototype.canBeSynched = function (syncState) {
+HICBrowser.prototype.canBeSynched = function (syncState) {
 
     return this.dataset &&
         (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
@@ -987,7 +988,7 @@ Browser.prototype.canBeSynched = function (syncState) {
  * Used to synch state with other browsers
  * @param state  browser state
  */
-Browser.prototype.syncState = function (syncState) {
+HICBrowser.prototype.syncState = function (syncState) {
 
     if (!this.dataset) return;
 
@@ -1032,14 +1033,14 @@ Browser.prototype.syncState = function (syncState) {
 
 };
 
-Browser.prototype.setNormalization = function (normalization) {
+HICBrowser.prototype.setNormalization = function (normalization) {
 
     this.state.normalization = normalization;
     this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization))
 };
 
 
-Browser.prototype.shiftPixels = function (dx, dy) {
+HICBrowser.prototype.shiftPixels = function (dx, dy) {
 
     var self = this;
 
@@ -1061,7 +1062,7 @@ Browser.prototype.shiftPixels = function (dx, dy) {
 };
 
 
-Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
+HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
 
 
     var xCenter,
@@ -1111,7 +1112,7 @@ Browser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minReso
 
 };
 
-Browser.prototype.clamp = function () {
+HICBrowser.prototype.clamp = function () {
     var viewDimensions = this.contactMatrixView.getViewDimensions(),
         chr1Length = this.dataset.chromosomes[this.state.chr1].size,
         chr2Length = this.dataset.chromosomes[this.state.chr2].size,
@@ -1128,7 +1129,7 @@ Browser.prototype.clamp = function () {
     this.state.y = Math.min(Math.max(0, this.state.y), maxY);
 };
 
-Browser.prototype.receiveEvent = function (event) {
+HICBrowser.prototype.receiveEvent = function (event) {
     var self = this;
 
     if ("LocusChange" === event.type) {
@@ -1151,7 +1152,7 @@ Browser.prototype.receiveEvent = function (event) {
  *
  * @param event
  */
-Browser.prototype.update = async function (event) {
+HICBrowser.prototype.update = async function (event) {
 
     try {
         this.startSpinner();
@@ -1170,14 +1171,14 @@ Browser.prototype.update = async function (event) {
 }
 
 
-Browser.prototype.repaintMatrix = function () {
+HICBrowser.prototype.repaintMatrix = function () {
     this.contactMatrixView.imageTileCache = {};
     this.contactMatrixView.initialImage = undefined;
     this.contactMatrixView.update();
 }
 
 
-Browser.prototype.resolution = function () {
+HICBrowser.prototype.resolution = function () {
     return this.dataset.bpResolutions[this.state.zoom];
 };
 
@@ -1261,7 +1262,7 @@ var urlShortcuts = {
 }
 
 
-Browser.prototype.getQueryString = function () {
+HICBrowser.prototype.getQueryString = function () {
 
     var queryString, nviString, trackString, displayMode;
 
@@ -1689,5 +1690,5 @@ function presentError (prefix, error) {
 
 };
 
-export default Browser
+export default HICBrowser
     

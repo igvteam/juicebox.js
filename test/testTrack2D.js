@@ -24,7 +24,7 @@
 /**
  * Created by jrobinso on 6/29/17.
  */
-import Track2D from '../js/hicTrack2D.js'
+import Track2D from '../js/track2D.js'
 
 function runTrack2DTests() {
 

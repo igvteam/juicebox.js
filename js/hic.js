@@ -22,7 +22,7 @@
  */
 
 import $ from "../vendor/jquery-1.12.4.js"
-import Browser from './hicBrowser.js'
+import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
 import EventBus from './eventBus.js'
@@ -84,13 +84,13 @@ async function createBrowser (hic_container, config, callback) {
         igv.Browser.decodeQuery(query, config, uriDecode);
     }
 
-    const browser = new Browser($hic_container, config);
+    const browser = new HICBrowser($hic_container, config);
 
     browser.eventBus.hold()
 
     allBrowsers.push(browser);
 
-    Browser.setCurrentBrowser(browser);
+    HICBrowser.setCurrentBrowser(browser);
 
     if (allBrowsers.length > 1) {
         allBrowsers.forEach(function (b) {
@@ -231,8 +231,8 @@ function setApiKey (key) {
 
 function  deleteBrowserPanel (browser) {
 
-    if (browser === Browser.getCurrentBrowser()) {
-        Browser.setCurrentBrowser(undefined);
+    if (browser === HICBrowser.getCurrentBrowser()) {
+        HICBrowser.setCurrentBrowser(undefined);
     }
 
     allBrowsers.splice(_.indexOf(allBrowsers, browser), 1);
@@ -240,8 +240,8 @@ function  deleteBrowserPanel (browser) {
     browser = undefined;
 
     if (1 === allBrowsers.length) {
-        Browser.setCurrentBrowser(allBrowsers[0]);
-        Browser.getCurrentBrowser().$browser_panel_delete_button.hide();
+        HICBrowser.setCurrentBrowser(allBrowsers[0]);
+        HICBrowser.getCurrentBrowser().$browser_panel_delete_button.hide();
     }
 
 }

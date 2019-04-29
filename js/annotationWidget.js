@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  *
  */
-import Track2D from './hicTrack2D.js'
+import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import  * as hic from './hic.js'
 import $ from "../vendor/jquery-1.12.4.js"
@@ -166,7 +166,7 @@ function annotationPanelRow($container, track) {
         upp,
         dwn;
 
-    isTrack2D = (track instanceof hic.Track2D);
+    isTrack2D = (track instanceof Track2D);
     trackList = this.trackListRetrievalCallback();
 
     if (false === isTrack2D) {

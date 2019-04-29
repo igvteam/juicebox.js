@@ -3,7 +3,7 @@
  */
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
-import Browser from './hicBrowser.js'
+import HICBrowser from './hicBrowser.js'
 import ContactMatrixView from './contactMatrixView.js'
 import ChromosomeSelectorWidget from './chromosomeSelectorWidget.js'
 import ControlMapWidget from './controlMapWidget.js'
@@ -66,7 +66,7 @@ function createNavBar(browser, $root) {
     $navbar_container.on('click', function (e) {
         e.stopPropagation();
         e.preventDefault();
-        Browser.setCurrentBrowser(browser);
+        HICBrowser.setCurrentBrowser(browser);
     });
 
     // container: contact map label | menu button | browser delete button

@@ -71,7 +71,7 @@ Track2D.loadTrack2D = function (config) {
 
             var features = parseData(data, isBedPE(config));
 
-            return new hic.Track2D(config, features);
+            return new Track2D(config, features);
         })
 }
 

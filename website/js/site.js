@@ -33,7 +33,7 @@
 
 import ModalTable from './modalTable.js'
 import EncodeDataSource from './encode.js'
-import Browser from '../../js/hicBrowser.js'
+import HICBrowser from '../../js/hicBrowser.js'
 import  * as hic from '../../js/hic.js'
 
 //import QRCode from './qrcode'
@@ -109,8 +109,8 @@ juicebox.init = async function (container, config) {
 
 
         // Must manually trigger the genome change event on initial load
-        if (Browser.currentBrowser && Browser.currentBrowser.genome) {
-            genomeChangeListener.receiveEvent({data: Browser.currentBrowser.genome.id})
+        if (HICBrowser.currentBrowser && HICBrowser.currentBrowser.genome) {
+            genomeChangeListener.receiveEvent({data: HICBrowser.currentBrowser.genome.id})
         }
 
 
@@ -214,7 +214,7 @@ juicebox.init = async function (container, config) {
         $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
             var browser;
 
-            browser = Browser.getCurrentBrowser();
+            browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser || undefined === browser.dataset) {
                 igv.presentAlert('Contact map must be loaded and selected before loading tracks');
             }
@@ -238,7 +238,7 @@ juicebox.init = async function (container, config) {
             url = $(this).val();
             $selected = $(this).find('option:selected');
 
-            browser = Browser.getCurrentBrowser();
+            browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser) {
                 igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
@@ -257,7 +257,7 @@ juicebox.init = async function (container, config) {
             var file,
                 suffix;
 
-            if (undefined === Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -268,7 +268,7 @@ juicebox.init = async function (container, config) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                    HICBrowser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -283,7 +283,7 @@ juicebox.init = async function (container, config) {
                 paramIdx,
                 path;
 
-            if (undefined === Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
@@ -298,11 +298,11 @@ juicebox.init = async function (container, config) {
         $('#track-load-url').on('change', function (e) {
             var url;
 
-            if (undefined === Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                Browser.getCurrentBrowser().loadTracks([{url: url}]);
+                HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -314,7 +314,7 @@ juicebox.init = async function (container, config) {
             var path,
                 name;
 
-            if (undefined === Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -325,7 +325,7 @@ juicebox.init = async function (container, config) {
                 if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                     config.indexed = false   //UCSC files are never indexed
                 }
-                Browser.getCurrentBrowser().loadTracks([config]);
+                HICBrowser.getCurrentBrowser().loadTracks([config]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -337,14 +337,14 @@ juicebox.init = async function (container, config) {
             var path,
                 name;
 
-            if (undefined === Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                HICBrowser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -368,7 +368,7 @@ juicebox.init = async function (container, config) {
 
                     browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
-                    Browser.setCurrentBrowser(browser);
+                    HICBrowser.setCurrentBrowser(browser);
                 })
 
         });
@@ -451,7 +451,7 @@ juicebox.init = async function (container, config) {
 
 
 function checkBDropdown() {
-    updateBDropdown(Browser.getCurrentBrowser());
+    updateBDropdown(HICBrowser.getCurrentBrowser());
 }
 
 function updateBDropdown(browser) {
@@ -478,7 +478,7 @@ function loadHicFile(url, name) {
 
     isControl = juicebox.currentContactMapDropdownButtonID === control_map_dropdown_id;
 
-    browser = Browser.getCurrentBrowser();
+    browser = HICBrowser.getCurrentBrowser();
 
     config = {url: url, name: name, isControl: isControl};
 
@@ -581,7 +581,7 @@ function createEncodeTable(genomeId) {
         encodeDatasource = new EncodeDataSource(columnFormat);
 
         loadTracks = function (configurationList) {
-            Browser.getCurrentBrowser().loadTracks(configurationList);
+            HICBrowser.getCurrentBrowser().loadTracks(configurationList);
         };
 
         config =
