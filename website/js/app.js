@@ -21,7 +21,7 @@
  *
  */
 
-import juicebox from './site'
+import juicebox from './site.js'
 
 
 $(document).ready(function () {

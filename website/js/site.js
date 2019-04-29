@@ -28,8 +28,8 @@
  *
  */
 
-import ModalTable from './modalTable'
-import EncodeDataSource from './encode'
+import ModalTable from './modalTable.js'
+import EncodeDataSource from './encode.js'
 //import QRCode from './qrcode'
 
 const juicebox = {}
