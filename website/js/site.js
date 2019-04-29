@@ -28,8 +28,8 @@
  *
  */
 
-// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import
-// $ here, need the jquery from the page.
+
+// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
 import ModalTable from './modalTable.js'
 import EncodeDataSource from './encode.js'

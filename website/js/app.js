@@ -24,6 +24,7 @@
 import juicebox from './site.js'
 import $ from '../../vendor/jquery-1.12.4.js'
 
+
 $(document).ready(function () {
 
     var config = {
