@@ -27,68 +27,50 @@
  */
 
 
-var hic = (function (hic) {
+const State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
 
+    if (Number.isNaN(pixelSize)) {
+        pixelSize = 1
+    }
 
-    hic.State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
-
-        if(chr1 !== undefined) {
-            if (chr1 <= chr2) {
-                this.chr1 = chr1;
-                this.chr2 = chr2;
-                this.x = x;
-                this.y = y;
-            }
-            else {
-                // Transpose
-                this.chr1 = chr2;
-                this.chr2 = chr1;
-                this.x = y;
-                this.y = x;
-            }
-            this.zoom = zoom;
-            this.pixelSize = pixelSize;
-
-            if ("undefined" === normalization) {
-                console.log("No normalization defined !!!");
-                normalization = undefined;
-            }
-
-            this.normalization = normalization;
+    if (chr1 !== undefined) {
+        if (chr1 <= chr2) {
+            this.chr1 = chr1;
+            this.chr2 = chr2;
+            this.x = x;
+            this.y = y;
         }
-    };
+        else {
+            // Transpose
+            this.chr1 = chr2;
+            this.chr2 = chr1;
+            this.x = y;
+            this.y = x;
+        }
+        this.zoom = zoom;
+        this.pixelSize = pixelSize;
 
-    hic.State.prototype.stringify = function () {
-        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
+        if ("undefined" === normalization) {
+            console.log("No normalization defined !!!");
+            normalization = undefined;
+        }
+
+        this.normalization = normalization;
     }
+};
 
-    hic.State.prototype.clone = function () {
-        return Object.assign(new hic.State(), this);
-    }
+State.prototype.stringify = function () {
+    return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
+}
 
-    hic.State.prototype.equals = function(state) {
-        var s1 = JSON.stringify(this);
-        var s2 = JSON.stringify(state);
-        return s1 === s2;
-    }
+State.prototype.clone = function () {
+    return Object.assign(new State(), this);
+}
 
+State.prototype.equals = function (state) {
+    var s1 = JSON.stringify(this);
+    var s2 = JSON.stringify(state);
+    return s1 === s2;
+}
 
-    hic.destringifyState = function (string) {
-
-        var tokens = string.split(",");
-        return new hic.State(
-            parseInt(tokens[0]),    // chr1
-            parseInt(tokens[1]),    // chr2
-            parseFloat(tokens[2]), // zoom
-            parseFloat(tokens[3]), // x
-            parseFloat(tokens[4]), // y
-            parseFloat(tokens[5]), // pixelSize
-            tokens.length > 6 ? tokens[6] : "NONE"   // normalization
-        )
-
-    }
-
-    return hic;
-
-})
-(hic || {});
+export default State

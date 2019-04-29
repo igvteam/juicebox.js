@@ -21,46 +21,18 @@
  *
  */
 
-/*
- * Author: Jim Robinson
- */
 
-function compressQueryParameter(str) {
+import * as hic from '../../js/hic.js'
 
-    var bytes, deflate, compressedBytes, compressedString, enc;
+document.addEventListener("DOMContentLoaded", function () {
 
-    bytes = [];
-    for (var i = 0; i < str.length; i++) {
-        bytes.push(str.charCodeAt(i));
-    }
-    compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
-    compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    enc = btoa(compressedString);
-    enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
 
-    //console.log(json);
-    //console.log(enc);
+    var query = hic.extractQuery(window.location.href);
+    var container = document.getElementById("app-container");
 
-    return enc;
-}
+    hic.initApp(container, {})
+        .then(function (ignore) {
+            hic.updateAllBrowsers()
+        })
 
-function decompressQueryParameter(enc) {
-
-    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
-
-    const compressedString = atob(enc);
-    const compressedBytes = [];
-    for (let i = 0; i < compressedString.length; i++) {
-        compressedBytes.push(compressedString.charCodeAt(i));
-    }
-    const bytes = new Zlib.RawInflate(compressedBytes).decompress();
-
-    let str = ''
-    for (let b of bytes) {
-        str += String.fromCharCode(b)
-    }
-
-    return str;
-}
-
-export {compressQueryParameter, decompressQueryParameter};
+})

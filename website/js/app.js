@@ -22,6 +22,7 @@
  */
 
 import juicebox from './site.js'
+import $ from '../../vendor/jquery-1.12.4.js'
 
 
 $(document).ready(function () {
@@ -62,6 +63,6 @@ $(document).ready(function () {
 
     };
 
-    juicebox.init($('#app-container'), config);
+    juicebox.init($('#app-container')[0], config);
 })
 

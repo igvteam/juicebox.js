@@ -29,7 +29,7 @@ module.exports = {
     target: 'web',
     output: {
         path: path.resolve(__dirname,'website/js'),
-        filename: 'bundle.js',
+        filename: 'app-bundle.js',
         library: 'juicebox',
         libraryTarget: 'umd'
     },

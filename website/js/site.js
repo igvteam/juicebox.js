@@ -28,22 +28,27 @@
  *
  */
 
+
+// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
+
 import ModalTable from './modalTable.js'
 import EncodeDataSource from './encode.js'
+import HICBrowser from '../../js/hicBrowser.js'
+import  * as hic from '../../js/hic.js'
+
 //import QRCode from './qrcode'
 
 const juicebox = {}
 
 export default juicebox
 
-var apiKey = "ABCD",       // TODO -- replace with your GOOGLE api key or Bitly access token to use URL shortener.
-    encodeTable,
+var encodeTable,
     lastGenomeId,
     qrcode,
     contact_map_dropdown_id = 'hic-contact-map-dropdown',
     control_map_dropdown_id = 'hic-control-map-dropdown';
 
-juicebox.init = async function ($container, config) {
+juicebox.init = async function (container, config) {
 
     var genomeChangeListener,
         $appContainer,
@@ -52,15 +57,13 @@ juicebox.init = async function ($container, config) {
         $e;
 
 
-    hic.captionManager = new hic.CaptionManager($('#hic-caption'));
+    //hic.captionManager = new CaptionManager($('#hic-caption'));
 
     $('#hic-encode-modal-button').hide();
     $('#hic-encode-loading').show();
 
     if (config.urlShortener) {
         hic.setURLShortener(config.urlShortener);
-    } else {
-        $("#hic-share-button").hide();
     }
 
     genomeChangeListener = {
@@ -87,33 +90,28 @@ juicebox.init = async function ($container, config) {
         }
     };
 
-
     config = config || {};
 
-    $appContainer = $container;
+    $appContainer = $(container);
 
-    apiKey = config.apiKey;
-    if (apiKey) {
-        if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
-        hic.setApiKey(apiKey);
-    }
+    await hic.initApp(container, config)
 
-    query = hic.extractQuery(window.location.href);
-
-    if (query && query.hasOwnProperty("juiceboxURL")) {
-
-        const jbURL = await hic.expandURL(query["juiceboxURL"])
-                query = hic.extractQuery(jbURL);
-                createBrowsers(query)
-                    .then(postCreateBrowser)
-
-    } else {
-        const b = await createBrowsers(query)
-        postCreateBrowser(b)
-    }
+    postCreateBrowser()
 
 
     function postCreateBrowser() {
+
+        for (let browser of hic.allBrowsers) {
+            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
+            browser.eventBus.subscribe("MapLoad", checkBDropdown);
+            updateBDropdown(browser);
+        }
+
+
+        // Must manually trigger the genome change event on initial load
+        if (HICBrowser.currentBrowser && HICBrowser.currentBrowser.genome) {
+            genomeChangeListener.receiveEvent({data: HICBrowser.currentBrowser.genome.id})
+        }
 
 
         if (config.mapMenu) {
@@ -216,7 +214,7 @@ juicebox.init = async function ($container, config) {
         $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
             var browser;
 
-            browser = hic.Browser.getCurrentBrowser();
+            browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser || undefined === browser.dataset) {
                 igv.presentAlert('Contact map must be loaded and selected before loading tracks');
             }
@@ -240,7 +238,7 @@ juicebox.init = async function ($container, config) {
             url = $(this).val();
             $selected = $(this).find('option:selected');
 
-            browser = hic.Browser.getCurrentBrowser();
+            browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser) {
                 igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
@@ -259,7 +257,7 @@ juicebox.init = async function ($container, config) {
             var file,
                 suffix;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -270,7 +268,7 @@ juicebox.init = async function ($container, config) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    hic.Browser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                    HICBrowser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -285,7 +283,7 @@ juicebox.init = async function ($container, config) {
                 paramIdx,
                 path;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
@@ -300,11 +298,11 @@ juicebox.init = async function ($container, config) {
         $('#track-load-url').on('change', function (e) {
             var url;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                hic.Browser.getCurrentBrowser().loadTracks([{url: url}]);
+                HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -316,7 +314,7 @@ juicebox.init = async function ($container, config) {
             var path,
                 name;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -327,7 +325,7 @@ juicebox.init = async function ($container, config) {
                 if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                     config.indexed = false   //UCSC files are never indexed
                 }
-                hic.Browser.getCurrentBrowser().loadTracks([config]);
+                HICBrowser.getCurrentBrowser().loadTracks([config]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -339,14 +337,14 @@ juicebox.init = async function ($container, config) {
             var path,
                 name;
 
-            if (undefined === hic.Browser.getCurrentBrowser()) {
+            if (undefined === HICBrowser.getCurrentBrowser()) {
                 igv.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                hic.Browser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                HICBrowser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -370,7 +368,7 @@ juicebox.init = async function ($container, config) {
 
                     browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
-                    hic.Browser.setCurrentBrowser(browser);
+                    HICBrowser.setCurrentBrowser(browser);
                 })
 
         });
@@ -449,93 +447,11 @@ juicebox.init = async function ($container, config) {
 
     }
 
-    async function createBrowsers(query) {
-
-        var parts, browser, i;
-
-        let q;
-
-        if (query && query.hasOwnProperty("juicebox")) {
-            q = query["juicebox"];
-
-            if (q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
-            }
-        } else if (query && query.hasOwnProperty("juiceboxData")) {
-            q = hic.decompressQueryParameter(query["juiceboxData"])
-        }
-
-
-        if (q) {
-
-            q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-            parts = q.split("},{");
-
-            const browser = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[0])})
-
-
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-            if (parts && parts.length > 1) {
-
-                const promises = []
-                for (i = 1; i < parts.length; i++) {
-                    promises.push(hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])}))
-                    //const b = await hic.createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
-                    // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                    // b.eventBus.subscribe("MapLoad", checkBDropdown);
-                }
-
-                const browsers = await Promise.all(promises)
-
-                for (let b of browsers) {
-                    b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                    b.eventBus.subscribe("MapLoad", checkBDropdown);
-                }
-
-                syncBrowsers()
-
-            }
-
-            // Must manually trigger the genome change event on initial load
-            if (browser && browser.genome) {
-                genomeChangeListener.receiveEvent({data: browser.genome.id})
-            }
-
-            return browser
-
-
-        } else {
-            const browser = await hic.createBrowser($container.get(0), {})
-
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
-            browser.eventBus.subscribe("MapLoad", checkBDropdown);
-
-            // Must manually trigger the genome change event on initial load
-            if (browser && browser.genome) {
-                genomeChangeListener.receiveEvent({data: browser.genome.id})
-            }
-
-            return browser
-
-        }
-
-
-    }
-
-
 };
 
-function syncBrowsers() {
-    hic.syncBrowsers(hic.allBrowsers);
-    for (let browser of hic.allBrowsers) {
-        updateBDropdown(browser);
-    }
-}
 
 function checkBDropdown() {
-    updateBDropdown(hic.Browser.getCurrentBrowser());
+    updateBDropdown(HICBrowser.getCurrentBrowser());
 }
 
 function updateBDropdown(browser) {
@@ -562,7 +478,7 @@ function loadHicFile(url, name) {
 
     isControl = juicebox.currentContactMapDropdownButtonID === control_map_dropdown_id;
 
-    browser = hic.Browser.getCurrentBrowser();
+    browser = HICBrowser.getCurrentBrowser();
 
     config = {url: url, name: name, isControl: isControl};
 
@@ -665,7 +581,7 @@ function createEncodeTable(genomeId) {
         encodeDatasource = new EncodeDataSource(columnFormat);
 
         loadTracks = function (configurationList) {
-            hic.Browser.getCurrentBrowser().loadTracks(configurationList);
+            HICBrowser.getCurrentBrowser().loadTracks(configurationList);
         };
 
         config =

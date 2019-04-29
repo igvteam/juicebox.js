@@ -27,67 +27,60 @@
  */
 
 
-var hic = (function (hic) {
+const geneSearch = function (genomeId, featureName) {
 
+    return new Promise(function (fulfill, reject) {
 
-    hic.geneSearch = function (genomeId, featureName) {
+        // Hardcode this for now
+        var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
 
-        return new Promise(function (fulfill, reject) {
+        igv.xhr.loadString(searchServiceURL)
+            .then(function (data) {
 
-            // Hardcode this for now
-            var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
+                var results = parseSearchResults(data);
 
-            igv.xhr.loadString(searchServiceURL)
-                .then(function (data) {
+                if (results.length == 0) {
+                    //alert('No feature found with name "' + feature + '"');
+                    fulfill(undefined);
+                }
+                else {
+                    // Just take first result for now
+                    fulfill(results[0])
 
-                    var results = parseSearchResults(data);
+                }
+            })
+            .catch(reject);
+    });
+}
 
-                    if (results.length == 0) {
-                        //alert('No feature found with name "' + feature + '"');
-                        fulfill(undefined);
-                    }
-                    else {
-                        // Just take first result for now
-                        fulfill(results[0])
+function parseSearchResults(data) {
 
-                    }
-                })
-                .catch(reject);
-        });
-    }
+    var lines = igv.splitLines(data),
+        linesTrimmed = [],
+        results = [];
 
-    function parseSearchResults(data) {
+    lines.forEach(function (item) {
+        if ("" === item) {
+            // do nothing
+        } else {
+            linesTrimmed.push(item);
+        }
+    });
 
-        var lines = igv.splitLines(data),
-            linesTrimmed = [],
-            results = [];
+    linesTrimmed.forEach(function (line) {
+        // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
 
-        lines.forEach(function (item) {
-            if ("" === item) {
-                // do nothing
-            } else {
-                linesTrimmed.push(item);
-            }
-        });
+        var tokens = line.split("\t");
 
-        linesTrimmed.forEach(function (line) {
-            // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
+        if (tokens.length >= 3) {
+            results.push(tokens[1]);
 
-            var tokens = line.split("\t");
+        }
 
-            if (tokens.length >= 3) {
-                results.push(tokens[1]);
+    });
 
-            }
+    return results;
 
-        });
+}
 
-        return results;
-
-    }
-
-
-    return hic;
-
-})
-(hic || {});
+export default geneSearch

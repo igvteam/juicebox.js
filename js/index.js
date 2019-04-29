@@ -20,27 +20,10 @@
  * THE SOFTWARE.
  *
  */
-var hic = (function (hic) {
 
-    hic.CaptionManager = function ($caption) {
+// File provided for webpack entry point.   Result after translation to ES5 will be a global with a single
+// "hic" property.
 
-        var self = this;
+import  * as hic from './hic.js'
 
-        this.$caption = $caption;
-
-        $caption.keyup(function (e) {
-            self.getCaption($(this));
-        });
-    };
-
-    hic.CaptionManager.prototype.getCaption = function ($caption) {
-        this.text = $caption.text();
-    };
-
-    hic.CaptionManager.prototype.setCaption = function (string) {
-        this.text = string;
-        this.$caption.text(string);
-    };
-
-    return hic;
-})(hic || {});
+export {hic}

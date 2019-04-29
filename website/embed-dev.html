@@ -42,9 +42,8 @@
     <!-- IGV JS -->
     <script src="https://cdn.jsdelivr.net/npm/igv@2.2.8/dist/igv.min.js"></script>
 
-    <!-- Juicebox JS -->
-    <script src="js/juicebox.min.js"></script>
-    <!--<script src="js/hic-straw.js"></script>-->
+    <!-- Site JS-->
+    <script type="module" src="js/embed.js"></script>
 
 </head>
 
@@ -53,25 +52,6 @@
 
 <div id="app-container" class="juicebox-app-clone-container"></div>
 
-
-<script type="text/javascript">
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-
-
-        var query = hic.extractQuery(window.location.href);
-        var container = document.getElementById("app-container");
-
-        hic.initApp(container, {})
-            .then(function (ignore) {
-                //hic.updateAllBrowsers()
-            })
-
-    })
-
-
-</script>
 
 </body>
 
