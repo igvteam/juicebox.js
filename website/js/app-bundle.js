@@ -27551,6 +27551,10 @@ Object(_vendor_jquery_1_12_4_js__WEBPACK_IMPORTED_MODULE_1__["default"])(documen
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 /*
  * The MIT License (MIT)
  *
@@ -27580,28 +27584,48 @@ var EncodeDataSource = function EncodeDataSource(columnFormat) {
   this.columnFormat = columnFormat;
 };
 
-EncodeDataSource.prototype.retrieveData = function (genomeID, filter) {
-  var self = this,
-      assembly;
-  assembly = genomeID;
-  var url = "https://s3.amazonaws.com/igv.org.app/encode/" + assembly + ".txt.gz";
-  return igv.xhr.loadString(url, {}).then(function (data) {
-    return parseTabData(data, filter);
-  }).then(function (records) {
-    records.sort(encodeSort);
-    return Promise.resolve(records);
-  }); // .loadJson(urlString(assembly), {})
-  // .then(function(json){
-  //     return parseJSONData(json, assembly, self.fileFormats);
-  // })
-  // .then(function (data) {
-  //     data.sort(encodeSort);
-  //     return Promise.resolve(data);
-  // });
-};
+EncodeDataSource.prototype.retrieveData =
+/*#__PURE__*/
+function () {
+  var _ref = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee(genomeID, filter) {
+    var url, data, records;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            url = "https://s3.amazonaws.com/igv.org.app/encode/" + genomeID + ".txt.gz";
+            _context.prev = 1;
+            _context.next = 4;
+            return igv.xhr.loadString(url, {});
+
+          case 4:
+            data = _context.sent;
+            records = parseTabData(data, filter);
+            records.sort(encodeSort);
+            return _context.abrupt("return", records);
+
+          case 10:
+            _context.prev = 10;
+            _context.t0 = _context["catch"](1);
+            console.error(_context.t0);
+            return _context.abrupt("return", undefined);
+
+          case 14:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this, [[1, 10]]);
+  }));
+
+  return function (_x, _x2) {
+    return _ref.apply(this, arguments);
+  };
+}();
 
 function parseTabData(data, filter) {
-  if (!data) return null;
   var dataWrapper, line;
   dataWrapper = igv.getDataWrapper(data);
   var records = [];
@@ -27849,6 +27873,10 @@ function parseJSONData(json, assembly, fileFormats) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
+
+function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
+
 /*
  * The MIT License (MIT)
  *
@@ -27882,23 +27910,22 @@ var ModalTable = function ModalTable(config) {
   this.config = config;
   this.datasource = config.datasource;
   this.browserHandler = config.browserHandler;
-  teardownModalDOM(config);
+  teardownModalDOM(config); // spinner
+
+  this.$spinner = config.$modalBody.find('#igv-encode-spinner'); // table
+
   this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
-  config.$modalBody.append(this.$table);
-  this.doRetrieveData = true;
+  config.$modalBody.find('#igv-encode-datatable').append(this.$table);
   this.doBuildTable = true;
-  this.$spinner = $('<div>');
-  this.$table.append(this.$spinner);
-  this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
 };
 
-function teardownModalDOM(configuration) {
+function teardownModalDOM(config) {
   var list;
-  list = [configuration.$modal, configuration.$modalTopCloseButton, configuration.$modalBottomCloseButton, configuration.$modalGoButton];
+  list = [config.$modal, config.$modalTopCloseButton, config.$modalBottomCloseButton, config.$modalGoButton];
   list.forEach(function ($e) {
     $e.unbind();
   });
-  configuration.$modalBody.empty();
+  config.$modalBody.find('#igv-encode-datatable').empty();
 }
 
 function getSelectedTableRowsData($rows) {
@@ -27932,13 +27959,11 @@ ModalTable.prototype.hidePresentationButton = function () {
 };
 
 ModalTable.prototype.willRetrieveData = function () {
-  //this.startSpinner();
   $('#hic-encode-modal-button').hide();
   $('#hic-encode-loading').show();
 };
 
 ModalTable.prototype.didRetrieveData = function () {
-  //this.config.didRetrieveData();
   $('#hic-encode-modal-button').show();
   $('#hic-encode-loading').hide();
 };
@@ -27948,44 +27973,80 @@ ModalTable.prototype.didFailToRetrieveData = function () {
   this.buildTable(false);
 };
 
-ModalTable.prototype.loadData = function (genomeId) {
-  var self = this,
-      assembly;
-  this.willRetrieveData();
-  assembly = ModalTable.getAssembly(genomeId);
+ModalTable.prototype.loadData =
+/*#__PURE__*/
+function () {
+  var _ref = _asyncToGenerator(
+  /*#__PURE__*/
+  regeneratorRuntime.mark(function _callee(genomeId) {
+    var assembly;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            this.willRetrieveData();
+            assembly = ModalTable.getAssembly(genomeId);
 
-  if (assembly) {
-    this.datasource.retrieveData(assembly, function (record) {
-      // to bigwig only for now
-      return record["Format"].toLowerCase() === "bigwig";
-    }).then(function (data) {
-      self.datasource.data = data;
-      self.doRetrieveData = false;
-      self.didRetrieveData();
-      self.buildTable(true);
-    }).catch(function (e) {
-      self.didFailToRetrieveData();
-    });
-  }
-};
+            if (!assembly) {
+              _context.next = 16;
+              break;
+            }
+
+            _context.prev = 3;
+            _context.next = 6;
+            return this.datasource.retrieveData(assembly, function (record) {
+              return record["Format"].toLowerCase() === "bigwig";
+            });
+
+          case 6:
+            this.datasource.data = _context.sent;
+            this.doRetrieveData = false;
+            this.didRetrieveData();
+            this.buildTable(true);
+            _context.next = 16;
+            break;
+
+          case 12:
+            _context.prev = 12;
+            _context.t0 = _context["catch"](3);
+            console.error(_context.t0);
+            this.didFailToRetrieveData();
+
+          case 16:
+          case "end":
+            return _context.stop();
+        }
+      }
+    }, _callee, this, [[3, 12]]);
+  }));
+
+  return function (_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
 
 ModalTable.prototype.buildTable = function (success) {
-  var self = this;
+  var _this = this;
 
   if (true === success) {
+    if (true === this.doBuildTable) {
+      this.startSpinner();
+    }
+
     this.config.$modal.on('shown.bs.modal', function (e) {
-      if (true === self.doBuildTable) {
-        self.tableWithDataAndColumns(self.datasource.tableData(self.datasource.data), self.datasource.tableColumns());
-        self.stopSpinner();
-        self.doBuildTable = false;
+      if (true === _this.doBuildTable) {
+        _this.tableWithDataAndColumns(_this.datasource.tableData(_this.datasource.data), _this.datasource.tableColumns());
+
+        _this.stopSpinner();
+
+        _this.doBuildTable = false;
       }
     });
-    this.config.$modalGoButton.on('click', function () {
-      var selected;
-      selected = getSelectedTableRowsData.call(self, self.$dataTables.$('tr.selected'));
+    this.config.$modalGoButton.on('click', function (e) {
+      var selected = getSelectedTableRowsData.call(_this, _this.$dataTables.$('tr.selected'));
 
       if (selected) {
-        self.browserHandler(selected);
+        _this.browserHandler(selected);
       }
     });
   }
@@ -27999,9 +28060,7 @@ ModalTable.prototype.buildTable = function (success) {
 };
 
 ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
-  var config;
-  this.stopSpinner();
-  config = {
+  var config = {
     data: tableData,
     columns: tableColumns,
     autoWidth: false,
@@ -28600,16 +28659,17 @@ function createEncodeTable(genomeId) {
       _js_hicBrowser_js__WEBPACK_IMPORTED_MODULE_2__["default"].getCurrentBrowser().loadTracks(configurationList);
     };
 
-    config = {
-      $modal: $('#hicEncodeModal'),
-      $modalBody: $('#encodeModalBody'),
-      $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-      $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-      $modalGoButton: $('#encodeModalGoButton'),
+    var $encodeModal = $('#hicEncodeModal');
+    var encodeTableConfig = {
+      $modal: $encodeModal,
+      $modalBody: $encodeModal.find('.modal-body'),
+      $modalTopCloseButton: $encodeModal.find('.modal-header button:nth-child(1)'),
+      $modalBottomCloseButton: $encodeModal.find('.modal-footer button:nth-child(1)'),
+      $modalGoButton: $encodeModal.find('.modal-footer button:nth-child(2)'),
       datasource: encodeDatasource,
       browserHandler: loadTracks
     };
-    encodeTable = new _modalTable_js__WEBPACK_IMPORTED_MODULE_0__["default"](config);
+    encodeTable = new _modalTable_js__WEBPACK_IMPORTED_MODULE_0__["default"](encodeTableConfig);
     encodeTable.loadData(genomeId);
   }
 }
