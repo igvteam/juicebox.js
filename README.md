@@ -7,7 +7,6 @@ A public instance can be found at [http://aidenlab.org/juicebox](http://aidenlab
 
 User documentation can be found [here](https://igvteam.github.io/juicebox.js/).
 
-Instructions for embedding a juicebox.js instance in a web page can be found [here](https://igvteam.github.io/juicebox.js/docs/embedding).
+Instructions for embedding a juicebox.js instance in a web page can be 
+found [here](https://igvteam.github.io/juicebox.js/docs/embedding).
 
-See the website folder, described [here](https://igvteam.github.io/juicebox.js/docs/website)  for an example
-of a web application using juicebox.js.
