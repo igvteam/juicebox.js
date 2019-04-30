@@ -36,34 +36,35 @@ const ModalTable = function (config) {
     this.browserHandler = config.browserHandler;
 
     teardownModalDOM(config);
+
+    // spinner
+    this.$spinner = config.$modalBody.find('#igv-encode-spinner');
+
+    // table
     this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
-    config.$modalBody.append(this.$table);
-    this.doRetrieveData = true;
+    config.$modalBody.find('#igv-encode-datatable').append(this.$table);
+
     this.doBuildTable = true;
 
-    this.$spinner = $('<div>');
-    this.$table.append(this.$spinner);
-
-    this.$spinner.append($('<i class="fa fa-lg fa-spinner fa-spin"></i>'));
 };
 
-function teardownModalDOM(configuration) {
+function teardownModalDOM(config) {
 
     var list;
 
     list =
         [
-            configuration.$modal,
-            configuration.$modalTopCloseButton,
-            configuration.$modalBottomCloseButton,
-            configuration.$modalGoButton
+            config.$modal,
+            config.$modalTopCloseButton,
+            config.$modalBottomCloseButton,
+            config.$modalGoButton
         ];
 
     list.forEach(function ($e) {
         $e.unbind();
     });
 
-    configuration.$modalBody.empty();
+    config.$modalBody.find('#igv-encode-datatable').empty();
 }
 
 function getSelectedTableRowsData($rows) {
@@ -100,14 +101,12 @@ ModalTable.prototype.hidePresentationButton = function () {
 };
 
 ModalTable.prototype.willRetrieveData = function () {
-    //this.startSpinner();
     $('#hic-encode-modal-button').hide();
     $('#hic-encode-loading').show();
 
 };
 
 ModalTable.prototype.didRetrieveData = function () {
-    //this.config.didRetrieveData();
     $('#hic-encode-modal-button').show();
     $('#hic-encode-loading').hide();
 };
@@ -117,61 +116,56 @@ ModalTable.prototype.didFailToRetrieveData = function () {
     this.buildTable(false);
 };
 
-ModalTable.prototype.loadData = function (genomeId) {
-
-    var self = this,
-        assembly;
+ModalTable.prototype.loadData = async function (genomeId) {
 
     this.willRetrieveData();
 
-    assembly = ModalTable.getAssembly(genomeId);
+    const assembly = ModalTable.getAssembly(genomeId);
 
     if (assembly) {
 
-        this.datasource
-            .retrieveData(assembly, function (record) {
-                // to bigwig only for now
-                return record["Format"].toLowerCase() === "bigwig";
-            })
-            .then(function (data) {
+        try {
 
-                self.datasource.data = data;
-                self.doRetrieveData = false;
+            this.datasource.data = await this.datasource.retrieveData(assembly, (record) => { return record["Format"].toLowerCase() === "bigwig"; });
 
-                self.didRetrieveData();
-                self.buildTable(true);
+            this.doRetrieveData = false;
+            this.didRetrieveData();
 
-            })
-            .catch(function (e) {
-                self.didFailToRetrieveData();
-            });
+            this.buildTable(true);
+
+        } catch (e) {
+            console.error(e);
+            this.didFailToRetrieveData();
+        }
+
     }
 
 };
 
 ModalTable.prototype.buildTable = function (success) {
 
-    var self = this;
-
     if (true === success) {
 
-        this.config.$modal.on('shown.bs.modal', function (e) {
+        if (true === this.doBuildTable) {
+            this.startSpinner();
+        }
 
-            if (true === self.doBuildTable) {
-                self.tableWithDataAndColumns(self.datasource.tableData(self.datasource.data), self.datasource.tableColumns());
-                self.stopSpinner();
-                self.doBuildTable = false;
+        this.config.$modal.on('shown.bs.modal', (e) => {
+
+            if (true === this.doBuildTable) {
+                this.tableWithDataAndColumns(this.datasource.tableData(this.datasource.data), this.datasource.tableColumns());
+                this.stopSpinner();
+                this.doBuildTable = false;
             }
 
         });
 
-        this.config.$modalGoButton.on('click', function () {
-            var selected;
+        this.config.$modalGoButton.on('click', (e) => {
 
-            selected = getSelectedTableRowsData.call(self, self.$dataTables.$('tr.selected'));
+            const selected = getSelectedTableRowsData.call(this, this.$dataTables.$('tr.selected'));
 
             if (selected) {
-                self.browserHandler(selected);
+                this.browserHandler(selected);
             }
 
         });
@@ -190,10 +184,7 @@ ModalTable.prototype.buildTable = function (success) {
 
 ModalTable.prototype.tableWithDataAndColumns = function (tableData, tableColumns) {
 
-    var config;
-
-    this.stopSpinner();
-    config =
+    const config =
         {
             data: tableData,
             columns: tableColumns,

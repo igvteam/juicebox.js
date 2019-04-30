@@ -1,3 +1,5 @@
+@import "encode";
+
 //
 $hic-color-swatch-size: 24px;
 
@@ -202,6 +204,26 @@ $default-font-family: 'Open Sans', sans-serif;
   margin-bottom: $hic-menu-margin;
 
   background-color: transparent;
+
+}
+
+#hic-modal-button-container {
+
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+
+  margin-top: 64px;
+  margin-left: 32px;
+
+  height: 64px;
+
+  > div {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
 
 }
 
@@ -1208,7 +1230,7 @@ div[id$="content-container"] {
           text-overflow: ellipsis;
 
           .x-axis-whole-genome-chromosome {
-           }
+          }
 
         }
 

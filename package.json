@@ -1,43 +1,53 @@
 {
-	"name": "juicebox.js",
-	"version": "1.3.9",
-	"main": "dist/juicebox.min.js",
-	"files": [
-		"dist/**",
-		"js/**"
-	],
-	"author": {
-		"name": "Jim Robinson"
-	},
-	"contributors": [
-		{
-			"name": "Douglass Turner"
-		}
-	],
-	"bugs": {
-		"url": "https://github.com/igvteam/juicebox.js/issues"
-	},
-	"scripts": {
-		"build": "grunt"
-	},
-	"devDependencies": {
-		"@babel/core": "^7.2.2",
-		"@babel/preset-env": "^7.2.3",
-		"babel-loader": "^8.0.5",
-		"babel-plugin-add-module-exports": "^1.0.2",
-		"babel-plugin-transform-remove-console": "^6.9.4",
-		"grunt": "^1.0.4",
-		"grunt-babel": "^8.0.0",
-		"grunt-concat-css": "^0.3.1",
-		"grunt-contrib-concat": "1.0.1",
-		"grunt-contrib-connect": "^2.0.0",
-		"grunt-contrib-copy": "^1.0.0",
-		"grunt-contrib-cssmin": "^0.10.0",
-		"grunt-contrib-sass": "^1.0.0",
-		"grunt-contrib-uglify-es": "3.3.0",
-		"grunt-webpack": "^3.1.3",
-		"regenerator-runtime": "^0.13.1",
-		"webpack": "^4.29.0",
-		"webpack-cli": "^3.3.0"
+  "name": "juicebox.js",
+  "version": "1.3.9",
+  "main": "dist/juicebox.min.js",
+  "files": [
+	"dist/**",
+	"js/**"
+  ],
+  "author": {
+	"name": "Jim Robinson"
+  },
+  "contributors": [
+	{
+	  "name": "Douglass Turner"
 	}
+  ],
+  "bugs": {
+	"url": "https://github.com/igvteam/juicebox.js/issues"
+  },
+  "scripts": {
+	"build": "grunt"
+  },
+  "keywords": [
+	"conformation capture",
+	"hic",
+	"visualization"
+  ],
+  "license": "MIT",
+  "repository": {
+	"type": "git",
+	"url": "git+https://github.com/igvteam/igv.js.git"
+  },
+  "devDependencies": {
+	"@babel/core": "^7.2.2",
+	"@babel/preset-env": "^7.2.3",
+	"babel-loader": "^8.0.5",
+	"babel-plugin-add-module-exports": "^1.0.2",
+	"babel-plugin-transform-remove-console": "^6.9.4",
+	"grunt": "^1.0.4",
+	"grunt-babel": "^8.0.0",
+	"grunt-concat-css": "^0.3.1",
+	"grunt-contrib-concat": "1.0.1",
+	"grunt-contrib-connect": "^2.0.0",
+	"grunt-contrib-copy": "^1.0.0",
+	"grunt-contrib-cssmin": "^0.10.0",
+	"grunt-contrib-sass": "^1.0.0",
+	"grunt-contrib-uglify-es": "3.3.0",
+	"grunt-webpack": "^3.1.3",
+	"regenerator-runtime": "^0.13.1",
+	"webpack": "^4.29.0",
+	"webpack-cli": "^3.3.0"
+  }
 }

@@ -584,18 +584,21 @@ function createEncodeTable(genomeId) {
             HICBrowser.getCurrentBrowser().loadTracks(configurationList);
         };
 
-        config =
+
+
+        const $encodeModal = $('#hicEncodeModal');
+        const encodeTableConfig =
             {
-                $modal: $('#hicEncodeModal'),
-                $modalBody: $('#encodeModalBody'),
-                $modalTopCloseButton: $('#encodeModalTopCloseButton'),
-                $modalBottomCloseButton: $('#encodeModalBottomCloseButton'),
-                $modalGoButton: $('#encodeModalGoButton'),
+                $modal: $encodeModal,
+                $modalBody: $encodeModal.find('.modal-body'),
+                $modalTopCloseButton: $encodeModal.find('.modal-header button:nth-child(1)'),
+                $modalBottomCloseButton: $encodeModal.find('.modal-footer button:nth-child(1)'),
+                $modalGoButton: $encodeModal.find('.modal-footer button:nth-child(2)'),
                 datasource: encodeDatasource,
                 browserHandler: loadTracks
             };
 
-        encodeTable = new ModalTable(config);
+        encodeTable = new ModalTable(encodeTableConfig);
 
         encodeTable.loadData(genomeId);
 
