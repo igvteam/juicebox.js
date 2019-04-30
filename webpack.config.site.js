@@ -24,7 +24,7 @@
 const path = require('path')
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry:  path.resolve(__dirname,'website/js/app.js'),
     target: 'web',
     output: {
