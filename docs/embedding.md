@@ -30,15 +30,14 @@ will vary depending on the version you are using.
 ```html
 <!-- CSS -->
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
-<link rel="stylesheet" href="https://igv.org/web/beta/igv-beta.css">
-<link rel="stylesheet" href="http://igv.org/web/jb/release/0.9.2/juicebox-0.9.2.css">
+<link rel="stylesheet" href="dist/css/juicebox.css">
 
 <!-- Google fonts -- omit if using Bootstrap -->
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
 
 <!-- Javascript -->
-<script src="https://igv.org/web/beta/igv-beta.min.js"></script>
-<script src="https://igv.org/web/jb/release/0.9.2/juicebox-0.9.2.min.js"></script>
+<script src="https://igv.org/web/release/2.2.8/dist/igv.min.js"></script></script>
+<script src="dist/juicebox.min.js"></script>
 ```
 
 ### Usage
