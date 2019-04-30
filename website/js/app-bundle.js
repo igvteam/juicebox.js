@@ -28083,8 +28083,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
  * Page (site specific) code for the example pages.
  *
  */
-// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import
-// $ here, need the jquery from the page.
+// This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
 
 
