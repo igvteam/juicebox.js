@@ -31,10 +31,10 @@
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
-import ModalTable from './modalTable.js'
-import EncodeDataSource from './encode.js'
+import ModalTable from '../../node_modules/data-modal/js/modalTable.js'
+import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js'
 import HICBrowser from '../../js/hicBrowser.js'
-import  * as hic from '../../js/hic.js'
+import * as hic from '../../js/hic.js'
 
 //import QRCode from './qrcode'
 
@@ -42,25 +42,16 @@ const juicebox = {}
 
 export default juicebox
 
-var encodeTable,
-    lastGenomeId,
+var lastGenomeId,
     qrcode,
-    contact_map_dropdown_id = 'hic-contact-map-dropdown',
     control_map_dropdown_id = 'hic-control-map-dropdown';
 
 juicebox.init = async function (container, config) {
 
     var genomeChangeListener,
         $appContainer,
-        query,
         $hic_share_url_modal,
         $e;
-
-
-    //hic.captionManager = new CaptionManager($('#hic-caption'));
-
-    $('#hic-encode-modal-button').hide();
-    $('#hic-encode-loading').show();
 
     if (config.urlShortener) {
         hic.setURLShortener(config.urlShortener);
@@ -73,7 +64,7 @@ juicebox.init = async function (container, config) {
 
             if (lastGenomeId !== genomeId) {
 
-                // lastGenomeId = genomeId;
+                lastGenomeId = genomeId;
 
                 if (config.trackMenu) {
                     var tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
@@ -85,7 +76,13 @@ juicebox.init = async function (container, config) {
                     loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
                 }
 
-                createEncodeTable(genomeId);
+                if (EncodeDataSource.supportsGenome(genomeId)) {
+                    $('#hic-encode-modal-button').show();
+                    createEncodeTable(genomeId);
+                }
+                else {
+                    $('#hic-encode-modal-button').hide();
+                }
             }
         }
     };
@@ -547,68 +544,20 @@ function populatePulldown(menu) {
         })
 }
 
-function createEncodeTable(genomeId) {
 
-    var config,
-        columnFormat,
-        encodeDatasource,
-        loadTracks;
-
-    if (encodeTable && genomeId === lastGenomeId) {
-        // do nothing
-    } else {
-
-        lastGenomeId = genomeId;
-
-        if (encodeTable) {
-            discardEncodeTable();
-        }
-
-        columnFormat =
-            [
-                {title: 'Cell Type', width: '7%'},
-                {title: 'Target', width: '8%'},
-                {title: 'Assay Type', width: '20%'},
-                {title: 'Output Type', width: '20%'},
-                {title: 'Bio Rep', width: '5%'},
-                {title: 'Tech Rep', width: '5%'},
-                {title: 'Format', width: '5%'},
-                {title: 'Experiment', width: '7%'},
-                {title: 'Accession', width: '8%'},
-                {title: 'Lab', width: '20%'}
-            ];
-
-        encodeDatasource = new EncodeDataSource(columnFormat);
-
-        loadTracks = function (configurationList) {
-            HICBrowser.getCurrentBrowser().loadTracks(configurationList);
-        };
-
-
-
-        const $encodeModal = $('#hicEncodeModal');
-        const encodeTableConfig =
-            {
-                $modal: $encodeModal,
-                $modalBody: $encodeModal.find('.modal-body'),
-                $modalTopCloseButton: $encodeModal.find('.modal-header button:nth-child(1)'),
-                $modalBottomCloseButton: $encodeModal.find('.modal-footer button:nth-child(1)'),
-                $modalGoButton: $encodeModal.find('.modal-footer button:nth-child(2)'),
-                datasource: encodeDatasource,
-                browserHandler: loadTracks
-            };
-
-        encodeTable = new ModalTable(encodeTableConfig);
-
-        encodeTable.loadData(genomeId);
-
+const encodeModal = new ModalTable({
+    id: "hic-encode-modal",
+    title: "ENCODE",
+    selectHandler: function (selected) {
+        HICBrowser.getCurrentBrowser().loadTracks(selected);
     }
+})
 
+function createEncodeTable(genomeId) {
+    const datasource = new EncodeDataSource(genomeId)
+    encodeModal.setDatasource(datasource)
 }
 
-function discardEncodeTable() {
-    encodeTable = undefined;
-}
 
 function loadAnnotationSelector($container, url, type) {
 
