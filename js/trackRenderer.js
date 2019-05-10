@@ -174,16 +174,20 @@ TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
 TrackRenderer.prototype.readyToPaint = async function () {
 
     var self = this,
-        genomicState, chrName, lengthPixel, lengthBP, startBP, endBP;
+        lengthPixel, lengthBP, startBP, endBP;
 
-    genomicState = self.browser.genomicState(self.axis);
-    chrName = genomicState.chromosome.name;
+    const genomicState = self.browser.genomicState(self.axis);
+    const chrName = genomicState.chromosome.name;
 
-    if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp)) {
+    const bpp = "all" === chrName.toLowerCase() ?
+        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
+        genomicState.bpp
+
+    if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
 
         return;
 
-    } else if (genomicState.bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
+    } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
 
         return;
 
@@ -191,11 +195,11 @@ TrackRenderer.prototype.readyToPaint = async function () {
 
         // Expand the requested range so we can pan a bit without reloading
         lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
-        lengthBP = Math.round(genomicState.bpp * lengthPixel);
+        lengthBP = Math.round(bpp * lengthPixel);
         startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
         endBP = startBP + lengthBP;
 
-        const features = await self.track.getFeatures(genomicState.chromosome.name, startBP, endBP, genomicState.bpp)
+        const features = await self.track.getFeatures(genomicState.chromosome.name, startBP, endBP, bpp)
 
 
         var buffer, ctx;
@@ -221,9 +225,9 @@ TrackRenderer.prototype.readyToPaint = async function () {
                     pixelHeight: Math.min(buffer.width, buffer.height),
                     bpStart: startBP,
                     bpEnd: endBP,
-                    bpPerPixel: genomicState.bpp,
+                    bpPerPixel: bpp,
                     genomicState: genomicState,
-                    viewportContainerX: (genomicState.startBP - startBP) / genomicState.bpp,
+                    viewportContainerX: (genomicState.startBP - startBP) / bpp,
                     viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
                     labelTransform: self.labelReflectionTransform
                 };
@@ -235,7 +239,7 @@ TrackRenderer.prototype.readyToPaint = async function () {
             ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
         }
 
-        self.tile = new Tile(chrName, startBP, endBP, genomicState.bpp, buffer);
+        self.tile = new Tile(chrName, startBP, endBP, bpp, buffer);
 
         return self.tile
     }
@@ -253,7 +257,11 @@ TrackRenderer.prototype.repaint = async function () {
     }
 
     const chrName = genomicState.chromosome.name;
-    if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, genomicState.bpp))) {
+    const bpp = "all" === chrName.toLowerCase() ?
+        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
+        bpp
+
+    if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
         await this.readyToPaint()
     }
     this.drawTileWithGenomicState(this.tile, genomicState);
