@@ -496,10 +496,7 @@ function expandURL(url) {
 
 async function shortJuiceboxURL(base) {
 
-    var url, queryString,
-        self = this;
-
-    queryString = "{";
+    let queryString = "{";
     allBrowsers.forEach(function (browser, index) {
         queryString += encodeURIComponent(browser.getQueryString());
         queryString += (index === allBrowsers.length - 1 ? "}" : "},{");
@@ -507,13 +504,13 @@ async function shortJuiceboxURL(base) {
 
     const compressedString = compressQueryParameter(queryString)
 
-    url = base + "?juiceboxData=" + compressedString
+    const url = base + "?juiceboxData=" + compressedString
 
     if (url.length > 2048) {
         return url
     }
     else {
-        return self.shortenURL(url)
+        return shortenURL(url)
     }
 }
 
