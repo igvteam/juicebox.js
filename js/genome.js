@@ -51,7 +51,7 @@ const Genome = function (id, chromosomes) {
     })
 
     /**
-     * Maps the official chromosome name to an alias.  Deals with
+     * Maps chr aliases to the offical name.  Deals with
      * 1 <-> chr1,  chrM <-> MT,  IV <-> chr4, etc.
      * @param str
      */
@@ -59,15 +59,23 @@ const Genome = function (id, chromosomes) {
 
     // The standard mappings
     chromosomes.forEach(function (chromosome) {
-        var name = chromosome.name,
-            alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
-        chrAliasTable[alias] = name;
-        if (name === "chrM") chrAliasTable["MT"] = "chrM";
-        if (name === "MT") chrAliasTable["chrmM"] = "MT";
+
+        const name = chromosome.name
+        if(name.startsWith("arm_")) {
+            //Special rule for aidenlab ad-hoc names for dMel
+            const officialName = name.substring(4)
+            chrAliasTable[officialName] = name
+            chrAliasTable["chr" + officialName] = name
+        }
+        else {
+            const alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
+            chrAliasTable[alias] = name;
+            if (name === "chrM") chrAliasTable["MT"] = "chrM";
+            if (name === "MT") chrAliasTable["chrmM"] = "MT";
+        }
 
         self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
     });
-
 
     this.chrAliasTable = chrAliasTable;
 
@@ -136,8 +144,7 @@ function computeCumulativeOffsets() {
         chromosome = self.chromosomes[i];
         cumulativeOffsets[chromosome.name] = Math.floor(offset);
 
-        // Genome coordinates are in KB.  Beware 32-bit max value limit
-        offset += (chromosome.size); // / 1000);
+        offset += (chromosome.size);
     }
     self.cumulativeOffsets = cumulativeOffsets;
 
