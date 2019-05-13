@@ -1,4 +1,8 @@
 https://data.broadinstitute.org/igvdata/test/data/hic/inter.hic Inter
+https://s3.amazonaws.com/hicfiles/hiseq/skfuwi4fnsjkdf9jekrw2/mega_Liverpool/mega.hic	Matthews, Dudchenko, & Kingan et al. | Nature 2018 Aedes aegypti Liverpool strain Megamap | AaegL5
+https://s3.amazonaws.com/hicfiles/hiseq/skfuwi4fnsjkdf9jekrw2/HIC2836_Liverpool1/Liverpool1.hic	Matthews, Dudchenko, & Kingan et al. | Nature 2018 Aedes aegypti Liverpool strain, Male pupa #1 (HIC2836) | AaegL5
+https://s3.amazonaws.com/hicfiles/hiseq/skfuwi4fnsjkdf9jekrw2/HIC2861_Liverpool2/Liverpool2.hic	Matthews, Dudchenko, & Kingan et al. | Nature 2018 Aedes aegypti Liverpool strain, Male pupa #2 (HIC2861) | AaegL5
+https://s3.amazonaws.com/hicfiles/hiseq/skfuwi4fnsjkdf9jekrw2/HIC2862_Liverpool3/Liverpool3.hic	Matthews, Dudchenko, & Kingan et al. | Nature 2018 Aedes aegypti Liverpool strain, Male pupa #3 (HIC2862) | AaegL5
 https://s3.amazonaws.com/hicfiles/external/goodell/HSPC.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC
 https://s3.amazonaws.com/hicfiles/external/goodell/HSPC_CanyonDel.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 HSPC CanyonDel
 https://s3.amazonaws.com/hicfiles/external/goodell/tcell.hic	Jeong, Huang, & Zhang at al. | Biorxiv 2017 T-Cell
@@ -491,6 +495,37 @@ https://s3.amazonaws.com/hicfiles/external/wapl_hic/WaplKO_3.3.hic	Haarhuis et a
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/SCC4KO.hic	Haarhuis et al. | Cell 2017 Hap1 knockout SCC4
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/DKO.hic	Haarhuis et al. | Cell 2017 Hap1 double knockout WAPL/SCC4
 https://s3.amazonaws.com/hicfiles/external/wapl_hic/WT.hic	Haarhuis et al. | Cell 2017 Hap1 control
-http://hicfiles.s3.amazonaws.com/external/bonev/ES_mapq30.hic	Bonev et al. | Cell 2017 ES cells
-http://hicfiles.s3.amazonaws.com/external/bonev/NPC_mapq30.hic	Bonev et al. | Cell 2017 Neural Progenitors
-http://hicfiles.s3.amazonaws.com/external/bonev/CN_mapq30.hic	Bonev et al. | Cell 2017 Cortical Neurons
+https://hicfiles.s3.amazonaws.com/external/bonev/ES_mapq30.hic	Bonev et al. | Cell 2017 ES cells
+https://hicfiles.s3.amazonaws.com/external/bonev/NPC_mapq30.hic	Bonev et al. | Cell 2017 Neural Progenitors
+https://hicfiles.s3.amazonaws.com/external/bonev/CN_mapq30.hic	Bonev et al. | Cell 2017 Cortical Neurons
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-activated_B_cells_72_hours_WT.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse activated B Cells (72 hrs) WT
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-resting_B_cells_WT.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse resting B Cells WT 
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-activated_B_cells_24_hours_MYC_KO.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse activated B Cells (24 hrs) MYC KO
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-resting_B_cells_TSA.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse resting B Cells TSA treated
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-activated_B_cells_24_hours_oligomycin.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse activated B Cells (24 hrs) Oligomycin treated
+https://hicfiles.s3.amazonaws.com/hiseq/Kieffer-Kwon_et_al_2017/Main_maps/Kieffer-Kwon-2017-mES_WT.hic	Kieffer-Kwon, Nimura, and Rao et al | Molecular Cell 2017 Mouse ES cells WT
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-activated_B_cells_24_hours_WT.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 Mouse activated B Cells (24 hrs) WT
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-activated_B_cells_30_hours_WT.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 Mouse activated B Cells (30 hrs) WT
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-activated_B_cells_24_hours_flavopiridol.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 Mouse activated B Cells (24 hrs) Flavopiridol treated
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-activated_B_cells_30_hours_HU_treated.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 Mouse activated B Cells (30 hrs) Hydroxyurea treated
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-CH12_mouse_lymphoblasts_WT_new_data_only.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 CH12 (mouse) WT (new data only)
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-CH12_mouse_lymphoblasts_WT_combined_with_Rao2014_data.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 CH12 (mouse) WT (combined with Rao&Huntley Cell 2014 data)
+https://hicfiles.s3.amazonaws.com/hiseq/Vian_et_al_2018/Main_maps/Vian-2018-CH12_mouse_lymphoblasts_mZF9-11.hic	Vian, Pekowska, Rao, Kieffer-Kwon, and Jung et al | Cell 2018 CH12 (mouse) mutant CTCF ZF9-11
+https://hicfiles.s3.amazonaws.com/external/pgp/PGP1F_mega_090118/PGP1F_mega_090118_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ mega map
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7145/HIC7145_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7145
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7146/HIC7146_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7146
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7147/HIC7147_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7147
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC6339/HIC6339_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC6339
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7862/HIC7862_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7862
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7863/HIC7863_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7863
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7864/HIC7864_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7864
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7865/HIC7865_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7865
+https://hicfiles.s3.amazonaws.com/external/pgp/HIC7866/HIC7866_30.hic	Nir et al. | PLoS Genet 2018 Hi-C in situ HIC7866
+https://encode-public.s3.amazonaws.com/2018/10/19/b122542b-306c-4631-bdc3-2e155e89af55/ENCFF718AWL.hic	ENCODE Hi-C experiments | in-situ GM12878 MboI combined replicates (MAPQ 30)
+https://encode-public.s3.amazonaws.com/2019/02/15/8e787cd8-e388-4bc2-a236-7a5e6f39e0c0/ENCFF999YXX.hic	ENCODE Hi-C experiments | in-situ IMR90 MboI combined replicates (MAPQ 30)
+https://encode-public.s3.amazonaws.com/2019/02/08/fc1d9d5d-8fa0-4e29-9080-3da674d9490d/ENCFF543USQ.hic	ENCODE Hi-C experiments | in-situ HMEC MboI combined replicates (MAPQ 30)
+https://encode-public.s3.amazonaws.com/2018/10/19/37bcf091-9330-46bb-9a88-379b5920a41b/ENCFF956DEY.hic	ENCODE Hi-C experiments | in-situ GM12878 MboI combined replicates (MAPQ 1)
+https://encode-public.s3.amazonaws.com/2019/02/12/59213d1a-aa91-4d26-b9d1-ceda87c5ea65/ENCFF230GZZ.hic	ENCODE Hi-C experiments | in-situ GM12878 MboI primary replicate (MAPQ 30)
+https://encode-public.s3.amazonaws.com/2019/02/12/9d09af41-10bd-44e5-91a9-2c557887ad19/ENCFF477GIX.hic	ENCODE Hi-C experiments | in-situ GM12878 MboI biorep replicate (MAPQ 1)
+https://encode-public.s3.amazonaws.com/2019/02/15/a1ce38f4-9d28-4749-adaa-f9601b0cf19a/ENCFF184QHM.hic	ENCODE Hi-C experiments | in-situ IMR90 MboI combined replicates (MAPQ 1)
+https://encode-public.s3.amazonaws.com/2019/02/08/9ade3790-4098-49df-b649-7a9292b00428/ENCFF733ZVT.hic	ENCODE Hi-C experiments | in-situ HMEC MboI combined replicates (MAPQ 1)
