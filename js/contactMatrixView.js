@@ -52,6 +52,7 @@ const ContactMatrixView = function (browser, $container) {
     this.$canvas = $('<canvas>');
     this.$viewport.append(this.$canvas);
 
+    this.ctx = this.$canvas.get(0).getContext('2d');
 
     // spinner
     this.$fa_spinner = $('<i class="fa fa-spinner fa-spin">');
@@ -200,10 +201,6 @@ ContactMatrixView.prototype.repaint = async function () {
 
     if (!this.browser.dataset) {
         return;
-    }
-
-    if (!this.ctx) {
-        this.ctx = this.$canvas.get(0).getContext("2d");
     }
 
     const viewportWidth = this.$viewport.width()
