@@ -52,6 +52,6 @@
     "webpack-cli": "^3.3.3"
   },
   "dependencies": {
-    "dataModal": "github:igvteam/data-modal"
+    "data-modal": "github:igvteam/data-modal"
   }
 }

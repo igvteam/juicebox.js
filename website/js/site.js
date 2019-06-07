@@ -31,8 +31,8 @@
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
-import ModalTable from '../../node_modules/dataModal/js/modalTable.js'
-import EncodeDataSource from '../../node_modules/dataModal/js/encodeDataSource.js'
+import ModalTable from '../../node_modules/data-modal/js/modalTable.js'
+import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js'
 import HICBrowser from '../../js/hicBrowser.js'
 import * as hic from '../../js/hic.js'
 
