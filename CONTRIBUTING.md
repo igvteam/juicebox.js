@@ -6,13 +6,13 @@ The following is a set of guidelines for contributing to juicebox.js, which is h
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [aidenlab@bcm.edu](mailto:aidenlab@bcm.edu).
+This project and everyone participating in it is governed by the [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [igv-team@broadinstitute.org](mailto:igv-team@broadinstitute.org).
 
 ## **Did you find a bug?**
 
-* **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/igvteam/igv.js/issues).
+* **Ensure the bug was not already reported** by searching on GitHub under [Issues](https://github.com/igvteam/juicebox.js/issues).
 
-* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/igvteam/igv.js/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample, executable test case, or clear set of instructions** demonstrating the expected behavior that is not occurring.
+* If you're unable to find an open issue addressing the problem, [open a new one](https://github.com/igvteam/juicebox.js/issues/new). Be sure to include a **title and clear description**, as much relevant information as possible, and a **code sample, executable test case, or clear set of instructions** demonstrating the expected behavior that is not occurring.
 
 ## **Did you write a patch that fixes a bug?**
 
