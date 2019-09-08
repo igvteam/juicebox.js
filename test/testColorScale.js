@@ -1,6 +1,7 @@
 /**
  * Created by jrobinso on 3/11/17.
  */
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 function runColorTests() {
 

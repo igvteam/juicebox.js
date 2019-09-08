@@ -35,6 +35,8 @@ import ModalTable from '../../node_modules/data-modal/js/modalTable.js'
 import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js'
 import HICBrowser from '../../js/hicBrowser.js'
 import * as hic from '../../js/hic.js'
+import igv from '../../node_modules/igv/dist/igv.esm.min.js';
+import {decodeQuery} from "../../js/urlUtils.js";
 
 //import QRCode from './qrcode'
 
@@ -359,7 +361,7 @@ juicebox.init = async function (container, config) {
                     updateHref: false
                 };
 
-            hic.createBrowser($container.get(0), config)
+            hic.createBrowser(container, config)
 
                 .then(function (browser) {
 
@@ -483,7 +485,7 @@ function loadHicFile(url, name) {
     if (igv.isString(url) && url.includes("?")) {
         query = hic.extractQuery(url);
         uriDecode = url.includes("%2C");
-        igv.Browser.decodeQuery(query, config, uriDecode);
+        decodeQuery(query, config, uriDecode);
     }
 
 
@@ -598,6 +600,7 @@ function igvSupports(path) {
     return config.type !== undefined;
 
 }
+
 
 
 

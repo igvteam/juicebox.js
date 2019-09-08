@@ -32,6 +32,7 @@ import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hic from './hic.js'
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;

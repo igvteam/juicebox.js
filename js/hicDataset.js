@@ -29,6 +29,7 @@
 import  * as hic from './hic.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const knownGenomes = {
 
