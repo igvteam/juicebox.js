@@ -26,8 +26,9 @@
  * @author Jim Robinson
  */
 
-import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
+import $ from "../vendor/jquery-1.12.4.js";
+import _ from "../vendor/underscore.js";
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const Ruler = function (browser, axis, $parent) {
     var id;

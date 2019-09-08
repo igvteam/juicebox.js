@@ -32,6 +32,8 @@ import _ from "../vendor/underscore.js"
 import GoogleURL from "./googleURL.js";
 import BitlyURL from "./bitlyURL.js";
 import Zlib from "../vendor/zlib_and_gzip.js";
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import {decodeQuery} from "./urlUtils.js";
 
 let apiKey
 
@@ -54,12 +56,12 @@ const allBrowsers = []
 
 async function updateAllBrowsers() {
 
-    for(let b of allBrowsers) {
+    for (let b of allBrowsers) {
         await b.update()
     }
 }
 
-async function createBrowser (hic_container, config, callback) {
+async function createBrowser(hic_container, config, callback) {
 
     const $hic_container = $(hic_container);
 
@@ -81,7 +83,7 @@ async function createBrowser (hic_container, config, callback) {
         }
         const query = extractQuery(queryString);
         const uriDecode = queryString.includes("%2C");
-        igv.Browser.decodeQuery(query, config, uriDecode);
+        decodeQuery(query, config, uriDecode);
     }
 
     const browser = new HICBrowser($hic_container, config);
@@ -196,13 +198,13 @@ async function createBrowser (hic_container, config, callback) {
     }
 }
 
-function setApiKey (key) {
+function setApiKey(key) {
     apiKey = key;
     igv.setApiKey(key);
 
 }
 
- function extractQuery (uri) {
+function extractQuery(uri) {
     var i1, i2, i, j, s, query, tokens;
 
     query = {};
@@ -229,7 +231,7 @@ function setApiKey (key) {
     return query;
 }
 
-function  deleteBrowserPanel (browser) {
+function deleteBrowserPanel(browser) {
 
     if (browser === HICBrowser.getCurrentBrowser()) {
         HICBrowser.setCurrentBrowser(undefined);
@@ -247,7 +249,7 @@ function  deleteBrowserPanel (browser) {
 }
 
 
-function syncBrowsers  (browsers) {
+function syncBrowsers(browsers) {
 
     var browsersWithMaps, genome, incompatibleDatasets, gid;
 
@@ -309,11 +311,11 @@ function syncBrowsers  (browsers) {
  * @param d1
  * @param d2
  */
-function  areCompatible(d1, d2) {
+function areCompatible(d1, d2) {
     return (d1.genomeId === d2.genomeId) || d1.compareChromosomes(d2)
 }
 
-function  destringifyColorScale (string) {
+function destringifyColorScale(string) {
 
     var pnstr, ratioCS;
 
@@ -323,9 +325,7 @@ function  destringifyColorScale (string) {
         ratioCS.positiveScale = foo(pnstr[1]);
         ratioCS.negativeScale = foo(pnstr[2]);
         return ratioCS;
-    }
-
-    else {
+    } else {
         return foo(string);
     }
 
@@ -358,18 +358,17 @@ function destringifyState(string) {
     )
 }
 
-function isMobile () {
+function isMobile() {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 }
 
-function extractFilename (urlOrFile) {
+function extractFilename(urlOrFile) {
     var idx,
         str;
 
     if (igv.isFilePath(urlOrFile)) {
         return urlOrFile.name;
-    }
-    else {
+    } else {
 
         str = urlOrFile.split('?').shift();
         idx = urlOrFile.lastIndexOf("/");
@@ -378,7 +377,7 @@ function extractFilename (urlOrFile) {
     }
 }
 
-function  igvSupports(path) {
+function igvSupports(path) {
     var config = {url: path};
     igv.inferTrackTypes(config);
     return config.type !== undefined;
@@ -413,23 +412,23 @@ function throttle(fn, threshhold, scope) {
     }
 }
 
-function  reflectionRotationWithContext(context) {
+function reflectionRotationWithContext(context) {
     context.scale(-1, 1);
     context.rotate(Math.PI / 2.0);
 }
 
-function reflectionAboutYAxisAtOffsetWithContext (context, exe) {
+function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
     context.translate(exe, 0);
     context.scale(-1, 1);
     context.translate(-exe, 0);
 }
 
-function  identityTransformWithContext (context) {
+function identityTransformWithContext(context) {
     // 3x2 matrix. column major. (sx 0 0 sy tx ty).
     context.setTransform(1, 0, 0, 1, 0, 0);
 }
 
- function  setURLShortener(shortenerConfigs) {
+function setURLShortener(shortenerConfigs) {
 
     if (!shortenerConfigs || shortenerConfigs === "none") {
 
@@ -443,21 +442,17 @@ function  identityTransformWithContext (context) {
         if (shortener.provider) {
             if (shortener.provider === "google") {
                 return new GoogleURL(shortener);
-            }
-            else if (shortener.provider === "bitly") {
+            } else if (shortener.provider === "bitly") {
                 return new BitlyURL(shortener);
-            }
-            else {
+            } else {
                 igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
             }
-        }
-        else {    // Custom
+        } else {    // Custom
             if (typeof shortener.shortenURL === "function" &&
                 typeof shortener.expandURL === "function" &&
                 typeof shortener.hostname === "string") {
                 return shortener;
-            }
-            else {
+            } else {
                 igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'")
             }
         }
@@ -467,8 +462,7 @@ function  identityTransformWithContext (context) {
 function shortenURL(url) {
     if (urlShorteners) {
         return urlShorteners[0].shortenURL(url);
-    }
-    else {
+    } else {
         return Promise.resolve(url);
     }
 }
@@ -508,8 +502,7 @@ async function shortJuiceboxURL(base) {
 
     if (url.length > 2048) {
         return url
-    }
-    else {
+    } else {
         return shortenURL(url)
     }
 }
@@ -718,5 +711,5 @@ export {
     syncBrowsers, areCompatible, destringifyColorScale, destringifyState, isMobile, extractFilename, igvSupports,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     setURLShortener, shortenURL, expandURL, shortJuiceboxURL, decompressQueryParameter, initApp, expandJuiceboxUrl,
-    createBrowsers,  updateAllBrowsers
+    createBrowsers, updateAllBrowsers
 }

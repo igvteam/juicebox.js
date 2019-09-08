@@ -35,20 +35,20 @@
  */
 const Genome = function (id, chromosomes) {
 
-    var self = this;
-
     this.id = id;
     this.chromosomes = chromosomes;
+    this.wgChromosomeNames = [];
     this.chromosomeLookupTable = {};
 
     // Alias for size for igv compatibility
     this.genomeLength = 0;
-    this.chromosomes.forEach(function (c) {
+    for (let c of this.chromosomes) {
         c.bpLength = c.size;
         if ('all' !== c.name.toLowerCase()) {
-            self.genomeLength += c.size;
+            this.genomeLength += c.size;
+            this.wgChromosomeNames.push(c.name);
         }
-    })
+    }
 
     /**
      * Maps chr aliases to the offical name.  Deals with
@@ -58,24 +58,22 @@ const Genome = function (id, chromosomes) {
     var chrAliasTable = {};
 
     // The standard mappings
-    chromosomes.forEach(function (chromosome) {
+    for (let chromosome of chromosomes) {
 
         const name = chromosome.name
-        if(name.startsWith("arm_")) {
+        if (name.startsWith("arm_")) {
             //Special rule for aidenlab ad-hoc names for dMel
             const officialName = name.substring(4)
             chrAliasTable[officialName] = name
             chrAliasTable["chr" + officialName] = name
-        }
-        else {
+        } else {
             const alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
             chrAliasTable[alias] = name;
             if (name === "chrM") chrAliasTable["MT"] = "chrM";
             if (name === "MT") chrAliasTable["chrmM"] = "MT";
         }
-
-        self.chromosomeLookupTable[name.toLowerCase()] = chromosome;
-    });
+        this.chromosomeLookupTable[name.toLowerCase()] = chromosome;
+    }
 
     this.chrAliasTable = chrAliasTable;
 

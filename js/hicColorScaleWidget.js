@@ -24,7 +24,8 @@
 /**
  * Created by dat on 3/3/17.
  */
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-1.12.4.js";
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const ColorScaleWidget = function (browser, $container) {
 
@@ -163,7 +164,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
             closeHandler: closeHandler
         };
 
-    let colorPicker = new igv.genericContainer(config);
+    let colorPicker = new igv.GenericContainer(config);
 
     function colorHandler(hexString) {
         var rgbString,
@@ -188,7 +189,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
     }
 
-    igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
+//    igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
 
 
     return colorPicker;

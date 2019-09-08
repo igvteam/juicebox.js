@@ -22,10 +22,10 @@
  */
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
-import  * as hic from './hic.js'
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
 import {Track2DDisplaceModes} from './globals.js'
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 

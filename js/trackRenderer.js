@@ -1,9 +1,10 @@
 /**
  * Created by dat on 4/5/17.
  */
-import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
-import  * as hic from './hic.js'
+import $ from "../vendor/jquery-1.12.4.js";
+import _ from "../vendor/underscore.js";
+import  * as hic from './hic.js';
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 
@@ -125,7 +126,6 @@ TrackRenderer.prototype.setTrackName = function (name) {
         this.track.name = name;
         this.$label.text(name);
     }
-
 };
 
 TrackRenderer.prototype.setColor = function (color) {
@@ -140,6 +140,11 @@ TrackRenderer.prototype.setColor = function (color) {
 
     this.browser.renderTrackXY(this.trackRenderPair);
 
+};
+
+TrackRenderer.prototype.setTrackHeight = function (height) {
+    // TODO fix me -- height should apply to both axes.  This method called by gear menu list item
+    console.error("setTrackHeight not implemented")
 };
 
 TrackRenderer.prototype.dataRange = function () {
@@ -259,7 +264,7 @@ TrackRenderer.prototype.repaint = async function () {
     const chrName = genomicState.chromosome.name;
     const bpp = "all" === chrName.toLowerCase() ?
         this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
-        bpp
+        genomicState.bpp
 
     if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
         await this.readyToPaint()
@@ -319,7 +324,7 @@ function createColorPicker_ColorScaleWidget_version($parent, closeHandler, color
             closeHandler: closeHandler
         };
 
-    let genericContainer = new igv.genericContainer(config);
+    let genericContainer = new igv.GenericContainer(config);
 
     igv.createColorSwatchSelector(genericContainer.$container, colorHandler);
 

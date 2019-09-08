@@ -27,8 +27,8 @@
  */
 
 
-import  * as hic from './hic.js'
-import {Track2DDisplaceModes} from './globals.js'
+import {Track2DDisplaceModes} from './globals.js';
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const Track2D = function (config, features) {
 

@@ -23,6 +23,7 @@
  *
  */
 
+import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
