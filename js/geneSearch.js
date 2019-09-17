@@ -25,7 +25,7 @@
 /**
  * @author Jim Robinson
  */
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const geneSearch = function (genomeId, featureName) {
 

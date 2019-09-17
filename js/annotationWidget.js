@@ -25,7 +25,7 @@ import HICEvent from './hicEvent.js'
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
 import {Track2DDisplaceModes} from './globals.js'
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 
@@ -84,7 +84,7 @@ function annotationPresentationButton($parent, title, alertMessage) {
             self.updateBody(self.trackListRetrievalCallback());
             self.$annotationPanel.toggle();
         } else {
-            igv.presentAlert(alertMessage);
+            igv.Alert.presentAlert(alertMessage);
         }
 
         self.browser.hideMenu();

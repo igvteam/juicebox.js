@@ -28,7 +28,7 @@
 
 import $ from "../vendor/jquery-1.12.4.js";
 import _ from "../vendor/underscore.js";
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const Ruler = function (browser, axis, $parent) {
     var id;

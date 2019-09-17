@@ -25,7 +25,7 @@
  * Created by dat on 3/3/17.
  */
 import $ from "../vendor/jquery-1.12.4.js";
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const ColorScaleWidget = function (browser, $container) {
 

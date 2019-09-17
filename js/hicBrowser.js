@@ -37,7 +37,7 @@ import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
 import Straw from '../node_modules/hic-straw/src/straw.js';
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -551,7 +551,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
                 this.update();
             }
         } else {
-            igv.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
+            igv.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
         }
     } finally {
         this.$user_interaction_shield.hide();
@@ -1496,7 +1496,7 @@ function presentError (prefix, error) {
     if (httpMessages.hasOwnProperty(msg)) {
         msg = httpMessages[msg];
     }
-    igv.presentAlert(prefix + ": " + msg);
+    igv.Alert.presentAlert(prefix + ": " + msg);
 
 };
 

@@ -31,11 +31,11 @@
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
-import ModalTable from '../../node_modules/data-modal/js/modalTable.js'
-import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js'
-import HICBrowser from '../../js/hicBrowser.js'
-import * as hic from '../../js/hic.js'
-import igv from '../../node_modules/igv/dist/igv.esm.min.js';
+import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
+import HICBrowser from '../../js/hicBrowser.js';
+import * as hic from '../../js/hic.js';
+import igv from '../../node_modules/igv/dist/igv.esm.js';
 import {decodeQuery} from "../../js/urlUtils.js";
 
 //import QRCode from './qrcode'
@@ -123,7 +123,7 @@ juicebox.init = async function (container, config) {
             if (url.length < 2048) {
                 return hic.shortenURL(url)
             } else {
-                igv.presentAlert("URL too long to shorten")
+                igv.Alert.presentAlert("URL too long to shorten")
                 return Promise.resolve(url)
             }
         }
@@ -215,7 +215,7 @@ juicebox.init = async function (container, config) {
 
             browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser || undefined === browser.dataset) {
-                igv.presentAlert('Contact map must be loaded and selected before loading tracks');
+                igv.Alert.presentAlert('Contact map must be loaded and selected before loading tracks');
             }
         });
 
@@ -239,7 +239,7 @@ juicebox.init = async function (container, config) {
 
             browser = HICBrowser.getCurrentBrowser();
             if (undefined === browser) {
-                igv.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
                 loadHicFile(url, $selected.text());
             }
@@ -257,7 +257,7 @@ juicebox.init = async function (container, config) {
                 suffix;
 
             if (undefined === HICBrowser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 file = ($(this).get(0).files)[0];
@@ -283,7 +283,7 @@ juicebox.init = async function (container, config) {
                 path;
 
             if (undefined === HICBrowser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
                 loadHicFile(url);
@@ -298,7 +298,7 @@ juicebox.init = async function (container, config) {
             var url;
 
             if (undefined === HICBrowser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
                 HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
@@ -314,7 +314,7 @@ juicebox.init = async function (container, config) {
                 name;
 
             if (undefined === HICBrowser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();
@@ -337,7 +337,7 @@ juicebox.init = async function (container, config) {
                 name;
 
             if (undefined === HICBrowser.getCurrentBrowser()) {
-                igv.presentAlert('ERROR: you must select a map panel.');
+                igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();

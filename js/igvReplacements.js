@@ -5,24 +5,24 @@ import $ from "../vendor/jquery-1.12.4.js"
 
 const igvReplacements = function (igv) {
 
-    igv.trackMenuItem = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {
+    // igv.trackMenuItem = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {
+    //
+    //     var $e,
+    //         clickHandler;
+    //
+    //     $e = $('<div>');
+    //     $e.text(menuItemLabel);
+    //
+    //     clickHandler = function () {
+    //         igv.inputDialog.configure(dialogLabelHandler, dialogInputValue, dialogClickHandler, undefined, undefined);
+    //         igv.inputDialog.show(trackRenderer.$viewport);
+    //     };
+    //
+    //     return {object: $e, click: clickHandler};
+    //
+    // };
 
-        var $e,
-            clickHandler;
-
-        $e = $('<div>');
-        $e.text(menuItemLabel);
-
-        clickHandler = function () {
-            igv.inputDialog.configure(dialogLabelHandler, dialogInputValue, dialogClickHandler, undefined, undefined);
-            igv.inputDialog.show(trackRenderer.$viewport);
-        };
-
-        return {object: $e, click: clickHandler};
-
-    };
-
-    igv.trackMenuItemList = function (trackRenderer) {
+    igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
 
         var menuItems = [];
 
@@ -41,7 +41,7 @@ const igvReplacements = function (igv) {
     };
 
 
-    igv.presentAlert = function (alert, $parent) {
+    igv.Alert.presentAlert = function (alert, $parent) {
 
 
         const httpMessages = {

@@ -23,7 +23,7 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
@@ -49,14 +49,14 @@ BitlyURL.prototype.shortenURL = async function (url) {
         // TODO check status code
         if (500 === json.status_code) {
             alert("Error shortening URL: " + json.status_txt)
-            //igv.presentAlert("Error shortening URL: " + json.status_txt)
+            //igv.Alert.presentAlert("Error shortening URL: " + json.status_txt)
             return url
         } else {
             return json.data.url;
         }
     } catch (e) {
         alert("Error shortening URL: " + e)
-        //igv.presentAlert("Error shortening URL: " + e)
+        //igv.Alert.presentAlert("Error shortening URL: " + e)
         return url
     }
 

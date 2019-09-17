@@ -29,7 +29,7 @@
 import  * as hic from './hic.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const knownGenomes = {
 
@@ -111,7 +111,7 @@ Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normaliz
             normBlock;
 
         if (nv1 === undefined || nv2 === undefined) {
-            igv.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+            igv.Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
             if (eventBus) {
                 eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
             }

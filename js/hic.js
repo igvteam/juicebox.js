@@ -32,7 +32,7 @@ import _ from "../vendor/underscore.js"
 import GoogleURL from "./googleURL.js";
 import BitlyURL from "./bitlyURL.js";
 import Zlib from "../vendor/zlib_and_gzip.js";
-import igv from '../node_modules/igv/dist/igv.esm.min.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 import {decodeQuery} from "./urlUtils.js";
 
 let apiKey
@@ -52,6 +52,7 @@ const eventBus = new EventBus()
 
 const allBrowsers = []
 
+igvReplacements(igv);
 
 async function updateAllBrowsers() {
 
@@ -284,7 +285,7 @@ function syncBrowsers(browsers) {
     });
 
     if (incompatibleDatasets.length > 0) {
-        igv.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
+        igv.Alert.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
     }
 
 
@@ -444,7 +445,7 @@ function setURLShortener(shortenerConfigs) {
             } else if (shortener.provider === "bitly") {
                 return new BitlyURL(shortener);
             } else {
-                igv.presentAlert("Unknown url shortener provider: " + shortener.provider);
+                igv.Alert.presentAlert("Unknown url shortener provider: " + shortener.provider);
             }
         } else {    // Custom
             if (typeof shortener.shortenURL === "function" &&
@@ -452,7 +453,7 @@ function setURLShortener(shortenerConfigs) {
                 typeof shortener.hostname === "string") {
                 return shortener;
             } else {
-                igv.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'")
+                igv.Alert.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'")
             }
         }
     }
@@ -482,7 +483,7 @@ function expandURL(url) {
         }
     }
 
-    igv.presentAlert("No expanders for URL: " + url);
+    igv.Alert.presentAlert("No expanders for URL: " + url);
 
     return Promise.resolve(url);
 }
@@ -649,7 +650,7 @@ function createIGV($hic_container, hicBrowser) {
         };
 
     // replace IGV functions with HIC equivalents
-    igvReplacements(igv);
+    //igvReplacements(igv);
 
     igv.popover = new igv.Popover($hic_container, igv.browser);
 
@@ -710,5 +711,5 @@ export {
     syncBrowsers, areCompatible, destringifyColorScale, destringifyState, isMobile, extractFilename, igvSupports,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     setURLShortener, shortenURL, expandURL, shortJuiceboxURL, decompressQueryParameter, initApp, expandJuiceboxUrl,
-    createBrowsers, updateAllBrowsers
+    createBrowsers, updateAllBrowsers, HICBrowser
 }
