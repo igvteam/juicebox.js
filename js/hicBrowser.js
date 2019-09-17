@@ -36,7 +36,7 @@ import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import Straw from '../vendor/hic-straw_es6.js'
+import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.min.js';
 
 const MAX_PIXEL_SIZE = 12;

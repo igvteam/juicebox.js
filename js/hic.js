@@ -43,7 +43,6 @@ const urlShorteners = [];
 
 const defaultSize = {width: 640, height: 640}
 
-
 /**
  * The global event bus.  For events outside the scope of a single browser.
  *
