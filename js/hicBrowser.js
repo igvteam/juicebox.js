@@ -183,19 +183,34 @@ HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
     this.contactMatrixView.setColorScaleThreshold(threshold);
 };
 
-HICBrowser.prototype.updateCrosshairs = function (coords) {
-    var xGuide,
-        yGuide;
+HICBrowser.prototype.updateCrosshairs = function ({ x , y, xNormalized, yNormalized }) {
 
-    xGuide = coords.y < 0 ? {left: 0} : {top: coords.y, left: 0};
+    const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
     this.contactMatrixView.$x_guide.css(xGuide);
     this.layoutController.$x_track_guide.css(xGuide);
 
-    yGuide = coords.x < 0 ? {top: 0} : {top: 0, left: coords.x};
+    const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
     this.contactMatrixView.$y_guide.css(yGuide);
     this.layoutController.$y_track_guide.css(yGuide);
 
+    if (this.customCrosshairsHandler) {
 
+        const { x: stateX, y: stateY, pixelSize } = this.state;
+        const resolution = this.resolution();
+
+        const xBP = (stateX + (x / pixelSize)) * resolution;
+        const yBP = (stateY + (y / pixelSize)) * resolution;
+
+        let { startBP: startXBP, endBP: endXBP } = this.genomicState('x');
+        let { startBP: startYBP, endBP: endYBP } = this.genomicState('y');
+
+        this.customCrosshairsHandler({ xBP, yBP, startXBP, startYBP, endXBP, endYBP, interpolantX: xNormalized, interpolantY: yNormalized });
+    }
+
+};
+
+HICBrowser.prototype.setCustomCrosshairsHandler = function (crosshairsHandler) {
+    this.customCrosshairsHandler = crosshairsHandler;
 };
 
 HICBrowser.prototype.hideCrosshairs = function () {
@@ -1501,4 +1516,4 @@ function presentError (prefix, error) {
 };
 
 export default HICBrowser
-    
+
