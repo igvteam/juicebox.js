@@ -104,6 +104,12 @@ async function createBrowser(hic_container, config, callback) {
         createIGV($hic_container, browser);
     }
 
+    browser.inputDialog = new igv.InputDialog($hic_container, browser);
+
+    browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
+
+    browser.dataRangeDialog = new igv.DataRangeDialog($hic_container, browser);
+
     ///////////////////////////////////
     try {
         browser.contactMatrixView.startSpinner();
@@ -649,18 +655,15 @@ function createIGV($hic_container, hicBrowser) {
             trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
         };
 
-    // replace IGV functions with HIC equivalents
-    //igvReplacements(igv);
-
     igv.popover = new igv.Popover($hic_container, igv.browser);
 
     igv.alertDialog = new igv.AlertDialog(hicBrowser.$root, hicBrowser);
 
-    hicBrowser.inputDialog = new igv.InputDialog($hic_container, hicBrowser);
-
-    hicBrowser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, hicBrowser);
-
-    hicBrowser.dataRangeDialog = new igv.DataRangeDialog($hic_container, hicBrowser);
+    // hicBrowser.inputDialog = new igv.InputDialog($hic_container, hicBrowser);
+    //
+    // hicBrowser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, hicBrowser);
+    //
+    // hicBrowser.dataRangeDialog = new igv.DataRangeDialog($hic_container, hicBrowser);
 
 }
 
