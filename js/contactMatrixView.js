@@ -825,6 +825,11 @@ function addMouseHandlers($viewport) {
                     y: eFixed.pageY - $viewport.offset().top
                 };
 
+            const { width, height } = $viewport.get(0).getBoundingClientRect();
+            xy.xNormalized = xy.x / width;
+            xy.yNormalized = xy.y / height;
+
+
             self.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
 
             if (true === self.willShowCrosshairs) {
