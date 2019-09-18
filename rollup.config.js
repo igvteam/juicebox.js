@@ -31,7 +31,7 @@ import strip from 'rollup-plugin-strip';
 export default [
 
     {
-        input: 'js/hic.js',
+        input: 'js/api.js',
         output: [
             {file: 'dist/juicebox.esm.js', format: 'es'}
         ],
@@ -52,9 +52,33 @@ export default [
     },
 
     {
-        input: 'js/hic.js',
+        input: 'js/api.js',
         output: [
             {file: 'tmp/juicebox.js', format: 'umd', name: "hic"},
+        ],
+        plugins: [
+            resolve(),
+            strip({
+                // set this to `false` if you don't want to
+                // remove debugger statements
+                debugger: true,
+
+                // defaults to `[ 'console.*', 'assert.*' ]`
+                functions: ['console.log', 'assert.*', 'debug'],
+
+                // set this to `false` if you're not using sourcemaps –
+                // defaults to `true`
+                sourceMap: false
+            }),
+            babel({
+                exclude: 'node_modules/**'
+            }),
+        ]
+    },
+    {
+        input: 'website/js/site.js',
+        output: [
+            {file: 'tmp/site-bundle.js', format: 'umd', name: "juicebox"},
         ],
         plugins: [
             resolve(),

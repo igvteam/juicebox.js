@@ -21,18 +21,11 @@
  *
  */
 
+import igv from '../node_modules/igv/dist/igv.esm.js';
+import {decodeQuery, extractQuery} from "./urlUtils.js";
+import HICBrowser from './hicBrowser.js';
+import {allBrowsers, createBrowser, eventBus} from './hicUtils.js';
+import {initApp, syncBrowsers, shortJuiceboxURL} from "./init.js";
 
-import * as hic from '../../js/hic.js'
-
-document.addEventListener("DOMContentLoaded", function () {
-
-
-    var query = hic.extractQuery(window.location.href);
-    var container = document.getElementById("app-container");
-
-    hic.initApp(container, {})
-        .then(function (ignore) {
-            hic.updateAllBrowsers()
-        })
-
-})
+export default {createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, eventBus,
+    initApp, syncBrowsers, shortJuiceboxURL, igv};

@@ -26,7 +26,7 @@
  * @author Jim Robinson
  */
 
-import  * as hic from './hic.js'
+import  * as hic from './hicUtils.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';

@@ -14,7 +14,7 @@ import NormalizationWidget from './normalizationWidget.js'
 import Ruler from './hicRuler.js'
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
-import  * as hic from './hic.js'
+import  * as hic from './hicUtils.js'
 
 const LayoutController = function (browser, $root) {
 

@@ -27,7 +27,7 @@
 
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
-import  * as hic from './hic.js'
+import  * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
 import EventBus from'./eventBus.js'
 import LayoutController from './layoutController.js'
@@ -38,6 +38,7 @@ import State from './hicState.js'
 import geneSearch from './geneSearch.js'
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+import {paramEncode, paramDecode} from "./urlUtils.js"
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -1251,15 +1252,6 @@ function replaceAll(str, target, replacement) {
 }
 
 
-var urlShortcuts = {
-    "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
-    "*s3/": "https://hicfiles.s3.amazonaws.com/",
-    "*s3e_/": "http://hicfiles.s3.amazonaws.com/external/",
-    "*s3_/": "http://hicfiles.s3.amazonaws.com/",
-    "*enc/": "https://www.encodeproject.org/files/"
-}
-
-
 HICBrowser.prototype.getQueryString = function () {
 
     var queryString, nviString, trackString, displayMode;
@@ -1379,38 +1371,6 @@ HICBrowser.prototype.getQueryString = function () {
     }
 
 };
-
-
-/**
- * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
- * to fully % encode parameter values (see RFC3986).
- *
- * @param str
- */
-function paramEncode(str) {
-    var s = replaceAll(str, '&', '%26');
-    s = replaceAll(s, ' ', '+');
-    s = replaceAll(s, "#", "%23");
-    s = replaceAll(s, "?", "%3F");
-    s = replaceAll(s, "=", "%3D");
-    return s;
-}
-
-function paramDecode(str, uriDecode) {
-
-    if (uriDecode) {
-        return decodeURIComponent(str);   // Still more backward compatibility
-    } else {
-        var s = replaceAll(str, '%26', '&');
-        s = replaceAll(s, '%20', ' ');
-        s = replaceAll(s, '+', ' ');
-        s = replaceAll(s, "%7C", "|");
-        s = replaceAll(s, "%23", "#");
-        s = replaceAll(s, "%3F", "?");
-        s = replaceAll(s, "%3D", "=");
-        return s;
-    }
-}
 
 /**
  * Encode an array of strings.  A "|" is used as a delimiter, therefore any "|" in individual elements

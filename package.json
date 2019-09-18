@@ -1,11 +1,9 @@
 {
   "name": "juicebox.js",
-  "version": "1.3.9",
+  "version": "1.4.0",
   "main": "dist/juicebox.min.js",
   "files": [
-    "dist/**",
-    "js/**",
-    "vendor/**"
+    "dist/**"
   ],
   "author": {
     "name": "Jim Robinson"
@@ -19,10 +17,10 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "npx rollup --config && npm run build-umd && npm run build-es6",
-    "build-umd": "node wrapper/injectRuntime.js; npx terser --compress --mangle --source-map \"url='juicebox.min.js.map'\" --output  dist/juicebox.min.js -- dist/juicebox.js",
+    "build": "npx rollup --config && npm run build-umd && npm run build-es6 && npm run build-site && node scripts/copyArtifacts",
+    "build-umd": "node scripts/injectRuntime.js; npx terser --compress --mangle --source-map \"url='juicebox.min.js.map'\" --output  dist/juicebox.min.js -- dist/juicebox.js",
     "build-es6": "npx terser --module --compress --mangle --source-map \"url='juicebox.esm.min.js.map'\" --output  dist/juicebox.esm.min.js -- dist/juicebox.esm.js",
-    "test": "node runTests.js",
+    "build-site": "npx terser --compress --mangle --source-map \"url='site-bundle.map'\" --output  website/dist/js/site-bundle.min.js -- website/dist/js/site-bundle.js",
     "prepack": "npm run build",
     "http-server": "npx http-server ."
   },
@@ -43,6 +41,7 @@
     "@babel/preset-env": "^7.6.0",
     "data-modal": "github:igvteam/data-modal",
     "finalhandler": "^1.1.2",
+    "fs-extra": "^8.1.0",
     "hic-straw": "^0.9.5",
     "igv": "https://igv.org/web/snapshot/igv-2.3.0-rc5.tgz",
     "node-qunit-puppeteer": "^1.0.13",

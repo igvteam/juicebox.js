@@ -39,17 +39,55 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="css/juicebox.css">
 
-    <!-- Site JS-->
-    <script type="module" src="js/embed.js"></script>
-
 </head>
 
 <body>
 
 
-<div id="app-container" class="juicebox-app-clone-container"></div>
+<div id="app-caption" class="juicebox-app-caption-container">
 
+    <!-- app container-->
+    <div id="app-container" class="juicebox-app-clone-container">
+    </div>
+
+<!--    &lt;!&ndash; caption &ndash;&gt;-->
+<!--    <div id="hic-caption" class="hic-caption-container" contenteditable="true">-->
+
+<!--    </div>-->
+
+</div>
 
 </body>
+
+<script type="module">
+
+    import hic from "../js/api.js";
+
+    var container = document.getElementById("app-container");
+
+    const config = {
+        urlShortener: [
+            {
+                provider: "bitly",
+                apiKey: "ABCD",        // TODO -- replace with your Bitly access token
+                hostname: 'bit.ly'
+            },
+            {
+                provider: "google",
+                apiKey: "ABCD",        // TODO -- replace with your Google API Key
+                hostname: "goo.gl"
+            }
+
+        ],
+        apiKey: "ABCD"  // TODO set your api key here
+    }
+
+    hic.initApp(container, config)
+        .then(function (ignore) {
+
+        })
+
+
+</script>
 
 </html>

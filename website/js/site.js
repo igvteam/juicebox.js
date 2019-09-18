@@ -33,31 +33,25 @@
 
 import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
-import HICBrowser from '../../js/hicBrowser.js';
-import * as hic from '../../js/hic.js';
-import igv from '../../node_modules/igv/dist/igv.esm.js';
-import {decodeQuery} from "../../js/urlUtils.js";
+import QRCode from './qrcode.js';
 
-//import QRCode from './qrcode'
+let lastGenomeId;
+let qrcode;
+let currentContactMapDropdownButtonID;
+let HICBrowser;
+let allBrowsers;
+let igv;
 
-const juicebox = {}
-
-export default juicebox
-
-var lastGenomeId,
-    qrcode,
-    control_map_dropdown_id = 'hic-control-map-dropdown';
-
-juicebox.init = async function (container, config) {
+async function init(container, config, hic) {
 
     var genomeChangeListener,
         $appContainer,
         $hic_share_url_modal,
         $e;
 
-    if (config.urlShortener) {
-        hic.setURLShortener(config.urlShortener);
-    }
+     HICBrowser = hic.HICBrowser;
+     allBrowsers = hic.allBrowsers;
+     igv = hic.igv;
 
     genomeChangeListener = {
 
@@ -81,8 +75,7 @@ juicebox.init = async function (container, config) {
                 if (EncodeDataSource.supportsGenome(genomeId)) {
                     $('#hic-encode-modal-button').show();
                     createEncodeTable(genomeId);
-                }
-                else {
+                } else {
                     $('#hic-encode-modal-button').hide();
                 }
             }
@@ -100,7 +93,7 @@ juicebox.init = async function (container, config) {
 
     function postCreateBrowser() {
 
-        for (let browser of hic.allBrowsers) {
+        for (let browser of allBrowsers) {
             browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             browser.eventBus.subscribe("MapLoad", checkBDropdown);
             updateBDropdown(browser);
@@ -121,7 +114,7 @@ juicebox.init = async function (container, config) {
 
         function maybeShortenURL(url) {
             if (url.length < 2048) {
-                return hic.shortenURL(url)
+                return shortenURL(url)
             } else {
                 igv.Alert.presentAlert("URL too long to shorten")
                 return Promise.resolve(url)
@@ -144,15 +137,10 @@ juicebox.init = async function (container, config) {
 
             const jbUrl = await hic.shortJuiceboxURL(href)
 
-            getEmbeddableSnippet(jbUrl)
-                .then(function (embedSnippet) {
-                    var $hic_embed_url;
-
-                    $hic_embed_url = $('#hic-embed');
-                    $hic_embed_url.val(embedSnippet);
-                    $hic_embed_url.get(0).select();
-                });
-
+            const embedSnippet = getEmbeddableSnippet(jbUrl);
+            const $hic_embed_url = $('#hic-embed');
+            $hic_embed_url.val(embedSnippet);
+            $hic_embed_url.get(0).select();
 
             var shareUrl = jbUrl
 
@@ -397,7 +385,7 @@ juicebox.init = async function (container, config) {
         $e = $('button[id$=-map-dropdown]');
         $e.parent().on('show.bs.dropdown', function () {
             const id = $(this).children('.dropdown-toggle').attr('id');
-            juicebox.currentContactMapDropdownButtonID = id;
+            currentContactMapDropdownButtonID = id;
         });
 
         $e.parent().on('hide.bs.dropdown', function () {
@@ -410,24 +398,13 @@ juicebox.init = async function (container, config) {
     }
 
     function getEmbeddableSnippet(jbUrl) {
-
-        return new Promise(function (fulfill, reject) {
-            var idx, embedUrl, params, width, height;
-
-            idx = jbUrl.indexOf("?");
-            params = jbUrl.substring(idx);
-            embedUrl = (config.embedTarget || getEmbedTarget()) + params;
-            width = $appContainer.width() + 50;
-            height = $appContainer.height();
-            fulfill('<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
-
-            // Disable shortening the embedUrl for now -- we don't want to bake in the embedTarget
-            // shortenURL(embedUrl)
-            //     .then(function (shortURL) {
-            //         fulfill('<iframe src="' + shortURL + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>');
-            //     });
-        });
-
+        var idx, embedUrl, params, width, height;
+        idx = jbUrl.indexOf("?");
+        params = jbUrl.substring(idx);
+        embedUrl = (config.embedTarget || getEmbedTarget()) + "?juiceboxURL=" + params;
+        width = $appContainer.width() + 50;
+        height = $appContainer.height();
+        return '<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>';
     }
 
     /**
@@ -446,7 +423,130 @@ juicebox.init = async function (container, config) {
 
     }
 
-};
+    function loadAnnotationSelector($container, url, type) {
+
+        var elements;
+
+        $container.empty();
+
+        elements = [];
+        elements.push('<option value=' + '-' + '>' + '-' + '</option>');
+
+        igv.xhr
+            .loadString(url)
+            .then(function (data) {
+                var lines = data ? igv.splitLines(data) : [];
+                lines.forEach(function (line) {
+                    var tokens = line.split('\t');
+                    if (tokens.length > 1 && ("2D" === type || igvSupports(tokens[1]))) {
+                        elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
+                    }
+                });
+                $container.append(elements.join(''));
+
+            })
+            .catch(function (error) {
+                console.log("Error loading track menu: " + url + "  " + error);
+            })
+
+        function igvSupports(path) {
+
+            // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
+            if (path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
+                return false;
+            }
+
+            var config = {url: path};
+            igv.inferTrackTypes(config);
+            return config.type !== undefined;
+
+        }
+    }
+
+    function loadHicFile(url, name) {
+
+        var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
+
+        browsersWithMaps = allBrowsers.filter(function (browser) {
+            return browser.dataset !== undefined;
+        });
+
+        if (browsersWithMaps.length > 0) {
+            synchState = browsersWithMaps[0].getSyncState();
+        }
+
+        isControl = currentContactMapDropdownButtonID === 'hic-control-map-dropdown';
+
+        browser = HICBrowser.getCurrentBrowser();
+
+        config = {url: url, name: name, isControl: isControl};
+
+
+        if (igv.isString(url) && url.includes("?")) {
+            query = hic.extractQuery(url);
+            uriDecode = url.includes("%2C");
+            hic.decodeQuery(query, config, uriDecode);
+        }
+
+
+        if (isControl) {
+            browser
+                .loadHicControlFile(config)
+                .then(function (dataset) {
+
+                });
+        } else {
+            browser.reset();
+
+            browsersWithMaps = allBrowsers.filter(function (browser) {
+                return browser.dataset !== undefined;
+            });
+
+            if (browsersWithMaps.length > 0) {
+                config["synchState"] = browsersWithMaps[0].getSyncState();
+            }
+
+
+            browser
+                .loadHicFile(config)
+                .then(function (ignore) {
+                    if (!isControl) {
+                        hic.syncBrowsers(allBrowsers);
+                    }
+                    $('#hic-control-map-dropdown').removeClass('disabled');
+                });
+        }
+    }
+
+    function populatePulldown(menu) {
+
+        var parent;
+
+        parent = $("#" + menu.id);
+
+        igv.xhr.loadString(menu.items)
+
+            .then(function (data) {
+                var lines = igv.splitLines(data),
+                    len = lines.length,
+                    tokens,
+                    i;
+
+                for (i = 0; i < len; i++) {
+                    tokens = lines[i].split('\t');
+                    if (tokens.length > 1) {
+                        parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
+                    }
+
+                }
+                parent.selectpicker("refresh");
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+
+}
 
 
 function checkBDropdown() {
@@ -463,89 +563,6 @@ function updateBDropdown(browser) {
     }
 }
 
-function loadHicFile(url, name) {
-
-    var synchState, browsersWithMaps, isControl, browser, query, config, uriDecode;
-
-    browsersWithMaps = hic.allBrowsers.filter(function (browser) {
-        return browser.dataset !== undefined;
-    });
-
-    if (browsersWithMaps.length > 0) {
-        synchState = browsersWithMaps[0].getSyncState();
-    }
-
-    isControl = juicebox.currentContactMapDropdownButtonID === control_map_dropdown_id;
-
-    browser = HICBrowser.getCurrentBrowser();
-
-    config = {url: url, name: name, isControl: isControl};
-
-
-    if (igv.isString(url) && url.includes("?")) {
-        query = hic.extractQuery(url);
-        uriDecode = url.includes("%2C");
-        decodeQuery(query, config, uriDecode);
-    }
-
-
-    if (isControl) {
-        browser
-            .loadHicControlFile(config)
-            .then(function (dataset) {
-
-            });
-    } else {
-        browser.reset();
-
-        browsersWithMaps = hic.allBrowsers.filter(function (browser) {
-            return browser.dataset !== undefined;
-        });
-
-        if (browsersWithMaps.length > 0) {
-            config["synchState"] = browsersWithMaps[0].getSyncState();
-        }
-
-
-        browser
-            .loadHicFile(config)
-            .then(function (ignore) {
-                if (!isControl) {
-                    hic.syncBrowsers(hic.allBrowsers);
-                }
-                $('#hic-control-map-dropdown').removeClass('disabled');
-            });
-    }
-}
-
-function populatePulldown(menu) {
-
-    var parent;
-
-    parent = $("#" + menu.id);
-
-    igv.xhr.loadString(menu.items)
-
-        .then(function (data) {
-            var lines = igv.splitLines(data),
-                len = lines.length,
-                tokens,
-                i;
-
-            for (i = 0; i < len; i++) {
-                tokens = lines[i].split('\t');
-                if (tokens.length > 1) {
-                    parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
-                }
-
-            }
-            parent.selectpicker("refresh");
-        })
-        .catch(function (error) {
-            console.log(error);
-        })
-}
-
 
 const encodeModal = new ModalTable({
     id: "hic-encode-modal",
@@ -558,50 +575,12 @@ const encodeModal = new ModalTable({
 function createEncodeTable(genomeId) {
     const datasource = new EncodeDataSource(genomeId)
     encodeModal.setDatasource(datasource)
-}
 
-
-function loadAnnotationSelector($container, url, type) {
-
-    var elements;
-
-    $container.empty();
-
-    elements = [];
-    elements.push('<option value=' + '-' + '>' + '-' + '</option>');
-
-    igv.xhr
-        .loadString(url)
-        .then(function (data) {
-            var lines = data ? igv.splitLines(data) : [];
-            lines.forEach(function (line) {
-                var tokens = line.split('\t');
-                if (tokens.length > 1 && ("2D" === type || igvSupports(tokens[1]))) {
-                    elements.push('<option value=' + tokens[1] + '>' + tokens[0] + '</option>');
-                }
-            });
-            $container.append(elements.join(''));
-
-        })
-        .catch(function (error) {
-            console.log("Error loading track menu: " + url + "  " + error);
-        })
-}
-
-function igvSupports(path) {
-
-    // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
-    if (path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
-        return false;
-    }
-
-    var config = {url: path};
-    igv.inferTrackTypes(config);
-    return config.type !== undefined;
 
 }
 
 
+export default {init}
 
 
 
