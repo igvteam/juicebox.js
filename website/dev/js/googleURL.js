@@ -21,7 +21,7 @@
  *
  */
 
-import igv from '../../node_modules/igv/dist/igv.esm.js';
+import igv from '../../../js/api.js';
 
 const GoogleURL = function (config) {
     this.api = "https://www.googleapis.com/urlshortener/v1/url";

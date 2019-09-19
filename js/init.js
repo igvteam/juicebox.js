@@ -25,8 +25,8 @@
 import {createBrowser, areCompatible, allBrowsers, setApiKey} from "./hicUtils.js";
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {extractQuery} from "./urlUtils.js"
-import GoogleURL from "../website/js/googleURL.js"
-import BitlyURL from "../website/js/bitlyURL.js"
+import GoogleURL from "../website/dev/js/googleURL.js"
+import BitlyURL from "../website/dev/js/bitlyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
 
 const urlShorteners = [];

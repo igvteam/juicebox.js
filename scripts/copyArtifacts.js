@@ -11,13 +11,9 @@ const fs = require('fs-extra');
 
 fs.copySync(__dirname + '/../dist/juicebox.min.js', __dirname + '/../website/dist/js/juicebox.min.js');
 fs.copySync(__dirname + '/../dist/juicebox.min.js.map', __dirname + '/../website/dist/js/juicebox.min.js.map');
-
 fs.copySync(__dirname + '/../css/juicebox.css', __dirname + '/../dist/css/juicebox.css');
 fs.copySync(__dirname + '/../css/juicebox.css', __dirname + '/../website/dist/css/juicebox.css');
-
 fs.copySync(__dirname + '/../css/img', __dirname + '/../dist/css/img');
 fs.copySync(__dirname + '/../css/img', __dirname + '/../website/dist/css/img');
-
-fs.copySync(__dirname + '/../website/css/site.css', __dirname + '/../website/dist/css/site.css');
-
-fs.copySync(__dirname + '/../website/res', __dirname + '/../website/dist/res');
+fs.copySync(__dirname + '/../website/dev/css/site.css', __dirname + '/../website/dist/css/site.css');
+fs.copySync(__dirname + '/../website/dev/res', __dirname + '/../website/dist/res');

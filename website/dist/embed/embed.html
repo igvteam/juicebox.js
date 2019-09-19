@@ -31,63 +31,44 @@
     <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
     <!-- MS polyfill (pointer -> touch -->
-    <script src="js/touchpolyfill.min.js"></script>
+    <script src="../js/touchpolyfill.min.js"></script>
 
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" type="text/css" href="css/juicebox.css">
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
+
+    <!-- Juicebox JS -->
+    <script src="../js/juicebox.min.js"></script>
 
 </head>
 
 <body>
 
 
-<div id="app-caption" class="juicebox-app-caption-container">
+<div id="app-container" class="juicebox-app-clone-container"></div>
 
-    <!-- app container-->
-    <div id="app-container" class="juicebox-app-clone-container">
-    </div>
 
-<!--    &lt;!&ndash; caption &ndash;&gt;-->
-<!--    <div id="hic-caption" class="hic-caption-container" contenteditable="true">-->
+<script type="text/javascript">
 
-<!--    </div>-->
 
-</div>
+    document.addEventListener("DOMContentLoaded", function () {
 
-</body>
 
-<script type="module">
+        var query = hic.extractQuery(window.location.href);
+        var container = document.getElementById("app-container");
 
-    import hic from "../js/api.js";
+        hic.initApp(container, {})
+            .then(function (ignore) {
+                //hic.updateAllBrowsers()
+            })
 
-    var container = document.getElementById("app-container");
-
-    const config = {
-        urlShortener: [
-            {
-                provider: "bitly",
-                apiKey: "ABCD",        // TODO -- replace with your Bitly access token
-                hostname: 'bit.ly'
-            },
-            {
-                provider: "google",
-                apiKey: "ABCD",        // TODO -- replace with your Google API Key
-                hostname: "goo.gl"
-            }
-
-        ],
-        apiKey: "ABCD"  // TODO set your api key here
-    }
-
-    hic.initApp(container, config)
-        .then(function (ignore) {
-
-        })
+    })
 
 
 </script>
+
+</body>
 
 </html>

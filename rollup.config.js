@@ -76,7 +76,7 @@ export default [
         ]
     },
     {
-        input: 'website/js/site.js',
+        input: 'website/dev/js/site.js',
         output: [
             {file: 'tmp/site-bundle.js', format: 'umd', name: "juicebox"},
         ],

@@ -3,17 +3,5 @@
 .sass-cache
 .idea/workspace.xml
 node_modules
-dist
-
-docs/api.html
-oauth.json
-files
-local
-.idea/jsLibraryMappings.xml
-.idea/libraries
-/.idea/misc.xml
-
 /.idea
-/hic-viz.iml
 *.js.iml
-igv.js
