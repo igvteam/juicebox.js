@@ -46,6 +46,4 @@ function runTrack2DTests() {
             });
 
     })
-
-
 }

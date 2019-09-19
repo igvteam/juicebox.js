@@ -1,7 +1,7 @@
 /*
  *  The MIT License (MIT)
  *
- * Copyright (c) 2019 The Regents of the University of California
+ * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including
@@ -21,7 +21,7 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
+import igv from '../../node_modules/igv/dist/igv.esm.js';
 
 const GoogleURL = function (config) {
     this.api = "https://www.googleapis.com/urlshortener/v1/url";

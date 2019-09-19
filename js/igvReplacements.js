@@ -41,7 +41,7 @@ const igvReplacements = function (igv) {
     };
 
 
-    igv.Alert.presentAlert = function (alert, $parent) {
+    igv.Alert.presentAlert = function (message, $parent) {
 
 
         const httpMessages = {
@@ -50,14 +50,17 @@ const igvReplacements = function (igv) {
             "404": "Not found"
         }
 
-        let string = alert.message || alert;
+        let string = message.message || message;
 
         if (httpMessages.hasOwnProperty(string)) {
             string = httpMessages[string];
         }
 
-        igv.alertDialog.configure({label: string});
-        igv.alertDialog.present($parent);
+        // TODO fix this -- apparently there used to be a global dialog attached to igv
+        //igv.alertDialog.configure({label: string});
+        //igv.alertDialog.present($parent);
+        alert(string);
+
     };
 
 };

@@ -31,7 +31,7 @@ import ScrollbarWidget from './scrollbarWidget.js'
 import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
-import  * as hic from './hic.js'
+import  * as hicUtils from './hicUtils.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const DRAG_THRESHOLD = 2;
@@ -1023,7 +1023,7 @@ function addTouchHandlers($viewport) {
         }
     }
 
-    viewport.ontouchmove = hic.throttle(function (ev) {
+    viewport.ontouchmove = hicUtils.throttle(function (ev) {
 
         var touchCoords1, touchCoords2, t;
 

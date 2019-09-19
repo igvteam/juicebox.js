@@ -20,6 +20,18 @@
  * THE SOFTWARE.
  *
  */
+import State from './hicState.js';
+import ColorScale from "./colorScale.js"
+
+const urlShortcuts = {
+    "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
+    "*s3/": "https://hicfiles.s3.amazonaws.com/",
+    "*s3e_/": "http://hicfiles.s3.amazonaws.com/external/",
+    "*s3_/": "http://hicfiles.s3.amazonaws.com/",
+    "*enc/": "https://www.encodeproject.org/files/"
+}
+
+
 
 /**
  * Extend config properties with query parameters
@@ -81,7 +93,7 @@ function decodeQuery (query, config, uriDecode) {
     }
     if (colorScale) {
         colorScale = paramDecode(colorScale, uriDecode);
-        config.colorScale = hic.destringifyColorScale(colorScale);
+        config.colorScale = destringifyColorScale(colorScale);
     }
 
     if (displayMode) {
@@ -210,4 +222,96 @@ function decodeQuery (query, config, uriDecode) {
 
 }
 
-export {decodeQuery}
+/**
+ * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
+ * to fully % encode parameter values (see RFC3986).
+ *
+ * @param str
+ */
+function paramEncode(str) {
+    var s = replaceAll(str, '&', '%26');
+    s = replaceAll(s, ' ', '+');
+    s = replaceAll(s, "#", "%23");
+    s = replaceAll(s, "?", "%3F");
+    s = replaceAll(s, "=", "%3D");
+    return s;
+}
+
+function paramDecode(str, uriDecode) {
+
+    if (uriDecode) {
+        return decodeURIComponent(str);   // Still more backward compatibility
+    } else {
+        var s = replaceAll(str, '%26', '&');
+        s = replaceAll(s, '%20', ' ');
+        s = replaceAll(s, '+', ' ');
+        s = replaceAll(s, "%7C", "|");
+        s = replaceAll(s, "%23", "#");
+        s = replaceAll(s, "%3F", "?");
+        s = replaceAll(s, "%3D", "=");
+        return s;
+    }
+}
+
+
+function replaceAll(str, target, replacement) {
+    return str.split(target).join(replacement);
+}
+
+function extractQuery(uri) {
+    var i1, i2, i, j, s, query, tokens;
+
+    query = {};
+    i1 = uri.indexOf("?");
+    i2 = uri.lastIndexOf("#");
+
+    if (i1 >= 0) {
+        if (i2 < 0) i2 = uri.length;
+
+        for (i = i1 + 1; i < i2;) {
+
+            j = uri.indexOf("&", i);
+            if (j < 0) j = i2;
+
+            s = uri.substring(i, j);
+            tokens = s.split("=", 2);
+            if (tokens.length === 2) {
+                query[tokens[0]] = tokens[1];
+            }
+
+            i = j + 1;
+        }
+    }
+    return query;
+}
+
+function destringifyColorScale(string) {
+
+    var pnstr, ratioCS;
+
+    if (string.startsWith("R:")) {
+        pnstr = string.substring(2).split(":");
+        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+        ratioCS.positiveScale = foo(pnstr[1]);
+        ratioCS.negativeScale = foo(pnstr[2]);
+        return ratioCS;
+    } else {
+        return foo(string);
+    }
+
+    function foo(str) {
+        var cs, tokens;
+
+        tokens = str.split(",");
+
+        cs = {
+            threshold: tokens[0],
+            r: tokens[1],
+            g: tokens[2],
+            b: tokens[3]
+        };
+        return new ColorScale(cs);
+    }
+}
+
+export {decodeQuery, paramDecode, paramEncode, extractQuery}
