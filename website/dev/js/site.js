@@ -31,8 +31,8 @@
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
-import ModalTable from 'data-modal/js/modalTable.js';
-import EncodeDataSource from 'data-modal/js/encodeDataSource.js';
+import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
 import QRCode from './qrcode.js';
 
 let lastGenomeId;
