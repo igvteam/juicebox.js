@@ -75564,11 +75564,16 @@ async function initApp(container, config) {
         setURLShortener(config.urlShortener);
     }
 
+    let query = {};
 
-    let query = extractQuery$1(window.location.href);
-    query = await expandJuiceboxUrl(query);
-    const b = await createBrowsers(container, query);
+    config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
 
+    if (false === config.queryParametersSupported) ; else {
+        query = extractQuery$1(window.location.href);
+        query = await expandJuiceboxUrl(query);
+    }
+
+    const unused = await createBrowsers(container, query);
     syncBrowsers(allBrowsers$1);
 
 }

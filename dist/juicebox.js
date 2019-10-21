@@ -76194,7 +76194,7 @@ Context.prototype = {
     _initApp = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee(container, config) {
-      var apiKey, query, b;
+      var apiKey, query, unused;
       return regeneratorRuntime.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -76210,20 +76210,34 @@ Context.prototype = {
                 setURLShortener(config.urlShortener);
               }
 
+              query = {};
+              config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
+
+              if (!(false === config.queryParametersSupported)) {
+                _context.next = 8;
+                break;
+              }
+
+              _context.next = 12;
+              break;
+
+            case 8:
               query = extractQuery$1(window.location.href);
-              _context.next = 6;
+              _context.next = 11;
               return expandJuiceboxUrl(query);
 
-            case 6:
+            case 11:
               query = _context.sent;
-              _context.next = 9;
+
+            case 12:
+              _context.next = 14;
               return createBrowsers(container, query);
 
-            case 9:
-              b = _context.sent;
+            case 14:
+              unused = _context.sent;
               syncBrowsers(allBrowsers$1);
 
-            case 11:
+            case 16:
             case "end":
               return _context.stop();
           }

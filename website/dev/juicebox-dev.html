@@ -507,7 +507,7 @@
 
 <script type="module">
 
-    import juicebox from './dev/js/site.js';
+    import juicebox from './js/site.js';
     import hic from '../../js/api.js';
 
     const config = {
@@ -544,6 +544,7 @@
 
         apiKey: "ABCD",   // TODO -- replace with your Google API Key
 
+        queryParametersSupported: false
     };
 
     juicebox.init(document.getElementById('app-container'), config, hic);
