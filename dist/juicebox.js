@@ -75915,7 +75915,7 @@ Context.prototype = {
     var self = this;
     return getApiKey.call(this).then(function (key) {
       var endpoint = self.api + "?key=" + key;
-      return igv$1.xhr.loadJson(endpoint, {
+      return hic$1.xhr.loadJson(endpoint, {
         sendData: JSON.stringify({
           "longUrl": url
         }),
@@ -75933,7 +75933,7 @@ Context.prototype = {
 
       if (url.includes("goo.gl")) {
         endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
-        return igv$1.xhr.loadJson(endpoint, {
+        return hic$1.xhr.loadJson(endpoint, {
           contentType: "application/json"
         }).then(function (json) {
           return json.longUrl;
@@ -76007,7 +76007,7 @@ Context.prototype = {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
+              return hic$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
 
             case 2:
               json = _context2.sent;
@@ -76052,7 +76052,7 @@ Context.prototype = {
               key = _context.sent;
               endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
               _context.next = 9;
-              return igv$1.xhr.loadJson(endpoint, {});
+              return hic$1.igv.xhr.loadJson(endpoint, {});
 
             case 9:
               json = _context.sent;
@@ -76097,7 +76097,7 @@ Context.prototype = {
     var self = this;
     return getApiKey$1.call(this).then(function (key) {
       var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
-      return igv$1.xhr.loadJson(endpoint, {});
+      return hic$1.igv.xhr.loadJson(endpoint, {});
     }).then(function (json) {
       var longUrl = json.data.expand[0].long_url; // Fix some Bitly "normalization"
 
@@ -76168,7 +76168,7 @@ Context.prototype = {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.next = 2;
-              return igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
+              return hic$1.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
 
             case 2:
               json = _context3.sent;
@@ -76446,7 +76446,7 @@ Context.prototype = {
   }
 
   function shortenURL(url) {
-    if (urlShorteners.length > 0) {
+    if (urlShorteners && urlShorteners.length > 0) {
       return urlShorteners[0].shortenURL(url);
     } else {
       return Promise.resolve(url);
@@ -76602,7 +76602,7 @@ Context.prototype = {
    * THE SOFTWARE.
    *
    */
-  var igv$1 = {
+  var hic$1 = {
     createBrowser: createBrowser$1,
     decodeQuery: decodeQuery,
     extractQuery: extractQuery$1,
@@ -76617,7 +76617,7 @@ Context.prototype = {
     igv: api
   };
 
-  return igv$1;
+  return hic$1;
 
 }));
 

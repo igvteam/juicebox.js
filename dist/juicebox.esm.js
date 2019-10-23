@@ -75380,7 +75380,7 @@ GoogleURL.prototype.shortenURL = function (url) {
 
             var endpoint = self.api + "?key=" + key;
 
-            return igv$1.xhr.loadJson(endpoint,
+            return hic$1.xhr.loadJson(endpoint,
                 {
                     sendData: JSON.stringify({"longUrl": url}),
                     contentType: "application/json"
@@ -75405,7 +75405,7 @@ GoogleURL.prototype.expandURL = function (url) {
 
                 endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
 
-                return igv$1.xhr.loadJson(endpoint, {contentType: "application/json"})
+                return hic$1.xhr.loadJson(endpoint, {contentType: "application/json"})
                     .then(function (json) {
                         return json.longUrl;
                     })
@@ -75436,7 +75436,7 @@ async function getApiKey() {
 
 // Example function for fetching an api key.
 async function fetchGoogleApiKey() {
-    const json = await igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
+    const json = await hic$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
     return json["apiKey"];
 
 }
@@ -75460,7 +75460,7 @@ BitlyURL.prototype.shortenURL = async function (url) {
 
         var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
 
-        const json = await igv$1.xhr.loadJson(endpoint, {});
+        const json = await hic$1.igv.xhr.loadJson(endpoint, {});
 
         // TODO check status code
         if (500 === json.status_code) {
@@ -75489,7 +75489,7 @@ BitlyURL.prototype.expandURL = function (url) {
 
             var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
 
-            return igv$1.xhr.loadJson(endpoint, {})
+            return hic$1.igv.xhr.loadJson(endpoint, {})
         })
 
         .then(function (json) {
@@ -75522,7 +75522,7 @@ async function getApiKey$1() {
 
 // Example function for fetching an api key.
 async function fetchBitlyApiKey() {
-    const json = await igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
+    const json = await hic$1.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
     return json["apiKey"];
 
 }
@@ -75724,7 +75724,7 @@ function setURLShortener(shortenerConfigs) {
 
 function shortenURL(url) {
 
-    if (urlShorteners.length > 0) {
+    if (urlShorteners && urlShorteners.length > 0) {
         return urlShorteners[ 0 ].shortenURL(url);
     } else {
         return Promise.resolve(url);
@@ -75841,7 +75841,7 @@ function decompressQueryParameter(enc) {
  *
  */
 
-var igv$1 = {createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
+var hic$1 = {createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
     initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api};
 
-export default igv$1;
+export default hic$1;
