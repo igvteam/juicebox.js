@@ -23,7 +23,7 @@
  *
  */
 
-import igv from '../../../js/api.js';
+import hic from '../../../js/api.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
@@ -44,7 +44,7 @@ BitlyURL.prototype.shortenURL = async function (url) {
 
         var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
 
-        const json = await igv.xhr.loadJson(endpoint, {})
+        const json = await hic.igv.xhr.loadJson(endpoint, {})
 
         // TODO check status code
         if (500 === json.status_code) {
@@ -73,7 +73,7 @@ BitlyURL.prototype.expandURL = function (url) {
 
             var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
 
-            return igv.xhr.loadJson(endpoint, {})
+            return hic.igv.xhr.loadJson(endpoint, {})
         })
 
         .then(function (json) {
@@ -106,7 +106,7 @@ async function getApiKey() {
 
 // Example function for fetching an api key.
 async function fetchBitlyApiKey() {
-    const json = await igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
+    const json = await hic.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
     return json["apiKey"];
 
 }
