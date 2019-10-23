@@ -81,7 +81,8 @@ async function createBrowsers(container, query) {
         q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
         parts = q.split("},{");
 
-        const browser = await createBrowser(container, {queryString: decodeURIComponent(parts[0])})
+        const decoded = decodeURIComponent(parts[0]);
+        const browser = await createBrowser(container, {queryString: decoded})
 
 
         if (parts && parts.length > 1) {
@@ -203,8 +204,9 @@ function setURLShortener(shortenerConfigs) {
 }
 
 function shortenURL(url) {
-    if (urlShorteners) {
-        return urlShorteners[0].shortenURL(url);
+
+    if (urlShorteners && urlShorteners.length > 0) {
+        return urlShorteners[ 0 ].shortenURL(url);
     } else {
         return Promise.resolve(url);
     }
@@ -212,21 +214,49 @@ function shortenURL(url) {
 
 async function shortJuiceboxURL(base) {
 
-    let queryString = "{";
-    allBrowsers.forEach(function (browser, index) {
-        queryString += encodeURIComponent(browser.getQueryString());
-        queryString += (index === allBrowsers.length - 1 ? "}" : "},{");
-    });
-
-    const compressedString = compressQueryParameter(queryString)
-
-    const url = base + "?juiceboxData=" + compressedString
+    const url = `${ base }?${ getCompressedDataString() }`;
 
     if (url.length > 2048) {
+
         return url
     } else {
         return shortenURL(url)
     }
+}
+
+function getCompressedDataString() {
+    return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
+}
+
+function getQueryString() {
+
+    let queryString = "{";
+    allBrowsers.forEach(function (browser, index) {
+        const state = browser.getQueryString();
+        queryString += encodeURIComponent(state);
+        queryString += (index === allBrowsers.length - 1 ? "}" : "},{");
+    });
+
+    return queryString;
+}
+
+function compressQueryParameter(str) {
+
+    var bytes, deflate, compressedBytes, compressedString, enc;
+
+    bytes = [];
+    for (var i = 0; i < str.length; i++) {
+        bytes.push(str.charCodeAt(i));
+    }
+    compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
+    enc = btoa(compressedString);
+    enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
+
+    //console.log(json);
+    //console.log(enc);
+
+    return enc;
 }
 
 function expandURL(url) {
@@ -250,25 +280,6 @@ function expandURL(url) {
     return Promise.resolve(url);
 }
 
-function compressQueryParameter(str) {
-
-    var bytes, deflate, compressedBytes, compressedString, enc;
-
-    bytes = [];
-    for (var i = 0; i < str.length; i++) {
-        bytes.push(str.charCodeAt(i));
-    }
-    compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
-    compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    enc = btoa(compressedString);
-    enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
-
-    //console.log(json);
-    //console.log(enc);
-
-    return enc;
-}
-
 function decompressQueryParameter(enc) {
 
     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
@@ -288,4 +299,4 @@ function decompressQueryParameter(enc) {
     return str;
 }
 
-export {initApp, syncBrowsers, shortJuiceboxURL};
+export {decompressQueryParameter, getCompressedDataString, initApp, syncBrowsers, shortJuiceboxURL};

@@ -75915,7 +75915,7 @@ Context.prototype = {
     var self = this;
     return getApiKey.call(this).then(function (key) {
       var endpoint = self.api + "?key=" + key;
-      return igv$1.xhr.loadJson(endpoint, {
+      return hic$1.xhr.loadJson(endpoint, {
         sendData: JSON.stringify({
           "longUrl": url
         }),
@@ -75933,7 +75933,7 @@ Context.prototype = {
 
       if (url.includes("goo.gl")) {
         endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
-        return igv$1.xhr.loadJson(endpoint, {
+        return hic$1.xhr.loadJson(endpoint, {
           contentType: "application/json"
         }).then(function (json) {
           return json.longUrl;
@@ -76007,7 +76007,7 @@ Context.prototype = {
           switch (_context2.prev = _context2.next) {
             case 0:
               _context2.next = 2;
-              return igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
+              return hic$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
 
             case 2:
               json = _context2.sent;
@@ -76052,7 +76052,7 @@ Context.prototype = {
               key = _context.sent;
               endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
               _context.next = 9;
-              return igv$1.xhr.loadJson(endpoint, {});
+              return hic$1.igv.xhr.loadJson(endpoint, {});
 
             case 9:
               json = _context.sent;
@@ -76097,7 +76097,7 @@ Context.prototype = {
     var self = this;
     return getApiKey$1.call(this).then(function (key) {
       var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
-      return igv$1.xhr.loadJson(endpoint, {});
+      return hic$1.igv.xhr.loadJson(endpoint, {});
     }).then(function (json) {
       var longUrl = json.data.expand[0].long_url; // Fix some Bitly "normalization"
 
@@ -76168,7 +76168,7 @@ Context.prototype = {
           switch (_context3.prev = _context3.next) {
             case 0:
               _context3.next = 2;
-              return igv$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
+              return hic$1.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
 
             case 2:
               json = _context3.sent;
@@ -76255,7 +76255,7 @@ Context.prototype = {
     _createBrowsers = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee2(container, query) {
-      var parts, i, q, _browser, promises, browsers, _browser2;
+      var parts, i, q, decoded, _browser, promises, browsers, _browser2;
 
       return regeneratorRuntime.wrap(function _callee2$(_context2) {
         while (1) {
@@ -76272,23 +76272,24 @@ Context.prototype = {
               }
 
               if (!q) {
-                _context2.next = 16;
+                _context2.next = 17;
                 break;
               }
 
               q = q.substr(1, q.length - 2); // Strip leading and trailing bracket
 
               parts = q.split("},{");
-              _context2.next = 6;
+              decoded = decodeURIComponent(parts[0]);
+              _context2.next = 7;
               return createBrowser$1(container, {
-                queryString: decodeURIComponent(parts[0])
+                queryString: decoded
               });
 
-            case 6:
+            case 7:
               _browser = _context2.sent;
 
               if (!(parts && parts.length > 1)) {
-                _context2.next = 13;
+                _context2.next = 14;
                 break;
               }
 
@@ -76302,24 +76303,24 @@ Context.prototype = {
                 // b.eventBus.subscribe("MapLoad", checkBDropdown);
               }
 
-              _context2.next = 12;
+              _context2.next = 13;
               return Promise.all(promises);
 
-            case 12:
+            case 13:
               browsers = _context2.sent;
 
-            case 13:
+            case 14:
               return _context2.abrupt("return", _browser);
 
-            case 16:
-              _context2.next = 18;
+            case 17:
+              _context2.next = 19;
               return createBrowser$1(container, {});
 
-            case 18:
+            case 19:
               _browser2 = _context2.sent;
               return _context2.abrupt("return", _browser2);
 
-            case 20:
+            case 21:
             case "end":
               return _context2.stop();
           }
@@ -76445,7 +76446,7 @@ Context.prototype = {
   }
 
   function shortenURL(url) {
-    if (urlShorteners) {
+    if (urlShorteners && urlShorteners.length > 0) {
       return urlShorteners[0].shortenURL(url);
     } else {
       return Promise.resolve(url);
@@ -76460,30 +76461,24 @@ Context.prototype = {
     _shortJuiceboxURL = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee4(base) {
-      var queryString, compressedString, url;
+      var url;
       return regeneratorRuntime.wrap(function _callee4$(_context4) {
         while (1) {
           switch (_context4.prev = _context4.next) {
             case 0:
-              queryString = "{";
-              allBrowsers$1.forEach(function (browser, index) {
-                queryString += encodeURIComponent(browser.getQueryString());
-                queryString += index === allBrowsers$1.length - 1 ? "}" : "},{";
-              });
-              compressedString = compressQueryParameter(queryString);
-              url = base + "?juiceboxData=" + compressedString;
+              url = "".concat(base, "?").concat(getCompressedDataString());
 
               if (!(url.length > 2048)) {
-                _context4.next = 8;
+                _context4.next = 5;
                 break;
               }
 
               return _context4.abrupt("return", url);
 
-            case 8:
+            case 5:
               return _context4.abrupt("return", shortenURL(url));
 
-            case 9:
+            case 6:
             case "end":
               return _context4.stop();
           }
@@ -76493,24 +76488,18 @@ Context.prototype = {
     return _shortJuiceboxURL.apply(this, arguments);
   }
 
-  function expandURL(url) {
-    var urlObject = new URL(url),
-        hostname = urlObject.hostname,
-        i,
-        expander;
+  function getCompressedDataString() {
+    return "juiceboxData=".concat(compressQueryParameter(getQueryString()));
+  }
 
-    if (urlShorteners) {
-      for (i = 0; i < urlShorteners.length; i++) {
-        expander = urlShorteners[i];
-
-        if (hostname === expander.hostname) {
-          return expander.expandURL(url);
-        }
-      }
-    }
-
-    api.Alert.presentAlert("No expanders for URL: " + url);
-    return Promise.resolve(url);
+  function getQueryString() {
+    var queryString = "{";
+    allBrowsers$1.forEach(function (browser, index) {
+      var state = browser.getQueryString();
+      queryString += encodeURIComponent(state);
+      queryString += index === allBrowsers$1.length - 1 ? "}" : "},{";
+    });
+    return queryString;
   }
 
   function compressQueryParameter(str) {
@@ -76531,6 +76520,26 @@ Context.prototype = {
     //console.log(enc);
 
     return enc;
+  }
+
+  function expandURL(url) {
+    var urlObject = new URL(url),
+        hostname = urlObject.hostname,
+        i,
+        expander;
+
+    if (urlShorteners) {
+      for (i = 0; i < urlShorteners.length; i++) {
+        expander = urlShorteners[i];
+
+        if (hostname === expander.hostname) {
+          return expander.expandURL(url);
+        }
+      }
+    }
+
+    api.Alert.presentAlert("No expanders for URL: " + url);
+    return Promise.resolve(url);
   }
 
   function decompressQueryParameter(enc) {
@@ -76593,7 +76602,7 @@ Context.prototype = {
    * THE SOFTWARE.
    *
    */
-  var igv$1 = {
+  var hic$1 = {
     createBrowser: createBrowser$1,
     decodeQuery: decodeQuery,
     extractQuery: extractQuery$1,
@@ -76603,10 +76612,12 @@ Context.prototype = {
     initApp: initApp,
     syncBrowsers: syncBrowsers,
     shortJuiceboxURL: shortJuiceboxURL,
+    getCompressedDataString: getCompressedDataString,
+    decompressQueryParameter: decompressQueryParameter,
     igv: api
   };
 
-  return igv$1;
+  return hic$1;
 
 }));
 
