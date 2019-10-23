@@ -205,7 +205,7 @@ function setURLShortener(shortenerConfigs) {
 
 function shortenURL(url) {
 
-    if (urlShorteners.length > 0) {
+    if (urlShorteners && urlShorteners.length > 0) {
         return urlShorteners[ 0 ].shortenURL(url);
     } else {
         return Promise.resolve(url);
