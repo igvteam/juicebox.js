@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "main": "dist/juicebox.min.js",
   "files": [
     "dist/**"
