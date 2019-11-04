@@ -27,6 +27,7 @@ import igv from '../node_modules/igv/dist/igv.esm.js';
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "../website/dev/js/googleURL.js"
 import BitlyURL from "../website/dev/js/bitlyURL.js"
+import TinyURL from "../website/dev/js/tinyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
 
 const urlShorteners = [];
@@ -185,6 +186,9 @@ function setURLShortener(shortenerConfigs) {
 
     function getShortener(shortener) {
         if (shortener.provider) {
+            if(shortener.provider === "tinyURL") {
+                return new TinyURL(shortener);
+            }
             if (shortener.provider === "google") {
                 return new GoogleURL(shortener);
             } else if (shortener.provider === "bitly") {

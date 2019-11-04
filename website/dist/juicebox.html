@@ -659,6 +659,9 @@
             // If more than 1 shortener is defined the first is used to shorten URLs
             urlShortener: [
                 {
+                    provider: 'tinyURL'
+                },
+                {
                     provider: "bitly",
                     apiKey: "ABCD",        // TODO -- replace with your Bitly access token, or function to fetch token
                     hostname: 'bit.ly'

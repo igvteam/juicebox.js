@@ -1,3 +1,5 @@
+
+
 /*
  *  The MIT License (MIT)
  *
@@ -21,15 +23,47 @@
  *
  */
 
-import igv from '../../../js/api.js';
+import hic from '../../../js/api.js';
 
-const GoogleURL = function (config) {
-    this.api = "https://www.googleapis.com/urlshortener/v1/url";
-    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchGoogleApiKey : config.apiKey;
-    this.hostname = config.hostname || "goo.gl";
+var BitlyURL = function (config) {
+    this.api = "https://api-ssl.bitly.com";
+    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchBitlyApiKey : config.apiKey;
+    this.hostname = config.hostname ? config.hostname : "bit.ly";
+    this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
 }
 
-GoogleURL.prototype.shortenURL = function (url) {
+
+BitlyURL.prototype.shortenURL = async function (url) {
+
+    var self = this;
+
+    if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
+
+    try {
+        const key = await getApiKey.call(this)
+
+        var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
+
+        const json = await hic.igv.xhr.loadJson(endpoint, {})
+
+        // TODO check status code
+        if (500 === json.status_code) {
+            alert("Error shortening URL: " + json.status_txt)
+            //igv.Alert.presentAlert("Error shortening URL: " + json.status_txt)
+            return url
+        } else {
+            return json.data.url;
+        }
+    } catch (e) {
+        alert("Error shortening URL: " + e)
+        //igv.Alert.presentAlert("Error shortening URL: " + e)
+        return url
+    }
+
+};
+
+
+BitlyURL.prototype.expandURL = function (url) {
 
     var self = this;
 
@@ -37,45 +71,22 @@ GoogleURL.prototype.shortenURL = function (url) {
 
         .then(function (key) {
 
-            var endpoint = self.api + "?key=" + key;
+            var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
 
-            return igv.xhr.loadJson(endpoint,
-                {
-                    sendData: JSON.stringify({"longUrl": url}),
-                    contentType: "application/json"
-                })
+            return hic.igv.xhr.loadJson(endpoint, {})
         })
+
         .then(function (json) {
-            return json.id;
+
+            var longUrl = json.data.expand[0].long_url;
+
+            // Fix some Bitly "normalization"
+            longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
+
+            return longUrl;
+
         })
 }
-
-
-GoogleURL.prototype.expandURL = function (url) {
-
-    var self = this;
-    return getApiKey.call(this)
-
-        .then(function (apiKey) {
-
-            var endpoint;
-
-            if (url.includes("goo.gl")) {
-
-                endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
-
-                return igv.xhr.loadJson(endpoint, {contentType: "application/json"})
-                    .then(function (json) {
-                        return json.longUrl;
-                    })
-            }
-            else {
-                // Not a google url or no api key
-                return Promise.resolve(url);
-            }
-        })
-}
-
 
 async function getApiKey() {
 
@@ -94,11 +105,10 @@ async function getApiKey() {
 
 
 // Example function for fetching an api key.
-async function fetchGoogleApiKey() {
-    const json = await igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {})
+async function fetchBitlyApiKey() {
+    const json = await hic.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
     return json["apiKey"];
 
 }
 
-
-export default GoogleURL
+export default BitlyURL
