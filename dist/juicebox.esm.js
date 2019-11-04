@@ -11,12 +11,6 @@
  *
  * Date: 2018-01-20T17:24Z
  */
-// Modified for encapsulation in igv module
-// * no exports
-// * no global definition
-// * noConflict not supported (as _ is encapsulated its not needed)
-
-var jQuery;
 
 var arr = [];
 
@@ -94,7 +88,7 @@ function toType(obj) {
         typeof obj;
 }
 
-/* global Symbol */
+// global Symbol
 // Defining this global in .eslintrc.json would create a danger of using the global
 // unguarded in another place, it seems safer to define global only for this module
 
@@ -624,6 +618,7 @@ var Sizzle =
 
             // CSS string/identifier serialization
             // https://drafts.csswg.org/cssom/#common-serializing-idioms
+            // eslint-disable-next-line no-control-regex
             rcssescape = /([\0-\x1f\x7f]|^-?\d)|^-$|[^\0-\x1f\x7f-\uFFFF\w-]/g,
             fcssescape = function (ch, asCodePoint) {
                 if (asCodePoint) {
@@ -2781,7 +2776,8 @@ function nodeName(elem, name) {
 
     return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
 
-}var rsingleTag = (/^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i);
+}
+var rsingleTag = (/^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i);
 
 
 // Implement the identical functionality for filter and not
@@ -9521,6 +9517,7 @@ function makeDraggable(target, handle) {
 
 }
 
+
 function dragStart(event) {
 
     event.stopPropagation();
@@ -9658,7 +9655,7 @@ const MenuUtils = {
                 $e = item.object;
             } else if (typeof item.label === 'string') {
                 $e = $('<div>');
-                $e.text(item.label);
+                $e.html(item.label);
             } else if (typeof item === 'string') {
 
                 if (item.startsWith("<")) {
@@ -9682,6 +9679,7 @@ const MenuUtils = {
                     e.stopPropagation();
                 });
 
+                // eslint-disable-next-line no-inner-declarations
                 function handleClick(e) {
                     item.click();
                     $popover.hide();
@@ -9706,6 +9704,7 @@ function doProvideColoSwatchWidget(track) {
         "variant" === track.type ||
         "wig" === track.type);
 }
+
 
 function visibilityWindowMenuItem(trackView) {
 
@@ -9743,6 +9742,7 @@ function visibilityWindowMenuItem(trackView) {
 
 
 }
+
 function trackRemovalMenuItem(trackView) {
 
     var $e,
@@ -9758,6 +9758,7 @@ function trackRemovalMenuItem(trackView) {
     return {object: $e, click: menuClickHandler};
 
 }
+
 
 function colorPickerMenuItem(trackView) {
     var $e,
@@ -9776,6 +9777,7 @@ function colorPickerMenuItem(trackView) {
     };
 
 }
+
 function trackRenameMenuItem(trackView) {
 
     var $e,
@@ -9812,6 +9814,7 @@ function trackRenameMenuItem(trackView) {
 
 
 }
+
 function trackHeightMenuItem(trackView) {
 
     var $e,
@@ -9869,6 +9872,7 @@ function getTrackLabelText(track) {
 
     return txt;
 }
+
 
 /**
  * Configure item list for contextual (right-click) track popup menu.
@@ -10674,6 +10678,7 @@ function PaletteColorTable  (palette) {
     this.colorGenerator = new RandomColorGenerator();
 
 }
+
 PaletteColorTable.prototype.getColor = function (key) {
 
     if (!this.colorTable.hasOwnProperty(key)) {
@@ -10697,6 +10702,7 @@ function RandomColorGenerator() {
     this.goldenRatio = 0.618033988749895;
     this.hexwidth = 2;
 }
+
 RandomColorGenerator.prototype.hsvToRgb = function (h, s, v) {
     var h_i = Math.floor(h * 6),
         f = h * 6 - h_i,
@@ -10910,13 +10916,13 @@ BinaryHeap.prototype = {
         // To remove a value, we must search through the array to find
         // it.
         for (var i = 0; i < length; i++) {
-            if (this.content[i] != node) continue;
+            if (this.content[i] !== node) continue;
             // When it is found, the process seen in 'pop' is repeated
             // to fill up the hole.
             var end = this.content.pop();
             // If the element we popped was the one we needed to remove,
             // we're done.
-            if (i == length - 1) break;
+            if (i === length - 1) break;
             // Otherwise, we replace the removed element with the popped
             // one, and allow it to float up or sink down as appropriate.
             this.content[i] = end;
@@ -11173,7 +11179,7 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var g = Math.round(random(min, max)).toString(10);
+        var g = Math.round(Math.random(min, max)).toString(10);
 
         return "rgb(" + g + "," + g + "," + g + ")";
     },
@@ -11183,9 +11189,9 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var r = Math.round(random(min, max)).toString(10);
-        var g = Math.round(random(min, max)).toString(10);
-        var b = Math.round(random(min, max)).toString(10);
+        var r = Math.round(Math.random(min, max)).toString(10);
+        var g = Math.round(Math.random(min, max)).toString(10);
+        var b = Math.round(Math.random(min, max)).toString(10);
 
         return "rgb(" + r + "," + g + "," + b + ")";
     },
@@ -11195,14 +11201,19 @@ const IGVColor = {
         min = IGVMath.clamp(min, 0, 255);
         max = IGVMath.clamp(max, 0, 255);
 
-        var r = Math.round(random(min, max)).toString(10);
-        var g = Math.round(random(min, max)).toString(10);
-        var b = Math.round(random(min, max)).toString(10);
+        var r = Math.round(Math.random(min, max)).toString(10);
+        var g = Math.round(Math.random(min, max)).toString(10);
+        var b = Math.round(Math.random(min, max)).toString(10);
 
         return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     },
 
     addAlpha: function (color, alpha) {
+
+        const c = this.colorNameToHex(color);
+        if(c) {
+            color = c;
+        }
 
         var isHex = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(color);
 
@@ -11250,7 +11261,13 @@ const IGVColor = {
 
     darkenLighten: function (color, amt) {
 
-        const src = color.startsWith('rgb(') ? color : IGVColor.hexToRgb(color);
+        let src;
+        let hexColor = this.colorNameToHex(color);
+        if(hexColor) {
+            src  = IGVColor.hexToRgb(hexColor);
+        } else {
+            src = color.startsWith('rgb(') ? color : IGVColor.hexToRgb(color);
+        }
 
         const components = src.replace(")", "").substring(4).split(",");
 
@@ -11260,6 +11277,164 @@ const IGVColor = {
 
         return 'rgb(' + r.toString() + ',' + g.toString() + ',' + b.toString() + ')';
 
+    },
+
+    /**
+     * Convert html/css color name to hex value.  Adapted from https://gist.github.com/mxfh/4719348
+     * @param colorName
+     * @returns {*}
+     */
+    colorNameToHex: function (colorName) { // color list from http://stackoverflow.com/q/1573053/731179  with added gray/gray
+        const definedColorNames = {
+            "aliceblue": "#f0f8ff",
+            "antiquewhite": "#faebd7",
+            "aqua": "#00ffff",
+            "aquamarine": "#7fffd4",
+            "azure": "#f0ffff",
+            "beige": "#f5f5dc",
+            "bisque": "#ffe4c4",
+            "black": "#000000",
+            "blanchedalmond": "#ffebcd",
+            "blue": "#0000ff",
+            "blueviolet": "#8a2be2",
+            "brown": "#a52a2a",
+            "burlywood": "#deb887",
+            "cadetblue": "#5f9ea0",
+            "chartreuse": "#7fff00",
+            "chocolate": "#d2691e",
+            "coral": "#ff7f50",
+            "cornflowerblue": "#6495ed",
+            "cornsilk": "#fff8dc",
+            "crimson": "#dc143c",
+            "cyan": "#00ffff",
+            "darkblue": "#00008b",
+            "darkcyan": "#008b8b",
+            "darkgoldenrod": "#b8860b",
+            "darkgray": "#a9a9a9",
+            "darkgreen": "#006400",
+            "darkkhaki": "#bdb76b",
+            "darkmagenta": "#8b008b",
+            "darkolivegreen": "#556b2f",
+            "darkorange": "#ff8c00",
+            "darkorchid": "#9932cc",
+            "darkred": "#8b0000",
+            "darksalmon": "#e9967a",
+            "darkseagreen": "#8fbc8f",
+            "darkslateblue": "#483d8b",
+            "darkslategray": "#2f4f4f",
+            "darkturquoise": "#00ced1",
+            "darkviolet": "#9400d3",
+            "deeppink": "#ff1493",
+            "deepskyblue": "#00bfff",
+            "dimgray": "#696969",
+            "dodgerblue": "#1e90ff",
+            "firebrick": "#b22222",
+            "floralwhite": "#fffaf0",
+            "forestgreen": "#228b22",
+            "fuchsia": "#ff00ff",
+            "gainsboro": "#dcdcdc",
+            "ghostwhite": "#f8f8ff",
+            "gold": "#ffd700",
+            "goldenrod": "#daa520",
+            "gray": "#808080",
+            "green": "#008000",
+            "greenyellow": "#adff2f",
+            "honeydew": "#f0fff0",
+            "hotpink": "#ff69b4",
+            "indianred ": "#cd5c5c",
+            "indigo ": "#4b0082",
+            "ivory": "#fffff0",
+            "khaki": "#f0e68c",
+            "lavender": "#e6e6fa",
+            "lavenderblush": "#fff0f5",
+            "lawngreen": "#7cfc00",
+            "lemonchiffon": "#fffacd",
+            "lightblue": "#add8e6",
+            "lightcoral": "#f08080",
+            "lightcyan": "#e0ffff",
+            "lightgoldenrodyellow": "#fafad2",
+            "lightgrey": "#d3d3d3",
+            "lightgreen": "#90ee90",
+            "lightpink": "#ffb6c1",
+            "lightsalmon": "#ffa07a",
+            "lightseagreen": "#20b2aa",
+            "lightskyblue": "#87cefa",
+            "lightslategray": "#778899",
+            "lightsteelblue": "#b0c4de",
+            "lightyellow": "#ffffe0",
+            "lime": "#00ff00",
+            "limegreen": "#32cd32",
+            "linen": "#faf0e6",
+            "magenta": "#ff00ff",
+            "maroon": "#800000",
+            "mediumaquamarine": "#66cdaa",
+            "mediumblue": "#0000cd",
+            "mediumorchid": "#ba55d3",
+            "mediumpurple": "#9370d8",
+            "mediumseagreen": "#3cb371",
+            "mediumslateblue": "#7b68ee",
+            "mediumspringgreen": "#00fa9a",
+            "mediumturquoise": "#48d1cc",
+            "mediumvioletred": "#c71585",
+            "midnightblue": "#191970",
+            "mintcream": "#f5fffa",
+            "mistyrose": "#ffe4e1",
+            "moccasin": "#ffe4b5",
+            "navajowhite": "#ffdead",
+            "navy": "#000080",
+            "oldlace": "#fdf5e6",
+            "olive": "#808000",
+            "olivedrab": "#6b8e23",
+            "orange": "#ffa500",
+            "orangered": "#ff4500",
+            "orchid": "#da70d6",
+            "palegoldenrod": "#eee8aa",
+            "palegreen": "#98fb98",
+            "paleturquoise": "#afeeee",
+            "palevioletred": "#d87093",
+            "papayawhip": "#ffefd5",
+            "peachpuff": "#ffdab9",
+            "peru": "#cd853f",
+            "pink": "#ffc0cb",
+            "plum": "#dda0dd",
+            "powderblue": "#b0e0e6",
+            "purple": "#800080",
+            "red": "#ff0000",
+            "rosybrown": "#bc8f8f",
+            "royalblue": "#4169e1",
+            "saddlebrown": "#8b4513",
+            "salmon": "#fa8072",
+            "sandybrown": "#f4a460",
+            "seagreen": "#2e8b57",
+            "seashell": "#fff5ee",
+            "sienna": "#a0522d",
+            "silver": "#c0c0c0",
+            "skyblue": "#87ceeb",
+            "slateblue": "#6a5acd",
+            "slategray": "#708090",
+            "snow": "#fffafa",
+            "springgreen": "#00ff7f",
+            "steelblue": "#4682b4",
+            "tan": "#d2b48c",
+            "teal": "#008080",
+            "thistle": "#d8bfd8",
+            "tomato": "#ff6347",
+            "turquoise": "#40e0d0",
+            "violet": "#ee82ee",
+            "wheat": "#f5deb3",
+            "white": "#ffffff",
+            "whitesmoke": "#f5f5f5",
+            "yellow": "#ffff00",
+            "yellowgreen": "#9acd32",
+            "darkgrey": "#a9a9a9",
+            "darkslategrey": "#2f4f4f",
+            "dimgrey": "#696969",
+            "grey": "#808080",
+            "lightgray": "#d3d3d3",
+            "lightslategrey": "#778899",
+            "slategrey": "#708090"
+        };
+        return definedColorNames[colorName];
     }
 };
 
@@ -11276,6 +11451,7 @@ function attachDialogCloseHandlerWithParent($parent, closeHandler) {
         closeHandler();
     });
 }
+
 function createColorSwatchSelector($genericContainer, colorHandler, defaultColor) {
 
     let appleColors = Object.values(appleCrayonPalette);
@@ -11358,6 +11534,7 @@ function translateMouseCoordinates(e, target) {
 
     return {x: posx, y: posy}
 }
+
 
 function guid  () {
     return ("0000" + (Math.random() * Math.pow(36, 4) << 0).toString(36)).slice(-4);
@@ -11552,7 +11729,7 @@ const extend = function (parent, child) {
 function isSimpleType(value) {
     const simpleTypes = new Set(["boolean", "number", "string", "symbol"]);
     const valueType = typeof value;
-    return (value != undefined && (simpleTypes.has(valueType) || value.substring || value.toFixed))
+    return (value !== undefined && (simpleTypes.has(valueType) || value.substring || value.toFixed))
 }
 
 const buildOptions = function (config, options) {
@@ -11812,11 +11989,11 @@ const Cytoband = function (start, end, name, typestain) {
     this.stain = 0;
 
     // Set the type, either p, n, or c
-    if (typestain == 'acen') {
+    if (typestain === 'acen') {
         this.type = 'c';
     } else {
         this.type = typestain.charAt(1);
-        if (this.type == 'p') {
+        if (this.type === 'p') {
             this.stain = parseInt(typestain.substring(4));
         }
     }
@@ -11826,6 +12003,7 @@ const Cytoband = function (start, end, name, typestain) {
  * @fileoverview Zlib namespace. Zlib の仕様に準拠した圧縮は Zlib.Deflate で実装
  * されている. これは Inflate との共存を考慮している為.
  */
+const ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE$1 = 65000;
 
 var Zlib = {
   Huffman: {},
@@ -12048,11 +12226,11 @@ Zlib.Zip.prototype.compress = function() {
   for (i = 0, il = files.length; i < il; ++i) {
     file = files[i];
     filenameLength =
-      (file.option['filename']) ? file.option['filename'].length : 0;
+        (file.option['filename']) ? file.option['filename'].length : 0;
     extraFieldLength =
-      (file.option['extraField']) ? file.option['extraField'].length : 0;
+        (file.option['extraField']) ? file.option['extraField'].length : 0;
     commentLength =
-      (file.option['comment']) ? file.option['comment'].length : 0;
+        (file.option['comment']) ? file.option['comment'].length : 0;
 
     // 圧縮されていなかったら圧縮
     if (!file.compressed) {
@@ -12086,8 +12264,8 @@ Zlib.Zip.prototype.compress = function() {
 
       for (j = 0; j < 12; ++j) {
         buffer[j] = this.encode(
-          key,
-          i === 11 ? (file.crc32 & 0xff) : (Math.random() * 256 | 0)
+            key,
+            i === 11 ? (file.crc32 & 0xff) : (Math.random() * 256 | 0)
         );
       }
 
@@ -12100,20 +12278,20 @@ Zlib.Zip.prototype.compress = function() {
 
     // 必要バッファサイズの計算
     localFileSize +=
-      // local file header
-      30 + filenameLength +
-      // file data
-      file.buffer.length;
+        // local file header
+        30 + filenameLength +
+        // file data
+        file.buffer.length;
 
     centralDirectorySize +=
-      // file header
-      46 + filenameLength + commentLength;
+        // file header
+        46 + filenameLength + commentLength;
   }
 
   // end of central directory
   endOfCentralDirectorySize = 22 + (this.comment ? this.comment.length : 0);
   output = new ( Uint8Array )(
-    localFileSize + centralDirectorySize + endOfCentralDirectorySize
+      localFileSize + centralDirectorySize + endOfCentralDirectorySize
   );
   op1 = 0;
   op2 = localFileSize;
@@ -12123,10 +12301,10 @@ Zlib.Zip.prototype.compress = function() {
   for (i = 0, il = files.length; i < il; ++i) {
     file = files[i];
     filenameLength =
-      file.option['filename'] ? file.option['filename'].length :  0;
+        file.option['filename'] ? file.option['filename'].length :  0;
     extraFieldLength = 0; // TODO
     commentLength =
-      file.option['comment'] ? file.option['comment'].length : 0;
+        file.option['comment'] ? file.option['comment'].length : 0;
 
     //-------------------------------------------------------------------------
     // local file header & file header
@@ -12150,9 +12328,9 @@ Zlib.Zip.prototype.compress = function() {
     needVersion = 20;
     output[op2++] = needVersion & 0xff;
     output[op2++] =
-      /** @type {Zlib.Zip.OperatingSystem} */
-      (file.option['os']) ||
-      Zlib.Zip.OperatingSystem.MSDOS;
+        /** @type {Zlib.Zip.OperatingSystem} */
+        (file.option['os']) ||
+        Zlib.Zip.OperatingSystem.MSDOS;
 
     // need version
     output[op1++] = output[op2++] =  needVersion       & 0xff;
@@ -12168,26 +12346,26 @@ Zlib.Zip.prototype.compress = function() {
 
     // compression method
     compressionMethod =
-      /** @type {Zlib.Zip.CompressionMethod} */
-      (file.option['compressionMethod']);
+        /** @type {Zlib.Zip.CompressionMethod} */
+        (file.option['compressionMethod']);
     output[op1++] = output[op2++] =  compressionMethod       & 0xff;
     output[op1++] = output[op2++] = (compressionMethod >> 8) & 0xff;
 
     // date
     date = /** @type {(Date|undefined)} */(file.option['date']) || new Date();
     output[op1++] = output[op2++] =
-      ((date.getMinutes() & 0x7) << 5) |
-      (date.getSeconds() / 2 | 0);
+        ((date.getMinutes() & 0x7) << 5) |
+        (date.getSeconds() / 2 | 0);
     output[op1++] = output[op2++] =
-      (date.getHours()   << 3) |
-      (date.getMinutes() >> 3);
+        (date.getHours()   << 3) |
+        (date.getMinutes() >> 3);
     //
     output[op1++] = output[op2++] =
-      ((date.getMonth() + 1 & 0x7) << 5) |
-      (date.getDate());
+        ((date.getMonth() + 1 & 0x7) << 5) |
+        (date.getDate());
     output[op1++] = output[op2++] =
-      ((date.getFullYear() - 1980 & 0x7f) << 1) |
-      (date.getMonth() + 1 >> 3);
+        ((date.getFullYear() - 1980 & 0x7f) << 1) |
+        (date.getMonth() + 1 >> 3);
 
     // CRC-32
     crc32 = file.crc32;
@@ -12381,7 +12559,7 @@ Zlib.Zip.prototype.encode = function(key, n) {
 Zlib.Zip.prototype.updateKeys = function(key, n) {
   key[0] = Zlib.CRC32.single(key[0], n);
   key[1] =
-    (((((key[1] + (key[0] & 0xff)) * 20173 >>> 0) * 6681) >>> 0) + 1) >>> 0;
+      (((((key[1] + (key[0] & 0xff)) * 20173 >>> 0) * 6681) >>> 0) + 1) >>> 0;
   key[2] = Zlib.CRC32.single(key[2], key[1] >>> 24);
 };
 
@@ -12566,11 +12744,11 @@ Zlib.RawInflate = function(input, opt_params) {
     case Zlib.RawInflate.BufferType.BLOCK:
       this.op = Zlib.RawInflate.MaxBackwardLength;
       this.output =
-        new ( Uint8Array )(
-          Zlib.RawInflate.MaxBackwardLength +
-          this.bufferSize +
-          Zlib.RawInflate.MaxCopyLength
-        );
+          new ( Uint8Array )(
+              Zlib.RawInflate.MaxBackwardLength +
+              this.bufferSize +
+              Zlib.RawInflate.MaxCopyLength
+          );
       break;
     case Zlib.RawInflate.BufferType.ADAPTIVE:
       this.op = 0;
@@ -12694,10 +12872,10 @@ Zlib.RawInflate.FixedLiteralLengthTable = (function(table) {
 
   for (i = 0, il = lengths.length; i < il; ++i) {
     lengths[i] =
-      (i <= 143) ? 8 :
-      (i <= 255) ? 9 :
-      (i <= 279) ? 7 :
-      8;
+        (i <= 143) ? 8 :
+            (i <= 255) ? 9 :
+                (i <= 279) ? 7 :
+                    8;
   }
 
   return buildHuffmanTable(lengths);
@@ -12736,19 +12914,19 @@ Zlib.RawInflate.prototype.parseBlock = function() {
   // BTYPE
   hdr >>>= 1;
   switch (hdr) {
-    // uncompressed
+      // uncompressed
     case 0:
       this.parseUncompressedBlock();
       break;
-    // fixed huffman
+      // fixed huffman
     case 1:
       this.parseFixedHuffmanBlock();
       break;
-    // dynamic huffman
+      // dynamic huffman
     case 2:
       this.parseDynamicHuffmanBlock();
       break;
-    // reserved or other
+      // reserved or other
     default:
       throw new Error('unknown BTYPE: ' + hdr);
   }
@@ -12928,14 +13106,14 @@ Zlib.RawInflate.prototype.parseFixedHuffmanBlock = function() {
   switch (this.bufferType) {
     case Zlib.RawInflate.BufferType.ADAPTIVE:
       this.decodeHuffmanAdaptive(
-        Zlib.RawInflate.FixedLiteralLengthTable,
-        Zlib.RawInflate.FixedDistanceTable
+          Zlib.RawInflate.FixedLiteralLengthTable,
+          Zlib.RawInflate.FixedDistanceTable
       );
       break;
     case Zlib.RawInflate.BufferType.BLOCK:
       this.decodeHuffmanBlock(
-        Zlib.RawInflate.FixedLiteralLengthTable,
-        Zlib.RawInflate.FixedDistanceTable
+          Zlib.RawInflate.FixedLiteralLengthTable,
+          Zlib.RawInflate.FixedDistanceTable
       );
       break;
     default:
@@ -12955,7 +13133,7 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   var hclen = this.readBits(4) + 4;
   /** @type {!(Uint8Array|Array.<number>)} code lengths. */
   var codeLengths =
-    new ( Uint8Array )(Zlib.RawInflate.Order.length);
+      new ( Uint8Array )(Zlib.RawInflate.Order.length);
   /** @type {!Array} code lengths table. */
   var codeLengthsTable;
   /** @type {!(Uint8Array|Array.<number>)} literal and length code table. */
@@ -13008,9 +13186,9 @@ Zlib.RawInflate.prototype.parseDynamicHuffmanBlock = function() {
   }
 
   litlenTable =  buildHuffmanTable(lengthTable.subarray(0, hlit))
-    ;
+      ;
   distTable =  buildHuffmanTable(lengthTable.subarray(hlit))
-    ;
+      ;
 
   switch (this.bufferType) {
     case Zlib.RawInflate.BufferType.ADAPTIVE:
@@ -13174,9 +13352,9 @@ Zlib.RawInflate.prototype.decodeHuffmanAdaptive = function(litlen, dist) {
 Zlib.RawInflate.prototype.expandBufferBlock = function(opt_param) {
   /** @type {!(Array.<number>|Uint8Array)} store buffer. */
   var buffer =
-    new ( Uint8Array )(
-        this.op - Zlib.RawInflate.MaxBackwardLength
-    );
+      new ( Uint8Array )(
+          this.op - Zlib.RawInflate.MaxBackwardLength
+      );
   /** @type {number} backward base point */
   var backward = this.op - Zlib.RawInflate.MaxBackwardLength;
 
@@ -13193,7 +13371,7 @@ Zlib.RawInflate.prototype.expandBufferBlock = function(opt_param) {
   // copy to backward buffer
   {
     output.set(
-      output.subarray(backward, backward + Zlib.RawInflate.MaxBackwardLength)
+        output.subarray(backward, backward + Zlib.RawInflate.MaxBackwardLength)
     );
   }
 
@@ -13234,11 +13412,11 @@ Zlib.RawInflate.prototype.expandBufferAdaptive = function(opt_param) {
   // calculate new buffer size
   if (ratio < 2) {
     maxHuffCode =
-      (input.length - this.ip) / this.currentLitlenTable[2];
+        (input.length - this.ip) / this.currentLitlenTable[2];
     maxInflateSize = (maxHuffCode / 2 * 258) | 0;
     newSize = maxInflateSize < output.length ?
-      output.length + maxInflateSize :
-      output.length << 1;
+        output.length + maxInflateSize :
+        output.length << 1;
   } else {
     newSize = output.length * ratio;
   }
@@ -13282,7 +13460,7 @@ Zlib.RawInflate.prototype.concatBufferBlock = function() {
 
   // single buffer
   if (blocks.length === 0) {
-    return       this.output.subarray(Zlib.RawInflate.MaxBackwardLength, this.op) ;
+    return         this.output.subarray(Zlib.RawInflate.MaxBackwardLength, this.op) ;
   }
 
   // copy to buffer
@@ -13343,7 +13521,7 @@ Zlib.RawInflateStream = function(input, ip, opt_buffersize) {
   this.blocks = [];
   /** @type {number} block size. */
   this.bufferSize =
-    opt_buffersize ? opt_buffersize : ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE;
+      opt_buffersize ? opt_buffersize : ZLIB_STREAM_RAW_INFLATE_BUFFER_SIZE$1;
   /** @type {!number} total output buffer pointer. */
   this.totalpos = 0;
   /** @type {!number} input buffer pointer. */
@@ -13425,14 +13603,14 @@ Zlib.RawInflateStream.prototype.decompress = function(newInput, ip) {
   // decompress
   while (!stop) {
     switch (this.status) {
-      // block header
+        // block header
       case Zlib.RawInflateStream.Status.INITIALIZED:
       case Zlib.RawInflateStream.Status.BLOCK_HEADER_START:
         if (this.readBlockHeader() < 0) {
           stop = true;
         }
         break;
-      // block body
+        // block body
       case Zlib.RawInflateStream.Status.BLOCK_HEADER_END: /* FALLTHROUGH */
       case Zlib.RawInflateStream.Status.BLOCK_BODY_START:
         switch(this.currentBlockType) {
@@ -13453,7 +13631,7 @@ Zlib.RawInflateStream.prototype.decompress = function(newInput, ip) {
             break;
         }
         break;
-      // decode data
+        // decode data
       case Zlib.RawInflateStream.Status.BLOCK_BODY_END:
       case Zlib.RawInflateStream.Status.DECODE_BLOCK_START:
         switch(this.currentBlockType) {
@@ -13569,10 +13747,10 @@ Zlib.RawInflateStream.FixedLiteralLengthTable = (function(table) {
 
   for (i = 0, il = lengths.length; i < il; ++i) {
     lengths[i] =
-      (i <= 143) ? 8 :
-      (i <= 255) ? 9 :
-      (i <= 279) ? 7 :
-      8;
+        (i <= 143) ? 8 :
+            (i <= 255) ? 9 :
+                (i <= 279) ? 7 :
+                    8;
   }
 
   return buildHuffmanTable(lengths);
@@ -13842,7 +14020,7 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
   var hclen;
   /** @type {!(Uint8Array|Array)} code lengths. */
   var codeLengths =
-    new ( Uint8Array )(Zlib.RawInflateStream.Order.length);
+      new ( Uint8Array )(Zlib.RawInflateStream.Order.length);
   /** @type {!Array} code lengths table. */
   var codeLengthsTable;
 
@@ -13925,9 +14103,9 @@ Zlib.RawInflateStream.prototype.parseDynamicHuffmanBlock = function() {
     }
 
     this.litlenTable =  buildHuffmanTable(lengthTable.subarray(0, hlit))
-      ;
+        ;
     this.distTable =  buildHuffmanTable(lengthTable.subarray(hlit))
-      ;
+        ;
   }
 
   this.status = Zlib.RawInflateStream.Status.BLOCK_BODY_END;
@@ -14074,11 +14252,11 @@ Zlib.RawInflateStream.prototype.expandBuffer = function(opt_param) {
   // calculate new buffer size
   if (ratio < 2) {
     maxHuffCode =
-      (input.length - this.ip) / this.litlenTable[2];
+        (input.length - this.ip) / this.litlenTable[2];
     maxInflateSize = (maxHuffCode / 2 * 258) | 0;
     newSize = maxInflateSize < output.length ?
-      output.length + maxInflateSize :
-      output.length << 1;
+        output.length + maxInflateSize :
+        output.length << 1;
   } else {
     newSize = output.length * ratio;
   }
@@ -14112,7 +14290,7 @@ Zlib.RawInflateStream.prototype.concatBuffer = function() {
     }
   } else {
     buffer =
-       this.output.subarray(this.sp, op) ;
+         this.output.subarray(this.sp, op) ;
   }
 
   this.sp = op;
@@ -14223,8 +14401,8 @@ Zlib.Inflate.prototype.decompress = function() {
   // verify adler-32
   if (this.verify) {
     adler32 = (
-      input[this.ip++] << 24 | input[this.ip++] << 16 |
-      input[this.ip++] << 8 | input[this.ip++]
+        input[this.ip++] << 24 | input[this.ip++] << 16 |
+        input[this.ip++] << 8 | input[this.ip++]
     ) >>> 0;
 
     if (adler32 !== Zlib.Adler32(buffer)) {
@@ -14284,7 +14462,7 @@ Zlib.InflateStream.prototype.decompress = function(input) {
   buffer = this.rawinflate.decompress(this.input, this.ip);
   if (this.rawinflate.ip !== 0) {
     this.input = 
-      this.input.subarray(this.rawinflate.ip) ;
+        this.input.subarray(this.rawinflate.ip) ;
     this.ip = 0;
   }
 
@@ -14437,9 +14615,9 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // modification time
   mtime = (input[ip++])       |
-          (input[ip++] << 8)  |
-          (input[ip++] << 16) |
-          (input[ip++] << 24);
+      (input[ip++] << 8)  |
+      (input[ip++] << 16) |
+      (input[ip++] << 24);
   member.mtime = new Date(mtime * 1000);
 
   // extra flags
@@ -14481,7 +14659,7 @@ Zlib.Gunzip.prototype.decodeMember = function() {
   // isize を事前に取得すると展開後のサイズが分かるため、
   // inflate処理のバッファサイズが事前に分かり、高速になる
   isize = (input[input.length - 4])       | (input[input.length - 3] << 8) |
-          (input[input.length - 2] << 16) | (input[input.length - 1] << 24);
+      (input[input.length - 2] << 16) | (input[input.length - 1] << 24);
 
   // isize の妥当性チェック
   // ハフマン符号では最小 2-bit のため、最大で 1/4 になる
@@ -14500,8 +14678,8 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // crc32
   member.crc32 = crc32 =
-    ((input[ip++])       | (input[ip++] << 8) |
-     (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
+      ((input[ip++])       | (input[ip++] << 8) |
+          (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
   if (Zlib.CRC32.calc(inflated) !== crc32) {
     throw new Error('invalid CRC-32 checksum: 0x' +
         Zlib.CRC32.calc(inflated).toString(16) + ' / 0x' + crc32.toString(16));
@@ -14509,8 +14687,8 @@ Zlib.Gunzip.prototype.decodeMember = function() {
 
   // input size
   member.isize = isize =
-    ((input[ip++])       | (input[ip++] << 8) |
-     (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
+      ((input[ip++])       | (input[ip++] << 8) |
+          (input[ip++] << 16) | (input[ip++] << 24)) >>> 0;
   if ((inflated.length & 0xffffffff) !== isize) {
     throw new Error('invalid input size: ' +
         (inflated.length & 0xffffffff) + ' / ' + isize);
@@ -14685,7 +14863,7 @@ Zlib.Gzip.prototype.compress = function() {
   var il;
   /** @type {!(Array|Uint8Array)} output buffer. */
   var output =
-    new ( Uint8Array )(Zlib.Gzip.DefaultBufferSize);
+      new ( Uint8Array )(Zlib.Gzip.DefaultBufferSize);
   /** @type {number} output buffer pointer. */
   var op = 0;
 
@@ -14888,7 +15066,7 @@ Zlib.Heap.prototype.push = function(index, value) {
       heap[parent + 1] = swap;
 
       current = parent;
-    // 入れ替えが必要なくなったらそこで抜ける
+      // 入れ替えが必要なくなったらそこで抜ける
     } else {
       break;
     }
@@ -14980,7 +15158,7 @@ Zlib.RawDeflate = function(input, opt_params) {
   this.freqsDist;
   /** @type {!(Array.<number>|Uint8Array)} */
   this.input =
-    ( input instanceof Array) ? new Uint8Array(input) : input;
+      ( input instanceof Array) ? new Uint8Array(input) : input;
   /** @type {!(Array.<number>|Uint8Array)} output output buffer. */
   this.output;
   /** @type {number} pos output buffer position. */
@@ -14996,8 +15174,8 @@ Zlib.RawDeflate = function(input, opt_params) {
     }
     if (opt_params['outputBuffer']) {
       this.output =
-        ( opt_params['outputBuffer'] instanceof Array) ?
-        new Uint8Array(opt_params['outputBuffer']) : opt_params['outputBuffer'];
+          ( opt_params['outputBuffer'] instanceof Array) ?
+              new Uint8Array(opt_params['outputBuffer']) : opt_params['outputBuffer'];
     }
     if (typeof opt_params['outputIndex'] === 'number') {
       this.op = opt_params['outputIndex'];
@@ -15097,7 +15275,7 @@ Zlib.RawDeflate.prototype.compress = function() {
       // each 65535-Byte (length header: 16-bit)
       for (position = 0, length = input.length; position < length;) {
         blockArray = 
-          input.subarray(position, position + 0xffff) ;
+            input.subarray(position, position + 0xffff) ;
         position += blockArray.length;
         this.makeNocompressBlock(blockArray, (position === length));
       }
@@ -15124,53 +15302,53 @@ Zlib.RawDeflate.prototype.compress = function() {
  * @return {!(Array.<number>|Uint8Array)} 非圧縮ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeNocompressBlock =
-function(blockArray, isFinalBlock) {
-  /** @type {number} */
-  var bfinal;
-  /** @type {Zlib.RawDeflate.CompressionType} */
-  var btype;
-  /** @type {number} */
-  var len;
-  /** @type {number} */
-  var nlen;
+    function(blockArray, isFinalBlock) {
+      /** @type {number} */
+      var bfinal;
+      /** @type {Zlib.RawDeflate.CompressionType} */
+      var btype;
+      /** @type {number} */
+      var len;
+      /** @type {number} */
+      var nlen;
 
-  var output = this.output;
-  var op = this.op;
+      var output = this.output;
+      var op = this.op;
 
-  // expand buffer
-  {
-    output = new Uint8Array(this.output.buffer);
-    while (output.length <= op + blockArray.length + 5) {
-      output = new Uint8Array(output.length << 1);
-    }
-    output.set(this.output);
-  }
+      // expand buffer
+      {
+        output = new Uint8Array(this.output.buffer);
+        while (output.length <= op + blockArray.length + 5) {
+          output = new Uint8Array(output.length << 1);
+        }
+        output.set(this.output);
+      }
 
-  // header
-  bfinal = isFinalBlock ? 1 : 0;
-  btype = Zlib.RawDeflate.CompressionType.NONE;
-  output[op++] = (bfinal) | (btype << 1);
+      // header
+      bfinal = isFinalBlock ? 1 : 0;
+      btype = Zlib.RawDeflate.CompressionType.NONE;
+      output[op++] = (bfinal) | (btype << 1);
 
-  // length
-  len = blockArray.length;
-  nlen = (~len + 0x10000) & 0xffff;
-  output[op++] =          len & 0xff;
-  output[op++] =  (len >>> 8) & 0xff;
-  output[op++] =         nlen & 0xff;
-  output[op++] = (nlen >>> 8) & 0xff;
+      // length
+      len = blockArray.length;
+      nlen = (~len + 0x10000) & 0xffff;
+      output[op++] =          len & 0xff;
+      output[op++] =  (len >>> 8) & 0xff;
+      output[op++] =         nlen & 0xff;
+      output[op++] = (nlen >>> 8) & 0xff;
 
-  // copy buffer
-  {
-     output.set(blockArray, op);
-     op += blockArray.length;
-     output = output.subarray(0, op);
-  }
+      // copy buffer
+      {
+        output.set(blockArray, op);
+        op += blockArray.length;
+        output = output.subarray(0, op);
+      }
 
-  this.op = op;
-  this.output = output;
+      this.op = op;
+      this.output = output;
 
-  return output;
-};
+      return output;
+    };
 
 /**
  * 固定ハフマンブロックの作成
@@ -15179,29 +15357,29 @@ function(blockArray, isFinalBlock) {
  * @return {!(Array.<number>|Uint8Array)} 固定ハフマン符号化ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeFixedHuffmanBlock =
-function(blockArray, isFinalBlock) {
-  /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(
-    new Uint8Array(this.output.buffer) , this.op);
-  /** @type {number} */
-  var bfinal;
-  /** @type {Zlib.RawDeflate.CompressionType} */
-  var btype;
-  /** @type {!(Array.<number>|Uint16Array)} */
-  var data;
+    function(blockArray, isFinalBlock) {
+      /** @type {Zlib.BitStream} */
+      var stream = new Zlib.BitStream(
+          new Uint8Array(this.output.buffer) , this.op);
+      /** @type {number} */
+      var bfinal;
+      /** @type {Zlib.RawDeflate.CompressionType} */
+      var btype;
+      /** @type {!(Array.<number>|Uint16Array)} */
+      var data;
 
-  // header
-  bfinal = isFinalBlock ? 1 : 0;
-  btype = Zlib.RawDeflate.CompressionType.FIXED;
+      // header
+      bfinal = isFinalBlock ? 1 : 0;
+      btype = Zlib.RawDeflate.CompressionType.FIXED;
 
-  stream.writeBits(bfinal, 1, true);
-  stream.writeBits(btype, 2, true);
+      stream.writeBits(bfinal, 1, true);
+      stream.writeBits(btype, 2, true);
 
-  data = this.lz77(blockArray);
-  this.fixedHuffman(data, stream);
+      data = this.lz77(blockArray);
+      this.fixedHuffman(data, stream);
 
-  return stream.finish();
-};
+      return stream.finish();
+    };
 
 /**
  * 動的ハフマンブロックの作成
@@ -15210,121 +15388,121 @@ function(blockArray, isFinalBlock) {
  * @return {!(Array.<number>|Uint8Array)} 動的ハフマン符号ブロック byte array.
  */
 Zlib.RawDeflate.prototype.makeDynamicHuffmanBlock =
-function(blockArray, isFinalBlock) {
-  /** @type {Zlib.BitStream} */
-  var stream = new Zlib.BitStream(
-    new Uint8Array(this.output.buffer) , this.op);
-  /** @type {number} */
-  var bfinal;
-  /** @type {Zlib.RawDeflate.CompressionType} */
-  var btype;
-  /** @type {!(Array.<number>|Uint16Array)} */
-  var data;
-  /** @type {number} */
-  var hlit;
-  /** @type {number} */
-  var hdist;
-  /** @type {number} */
-  var hclen;
-  /** @const @type {Array.<number>} */
-  var hclenOrder =
-        [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-  /** @type {!(Array.<number>|Uint8Array)} */
-  var litLenLengths;
-  /** @type {!(Array.<number>|Uint16Array)} */
-  var litLenCodes;
-  /** @type {!(Array.<number>|Uint8Array)} */
-  var distLengths;
-  /** @type {!(Array.<number>|Uint16Array)} */
-  var distCodes;
-  /** @type {{
-   *   codes: !(Array.<number>|Uint32Array),
-   *   freqs: !(Array.<number>|Uint8Array)
-   * }} */
-  var treeSymbols;
-  /** @type {!(Array.<number>|Uint8Array)} */
-  var treeLengths;
-  /** @type {Array} */
-  var transLengths = new Array(19);
-  /** @type {!(Array.<number>|Uint16Array)} */
-  var treeCodes;
-  /** @type {number} */
-  var code;
-  /** @type {number} */
-  var bitlen;
-  /** @type {number} */
-  var i;
-  /** @type {number} */
-  var il;
+    function(blockArray, isFinalBlock) {
+      /** @type {Zlib.BitStream} */
+      var stream = new Zlib.BitStream(
+          new Uint8Array(this.output.buffer) , this.op);
+      /** @type {number} */
+      var bfinal;
+      /** @type {Zlib.RawDeflate.CompressionType} */
+      var btype;
+      /** @type {!(Array.<number>|Uint16Array)} */
+      var data;
+      /** @type {number} */
+      var hlit;
+      /** @type {number} */
+      var hdist;
+      /** @type {number} */
+      var hclen;
+      /** @const @type {Array.<number>} */
+      var hclenOrder =
+          [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
+      /** @type {!(Array.<number>|Uint8Array)} */
+      var litLenLengths;
+      /** @type {!(Array.<number>|Uint16Array)} */
+      var litLenCodes;
+      /** @type {!(Array.<number>|Uint8Array)} */
+      var distLengths;
+      /** @type {!(Array.<number>|Uint16Array)} */
+      var distCodes;
+      /** @type {{
+       *   codes: !(Array.<number>|Uint32Array),
+       *   freqs: !(Array.<number>|Uint8Array)
+       * }} */
+      var treeSymbols;
+      /** @type {!(Array.<number>|Uint8Array)} */
+      var treeLengths;
+      /** @type {Array} */
+      var transLengths = new Array(19);
+      /** @type {!(Array.<number>|Uint16Array)} */
+      var treeCodes;
+      /** @type {number} */
+      var code;
+      /** @type {number} */
+      var bitlen;
+      /** @type {number} */
+      var i;
+      /** @type {number} */
+      var il;
 
-  // header
-  bfinal = isFinalBlock ? 1 : 0;
-  btype = Zlib.RawDeflate.CompressionType.DYNAMIC;
+      // header
+      bfinal = isFinalBlock ? 1 : 0;
+      btype = Zlib.RawDeflate.CompressionType.DYNAMIC;
 
-  stream.writeBits(bfinal, 1, true);
-  stream.writeBits(btype, 2, true);
+      stream.writeBits(bfinal, 1, true);
+      stream.writeBits(btype, 2, true);
 
-  data = this.lz77(blockArray);
+      data = this.lz77(blockArray);
 
-  // リテラル・長さ, 距離のハフマン符号と符号長の算出
-  litLenLengths = this.getLengths_(this.freqsLitLen, 15);
-  litLenCodes = this.getCodesFromLengths_(litLenLengths);
-  distLengths = this.getLengths_(this.freqsDist, 7);
-  distCodes = this.getCodesFromLengths_(distLengths);
+      // リテラル・長さ, 距離のハフマン符号と符号長の算出
+      litLenLengths = this.getLengths_(this.freqsLitLen, 15);
+      litLenCodes = this.getCodesFromLengths_(litLenLengths);
+      distLengths = this.getLengths_(this.freqsDist, 7);
+      distCodes = this.getCodesFromLengths_(distLengths);
 
-  // HLIT, HDIST の決定
-  for (hlit = 286; hlit > 257 && litLenLengths[hlit - 1] === 0; hlit--) {}
-  for (hdist = 30; hdist > 1 && distLengths[hdist - 1] === 0; hdist--) {}
+      // HLIT, HDIST の決定
+      for (hlit = 286; hlit > 257 && litLenLengths[hlit - 1] === 0; hlit--) {}
+      for (hdist = 30; hdist > 1 && distLengths[hdist - 1] === 0; hdist--) {}
 
-  // HCLEN
-  treeSymbols =
-    this.getTreeSymbols_(hlit, litLenLengths, hdist, distLengths);
-  treeLengths = this.getLengths_(treeSymbols.freqs, 7);
-  for (i = 0; i < 19; i++) {
-    transLengths[i] = treeLengths[hclenOrder[i]];
-  }
-  for (hclen = 19; hclen > 4 && transLengths[hclen - 1] === 0; hclen--) {}
+      // HCLEN
+      treeSymbols =
+          this.getTreeSymbols_(hlit, litLenLengths, hdist, distLengths);
+      treeLengths = this.getLengths_(treeSymbols.freqs, 7);
+      for (i = 0; i < 19; i++) {
+        transLengths[i] = treeLengths[hclenOrder[i]];
+      }
+      for (hclen = 19; hclen > 4 && transLengths[hclen - 1] === 0; hclen--) {}
 
-  treeCodes = this.getCodesFromLengths_(treeLengths);
+      treeCodes = this.getCodesFromLengths_(treeLengths);
 
-  // 出力
-  stream.writeBits(hlit - 257, 5, true);
-  stream.writeBits(hdist - 1, 5, true);
-  stream.writeBits(hclen - 4, 4, true);
-  for (i = 0; i < hclen; i++) {
-    stream.writeBits(transLengths[i], 3, true);
-  }
-
-  // ツリーの出力
-  for (i = 0, il = treeSymbols.codes.length; i < il; i++) {
-    code = treeSymbols.codes[i];
-
-    stream.writeBits(treeCodes[code], treeLengths[code], true);
-
-    // extra bits
-    if (code >= 16) {
-      i++;
-      switch (code) {
-        case 16: bitlen = 2; break;
-        case 17: bitlen = 3; break;
-        case 18: bitlen = 7; break;
-        default:
-          throw 'invalid code: ' + code;
+      // 出力
+      stream.writeBits(hlit - 257, 5, true);
+      stream.writeBits(hdist - 1, 5, true);
+      stream.writeBits(hclen - 4, 4, true);
+      for (i = 0; i < hclen; i++) {
+        stream.writeBits(transLengths[i], 3, true);
       }
 
-      stream.writeBits(treeSymbols.codes[i], bitlen, true);
-    }
-  }
+      // ツリーの出力
+      for (i = 0, il = treeSymbols.codes.length; i < il; i++) {
+        code = treeSymbols.codes[i];
 
-  this.dynamicHuffman(
-    data,
-    [litLenCodes, litLenLengths],
-    [distCodes, distLengths],
-    stream
-  );
+        stream.writeBits(treeCodes[code], treeLengths[code], true);
 
-  return stream.finish();
-};
+        // extra bits
+        if (code >= 16) {
+          i++;
+          switch (code) {
+            case 16: bitlen = 2; break;
+            case 17: bitlen = 3; break;
+            case 18: bitlen = 7; break;
+            default:
+              throw 'invalid code: ' + code;
+          }
+
+          stream.writeBits(treeSymbols.codes[i], bitlen, true);
+        }
+      }
+
+      this.dynamicHuffman(
+          data,
+          [litLenCodes, litLenLengths],
+          [distCodes, distLengths],
+          stream
+      );
+
+      return stream.finish();
+    };
 
 
 /**
@@ -15334,53 +15512,53 @@ function(blockArray, isFinalBlock) {
  * @return {!Zlib.BitStream} ハフマン符号化済みビットストリームオブジェクト.
  */
 Zlib.RawDeflate.prototype.dynamicHuffman =
-function(dataArray, litLen, dist, stream) {
-  /** @type {number} */
-  var index;
-  /** @type {number} */
-  var length;
-  /** @type {number} */
-  var literal;
-  /** @type {number} */
-  var code;
-  /** @type {number} */
-  var litLenCodes;
-  /** @type {number} */
-  var litLenLengths;
-  /** @type {number} */
-  var distCodes;
-  /** @type {number} */
-  var distLengths;
+    function(dataArray, litLen, dist, stream) {
+      /** @type {number} */
+      var index;
+      /** @type {number} */
+      var length;
+      /** @type {number} */
+      var literal;
+      /** @type {number} */
+      var code;
+      /** @type {number} */
+      var litLenCodes;
+      /** @type {number} */
+      var litLenLengths;
+      /** @type {number} */
+      var distCodes;
+      /** @type {number} */
+      var distLengths;
 
-  litLenCodes = litLen[0];
-  litLenLengths = litLen[1];
-  distCodes = dist[0];
-  distLengths = dist[1];
+      litLenCodes = litLen[0];
+      litLenLengths = litLen[1];
+      distCodes = dist[0];
+      distLengths = dist[1];
 
-  // 符号を BitStream に書き込んでいく
-  for (index = 0, length = dataArray.length; index < length; ++index) {
-    literal = dataArray[index];
+      // 符号を BitStream に書き込んでいく
+      for (index = 0, length = dataArray.length; index < length; ++index) {
+        literal = dataArray[index];
 
-    // literal or length
-    stream.writeBits(litLenCodes[literal], litLenLengths[literal], true);
+        // literal or length
+        stream.writeBits(litLenCodes[literal], litLenLengths[literal], true);
 
-    // 長さ・距離符号
-    if (literal > 256) {
-      // length extra
-      stream.writeBits(dataArray[++index], dataArray[++index], true);
-      // distance
-      code = dataArray[++index];
-      stream.writeBits(distCodes[code], distLengths[code], true);
-      // distance extra
-      stream.writeBits(dataArray[++index], dataArray[++index], true);
-    // 終端
-    } else if (literal === 256) {
-      break;
-    }
-  }
+        // 長さ・距離符号
+        if (literal > 256) {
+          // length extra
+          stream.writeBits(dataArray[++index], dataArray[++index], true);
+          // distance
+          code = dataArray[++index];
+          stream.writeBits(distCodes[code], distLengths[code], true);
+          // distance extra
+          stream.writeBits(dataArray[++index], dataArray[++index], true);
+          // 終端
+        } else if (literal === 256) {
+          break;
+        }
+      }
 
-  return stream;
-};
+      return stream;
+    };
 
 /**
  * 固定ハフマン符号化
@@ -15402,8 +15580,8 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
 
     // 符号の書き込み
     Zlib.BitStream.prototype.writeBits.apply(
-      stream,
-      Zlib.RawDeflate.FixedHuffmanTable[literal]
+        stream,
+        Zlib.RawDeflate.FixedHuffmanTable[literal]
     );
 
     // 長さ・距離符号
@@ -15414,7 +15592,7 @@ Zlib.RawDeflate.prototype.fixedHuffman = function(dataArray, stream) {
       stream.writeBits(dataArray[++index], 5);
       // distance extra
       stream.writeBits(dataArray[++index], dataArray[++index], true);
-    // 終端
+      // 終端
     } else if (literal === 0x100) {
       break;
     }
@@ -15607,7 +15785,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   var prevMatch;
   /** @type {!(Array.<number>|Uint16Array)} lz77 buffer */
   var lz77buf = 
-    new Uint16Array(dataArray.length * 2) ;
+      new Uint16Array(dataArray.length * 2) ;
   /** @type {number} lz77 output buffer pointer */
   var pos = 0;
   /** @type {number} lz77 skip length */
@@ -15707,7 +15885,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
       } else {
         writeMatch(longestMatch, 0);
       }
-    // 前回マッチしていて今回マッチがなかったら前回のを採用
+      // 前回マッチしていて今回マッチがなかったら前回のを採用
     } else if (prevMatch) {
       writeMatch(prevMatch, -1);
     } else {
@@ -15726,7 +15904,7 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
   this.freqsDist = freqsDist;
 
   return /** @type {!(Uint16Array|Array.<number>)} */ (
-      lz77buf.subarray(0, pos) 
+        lz77buf.subarray(0, pos) 
   );
 };
 
@@ -15739,49 +15917,49 @@ Zlib.RawDeflate.prototype.lz77 = function(dataArray) {
  * @private
  */
 Zlib.RawDeflate.prototype.searchLongestMatch_ =
-function(data, position, matchList) {
-  var match,
-      currentMatch,
-      matchMax = 0, matchLength,
-      i, j, l, dl = data.length;
+    function(data, position, matchList) {
+      var match,
+          currentMatch,
+          matchMax = 0, matchLength,
+          i, j, l, dl = data.length;
 
-  // 候補を後ろから 1 つずつ絞り込んでゆく
-  permatch:
-  for (i = 0, l = matchList.length; i < l; i++) {
-    match = matchList[l - i - 1];
-    matchLength = Zlib.RawDeflate.Lz77MinLength;
+      // 候補を後ろから 1 つずつ絞り込んでゆく
+      permatch:
+          for (i = 0, l = matchList.length; i < l; i++) {
+            match = matchList[l - i - 1];
+            matchLength = Zlib.RawDeflate.Lz77MinLength;
 
-    // 前回までの最長一致を末尾から一致検索する
-    if (matchMax > Zlib.RawDeflate.Lz77MinLength) {
-      for (j = matchMax; j > Zlib.RawDeflate.Lz77MinLength; j--) {
-        if (data[match + j - 1] !== data[position + j - 1]) {
-          continue permatch;
-        }
-      }
-      matchLength = matchMax;
-    }
+            // 前回までの最長一致を末尾から一致検索する
+            if (matchMax > Zlib.RawDeflate.Lz77MinLength) {
+              for (j = matchMax; j > Zlib.RawDeflate.Lz77MinLength; j--) {
+                if (data[match + j - 1] !== data[position + j - 1]) {
+                  continue permatch;
+                }
+              }
+              matchLength = matchMax;
+            }
 
-    // 最長一致探索
-    while (matchLength < Zlib.RawDeflate.Lz77MaxLength &&
-           position + matchLength < dl &&
-           data[match + matchLength] === data[position + matchLength]) {
-      ++matchLength;
-    }
+            // 最長一致探索
+            while (matchLength < Zlib.RawDeflate.Lz77MaxLength &&
+            position + matchLength < dl &&
+            data[match + matchLength] === data[position + matchLength]) {
+              ++matchLength;
+            }
 
-    // マッチ長が同じ場合は後方を優先
-    if (matchLength > matchMax) {
-      currentMatch = match;
-      matchMax = matchLength;
-    }
+            // マッチ長が同じ場合は後方を優先
+            if (matchLength > matchMax) {
+              currentMatch = match;
+              matchMax = matchLength;
+            }
 
-    // 最長が確定したら後の処理は省略
-    if (matchLength === Zlib.RawDeflate.Lz77MaxLength) {
-      break;
-    }
-  }
+            // 最長が確定したら後の処理は省略
+            if (matchLength === Zlib.RawDeflate.Lz77MaxLength) {
+              break;
+            }
+          }
 
-  return new Zlib.RawDeflate.Lz77Match(matchMax, position - currentMatch);
-};
+      return new Zlib.RawDeflate.Lz77Match(matchMax, position - currentMatch);
+    };
 
 /**
  * Tree-Transmit Symbols の算出
@@ -15796,98 +15974,98 @@ function(data, position, matchList) {
  * }} Tree-Transmit Symbols.
  */
 Zlib.RawDeflate.prototype.getTreeSymbols_ =
-function(hlit, litlenLengths, hdist, distLengths) {
-  var src = new ( Uint32Array )(hlit + hdist),
-      i, j, runLength, l,
-      result = new ( Uint32Array )(286 + 30),
-      nResult,
-      rpt,
-      freqs = new ( Uint8Array )(19);
+    function(hlit, litlenLengths, hdist, distLengths) {
+      var src = new ( Uint32Array )(hlit + hdist),
+          i, j, runLength, l,
+          result = new ( Uint32Array )(286 + 30),
+          nResult,
+          rpt,
+          freqs = new ( Uint8Array )(19);
 
-  j = 0;
-  for (i = 0; i < hlit; i++) {
-    src[j++] = litlenLengths[i];
-  }
-  for (i = 0; i < hdist; i++) {
-    src[j++] = distLengths[i];
-  }
-
-  // 符号化
-  nResult = 0;
-  for (i = 0, l = src.length; i < l; i += j) {
-    // Run Length Encoding
-    for (j = 1; i + j < l && src[i + j] === src[i]; ++j) {}
-
-    runLength = j;
-
-    if (src[i] === 0) {
-      // 0 の繰り返しが 3 回未満ならばそのまま
-      if (runLength < 3) {
-        while (runLength-- > 0) {
-          result[nResult++] = 0;
-          freqs[0]++;
-        }
-      } else {
-        while (runLength > 0) {
-          // 繰り返しは最大 138 までなので切り詰める
-          rpt = (runLength < 138 ? runLength : 138);
-
-          if (rpt > runLength - 3 && rpt < runLength) {
-            rpt = runLength - 3;
-          }
-
-          // 3-10 回 -> 17
-          if (rpt <= 10) {
-            result[nResult++] = 17;
-            result[nResult++] = rpt - 3;
-            freqs[17]++;
-          // 11-138 回 -> 18
-          } else {
-            result[nResult++] = 18;
-            result[nResult++] = rpt - 11;
-            freqs[18]++;
-          }
-
-          runLength -= rpt;
-        }
+      j = 0;
+      for (i = 0; i < hlit; i++) {
+        src[j++] = litlenLengths[i];
       }
-    } else {
-      result[nResult++] = src[i];
-      freqs[src[i]]++;
-      runLength--;
+      for (i = 0; i < hdist; i++) {
+        src[j++] = distLengths[i];
+      }
 
-      // 繰り返し回数が3回未満ならばランレングス符号は要らない
-      if (runLength < 3) {
-        while (runLength-- > 0) {
+      // 符号化
+      nResult = 0;
+      for (i = 0, l = src.length; i < l; i += j) {
+        // Run Length Encoding
+        for (j = 1; i + j < l && src[i + j] === src[i]; ++j) {}
+
+        runLength = j;
+
+        if (src[i] === 0) {
+          // 0 の繰り返しが 3 回未満ならばそのまま
+          if (runLength < 3) {
+            while (runLength-- > 0) {
+              result[nResult++] = 0;
+              freqs[0]++;
+            }
+          } else {
+            while (runLength > 0) {
+              // 繰り返しは最大 138 までなので切り詰める
+              rpt = (runLength < 138 ? runLength : 138);
+
+              if (rpt > runLength - 3 && rpt < runLength) {
+                rpt = runLength - 3;
+              }
+
+              // 3-10 回 -> 17
+              if (rpt <= 10) {
+                result[nResult++] = 17;
+                result[nResult++] = rpt - 3;
+                freqs[17]++;
+                // 11-138 回 -> 18
+              } else {
+                result[nResult++] = 18;
+                result[nResult++] = rpt - 11;
+                freqs[18]++;
+              }
+
+              runLength -= rpt;
+            }
+          }
+        } else {
           result[nResult++] = src[i];
           freqs[src[i]]++;
-        }
-      // 3 回以上ならばランレングス符号化
-      } else {
-        while (runLength > 0) {
-          // runLengthを 3-6 で分割
-          rpt = (runLength < 6 ? runLength : 6);
+          runLength--;
 
-          if (rpt > runLength - 3 && rpt < runLength) {
-            rpt = runLength - 3;
+          // 繰り返し回数が3回未満ならばランレングス符号は要らない
+          if (runLength < 3) {
+            while (runLength-- > 0) {
+              result[nResult++] = src[i];
+              freqs[src[i]]++;
+            }
+            // 3 回以上ならばランレングス符号化
+          } else {
+            while (runLength > 0) {
+              // runLengthを 3-6 で分割
+              rpt = (runLength < 6 ? runLength : 6);
+
+              if (rpt > runLength - 3 && rpt < runLength) {
+                rpt = runLength - 3;
+              }
+
+              result[nResult++] = 16;
+              result[nResult++] = rpt - 3;
+              freqs[16]++;
+
+              runLength -= rpt;
+            }
           }
-
-          result[nResult++] = 16;
-          result[nResult++] = rpt - 3;
-          freqs[16]++;
-
-          runLength -= rpt;
         }
       }
-    }
-  }
 
-  return {
-    codes:
-       result.subarray(0, nResult) ,
-    freqs: freqs
-  };
-};
+      return {
+        codes:
+             result.subarray(0, nResult) ,
+        freqs: freqs
+      };
+    };
 
 /**
  * ハフマン符号の長さを取得する
@@ -16114,8 +16292,8 @@ Zlib.Unzip = function(input, opt_params) {
   opt_params = opt_params || {};
   /** @type {!(Array.<number>|Uint8Array)} */
   this.input =
-    ( (input instanceof Array)) ?
-    new Uint8Array(input) : input;
+      ( (input instanceof Array)) ?
+          new Uint8Array(input) : input;
   /** @type {number} */
   this.ip = 0;
   /** @type {number} */
@@ -16255,20 +16433,20 @@ Zlib.Unzip.FileHeader.prototype.parse = function() {
 
   // crc-32
   this.crc32 = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // compressed size
   this.compressedSize = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // uncompressed size
   this.plainSize = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // file name length
@@ -16288,27 +16466,27 @@ Zlib.Unzip.FileHeader.prototype.parse = function() {
 
   // external file attributes
   this.externalFileAttributes =
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24);
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24);
 
   // relative offset of local header
   this.relativeOffset = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // file name
   this.filename = String.fromCharCode.apply(null, 
-    input.subarray(ip, ip += this.fileNameLength) 
+      input.subarray(ip, ip += this.fileNameLength) 
   );
 
   // extra field
   this.extraField = 
-    input.subarray(ip, ip += this.extraFieldLength) ;
+      input.subarray(ip, ip += this.extraFieldLength) ;
 
   // file comment
   this.comment = 
-    input.subarray(ip, ip + this.fileCommentLength) ;
+      input.subarray(ip, ip + this.fileCommentLength) ;
 
   this.length = ip - this.offset;
 };
@@ -16384,20 +16562,20 @@ Zlib.Unzip.LocalFileHeader.prototype.parse = function() {
 
   // crc-32
   this.crc32 = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // compressed size
   this.compressedSize = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // uncompressed size
   this.plainSize = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // file name length
@@ -16408,12 +16586,12 @@ Zlib.Unzip.LocalFileHeader.prototype.parse = function() {
 
   // file name
   this.filename = String.fromCharCode.apply(null, 
-    input.subarray(ip, ip += this.fileNameLength) 
+      input.subarray(ip, ip += this.fileNameLength) 
   );
 
   // extra field
   this.extraField = 
-    input.subarray(ip, ip += this.extraFieldLength) ;
+      input.subarray(ip, ip += this.extraFieldLength) ;
 
   this.length = ip - this.offset;
 };
@@ -16471,14 +16649,14 @@ Zlib.Unzip.prototype.parseEndOfCentralDirectoryRecord = function() {
 
   // size of the central directory
   this.centralDirectorySize = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // offset of start of central directory with respect to the starting disk number
   this.centralDirectoryOffset = (
-    (input[ip++]      ) | (input[ip++] <<  8) |
-    (input[ip++] << 16) | (input[ip++] << 24)
+      (input[ip++]      ) | (input[ip++] <<  8) |
+      (input[ip++] << 16) | (input[ip++] << 24)
   ) >>> 0;
 
   // .ZIP file comment length
@@ -16486,7 +16664,7 @@ Zlib.Unzip.prototype.parseEndOfCentralDirectoryRecord = function() {
 
   // .ZIP file comment
   this.comment = 
-    input.subarray(ip, ip + this.commentLength) ;
+      input.subarray(ip, ip + this.commentLength) ;
 };
 
 Zlib.Unzip.prototype.parseFileHeader = function() {
@@ -16593,7 +16771,7 @@ Zlib.Unzip.prototype.getFileData = function(index, opt_params) {
   switch (localFileHeader.compression) {
     case Zlib.Unzip.CompressionMethod.STORE:
       buffer = 
-        this.input.subarray(offset, offset + length) ;
+          this.input.subarray(offset, offset + length) ;
       break;
     case Zlib.Unzip.CompressionMethod.DEFLATE:
       buffer = new Zlib.RawInflate(this.input, {
@@ -16609,8 +16787,8 @@ Zlib.Unzip.prototype.getFileData = function(index, opt_params) {
     crc32 = Zlib.CRC32.calc(buffer);
     if (localFileHeader.crc32 !== crc32) {
       throw new Error(
-        'wrong crc: file=0x' + localFileHeader.crc32.toString(16) +
-        ', data=0x' + crc32.toString(16)
+          'wrong crc: file=0x' + localFileHeader.crc32.toString(16) +
+          ', data=0x' + crc32.toString(16)
       );
     }
   }
@@ -16751,7 +16929,7 @@ Zlib.Adler32.update = function(adler, array) {
 
   while (len > 0) {
     tlen = len > Zlib.Adler32.OptimizationParameter ?
-      Zlib.Adler32.OptimizationParameter : len;
+        Zlib.Adler32.OptimizationParameter : len;
     len -= tlen;
     do {
       s1 += array[i++];
@@ -16789,8 +16967,8 @@ Zlib.BitStream = function(buffer, bufferPosition) {
   this.bitindex = 0;
   /** @type {!(Array|Uint8Array)} bit-stream output buffer. */
   this.buffer = buffer instanceof ( Uint8Array ) ?
-    buffer :
-    new ( Uint8Array )(Zlib.BitStream.DefaultBlockSize);
+      buffer :
+      new ( Uint8Array )(Zlib.BitStream.DefaultBlockSize);
 
   // 入力された index が足りなかったら拡張するが、倍にしてもダメなら不正とする
   if (this.buffer.length * 2 <= this.index) {
@@ -16818,7 +16996,7 @@ Zlib.BitStream.prototype.expandBuffer = function() {
   var il = oldbuf.length;
   /** @type {!(Array|Uint8Array)} new buffer. */
   var buffer =
-    new ( Uint8Array )(il << 1);
+      new ( Uint8Array )(il << 1);
 
   // copy buffer
   {
@@ -16853,22 +17031,22 @@ Zlib.BitStream.prototype.writeBits = function(number, n, reverse) {
    */
   function rev32_(n) {
     return (Zlib.BitStream.ReverseTable[n & 0xFF] << 24) |
-      (Zlib.BitStream.ReverseTable[n >>> 8 & 0xFF] << 16) |
-      (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] << 8) |
-      Zlib.BitStream.ReverseTable[n >>> 24 & 0xFF];
+        (Zlib.BitStream.ReverseTable[n >>> 8 & 0xFF] << 16) |
+        (Zlib.BitStream.ReverseTable[n >>> 16 & 0xFF] << 8) |
+        Zlib.BitStream.ReverseTable[n >>> 24 & 0xFF];
   }
 
   if (reverse && n > 1) {
     number = n > 8 ?
-      rev32_(number) >> (32 - n) :
-      Zlib.BitStream.ReverseTable[number] >> (8 - n);
+        rev32_(number) >> (32 - n) :
+        Zlib.BitStream.ReverseTable[number] >> (8 - n);
   }
 
   // Byte 境界を超えないとき
   if (n + bitindex < 8) {
     current = (current << n) | number;
     bitindex += n;
-  // Byte 境界を超えるとき
+    // Byte 境界を超えるとき
   } else {
     for (i = 0; i < n; ++i) {
       current = (current << 1) | ((number >> n - i - 1) & 1);
@@ -17078,7 +17256,7 @@ Zlib.Deflate = function(input, opt_params) {
   this.input = input;
   /** @type {!(Array|Uint8Array)} */
   this.output =
-    new ( Uint8Array )(Zlib.Deflate.DefaultBufferSize);
+      new ( Uint8Array )(Zlib.Deflate.DefaultBufferSize);
   /** @type {Zlib.Deflate.CompressionType} */
   this.compressionType = Zlib.Deflate.CompressionType.DYNAMIC;
   /** @type {Zlib.RawDeflate} */
@@ -17222,7 +17400,7 @@ const GenomicInterval = function (chr, start, end, features) {
 };
 
 GenomicInterval.prototype.contains = function (chr, start, end) {
-    return this.chr == chr &&
+    return this.chr === chr &&
         this.start <= start &&
         this.end >= end;
 };
@@ -17240,6 +17418,156 @@ const Chromosome = function (name, order, bpStart, bpLength, rangeLocus) {
     this.bpLength = bpLength;
     this.rangeLocus = rangeLocus;
 };
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014-2015 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+const google = {
+
+        fileInfoCache: {},
+
+        // Crude test, this is conservative, nothing bad happens for a false positive
+        isGoogleURL: function (url) {
+            return (url.includes("googleapis") && !url.includes("urlshortener")) ||
+                this.isGoogleCloudURL(url) ||
+                this.isGoogleStorageURL(url) ||
+                this.isGoogleDrive(url)
+        },
+
+        isGoogleStorageURL: function (url) {
+            return url.startsWith("https://www.googleapis.com/storage") ||
+                url.startsWith("https://storage.cloud.google.com")
+        },
+
+        isGoogleCloudURL: function (url) {
+            return url.startsWith("gs://")
+        },
+
+        isGoogleDrive: function (url) {
+            return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
+        },
+
+        setApiKey: function (key) {
+            this.apiKey = key;
+        },
+
+        translateGoogleCloudURL: function (gsUrl) {
+
+            var i, bucket, object, qIdx, objectString, paramString;
+
+            i = gsUrl.indexOf('/', 5);
+            qIdx = gsUrl.indexOf('?');
+
+            if (i < 0) {
+                return gsUrl;
+            }
+
+            bucket = gsUrl.substring(5, i);
+
+            objectString = (qIdx < 0) ? gsUrl.substring(i + 1) : gsUrl.substring(i + 1, qIdx);
+            object = encodeURIComponent(objectString);
+
+            if (qIdx > 0) {
+                paramString = gsUrl.substring(qIdx);
+            }
+
+            return "https://www.googleapis.com/storage/v1/b/" + bucket + "/o/" + object +
+                (paramString ? paramString + "&alt=media" : "?alt=media");
+
+        },
+
+        addApiKey: function (url) {
+            const apiKey = this.apiKey;
+            if (apiKey !== undefined && !url.includes("key=")) {
+                const paramSeparator = url.includes("?") ? "&" : "?";
+                url = url + paramSeparator + "key=" + apiKey;
+            }
+            return url;
+        },
+
+        driveDownloadURL: function (link) {
+            // Return a google drive download url for the sharable link
+            //https://drive.google.com/open?id=0B-lleX9c2pZFbDJ4VVRxakJzVGM
+            //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
+
+            var id = getGoogleDriveFileID(link);
+
+            return id ? "https://www.googleapis.com/drive/v3/files/" + id + "?alt=media&supportsTeamDrives=true" : link;
+        },
+
+        getDriveFileInfo: function (googleDriveURL) {
+
+            var id = getGoogleDriveFileID(googleDriveURL),
+                endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true";
+
+            return igvxhr.loadJson(endPoint, buildOptions({}));
+        },
+
+        loadGoogleProperties: function (propertiesURL) {
+
+            const self = this;
+
+            return igvxhr.loadArrayBuffer(propertiesURL)
+
+                .then(function (arrayBuffer) {
+                    var inflate, plain, str;
+
+                    inflate = new Zlib.Gunzip(new Uint8Array(arrayBuffer));
+                    plain = inflate.decompress();
+                    str = String.fromCharCode.apply(null, plain);
+
+                    const properties = JSON.parse(str);
+                    self.setApiKey(properties["api_key"]);
+
+                    self.properties = properties;
+                    return properties;
+
+                })
+        }
+    };
+
+    function getGoogleDriveFileID(link) {
+
+        //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
+        var i1, i2;
+
+        if (link.includes("/open?id=")) {
+            i1 = link.indexOf("/open?id=") + 9;
+            i2 = link.indexOf("&");
+            if (i1 > 0 && i2 > i1) {
+                return link.substring(i1, i2)
+            } else if (i1 > 0) {
+                return link.substring(i1);
+            }
+
+        } else if (link.includes("/file/d/")) {
+            i1 = link.indexOf("/file/d/") + 8;
+            i2 = link.lastIndexOf("/");
+            return link.substring(i1, i2);
+        }
+    }
 
 /*
  * The MIT License (MIT)
@@ -17320,18 +17648,6 @@ const oauth = {
 
 
 /**
- * @deprecated - use oauth.google.setToken
- *
- * @param token
- */
-if(typeof igv !== 'undefined') {
-    igv.setGoogleOauthToken = function (token) {
-        oauth.google.access_token = token;
-    };
-}
-
-
-/**
  * Creates a RegExp from the given string, converting asterisks to .* expressions,
  * and escaping all other characters.
  *
@@ -17350,157 +17666,6 @@ function regExpEscape(s) {
     return s.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
 }
 
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014-2015 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-const google$1 = {
-
-        fileInfoCache: {},
-
-        // Crude test, this is conservative, nothing bad happens for a false positive
-        isGoogleURL: function (url) {
-            return (url.includes("googleapis") && !url.includes("urlshortener")) ||
-                this.isGoogleCloudURL(url) ||
-                this.isGoogleStorageURL(url) ||
-                this.isGoogleDrive(url)
-        },
-
-        isGoogleStorageURL: function (url) {
-            return url.startsWith("https://www.googleapis.com/storage") ||
-                url.startsWith("https://storage.cloud.google.com")
-        },
-
-        isGoogleCloudURL: function (url) {
-            return url.startsWith("gs://")
-        },
-
-        isGoogleDrive: function (url) {
-            return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
-        },
-
-        setApiKey: function (key) {
-            this.apiKey = key;
-        },
-
-        translateGoogleCloudURL: function (gsUrl) {
-
-            var i, bucket, object, qIdx, objectString, paramString;
-
-            i = gsUrl.indexOf('/', 5);
-            qIdx = gsUrl.indexOf('?');
-
-            if (i < 0) {
-                return gsUrl;
-            }
-
-            bucket = gsUrl.substring(5, i);
-
-            objectString = (qIdx < 0) ? gsUrl.substring(i + 1) : gsUrl.substring(i + 1, qIdx);
-            object = encodeURIComponent(objectString);
-
-            if (qIdx > 0) {
-                paramString = gsUrl.substring(qIdx);
-            }
-
-            return "https://www.googleapis.com/storage/v1/b/" + bucket + "/o/" + object +
-                (paramString ? paramString + "&alt=media" : "?alt=media");
-
-        },
-
-        addApiKey: function (url) {
-            const apiKey = this.apiKey;
-            if (apiKey !== undefined && !url.includes("key=")) {
-                const paramSeparator = url.includes("?") ? "&" : "?";
-                url = url + paramSeparator + "key=" + apiKey;
-            }
-            return url;
-        },
-
-        driveDownloadURL: function (link) {
-            var id;
-            // Return a google drive download url for the sharable link
-            //https://drive.google.com/open?id=0B-lleX9c2pZFbDJ4VVRxakJzVGM
-            //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
-
-            var id = getGoogleDriveFileID(link);
-
-            return id ? "https://www.googleapis.com/drive/v3/files/" + id + "?alt=media&supportsTeamDrives=true" : link;
-        },
-
-        getDriveFileInfo: function (googleDriveURL) {
-
-            var id = getGoogleDriveFileID(googleDriveURL),
-                endPoint = "https://www.googleapis.com/drive/v3/files/" + id + "?supportsTeamDrives=true";
-
-            return igvxhr.loadJson(endPoint, buildOptions({}));
-        },
-
-        loadGoogleProperties: function (propertiesURL) {
-
-            const self = this;
-
-            return igvxhr.loadArrayBuffer(propertiesURL)
-
-                .then(function (arrayBuffer) {
-                    var inflate, plain, str;
-
-                    inflate = new Zlib.Gunzip(new Uint8Array(arrayBuffer));
-                    plain = inflate.decompress();
-                    str = String.fromCharCode.apply(null, plain);
-
-                    const properties = JSON.parse(str);
-                    self.setApiKey(properties["api_key"]);
-
-                    self.properties = properties;
-                    return properties;
-
-                })
-        }
-    };
-
-    function getGoogleDriveFileID(link) {
-
-        //https://drive.google.com/file/d/1_FC4kCeO8E3V4dJ1yIW7A0sn1yURKIX-/view?usp=sharing
-        var i1, i2;
-
-        if (link.includes("/open?id=")) {
-            i1 = link.indexOf("/open?id=") + 9;
-            i2 = link.indexOf("&");
-            if (i1 > 0 && i2 > i1) {
-                return link.substring(i1, i2)
-            } else if (i1 > 0) {
-                return link.substring(i1);
-            }
-
-        } else if (link.includes("/file/d/")) {
-            i1 = link.indexOf("/file/d/") + 8;
-            i2 = link.lastIndexOf("/");
-            return link.substring(i1, i2);
-        }
-    }
-
 // Uncompress data,  assumed to be series of bgzipped blocks
 function unbgzf(data, lim) {
 
@@ -17517,7 +17682,7 @@ function unbgzf(data, lim) {
             const si1 = ba[12];
             const si2 = ba[13];
             const slen = (ba[15] << 8) | (ba[14]);
-            const bsize = (ba[17] << 8) | (ba[16]) + 1;
+            const bsize = ((ba[17] << 8) | (ba[16])) + 1;
             const start = 12 + xlen + ptr;    // Start of CDATA
             const bytesLeft = data.byteLength - start;
             const cDataSize = bsize - xlen - 19;
@@ -17537,7 +17702,7 @@ function unbgzf(data, lim) {
     }
 
     // Concatenate decompressed blocks
-    if (oBlockList.length == 1) {
+    if (oBlockList.length === 1) {
         return oBlockList[0];
     } else {
         const out = new Uint8Array(totalSize);
@@ -17563,7 +17728,7 @@ const testArray = new Uint8Array(1);
 const hasSubarray = (typeof testArray.subarray === 'function');
 
 function arrayCopy(src, srcOffset, dest, destOffset, count) {
-    if (count == 0) {
+    if (count === 0) {
         return;
     }
     if (!src) {
@@ -17571,11 +17736,11 @@ function arrayCopy(src, srcOffset, dest, destOffset, count) {
     } else if (!dest) {
         throw "Undef dest";
     }
-    if (srcOffset == 0 && count == src.length) {
+    if (srcOffset === 0 && count === src.length) {
         arrayCopy_fast(src, dest, destOffset);
     } else if (hasSubarray) {
         arrayCopy_fast(src.subarray(srcOffset, srcOffset + count), dest, destOffset);
-    } else if (src.BYTES_PER_ELEMENT == 1 && count > 100) {
+    } else if (src.BYTES_PER_ELEMENT === 1 && count > 100) {
         arrayCopy_fast(new Uint8Array(src.buffer, src.byteOffset + srcOffset, count), dest, destOffset);
     } else {
         arrayCopy_slow(src, srcOffset, dest, destOffset, count);
@@ -17695,6 +17860,7 @@ function parseUri  (str) {
 
     return uri;
 }
+
 const options = {
     strictMode: false,
     key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
@@ -17705,20 +17871,6 @@ const options = {
     parser: {
         strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
         loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-    }
-};
-
-// TODO -- eliminate dependence on getBrowser
-
-const Alert = {
-    presentAlert: function (message) {
-        getBrowser().presentAlert("Authorization is required, but Google oAuth has not been initalized.  Contact your site administrator for assistance.");
-    },
-
-// TODO -- eliminate dependence on getBrowser
-    presentMessageWithCallback: function (message, fn) {
-        getBrowser().presentMessageWithCallback("Google Login required", function () {
-        });
     }
 };
 
@@ -17747,6 +17899,111 @@ const Alert = {
  * THE SOFTWARE.
  */
 
+const httpMessages =
+    {
+        "401": "Access unauthorized",
+        "403": "Access forbidden",
+        "404": "Not found"
+    };
+
+
+const AlertDialog = function ($parent) {
+
+    const self = this;
+
+    // container
+    this.$container = $("<div>", {class: 'igv-alert-dialog-container'});
+    $parent.append(this.$container);
+
+    // header
+    let $header = $("<div>");
+    this.$container.append($header);
+
+    // body container
+    let $div = $("<div>", {id: 'igv-alert-dialog-body'});
+    this.$container.append($div);
+
+    // body copy
+    this.$body = $("<div>", {id: 'igv-alert-dialog-body-copy'});
+    $div.append(this.$body);
+
+    // ok container
+    let $ok_container = $("<div>");
+    this.$container.append($ok_container);
+
+    // ok
+    this.$ok = $("<div>");
+    $ok_container.append(this.$ok);
+    this.$ok.text('OK');
+    this.$ok.on('click', function () {
+        self.$body.html('');
+        self.$container.hide();
+    });
+
+    this.$container.hide();
+};
+
+AlertDialog.prototype.configure = function (config) {
+    this.$body.html(config.label);
+};
+
+AlertDialog.prototype.present = function (alert, callback) {
+    const self = this;
+    let string = alert.message || alert;
+    if (httpMessages.hasOwnProperty(string)) {
+        string = httpMessages[string];
+    }
+    this.$body.html(string);
+    this.$ok.on('click', function () {
+        if(typeof callback === 'function') {
+            callback("OK");
+        }
+        self.$body.html('');
+        self.$container.hide();
+    });
+    this.$container.show();
+};
+
+// The global Alert dialog
+
+let alertDialog;
+
+const Alert = {
+    init($root) {
+        if (!alertDialog) {
+            alertDialog = new AlertDialog($root);
+        }
+    },
+
+    presentAlert: function (alert, callback) {
+        alertDialog.present(alert, callback);
+    },
+};
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 
 var NONE = 0;
@@ -17847,18 +18104,18 @@ const igvxhr = {
 
             async function getLoadPromise(url, options) {
 
-                return new Promise(async function (fullfill, reject) {
+                return new Promise(function (fullfill, reject) {
 
                     // Various Google tansformations
-                    if (google$1.isGoogleURL(url)) {
+                    if (google.isGoogleURL(url)) {
                         if (url.startsWith("gs://")) {
-                            url = google$1.translateGoogleCloudURL(url);
-                        } else if (google$1.isGoogleStorageURL(url)) {
+                            url = google.translateGoogleCloudURL(url);
+                        } else if (google.isGoogleStorageURL(url)) {
                             if (!url.includes("altMedia=")) {
                                 url += (url.includes("?") ? "&altMedia=true" : "?altMedia=true");
                             }
                         }
-                        url = google$1.addApiKey(url);
+                        url = google.addApiKey(url);
                     }
 
 
@@ -17868,7 +18125,7 @@ const igvxhr = {
                     }
                     const range = options.range;
                     const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
-                    const isSafari = navigator.vendor.indexOf("Apple") == 0 && /\sSafari\//.test(navigator.userAgent);
+                    const isSafari = navigator.vendor.indexOf("Apple") === 0 && /\sSafari\//.test(navigator.userAgent);
 
                     if (range && isChrome && !isAmazonV4Signed(url)) {
                         // Hack to prevent caching for byte-ranges. Attempt to fix net:err-cache errors in Chrome
@@ -17913,8 +18170,8 @@ const igvxhr = {
 
                     xhr.onload = function (event) {
                         // when the url points to a local file, the status is 0 but that is no error
-                        if (xhr.status == 0 || (xhr.status >= 200 && xhr.status <= 300)) {
-                            if (range && xhr.status != 206 && range.start !== 0) {
+                        if (xhr.status === 0 || (xhr.status >= 200 && xhr.status <= 300)) {
+                            if (range && xhr.status !== 206 && range.start !== 0) {
                                 // For small files a range starting at 0 can return the whole file => 200
                                 handleError("ERROR: range-byte header was ignored for url: " + url);
                             } else {
@@ -17922,7 +18179,7 @@ const igvxhr = {
                             }
                         } else if ((typeof gapi !== "undefined") &&
                             ((xhr.status === 404 || xhr.status === 401) &&
-                                google$1.isGoogleURL(url)) &&
+                                google.isGoogleURL(url)) &&
                             !options.retries) {
 
                             options.retries = 1;
@@ -17989,7 +18246,8 @@ const igvxhr = {
                     }
                 });
             }
-        }    },
+        }
+    },
 
     loadArrayBuffer: function (url, options) {
         options = options || {};
@@ -18007,7 +18265,7 @@ const igvxhr = {
 
         var method = options.method || (options.sendData ? "POST" : "GET");
 
-        if (method == "POST") options.contentType = "application/json";
+        if (method === "POST") options.contentType = "application/json";
 
         return igvxhr.load(url, options)
 
@@ -18064,10 +18322,14 @@ function loadFileSlice(localfile, options) {
 }
 
 function loadStringFromFile(localfile, options) {
-    return new Promise(function (fullfill, reject) {
+
+    options = options || {};
+
+    let blob = options.range ? localfile.slice(options.range.start, options.range.start + options.range.size) : localfile;
+
+    return new Promise(function (resolve, reject) {
 
         var fileReader = new FileReader();
-
         var compression = NONE;
         if (options.bgz || localfile.name.endsWith(".bgz")) {
             compression = BGZF;
@@ -18077,20 +18339,21 @@ function loadStringFromFile(localfile, options) {
 
         fileReader.onload = function (e) {
             if (compression === NONE) {
-                return fullfill(fileReader.result);
+                return resolve(fileReader.result);
             } else {
-                return fullfill(arrayBufferToString(fileReader.result, compression));
+                return resolve(arrayBufferToString(fileReader.result, compression));
             }
         };
 
         fileReader.onerror = function (e) {
-            reject(null, fileReader);
+            const error = fileReader.error;
+            reject(error + " " + localfile.name, fileReader);
         };
 
         if (compression === NONE) {
-            fileReader.readAsText(localfile);
+            fileReader.readAsText(blob);
         } else {
-            fileReader.readAsArrayBuffer(localfile);
+            fileReader.readAsArrayBuffer(blob);
         }
     });
 
@@ -18123,7 +18386,7 @@ function isAmazonV4Signed(url) {
 function getOauthToken(url) {
     const host = parseUri(url).host;
     let token = oauth.getToken(host);
-    if (!token && google$1.isGoogleURL(url)) {
+    if (!token && google.isGoogleURL(url)) {
         token = oauth.google.access_token;
     }
     return token;
@@ -18146,7 +18409,7 @@ function mapUrl(url) {
     if (url.includes("//www.dropbox.com")) {
         return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com");
     } else if (url.includes("//drive.google.com")) {
-        return google$1.driveDownloadURL(url);
+        return google.driveDownloadURL(url);
     } else if (url.includes("//www.broadinstitute.org/igvdata")) {
         return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata");
     } else if (url.includes("//igvdata.broadinstitute.org")) {
@@ -18181,6 +18444,7 @@ function arrayBufferToString(arraybuffer, compression) {
         return decodeUTF8(plain);
     }
 }
+
 function isGoogleDrive(url) {
     return url.includes("drive.google.com") || url.includes("www.googleapis.com/drive");
 }
@@ -18209,7 +18473,7 @@ async function getGoogleAccessToken() {
     options.setPrompt('select_account');
     options.setScope(scope);
     oauthPromise = new Promise(function (resolve, reject) {
-        Alert.presentMessageWithCallback("Google Login required", function () {
+        Alert.presentAlert("Google Login required", function () {
             gapi.auth2.getAuthInstance().signIn(options)
                 .then(function (user) {
                     const authResponse = user.getAuthResponse();
@@ -18311,7 +18575,7 @@ function getGlobalObject() {
  * @param x
  * @returns {boolean}
  */
-function isString (x) {
+function isString(x) {
     return typeof x === "string" || x instanceof String
 }
 
@@ -18328,12 +18592,13 @@ function numberFormatter(rawNumber) {
     }).split('').reverse().join('') + (dec[1] ? decsep + dec[1] : '');
 }
 
+
 const splitLines = function (string) {
     return string.split(/\n|\r\n|\r/g);
 };
 
 
-function splitStringRespectingQuotes (string, delim) {
+function splitStringRespectingQuotes(string, delim) {
 
     var tokens = [],
         len = string.length,
@@ -18349,17 +18614,60 @@ function splitStringRespectingQuotes (string, delim) {
             c = string.charAt(i);
             if (c === '"') {
                 quote = !quote;
-            }
-            else if (!quote && c === delim) {
+            } else if (!quote && c === delim) {
                 n++;
                 tokens[n] = "";
-            }
-            else {
+            } else {
                 tokens[n] += c;
             }
         }
     }
     return tokens;
+}
+
+function hashCode(s) {
+    return s.split("").reduce(function (a, b) {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a
+    }, 0);
+}
+
+/**
+ * Compress string and encode in a url safe form
+ * @param s
+ */
+function compressString(str) {
+    const bytes = [];
+    for (var i = 0; i < str.length; i++) {
+        bytes.push(str.charCodeAt(i));
+    }
+    const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
+    const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
+    let enc = btoa(compressedString);
+    return enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');   // URL safe
+}
+
+/**
+ * Uncompress the url-safe encoded compressed string, presumably created by compressString above
+ *
+ * @param enc
+ * @returns {string}
+ */
+function uncompressString(enc) {
+    enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
+
+    const compressedString = atob(enc);
+    const compressedBytes = [];
+    for (let i = 0; i < compressedString.length; i++) {
+        compressedBytes.push(compressedString.charCodeAt(i));
+    }
+    const bytes = new Zlib.RawInflate(compressedBytes).decompress();
+
+    let str = '';
+    for (let b of bytes) {
+        str += String.fromCharCode(b);
+    }
+    return str;
 }
 
 /*
@@ -18525,7 +18833,7 @@ FastaSequence.prototype.getIndex = function () {
                     var tokens = lines[lineNo++].split("\t");
                     var nTokens = tokens.length;
 
-                    if (nTokens == 5) {
+                    if (nTokens === 5) {
                         // Parse the index line.
                         var chr = tokens[0];
                         var size = parseInt(tokens[1]);
@@ -18579,9 +18887,7 @@ FastaSequence.prototype.loadAll = function () {
 
         while (lineNo < len) {
             nextLine = lines[lineNo++].trim();
-            if (nextLine.startsWith("#") || nextLine.length === 0) {
-                continue;
-            } else if (nextLine.startsWith(">")) {
+            if (nextLine.startsWith("#") || nextLine.length === 0) ; else if (nextLine.startsWith(">")) {
                 if (currentSeq) {
                     self.chromosomeNames.push(currentChr);
                     self.sequences[currentChr] = currentSeq;
@@ -18928,9 +19234,8 @@ Genome.prototype.getCytobands = function (chr) {
 Genome.prototype.getLongestChromosome = function () {
 
     var longestChr,
-        key,
         chromosomes = this.chromosomes;
-    for (key in chromosomes) {
+    for (let key in chromosomes) {
         if (chromosomes.hasOwnProperty(key)) {
             var chr = chromosomes[key];
             if (longestChr === undefined || chr.bpLength > longestChr.bpLength) {
@@ -19058,7 +19363,7 @@ function loadCytobands(cytobandUrl, config) {
             var chr = tokens[0];
             if (!lastChr) lastChr = chr;
 
-            if (chr != lastChr) {
+            if (chr !== lastChr) {
 
                 cytobands[lastChr] = bands;
                 bands = [];
@@ -19066,9 +19371,8 @@ function loadCytobands(cytobandUrl, config) {
                 n = 0;
             }
 
-            if (tokens.length == 5) {
+            if (tokens.length === 5) {
                 //10	0	3000000	p15.3	gneg
-                var chr = tokens[0];
                 var start = parseInt(tokens[1]);
                 var end = parseInt(tokens[2]);
                 var name = tokens[3];
@@ -19127,7 +19431,7 @@ function loadAliases(aliasURL, config) {
                 aliases = [];
 
             lines.forEach(function (line) {
-                if (!line.startsWith("#") & line.length > 0) aliases.push(line.split("\t"));
+                if (!line.startsWith("#") && line.length > 0) aliases.push(line.split("\t"));
             });
 
             return aliases;
@@ -19254,14 +19558,14 @@ function ViewPort(trackView, $container, genomicState, width) {
 
         if ("sequence" !== trackView.track.type) {
 
-            this.popover = new Popover(self.browser.$content);
+            this.popover = new Popover(this.browser.$content);
 
             let str = trackView.track.name.toLowerCase().split(' ').join('_');
             str = str + '_' + this.browser.genomicStateList.indexOf(this.genomicState);
 
             this.popover.$popover.attr('id', str);
 
-            self.$zoomInNotice = createZoomInNotice.call(this, $(this.contentDiv));
+            this.$zoomInNotice = createZoomInNotice.call(this, $(this.contentDiv));
         }
     }
 
@@ -19273,7 +19577,7 @@ function ViewPort(trackView, $container, genomicState, width) {
         this.setTrackLabel(trackView.track.name);
 
 
-        if (false === self.browser.trackLabelsVisible) {
+        if (false === this.browser.trackLabelsVisible) {
             this.$trackLabel.hide();
         }
 
@@ -19472,7 +19776,18 @@ ViewPort.prototype.loadFeatures = async function () {
     // console.log('get features');
     try {
         const features = await getFeatures.call(this, referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel);
-        this.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, features);
+
+        let roiFeatures = [];
+        const roi = mergeArrays(this.browser.roi, this.trackView.track.roi);
+        if (roi) {
+            for (let r of roi) {
+                const f = await
+                    r.getFeatures(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel);
+                roiFeatures.push({track: r, features: f});
+            }
+        }
+
+        this.tile = new Tile(referenceFrame.chrName, bpStart, bpEnd, referenceFrame.bpPerPixel, features, roiFeatures);
         this.loading = false;
         this.hideMessage();
         this.stopSpinner();
@@ -19493,7 +19808,7 @@ ViewPort.prototype.loadFeatures = async function () {
  * representing the features,as well as the features.  The object evolved, at one time it was an image tile.
  * Should be renamed.
  */
-ViewPort.prototype.repaint = function (tile) {
+ViewPort.prototype.repaint = async function (tile) {
 
     var self = this;
 
@@ -19508,7 +19823,7 @@ ViewPort.prototype.repaint = function (tile) {
     const isWGV = GenomeUtils.isWholeGenomeView(this.genomicState.referenceFrame);
 
     const features = tile.features;
-
+    const roiFeatures = tile.roiFeatures;
     const genomicState = this.genomicState;
     const referenceFrame = genomicState.referenceFrame;
     const bpPerPixel = isWGV ? referenceFrame.initialEnd / this.$viewport.width() : tile.bpPerPixel;
@@ -19569,7 +19884,7 @@ ViewPort.prototype.repaint = function (tile) {
     newCanvas.style.top = canvasTop + "px";
     drawConfiguration.context = ctx;
     ctx.translate(0, -canvasTop);
-    draw.call(this, drawConfiguration, features);
+    draw.call(this, drawConfiguration, features, roiFeatures);
     // ctx.translate(0, canvasTop);
     // ctx.restore();
 
@@ -19592,12 +19907,13 @@ ViewPort.prototype.repaint = function (tile) {
  * representing the features,as well as the features.  The object evolved, at one time it was an image tile.
  * Should be renamed.
  */
-ViewPort.prototype.toSVG = function (tile) {
+ViewPort.prototype.toSVG = async function (tile) {
 
     const genomicState = this.genomicState;
     const referenceFrame = genomicState.referenceFrame;
     const bpPerPixel = tile.bpPerPixel;
     const features = tile.features;
+    const roiFeatures = tile.roiFeatures;
     const pixelWidth = this.$viewport.width();
     const pixelHeight = this.$viewport.height();
     const bpStart = referenceFrame.start;
@@ -19637,32 +19953,23 @@ ViewPort.prototype.toSVG = function (tile) {
             viewportContainerWidth: this.browser.viewportContainerWidth()
         };
 
-    draw.call(this, drawConfiguration, features);
+    draw.call(this, drawConfiguration, features, roiFeatures);
 
     return ctx.getSerializedSvg(true);
 
 };
 
-async function draw(drawConfiguration, features) {
+function draw(drawConfiguration, features, roiFeatures) {
 
     if (features) {
         drawConfiguration.features = features;
         this.trackView.track.draw(drawConfiguration);
     }
 
-    const browser = this.browser;
-
-    const roi = mergeArrays(browser.roi, this.trackView.track.roi);
-
-    if (roi) {
-        for (let r of roi) {
-            const f = await
-                r.getFeatures(drawConfiguration.referenceFrame.chrName, drawConfiguration.bpStart, drawConfiguration.bpEnd);
-            if (f && f.length > 0) {
-                drawConfiguration.features = f;
-                r.draw(drawConfiguration);
-            }
-
+    if (roiFeatures) {
+        for (let r of roiFeatures) {
+            drawConfiguration.features = r.features;
+            r.track.draw(drawConfiguration);
         }
     }
 }
@@ -19762,7 +20069,7 @@ ViewPort.prototype.saveImage = function () {
     download(filename, data);
 };
 
-ViewPort.prototype.renderSVGContext = function (context, offset) {
+ViewPort.prototype.renderSVGContext = async function (context, offset) {
 
     let str = this.trackView.track.name || this.trackView.track.id;
     str = str.replace(/\W/g, '');
@@ -19784,12 +20091,12 @@ ViewPort.prototype.renderSVGContext = function (context, offset) {
     const yScrollDelta = $(this.contentDiv).position().top;
     const dx = offset.deltaX + (genomicStateIndex * context.multiLocusGap);
     const dy = offset.deltaY + yScrollDelta;
-    const { width, height } = this.$viewport.get(0).getBoundingClientRect();
+    const {width, height} = this.$viewport.get(0).getBoundingClientRect();
 
     context.addTrackGroupWithTranslationAndClipRect(id, dx, dy, width, height, -yScrollDelta);
 
-    let { referenceFrame } = this.genomicState;
-    let { start: bpStart, bpPerPixel } = referenceFrame;
+    let {referenceFrame} = this.genomicState;
+    let {start: bpStart, bpPerPixel} = referenceFrame;
     context.save();
 
     const drawConfig =
@@ -19820,22 +20127,10 @@ ViewPort.prototype.renderSVGContext = function (context, offset) {
 
     const features = this.tile ? this.tile.features : [];
 
-    draw.call(this, drawConfig, features);
+    draw.call(this, drawConfig, features, this.tile.roiFeatures);
 
     if (this.$trackLabel && true === this.browser.trackLabelsVisible) {
-
-        const shim = 4;
-        const { x, y, width, height } = relativeDOMBBox(this.$viewport.get(0), this.$trackLabel.get(0));
-
-        context.font = "12px Arial";
-        context.fillStyle = 'rgb(68, 68, 68)';
-        context.fillText(this.$trackLabel.text(), x, y + height - shim);
-
-        const { width: stringWidth } = context.measureText(this.$trackLabel.text());
-
-        context.strokeStyle = 'rgb(68, 68, 68)';
-        context.strokeRect(x - shim, y, stringWidth + (2 * shim), height);
-
+        renderTrackLabelSVG.call(this, context);
     }
 
     context.restore();
@@ -19843,14 +20138,80 @@ ViewPort.prototype.renderSVGContext = function (context, offset) {
 };
 
 ViewPort.prototype.saveSVG = function () {
+
+    const width = this.$viewport.width();
+    const height = this.$viewport.height();
+
+    const context = new C2S(
+        {
+            width,
+            height,
+            viewbox:
+                {
+                    x: 0,
+                    y: -$(this.contentDiv).position().top,
+                    width,
+                    height
+                }
+
+        });
+
+    const { start, bpPerPixel } = this.genomicState.referenceFrame;
+
+    const drawConfiguration =
+        {
+            viewport: this,
+            context,
+            top: -$(this.contentDiv).position().top,
+            pixelTop: 0,
+            pixelWidth: width,
+            pixelHeight: height,
+            bpStart: start,
+            bpEnd: start + (width * bpPerPixel),
+            bpPerPixel,
+            referenceFrame: this.genomicState.referenceFrame,
+            genomicState: this.genomicState,
+            selection: this.selection,
+            viewportWidth: width,
+            viewportContainerX: 0,
+            viewportContainerWidth: this.browser.viewportContainerWidth()
+        };
+
+    draw.call(this, drawConfiguration, this.tile.features);
+
+    if (this.$trackLabel && true === this.browser.trackLabelsVisible) {
+        renderTrackLabelSVG.call(this, context);
+    }
+
+    const svg = drawConfiguration.context.getSerializedSvg(true);
+
+    const data = URL.createObjectURL(new Blob([ svg ], { type: "application/octet-stream" }));
+
     const str = this.$trackLabel ? this.$trackLabel.text() : this.trackView.track.id;
     const filename = str + ".svg";
-    const svg = this.toSVG(this.tile);
-    const data = URL.createObjectURL(new Blob([svg], {
-        type: "application/octet-stream"
-    }));
     download(filename, data);
+
 };
+
+function renderTrackLabelSVG(context) {
+
+        const { x, y, width, height } = relativeDOMBBox(this.$viewport.get(0), this.$trackLabel.get(0));
+
+        const { width: stringWidth } = context.measureText(this.$trackLabel.text());
+        context.fillStyle = "white";
+        context.fillRect(x, y, width, height);
+
+        context.font = "12px Arial";
+        context.fillStyle = 'rgb(68, 68, 68)';
+
+        const dx = 0.25 * (width - stringWidth);
+        const dy = 0.7 * (height - 12);
+        context.fillText(this.$trackLabel.text(), x + dx, y + height - dy);
+
+        context.strokeStyle = 'rgb(68, 68, 68)';
+        context.strokeRect(x, y, width, height);
+
+}
 
 /**
  * Called when the associated track is removed.  Do any needed cleanup here.
@@ -19884,12 +20245,13 @@ ViewPort.prototype.getCachedFeatures = function () {
     return this.tile ? this.tile.features : [];
 };
 
-var Tile = function (chr, tileStart, tileEnd, bpPerPixel, features) {
+var Tile = function (chr, tileStart, tileEnd, bpPerPixel, features, roiFeatures) {
     this.chr = chr;
     this.startBP = tileStart;
     this.endBP = tileEnd;
     this.bpPerPixel = bpPerPixel;
     this.features = features;
+    this.roiFeatures = roiFeatures;
 };
 
 Tile.prototype.containsRange = function (chr, start, end, bpPerPixel) {
@@ -20277,16 +20639,16 @@ IntervalTree.prototype.insert = function (start, end, value) {
     var x = new Node(interval);
     this.treeInsert(x);
     x.color = RED;
-    while (x != this.root && x.parent.color == RED) {
-        if (x.parent == x.parent.parent.left) {
-            var y = x.parent.parent.right;
-            if (y.color == RED) {
+    while (x !== this.root && x.parent.color === RED) {
+        if (x.parent === x.parent.parent.left) {
+            let y = x.parent.parent.right;
+            if (y.color === RED) {
                 x.parent.color = BLACK;
                 y.color = BLACK;
                 x.parent.parent.color = RED;
                 x = x.parent.parent;
             } else {
-                if (x == x.parent.right) {
+                if (x === x.parent.right) {
                     x = x.parent;
                     leftRotate.call(this, x);
                 }
@@ -20295,14 +20657,14 @@ IntervalTree.prototype.insert = function (start, end, value) {
                 rightRotate.call(this, x.parent.parent);
             }
         } else {
-            var y = x.parent.parent.left;
-            if (y.color == RED) {
+            let y = x.parent.parent.left;
+            if (y.color === RED) {
                 x.parent.color = BLACK;
                 y.color = BLACK;
                 x.parent.parent.color = RED;
                 x = x.parent.parent;
             } else {
-                if (x == x.parent.left) {
+                if (x === x.parent.left) {
                     x = x.parent;
                     rightRotate.call(this, x);
                 }
@@ -20349,8 +20711,8 @@ IntervalTree.prototype.logIntervals = function () {
 
     function logNode(node, indent) {
 
-        if (node.left != NIL) logNode(node.left);
-        if (node.right != NIL) logNode(node.right);
+        if (node.left !== NIL) logNode(node.left);
+        if (node.right !== NIL) logNode(node.right);
     }
 
 };
@@ -20364,8 +20726,8 @@ IntervalTree.prototype.mapIntervals = function (func) {
 
         func(node.interval);
 
-        if (node.left != NIL) applyInterval(node.left);
-        if (node.right != NIL) applyInterval(node.right);
+        if (node.left !== NIL) applyInterval(node.left);
+        if (node.right !== NIL) applyInterval(node.right);
     }
 };
 
@@ -20375,11 +20737,11 @@ function searchAll(interval, node, results) {
         results.push(node.interval);
     }
 
-    if (node.left != NIL && node.left.max >= interval.low) {
+    if (node.left !== NIL && node.left.max >= interval.low) {
         searchAll.call(this, interval, node.left, results);
     }
 
-    if (node.right != NIL && node.right.min <= interval.high) {
+    if (node.right !== NIL && node.right.min <= interval.high) {
         searchAll.call(this, interval, node.right, results);
     }
 
@@ -20389,14 +20751,14 @@ function searchAll(interval, node, results) {
 function leftRotate(x) {
     var y = x.right;
     x.right = y.left;
-    if (y.left != NIL) {
+    if (y.left !== NIL) {
         y.left.parent = x;
     }
     y.parent = x.parent;
-    if (x.parent == NIL) {
+    if (x.parent === NIL) {
         this.root = y;
     } else {
-        if (x.parent.left == x) {
+        if (x.parent.left === x) {
             x.parent.left = y;
         } else {
             x.parent.right = y;
@@ -20414,14 +20776,14 @@ function leftRotate(x) {
 function rightRotate(x) {
     var y = x.left;
     x.left = y.right;
-    if (y.right != NIL) {
+    if (y.right !== NIL) {
         y.right.parent = x;
     }
     y.parent = x.parent;
-    if (x.parent == NIL) {
+    if (x.parent === NIL) {
         this.root = y;
     } else {
-        if (x.parent.right == x) {
+        if (x.parent.right === x) {
             x.parent.right = y;
         } else {
             x.parent.left = y;
@@ -20445,7 +20807,7 @@ function rightRotate(x) {
 IntervalTree.prototype.treeInsert = function (x) {
     var node = this.root;
     var y = NIL;
-    while (node != NIL) {
+    while (node !== NIL) {
         y = node;
         if (x.interval.low <= node.interval.low) {
             node = node.left;
@@ -20455,7 +20817,7 @@ IntervalTree.prototype.treeInsert = function (x) {
     }
     x.parent = y;
 
-    if (y == NIL) {
+    if (y === NIL) {
         this.root = x;
         x.left = x.right = NIL;
     } else {
@@ -20472,7 +20834,7 @@ IntervalTree.prototype.treeInsert = function (x) {
 
 // Applies the statistic update on the node and its ancestors.
 function applyUpdate(node) {
-    while (node != NIL) {
+    while (node !== NIL) {
         var nodeMax = node.left.max > node.right.max ? node.left.max : node.right.max;
         var intervalHigh = node.interval.high;
         node.max = nodeMax > intervalHigh ? nodeMax : intervalHigh;
@@ -20497,11 +20859,11 @@ Interval.prototype.equals = function (other) {
     if (!other) {
         return false;
     }
-    if (this == other) {
+    if (this === other) {
         return true;
     }
-    return (this.low == otherInterval.low &&
-        this.high == otherInterval.high);
+    return (this.low === other.low &&
+        this.high === other.high);
 
 };
 
@@ -20676,13 +21038,13 @@ const FeatureUtils = {
      */
     findOverlapping: function (featureList, start, end) {
 
-        if (!featureList || featureList.length == 0) {
+        if (!featureList || featureList.length === 0) {
             return [];
         } else {
             const tree = buildIntervalTree(featureList);
             const intervals = tree.findOverlapping(start, end);
 
-            if (intervals.length == 0) {
+            if (intervals.length === 0) {
                 return [];
             } else {
                 // Trim the list of features in the intervals to those
@@ -20697,7 +21059,7 @@ const FeatureUtils = {
                     for (let i = 0; i < len; i++) {
                         const feature = intervalFeatures[i];
                         if (feature.start > end) break;
-                        else if (feature.end >= start) {
+                        else if (feature.end > start) {
                             featureList.push(feature);
                         }
                     }
@@ -20856,10 +21218,10 @@ const IGVGraphics = {
                 var value = transforms[transform];
 
                 // TODO: Add error checking for robustness
-                if (transform == 'translate') {
+                if (transform === 'translate') {
                     ctx.translate(value['x'], value['y']);
                 }
-                if (transform == 'rotate') {
+                if (transform === 'rotate') {
                     ctx.rotate(value['angle'] * Math.PI / 180);
                 }
             }
@@ -20890,10 +21252,10 @@ const IGVGraphics = {
                 var value = transforms[transform];
 
                 // TODO: Add error checking for robustness
-                if (transform == 'translate') {
+                if (transform === 'translate') {
                     ctx.translate(value['x'], value['y']);
                 }
-                if (transform == 'rotate') {
+                if (transform === 'rotate') {
                     ctx.rotate(value['angle'] * Math.PI / 180);
                 }
             }
@@ -20950,7 +21312,7 @@ const IGVGraphics = {
             IGVGraphics.setProperties(ctx, properties);
         }
 
-        if (dashLen == undefined) dashLen = 2;
+        if (dashLen === undefined) dashLen = 2;
         ctx.moveTo(x1, y1);
 
         var dX = x2 - x1;
@@ -20963,9 +21325,9 @@ const IGVGraphics = {
         while (q++ < dashes) {
             x1 += dashX;
             y1 += dashY;
-            ctx[q % 2 == 0 ? 'moveTo' : 'lineTo'](x1, y1);
+            ctx[q % 2 === 0 ? 'moveTo' : 'lineTo'](x1, y1);
         }
-        ctx[q % 2 == 0 ? 'moveTo' : 'lineTo'](x2, y2);
+        ctx[q % 2 === 0 ? 'moveTo' : 'lineTo'](x2, y2);
 
         if (properties) ctx.restore();
     },
@@ -22547,13 +22909,10 @@ function inferTrackTypes(config) {
 
     if ("file" === config.sourceType) {
         if (undefined === config.format) {
-            var path;
-            if (config.format) {
-                config.format = config.format.toLowerCase();
-                return;
-            }
-            path = isFilePath(config.url) ? config.url.name : config.url;
+            const path = isFilePath(config.url) ? config.url.name : config.url;
             config.format = inferFileFormat(path);
+        } else {
+            config.format = config.format.toLowerCase();
         }
     }
 
@@ -22696,7 +23055,7 @@ function translateDeprecatedTypes(config) {
  * Parse a locus string and return a range object.  Locus string is of the form chr:start-end.  End is optional
  *
  */
-function parseLocusString (string) {
+function parseLocusString(string) {
 
     const t1 = string.split(":");
     const t2 = t1[1].split("-");
@@ -23049,7 +23408,7 @@ function parseFixedStep(line) {
 
     var tokens = line.split(/\s+/),
         cc = tokens[1].split("=")[1],
-        ss = parseInt(tokens[2].split("=")[1], 10),
+        ss = parseInt(tokens[2].split("=")[1], 10) - 1,
         step = parseInt(tokens[3].split("=")[1], 10),
         span = (tokens.length > 4) ? parseInt(tokens[4].split("=")[1], 10) : 1;
 
@@ -23157,7 +23516,7 @@ function parseTrackLine(line) {
     for (let str of tmp) {
         if (!str) return;
         var kv = str.split('=', 2);
-        if (kv.length == 2) {
+        if (kv.length === 2) {
             const key = kv[0].trim();
             const value = kv[1].trim();
             properties[key] = value;
@@ -23508,8 +23867,8 @@ function decodeBedGraph(tokens, ignore) {
     chr = tokens[0];
     start = parseInt(tokens[1]);
     end = parseInt(tokens[2]);
-
     value = parseFloat(tokens[3]);
+    const feature = {chr: chr, start: start, end: end, value: value};
 
     // Optional extra columns
     if (this.header) {
@@ -23519,7 +23878,7 @@ function decodeBedGraph(tokens, ignore) {
         }
     }
 
-    return {chr: chr, start: start, end: end, value: value};
+    return feature;
 }
 
 function decodeWig(tokens, wig) {
@@ -23539,7 +23898,7 @@ function decodeWig(tokens, wig) {
 
         if (tokens.length < 2) return null;
 
-        ss = parseInt(tokens[0], 10);
+        ss = parseInt(tokens[0], 10) - 1;
         ee = ss + wig.span;
         value = parseFloat(tokens[1]);
         return isNaN(value) ? null : {chr: wig.chrom, start: ss, end: ee, value: value};
@@ -23685,7 +24044,7 @@ function decodeGFF(tokens, ignore) {
     var attributes = {};
     for (let kv of attributeString.split(';')) {
         const t = kv.trim().split(delim, 2);
-        if (t.length == 2) {
+        if (t.length === 2) {
             const key = t[0].trim();
             let value = t[1].trim();
 
@@ -24045,9 +24404,9 @@ function decodeCustom(tokens, ignore) {
 
         format.fields.forEach(function (field, index) {
 
-            if (index != format.chr &&
-                index != format.start &&
-                index != format.end) {
+            if (index !== format.chr &&
+                index !== format.start &&
+                index !== format.end) {
 
                 feature[field] = tokens[index];
             }
@@ -24113,12 +24472,9 @@ SegParser.prototype.parseHeader = function (data) {
 
     for (i = 0; i < len; i++) {
         line = lines[i];
-        if (line.startsWith("#")) {
-            continue;
-        } else {
+        if (line.startsWith("#")) ; else {
             tokens = line.split("\t");
             this.header = {headings: tokens, lineCount: i + 1};
-            return this.header;
             break;
         }
     }
@@ -24273,11 +24629,10 @@ TrackBase.prototype.clickedFeatures = function (clickState) {
 
     const genomicLocation = clickState.genomicLocation;
 
-    // We need some tolerance around genomicLocation
-    const tolerance = 3 * clickState.referenceFrame.bpPerPixel;
+    // When zoomed out we need some tolerance around genomicLocation
+    const tolerance = (clickState.referenceFrame.bpPerPixel > 0.2) ? 3 * clickState.referenceFrame.bpPerPixel : 0;
     const ss = Math.floor(genomicLocation) - tolerance;
-    const ee = Math.ceil(genomicLocation) + tolerance;
-
+    const ee = Math.floor(genomicLocation) + tolerance;
     return (FeatureUtils.findOverlapping(features, ss, ee));
 };
 
@@ -24294,8 +24649,7 @@ TrackBase.prototype.setTrackProperties = function (properties) {
                 break;
             case "visibility":
                 //0 - hide, 1 - dense, 2 - full, 3 - pack, and 4 - squish
-                const viz = properties[key];
-                switch (viz) {
+                switch (properties[key]) {
                     case "2":
                     case "3":
                     case "pack":
@@ -24455,22 +24809,27 @@ function createVCFVariant(tokens) {
     variant.info = getInfoObject(tokens[7]);
     init$1(variant);
     return variant;
+}
 
-    function getInfoObject(infoStr) {
+function getInfoObject(infoStr) {
 
-        if (!infoStr) return undefined;
-
-        var info = {};
-        infoStr.split(';').forEach(function (elem) {
-            var element = elem.split('=');
-            info[element[0]] = element[1];
-        });
-
-        return info;
+    if (!infoStr) {
+        return undefined;
     }
+
+    var info = {};
+    infoStr.split(';').forEach(function (elem) {
+        var element = elem.split('=');
+        info[element[0]] = element[1];
+    });
+
+    return info;
 }
 
 function init$1(variant) {
+
+    const ref = variant.referenceBases;
+    const altBases = variant.alternateBases;
 
     if (variant.info) {
         if (variant.info["VT"]) {
@@ -24480,19 +24839,20 @@ function init$1(variant) {
         } else if (variant.info["PERIOD"]) {
             variant.type = "STR";
         }
+        else {
+            variant.type = determineType(altBases);
+        }
     }
 
-    const ref = variant.referenceBases;
-    const altBases = variant.alternateBases;
 
     // Check for reference block
-    if (isRef(altBases) || "." === altBases) {
-        variant.type = "REFBLOCK";
+    if (variant.type === "NONVARIANT") {
         variant.heterozygosity = 0;
         variant.start = variant.pos - 1;      // convert to 0-based coordinate convention
-        variant.end = variant.start + ref.length;
+        variant.end = variant.start + ref.length;  // might be overwritten by "END" attribute
+    }
 
-    } else if ("SV" === variant.type && variant.info["END"]) {
+    if (variant.info["END"]) {
         variant.start = variant.pos - 1;
         variant.end = Number.parseInt(variant.info["END"]);
 
@@ -24505,8 +24865,6 @@ function init$1(variant) {
         for (let alt of altTokens) {
 
             variant.alleles.push(alt);
-            let alleleStart;
-            let alleleEnd;
 
             // We don't yet handle  SV and other special alt representations
             if ("SV" !== variant.type && isKnownAlt(alt)) {
@@ -24543,12 +24901,11 @@ function init$1(variant) {
                     }
                 }
 
-                alleleStart = variant.pos + s - 1;      // -1 for zero based coordinates
-                alleleEnd = alleleStart + Math.max(1, lengthOnRef);     // insertions have zero length on ref, but we give them 1
+                const alleleStart = variant.pos + s - 1;      // -1 for zero based coordinates
+                const alleleEnd = alleleStart + Math.max(1, lengthOnRef);     // insertions have zero length on ref, but we give them 1
+                variant.start = Math.min(variant.start, alleleStart);
+                variant.end = Math.max(variant.end, alleleEnd);
             }
-
-            variant.start = Math.min(variant.start, alleleStart);
-            variant.end = Math.max(variant.end, alleleEnd);
 
         }
     }
@@ -24575,9 +24932,10 @@ Variant.prototype.popupData = function (genomicLocation, genomeId) {
     var self = this,
         fields, gt;
 
+    const posString = this.end === this.pos ? this.pos : `${this.pos}-${this.end}`;
     fields = [
         {name: "Chr", value: this.chr},
-        {name: "Pos", value: this.pos},
+        {name: "Pos", value: posString},
         {name: "Names", value: this.names ? this.names : ""},
         {name: "Ref", value: this.referenceBases},
         {name: "Alt", value: this.alternateBases.replace("<", "&lt;")},
@@ -24585,7 +24943,7 @@ Variant.prototype.popupData = function (genomicLocation, genomeId) {
         {name: "Filter", value: this.filter}
     ];
 
-    if (this.referenceBases.length === 1 && !isRef(this.alternateBases)) {
+    if (this.referenceBases.length === 1 && !determineType(this.alternateBases)) {
         let ref = this.referenceBases;
         if (ref.length === 1) {
             let altArray = this.alternateBases.split(",");
@@ -24628,16 +24986,29 @@ Variant.prototype.popupData = function (genomicLocation, genomeId) {
 };
 
 Variant.prototype.isRefBlock = function () {
-    return "REFBLOCK" === this.type;
+    return "NONVARIANT" === this.type;
 };
 
-function isRef(altAlleles) {
-
-    return !altAlleles ||
-        altAlleles.trim().length === 0 ||
+function determineType(altAlleles) {
+    if (altAlleles === undefined) {
+        return "UNKNOWN";
+    } else if (altAlleles.trim().length === 0 ||
         altAlleles === "<NON_REF>" ||
-        altAlleles === "<*>";
-
+        altAlleles === "<*>") {
+        return "NONVARIANT";
+    } else {
+        const alleles = altAlleles.split(",");
+        const types = alleles.map(function (a) {
+            return "<NON_REF>" === a ? "NONVARIANT" : "OTHER";
+        });
+        let type = types[0];
+        for(let t of types) {
+            if(t !== type) {
+                return "MIXED";
+            }
+        }
+        return type;
+    }
 }
 
 function arrayToString(value, delim) {
@@ -24739,8 +25110,8 @@ function createGAVariant(json) {
 /**
  * Parser for VCF files.
  */
-const VcfParser = function (type) {
-    this.type = type;
+const VcfParser = function () {
+
 };
 
 VcfParser.prototype.parseHeader = function (data) {
@@ -24880,9 +25251,6 @@ VcfParser.prototype.parseFeatures = function (data) {
             if (tokens.length >= 8) {
 
                 variant = createVCFVariant(tokens);
-
-                if (variant.isRefBlock()) continue;     // Skip reference blocks
-
                 variant.header = this.header;       // Keep a pointer to the header to interpret fields for popup text
                 allFeatures.push(variant);
 
@@ -25035,11 +25403,11 @@ BinaryParser.prototype.getLong = function () {
 
     var value = 0;
     if (this.littleEndian) {
-        for (var i = b.length - 1; i >= 0; i--) {
+        for (let i = b.length - 1; i >= 0; i--) {
             value = (value * 256) + b[i];
         }
     } else {
-        for (var i = 0; i < b.length; i++) {
+        for (let i = 0; i < b.length; i++) {
             value = (value * 256) + b[i];
         }
     }
@@ -25053,9 +25421,9 @@ BinaryParser.prototype.getString = function (len) {
 
     var s = "";
     var c;
-    while ((c = this.view.getUint8(this.position++)) != 0) {
+    while ((c = this.view.getUint8(this.position++)) !== 0) {
         s += String.fromCharCode(c);
-        if (len && s.length == len) break;
+        if (len && s.length === len) break;
     }
     return s;
 };
@@ -25354,7 +25722,7 @@ function optimizeChunks(chunks, lowest) {
                 mergedChunks.push(chunk);
                 lastChunk = chunk;
             } else {
-                if ((chunk.minv.block - lastChunk.maxv.block) < 65000) { // Merge chunks that are withing 65k of each other
+                if (canMerge(lastChunk, chunk)) {
                     if (chunk.maxv.isGreaterThan(lastChunk.maxv)) {
                         lastChunk.maxv = chunk.maxv;
                     }
@@ -25367,6 +25735,15 @@ function optimizeChunks(chunks, lowest) {
     });
 
     return mergedChunks;
+}
+
+function canMerge(chunk1, chunk2) {
+    return (chunk2.minv.block - chunk1.maxv.block) < 65000 &&
+        (chunk2.maxv.block -  chunk1.minv.block) < 5000000;
+        // lastChunk.minv.block === lastChunk.maxv.block &&
+        // lastChunk.maxv.block === chunk.minv.block &&
+        // chunk.minv.block === chunk.maxv.block
+
 }
 
 /**
@@ -25386,6 +25763,178 @@ function reg2bins(beg, end) {
     for (k = 4681 + (beg >> 14); k <= 4681 + (end >> 14); ++k) list.push(k);
     return list;
 }
+
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 Broad Institute
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+/**
+ *
+ * @param indexFile
+ * @param config
+ * @returns a Promise for the tribble-style (.idx) index.  The fulfill function takes the index as an argument
+ */
+function loadTribbleIndex(indexFile, config, genome) {
+
+    return new Promise(function (fullfill) {
+
+        igvxhr
+            .loadArrayBuffer(indexFile, buildOptions(config))
+            .then(function (arrayBuffer) {
+
+                if (arrayBuffer) {
+
+                    var index = {};
+
+                    var parser = new BinaryParser(new DataView(arrayBuffer));
+
+                    readHeader(parser);
+
+                    var nChrs = parser.getInt();
+                    while (nChrs-- > 0) {
+                        // todo -- support interval tree index, we're assuming its a linear index
+                        var chrIdx = readLinear(parser);
+                        index[chrIdx.chr] = chrIdx;
+                    }
+
+                    fullfill(new TribbleIndex(index));
+                } else {
+                    fullfill(null);
+                }
+
+            })
+            .catch(function (error) {
+                fullfill(null);
+            });
+
+        function readHeader(parser) {
+
+            //var magicString = view.getString(4);
+            var magicNumber = parser.getInt();     //   view._getInt32(offset += 32, true);
+            var type = parser.getInt();
+            var version = parser.getInt();
+
+            var indexedFile = parser.getString();
+
+            var indexedFileSize = parser.getLong();
+
+            var indexedFileTS = parser.getLong();
+            var indexedFileMD5 = parser.getString();
+            var flags = parser.getInt();
+
+            if (version >= 3) {
+                var nProperties = parser.getInt();
+                while (nProperties-- > 0) {
+                    var key = parser.getString();
+                    var value = parser.getString();
+                }
+            }
+        }
+
+        function readLinear(parser) {
+
+            var chr = parser.getString();
+
+            // Translate to canonical name
+            if (genome) chr = genome.getChromosomeName(chr);
+
+            var binWidth = parser.getInt();
+            var nBins = parser.getInt();
+            var longestFeature = parser.getInt();
+            //largestBlockSize = parser.getInt();
+            // largestBlockSize and totalBlockSize are old V3 index values.  largest block size should be 0 for
+            // all newer V3 block.  This is a nasty hack that should be removed when we go to V4 (XML!) indices
+            var OLD_V3_INDEX = parser.getInt() > 0;
+            var nFeatures = parser.getInt();
+
+            // note the code below accounts for > 60% of the total time to read an index
+            var pos = parser.getLong();
+
+            var blocks = new Array();
+            for (var binNumber = 0; binNumber < nBins; binNumber++) {
+                var nextPos = parser.getLong();
+                blocks.push({min: pos, max: nextPos}); //        {position: pos, size: size});
+                pos = nextPos;
+            }
+
+            return {chr: chr, blocks: blocks, longestFeature: longestFeature, binWidth: binWidth};
+
+        }
+
+    });
+}
+
+const TribbleIndex = function (chrIndexTable) {
+    this.chrIndex = chrIndexTable;      // Dictionary of chr -> tribble index
+};
+
+/**
+ * Fetch blocks for a particular genomic range.
+ *
+ * TODO -- currently this returns all blocks for the chromosome, min and max are ignored.  Fix this.
+ *
+ * @param queryChr the sequence dictionary index of the chromosome
+ * @param min  genomic start position
+ * @param max  genomic end position
+ */
+TribbleIndex.prototype.blocksForRange = function (queryChr, min, max) { //function (refId, min, max) {
+    var chrIdx = this.chrIndex[queryChr];
+
+    if (chrIdx) {
+        var blocks = chrIdx.blocks;
+        var longestFeature = chrIdx.longestFeature;
+        var binWidth = chrIdx.binWidth;
+        var adjustedPosition = Math.max(min - longestFeature, 0);
+        var startBinNumber = Math.floor(adjustedPosition / binWidth);
+
+        if (startBinNumber >= blocks.length) // are we off the end of the bin list, so return nothing
+            return [];
+        else {
+
+            var endBinNumber = Math.min(Math.floor((max - 1) / binWidth), blocks.length - 1);
+
+            // By definition blocks are adjacent for the liner index.  Combine them into one merged block
+
+            var startPos = blocks[startBinNumber].min;
+            var endPos = blocks[endBinNumber].max;
+            var size = endPos - startPos;
+            if (size === 0) {
+                return [];
+            } else {
+                var mergedBlock = {minv: {block: startPos, offset: 0}, maxv: {block: endPos, offset: 0}};
+                return [mergedBlock];
+            }
+
+
+            //  var blocks = chrIdx.blocks,
+            //      lastBlock = blocks[blocks.length - 1],
+            //     mergedBlock = {minv: {block: blocks[0].min, offset: 0}, maxv: {block: lastBlock.max, offset: 0}};
+            // return [mergedBlock];
+        }
+    } else {
+        return null;
+    }
+};
 
 /*
  * The MIT License (MIT)
@@ -25439,7 +25988,7 @@ const FeatureFileReader = function (config, genome) {
 
     this.format = this.config.format;
 
-    this.parser = this.getParser(this.format, this.config.decode);
+    this.parser = this.getParser(this.format, this.config.decode, this.config);
 };
 
 /**
@@ -25475,12 +26024,11 @@ FeatureFileReader.prototype.readHeader = async function () {
             header.features = features;
 
         } else {
-
-            const index = await this.getIndex();
-            if (index) {
+            let index;
+            if (this.config.indexURL || this.config.indexed) {
+                index = await this.getIndex();
 
                 // Load the file header (not HTTP header) for an indexed file.
-
                 let maxSize = "vcf" === this.config.format ? 65000 : 1000;
                 if (index.tabix) {
                     const bsizeOptions = buildOptions(this.config, {
@@ -25493,12 +26041,9 @@ FeatureFileReader.prototype.readHeader = async function () {
                     const bsize = bgzBlockSize(abuffer);
                     maxSize = index.firstAlignmentBlock + bsize;
                 }
-
                 const options = buildOptions(this.config, {bgz: index.tabix, range: {start: 0, size: maxSize}});
-
                 const data = await igvxhr.loadString(this.config.url, options);
                 header = this.parser.parseHeader(data);
-
 
             } else {
                 // If this is a non-indexed file we will load all features in advance
@@ -25506,7 +26051,6 @@ FeatureFileReader.prototype.readHeader = async function () {
                 header = this.header || {};
                 header.features = features;
             }
-
 
             if (header && this.parser) {
                 this.parser.header = header;
@@ -25520,11 +26064,11 @@ FeatureFileReader.prototype.readHeader = async function () {
 
 };
 
-FeatureFileReader.prototype.getParser = function (format, decode) {
+FeatureFileReader.prototype.getParser = function (format, decode, config) {
 
     switch (format) {
         case "vcf":
-            return new VcfParser();
+            return new VcfParser(config);
         case "seg" :
             return new SegParser();
         default:
@@ -25537,10 +26081,9 @@ FeatureFileReader.prototype.getParser = function (format, decode) {
 /**
  * Return a Promise for the async loaded index
  */
-FeatureFileReader.prototype.loadIndex = function () {
+FeatureFileReader.prototype.loadIndex = async function () {
 
     let idxFile = this.config.indexURL;
-
     if (this.filename.endsWith('.gz') || this.filename.endsWith('.bgz')) {
 
         if (!idxFile) {
@@ -25578,128 +26121,114 @@ FeatureFileReader.prototype.loadFeaturesWithIndex = async function (chr, start, 
     const parser = this.parser;
     const tabix = this.index.tabix;
     const refId = tabix ? this.index.sequenceIndexMap[chr] : chr;
-    const promises = [];
+    const allFeatures = [];
+    const genome = this.genome;
 
     const blocks = this.index.blocksForRange(refId, start, end);
 
     if (!blocks || blocks.length === 0) {
-        return Promise.resolve([]);
+        return [];
     } else {
 
-        blocks.forEach(function (block) {
+        for (let block of blocks) {
 
-            promises.push(new Promise(async function (fullfill, reject) {
+            const startPos = block.minv.block;
+            const startOffset = block.minv.offset;
+            const endOffset = block.maxv.offset;
+            let endPos;
 
-                const startPos = block.minv.block;
-                const startOffset = block.minv.offset;
-                const endOffset = block.maxv.offset;
-                let endPos;
-
-                if (tabix) {
-                    let lastBlockSize = 0;
-                    if (endOffset > 0) {
-                        const bsizeOptions = buildOptions(config, {
-                            range: {
-                                start: block.maxv.block,
-                                size: 26
-                            }
-                        });
-                        const abuffer = await igvxhr.loadArrayBuffer(config.url, bsizeOptions);
-                        lastBlockSize = bgzBlockSize(abuffer);
-                    }
-                    endPos = block.maxv.block + lastBlockSize;
-                } else {
-                    endPos = block.maxv.block;
+            if (tabix) {
+                let lastBlockSize = 0;
+                if (endOffset > 0) {
+                    const bsizeOptions = buildOptions(config, {
+                        range: {
+                            start: block.maxv.block,
+                            size: 26
+                        }
+                    });
+                    const abuffer = await igvxhr.loadArrayBuffer(config.url, bsizeOptions);
+                    lastBlockSize = bgzBlockSize(abuffer);
                 }
+                endPos = block.maxv.block + lastBlockSize;
+            } else {
+                endPos = block.maxv.block;
+            }
 
-                const options = buildOptions(config, {
-                    range: {
-                        start: startPos,
-                        size: endPos - startPos + 1
-                    }
-                });
+            const options = buildOptions(config, {
+                range: {
+                    start: startPos,
+                    size: endPos - startPos + 1
+                }
+            });
 
-                const success = function (inflated) {
-                    const slicedData = startOffset ? inflated.slice(startOffset) : inflated;
-                    const slicedFeatures = parser.parseFeatures(slicedData);
+            if (tabix) {
+                const data = await igvxhr.loadArrayBuffer(config.url, options);
+                const inflated = new Uint8Array(unbgzf(data));
+                parse(inflated);
 
-                    // Filter features not in requested range.
-                    const filteredFeatures = [];
-                    for (let f of slicedFeatures) {
-                        if (f.start > end) break;
-                        if (f.end >= start && f.start <= end) {
-                            filteredFeatures.push(f);
+            } else {
+                const inflated = igvxhr.loadString(config.url, options);
+                parse(inflated);
+            }
+
+            function parse(inflated) {
+                const slicedData = startOffset ? inflated.slice(startOffset) : inflated;
+                const slicedFeatures = parser.parseFeatures(slicedData);
+
+                // Filter features not in requested range.
+                for (let f of slicedFeatures) {
+                    if (genome.getChromosomeName(f.chr) !== chr) {
+                        if (allFeatures.length === 0) {
+                            continue;  //adjacent chr to the left
+                        } else {
+                            break; //adjacent chr to the right
                         }
                     }
-                    fullfill(filteredFeatures);
-                };
-
-                if (tabix) {
-                    igvxhr
-                        .loadArrayBuffer(config.url, options)
-                        .then(function (data) {
-                            const inflated = new Uint8Array(unbgzf(data));
-                            success(inflated);
-                        })
-                        .catch(reject);
-                } else {
-                    igvxhr
-                        .loadString(config.url, options)
-                        .then(success)
-                        .catch(reject);
+                    if (f.start > end) break;
+                    if (f.end >= start && f.start <= end) {
+                        allFeatures.push(f);
+                    }
                 }
-            }));
-        });
-
-        const featureArrays = await Promise.all(promises);
-
-        let allFeatures = featureArrays[0];
-        if (allFeatures.length > 1) {
-            allFeatures = featureArrays[0];
-            for (let i = 1; i < featureArrays.length; i++) {
-                allFeatures = allFeatures.concat(featureArrays[i]);
             }
-            allFeatures.sort(function (a, b) {
-                return a.start - b.start;
-            });
         }
-
-        return allFeatures;
     }
+
+    allFeatures.sort(function (a, b) {
+        return a.start - b.start;
+    });
+
+    return allFeatures;
 };
 
-FeatureFileReader.prototype.getIndex = function () {
 
-    var self = this;
+FeatureFileReader.prototype.getIndex = async function () {
+
+
     if (this.index !== undefined || this.indexed === false) {
-        return Promise.resolve(this.index);
+        return this.index;
     }
 
-    if (this.indexURL ||
-        this.indexed || 
-        (typeof this.config.url === 'string' && (this.config.url.endsWith(".gz") || this.config.url.endsWith('.bgz')))) {
+    if (false !== this.indexed) {
 
-        return self.loadIndex()
-
-            .then(function (indexOrUndefined) {
-                if (indexOrUndefined) {
-                    self.index = indexOrUndefined;
-                    self.indexed = true;
-                } else {
-                    self.indexed = false;
-                }
-                return self.index;
-            })
-            .catch(function (error) {
-                self.indexed = false;
-                if (self.config.indexURL !== undefined) {
-                    self.config.browser.presentAlert("Index file not found.  Check track configuration", undefined);
-                }
-            });
-    } else {
-        self.indexed = false;
-        return Promise.resolve(undefined);
+        try {
+            const indexOrUndefined = await this.loadIndex();
+            if (indexOrUndefined) {
+                this.index = indexOrUndefined;
+                this.indexed = true;
+            } else {
+                this.indexed = false;
+            }
+            return this.index;
+        } catch (e) {
+            //If an explicit indexlURL was supplied rethrow the error.  Otherwise just mark the file as not index
+            if (this.config.url) {
+                throw e;
+            } else {
+                this.indexed = false;
+            }
+        }
     }
+    return undefined;
 };
 
 FeatureFileReader.prototype.loadFeaturesFromDataURI = async function () {
@@ -25766,7 +26295,7 @@ FeatureCache.prototype.queryFeatures = function (chr, start, end) {
 
     const intervals = tree.findOverlapping(start, end);
 
-    if (intervals.length == 0) {
+    if (intervals.length === 0) {
         return [];
     } else {
         // Trim the list of features in the intervals to those
@@ -26010,7 +26539,7 @@ const UCSCServiceReader = function (config, genome) {
         let e = Math.ceil(end);
 
         if(this.genome) {
-            const c = genome.getChromosome(chr);
+            const c = this.genome.getChromosome(chr);
             if(c && e > c.bpLength) {
                 e = c.bpLength;
             }
@@ -26615,15 +27144,8 @@ function ga4ghSearch(options) {
             url = options.url,
             body = options.body,
             decode = options.decode,
-            apiKey = google.apiKey,
             paramSeparator = "?",
             fields = options.fields;  // Partial response
-
-
-        if (apiKey) {
-            url = url + paramSeparator + "key=" + apiKey;
-            paramSeparator = "&";
-        }
 
         if (fields) {
             url = url + paramSeparator + "fields=" + fields;
@@ -26638,7 +27160,7 @@ function ga4ghSearch(options) {
             if (pageToken) {
                 body.pageToken = pageToken;
             } else {
-                if (body.pageToken != undefined) delete body.pageToken;    // Remove previous page token, if any
+                if (body.pageToken !== undefined) delete body.pageToken;    // Remove previous page token, if any
             }
 
             var sendData = JSON.stringify(body);
@@ -26988,6 +27510,7 @@ const CivicReader = function (config) {
                     if (!typeString) typeString = vt.display_name;
                     else typeString += ", " + vt.display_name;
                 }
+                
                 pd.push({name: name, value: typeString});
             }
 
@@ -27078,10 +27601,10 @@ const FeatureSource = function (config, genome) {
         this.queryable = false;
     } else {
         this.reader = new FeatureFileReader(config, genome);
-        if (config.queryable != undefined) {
+        if (config.queryable !== undefined) {
             this.queryable = config.queryable;
         } else if (queryableFormats.has(config.format)) {
-            this.queryable = queryableFormats.has(config.format) || reader.indexed;
+            this.queryable = queryableFormats.has(config.format) || this.reader.indexed;
         }
     }
 
@@ -27151,7 +27674,7 @@ FeatureSource.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPer
         if (isQueryable) {   // queryable sources don't support whole genome view
             return [];
         } else {
-            if (featureCache.count > 100000) {
+            if (featureCache.count > 500000) {
                 this.supportsWG = false;
                 return [];
             } else {
@@ -27293,10 +27816,6 @@ function packFeatures(features, maxRows) {
 // TODO -- filter by pixel size
 FeatureSource.prototype.getWGFeatures = function (allFeatures) {
 
-    if (this.wgFeatures) {
-        return this.wgFeatures;
-
-    }
     const genome = this.genome;
     const wgChromosomeNames = new Set(genome.wgChromosomeNames);
     const wgFeatures = [];
@@ -27344,8 +27863,6 @@ FeatureSource.prototype.getWGFeatures = function (allFeatures) {
     wgFeatures.sort(function (a, b) {
         return a.start - b.start;
     });
-
-    this.wgFeatures = wgFeatures;
 
     return wgFeatures;
 
@@ -27550,7 +28067,7 @@ BWReader.prototype.readFeatures = function (chr1, bpStart, chr2, bpEnd, bpPerPix
         .then(function (leafItems) {
 
 
-            if (!leafItems || leafItems.length == 0) {
+            if (!leafItems || leafItems.length === 0) {
                 return [];
             } else {
 
@@ -27561,6 +28078,7 @@ BWReader.prototype.readFeatures = function (chr1, bpStart, chr2, bpEnd, bpPerPix
                     start = Math.min(start, item.dataOffset);
                     end = Math.max(end, item.dataOffset + item.dataSize);
                 }
+                
 
                 const size = end - start;
 
@@ -27646,7 +28164,7 @@ BWReader.prototype.loadHeader = function () {
 
                 if (magic === BIGWIG_MAGIC_LTH) {
                     self.type = "BigWig";
-                } else if (magic == BIGBED_MAGIC_LTH) {
+                } else if (magic === BIGBED_MAGIC_LTH) {
                     self.type = "BigBed";
                 } else {
                     //Try big endian order
@@ -27658,7 +28176,7 @@ BWReader.prototype.loadHeader = function () {
 
                     if (magic === BIGWIG_MAGIC_HTL) {
                         self.type = "BigWig";
-                    } else if (magic == BIGBED_MAGIC_HTL) {
+                    } else if (magic === BIGBED_MAGIC_HTL) {
                         self.type = "BigBed";
                     }
                 }
@@ -27809,7 +28327,7 @@ RPTree.prototype.readNode = function (filePosition, bufferedReader) {
 
             binaryParser = new BinaryParser(dataView, self.littleEndian);
             type = binaryParser.getByte();
-            isLeaf = (type === 1) ? true : false;
+            isLeaf = (type === 1);
             reserved = binaryParser.getByte();
             count = binaryParser.getUShort();
 
@@ -27906,7 +28424,7 @@ RPTree.prototype.findLeafItemsOverlapping = function (chrIdx1, startBase, chrIdx
 
             }
 
-            if (nodeId != undefined) processing.delete(nodeId);
+            if (nodeId !== undefined) processing.delete(nodeId);
 
             // Wait until all nodes are processed
             if (processing.size === 0) {
@@ -27985,7 +28503,7 @@ function BPTree(binaryParser, startOffset, genome) {
             currOffset;
 
 
-        if (type == 1) {
+        if (type === 1) {
 
             for (i = 0; i < count; i++) {
 
@@ -28024,8 +28542,8 @@ function overlaps(item, chrIdx1, startBase, chrIdx2, endBase) {
         return false;
     }
 
-    return ((chrIdx2 > item.startChrom) || (chrIdx2 == item.startChrom && endBase >= item.startBase)) &&
-        ((chrIdx1 < item.endChrom) || (chrIdx1 == item.endChrom && startBase <= item.endBase));
+    return ((chrIdx2 > item.startChrom) || (chrIdx2 === item.startChrom && endBase >= item.startBase)) &&
+        ((chrIdx1 < item.endChrom) || (chrIdx1 === item.endChrom && startBase <= item.endBase));
 
 
 }
@@ -28039,7 +28557,6 @@ function BWTotalSummary(byteBuffer) {
         this.maxVal = byteBuffer.getDouble();
         this.sumData = byteBuffer.getDouble();
         this.sumSquares = byteBuffer.getDouble();
-
         computeStats.call(this);
     } else {
         this.basesCovered = 0;
@@ -28052,19 +28569,6 @@ function BWTotalSummary(byteBuffer) {
     }
 }
 
-
-BWTotalSummary.prototype.updateStats = function (stats) {
-
-    this.basesCovered += stats.count;
-    this.sumData += status.sumData;
-    this.sumSquares += sumSquares;
-    this.minVal = MIN(_minVal, min);
-    this.maxVal = MAX(_maxVal, max);
-
-    computeStats.call(this);
-
-};
-
 function computeStats() {
     let n = this.basesCovered;
     if (n > 0) {
@@ -28075,8 +28579,8 @@ function computeStats() {
             max = this.maxVal > 0 ? this.mean + 2 * this.stddev : 0;
 
         this.defaultRange = {
-            min: 0,
-            max: this.mean + 3 * this.stddev
+            min: min,
+            max: max
         };
     }
 }
@@ -28255,7 +28759,7 @@ function decodeZoomData(data, chrIdx1, bpStart, chrIdx2, bpEnd, featureArray, ch
                 value = maxVal;
                 break;
             default:
-                value = validCount == 0 ? 0 : sumData / validCount;
+                value = validCount === 0 ? 0 : sumData / validCount;
         }
 
         if (chromId < chrIdx1 || (chromId === chrIdx1 && chromEnd < bpStart)) continue;
@@ -28316,7 +28820,7 @@ BWSource.prototype.getFeatures = function (chr, bpStart, bpEnd, bpPerPixel, wind
 
 BWSource.prototype.getDefaultRange = function () {
 
-    if (this.reader.totalSummary != undefined) {
+    if (this.reader.totalSummary !== undefined) {
         return this.reader.totalSummary.defaultRange;
     } else {
         return undefined;
@@ -29012,9 +29516,9 @@ function renderFusionJuncSpan(feature, bpStart, xScale, pixelHeight, ctx) {
     if (this.display === "COLLAPSED") {
         py = this.margin;
     }
-    if (this.displayMode === "SQUISHED" && feature.row != undefined) {
+    if (this.displayMode === "SQUISHED" && feature.row !== undefined) {
         py = this.margin + rowHeight * feature.row;
-    } else if (this.displayMode === "EXPANDED" && feature.row != undefined) {
+    } else if (this.displayMode === "EXPANDED" && feature.row !== undefined) {
         py = this.margin + rowHeight * feature.row;
     }
 
@@ -29510,7 +30014,7 @@ TDFReader.prototype.readHeader = async function () {
     }
     this.genomeID = binaryParser.getString();
     this.flags = binaryParser.getInt();
-    this.compressed = (this.flags & GZIP_FLAG) != 0;
+    this.compressed = (this.flags & GZIP_FLAG) !== 0;
 
     // Now read index
     data = await igvxhr.loadArrayBuffer(this.path, buildOptions(this.config, {
@@ -29620,13 +30124,14 @@ TDFReader.prototype.readRootGroup = async function () {
         }
 
         // Chromosome names
-        this.chrAliasTable = {};
+        const chrAliasTable = {};
         if (names) {
             names.split(",").forEach(function (chr) {
                 const canonicalName = genome.getChromosomeName(chr);
-                this.chrAliasTable[canonicalName] = chr;
+                chrAliasTable[canonicalName] = chr;
             });
         }
+        this.chrAliasTable = chrAliasTable;
 
         this.groupCache["/"] = group;
         return group;
@@ -29864,14 +30369,11 @@ TDFReader.prototype.readTile = async function (indexEntry, nTracks) {
     switch (type) {
         case "fixedStep":
             return createFixedStep(binaryParser, nTracks);
-            break;
         case "variableStep":
             return createVariableStep(binaryParser, nTracks);
-            break;
         case "bed":
         case "bedWithName":
             return createBed(binaryParser, nTracks, type);
-            break;
         default:
             throw "Unknown tile type: " + type;
     }
@@ -29912,7 +30414,7 @@ const TDFSource = function (config, genome) {
 
 TDFSource.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPerPixel) {
 
-    await getRootGroup().call(this);
+    await getRootGroup.call(this);
 
     const genomicInterval = new GenomicInterval(chr, bpStart, bpEnd);
     const genome = this.genome;
@@ -29922,7 +30424,7 @@ TDFSource.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPerPixe
     }
 
     genomicInterval.bpPerPixel = bpPerPixel;
-    const group = await getRootGroup();
+    const group = await getRootGroup.call(this);
     const zoom = zoomLevelForScale$1(chr, bpPerPixel, genome);
     let queryChr = this.reader.chrAliasTable[chr];
     let maxZoom = this.reader.maxZoom;
@@ -30394,7 +30896,7 @@ function binarySearch(features, position, tolerance) {
         stopIndex = features.length - 1,
         index = (startIndex + stopIndex) >> 1,
         candidateFeature,
-        tmp, delta;
+        tmp;
 
 
     // Use binary search to get the index of at least 1 feature in the click tolerance bounds
@@ -30489,6 +30991,7 @@ function BinnedColorScale (cs) {
     this.thresholds = cs.thresholds;
     this.colors = cs.colors;
 }
+
 BinnedColorScale.prototype.getColor = function (value) {
 
     for (let threshold of this.thresholds) {
@@ -30651,11 +31154,7 @@ SegTrack.prototype.menuItemList = function () {
 
 
 SegTrack.prototype.getFeatures = function (chr, bpStart, bpEnd) {
-
-    var self = this;
-
-    return self.featureSource.getFeatures(chr, bpStart, bpEnd);
-
+    return this.featureSource.getFeatures(chr, bpStart, bpEnd);
 };
 
 
@@ -30679,7 +31178,7 @@ SegTrack.prototype.draw = function (options) {
         const bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
         const xScale = bpPerPixel;
 
-        updateSampleKeys.call(this, featureList);
+        this.updateSampleKeys(featureList);
 
         // Create a map for fast id -> row lookup
         const samples = {};
@@ -30789,68 +31288,50 @@ SegTrack.prototype.computePixelHeight = function (features) {
     if (!features) return 0;
 
     const sampleHeight = ("SQUISHED" === this.displayMode) ? this.squishedRowHeight : this.expandedRowHeight;
-
-    updateSampleKeys.call(this, features);
-
+    this.updateSampleKeys(features);
     return this.sampleKeys.length * sampleHeight;
 };
 
 /**
  * Sort samples by the average value over the genomic range in the direction indicated (1 = ascending, -1 descending)
  */
-SegTrack.prototype.sortSamples = function (chr, bpStart, bpEnd, direction) {
+SegTrack.prototype.sortSamples = async function (chr, bpStart, bpEnd, direction) {
 
-    const self = this;
+    const featureList = await this.featureSource.getFeatures(chr, bpStart, bpEnd);
+    this.updateSampleKeys(featureList);
 
+    const scores = {};
+    const bpLength = bpEnd - bpStart + 1;
 
-    this.featureSource.getFeatures(chr, bpStart, bpEnd)
+    // Compute weighted average score for each sample
+    for (let segment of featureList) {
 
-        .then(function (featureList) {
+        if (segment.end < bpStart) continue;
+        if (segment.start > bpEnd) break;
 
-            updateSampleKeys.call(self, featureList);
+        const min = Math.max(bpStart, segment.start);
+        const max = Math.min(bpEnd, segment.end);
+        const f = (max - min) / bpLength;
 
-            const scores = {};
-            const bpLength = bpEnd - bpStart + 1;
+        const sampleKey = segment.sampleKey || segment.sample;
+        const s = scores[sampleKey] || 0;
+        scores[sampleKey] = s + f * segment.value;
+    }
 
-            // Compute weighted average score for each sample
-            for (let segment of featureList) {
+    // Now sort sample names by score
+    const d2 = (direction === "ASC" ? 1 : -1);
+    this.sampleKeys.sort(function (a, b) {
+        let s1 = scores[a];
+        let s2 = scores[b];
+        if (!s1) s1 = d2 * Number.MAX_VALUE;
+        if (!s2) s2 = d2 * Number.MAX_VALUE;
+        if (s1 === s2) return 0;
+        else if (s1 > s2) return d2;
+        else return d2 * -1;
+    });
 
-                if (segment.end < bpStart) continue;
-                if (segment.start > bpEnd) break;
-
-                const min = Math.max(bpStart, segment.start);
-                const max = Math.min(bpEnd, segment.end);
-                const f = (max - min) / bpLength;
-
-                const sampleKey = segment.sampleKey || segment.sample;
-                const s = scores[sampleKey] || 0;
-                scores[sampleKey] = s + f * segment.value;
-
-            }
-
-
-            // Now sort sample names by score
-
-            const d2 = (direction === "ASC" ? 1 : -1);
-            self.sampleKeys.sort(function (a, b) {
-
-                var s1 = scores[a];
-                var s2 = scores[b];
-                if (!s1) s1 = d2 * Number.MAX_VALUE;
-                if (!s2) s2 = d2 * Number.MAX_VALUE;
-
-                if (s1 == s2) return 0;
-                else if (s1 > s2) return d2;
-                else return d2 * -1;
-
-            });
-
-
-            self.trackView.repaintViews();
-            // self.trackView.$viewport.scrollTop(0);
-
-
-        });
+    this.trackView.repaintViews();
+    // self.trackView.$viewport.scrollTop(0);
 };
 
 SegTrack.prototype.clickedFeatures = function (clickState) {
@@ -30946,13 +31427,12 @@ SegTrack.prototype.contextMenuItemList = function (clickState) {
 
 };
 
-
 SegTrack.prototype.supportsWholeGenome = function () {
     return this.featureSource.supportsWholeGenome();
 };
 
 
-function updateSampleKeys(featureList) {
+SegTrack.prototype.updateSampleKeys = function (featureList) {
 
     const samples = new Set(this.sampleKeys);
 
@@ -30964,7 +31444,7 @@ function updateSampleKeys(featureList) {
             this.sampleKeys.push(sampleKey);
         }
     }
-}
+};
 
 /*
  * The MIT License (MIT)
@@ -31314,7 +31794,7 @@ AlignmentContainer.prototype.finish = function () {
     };
 
 AlignmentContainer.prototype.contains = function (chr, start, end) {
-        return this.chr == chr &&
+        return this.chr === chr &&
             this.start <= start &&
             this.end >= end;
     };
@@ -31585,7 +32065,7 @@ AlignmentContainer.prototype.hasDownsampledIntervals = function () {
 
             var po = alignment.pairOrientation;
 
-            if (typeof po === "string" && po.length == 4) {
+            if (typeof po === "string" && po.length === 4) {
                 var tmp = '' + po.charAt(0) + po.charAt(2);
                 switch (tmp) {
                     case 'FF':
@@ -31749,7 +32229,7 @@ BamAlignment.prototype.tags = function () {
             var type = String.fromCharCode(ba[p + 2]);
             var value;
 
-            if (type == 'A') {
+            if (type === 'A') {
                 value = String.fromCharCode(ba[p + 3]);
                 p += 4;
             } else if (type === 'i' || type === 'I') {
@@ -32143,34 +32623,34 @@ const BamUtils = {
     bam_tag2cigar: function (ba, block_end, seq_offset, lseq, al, cigarArray) {
 
         function type2size(x) {
-            if (x == 'C' || x == 'c' || x == 'A') return 1;
-            else if (x == 'S' || x == 's') return 2;
-            else if (x == 'I' || x == 'i' || x == 'f') return 4;
+            if (x === 'C' || x === 'c' || x === 'A') return 1;
+            else if (x === 'S' || x === 's') return 2;
+            else if (x === 'I' || x === 'i' || x === 'f') return 4;
             else return 0;
         }
 
         // test if the real CIGAR is encoded in a CG:B,I tag
-        if (cigarArray.length != 1 || al.start < 0) return false;
+        if (cigarArray.length !== 1 || al.start < 0) return false;
         var p = seq_offset + ((lseq + 1) >> 1) + lseq;
         while (p + 4 < block_end) {
             var tag = String.fromCharCode(ba[p]) + String.fromCharCode(ba[p + 1]);
-            if (tag == 'CG') break;
+            if (tag === 'CG') break;
             var type = String.fromCharCode(ba[p + 2]);
-            if (type == 'B') { // the binary array type
+            if (type === 'B') { // the binary array type
                 type = String.fromCharCode(ba[p + 3]);
                 var size = type2size(type);
                 var len = readInt$1(ba, p + 4);
                 p += 8 + size * len;
-            } else if (type == 'Z' || type == 'H') { // 0-terminated string
+            } else if (type === 'Z' || type === 'H') { // 0-terminated string
                 p += 3;
-                while (ba[p++] != 0) {
+                while (ba[p++] !== 0) {
                 }
             } else { // other atomic types
                 p += 3 + type2size(type);
             }
         }
         if (p >= block_end) return false; // no CG tag
-        if (String.fromCharCode(ba[p + 2]) != 'B' || String.fromCharCode(ba[p + 3]) != 'I') return false; // not of type B,I
+        if (String.fromCharCode(ba[p + 2]) !== 'B' || String.fromCharCode(ba[p + 3]) !== 'I') return false; // not of type B,I
 
         // now we know the real CIGAR length and its offset in the binary array
         var cigar_len = readInt$1(ba, p + 4);
@@ -32186,7 +32666,7 @@ const BamUtils = {
             var cigop = readInt$1(ba, p);
             var opLen = (cigop >> 4);
             var opLtr = CIGAR_DECODER[cigop & 0xf];
-            if (opLtr == 'M' || opLtr == 'EQ' || opLtr == 'X' || opLtr == 'D' || opLtr == 'N' || opLtr == '=')
+            if (opLtr === 'M' || opLtr === 'EQ' || opLtr === 'X' || opLtr === 'D' || opLtr === 'N' || opLtr === '=')
                 lengthOnRef += opLen;
             cigar = cigar + opLen + opLtr;
             cigarArray.push({len: opLen, ltr: opLtr});
@@ -32208,6 +32688,8 @@ const BamUtils = {
      * @param chrIdx             chromosome index
      * @param chrNames            array of chromosome names
      * @param filter             a BamFilter object
+     *
+     * @return true if we have moved beyond the right end of the genomic range.
      */
     decodeBamRecords: function (ba, offset, alignmentContainer, chrNames, chrIdx, min, max, filter) {
 
@@ -32226,7 +32708,7 @@ const BamUtils = {
                 offset = blockEnd;
                 continue;   // unmapped read
             } else if (chrIdx !== undefined && (refID > chrIdx || pos > max)) {
-                return;    // off right edge, we're done
+                return true;    // off right edge, we're done
             } else if (chrIdx !== undefined && (refID < chrIdx)) {
                 offset = blockEnd;
                 continue;   // ref ID to left of start, not sure this is possible
@@ -32259,7 +32741,7 @@ const BamUtils = {
                 var cigop = readInt$1(ba, p);
                 var opLen = (cigop >> 4);
                 var opLtr = CIGAR_DECODER[cigop & 0xf];
-                if (opLtr == 'M' || opLtr == 'EQ' || opLtr == 'X' || opLtr == 'D' || opLtr == 'N' || opLtr == '=')
+                if (opLtr === 'M' || opLtr === 'EQ' || opLtr === 'X' || opLtr === 'D' || opLtr === 'N' || opLtr === '=')
                     lengthOnRef += opLen;
                 cigar = cigar + opLen + opLtr;
                 p += 4;
@@ -32365,7 +32847,7 @@ const BamUtils = {
             cigarArray.forEach(function (op) {
                 var opLen = op.len;
                 var opLtr = op.ltr;
-                if (opLtr == 'M' || opLtr == 'EQ' || opLtr == 'X' || opLtr == 'D' || opLtr == 'N' || opLtr == '=')
+                if (opLtr === 'M' || opLtr === 'EQ' || opLtr === 'X' || opLtr === 'D' || opLtr === 'N' || opLtr === '=')
                     lengthOnRef += opLen;
             });
             alignment.lengthOnRef = lengthOnRef;
@@ -32499,6 +32981,7 @@ function makeBlocks(alignment, cigarArray) {
 
     for (let c of cigarArray) {
 
+        let scPos;
         switch (c.ltr) {
             case 'H' :
                 break; // ignore hard clips
@@ -32506,7 +32989,7 @@ function makeBlocks(alignment, cigarArray) {
                 break; // ignore pads
             case 'S' :
 
-                let scPos = pos;
+                scPos = pos;
                 alignment.scLengthOnRef += c.len;
                 if (blocks.length === 0) {
                     alignment.scStart -= c.len;
@@ -32608,7 +33091,7 @@ function buildOperators(cigarString) {
             nBases = Number.parseInt(buffer.join(''));
             buffer = [];
 
-            if (prevOp != null && prevOp.ltr == op) {
+            if (prevOp !== null && prevOp.ltr === op) {
                 prevOp.len += nBases;
             } else {
                 prevOp = {len: nBases, ltr: op};
@@ -32808,8 +33291,6 @@ BamReader.prototype.readAlignments = async function (chr, bpStart, bpEnd) {
         if (!chunks || chunks.length === 0) {
             return alignmentContainer;
         }
-
-        const promises = [];
         for (let c of chunks) {
 
             let lastBlockSize;
@@ -32823,16 +33304,15 @@ BamReader.prototype.readAlignments = async function (chr, bpStart, bpEnd) {
             const fetchMin = c.minv.block;
             const fetchMax = c.maxv.block + lastBlockSize;
             const range = {start: fetchMin, size: fetchMax - fetchMin + 1};
-            promises.push(igvxhr.loadArrayBuffer(this.bamPath, buildOptions(this.config, {range: range})));
-        }
 
-        const compressedChunks = await Promise.all(promises);
+            const compressed = await igvxhr.loadArrayBuffer(this.bamPath, buildOptions(this.config, {range: range}));
 
-        for (let i = 0; i < chunks.length; i++) {
-            const compressed = compressedChunks[i];
-            const c = chunks[i];
             var ba = new Uint8Array(unbgzf(compressed)); //new Uint8Array(unbgzf(compressed)); //, c.maxv.block - c.minv.block + 1));
-            BamUtils.decodeBamRecords(ba, c.minv.offset, alignmentContainer, this.indexToChr, chrId, bpStart, bpEnd, this.filter);
+            const done = BamUtils.decodeBamRecords(ba, c.minv.offset, alignmentContainer, this.indexToChr, chrId, bpStart, bpEnd, this.filter);
+
+            if(done) {
+                break;
+            }
         }
         alignmentContainer.finish();
         return alignmentContainer;
@@ -33302,7 +33782,7 @@ const MATE_STRAND_FLAG$2 = 0x20;
 const CRAM_MATE_STRAND_FLAG = 0x1;
 
 /**
- * Class for reading a bam file
+ * Class for reading a cram file
  *
  * @param config
  * @constructor
@@ -33314,12 +33794,12 @@ const CramReader = function (config, genome, browser) {
     this.genome = genome;
 
     this.cramFile = new gmodCRAM.CramFile({
-        filehandle: new FileHandler(config.url),
+        filehandle: new FileHandler(config.url, config),
         seqFetch: config.seqFetch || seqFetch.bind(this),
         checkSequenceMD5: config.checkSequenceMD5 !== undefined ? config.checkSequenceMD5 : true
     });
 
-    const indexFileHandle = new FileHandler(config.indexURL);
+    const indexFileHandle = new FileHandler(config.indexURL, config);
     this.indexedCramFile = new gmodCRAM.IndexedCramFile({
         cram: this.cramFile,
         index: new gmodCRAM.CraiIndex({
@@ -33453,7 +33933,9 @@ CramReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
                     })
                     .catch(function (error) {
                         let message = error.message;
-                        if (message && message.indexOf("MD5") >= 0) ;
+                        if (message && message.indexOf("MD5") >= 0) {
+                            message = "Sequence mismatch. Is this the correct genome for the loaded CRAM?";
+                        }
                         browser.presentAlert(message);
                         throw error
                     })
@@ -33590,7 +34072,7 @@ CramReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
                             case 'H':
                             case 'P':
                                 cigarString += data + code;
-
+                                break;
                             default :
                             //  Ignore
                         }
@@ -33622,9 +34104,10 @@ CramReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
 
 class FileHandler {
 
-    constructor(source) {
+    constructor(source, config) {
         this.position = 0;
         this.url = source;
+        this.config = config;
         this.cache = new BufferCache({
             fetch: (start, length) => this._fetch(start, length),
         });
@@ -33634,11 +34117,8 @@ class FileHandler {
 
         const loadRange = {start: position, size: length};
         this._stat = {size: undefined};
-        return igvxhr.loadArrayBuffer(this.url, buildOptions({}, {range: loadRange}))
-            .then(function (arrayBuffer) {
-                const nodeBuffer = Buffer.from(arrayBuffer);
-                return nodeBuffer
-            })
+        const arrayBuffer = await igvxhr.loadArrayBuffer(this.url, buildOptions(this.config, {range: loadRange}));
+        return Buffer.from(arrayBuffer);
     }
 
     async read(buffer, offset = 0, length = Infinity, position = 0) {
@@ -33651,7 +34131,7 @@ class FileHandler {
     }
 
     async readFile() {
-        const arrayBuffer = await igvxhr.loadArrayBuffer(this.url, buildOptions({}));
+        const arrayBuffer = await igvxhr.loadArrayBuffer(this.url, buildOptions(this.config));
         return Buffer.from(arrayBuffer)
     }
 
@@ -33975,7 +34455,7 @@ Ga4ghAlignmentReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
                         }
                     } else {
                         // No browser object, can't build map.  This can occur when run from unit tests
-                        fulfill(self.chrAliasTable);
+                        return self.chrAliasTable;
                     }
                 })
         }
@@ -33986,12 +34466,11 @@ Ga4ghAlignmentReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
      *
 
      */
-    function decodeGa4ghReads(json) {
+    function decodeGa4ghReads(j) {
 
         var i,
-            jsonRecords = json.alignments,
+            jsonRecords = j.alignments,
             len = jsonRecords.length,
-            json,
             alignment,
             jsonAlignment,
             cigarDecoded,
@@ -34001,38 +34480,38 @@ Ga4ghAlignmentReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
 
         for (i = 0; i < len; i++) {
 
-            json = jsonRecords[i];
+            let record = jsonRecords[i];
 
             alignment = new BamAlignment();
 
-            alignment.readName = json.fragmentName;
-            alignment.properPlacement = json.properPlacement;
-            alignment.duplicateFragment = json.duplicateFragment;
-            alignment.numberReads = json.numberReads;
-            alignment.fragmentLength = json.fragmentLength;
-            alignment.readNumber = json.readNumber;
-            alignment.failedVendorQualityChecks = json.failedVendorQualityChecks;
-            alignment.secondaryAlignment = json.secondaryAlignment;
-            alignment.supplementaryAlignment = json.supplementaryAlignment;
-            alignment.seq = json.alignedSequence;
-            alignment.qual = json.alignedQuality;
-            alignment.matePos = json.nextMatePosition;
-            alignment.tagDict = json.info;
+            alignment.readName = record.fragmentName;
+            alignment.properPlacement = record.properPlacement;
+            alignment.duplicateFragment = record.duplicateFragment;
+            alignment.numberReads = record.numberReads;
+            alignment.fragmentLength = record.fragmentLength;
+            alignment.readNumber = record.readNumber;
+            alignment.failedVendorQualityChecks = record.failedVendorQualityChecks;
+            alignment.secondaryAlignment = record.secondaryAlignment;
+            alignment.supplementaryAlignment = record.supplementaryAlignment;
+            alignment.seq = record.alignedSequence;
+            alignment.qual = record.alignedQuality;
+            alignment.matePos = record.nextMatePosition;
+            alignment.tagDict = record.info;
             alignment.flags = encodeFlags();
 
 
-            jsonAlignment = json.alignment;
+            jsonAlignment = record.alignment;
             if (jsonAlignment) {
                 alignment.mapped = true;
 
-                alignment.chr = json.alignment.position.referenceName;
+                alignment.chr = record.alignment.position.referenceName;
                 if (genome) alignment.chr = genome.getChromosomeName(alignment.chr);
 
-                alignment.start = parseInt(json.alignment.position.position);
-                alignment.strand = !(json.alignment.position.reverseStrand);
-                alignment.mq = json.alignment.mappingQuality;
-                alignment.cigar = encodeCigar(json.alignment.cigar);
-                cigarDecoded = translateCigar(json.alignment.cigar);
+                alignment.start = parseInt(record.alignment.position.position);
+                alignment.strand = !(record.alignment.position.reverseStrand);
+                alignment.mq = record.alignment.mappingQuality;
+                alignment.cigar = encodeCigar(record.alignment.cigar);
+                cigarDecoded = translateCigar(record.alignment.cigar);
 
                 alignment.lengthOnRef = cigarDecoded.lengthOnRef;
 
@@ -34044,7 +34523,7 @@ Ga4ghAlignmentReader.prototype.readAlignments = function (chr, bpStart, bpEnd) {
                 alignment.mapped = false;
             }
 
-            mate = json.nextMatePosition;
+            mate = record.nextMatePosition;
             if (mate) {
                 alignment.mate = {
                     chr: mate.referenceFrame,
@@ -34268,17 +34747,19 @@ BamAlignmentRow.prototype.findAlignment = function (genomicLocation) {
     return centerAlignment;
 
     function alignmentContains(a, genomicLocation) {
-        return genomicLocation >= a.start && genomicLocation < a.start + a.lengthOnRef
+        return genomicLocation >= a.start && genomicLocation < a.start + a.lengthOnRef;
     }
 };
 
-BamAlignmentRow.prototype.updateScore = function (genomicLocation, genomicInterval, sortOption, sortDirection) {
-
-    this.score = this.calculateScore(Math.floor(genomicLocation), genomicInterval, sortOption, sortDirection);
-
+BamAlignmentRow.prototype.updateScore = function (options, alignmentContainer) {
+    this.score = this.calculateScore(options, alignmentContainer);
 };
 
-BamAlignmentRow.prototype.calculateScore = function (genomicLocation, interval, sortOption, sortDirection) {
+BamAlignmentRow.prototype.calculateScore = function (options, alignmentContainer) {
+
+    const genomicLocation = Math.floor(options.position);
+    const sortOption = options.sortOption;
+    const sortDirection = options.direction;
 
     const alignment = this.findAlignment(genomicLocation);
 
@@ -34286,39 +34767,60 @@ BamAlignmentRow.prototype.calculateScore = function (genomicLocation, interval, 
         return sortDirection ? Number.MAX_VALUE : -Number.MAX_VALUE;
     }
 
-    if ("NUCLEOTIDE" === sortOption) {
-
-        const readBase = alignment.readBaseAt(genomicLocation);
-        const quality = alignment.readBaseQualityAt(genomicLocation);
-
-        if (!readBase) {
-            return sortDirection ? Number.MAX_VALUE : -Number.MAX_VALUE;
-        } else {
-            return calculateBaseScore(readBase, quality, interval, genomicLocation);
+    let mate;
+    switch (sortOption) {
+        case "NUCLEOTIDE": {
+            const readBase = alignment.readBaseAt(genomicLocation);
+            const quality = alignment.readBaseQualityAt(genomicLocation);
+            if (!readBase) {
+                return sortDirection ? Number.MAX_VALUE : -Number.MAX_VALUE;
+            } else {
+                return calculateBaseScore(readBase, quality, alignmentContainer, genomicLocation);
+            }
         }
-
-    } else if ("STRAND" === sortOption) {
-
-        return alignment.strand ? 1 : -1;
-
-    } else if ("START" === sortOption) {
-
-        return alignment.start;
+        case "STRAND":
+            return alignment.strand ? 1 : -1;
+        case "START":
+            return alignment.start;
+        case "TAG": {
+            const tagKey = options.tag;
+            const tagValue = alignment.tags()[tagKey];
+            if (tagValue !== undefined) {
+                return isString(tagValue) ? hashCode(tagValue) : tagValue;
+            } else {
+                return Number.MAX_VALUE;
+            }
+        }
+        case "INSERT_SIZE":
+            return -Math.abs(alignment.fragmentLength);
+        case "MATE_CHR":
+            mate = alignment.mate;
+            if (!mate) {
+                return Number.MAX_VALUE;
+            } else {
+                if (mate.chr ===alignment.chr) {
+                    return Number.MAX_VALUE - 1;
+                } else {
+                    return hashCode(mate.chr);
+                }
+            }
+        case "MQ":
+            return alignment.mq === undefined ? Number.MAX_VALUE : -alignment.mq;
+        default:
+            return Number.MAX_VALUE;
     }
 
-    return Number.MAX_VALUE;
 
-
-    function calculateBaseScore(base, quality, interval, genomicLocation) {
+    function calculateBaseScore(base, quality, alignmentContainer, genomicLocation) {
         var idx,
             reference,
             coverage,
             count;
 
 
-        idx = Math.floor(genomicLocation) - interval.start;
-        if (idx < interval.sequence.length) {
-            reference = interval.sequence.charAt(idx);
+        idx = Math.floor(genomicLocation) - alignmentContainer.start;
+        if (idx < alignmentContainer.sequence.length) {
+            reference = alignmentContainer.sequence.charAt(idx);
         }
         if (!reference) {
             return undefined;
@@ -34335,11 +34837,11 @@ BamAlignmentRow.prototype.calculateScore = function (genomicLocation, interval, 
 
         } else if ("X" === base || reference !== base) {
 
-            idx = Math.floor(genomicLocation) - interval.coverageMap.bpStart;
+            idx = Math.floor(genomicLocation) - alignmentContainer.coverageMap.bpStart;
 
-            if (idx > 0 && idx < interval.coverageMap.coverage.length) {
+            if (idx > 0 && idx < alignmentContainer.coverageMap.coverage.length) {
 
-                coverage = interval.coverageMap.coverage[idx];
+                coverage = alignmentContainer.coverageMap.coverage[idx];
                 count = coverage["pos" + base] + coverage["neg" + base];
 
                 return -(count + (quality / 1000));
@@ -34651,1297 +35153,1295 @@ function packAlignmentRows(alignments, start, end, showSoftClips) {
  * THE SOFTWARE.
  */
 
-    const type = "alignment";
+const type = "alignment";
 
-    var alignmentStartGap = 5;
-    var downsampleRowHeight = 5;
-    var DEFAULT_COVERAGE_TRACK_HEIGHT = 50;
-    var DEFAULT_TRACK_HEIGHT = 300;
-    var DEFAULT_ALIGNMENT_COLOR = "rgb(185, 185, 185)";
-    var DEFAULT_COVERAGE_COLOR = "rgb(150, 150, 150)";
-    var DEFAULT_CONNECTOR_COLOR = "rgb(200, 200, 200)";
+var alignmentStartGap = 5;
+var downsampleRowHeight = 5;
+var DEFAULT_COVERAGE_TRACK_HEIGHT = 50;
+var DEFAULT_TRACK_HEIGHT = 300;
+var DEFAULT_ALIGNMENT_COLOR = "rgb(185, 185, 185)";
+var DEFAULT_COVERAGE_COLOR = "rgb(150, 150, 150)";
+var DEFAULT_CONNECTOR_COLOR = "rgb(200, 200, 200)";
 
 
 const BAMTrack = extend(TrackBase,
-            function (config, browser) {
+    function (config, browser) {
 
-                this.type = type;
+        this.type = type;
 
-                // Override default track height for bams
-                if (config.height === undefined) config.height = DEFAULT_TRACK_HEIGHT;
+        // Override default track height for bams
+        if (config.height === undefined) config.height = DEFAULT_TRACK_HEIGHT;
 
         TrackBase.call(this, config, browser);
 
-                if (config.coverageTrackHeight === undefined) {
-                    config.coverageTrackHeight = DEFAULT_COVERAGE_TRACK_HEIGHT;
-                }
+        if (config.coverageTrackHeight === undefined) {
+            config.coverageTrackHeight = DEFAULT_COVERAGE_TRACK_HEIGHT;
+        }
 
         this.featureSource = new BamSource(config, browser);
-                this.coverageTrack = new CoverageTrack(config, this);
-                this.alignmentTrack = new AlignmentTrack(config, this);
+        this.coverageTrack = new CoverageTrack(config, this);
+        this.alignmentTrack = new AlignmentTrack(config, this);
 
-                this.visibilityWindow = config.visibilityWindow || 30000;
-                this.viewAsPairs = config.viewAsPairs;
-                this.pairsSupported = (undefined === config.pairsSupported);
-                this.showSoftClips = config.showSoftClips;
-                this.showAllBases = config.showAllBases;
-                this.color = config.color || DEFAULT_ALIGNMENT_COLOR;
-                this.coverageColor = config.coverageColor || DEFAULT_COVERAGE_COLOR;
-                this.minFragmentLength = config.minFragmentLength;   // Optional, might be undefined
-                this.maxFragmentLength = config.maxFragmentLength;
+        this.visibilityWindow = config.visibilityWindow || 30000;
+        this.viewAsPairs = config.viewAsPairs;
+        this.pairsSupported = (undefined === config.pairsSupported);
+        this.showSoftClips = config.showSoftClips;
+        this.showAllBases = config.showAllBases;
+        this.color = config.color || DEFAULT_ALIGNMENT_COLOR;
+        this.coverageColor = config.coverageColor || DEFAULT_COVERAGE_COLOR;
+        this.minFragmentLength = config.minFragmentLength;   // Optional, might be undefined
+        this.maxFragmentLength = config.maxFragmentLength;
 
-                // Transient object, maintains the last sort option per viewport.
-                this.sortObjects = {};
+        // Transient object, maintains the last sort option per viewport.
+        this.sortObjects = {};
 
-                if (config.sort) {
-                    if (Array.isArray(config.sort)) {
-                        for (let sort of config.sort) {
-                            assignSort(this.sortObjects, sort);
-                        }
-                    } else {
-                        assignSort(this.sortObjects, config.sort);
-                    }
-                    config.sort = undefined;
+        if (config.sort) {
+            if (Array.isArray(config.sort)) {
+                for (let sort of config.sort) {
+                    assignSort(this.sortObjects, sort);
                 }
+            } else {
+                assignSort(this.sortObjects, config.sort);
+            }
+            config.sort = undefined;
+        }
 
-                // Assign sort objects to a genomic state
-                function assignSort(currentSorts, sort) {
+        // Assign sort objects to a genomic state
+        function assignSort(currentSorts, sort) {
 
             const range = parseLocusString(sort.locus);
 
-                    // Loop through current genomic states, assign sort to first matching state
-                    for (let gs of browser.genomicStateList) {
+            // Loop through current genomic states, assign sort to first matching state
+            for (let gs of browser.genomicStateList) {
 
-                        if (gs.chromosome.name === range.chr && range.start >= gs.start && range.start <= gs.end) {
+                if (gs.chromosome.name === range.chr && range.start >= gs.start && range.start <= gs.end) {
 
-                            currentSorts[gs.id] = {
-                                chr: range.chr,
-                                position: range.start,
-                                sortOption: sort.option || "NUCLEOTIDE",
-                                direction: sort.direction || "ASC"
-                            };
+                    currentSorts[gs.id] = {
+                        chr: range.chr,
+                        position: range.start,
+                        sortOption: sort.option || "NUCLEOTIDE",
+                        direction: sort.direction || "ASC"
+                    };
 
-                            break;
-                        }
-                    }
-
-                }
-            });
-
-        BAMTrack.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPerPixel, viewport) {
-
-            const self = this;
-
-            const alignmentContainer = await this.featureSource.getAlignments(chr, bpStart, bpEnd);
-
-            if (alignmentContainer.alignments && alignmentContainer.alignments.length > 99) {
-                if (undefined === self.minFragmentLength) {
-                    self.minFragmentLength = alignmentContainer.pairedEndStats.lowerFragmentLength;
-                }
-                if (undefined === self.maxFragmentLength) {
-                    self.maxFragmentLength = alignmentContainer.pairedEndStats.upperFragmentLength;
+                    break;
                 }
             }
 
-            const sort = self.sortObjects[viewport.genomicState.id];
+        }
+    });
 
-            if (sort) {
-                if (sort.chr === chr && sort.position >= bpStart && sort.position <= bpEnd) {
+BAMTrack.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPerPixel, viewport) {
 
-                    self.alignmentTrack.sortAlignmentRows(sort, alignmentContainer);
+    const self = this;
 
-                } else {
-                    delete self.sortObjects[viewport.genomicState.id];
-                }
+    const alignmentContainer = await this.featureSource.getAlignments(chr, bpStart, bpEnd);
+
+    if (alignmentContainer.alignments && alignmentContainer.alignments.length > 99) {
+        if (undefined === self.minFragmentLength) {
+            self.minFragmentLength = alignmentContainer.pairedEndStats.lowerFragmentLength;
+        }
+        if (undefined === self.maxFragmentLength) {
+            self.maxFragmentLength = alignmentContainer.pairedEndStats.upperFragmentLength;
+        }
+    }
+
+    const sort = self.sortObjects[viewport.genomicState.id];
+
+    if (sort) {
+        if (sort.chr === chr && sort.position >= bpStart && sort.position <= bpEnd) {
+
+            self.alignmentTrack.sortAlignmentRows(sort, alignmentContainer);
+
+        } else {
+            delete self.sortObjects[viewport.genomicState.id];
+        }
+    }
+
+    return alignmentContainer;
+
+
+};
+
+BAMTrack.filters = {
+
+    noop: function () {
+        return function (alignment) {
+            return false;
+        };
+    },
+
+    strand: function (strand) {
+        return function (alignment) {
+            return alignment.strand === strand;
+        };
+    },
+
+    mappingQuality: function (lower, upper) {
+        return function (alignment) {
+
+            if (lower && alignment.mq < lower) {
+                return true;
             }
 
-            return alignmentContainer;
-
-
-        };
-
-        BAMTrack.filters = {
-
-            noop: function () {
-                return function (alignment) {
-                    return false;
-                };
-            },
-
-            strand: function (strand) {
-                return function (alignment) {
-                    return alignment.strand === strand;
-                };
-            },
-
-            mappingQuality: function (lower, upper) {
-                return function (alignment) {
-
-                    if (lower && alignment.mq < lower) {
-                        return true;
-                    }
-
-                    if (upper && alignment.mq > upper) {
-                        return true;
-                    }
-
-                    return false;
-                }
+            if (upper && alignment.mq > upper) {
+                return true;
             }
-        };
+
+            return false;
+        }
+    }
+};
 
 
-        /**
-         * Optional method to compute pixel height to accomodate the list of features.  The implementation below
-         * has side effects (modifiying the samples hash).  This is unfortunate, but harmless.
-         *
-         * @param alignmentContainer
-         * @returns {number}
-         */
-        BAMTrack.prototype.computePixelHeight = function (alignmentContainer) {
+/**
+ * Optional method to compute pixel height to accomodate the list of features.  The implementation below
+ * has side effects (modifiying the samples hash).  This is unfortunate, but harmless.
+ *
+ * @param alignmentContainer
+ * @returns {number}
+ */
+BAMTrack.prototype.computePixelHeight = function (alignmentContainer) {
 
-            return this.coverageTrack.computePixelHeight(alignmentContainer) +
-                this.alignmentTrack.computePixelHeight(alignmentContainer) +
-                15;
+    return this.coverageTrack.computePixelHeight(alignmentContainer) +
+        this.alignmentTrack.computePixelHeight(alignmentContainer) +
+        15;
 
-        };
+};
 
-        BAMTrack.prototype.draw = function (options) {
+BAMTrack.prototype.draw = function (options) {
 
     IGVGraphics.fillRect(options.context, 0, options.pixelTop, options.pixelWidth, options.pixelHeight, {'fillStyle': "rgb(255, 255, 255)"});
 
-            if (this.coverageTrack.height > 0) {
-                this.coverageTrack.draw(options);
-            }
+    if (this.coverageTrack.height > 0) {
+        this.coverageTrack.draw(options);
+    }
 
-            this.alignmentTrack.draw(options);
-        };
+    this.alignmentTrack.draw(options);
+};
 
-        BAMTrack.prototype.paintAxis = function (ctx, pixelWidth, pixelHeight) {
+BAMTrack.prototype.paintAxis = function (ctx, pixelWidth, pixelHeight) {
 
-            if (this.browser.isMultiLocusMode()) {
-                ctx.clearRect(0, 0, pixelWidth, pixelHeight);
-            } else {
-                this.coverageTrack.paintAxis(ctx, pixelWidth, this.coverageTrack.height);
-            }
-        };
+    if (this.browser.isMultiLocusMode()) {
+        ctx.clearRect(0, 0, pixelWidth, pixelHeight);
+    } else {
+        this.coverageTrack.paintAxis(ctx, pixelWidth, this.coverageTrack.height);
+    }
+};
 
-        BAMTrack.prototype.contextMenuItemList = function (config) {
+BAMTrack.prototype.contextMenuItemList = function (config) {
 
-            return this.alignmentTrack.contextMenuItemList(config);
+    return this.alignmentTrack.contextMenuItemList(config);
 
-        };
+};
 
-        BAMTrack.prototype.popupData = function (config) {
+BAMTrack.prototype.popupData = function (config) {
 
-            if (config.y >= this.coverageTrack.top && config.y < this.coverageTrack.height) {
-                return this.coverageTrack.popupData(config);
-            } else {
-                return this.alignmentTrack.popupData(config);
-            }
+    if (config.y >= this.coverageTrack.top && config.y < this.coverageTrack.height) {
+        return this.coverageTrack.popupData(config);
+    } else {
+        return this.alignmentTrack.popupData(config);
+    }
 
-        };
+};
 
-        BAMTrack.prototype.menuItemList = function () {
+BAMTrack.prototype.menuItemList = function () {
 
-            const self = this;
+    const self = this;
 
-            const menuItems = [];
+    const menuItems = [];
 
-            // const $separator = $('<div class="igv-track-menu-category igv-track-menu-border-top">');
-            // menuItems.push({name: undefined, object: $separator, click: undefined, init: undefined});
-            //
-            // const clickFunction = function () {
-            //
-            //     self.alignmentTrack.colorBy = 'tag';
-            //     self.config.colorBy = 'tag';
-            //
-            //     const tag = self.trackView.browser.inputDialog.$input.val().trim();
-            //     if (tag !== self.alignmentTrack.colorByTag) {
-            //         self.alignmentTrack.colorByTag = tag;
-            //         self.config.colorByTag = tag;
-            //
-            //         self.alignmentTrack.tagColors = new igv.PaletteColorTable("Set1");
-            //         $('#color-by-tag').text(self.alignmentTrack.colorByTag);
-            //     }
-            //
-            //     self.trackView.repaintViews();
-            // };
-            //
-            // const config =
-            //     {
-            //         label: 'Row Height',
-            //         input: self.alignmentRowHeight.toString(),
-            //         click: clickFunction
-            //     };
-            //
-            // self.trackView.browser.inputDialog.configure(config);
-            // self.trackView.browser.inputDialog.present($(self.trackView.trackDiv));
-            //
+    const $e = $('<div class="igv-track-menu-category igv-track-menu-border-top">');
+    $e.text('Color by');
+    menuItems.push({name: undefined, object: $e, click: undefined, init: undefined});
 
+    const colorByMenuItems = [{key: 'strand', label: 'read strand'}];
+    if (self.alignmentTrack.hasPairs) {
+        colorByMenuItems.push({key: 'firstOfPairStrand', label: 'first-of-pair strand'});
+        colorByMenuItems.push({key: 'pairOrientation', label: 'pair orientation'});
+        colorByMenuItems.push({key: 'fragmentLength', label: 'insert size (TLEN)'});
+    }
+    const tagLabel = 'tag' + (self.alignmentTrack.colorByTag ? ' (' + self.alignmentTrack.colorByTag + ')' : '');
+    colorByMenuItems.push({key: 'tag', label: tagLabel});
 
-            const $e = $('<div class="igv-track-menu-category igv-track-menu-border-top">');
-            $e.text('Color by');
-            menuItems.push({name: undefined, object: $e, click: undefined, init: undefined});
+    colorByMenuItems.forEach(function (item) {
+        const selected = (self.alignmentTrack.colorBy === item.key);
+        menuItems.push(colorByCB(item, selected));
+    });
 
-            const colorByMenuItems = [{key: 'strand', label: 'read strand'}];
-            if (self.alignmentTrack.hasPairs) {
-                colorByMenuItems.push({key: 'firstOfPairStrand', label: 'first-of-pair strand'});
-                colorByMenuItems.push({key: 'pairOrientation', label: 'pair orientation'});
-                colorByMenuItems.push({key: 'fragmentLength', label: 'fragment length'});
-            }
-            const tagLabel = 'tag' + (self.alignmentTrack.colorByTag ? ' (' + self.alignmentTrack.colorByTag + ')' : '');
-            colorByMenuItems.push({key: 'tag', label: tagLabel});
-
-            colorByMenuItems.forEach(function (item) {
-                const selected = (self.alignmentTrack.colorBy === item.key);
-                menuItems.push(colorByCB(item, selected));
-            });
-
-            menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
-            menuItems.push({
+    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+    menuItems.push({
         object: createCheckbox("Show all bases", self.showAllBases),
-                click: function () {
+        click: function () {
 
-                    const $fa = $(this).find('i');
+            const $fa = $(this).find('i');
 
-                    self.showAllBases = !self.showAllBases;
+            self.showAllBases = !self.showAllBases;
 
-                    if (true === self.showAllBases) {
-                        $fa.removeClass('igv-fa-check-hidden');
-                        $fa.addClass('igv-fa-check-visible');
-                    } else {
-                        $fa.removeClass('igv-fa-check-visible');
-                        $fa.addClass('igv-fa-check-hidden');
-                    }
-
-                    self.config.showAllBases = self.showAllBases;
-                    self.trackView.updateViews(true);
-                }
-            });
-
-            menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
-
-            if (self.pairsSupported && self.alignmentTrack.hasPairs) {
-
-                menuItems.push({
-            object: createCheckbox("View as pairs", self.viewAsPairs),
-                    click: function () {
-
-                        const $fa = $(this).find('i');
-
-                        self.viewAsPairs = !self.viewAsPairs;
-
-                        if (true === self.viewAsPairs) {
-                            $fa.removeClass('igv-fa-check-hidden');
-                            $fa.addClass('igv-fa-check-visible');
-                        } else {
-                            $fa.removeClass('igv-fa-check-visible');
-                            $fa.addClass('igv-fa-check-hidden');
-                        }
-
-                        self.config.viewAsPairs = self.viewAsPairs;
-                        self.featureSource.setViewAsPairs(self.viewAsPairs);
-                        self.trackView.updateViews(true);
-                    }
-                });
+            if (true === self.showAllBases) {
+                $fa.removeClass('igv-fa-check-hidden');
+                $fa.addClass('igv-fa-check-visible');
+            } else {
+                $fa.removeClass('igv-fa-check-visible');
+                $fa.addClass('igv-fa-check-hidden');
             }
 
-            menuItems.push({
-        object: createCheckbox("Show soft clips", self.showSoftClips),
-                click: function () {
+            self.config.showAllBases = self.showAllBases;
+            self.trackView.updateViews(true);
+        }
+    });
 
-                    const $fa = $(this).find('i');
+    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
 
-                    self.showSoftClips = !self.showSoftClips;
+    if (self.pairsSupported && self.alignmentTrack.hasPairs) {
 
-                    if (true === self.showSoftClips) {
-                        $fa.removeClass('igv-fa-check-hidden');
-                        $fa.addClass('igv-fa-check-visible');
-                    } else {
-                        $fa.removeClass('igv-fa-check-visible');
-                        $fa.addClass('igv-fa-check-hidden');
-                    }
+        menuItems.push({
+            object: createCheckbox("View as pairs", self.viewAsPairs),
+            click: function () {
 
-                    self.config.showSoftClips = self.showSoftClips;
-                    self.featureSource.setShowSoftClips(self.showSoftClips);
-                    self.trackView.updateViews(true);
+                const $fa = $(this).find('i');
+
+                self.viewAsPairs = !self.viewAsPairs;
+
+                if (true === self.viewAsPairs) {
+                    $fa.removeClass('igv-fa-check-hidden');
+                    $fa.addClass('igv-fa-check-visible');
+                } else {
+                    $fa.removeClass('igv-fa-check-visible');
+                    $fa.addClass('igv-fa-check-hidden');
                 }
-            });
 
-            return menuItems;
+                self.config.viewAsPairs = self.viewAsPairs;
+                self.featureSource.setViewAsPairs(self.viewAsPairs);
+                self.trackView.updateViews(true);
+            }
+        });
+    }
 
-            function colorByCB(menuItem, showCheck) {
+    menuItems.push({
+        object: createCheckbox("Show soft clips", self.showSoftClips),
+        click: function () {
+
+            const $fa = $(this).find('i');
+
+            self.showSoftClips = !self.showSoftClips;
+
+            if (true === self.showSoftClips) {
+                $fa.removeClass('igv-fa-check-hidden');
+                $fa.addClass('igv-fa-check-visible');
+            } else {
+                $fa.removeClass('igv-fa-check-visible');
+                $fa.addClass('igv-fa-check-hidden');
+            }
+
+            self.config.showSoftClips = self.showSoftClips;
+            self.featureSource.setShowSoftClips(self.showSoftClips);
+            self.trackView.updateViews(true);
+        }
+    });
+
+    return menuItems;
+
+    function colorByCB(menuItem, showCheck) {
 
 
         const $e = createCheckbox(menuItem.label, showCheck);
 
-                const clickHandler = function () {
+        const clickHandler = function () {
 
-                    if (menuItem.key === self.alignmentTrack.colorBy) {
+            if (menuItem.key === self.alignmentTrack.colorBy) {
 
-                        self.alignmentTrack.colorBy = 'none';
-                        self.config.colorBy = 'none';
-                        self.trackView.repaintViews();
+                self.alignmentTrack.colorBy = 'none';
+                self.config.colorBy = 'none';
+                self.trackView.repaintViews();
 
-                    } else if ('tag' === menuItem.key) {
+            } else if ('tag' === menuItem.key) {
 
-                        const clickFunction = function () {
+                const clickFunction = function () {
 
-                            self.alignmentTrack.colorBy = 'tag';
-                            self.config.colorBy = 'tag';
+                    self.alignmentTrack.colorBy = 'tag';
+                    self.config.colorBy = 'tag';
 
-                            const tag = self.trackView.browser.inputDialog.$input.val().trim();
-                            if (tag !== self.alignmentTrack.colorByTag) {
-                                self.alignmentTrack.colorByTag = tag;
-                                self.config.colorByTag = tag;
+                    const tag = self.browser.inputDialog.$input.val().trim();
+                    if (tag !== self.alignmentTrack.colorByTag) {
+                        self.alignmentTrack.colorByTag = tag;
+                        self.config.colorByTag = tag;
 
                         self.alignmentTrack.tagColors = new PaletteColorTable("Set1");
-                                $('#color-by-tag').text(self.alignmentTrack.colorByTag);
-                            }
-
-                            self.trackView.repaintViews();
-                        };
-
-                        const config =
-                            {
-                                label: 'Tag Name',
-                                input: self.alignmentTrack.colorByTag ? self.alignmentTrack.colorByTag : '',
-                                click: clickFunction
-                            };
-
-                        self.trackView.browser.inputDialog.configure(config);
-                        self.trackView.browser.inputDialog.present($(self.trackView.trackDiv));
-
-                    } else {
-
-                        self.alignmentTrack.colorBy = menuItem.key;
-                        self.config.colorBy = menuItem.key;
-                        self.trackView.repaintViews();
+                        $('#color-by-tag').text(self.alignmentTrack.colorByTag);
                     }
 
+                    self.trackView.repaintViews();
                 };
 
-                return {name: undefined, object: $e, click: clickHandler, init: undefined}
+                const config =
+                    {
+                        label: 'Tag Name',
+                        input: self.alignmentTrack.colorByTag ? self.alignmentTrack.colorByTag : '',
+                        click: clickFunction
+                    };
 
+                self.browser.inputDialog.configure(config);
+                self.browser.inputDialog.present($(self.trackView.trackDiv));
+
+            } else {
+
+                self.alignmentTrack.colorBy = menuItem.key;
+                self.config.colorBy = menuItem.key;
+                self.trackView.repaintViews();
             }
 
         };
 
-        function shadedBaseColor(qual, nucleotide) {
+        return {name: undefined, object: $e, click: clickHandler, init: undefined}
 
-            const minQ = 5;   //prefs.getAsInt(PreferenceManager.SAM_BASE_QUALITY_MIN),
-            const maxQ = 20;  //prefs.getAsInt(PreferenceManager.SAM_BASE_QUALITY_MAX);
+    }
 
-            let alpha;
-            if (qual < minQ) {
-                alpha = 0.1;
-            } else {
-                alpha = Math.max(0.1, Math.min(1.0, 0.1 + 0.9 * (qual - minQ) / (maxQ - minQ)));
-            }
-            // Round alpha to nearest 0.1
-            alpha = Math.round(alpha * 10) / 10.0;
+};
 
-            let baseColor;
-            if (alpha >= 1) {
+function shadedBaseColor(qual, nucleotide) {
+
+    const minQ = 5;   //prefs.getAsInt(PreferenceManager.SAM_BASE_QUALITY_MIN),
+    const maxQ = 20;  //prefs.getAsInt(PreferenceManager.SAM_BASE_QUALITY_MAX);
+
+    let alpha;
+    if (qual < minQ) {
+        alpha = 0.1;
+    } else {
+        alpha = Math.max(0.1, Math.min(1.0, 0.1 + 0.9 * (qual - minQ) / (maxQ - minQ)));
+    }
+    // Round alpha to nearest 0.1
+    alpha = Math.round(alpha * 10) / 10.0;
+
+    let baseColor;
+    if (alpha >= 1) {
         baseColor = nucleotideColors[nucleotide];
-            } else {
+    } else {
         const foregroundColor = nucleotideColorComponents[nucleotide];
-                if (!foregroundColor) {
-                    return undefined;
-                }
-                baseColor = "rgba(" + foregroundColor[0] + "," + foregroundColor[1] + "," + foregroundColor[2] + "," + alpha + ")";
-            }
-            return baseColor;
+        if (!foregroundColor) {
+            return undefined;
         }
+        baseColor = "rgba(" + foregroundColor[0] + "," + foregroundColor[1] + "," + foregroundColor[2] + "," + alpha + ")";
+    }
+    return baseColor;
+}
 
-        /**
-         * Called when the track is removed.  Do any needed cleanup here
-         */
-        BAMTrack.prototype.dispose = function () {
-            this.trackView = undefined;
-        };
+/**
+ * Called when the track is removed.  Do any needed cleanup here
+ */
+BAMTrack.prototype.dispose = function () {
+    this.trackView = undefined;
+};
 
-        /**
-         * Return the current state of the track.  Used to create sessions and bookmarks.
-         *
-         * @returns {*|{}}
-         */
-        BAMTrack.prototype.getState = function () {
+/**
+ * Return the current state of the track.  Used to create sessions and bookmarks.
+ *
+ * @returns {*|{}}
+ */
+BAMTrack.prototype.getState = function () {
 
-            const config = Object.assign({}, this.config);
+    const config = Object.assign({}, this.config);
 
-            config.sort = undefined;
+    config.sort = undefined;
 
-            for (let gs of this.browser.genomicStateList) {
+    for (let gs of this.browser.genomicStateList) {
 
-                const s = this.sortObjects[gs.id];
+        const s = this.sortObjects[gs.id];
 
-                if (s) {
-                    config.sort = config.sort || [];
+        if (s) {
+            config.sort = config.sort || [];
 
-                    config.sort.push({
-                        locus: s.chr + ":" + (s.position + 1),
-                        option: s.sortOption,
-                        direction: s.direction
-                    });
-                }
-            }
+            config.sort.push({
+                locus: s.chr + ":" + (s.position + 1),
+                option: s.sortOption,
+                direction: s.direction
+            });
+        }
+    }
 
-            return config;
-        };
+    return config;
+};
 
-        var CoverageTrack = function (config, parent) {
+var CoverageTrack = function (config, parent) {
 
-            this.parent = parent;
-            this.featureSource = parent.featureSource;
-            this.top = 0;
+    this.parent = parent;
+    this.featureSource = parent.featureSource;
+    this.top = 0;
 
 
-            this.height = config.coverageTrackHeight;
-            this.dataRange = {min: 0};   // Leav max undefined
+    this.height = config.coverageTrackHeight;
+    this.dataRange = {min: 0};   // Leav max undefined
     this.paintAxis = paintAxis;
-        };
+};
 
-        CoverageTrack.prototype.computePixelHeight = function (alignmentContainer) {
-            return this.height;
-        };
+CoverageTrack.prototype.computePixelHeight = function (alignmentContainer) {
+    return this.height;
+};
 
-        CoverageTrack.prototype.draw = function (options) {
+CoverageTrack.prototype.draw = function (options) {
 
-            const ctx = options.context;
-            if (this.top) {
-                ctx.translate(0, top);
-            }
-            const yTop = options.top || 0;
-            const yBottom = yTop + options.pixelHeight;
+    const ctx = options.context;
+    if (this.top) {
+        ctx.translate(0, top);
+    }
+    const yTop = options.top || 0;
+    const yBottom = yTop + options.pixelHeight;
 
-            const alignmentContainer = options.features;
-            const coverageMap = alignmentContainer.coverageMap;
-            this.dataRange.max = coverageMap.maximum;
+    const alignmentContainer = options.features;
+    const coverageMap = alignmentContainer.coverageMap;
+    this.dataRange.max = coverageMap.maximum;
 
-            let sequence;
-            if (coverageMap.refSeq) {
-                sequence = coverageMap.refSeq.toUpperCase();
-            }
+    let sequence;
+    if (coverageMap.refSeq) {
+        sequence = coverageMap.refSeq.toUpperCase();
+    }
 
-            const bpPerPixel = options.bpPerPixel;
-            const bpStart = options.bpStart;
-            const pixelWidth = options.pixelWidth;
-            const bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
+    const bpPerPixel = options.bpPerPixel;
+    const bpStart = options.bpStart;
+    const pixelWidth = options.pixelWidth;
+    const bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
 
-            // paint for all coverage buckets
-            // If alignment track color is != default, use it
-            let color = this.parent.coverageColor;
-            if (this.parent.color !== DEFAULT_ALIGNMENT_COLOR) {
+    // paint for all coverage buckets
+    // If alignment track color is != default, use it
+    let color = this.parent.coverageColor;
+    if (this.parent.color !== DEFAULT_ALIGNMENT_COLOR) {
         color = IGVColor.darkenLighten(this.parent.color, -35);
-            }
+    }
 
     IGVGraphics.setProperties(ctx, {
-                fillStyle: color,
-                strokeStyle: color
-            });
+        fillStyle: color,
+        strokeStyle: color
+    });
 
-            const w = Math.max(1, Math.ceil(1.0 / bpPerPixel));
-            for (let i = 0, len = coverageMap.coverage.length; i < len; i++) {
+    const w = Math.max(1, Math.ceil(1.0 / bpPerPixel));
+    for (let i = 0, len = coverageMap.coverage.length; i < len; i++) {
 
-                const bp = (coverageMap.bpStart + i);
-                if (bp < bpStart) continue;
-                if (bp > bpEnd) break;
+        const bp = (coverageMap.bpStart + i);
+        if (bp < bpStart) continue;
+        if (bp > bpEnd) break;
 
-                const item = coverageMap.coverage[i];
-                if (!item) continue;
+        const item = coverageMap.coverage[i];
+        if (!item) continue;
 
-                const h = Math.round((item.total / this.dataRange.max) * this.height);
-                const y = this.height - h;
-                const x = Math.floor((bp - bpStart) / bpPerPixel);
+        const h = Math.round((item.total / this.dataRange.max) * this.height);
+        const y = this.height - h;
+        const x = Math.floor((bp - bpStart) / bpPerPixel);
 
 
         // IGVGraphics.setProperties(ctx, {fillStyle: "rgba(0, 200, 0, 0.25)", strokeStyle: "rgba(0, 200, 0, 0.25)" });
         IGVGraphics.fillRect(ctx, x, y, w, h);
-            }
+    }
 
-            // coverage mismatch coloring -- don't try to do this in above loop, color bar will be overwritten when w<1
-            if (sequence) {
-                for (let i = 0, len = coverageMap.coverage.length; i < len; i++) {
+    // coverage mismatch coloring -- don't try to do this in above loop, color bar will be overwritten when w<1
+    if (sequence) {
+        for (let i = 0, len = coverageMap.coverage.length; i < len; i++) {
 
-                    const bp = (coverageMap.bpStart + i);
-                    if (bp < bpStart) continue;
-                    if (bp > bpEnd) break;
+            const bp = (coverageMap.bpStart + i);
+            if (bp < bpStart) continue;
+            if (bp > bpEnd) break;
 
-                    const item = coverageMap.coverage[i];
-                    if (!item) continue;
+            const item = coverageMap.coverage[i];
+            if (!item) continue;
 
-                    const h = (item.total / this.dataRange.max) * this.height;
-                    let y = this.height - h;
-                    const x = Math.floor((bp - bpStart) / bpPerPixel);
+            const h = (item.total / this.dataRange.max) * this.height;
+            let y = this.height - h;
+            const x = Math.floor((bp - bpStart) / bpPerPixel);
 
-                    const refBase = sequence[i];
-                    if (item.isMismatch(refBase)) {
+            const refBase = sequence[i];
+            if (item.isMismatch(refBase)) {
 
                 IGVGraphics.setProperties(ctx, {fillStyle: nucleotideColors[refBase]});
                 IGVGraphics.fillRect(ctx, x, y, w, h);
 
-                        let accumulatedHeight = 0.0;
-                        for (let nucleotide of ["A", "C", "T", "G"]) {
+                let accumulatedHeight = 0.0;
+                for (let nucleotide of ["A", "C", "T", "G"]) {
 
-                            const count = item["pos" + nucleotide] + item["neg" + nucleotide];
+                    const count = item["pos" + nucleotide] + item["neg" + nucleotide];
 
-                            // non-logoritmic
-                            const hh = (count / this.dataRange.max) * this.height;
-                            y = (this.height - hh) - accumulatedHeight;
-                            accumulatedHeight += hh;
+                    // non-logoritmic
+                    const hh = (count / this.dataRange.max) * this.height;
+                    y = (this.height - hh) - accumulatedHeight;
+                    accumulatedHeight += hh;
 
                     IGVGraphics.setProperties(ctx, {fillStyle: nucleotideColors[nucleotide]});
                     IGVGraphics.fillRect(ctx, x, y, w, hh);
-                        }
-                    }
                 }
             }
-        };
+        }
+    }
+};
 
-        CoverageTrack.prototype.popupData = function (config) {
+CoverageTrack.prototype.popupData = function (config) {
 
-            let features = config.viewport.getCachedFeatures();
-            if (!features || features.length === 0) return;
+    let features = config.viewport.getCachedFeatures();
+    if (!features || features.length === 0) return;
 
-            let genomicLocation = Math.floor(config.genomicLocation),
-                referenceFrame = config.viewport.genomicState.referenceFrame,
-                coverageMap = features.coverageMap,
-                nameValues = [],
-                coverageMapIndex = Math.floor(genomicLocation - coverageMap.bpStart),
-                coverage = coverageMap.coverage[coverageMapIndex];
+    let genomicLocation = Math.floor(config.genomicLocation),
+        referenceFrame = config.viewport.genomicState.referenceFrame,
+        coverageMap = features.coverageMap,
+        nameValues = [],
+        coverageMapIndex = Math.floor(genomicLocation - coverageMap.bpStart),
+        coverage = coverageMap.coverage[coverageMapIndex];
 
-            if (coverage) {
+    if (coverage) {
 
-                nameValues.push(referenceFrame.chrName + ":" + numberFormatter(1 + genomicLocation));
+        nameValues.push(referenceFrame.chrName + ":" + numberFormatter(1 + genomicLocation));
 
-                nameValues.push({name: 'Total Count', value: coverage.total});
+        nameValues.push({name: 'Total Count', value: coverage.total});
 
-                // A
-                let tmp = coverage.posA + coverage.negA;
-                if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posA + "+, " + coverage.negA + "- )";
-                nameValues.push({name: 'A', value: tmp});
+        // A
+        let tmp = coverage.posA + coverage.negA;
+        if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posA + "+, " + coverage.negA + "- )";
+        nameValues.push({name: 'A', value: tmp});
 
-                // C
-                tmp = coverage.posC + coverage.negC;
-                if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posC + "+, " + coverage.negC + "- )";
-                nameValues.push({name: 'C', value: tmp});
+        // C
+        tmp = coverage.posC + coverage.negC;
+        if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posC + "+, " + coverage.negC + "- )";
+        nameValues.push({name: 'C', value: tmp});
 
-                // G
-                tmp = coverage.posG + coverage.negG;
-                if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posG + "+, " + coverage.negG + "- )";
-                nameValues.push({name: 'G', value: tmp});
+        // G
+        tmp = coverage.posG + coverage.negG;
+        if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posG + "+, " + coverage.negG + "- )";
+        nameValues.push({name: 'G', value: tmp});
 
-                // T
-                tmp = coverage.posT + coverage.negT;
-                if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posT + "+, " + coverage.negT + "- )";
-                nameValues.push({name: 'T', value: tmp});
+        // T
+        tmp = coverage.posT + coverage.negT;
+        if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posT + "+, " + coverage.negT + "- )";
+        nameValues.push({name: 'T', value: tmp});
 
-                // N
-                tmp = coverage.posN + coverage.negN;
-                if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posN + "+, " + coverage.negN + "- )";
-                nameValues.push({name: 'N', value: tmp});
+        // N
+        tmp = coverage.posN + coverage.negN;
+        if (tmp > 0) tmp = tmp.toString() + " (" + Math.round((tmp / coverage.total) * 100.0) + "%, " + coverage.posN + "+, " + coverage.negN + "- )";
+        nameValues.push({name: 'N', value: tmp});
 
-                nameValues.push('<HR/>');
-                nameValues.push({name: 'DEL', value: coverage.del.toString()});
-                nameValues.push({name: 'INS', value: coverage.ins.toString()});
+        nameValues.push('<HR/>');
+        nameValues.push({name: 'DEL', value: coverage.del.toString()});
+        nameValues.push({name: 'INS', value: coverage.ins.toString()});
+    }
+
+    return nameValues;
+
+};
+
+var AlignmentTrack = function (config, parent) {
+
+    this.parent = parent;
+    this.browser = parent.browser;
+    this.featureSource = parent.featureSource;
+    this.top = config.coverageTrackHeight === 0 ? 0 : config.coverageTrackHeight + 5;
+    this.alignmentRowHeight = config.alignmentRowHeight || 14;
+
+    this.negStrandColor = config.negStrandColor || "rgba(150, 150, 230, 0.75)";
+    this.posStrandColor = config.posStrandColor || "rgba(230, 150, 150, 0.75)";
+    this.insertionColor = config.insertionColor || "rgb(138, 94, 161)";
+    this.deletionColor = config.deletionColor || "black";
+    this.skippedColor = config.skippedColor || "rgb(150, 170, 170)";
+    this.pairConnectorColor = config.pairConnectorColor;
+
+    this.smallFragmentLengthColor = config.smallFragmentLengthColor || "rgb(0, 0, 150)";
+    this.largeFragmentLengthColor = config.largeFragmentLengthColor || "rgb(200, 0, 0)";
+
+    this.pairOrientation = config.pairOrienation || 'fr';
+    this.pairColors = {};
+    this.pairColors["RL"] = config.rlColor || "rgb(0, 150, 0)";
+    this.pairColors["RR"] = config.rrColor || "rgb(20, 50, 200)";
+    this.pairColors["LL"] = config.llColor || "rgb(0, 150, 150)";
+
+    this.colorBy = config.colorBy || "pairOrientation";
+    this.colorByTag = config.colorByTag;
+    this.bamColorTag = config.bamColorTag === undefined ? "YC" : config.bamColorTag;
+
+    this.hasPairs = false;   // Until proven otherwise
+};
+
+AlignmentTrack.prototype.computePixelHeight = function (alignmentContainer) {
+
+    if (alignmentContainer.packedAlignmentRows) {
+        var h = 0;
+        if (alignmentContainer.hasDownsampledIntervals()) {
+            h += downsampleRowHeight + alignmentStartGap;
+        }
+        return h + (this.alignmentRowHeight * alignmentContainer.packedAlignmentRows.length) + 5;
+    } else {
+        return this.height;
+    }
+
+};
+
+AlignmentTrack.prototype.draw = function (options) {
+
+    const alignmentContainer = options.features;
+    const ctx = options.context;
+    const bpPerPixel = options.bpPerPixel;
+    const bpStart = options.bpStart;
+    const pixelWidth = options.pixelWidth;
+    const bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
+    const packedAlignmentRows = alignmentContainer.packedAlignmentRows;
+    const showSoftClips = this.parent.showSoftClips;
+    const showAllBases = this.parent.showAllBases;
+    const yTop = options.top || 0;
+    const yBottom = yTop + options.pixelHeight;
+
+    let referenceSequence = alignmentContainer.sequence;
+    if (referenceSequence) {
+        referenceSequence = referenceSequence.toUpperCase();
+    }
+
+    let alignmentRowYInset = 0;
+
+    ctx.save();
+    if (this.top) ctx.translate(0, this.top);
+
+    if (alignmentContainer.hasDownsampledIntervals()) {
+        alignmentRowYInset = downsampleRowHeight + alignmentStartGap;
+
+        alignmentContainer.downsampledIntervals.forEach(function (interval) {
+            var xBlockStart = (interval.start - bpStart) / bpPerPixel,
+                xBlockEnd = (interval.end - bpStart) / bpPerPixel;
+
+            if (xBlockEnd - xBlockStart > 5) {
+                xBlockStart += 1;
+                xBlockEnd -= 1;
             }
-
-            return nameValues;
-
-        };
-
-        var AlignmentTrack = function (config, parent) {
-
-            this.parent = parent;
-            this.featureSource = parent.featureSource;
-            this.top = config.coverageTrackHeight == 0 ? 0 : config.coverageTrackHeight + 5;
-            this.alignmentRowHeight = config.alignmentRowHeight || 14;
-
-            this.negStrandColor = config.negStrandColor || "rgba(150, 150, 230, 0.75)";
-            this.posStrandColor = config.posStrandColor || "rgba(230, 150, 150, 0.75)";
-            this.insertionColor = config.insertionColor || "rgb(138, 94, 161)";
-            this.deletionColor = config.deletionColor || "black";
-            this.skippedColor = config.skippedColor || "rgb(150, 170, 170)";
-            this.pairConnectorColor = config.pairConnectorColor;
-
-            this.smallFragmentLengthColor = config.smallFragmentLengthColor || "rgb(0, 0, 150)";
-            this.largeFragmentLengthColor = config.largeFragmentLengthColor || "rgb(200, 0, 0)";
-
-            this.pairOrientation = config.pairOrienation || 'fr';
-            this.pairColors = {};
-            this.pairColors["RL"] = config.rlColor || "rgb(0, 150, 0)";
-            this.pairColors["RR"] = config.rrColor || "rgb(20, 50, 200)";
-            this.pairColors["LL"] = config.llColor || "rgb(0, 150, 150)";
-
-            this.colorBy = config.colorBy || "pairOrientation";
-            this.colorByTag = config.colorByTag;
-            this.bamColorTag = config.bamColorTag === undefined ? "YC" : config.bamColorTag;
-
-            this.hasPairs = false;   // Until proven otherwise
-        };
-
-        AlignmentTrack.prototype.computePixelHeight = function (alignmentContainer) {
-
-            if (alignmentContainer.packedAlignmentRows) {
-                var h = 0;
-                if (alignmentContainer.hasDownsampledIntervals()) {
-                    h += downsampleRowHeight + alignmentStartGap;
-                }
-                return h + (this.alignmentRowHeight * alignmentContainer.packedAlignmentRows.length) + 5;
-            } else {
-                return this.height;
-            }
-
-        };
-
-        AlignmentTrack.prototype.draw = function (options) {
-
-            const alignmentContainer = options.features;
-            const ctx = options.context;
-            const bpPerPixel = options.bpPerPixel;
-            const bpStart = options.bpStart;
-            const pixelWidth = options.pixelWidth;
-            const bpEnd = bpStart + pixelWidth * bpPerPixel + 1;
-            const packedAlignmentRows = alignmentContainer.packedAlignmentRows;
-            const showSoftClips = this.parent.showSoftClips;
-            const showAllBases = this.parent.showAllBases;
-            const yTop = options.top || 0;
-            const yBottom = yTop + options.pixelHeight;
-
-            let referenceSequence = alignmentContainer.sequence;
-            if (referenceSequence) {
-                referenceSequence = referenceSequence.toUpperCase();
-            }
-
-            let alignmentRowYInset = 0;
-
-            ctx.save();
-            if (this.top) ctx.translate(0, this.top);
-
-            if (alignmentContainer.hasDownsampledIntervals()) {
-                alignmentRowYInset = downsampleRowHeight + alignmentStartGap;
-
-                alignmentContainer.downsampledIntervals.forEach(function (interval) {
-                    var xBlockStart = (interval.start - bpStart) / bpPerPixel,
-                        xBlockEnd = (interval.end - bpStart) / bpPerPixel;
-
-                    if (xBlockEnd - xBlockStart > 5) {
-                        xBlockStart += 1;
-                        xBlockEnd -= 1;
-                    }
             IGVGraphics.fillRect(ctx, xBlockStart, 2, (xBlockEnd - xBlockStart), downsampleRowHeight - 2, {fillStyle: "black"});
-                });
+        });
 
-            } else {
-                alignmentRowYInset = 0;
-            }
+    } else {
+        alignmentRowYInset = 0;
+    }
 
-            // Transient variable -- rewritten on every draw, used for click object selection
-            this.alignmentsYOffset = alignmentRowYInset;
+    // Transient variable -- rewritten on every draw, used for click object selection
+    this.alignmentsYOffset = alignmentRowYInset;
 
-            if (packedAlignmentRows) {
+    if (packedAlignmentRows) {
 
-                const nRows = packedAlignmentRows.length;
+        const nRows = packedAlignmentRows.length;
 
-                for (let rowIndex = 0; rowIndex < nRows; rowIndex++) {
+        for (let rowIndex = 0; rowIndex < nRows; rowIndex++) {
 
-                    const alignmentRow = packedAlignmentRows[rowIndex];
-                    const alignmentY = alignmentRowYInset + (this.alignmentRowHeight * rowIndex);
-                    const alignmentHeight = this.alignmentRowHeight <= 4 ? this.alignmentRowHeight : this.alignmentRowHeight - 2;
+            const alignmentRow = packedAlignmentRows[rowIndex];
+            const alignmentY = alignmentRowYInset + (this.alignmentRowHeight * rowIndex);
+            const alignmentHeight = this.alignmentRowHeight <= 4 ? this.alignmentRowHeight : this.alignmentRowHeight - 2;
 
-                    for (let alignment of alignmentRow.alignments) {
+            for (let alignment of alignmentRow.alignments) {
 
-                        this.hasPairs = this.hasPairs || alignment.isPaired();
+                this.hasPairs = this.hasPairs || alignment.isPaired();
 
-                        if ((alignment.start + alignment.lengthOnRef) < bpStart) continue;
-                        if (alignment.start > bpEnd) break;
-                        if (true === alignment.hidden) {
-                            continue;
-                        }
+                if ((alignment.start + alignment.lengthOnRef) < bpStart) continue;
+                if (alignment.start > bpEnd) break;
+                if (true === alignment.hidden) {
+                    continue;
+                }
 
                 if (alignment instanceof PairedAlignment) {
 
-                            drawPairConnector.call(this, alignment, alignmentY, alignmentHeight);
+                    drawPairConnector.call(this, alignment, alignmentY, alignmentHeight);
 
-                            drawSingleAlignment.call(this, alignment.firstAlignment, alignmentY, alignmentHeight);
+                    drawSingleAlignment.call(this, alignment.firstAlignment, alignmentY, alignmentHeight);
 
-                            if (alignment.secondAlignment) {
-                                drawSingleAlignment.call(this, alignment.secondAlignment, alignmentY, alignmentHeight);
-                            }
-
-                        } else {
-                            drawSingleAlignment.call(this, alignment, alignmentY, alignmentHeight);
-                        }
-
+                    if (alignment.secondAlignment) {
+                        drawSingleAlignment.call(this, alignment.secondAlignment, alignmentY, alignmentHeight);
                     }
+
+                } else {
+                    drawSingleAlignment.call(this, alignment, alignmentY, alignmentHeight);
                 }
+
             }
-            ctx.restore();
+        }
+    }
+    ctx.restore();
 
-            // alignment is a PairedAlignment
-            function drawPairConnector(alignment, yRect, alignmentHeight) {
+    // alignment is a PairedAlignment
+    function drawPairConnector(alignment, yRect, alignmentHeight) {
 
-                var connectorColor = this.getConnectorColor(alignment.firstAlignment),
-                    xBlockStart = (alignment.connectingStart - bpStart) / bpPerPixel,
-                    xBlockEnd = (alignment.connectingEnd - bpStart) / bpPerPixel,
-                    yStrokedLine = yRect + alignmentHeight / 2;
+        var connectorColor = this.getConnectorColor(alignment.firstAlignment),
+            xBlockStart = (alignment.connectingStart - bpStart) / bpPerPixel,
+            xBlockEnd = (alignment.connectingEnd - bpStart) / bpPerPixel,
+            yStrokedLine = yRect + alignmentHeight / 2;
 
-                if ((alignment.connectingEnd) < bpStart || alignment.connectingStart > bpEnd) {
-                    return;
-                }
-                if (alignment.mq <= 0) {
+        if ((alignment.connectingEnd) < bpStart || alignment.connectingStart > bpEnd) {
+            return;
+        }
+        if (alignment.mq <= 0) {
             connectorColor = IGVColor.addAlpha(connectorColor, 0.15);
-                }
+        }
         IGVGraphics.setProperties(ctx, {fillStyle: connectorColor, strokeStyle: connectorColor});
         IGVGraphics.strokeLine(ctx, xBlockStart, yStrokedLine, xBlockEnd, yStrokedLine);
 
-            }
+    }
 
-            function drawSingleAlignment(alignment, yRect, alignmentHeight) {
+    function drawSingleAlignment(alignment, yRect, alignmentHeight) {
 
-                var alignmentColor,
-                    lastBlockEnd,
-                    blocks,
-                    block,
-                    b;
+        var alignmentColor,
+            lastBlockEnd,
+            blocks,
+            block,
+            b;
 
-                alignmentColor = this.getAlignmentColor(alignment);
-                const outlineColor = alignmentColor;
+        alignmentColor = this.getAlignmentColor(alignment);
+        const outlineColor = alignmentColor;
 
-                blocks = showSoftClips ? alignment.blocks : alignment.blocks.filter(b => 'S' !== b.type);
+        blocks = showSoftClips ? alignment.blocks : alignment.blocks.filter(b => 'S' !== b.type);
 
-                if ((alignment.start + alignment.lengthOnRef) < bpStart || alignment.start > bpEnd) {
-                    return;
-                }
+        if ((alignment.start + alignment.lengthOnRef) < bpStart || alignment.start > bpEnd) {
+            return;
+        }
 
-                if (alignment.mq <= 0) {
+        if (alignment.mq <= 0) {
             alignmentColor = IGVColor.addAlpha(alignmentColor, 0.15);
-                }
+        }
 
         IGVGraphics.setProperties(ctx, {fillStyle: alignmentColor, strokeStyle: outlineColor});
 
-                for (b = 0; b < blocks.length; b++) {   // Can't use forEach here -- we need ability to break
+        for (b = 0; b < blocks.length; b++) {   // Can't use forEach here -- we need ability to break
 
-                    block = blocks[b];
+            block = blocks[b];
 
-                    // Somewhat complex test, neccessary to insure gaps are drawn.
-                    // If this is not the last block, and the next block starts before the orign (off screen to left)
-                    // then skip.
-                    if ((b != blocks.length - 1) && blocks[b + 1].start < bpStart) continue;
+            // Somewhat complex test, neccessary to insure gaps are drawn.
+            // If this is not the last block, and the next block starts before the orign (off screen to left)
+            // then skip.
+            if ((b !== blocks.length - 1) && blocks[b + 1].start < bpStart) continue;
 
-                    drawBlock.call(this, block);
+            drawBlock.call(this, block);
 
-                    if ((block.start + block.len) > bpEnd) break;  // Do this after drawBlock to insure gaps are drawn
+            if ((block.start + block.len) > bpEnd) break;  // Do this after drawBlock to insure gaps are drawn
 
-                    if (alignment.insertions) {
-                        for (let block of alignment.insertions) {
-                            const refOffset = block.start - bpStart;
-                            const xBlockStart = refOffset / bpPerPixel - 1;
-                            const widthBlock = 3;
+            if (alignment.insertions) {
+                for (let block of alignment.insertions) {
+                    const refOffset = block.start - bpStart;
+                    const xBlockStart = refOffset / bpPerPixel - 1;
+                    const widthBlock = 3;
                     IGVGraphics.fillRect(ctx, xBlockStart, yRect - 1, widthBlock, alignmentHeight + 2, {fillStyle: this.insertionColor});
-                        }
-                    }
+                }
+            }
+        }
+
+        function drawBlock(block) {
+
+
+            const offsetBP = block.start - alignmentContainer.start;
+            const blockStartPixel = (block.start - bpStart) / bpPerPixel;
+            const blockEndPixel = ((block.start + block.len) - bpStart) / bpPerPixel;
+            const blockWidthPixel = Math.max(1, blockEndPixel - blockStartPixel);
+            const arrowHeadWidthPixel = this.alignmentRowHeight / 2.0;
+            const yStrokedLine = yRect + alignmentHeight / 2;
+            const isSoftClip = 'S' === block.type;
+
+            const strokeOutline =
+                alignment.mq <= 0 ||
+                this.highlightedAlignmentReadNamed === alignment.readName ||
+                isSoftClip;
+
+            let blockOutlineColor = outlineColor;
+            if (this.highlightedAlignmentReadNamed === alignment.readName) blockOutlineColor = 'red';
+            else if (isSoftClip) blockOutlineColor = 'rgb(50,50,50)';
+
+            if (block.gapType !== undefined && blockEndPixel !== undefined && lastBlockEnd !== undefined) {
+                if ("D" === block.gapType) {
+                    IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.deletionColor});
+                } else if ("N" === block.gapType) {
+                    IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.skippedColor});
+                }
+            }
+            lastBlockEnd = blockEndPixel;
+
+            const lastBlockPositiveStrand = (true === alignment.strand && b === blocks.length - 1);
+            const lastBlockReverseStrand = (false === alignment.strand && b === 0);
+            const lastBlock = lastBlockPositiveStrand | lastBlockReverseStrand;
+
+            if (lastBlock) {
+                let xListPixel;
+                let yListPixel;
+                if (lastBlockPositiveStrand) {
+                    xListPixel = [
+                        blockStartPixel,
+                        blockEndPixel,
+                        blockEndPixel + arrowHeadWidthPixel,
+                        blockEndPixel,
+                        blockStartPixel,
+                        blockStartPixel];
+                    yListPixel = [
+                        yRect,
+                        yRect,
+                        yRect + (alignmentHeight / 2.0),
+                        yRect + alignmentHeight,
+                        yRect + alignmentHeight,
+                        yRect];
+
                 }
 
-                function drawBlock(block) {
+                // Last block on - strand ?
+                else if (lastBlockReverseStrand) {
+                    xListPixel = [
+                        blockEndPixel,
+                        blockStartPixel,
+                        blockStartPixel - arrowHeadWidthPixel,
+                        blockStartPixel,
+                        blockEndPixel,
+                        blockEndPixel];
+                    yListPixel = [
+                        yRect,
+                        yRect,
+                        yRect + (alignmentHeight / 2.0),
+                        yRect + alignmentHeight,
+                        yRect + alignmentHeight,
+                        yRect];
 
-
-                    const offsetBP = block.start - alignmentContainer.start;
-                    const blockStartPixel = (block.start - bpStart) / bpPerPixel;
-                    const blockEndPixel = ((block.start + block.len) - bpStart) / bpPerPixel;
-                    const blockWidthPixel = Math.max(1, blockEndPixel - blockStartPixel);
-                    const arrowHeadWidthPixel = this.alignmentRowHeight / 2.0;
-                    const yStrokedLine = yRect + alignmentHeight / 2;
-                    const isSoftClip = 'S' === block.type;
-
-                    const strokeOutline =
-                        alignment.mq <= 0 ||
-                        this.highlightedAlignmentReadNamed === alignment.readName ||
-                        isSoftClip;
-
-                    let blockOutlineColor = outlineColor;
-                    if (this.highlightedAlignmentReadNamed === alignment.readName) blockOutlineColor = 'red';
-                    else if (isSoftClip) blockOutlineColor = 'rgb(50,50,50)';
-
-                    if (block.gapType !== undefined && blockEndPixel !== undefined && lastBlockEnd !== undefined) {
-                        if ("D" === block.gapType) {
-                    IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.deletionColor});
-                        } else if ("N" === block.gapType) {
-                    IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.skippedColor});
-                        }
-                    }
-                    lastBlockEnd = blockEndPixel;
-
-                    const lastBlockPositiveStrand = (true === alignment.strand && b === blocks.length - 1);
-                    const lastBlockReverseStrand = (false === alignment.strand && b === 0);
-                    const lastBlock = lastBlockPositiveStrand | lastBlockReverseStrand;
-
-                    if (lastBlock) {
-                        let xListPixel;
-                        let yListPixel;
-                        if (lastBlockPositiveStrand) {
-                            xListPixel = [
-                                blockStartPixel,
-                                blockEndPixel,
-                                blockEndPixel + arrowHeadWidthPixel,
-                                blockEndPixel,
-                                blockStartPixel,
-                                blockStartPixel];
-                            yListPixel = [
-                                yRect,
-                                yRect,
-                                yRect + (alignmentHeight / 2.0),
-                                yRect + alignmentHeight,
-                                yRect + alignmentHeight,
-                                yRect];
-
-                        }
-
-                        // Last block on - strand ?
-                        else if (lastBlockReverseStrand) {
-                            xListPixel = [
-                                blockEndPixel,
-                                blockStartPixel,
-                                blockStartPixel - arrowHeadWidthPixel,
-                                blockStartPixel,
-                                blockEndPixel,
-                                blockEndPixel];
-                            yListPixel = [
-                                yRect,
-                                yRect,
-                                yRect + (alignmentHeight / 2.0),
-                                yRect + alignmentHeight,
-                                yRect + alignmentHeight,
-                                yRect];
-
-                        }
+                }
                 IGVGraphics.fillPolygon(ctx, xListPixel, yListPixel, {fillStyle: alignmentColor});
 
-                        if (strokeOutline) {
+                if (strokeOutline) {
                     IGVGraphics.strokePolygon(ctx, xListPixel, yListPixel, {strokeStyle: blockOutlineColor});
-                        }
-                    }
+                }
+            }
 
-                    // Internal block
-                    else {
+            // Internal block
+            else {
                 IGVGraphics.fillRect(ctx, blockStartPixel, yRect, blockWidthPixel, alignmentHeight, {fillStyle: alignmentColor});
 
-                        if (strokeOutline) {
-                            ctx.save();
-                            ctx.strokeStyle = blockOutlineColor;
-                            ctx.strokeRect(blockStartPixel, yRect, blockWidthPixel, alignmentHeight);
-                            ctx.restore();
-                        }
+                if (strokeOutline) {
+                    ctx.save();
+                    ctx.strokeStyle = blockOutlineColor;
+                    ctx.strokeRect(blockStartPixel, yRect, blockWidthPixel, alignmentHeight);
+                    ctx.restore();
+                }
+            }
+
+
+            // Mismatch coloring
+
+            if (isSoftClip || showAllBases || (referenceSequence && alignment.seq && alignment.seq !== "*")) {
+
+                const seq = alignment.seq ? alignment.seq.toUpperCase() : undefined;
+                const qual = alignment.qual;
+                const seqOffset = block.seqOffset;
+
+
+                for (let i = 0, len = block.len; i < len; i++) {
+
+                    if (offsetBP + i < 0) continue;
+
+                    let readChar = seq ? seq.charAt(seqOffset + i) : '';
+                    const refChar = referenceSequence.charAt(offsetBP + i);
+
+                    if (readChar === "=") {
+                        readChar = refChar;
                     }
+                    if (readChar === "X" || refChar !== readChar || isSoftClip || showAllBases) {
 
-
-                    // Mismatch coloring
-
-                    if (isSoftClip || showAllBases || (referenceSequence && alignment.seq && alignment.seq !== "*")) {
-
-                        const seq = alignment.seq ? alignment.seq.toUpperCase() : undefined;
-                        const qual = alignment.qual;
-                        const seqOffset = block.seqOffset;
-
-
-                        for (let i = 0, len = block.len; i < len; i++) {
-
-                            if (offsetBP + i < 0) continue;
-
-                            let readChar = seq ? seq.charAt(seqOffset + i) : '';
-                            const refChar = referenceSequence.charAt(offsetBP + i);
-
-                            if (readChar === "=") {
-                                readChar = refChar;
-                            }
-                            if (readChar === "X" || refChar !== readChar || isSoftClip || showAllBases) {
-
-                                let baseColor;
-                                if (!isSoftClip && qual !== undefined && qual.length > seqOffset + i) {
-                                    const readQual = qual[seqOffset + i];
-                                    baseColor = shadedBaseColor(readQual, readChar, i + block.start);
-                                } else {
+                        let baseColor;
+                        if (!isSoftClip && qual !== undefined && qual.length > seqOffset + i) {
+                            const readQual = qual[seqOffset + i];
+                            baseColor = shadedBaseColor(readQual, readChar, i + block.start);
+                        } else {
                             baseColor = nucleotideColors[readChar];
-                                }
-                                if (baseColor) {
-                                    const xPixel = ((block.start + i) - bpStart) / bpPerPixel;
-                                    const widthPixel = Math.max(1, 1 / bpPerPixel);
-                                    renderBlockOrReadChar(ctx, bpPerPixel, {
-                                        x: xPixel,
-                                        y: yRect,
-                                        width: widthPixel,
-                                        height: alignmentHeight
-                                    }, baseColor, readChar);
-                                }
-                            }
+                        }
+                        if (baseColor) {
+                            const xPixel = ((block.start + i) - bpStart) / bpPerPixel;
+                            const widthPixel = Math.max(1, 1 / bpPerPixel);
+                            renderBlockOrReadChar(ctx, bpPerPixel, {
+                                x: xPixel,
+                                y: yRect,
+                                width: widthPixel,
+                                height: alignmentHeight
+                            }, baseColor, readChar);
                         }
                     }
                 }
+            }
+        }
 
-                function renderBlockOrReadChar(context, bpp, bbox, color, char) {
-                    var threshold,
-                        center;
+        function renderBlockOrReadChar(context, bpp, bbox, color, char) {
+            var threshold,
+                center;
 
-                    threshold = 1.0 / 10.0;
-                    if (bpp <= threshold && bbox.height >= 8) {
+            threshold = 1.0 / 10.0;
+            if (bpp <= threshold && bbox.height >= 8) {
 
-                        // render letter
-                        const fontHeight = Math.min(10, bbox.height);
-                        context.font = '' + fontHeight + 'px sans-serif';
-                        center = bbox.x + (bbox.width / 2.0);
+                // render letter
+                const fontHeight = Math.min(10, bbox.height);
+                context.font = '' + fontHeight + 'px sans-serif';
+                center = bbox.x + (bbox.width / 2.0);
                 IGVGraphics.strokeText(context, char, center - (context.measureText(char).width / 2), fontHeight - 1 + bbox.y, {strokeStyle: color});
-                    } else {
+            } else {
 
-                        // render colored block
+                // render colored block
                 IGVGraphics.fillRect(context, bbox.x, bbox.y, bbox.width, bbox.height, {fillStyle: color});
-                    }
-                }
             }
-
-        };
-
-
-        AlignmentTrack.prototype.sortAlignmentRows = function (options, alignmentContainer) {
-
-            const genomicLocation = options.position;
-            const sortOption = options.sortOption;
-            const direction = options.direction;
-
-            if (alignmentContainer === null) {
-                alignmentContainer = this.featureSource.alignmentContainer;
-            }
-
-            for (let row of alignmentContainer.packedAlignmentRows) {
-                row.updateScore(genomicLocation, alignmentContainer, sortOption, direction);
-            }
-
-            alignmentContainer.packedAlignmentRows.sort(function (rowA, rowB) {
-
-                const i = rowA.score > rowB.score ? 1 : (rowA.score < rowB.score ? -1 : 0);
-
-                return true === direction ? i : -i;
-            });
-
-        };
-
-        AlignmentTrack.prototype.popupData = function (config) {
-
-            const clickedObject = this.getClickedObject(config.viewport, config.y, config.genomicLocation);
-
-            return clickedObject ? clickedObject.popupData(config.genomicLocation) : undefined;
-        };
-
-        AlignmentTrack.prototype.contextMenuItemList = function (clickState) {
-
-            const self = this;
-            const viewport = clickState.viewport;
-            const genomicState = clickState.viewport.genomicState;
-            const genomicLocation = clickState.genomicLocation;
-            const list = [];
-
-            list.push({label: 'Sort by base', click: sortRows});
-
-            const clickedObject = this.getClickedObject(clickState.viewport, clickState.y, clickState.genomicLocation);
-            const isSingleAlignment = clickedObject && !clickedObject.paired && (typeof clickedObject.isPaired === 'function');
-            if (isSingleAlignment && clickedObject.isMateMapped()) {
-                list.push({label: 'View mate in split screen', click: viewMateInSplitScreen, init: undefined});
-            }
-
-            return list;
-
-            function sortRows() {
-
-                if (!clickState.viewport.tile) {
-                    return;
-                }
-
-                const currentSorts = self.parent.sortObjects;
-                const cs = currentSorts[viewport.genomicState.id];
-                const direction = cs ? !cs.direction : true;
-
-                const options = {
-                    chr: genomicState.referenceFrame.chrName,
-                    position: Math.floor(clickState.genomicLocation),
-                    sortOption: "NUCLEOTIDE",
-                    direction: direction
-                };
-                self.sortAlignmentRows(options, clickState.viewport.getCachedFeatures());
-                self.parent.trackView.repaintViews();
-
-                currentSorts[viewport.genomicState.id] = options;
-            }
-
-            function viewMateInSplitScreen() {
-                if (clickedObject.mate) {
-                    self.highlightedAlignmentReadNamed = clickedObject.readName;
-                    self.parent.trackView.browser.presentSplitScreenMultiLocusPanel(clickedObject, clickState.viewport.genomicState);
-                }
-            }
-        };
-
-        AlignmentTrack.prototype.getClickedObject = function (viewport, y, genomicLocation) {
-
-            const showSoftClips = this.parent.showSoftClips;
-
-            let features = viewport.getCachedFeatures();
-            if (!features || features.length === 0) return;
-
-            let packedAlignmentRows = features.packedAlignmentRows;
-            let downsampledIntervals = features.downsampledIntervals;
-            let packedAlignmentsIndex = Math.floor((y - this.top - this.alignmentsYOffset) / this.alignmentRowHeight);
-
-            if (packedAlignmentsIndex < 0) {
-                for (let i = 0; i < downsampledIntervals.length; i++) {
-                    if (downsampledIntervals[i].start <= genomicLocation && (downsampledIntervals[i].end >= genomicLocation)) {
-                        return downsampledIntervals[i];
-                    }
-                }
-            } else if (packedAlignmentsIndex < packedAlignmentRows.length) {
-
-                let alignmentRow = packedAlignmentRows[packedAlignmentsIndex];
-                let clicked = alignmentRow.alignments.filter(function (alignment) {
-
-                    const s = showSoftClips ? alignment.scStart : alignment.start;
-                    const l = showSoftClips ? alignment.scLengthOnRef : alignment.lengthOnRef;
-
-                    return (genomicLocation >= s && genomicLocation <= (s + l));
-                });
-
-                if (clicked.length > 0) return clicked[0];
-            }
-
-            return undefined;
-
-        };
-
-        /**
-         * Return the color for connectors in paired alignment view.   If explicitly set return that, otherwise return
-         * the alignment color, unless the color option can result in split colors (separte color for each mate).
-         *
-         * @param alignment
-         * @returns {string}
-         */
-        AlignmentTrack.prototype.getConnectorColor = function (alignment) {
-
-            if (this.pairConnectorColor) {
-                return this.pairConnectorColor
-            }
-
-            switch (this.colorBy) {
-                case "strand":
-                case "firstOfPairStrand":
-                case "pairOrientation":
-                case "tag":
-                    return this.parent.color || DEFAULT_CONNECTOR_COLOR
-                default:
-                    return this.getAlignmentColor(alignment)
-
-            }
-        };
-
-        AlignmentTrack.prototype.getAlignmentColor = function (alignment) {
-
-            const self = this;
-
-            let color = self.parent.color;
-
-            const option = self.colorBy;
-            switch (option) {
-
-                case "strand":
-                    color = alignment.strand ? self.posStrandColor : self.negStrandColor;
-                    break;
-
-                case "firstOfPairStrand":
-
-            if (alignment instanceof PairedAlignment) {
-                        color = alignment.firstOfPairStrand() ? self.posStrandColor : self.negStrandColor;
-                    } else if (alignment.isPaired()) {
-
-                        if (alignment.isFirstOfPair()) {
-                            color = alignment.strand ? self.posStrandColor : self.negStrandColor;
-                        } else if (alignment.isSecondOfPair()) {
-                            color = alignment.strand ? self.negStrandColor : self.posStrandColor;
-                        } else {
-                            console.error("ERROR. Paired alignments are either first or second.");
-                        }
-                    }
-                    break;
-
-                case "pairOrientation":
-
-                    if (alignment.mate && alignment.isMateMapped() && alignment.mate.chr !== alignment.chr) {
-                        color = getChrColor(alignment.mate.chr);
-                    } else if (self.pairOrientation && alignment.pairOrientation) {
-                        var oTypes = orientationTypes[self.pairOrientation];
-                        if (oTypes) {
-                            var pairColor = self.pairColors[oTypes[alignment.pairOrientation]];
-                            if (pairColor) color = pairColor;
-                        }
-                    }
-
-                    break;
-
-                case "fragmentLength":
-
-                    if (alignment.mate && alignment.isMateMapped() && alignment.mate.chr !== alignment.chr) {
-                        color = getChrColor(alignment.mate.chr);
-                    } else if (self.parent.minFragmentLength && Math.abs(alignment.fragmentLength) < self.parent.minFragmentLength) {
-                        color = self.smallFragmentLengthColor;
-                    } else if (self.parent.maxFragmentLength && Math.abs(alignment.fragmentLength) > self.parent.maxFragmentLength) {
-                        color = self.largeFragmentLengthColor;
-                    }
-
-                    break;
-
-                case "tag":
-                    const tagValue = alignment.tags()[self.colorByTag];
-                    if (tagValue !== undefined) {
-
-                        if (self.bamColorTag === self.colorByTag) {
-                            // UCSC style color option
-                            color = "rgb(" + tagValue + ")";
-                        } else {
-
-                            if (!self.tagColors) {
-                        self.tagColors = new PaletteColorTable("Set1");
-                            }
-                            color = self.tagColors.getColor(tagValue);
-                        }
-                    }
-                    break;
-
-                default:
-                    color = self.parent.color;
-            }
-
-            return color;
-
-        };
-
-        var orientationTypes = {
-
-            "fr": {
-
-                "F1R2": "LR",
-                "F2R1": "LR",
-
-                "F1F2": "LL",
-                "F2F1": "LL",
-
-                "R1R2": "RR",
-                "R2R1": "RR",
-
-                "R1F2": "RL",
-                "R2F1": "RL"
-            },
-
-            "rf": {
-
-                "R1F2": "LR",
-                "R2F1": "LR",
-
-                "R1R2": "LL",
-                "R2R1": "LL",
-
-                "F1F2": "RR",
-                "F2F1": "RR",
-
-                "F1R2": "RL",
-                "F2R1": "RL"
-            },
-
-            "ff": {
-
-                "F2F1": "LR",
-                "R1R2": "LR",
-
-                "F2R1": "LL",
-                "R1F2": "LL",
-
-                "R2F1": "RR",
-                "F1R2": "RR",
-
-                "R2R1": "RL",
-                "F1F2": "RL"
-            }
-    };
-
-    function getChrColor(chr) {
-        if (chrColorMap[chr]) {
-            return chrColorMap[chr];
-        } else if (chrColorMap["chr" + chr]) {
-            const color = chrColorMap["chr" + chr];
-            chrColorMap[chr] = color;
-            return color;
-        } else {
-        const color = IGVColor.randomRGB();
-            chrColorMap[chr] = color;
-            return color;
         }
     }
 
-    const chrColorMap = {
-        "chrX": "rgb(204, 153, 0)",
-        "chrY": "rgb(153, 204, 0",
-        "chrUn": "rgb(50, 50, 50)",
-        "chr1": "rgb(80, 80, 255)",
-        "chrI": "rgb(139, 155, 187)",
-        "chr2": "rgb(206, 61, 50)",
-        "chrII": "rgb(206, 61, 50)",
-        "chr2a": "rgb(216, 71, 60)",
-        "chr2b": "rgb(226, 81, 70)",
-        "chr3": "rgb(116, 155, 88)",
-        "chrIII": "rgb(116, 155, 88)",
-        "chr4": "rgb(240, 230, 133)",
-        "chrIV": "rgb(240, 230, 133)",
-        "chr5": "rgb(70, 105, 131)",
-        "chr6": "rgb(186, 99, 56)",
-        "chr7": "rgb(93, 177, 221)",
-        "chr8": "rgb(128, 34, 104)",
-        "chr9": "rgb(107, 215, 107)",
-        "chr10": "rgb(213, 149, 167)",
-        "chr11": "rgb(146, 72, 34)",
-        "chr12": "rgb(131, 123, 141)",
-        "chr13": "rgb(199, 81, 39)",
-        "chr14": "rgb(213, 143, 92)",
-        "chr15": "rgb(122, 101, 165)",
-        "chr16": "rgb(228, 175, 105)",
-        "chr17": "rgb(59, 27, 83)",
-        "chr18": "rgb(205, 222, 183)",
-        "chr19": "rgb(97, 42, 121)",
-        "chr20": "rgb(174, 31, 99)",
-        "chr21": "rgb(231, 199, 111)",
-        "chr22": "rgb(90, 101, 94)",
-        "chr23": "rgb(204, 153, 0)",
-        "chr24": "rgb(153, 204, 0)",
-        "chr25": "rgb(51, 204, 0)",
-        "chr26": "rgb(0, 204, 51)",
-        "chr27": "rgb(0, 204, 153)",
-        "chr28": "rgb(0, 153, 204)",
-        "chr29": "rgb(10, 71, 255)",
-        "chr30": "rgb(71, 117, 255)",
-        "chr31": "rgb(255, 194, 10)",
-        "chr32": "rgb(255, 209, 71)",
-        "chr33": "rgb(153, 0, 51)",
-        "chr34": "rgb(153, 26, 0)",
-        "chr35": "rgb(153, 102, 0)",
-        "chr36": "rgb(128, 153, 0)",
-        "chr37": "rgb(51, 153, 0)",
-        "chr38": "rgb(0, 153, 26)",
-        "chr39": "rgb(0, 153, 102)",
-        "chr40": "rgb(0, 128, 153)",
-        "chr41": "rgb(0, 51, 153)",
-        "chr42": "rgb(26, 0, 153)",
-        "chr43": "rgb(102, 0, 153)",
-        "chr44": "rgb(153, 0, 128)",
-        "chr45": "rgb(214, 0, 71)",
-        "chr46": "rgb(255, 20, 99)",
-        "chr47": "rgb(0, 214, 143)",
-        "chr48": "rgb(20, 255, 177)",
-    };
+};
+
+
+AlignmentTrack.prototype.sortAlignmentRows = function (options, alignmentContainer) {
+
+    const direction = options.direction;
+    if (alignmentContainer === null) {
+        alignmentContainer = this.featureSource.alignmentContainer;
+    }
+    for (let row of alignmentContainer.packedAlignmentRows) {
+        row.updateScore(options, alignmentContainer);
+    }
+
+    alignmentContainer.packedAlignmentRows.sort(function (rowA, rowB) {
+        const i = rowA.score > rowB.score ? 1 : (rowA.score < rowB.score ? -1 : 0);
+        return true === direction ? i : -i;
+    });
+
+};
+
+AlignmentTrack.prototype.popupData = function (config) {
+
+    const clickedObject = this.getClickedObject(config.viewport, config.y, config.genomicLocation);
+
+    return clickedObject ? clickedObject.popupData(config.genomicLocation) : undefined;
+};
+
+AlignmentTrack.prototype.contextMenuItemList = function (clickState) {
+
+    const self = this;
+    const viewport = clickState.viewport;
+    const genomicState = clickState.viewport.genomicState;
+    const clickedObject = this.getClickedObject(clickState.viewport, clickState.y, clickState.genomicLocation);
+    const isSingleAlignment = clickedObject && !clickedObject.paired && (typeof clickedObject.isPaired === 'function');
+    const list = [];
+
+    list.push('<b>Sort by...</b>');
+    list.push({label: '&nbsp; base', click: () => sortByOption("NUCLEOTIDE")});
+    list.push({label: '&nbsp; read strand', click: () => sortByOption("STRAND")});
+    list.push({label: '&nbsp; insert size', click: () => sortByOption("INSERT_SIZE")});
+    list.push({label: '&nbsp; chromosome of mate', click: () => sortByOption("MATE_CHR")});
+    list.push({label: '&nbsp; mapping quality', click: () => sortByOption("MQ")});
+    list.push({label: '&nbsp; tag', click: sortByTag});
+    list.push('<hr/>');
+
+    if (isSingleAlignment && clickedObject.isMateMapped()) {
+        list.push({label: 'View mate in split screen', click: viewMateInSplitScreen, init: undefined});
+    }
+    list.push({label: 'View read sequence', click: viewReadSequence});
+    list.push('<hr/>');
+    return list;
+
+
+    function sortByOption(option) {
+        sortRows({
+            chr: genomicState.referenceFrame.chrName,
+            position: Math.floor(clickState.genomicLocation),
+            sortOption: option
+        });
+    }
+    function sortByTag() {
+        const config =
+            {
+                label: 'Tag Name',
+                input: self.sortByTag ? self.sortByTag : '',
+                click: function () {
+                    const tag = self.browser.inputDialog.$input.val().trim();
+                    self.sortByTag = tag;
+                    sortRows({
+                        chr: genomicState.referenceFrame.chrName,
+                        position: Math.floor(clickState.genomicLocation),
+                        sortOption: "TAG",
+                        tag: tag
+                    });
+                }
+            };
+        self.browser.inputDialog.configure(config);
+        self.browser.inputDialog.present($(self.parent.trackView.trackDiv));
+    }
+
+    function sortRows(options) {
+
+        if (!clickState.viewport.tile) {
+            return;
+        }
+
+        const currentSorts = self.parent.sortObjects;
+        const cs = currentSorts[viewport.genomicState.id];
+        options.direction = cs ? !cs.direction : true;
+
+        self.sortAlignmentRows(options, clickState.viewport.getCachedFeatures());
+        self.parent.trackView.repaintViews();
+
+        currentSorts[viewport.genomicState.id] = options;
+    }
+
+    function viewMateInSplitScreen() {
+        if (clickedObject.mate) {
+            self.highlightedAlignmentReadNamed = clickedObject.readName;
+            self.browser.presentSplitScreenMultiLocusPanel(clickedObject, clickState.viewport.genomicState);
+        }
+    }
+
+    function viewReadSequence() {
+        const alignment = clickedObject;
+        if (!alignment || !alignment.seq) return;
+        const seqstring = alignment.seq; //.map(b => String.fromCharCode(b)).join("");
+        self.browser.presentAlert(seqstring);
+    }
+
+};
+
+AlignmentTrack.prototype.getClickedObject = function (viewport, y, genomicLocation) {
+
+    const showSoftClips = this.parent.showSoftClips;
+
+    let features = viewport.getCachedFeatures();
+    if (!features || features.length === 0) return;
+
+    let packedAlignmentRows = features.packedAlignmentRows;
+    let downsampledIntervals = features.downsampledIntervals;
+    let packedAlignmentsIndex = Math.floor((y - this.top - this.alignmentsYOffset) / this.alignmentRowHeight);
+
+    if (packedAlignmentsIndex < 0) {
+        for (let i = 0; i < downsampledIntervals.length; i++) {
+            if (downsampledIntervals[i].start <= genomicLocation && (downsampledIntervals[i].end >= genomicLocation)) {
+                return downsampledIntervals[i];
+            }
+        }
+    } else if (packedAlignmentsIndex < packedAlignmentRows.length) {
+
+        let alignmentRow = packedAlignmentRows[packedAlignmentsIndex];
+        let clicked = alignmentRow.alignments.filter(function (alignment) {
+
+            const s = showSoftClips ? alignment.scStart : alignment.start;
+            const l = showSoftClips ? alignment.scLengthOnRef : alignment.lengthOnRef;
+
+            return (genomicLocation >= s && genomicLocation <= (s + l));
+        });
+
+        if (clicked.length > 0) return clicked[0];
+    }
+
+    return undefined;
+
+};
+
+/**
+ * Return the color for connectors in paired alignment view.   If explicitly set return that, otherwise return
+ * the alignment color, unless the color option can result in split colors (separte color for each mate).
+ *
+ * @param alignment
+ * @returns {string}
+ */
+AlignmentTrack.prototype.getConnectorColor = function (alignment) {
+
+    if (this.pairConnectorColor) {
+        return this.pairConnectorColor
+    }
+
+    switch (this.colorBy) {
+        case "strand":
+        case "firstOfPairStrand":
+        case "pairOrientation":
+        case "tag":
+            return this.parent.color || DEFAULT_CONNECTOR_COLOR
+        default:
+            return this.getAlignmentColor(alignment)
+
+    }
+};
+
+AlignmentTrack.prototype.getAlignmentColor = function (alignment) {
+
+    const self = this;
+    let color = self.parent.color;
+    const option = self.colorBy;
+    let tagValue;
+    switch (option) {
+
+        case "strand":
+            color = alignment.strand ? self.posStrandColor : self.negStrandColor;
+            break;
+
+        case "firstOfPairStrand":
+
+            if (alignment instanceof PairedAlignment) {
+                color = alignment.firstOfPairStrand() ? self.posStrandColor : self.negStrandColor;
+            } else if (alignment.isPaired()) {
+
+                if (alignment.isFirstOfPair()) {
+                    color = alignment.strand ? self.posStrandColor : self.negStrandColor;
+                } else if (alignment.isSecondOfPair()) {
+                    color = alignment.strand ? self.negStrandColor : self.posStrandColor;
+                } else {
+                    console.error("ERROR. Paired alignments are either first or second.");
+                }
+            }
+            break;
+
+        case "pairOrientation":
+
+            if (alignment.mate && alignment.isMateMapped() && alignment.mate.chr !== alignment.chr) {
+                color = getChrColor(alignment.mate.chr);
+            } else if (self.pairOrientation && alignment.pairOrientation) {
+                var oTypes = orientationTypes[self.pairOrientation];
+                if (oTypes) {
+                    var pairColor = self.pairColors[oTypes[alignment.pairOrientation]];
+                    if (pairColor) color = pairColor;
+                }
+            }
+
+            break;
+
+        case "fragmentLength":
+
+            if (alignment.mate && alignment.isMateMapped() && alignment.mate.chr !== alignment.chr) {
+                color = getChrColor(alignment.mate.chr);
+            } else if (self.parent.minFragmentLength && Math.abs(alignment.fragmentLength) < self.parent.minFragmentLength) {
+                color = self.smallFragmentLengthColor;
+            } else if (self.parent.maxFragmentLength && Math.abs(alignment.fragmentLength) > self.parent.maxFragmentLength) {
+                color = self.largeFragmentLengthColor;
+            }
+
+            break;
+
+        case "tag":
+            tagValue = alignment.tags()[self.colorByTag];
+            if (tagValue !== undefined) {
+                if (self.bamColorTag === self.colorByTag) {
+                    // UCSC style color option
+                    color = "rgb(" + tagValue + ")";
+                } else {
+
+                    if (!self.tagColors) {
+                        self.tagColors = new PaletteColorTable("Set1");
+                    }
+                    color = self.tagColors.getColor(tagValue);
+                }
+            }
+            break;
+
+        default:
+            color = self.parent.color;
+    }
+
+    return color;
+
+};
+
+var orientationTypes = {
+
+    "fr": {
+
+        "F1R2": "LR",
+        "F2R1": "LR",
+
+        "F1F2": "LL",
+        "F2F1": "LL",
+
+        "R1R2": "RR",
+        "R2R1": "RR",
+
+        "R1F2": "RL",
+        "R2F1": "RL"
+    },
+
+    "rf": {
+
+        "R1F2": "LR",
+        "R2F1": "LR",
+
+        "R1R2": "LL",
+        "R2R1": "LL",
+
+        "F1F2": "RR",
+        "F2F1": "RR",
+
+        "F1R2": "RL",
+        "F2R1": "RL"
+    },
+
+    "ff": {
+
+        "F2F1": "LR",
+        "R1R2": "LR",
+
+        "F2R1": "LL",
+        "R1F2": "LL",
+
+        "R2F1": "RR",
+        "F1R2": "RR",
+
+        "R2R1": "RL",
+        "F1F2": "RL"
+    }
+};
+
+function getChrColor(chr) {
+    if (chrColorMap[chr]) {
+        return chrColorMap[chr];
+    } else if (chrColorMap["chr" + chr]) {
+        const color = chrColorMap["chr" + chr];
+        chrColorMap[chr] = color;
+        return color;
+    } else {
+        const color = IGVColor.randomRGB();
+        chrColorMap[chr] = color;
+        return color;
+    }
+}
+
+const chrColorMap = {
+    "chrX": "rgb(204, 153, 0)",
+    "chrY": "rgb(153, 204, 0",
+    "chrUn": "rgb(50, 50, 50)",
+    "chr1": "rgb(80, 80, 255)",
+    "chrI": "rgb(139, 155, 187)",
+    "chr2": "rgb(206, 61, 50)",
+    "chrII": "rgb(206, 61, 50)",
+    "chr2a": "rgb(216, 71, 60)",
+    "chr2b": "rgb(226, 81, 70)",
+    "chr3": "rgb(116, 155, 88)",
+    "chrIII": "rgb(116, 155, 88)",
+    "chr4": "rgb(240, 230, 133)",
+    "chrIV": "rgb(240, 230, 133)",
+    "chr5": "rgb(70, 105, 131)",
+    "chr6": "rgb(186, 99, 56)",
+    "chr7": "rgb(93, 177, 221)",
+    "chr8": "rgb(128, 34, 104)",
+    "chr9": "rgb(107, 215, 107)",
+    "chr10": "rgb(213, 149, 167)",
+    "chr11": "rgb(146, 72, 34)",
+    "chr12": "rgb(131, 123, 141)",
+    "chr13": "rgb(199, 81, 39)",
+    "chr14": "rgb(213, 143, 92)",
+    "chr15": "rgb(122, 101, 165)",
+    "chr16": "rgb(228, 175, 105)",
+    "chr17": "rgb(59, 27, 83)",
+    "chr18": "rgb(205, 222, 183)",
+    "chr19": "rgb(97, 42, 121)",
+    "chr20": "rgb(174, 31, 99)",
+    "chr21": "rgb(231, 199, 111)",
+    "chr22": "rgb(90, 101, 94)",
+    "chr23": "rgb(204, 153, 0)",
+    "chr24": "rgb(153, 204, 0)",
+    "chr25": "rgb(51, 204, 0)",
+    "chr26": "rgb(0, 204, 51)",
+    "chr27": "rgb(0, 204, 153)",
+    "chr28": "rgb(0, 153, 204)",
+    "chr29": "rgb(10, 71, 255)",
+    "chr30": "rgb(71, 117, 255)",
+    "chr31": "rgb(255, 194, 10)",
+    "chr32": "rgb(255, 209, 71)",
+    "chr33": "rgb(153, 0, 51)",
+    "chr34": "rgb(153, 26, 0)",
+    "chr35": "rgb(153, 102, 0)",
+    "chr36": "rgb(128, 153, 0)",
+    "chr37": "rgb(51, 153, 0)",
+    "chr38": "rgb(0, 153, 26)",
+    "chr39": "rgb(0, 153, 102)",
+    "chr40": "rgb(0, 128, 153)",
+    "chr41": "rgb(0, 51, 153)",
+    "chr42": "rgb(26, 0, 153)",
+    "chr43": "rgb(102, 0, 153)",
+    "chr44": "rgb(153, 0, 128)",
+    "chr45": "rgb(214, 0, 71)",
+    "chr46": "rgb(255, 20, 99)",
+    "chr47": "rgb(0, 214, 143)",
+    "chr48": "rgb(20, 255, 177)",
+};
 
 /*
  * The MIT License (MIT)
@@ -36203,11 +36703,11 @@ function estimateTheta(x) {
         }
     }
 
-    let left = idx == 0 ? 0 : coa[idx - 1];
+    let left = idx === 0 ? 0 : coa[idx - 1];
     let right = idx < coa.length ? coa[idx] : 1;
     let r = (x - left) / (right - left);
 
-    let thetaLeft = idx == 0 ? 0 : theta[idx - 1];
+    let thetaLeft = idx === 0 ? 0 : theta[idx - 1];
     let thetaRight = idx < theta.length ? theta[idx] : Math.PI / 2;
 
     return thetaLeft + r * (thetaRight - thetaLeft);
@@ -36278,6 +36778,8 @@ const VariantTrack = extend(TrackBase,
 
         this.featureSource = new FeatureSource(config, browser.genome);
 
+        this.nonRefColor = config.nonRefColor || "rgb(200, 200, 215)";
+        this.mixedColor = config.mixedColor || "rgb(200, 220, 200)";
         this.homrefColor = config.homrefColor || "rgb(200, 200, 200)";
         this.homvarColor = config.homvarColor || "rgb(17,248,254)";
         this.hetvarColor = config.hetvarColor || "rgb(34,12,253)";
@@ -36293,7 +36795,7 @@ VariantTrack.prototype.postInit = async function () {
     const header = await this.getFileHeader();   // cricital, don't remove'
     if (undefined === this.visibilityWindow) {
         const fn = this.config.url instanceof File ? this.config.url.name : this.config.url;
-        if(isString(fn) && fn.toLowerCase().includes("gnomad") ) {
+        if (isString(fn) && fn.toLowerCase().includes("gnomad")) {
             this.visibilityWindow = 1000;  // these are known to be very dense
         } else if (this.callSets) {
             const length = this.callSets.length;
@@ -36368,12 +36870,12 @@ VariantTrack.prototype.computePixelHeight = function (features) {
             }
         }
         const vGap = (this.displayMode === 'EXPANDED') ? this.expandedVGap : this.squishedVGap;
-        const nRows = maxRow + 1;
-        const h = topMargin + nRows * (this.variantHeight + vGap);
+        this.nRows = maxRow + 1;
+        const h = topMargin + this.nRows * (this.variantHeight + vGap);
         this.variantBandHeight = h;
 
         const callHeight = (this.displayMode === "EXPANDED" ? this.expandedCallHeight : this.squishedCallHeight);
-        const nCalls = this.getCallsetsLength();
+        const nCalls = this.getCallsetsLength() * this.nRows;
         return h + vGap + (nCalls + 1) * (callHeight + vGap);
 
     }
@@ -36421,26 +36923,30 @@ VariantTrack.prototype.draw = function (options) {
                 pw -= 2;
             }
 
-            ctx.fillStyle = this.color;
+            if ("NONVARIANT" === variant.type) {
+                ctx.fillStyle = this.nonRefColor;
+            } else if ("MIXED" === variant.type) {
+                ctx.fillStyle = this.mixedColor;
+            } else {
+                ctx.fillStyle = this.color;
+            }
+
+
             ctx.fillRect(px, py, pw, vh);
 
             if (nCalls > 0 && variant.calls && "COLLAPSED" !== this.displayMode) {
-
-                const h = callHeight;
 
                 let callsDrawn = 0;
 
                 for (let callSet of callSets) {
                     const call = variant.calls[callSet.id];
                     if (call) {
-
-                        const py = this.variantBandHeight + vGap + (callsDrawn + variant.row) * (h + vGap);
-
+                        const py = this.variantBandHeight + vGap + (callsDrawn + variant.row) * (callHeight + vGap);
                         let allVar = true;  // until proven otherwise
                         let allRef = true;
                         call.genotype.forEach(function (g) {
-                            if (g != 0) allRef = false;
-                            if (g == 0) allVar = false;
+                            if (g !== 0) allRef = false;
+                            if (g === 0) allVar = false;
                         });
 
                         if (allRef) {
@@ -36451,7 +36957,7 @@ VariantTrack.prototype.draw = function (options) {
                             ctx.fillStyle = this.hetvarColor;
                         }
 
-                        ctx.fillRect(px, py, pw, h);
+                        ctx.fillRect(px, py, pw, callHeight);
 
                     }
                     callsDrawn++;
@@ -36472,7 +36978,7 @@ VariantTrack.prototype.popupData = function (clickState, featureList) {
     const genomicLocation = clickState.genomicLocation;
     const genomeID = this.browser.genome.id;
     const popupData = [];
-    const browser = this.browser.sampleInformation;
+    const sampleInformation = this.browser.sampleInformation;
 
     for (let variant of featureList) {
 
@@ -36481,7 +36987,7 @@ VariantTrack.prototype.popupData = function (clickState, featureList) {
             popupData.push('<HR>');
         }
 
-        if ("COLLAPSED" == self.displayMode) {
+        if ("COLLAPSED" === self.displayMode) {
             Array.prototype.push.apply(popupData, variant.popupData(genomicLocation, this.type));
         } else {
             const yOffset = clickState.y;
@@ -36493,9 +36999,10 @@ VariantTrack.prototype.popupData = function (clickState, featureList) {
                     Array.prototype.push.apply(popupData, variant.popupData(genomicLocation, genomeID), this.type);
                 }
             } else { // Genotype
+
                 const callSets = this.callSets;
                 if (callSets && variant.calls) {
-                    const callHeight = ("SQUISHED" === this.displayMode ? this.squishedCallHeight : this.expandedCallHeight);
+                    const callHeight = this.nRows * ("SQUISHED" === this.displayMode ? this.squishedCallHeight : this.expandedCallHeight);
                     const row = Math.floor((yOffset - this.variantBandHeight) / (callHeight + vGap));
                     if (row >= 0 && row < callSets.length) {
                         const cs = callSets[row];
@@ -36546,7 +37053,7 @@ function extractGenotypePopupData(call, variant, genomeId, sampleInformation) {
         popupData.push({name: 'genotypeLikelihood', value: call.genotypeLikelihood.toString()});
     }
 
-    if(sampleInformation) {
+    if (sampleInformation) {
         var attr = sampleInformation.getAttributes(call.callSetName);
         if (attr) {
             Object.keys(attr).forEach(function (attrName) {
@@ -37941,8 +38448,7 @@ ROI.prototype.draw = function (drawConfiguration) {
     var endBP,
         region,
         coord,
-        regions,
-        len;
+        regions;
 
     regions = drawConfiguration.features;
     if (!regions) {
@@ -38120,10 +38626,10 @@ const XMLSession = function (xmlString, knownGenomes) {
     self.tracks = [];
 
     var resourceMap = {};
-    Array.from(elements).forEach(function (res, idx) {
+    Array.from(elements).forEach(function (r, idx) {
         var res = {
-            url: res.getAttribute("path"),
-            indexURL: res.getAttribute("index"),
+            url: r.getAttribute("path"),
+            indexURL: r.getAttribute("index"),
             order: idx
         };
         self.tracks.push(res);
@@ -39155,17 +39661,15 @@ Browser.prototype.loadSession = async function (options) {
 
 Browser.prototype.loadSessionObject = async function (session) {
 
-    const self = this;
+    this.removeAllTracks(true);
 
-    self.removeAllTracks(true);
-
-    const genome = await self.loadGenome(session.reference || session.genome, session.locus);
+    const genome = await this.loadGenome(session.reference || session.genome, session.locus);
 
     // Restore gtex selections.
     if (session.gtexSelections) {
 
         const genomicStates = {};
-        for (let gs of self.genomicStateList) {
+        for (let gs of this.genomicStateList) {
             genomicStates[gs.locusSearchString] = gs;
         }
 
@@ -39180,40 +39684,41 @@ Browser.prototype.loadSessionObject = async function (session) {
     }
 
     if (session.roi) {
-        self.roi = [];
-        session.roi.forEach(function (r) {
-            self.roi.push(new ROI(r, self.genome));
-        });
+        this.roi = [];
+        for (let r of session.roi) {
+            this.roi.push(new ROI(r, genome));
+        }
     }
 
-    if (!session.tracks) session.tracks = [];
+    if (!session.tracks) {
+        // eslint-disable-next-line require-atomic-updates
+        session.tracks = [];
+    }
     if (session.tracks.filter(track => track.type === 'sequence').length === 0) {
         session.tracks.push({type: "sequence", order: -Number.MAX_VALUE});
     }
 
-    await self.loadTrackList(session.tracks);
+    await this.loadTrackList(session.tracks);
 
     var panelWidth;
 
-    if (false !== session.showIdeogram && !self.ideoPanel) {
-        panelWidth = self.viewportContainerWidth() / self.genomicStateList.length;
-        self.ideoPanel = new IdeoPanel(self.$contentHeader, panelWidth, self);
-        self.ideoPanel.repaint();
+    if (false !== session.showIdeogram && !this.ideoPanel) {
+        panelWidth = this.viewportContainerWidth() / this.genomicStateList.length;
+        this.ideoPanel = new IdeoPanel(this.$contentHeader, panelWidth, this);
+        this.ideoPanel.repaint();
     }
 
-    self.updateLocusSearchWidget(self.genomicStateList[0]);
+    this.updateLocusSearchWidget(this.genomicStateList[0]);
 
-    self.windowSizePanel.updateWithGenomicState(self.genomicStateList[0]);
+    this.windowSizePanel.updateWithGenomicState(this.genomicStateList[0]);
 
     // Resize is called to address minor alignment problems with multi-locus view.
-    self.resize();
+    this.resize();
 
 };
 
 
 Browser.prototype.loadGenome = async function (idOrConfig, initialLocus) {
-
-    var self = this;
 
     // idOrConfig might be json
     if (isString(idOrConfig) && idOrConfig.startsWith("{")) {
@@ -39224,43 +39729,43 @@ Browser.prototype.loadGenome = async function (idOrConfig, initialLocus) {
         }
     }
 
-    const genomeConfig = await expandReference(idOrConfig);
+    const genomeConfig = await expandReference.call(this, idOrConfig);
     const genome = await GenomeUtils.loadGenome(genomeConfig);
-    const genomeChange = self.genome && (self.genome.id !== genome.id);
-    self.genome = genome;
-    self.$current_genome.text(genome.id || '');
-    self.$current_genome.attr('title', genome.id || '');
-    self.chromosomeSelectWidget.update(genome);
+    const genomeChange = this.genome && (this.genome.id !== genome.id);
+    this.genome = genome;
+    this.$current_genome.text(genome.id || '');
+    this.$current_genome.attr('title', genome.id || '');
+    this.chromosomeSelectWidget.update(genome);
     if (genomeChange) {
-        self.removeAllTracks();
+        this.removeAllTracks();
     }
-    self.genome = genome;
+    this.genome = genome;
 
     let genomicStateList;
     try {
-        genomicStateList = await self.search(getInitialLocus(initialLocus, genome), true);
+        genomicStateList = await this.search(getInitialLocus(initialLocus, genome), true);
     } catch (error) {
         // Couldn't find initial locus
         console.error(error);
-        genomicStateList = await self.search(self.genome.getHomeChromosomeName());
+        genomicStateList = await this.search(this.genome.getHomeChromosomeName());
     }
-    self.genomicStateList = genomicStateList;
-    if (self.genomicStateList.length > 0) {
-        if (!self.rulerTrack && false !== self.config.showRuler) {
-            self.rulerTrack = new RulerTrack(self);
-            self.addTrack(self.rulerTrack);
+    this.genomicStateList = genomicStateList;
+    if (this.genomicStateList.length > 0) {
+        if (!this.rulerTrack && false !== this.config.showRuler) {
+            this.rulerTrack = new RulerTrack(this);
+            this.addTrack(this.rulerTrack);
         }
     } else {
-        const errorString = 'Unrecognized locus ' + self.config.locus;
-        self.presentAlert(errorString, undefined);
+        const errorString = 'Unrecognized locus ' + this.config.locus;
+        this.presentAlert(errorString, undefined);
     }
 
     if (genomeConfig.tracks) {
-        await self.loadTrackList(genomeConfig.tracks);
+        await this.loadTrackList(genomeConfig.tracks);
     }
 
-    self.resize();    // Force recomputation and repaint
-    return self.genome;
+    this.resize();    // Force recomputation and repaint
+    return this.genome;
 
 
     // Expand a genome id to a reference object, if needed
@@ -39282,7 +39787,7 @@ Browser.prototype.loadGenome = async function (idOrConfig, initialLocus) {
 
             var reference = knownGenomes[genomeID];
             if (!reference) {
-                self.presentAlert("Uknown genome id: " + genomeID, undefined);
+                this.presentAlert("Uknown genome id: " + genomeID, undefined);
             }
             return reference;
         } else {
@@ -39451,13 +39956,20 @@ Browser.prototype.loadTrack = async function (config) {
         config = JSON.parse(config);
     }
 
+    if (isString(config.url)) {
+        config.url = config.url.trim();
+    }
+    if (config.indexURL && isString(config.indexURL)) {
+        config.indexURL = config.indexURL.trim();
+    }
+
     if (!knowHowToLoad(config)) {
         this.presentAlert("The following track could not be loaded.  Is this a local file? " + config.name);
-        return Promise.resolve();
+        return;
     }
 
     if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
-        const json = await google$1.getDriveFileInfo(config.url);
+        const json = await google.getDriveFileInfo(config.url);
         config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
         if (!config.filename) {
             config.filename = json.originalFileName;
@@ -39466,7 +39978,7 @@ Browser.prototype.loadTrack = async function (config) {
             config.format = inferFileFormat(config.filename);
         }
         if (config.indexURL && config.indexURL.startsWith("https://drive.google.com")) {
-            config.indexURL = google$1.driveDownloadURL(config.indexURL);
+            config.indexURL = google.driveDownloadURL(config.indexURL);
         }
 
     } else {
@@ -39508,9 +40020,18 @@ Browser.prototype.loadTrack = async function (config) {
             await newTrack.postInit();
         }
 
-        this.addTrack(newTrack);
+        if(config.sync) {
+            await this.addTrack(newTrack);
+        }
+        else {
+            this.addTrack(newTrack);
+        }
 
         return newTrack;
+    } catch (error) {
+        console.error(error);
+        const msg = error.message || error.toString();
+        this.presentAlert(msg, undefined);
     } finally {
         if (!config.noSpinner) this.stopSpinner();
     }
@@ -39553,7 +40074,7 @@ Browser.prototype.createTrack = function (config) {
 
     if (config.roi && track) {
         track.roi = [];
-        for(let r of config.roi) {
+        for (let r of config.roi) {
             track.roi.push(new ROI(r, this.genome));
         }
     }
@@ -39576,7 +40097,7 @@ Browser.prototype.createTrack = function (config) {
  *
  * @param track
  */
-Browser.prototype.addTrack = function (track) {
+Browser.prototype.addTrack = async function (track) {
 
     var trackView;
     trackView = new TrackView(this, $(this.trackContainerDiv), track);
@@ -39587,7 +40108,7 @@ Browser.prototype.addTrack = function (track) {
     this.reorderTracks();
     if (!track.autoscaleGroup) {
         // Group autoscale groups will get updated later (as a group)
-        trackView.updateViews();
+        return trackView.updateViews();
     }
 
 };
@@ -40007,21 +40528,15 @@ Browser.prototype.zoomWithRangePercentage = function (percentage) {
 
 Browser.prototype.zoomWithScaleFactor = function (scaleFactor, centerBPOrUndefined, viewportOrUndefined) {
 
-    if (this.loadInProgress()) {
-        return;
-    }
-
-    let self = this;
-
     let viewports = viewportOrUndefined ? [viewportOrUndefined] : this.trackViews[0].viewports;
-    viewports.forEach((viewport) => {
+    for(let viewport of viewports) {
 
         const referenceFrame = viewport.genomicState.referenceFrame;
         const chromosome = referenceFrame.getChromosome();
         const chromosomeLengthBP = chromosome.bpLength - chromosome.bpStart;
 
         const bppThreshold = scaleFactor < 1.0 ?
-            self.minimumBases() / viewport.$viewport.width() :
+            this.minimumBases() / viewport.$viewport.width() :
             chromosomeLengthBP / viewport.$viewport.width();
 
         const centerBP = undefined === centerBPOrUndefined ?
@@ -40039,9 +40554,9 @@ Browser.prototype.zoomWithScaleFactor = function (scaleFactor, centerBPOrUndefin
         referenceFrame.start = centerBP - (viewportWidthBP / 2);
         referenceFrame.bpPerPixel = bpp;
         referenceFrame.clamp(viewport.$viewport.width());
-        self.updateViews(viewport.genomicState);
+        this.updateViews(viewport.genomicState);
 
-    });
+    }
 
 
 };
@@ -40509,7 +41024,7 @@ Browser.prototype.search = async function (string, init) {
 
                     locusObject.start = locusObject.end = undefined;
 
-                    numeric = b[0].replace(/\,/g, '');
+                    numeric = b[0].replace(/,/g, '');
                     if (isNaN(numeric)) {
                         return undefined;
                     }
@@ -40522,7 +41037,7 @@ Browser.prototype.search = async function (string, init) {
 
                     if (2 === b.length) {
 
-                        numeric = b[1].replace(/\,/g, '');
+                        numeric = b[1].replace(/,/g, '');
                         if (isNaN(numeric)) {
                             return false;
                         }
@@ -40689,22 +41204,10 @@ Browser.prototype.toJSON = function () {
 
 Browser.prototype.compressedSession = function () {
 
-    var json, bytes, compressedBytes, compressedString, enc;
+    var json;
 
     json = JSON.stringify(this.toJSON());
-    bytes = [];
-    for (var i = 0; i < json.length; i++) {
-        bytes.push(json.charCodeAt(i));
-    }
-    compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
-    compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-    enc = btoa(compressedString);
-    enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
-
-    //console.log(json);
-    //console.log(enc);
-
-    return enc;
+    return compressString(json);
 };
 
 Browser.uncompressSession = function (url) {
@@ -40713,26 +41216,16 @@ Browser.uncompressSession = function (url) {
     if (url.indexOf('/gzip;base64') > 0) {
         //Proper dataURI
         bytes = decodeDataURI(url);
+        let json = '';
+        for (let b of bytes) {
+            json += String.fromCharCode(b);
+        }
+        return json;
     } else {
 
         let enc = url.substring(5);
-        enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=');
-
-        const compressedString = atob(enc);
-        const compressedBytes = [];
-        for (let i = 0; i < compressedString.length; i++) {
-            compressedBytes.push(compressedString.charCodeAt(i));
-        }
-        bytes = new Zlib.RawInflate(compressedBytes).decompress();
+        return uncompressString(enc);
     }
-    let json = '';
-    for (let b of bytes) {
-        json += String.fromCharCode(b);
-    }
-
-    return json;
-
-
 };
 
 Browser.prototype.sessionURL = function () {
@@ -40747,31 +41240,9 @@ Browser.prototype.sessionURL = function () {
 
 };
 
-const httpMessages =
-    {
-        "401": "Access unauthorized",
-        "403": "Access forbidden",
-        "404": "Not found"
-    };
-
-Browser.prototype.presentAlert = function (alert, $parent) {
-
-    var string;
-
-    string = alert.message || alert;
-
-    if (httpMessages.hasOwnProperty(string)) {
-        string = httpMessages[string];
-    }
-
-    this.alertDialog.configure({label: string});
-    this.alertDialog.present($parent);
+Browser.prototype.presentAlert = function (alert) {
+    this.alertDialog.present(alert);
 };
-
-Browser.prototype.presentMessageWithCallback = function (message, callback) {
-    this.alertDialog.presentMessageWithCallback(message, callback);
-};
-
 
 /**
  * Record a mouse click on a specific viewport.   This might be the start of a drag operation.   Dragging
@@ -41443,129 +41914,6 @@ TrackRemovalDialog.prototype.present = function ($parent) {
     scroll_top = $('body').scrollTop();
 
     this.$container.offset({left: $parent.width() - this.$container.width(), top: (offset_top + scroll_top)});
-    this.$container.show();
-};
-
-/*
- * The MIT License (MIT)
- *
- * Copyright (c) 2014 Broad Institute
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-
-const AlertDialog = function ($parent) {
-
-    this.$parent = $parent;
-
-    // container
-    this.$container = $("<div>", {class: 'igv-alert-dialog-container'});
-    $parent.append(this.$container);
-    this.$container.offset({left: 0, top: 0});
-
-    // header
-    let $header = $("<div>");
-    this.$container.append($header);
-
-    // body container
-    let $div = $("<div>", {id: 'igv-alert-dialog-body'});
-    this.$container.append($div);
-
-    // body copy
-    this.$body = $("<div>", {id: 'igv-alert-dialog-body-copy'});
-    $div.append(this.$body);
-
-    let self = this;
-    // attachDialogCloseHandlerWithParent($header, function () {
-    //     self.$body.html('');
-    //     self.$container.offset( { left:0, top:0 } );
-    //     self.$container.hide();
-    // });
-
-    // ok container
-    let $ok_container = $("<div>");
-    this.$container.append($ok_container);
-
-    // ok
-    this.$ok = $("<div>");
-    $ok_container.append(this.$ok);
-
-    this.$ok.text('OK');
-
-    this.$ok.on('click', function () {
-        self.$body.html('');
-        self.$container.offset({left: 0, top: 0});
-        self.$container.hide();
-    });
-
-    makeDraggable(this.$container.get(0), $header.get(0));
-
-    this.$container.hide();
-};
-
-AlertDialog.prototype.configure = function (config) {
-    this.$body.html(config.label);
-};
-
-AlertDialog.prototype.presentMessageWithCallback = function (message, callback) {
-
-    this.$body.text(message);
-
-    let css =
-        {
-            left: (this.$parent.width() - this.$container.width()) / 2,
-            top: (this.$parent.height() - this.$container.height()) / 2
-        };
-    this.$container.css(css);
-
-    this.$container.show();
-
-    this.$ok.text('OK');
-
-    let self = this;
-    this.$ok.on('click', function () {
-
-        callback('OK');
-
-        self.$body.html('');
-        self.$container.offset({left: 0, top: 0});
-        self.$container.hide();
-    });
-
-};
-
-
-AlertDialog.prototype.present = function ($alternativeParent) {
-
-    var obj,
-        $p;
-
-    $p = $alternativeParent || this.$parent;
-    obj =
-        {
-            left: ($p.width() - this.$container.width()) / 2,
-            top: ($p.height() - this.$container.height()) / 2
-
-        };
-    this.$container.css(obj);
-
     this.$container.show();
 };
 
@@ -42333,6 +42681,7 @@ let allBrowsers = [];
  */
 async function createBrowser(parentDiv, config) {
 
+    Alert.init($(parentDiv));
 
     if (undefined === config) config = {};
 
@@ -42350,11 +42699,6 @@ async function createBrowser(parentDiv, config) {
     setTrackOrder(config);
 
     const browser = new Browser(config, $('<div class="igv-track-container-div">')[0]);
-
-    // Backward compatibility -- globally visible.   This will be removed in a future release
-    if (typeof igv !== 'undefined' && !igv.browser) {
-        igv.browser = browser;
-    }
 
     browser.parent = parentDiv;
 
@@ -42383,7 +42727,7 @@ async function createBrowser(parentDiv, config) {
     browser.dataRangeDialog = new DataRangeDialog(browser.$root, browser);
 
     if (config.apiKey) {
-        google$1.setApiKey(config.apiKey);
+        google.setApiKey(config.apiKey);
     }
 
     if (config.oauthToken) {
@@ -42450,6 +42794,7 @@ async function createBrowser(parentDiv, config) {
     }
 
 }
+
 function removeBrowser(browser) {
     browser.dispose();
     browser.$root.remove();
@@ -42798,7 +43143,7 @@ function createTrack (config, browser) {
 
 function embedCSS() {
 
-    var css =  '.igv-user-feedback {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  width: 512px;\n  height: 360px;\n  z-index: 2048;\n  background-color: white;\n  border-color: #a2a2a2;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: medium;\n  font-weight: 400;\n  color: #444;\n  display: flex;\n  flex-direction: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-user-feedback div:first-child {\n    position: relative;\n    height: 24px;\n    width: 100%;\n    background-color: white;\n    border-bottom-color: #a2a2a2;\n    border-bottom-style: solid;\n    border-bottom-width: thin; }\n    .igv-user-feedback div:first-child div {\n      position: absolute;\n      top: 2px;\n      width: 16px;\n      height: 16px;\n      background-color: transparent; }\n    .igv-user-feedback div:first-child div:first-child {\n      left: 8px; }\n    .igv-user-feedback div:first-child div:last-child {\n      cursor: pointer;\n      right: 8px; }\n  .igv-user-feedback div:last-child {\n    width: 100%;\n    height: calc(100% - 24px);\n    border-width: 0; }\n    .igv-user-feedback div:last-child div {\n      width: auto;\n      height: auto;\n      margin: 8px; }\n\n.igv-color-swatch {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: wrap;\n  justify-content: center;\n  align-items: center;\n  width: 32px;\n  height: 32px;\n  border-style: solid;\n  border-width: 2px;\n  border-color: white;\n  border-radius: 4px; }\n\n.igv-colorpicker-menu-close-button {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-end;\n  align-items: center;\n  width: 100%;\n  height: 32px;\n  margin-top: 4px;\n  margin-bottom: 4px;\n  padding-right: 8px; }\n  .igv-colorpicker-menu-close-button i.fa {\n    display: block;\n    margin-left: 4px;\n    margin-right: 4px;\n    color: #5f5f5f; }\n  .igv-colorpicker-menu-close-button i.fa:hover,\n  .igv-colorpicker-menu-close-button i.fa:focus,\n  .igv-colorpicker-menu-close-button i.fa:active {\n    cursor: pointer;\n    color: #0f0f0f; }\n\n.igv-alert-dialog-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 300px;\n  height: 256px;\n  border-color: #7F7F7F;\n  border-radius: 4px;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 15px;\n  font-weight: 400;\n  z-index: 2048;\n  background-color: white;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-alert-dialog-container div:first-child {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    width: 100%;\n    height: 24px;\n    cursor: move;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-color: #7F7F7F;\n    border-bottom-style: solid;\n    border-bottom-width: thin;\n    background-color: #eee; }\n    .igv-alert-dialog-container div:first-child div {\n      margin-right: 4px;\n      margin-bottom: 2px;\n      height: 12px;\n      width: 12px;\n      color: #7F7F7F; }\n    .igv-alert-dialog-container div:first-child div:hover {\n      cursor: pointer;\n      color: #444; }\n  .igv-alert-dialog-container #igv-alert-dialog-body {\n    color: #373737;\n    width: 100%;\n    height: calc(100% - 24px - 64px);\n    overflow-y: scroll; }\n    .igv-alert-dialog-container #igv-alert-dialog-body #igv-alert-dialog-body-copy {\n      cursor: pointer;\n      margin: 16px;\n      width: auto;\n      height: auto;\n      overflow-wrap: break-word;\n      word-break: break-word;\n      background-color: white;\n      border: unset; }\n  .igv-alert-dialog-container div:last-child {\n    width: 100%;\n    height: 64px;\n    background-color: white;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: center;\n    align-items: center; }\n    .igv-alert-dialog-container div:last-child div {\n      width: 98px;\n      height: 36px;\n      line-height: 36px;\n      text-align: center;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: medium;\n      font-weight: 400;\n      border-color: #2B81AF;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 4px;\n      background-color: #2B81AF; }\n    .igv-alert-dialog-container div:last-child div:hover {\n      cursor: pointer;\n      border-color: #25597f;\n      background-color: #25597f; }\n\n.igv-generic-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 2048;\n  background-color: white;\n  cursor: pointer;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-generic-container div:first-child {\n    cursor: move;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    height: 24px;\n    width: 100%;\n    background-color: #dddddd; }\n    .igv-generic-container div:first-child i {\n      display: block;\n      color: #5f5f5f;\n      cursor: pointer;\n      width: 14px;\n      height: 14px;\n      margin-right: 8px;\n      margin-bottom: 4px; }\n\n.igv-generic-dialog-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 300px;\n  height: 200px;\n  border-color: #7F7F7F;\n  border-radius: 4px;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: medium;\n  font-weight: 400;\n  z-index: 2048;\n  background-color: white;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-generic-dialog-container .igv-generic-dialog-header {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    width: 100%;\n    height: 24px;\n    cursor: move;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-color: #7F7F7F;\n    border-bottom-style: solid;\n    border-bottom-width: thin;\n    background-color: #eee; }\n    .igv-generic-dialog-container .igv-generic-dialog-header div {\n      margin-right: 4px;\n      margin-bottom: 2px;\n      height: 12px;\n      width: 12px;\n      color: #7F7F7F; }\n    .igv-generic-dialog-container .igv-generic-dialog-header div:hover {\n      cursor: pointer;\n      color: #444; }\n  .igv-generic-dialog-container .igv-generic-dialog-one-liner {\n    color: #373737;\n    width: 95%;\n    height: 24px;\n    line-height: 24px;\n    text-align: left;\n    margin-top: 8px;\n    padding-left: 8px;\n    overflow-wrap: break-word;\n    background-color: white; }\n  .igv-generic-dialog-container .igv-generic-dialog-label-input {\n    margin-top: 8px;\n    width: 95%;\n    height: 24px;\n    color: #373737;\n    line-height: 24px;\n    padding-left: 8px;\n    background-color: white;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-start;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input div {\n      width: 30%;\n      height: 100%;\n      font-size: 16px;\n      text-align: right;\n      padding-right: 8px;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input input {\n      display: block;\n      height: 100%;\n      width: 100%;\n      padding-left: 4px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      color: #373737;\n      text-align: left;\n      outline: none;\n      border-style: solid;\n      border-width: thin;\n      border-color: #7F7F7F;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input input {\n      width: 50%;\n      font-size: 16px; }\n  .igv-generic-dialog-container .igv-generic-dialog-input {\n    margin-top: 8px;\n    width: calc(100% - 16px);\n    height: 24px;\n    color: #373737;\n    line-height: 24px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-input input {\n      display: block;\n      height: 100%;\n      width: 100%;\n      padding-left: 4px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      color: #373737;\n      text-align: left;\n      outline: none;\n      border-style: solid;\n      border-width: thin;\n      border-color: #7F7F7F;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-input input {\n      font-size: 16px; }\n  .igv-generic-dialog-container .igv-generic-dialog-ok-cancel {\n    width: 100%;\n    height: 28px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div {\n      margin-top: 32px;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: 14px;\n      font-weight: 400;\n      width: 75px;\n      height: 28px;\n      line-height: 28px;\n      text-align: center;\n      border-color: transparent;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 2px; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:first-child {\n      margin-left: 32px;\n      margin-right: 0;\n      background-color: #5ea4e0; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:last-child {\n      margin-left: 0;\n      margin-right: 32px;\n      background-color: #c4c4c4; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:first-child:hover {\n      cursor: pointer;\n      background-color: #3b5c7f; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:last-child:hover {\n      cursor: pointer;\n      background-color: #7f7f7f; }\n  .igv-generic-dialog-container .igv-generic-dialog-ok {\n    width: 100%;\n    height: 36px;\n    margin-top: 32px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok div {\n      width: 98px;\n      height: 36px;\n      line-height: 36px;\n      text-align: center;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: medium;\n      font-weight: 400;\n      border-color: white;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 4px;\n      background-color: #2B81AF; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok div:hover {\n      cursor: pointer;\n      background-color: #25597f; }\n\n.igv-popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  min-width: 128px;\n  z-index: 4096;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  color: #4b4b4b;\n  background-color: white;\n  border-radius: 4px;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  display: none; }\n\n.igv-popover-header {\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  justify-content: flex-end;\n  align-items: center;\n  width: 100%;\n  height: 24px;\n  cursor: move;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-color: #7F7F7F;\n  border-bottom-style: solid;\n  border-bottom-width: thin;\n  background-color: #eee; }\n  .igv-popover-header div {\n    margin-right: 4px;\n    height: 12px;\n    width: 12px;\n    color: #7F7F7F; }\n  .igv-popover-header div:hover {\n    cursor: pointer;\n    color: #444; }\n\n.igv-popover-track-popup-content {\n  position: relative;\n  top: 0;\n  left: 0;\n  max-height: 384px;\n  overflow-x: hidden;\n  overflow-y: auto;\n  background-color: white; }\n  .igv-popover-track-popup-content div {\n    margin-left: 4px;\n    background-color: white; }\n  .igv-popover-track-popup-content div:hover {\n    cursor: pointer;\n    background-color: #efefef; }\n\n.igv-popover-name-value {\n  cursor: default;\n  text-wrap: none;\n  white-space: nowrap;\n  max-width: 384px; }\n\n.igv-popover-name {\n  font-weight: bold;\n  padding-right: 4px;\n  float: left; }\n\n.igv-popover-value {\n  padding-left: 4px;\n  overflow: hidden;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  max-width: 256px;\n  display: inline-block; }\n\n.igv-trackgear-container {\n  position: relative;\n  width: 20px;\n  height: 20px;\n  margin-left: 4px;\n  color: #7F7F7F; }\n\n.igv-trackgear-container:hover {\n  cursor: pointer;\n  color: #444; }\n\n.igv-trackgear-popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  min-width: 132px;\n  z-index: 4096;\n  cursor: pointer;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  color: #4b4b4b;\n  background: white;\n  border-radius: 4px;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: flex-end;\n  text-align: left; }\n  .igv-trackgear-popover > div:not(:first-child) {\n    width: 100%; }\n    .igv-trackgear-popover > div:not(:first-child) > div {\n      background: white; }\n    .igv-trackgear-popover > div:not(:first-child) > div:last-child {\n      border-bottom-left-radius: 4px;\n      border-bottom-right-radius: 4px;\n      border-bottom-color: transparent;\n      border-bottom-style: solid;\n      border-bottom-width: thin; }\n    .igv-trackgear-popover > div:not(:first-child) > div:hover {\n      background: #efefef; }\n\n.igv-trackgear-popover-shim {\n  padding-left: 8px;\n  padding-right: 8px; }\n\n.igv-trackgear-popover-header {\n  position: relative;\n  width: 100%;\n  height: 24px;\n  cursor: move;\n  border-top-color: transparent;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-color: #7F7F7F;\n  border-bottom-style: solid;\n  border-bottom-width: thin;\n  background-color: #eee;\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-end;\n  align-items: center; }\n  .igv-trackgear-popover-header div {\n    margin-right: 4px;\n    height: 12px;\n    width: 12px;\n    color: #7F7F7F; }\n  .igv-trackgear-popover-header div:hover {\n    cursor: pointer;\n    color: #444; }\n\n.igv-trackgear-popover-check-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center;\n  width: 100%;\n  height: 20px;\n  background-color: transparent; }\n  .igv-trackgear-popover-check-container div {\n    padding-top: 2px;\n    padding-left: 8px; }\n  .igv-trackgear-popover-check-container div:first-child {\n    position: relative;\n    width: 12px;\n    height: 12px; }\n    .igv-trackgear-popover-check-container div:first-child svg {\n      position: absolute;\n      width: 12px;\n      height: 12px; }\n\n.igvControlDiv {\n  position: relative; }\n\n.igv-content-header {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 10px;\n  height: 16px;\n  width: 100%; }\n  .igv-content-header .igv-ideogram-shim {\n    height: 100%;\n    width: 50px;\n    background-color: white; }\n  .igv-content-header .igv-ideogram-content {\n    height: 100%;\n    background-color: white; }\n  .igv-content-header .igv-ideogram-content-border-right {\n    border-right-color: #292929;\n    border-right-style: solid;\n    border-right-width: 1px; }\n\n.igv-multi-locus-panel-border {\n  position: absolute;\n  top: 0;\n  left: 0;\n  height: 100%;\n  width: 1px;\n  background-color: green;\n  border-right-color: #ff0000;\n  border-right-style: solid;\n  border-right-width: 1px; }\n\n.igv-navbar {\n  position: relative;\n  padding-left: 8px;\n  padding-right: 8px;\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  color: #444;\n  font-size: 12px;\n  font-family: \"Open Sans\", sans-serif;\n  font-weight: 400;\n  line-height: 32px;\n  margin-top: 2px;\n  margin-bottom: 4px;\n  height: 32px;\n  border-style: solid;\n  border-radius: 3px;\n  border-width: thin;\n  border-color: #bfbfbf;\n  background-color: #f3f3f3; }\n\n.igv-nav-bar-left-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 32px;\n  line-height: 32px; }\n  .igv-nav-bar-left-container .igv-logo {\n    width: 34px;\n    height: 32px;\n    margin-top: 6px;\n    margin-right: 8px; }\n  .igv-nav-bar-left-container .igv-current-genome {\n    height: 32px;\n    width: 40px;\n    margin-left: 4px;\n    margin-right: 4px;\n    user-select: none;\n    line-height: 32px;\n    vertical-align: middle;\n    text-align: center; }\n\n.igv-nav-bar-genomic-location {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 100%; }\n\n.igv-chromosome-select-widget-container {\n  height: 100%;\n  width: 125px;\n  margin-right: 4px;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: space-around;\n  align-items: center; }\n  .igv-chromosome-select-widget-container select {\n    display: block;\n    cursor: pointer;\n    width: 100px;\n    height: 75%;\n    outline: none;\n    font-size: 12px;\n    font-family: \"Open Sans\", sans-serif;\n    font-weight: 400; }\n\n.igv-locus-size-group {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  margin-left: 8px;\n  height: calc(32px - 10px); }\n  .igv-locus-size-group .igv-search-container {\n    width: 200px;\n    height: calc(32px - 10px);\n    line-height: calc(32px - 10px);\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-start;\n    align-items: center; }\n    .igv-locus-size-group .igv-search-container input {\n      cursor: text;\n      width: 85%;\n      height: calc(32px - 10px);\n      line-height: calc(32px - 10px);\n      font-size: 12px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      text-align: left;\n      padding-left: 8px;\n      margin-right: 8px;\n      outline: none;\n      border-style: solid;\n      border-radius: 3px;\n      border-width: thin;\n      border-color: #bfbfbf;\n      background-color: white; }\n    .igv-locus-size-group .igv-search-container div {\n      cursor: pointer;\n      height: 16px;\n      width: 16px; }\n  .igv-locus-size-group .igv-windowsizepanel-content-div {\n    margin-left: 4px;\n    user-select: none; }\n\n.igv-nav-bar-right-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 32px;\n  line-height: 32px; }\n  .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-between;\n    align-items: center;\n    height: 100%; }\n    .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container div {\n      margin-left: 0;\n      margin-right: 4px; }\n    .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container div:last-child {\n      margin-left: 0;\n      margin-right: 0; }\n  .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container-750 {\n    display: none; }\n  .igv-nav-bar-right-container .igv-zoom-widget {\n    color: #737373;\n    font-size: 18px;\n    height: 32px;\n    line-height: 32px;\n    margin-left: 8px;\n    user-select: none;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center; }\n    .igv-nav-bar-right-container .igv-zoom-widget div {\n      cursor: pointer;\n      margin-left: unset;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:first-child {\n      height: 24px;\n      width: 24px;\n      margin-left: unset;\n      margin-right: 8px; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:last-child {\n      height: 24px;\n      width: 24px;\n      margin-left: 8px;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:nth-child(even) {\n      display: block;\n      height: fit-content; }\n    .igv-nav-bar-right-container .igv-zoom-widget input {\n      display: block;\n      width: 125px; }\n    .igv-nav-bar-right-container .igv-zoom-widget svg {\n      display: block; }\n  .igv-nav-bar-right-container .igv-zoom-widget-900 {\n    color: #737373;\n    font-size: 18px;\n    height: 32px;\n    line-height: 32px;\n    margin-left: 8px;\n    user-select: none;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div {\n      cursor: pointer;\n      margin-left: unset;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:first-child {\n      height: 24px;\n      width: 24px;\n      margin-left: unset;\n      margin-right: 8px; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:last-child {\n      height: 24px;\n      width: 24px;\n      margin-left: 8px;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:nth-child(even) {\n      width: 0;\n      height: 0;\n      display: none; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 input {\n      width: 0;\n      height: 0;\n      display: none; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 svg {\n      display: block; }\n  .igv-nav-bar-right-container .igv-zoom-widget-hidden {\n    display: none; }\n\n.igv-nav-bar-button {\n  box-sizing: unset;\n  padding-left: 6px;\n  padding-right: 6px;\n  height: 18px;\n  text-transform: capitalize;\n  user-select: none;\n  line-height: 18px;\n  text-align: center;\n  vertical-align: middle;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 11px;\n  font-weight: 200;\n  color: #737373;\n  background-color: #f3f3f3;\n  border-color: #737373;\n  border-style: solid;\n  border-width: thin;\n  border-radius: 6px; }\n\n.igv-nav-bar-button-clicked {\n  color: white;\n  background-color: #737373; }\n\n.igv-nav-bar-button:hover {\n  cursor: pointer; }\n\n.igv-logo-nonav {\n  margin-left: 4px;\n  margin-top: 12px;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 34px;\n  height: 16px; }\n\n.igv-search-results {\n  position: absolute;\n  top: 32px;\n  left: 2px;\n  height: 320px;\n  width: 213px;\n  background-color: white;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  overflow-x: hidden;\n  overflow-y: auto;\n  z-index: 9999; }\n  .igv-search-results tr {\n    font-family: \"Open Sans\", sans-serif;\n    font-size: small;\n    font-weight: 400;\n    color: #444; }\n  .igv-search-results tr:hover,\n  .igv-search-results tr:focus,\n  .igv-search-results tr:active {\n    cursor: pointer;\n    font-weight: 700;\n    color: #141414; }\n\n.igv-root-div {\n  position: relative;\n  left: 0;\n  right: 0;\n  height: auto;\n  margin-left: 10px;\n  margin-right: 10px;\n  padding-top: 4px; }\n\n.igv-content-div {\n  position: relative;\n  width: 100%;\n  height: 100%; }\n\n.igv-track-container-div {\n  user-select: none;\n  position: relative;\n  clear: both; }\n\n.igv-track-div {\n  position: relative;\n  width: 100%;\n  margin-top: 5px;\n  margin-bottom: 5px; }\n\n.igv-viewport-container {\n  position: absolute;\n  left: 50px;\n  right: 50px;\n  height: 100%;\n  white-space: nowrap;\n  overflow-x: hidden;\n  overflow-y: hidden; }\n\n.igv-viewport-div {\n  position: relative;\n  display: inline-block;\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: hidden; }\n\n.igv-viewport-content-div {\n  position: absolute;\n  width: 100%; }\n\n.igv-viewport-message {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  color: rgba(0, 0, 0, 0.15);\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 25px;\n  font-weight: bold;\n  user-select: none; }\n\n.igv-whole-genome-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  width: 100%;\n  height: 100%;\n  background-color: white; }\n  .igv-whole-genome-container div {\n    font-family: \"Open Sans\", sans-serif;\n    font-size: 10px;\n    font-weight: 400;\n    color: #444;\n    height: 100%;\n    text-align: center;\n    border-right-color: #bfbfbf;\n    border-right-style: solid;\n    border-right-width: thin; }\n    .igv-whole-genome-container div span {\n      display: block;\n      padding-top: 6px;\n      text-overflow: ellipsis; }\n  .igv-whole-genome-container div:last-child {\n    border-right-color: transparent; }\n  .igv-whole-genome-container div:hover,\n  .igv-whole-genome-container div:focus,\n  .igv-whole-genome-container div:active {\n    cursor: pointer;\n    background-color: #efefef; }\n\n.igv-viewport-div-border-right {\n  border-right-color: #292929;\n  border-right-style: solid;\n  border-right-width: 1px; }\n\n.igv-multi-locus-panel-close-container {\n  position: absolute;\n  top: 4px;\n  right: 4px;\n  width: 16px;\n  height: 16px;\n  color: #666666;\n  z-index: 1000; }\n\n.igv-multi-locus-panel-close-container:hover {\n  cursor: pointer;\n  color: #434343; }\n\n.igv-multi-locus-panel-label-div {\n  position: absolute;\n  left: 50%;\n  top: 25%;\n  transform: translate(-50%, -25%);\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 12px;\n  font-weight: 400;\n  text-align: center;\n  min-width: 16px;\n  z-index: 64;\n  color: #373737;\n  background-color: white;\n  padding: 1px; }\n\n.igv-multi-locus-panel-label-div:hover {\n  cursor: pointer; }\n\n.igv-viewport-ruler {\n  cursor: pointer;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 10px;\n  font-weight: 200;\n  text-align: center; }\n  .igv-viewport-ruler > div {\n    height: 100%; }\n\n.igv-viewport-sequence {\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 8px;\n  font-weight: 200;\n  text-align: center; }\n\n.igv-viewport-spinner {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1024;\n  width: 24px;\n  height: 24px;\n  pointer-events: none;\n  color: #737373; }\n\n.igv-track-container-spinner {\n  position: absolute;\n  top: 90%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1024;\n  width: 24px;\n  height: 24px;\n  pointer-events: none;\n  color: #737373; }\n\n.igv-ruler-sweeper-div {\n  display: none;\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 0;\n  height: 100%;\n  z-index: 99999;\n  background-color: rgba(68, 134, 247, 0.25); }\n\n.igv-right-hand-gutter {\n  position: absolute;\n  right: 0;\n  width: 36px;\n  height: 100%;\n  background: white; }\n\n.igv-left-hand-gutter {\n  position: absolute;\n  left: 0;\n  width: 50px;\n  height: 100%; }\n  .igv-left-hand-gutter canvas {\n    position: absolute; }\n\n.igv-track-menu-border-top {\n  border-top-color: #a2a2a2;\n  border-top-style: solid;\n  border-top-width: thin; }\n\n.igv-track-menu-category {\n  padding-left: 4px;\n  font-weight: 400; }\n\n.igv-track-drag-scrim {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 256;\n  background-color: rgba(68, 134, 247, 0.25); }\n\n.igv-track-manipulation-handle {\n  cursor: pointer;\n  position: absolute;\n  right: 36px;\n  width: 12px;\n  margin-left: 2px;\n  height: 100%;\n  box-sizing: border-box;\n  font-size: medium;\n  border-color: #c4c4c4;\n  border-style: solid;\n  border-width: thin;\n  border-top-right-radius: 6px;\n  border-bottom-right-radius: 6px;\n  z-index: 512;\n  background-color: #c4c4c4; }\n\n.igv-track-manipulation-handle:hover,\n.igv-track-manipulation-handle:focus,\n.igv-track-manipulation-handle:active {\n  border-color: #7e7e7e;\n  background-color: #7e7e7e; }\n\n.igv-track-label {\n  position: absolute;\n  left: 8px;\n  top: 4px;\n  width: auto;\n  height: auto;\n  max-width: 200px;\n  padding-left: 4px;\n  padding-right: 4px;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  text-align: center;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  border-color: #444;\n  border-radius: 2px;\n  border-style: solid;\n  border-width: thin;\n  background-color: white;\n  z-index: 128;\n  cursor: pointer; }\n\n.igv-track-label:hover,\n.igv-track-label:focus,\n.igv-track-label:active {\n  background-color: rgba(0, 0, 0, 0.05); }\n\n.igv-scrollbar-outer-div {\n  position: absolute;\n  top: 0;\n  right: 0;\n  width: 14px;\n  height: 100%;\n  background-color: white; }\n  .igv-scrollbar-outer-div div {\n    position: absolute;\n    top: 0;\n    left: 3px;\n    width: 8px;\n    border-style: solid;\n    border-width: thin;\n    border-color: #c4c4c4;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-left-radius: 4px;\n    border-bottom-right-radius: 4px;\n    background-color: white; }\n  .igv-scrollbar-outer-div div:hover,\n  .igv-scrollbar-outer-div div:focus,\n  .igv-scrollbar-outer-div div:active {\n    cursor: pointer;\n    background-color: #c4c4c4; }\n\n.zoom-in-notice-container {\n  position: absolute;\n  top: 10px;\n  left: 50%; }\n  .zoom-in-notice-container div {\n    position: relative;\n    left: -50%;\n    font-family: \"Open Sans\", sans-serif;\n    font-size: medium;\n    font-weight: 400;\n    color: #3f3f3f;\n    background-color: rgba(255, 255, 255, 0.51);\n    z-index: 64; }\n\n.igv-center-guide {\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 8px;\n  z-index: 8;\n  display: none;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  border-left-style: dashed;\n  border-left-width: thin;\n  border-right-style: dashed;\n  border-right-width: thin; }\n\n.igv-center-guide-wide {\n  background-color: rgba(0, 0, 0, 0);\n  border-left-color: rgba(127, 127, 127, 0.51);\n  border-right-color: rgba(127, 127, 127, 0.51); }\n\n.igv-center-guide-thin {\n  left: 50%;\n  width: 1px;\n  background-color: rgba(0, 0, 0, 0);\n  border-left-color: rgba(127, 127, 127, 0.51);\n  border-right-color: rgba(0, 0, 0, 0);\n  /*background-color: rgba(127, 127, 127, 0.51);*/\n  /*border-left-color: rgba(0,0,0,0);*/\n  /*border-right-color: rgba(0,0,0,0);*/ }\n\n.igv-cursor-tracking-guide {\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 1px;\n  z-index: 1;\n  border-left-style: dotted;\n  border-left-width: thin;\n  border-left-color: rgba(127, 127, 127, 0.76);\n  display: none;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none; }\n\n.igv-clickable {\n  cursor: pointer;\n  background-color: white; }\n\n#color-by-tag {\n  color: #444; }\n\n#color-by-tag:hover,\n#color-by-tag:focus,\n#color-by-tag:active {\n  cursor: pointer;\n  padding-left: 2px;\n  padding-right: 2px;\n  color: white;\n  border-color: #444;\n  border-radius: 2px;\n  border-style: solid;\n  border-width: thin;\n  background-color: #7f7f7f; }\n\n.igv-ellipsis {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis; }\n\n.igv-spinner-container {\n  color: #3f3f3f;\n  width: 100%;\n  height: 100%;\n  text-align: center;\n  padding-top: 8px;\n  font-size: 24px;\n  z-index: 512; }\n\n.igv-fa-check-visible {\n  color: inherit;\n  padding-right: 2px; }\n\n.igv-fa-check-hidden {\n  color: transparent;\n  padding-right: 2px; }\n\n.validateTips {\n  border: 1px solid transparent;\n  padding: 0.3em; }\n  .validateTips fieldset {\n    border: 0; }\n\n.igv-spacer-10 {\n  height: 10px;\n  width: 100%;\n  font-size: 0;\n  margin: 0;\n  padding: 0;\n  border: 0;\n  display: block; }\n\n.igv-fa5-spin {\n  -webkit-animation: igv-fa5-spin 2s infinite linear;\n  animation: igv-fa5-spin 2s infinite linear; }\n\n@-webkit-keyframes igv-fa5-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(360deg);\n    transform: rotate(360deg); } }\n@keyframes igv-fa5-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(360deg);\n    transform: rotate(360deg); } }\n\n/*# sourceMappingURL=igv.css.map */\n';
+    var css =  '.igv-user-feedback {\n  position: fixed;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  width: 512px;\n  height: 360px;\n  z-index: 2048;\n  background-color: white;\n  border-color: #a2a2a2;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: medium;\n  font-weight: 400;\n  color: #444;\n  display: flex;\n  flex-direction: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-user-feedback div:first-child {\n    position: relative;\n    height: 24px;\n    width: 100%;\n    background-color: white;\n    border-bottom-color: #a2a2a2;\n    border-bottom-style: solid;\n    border-bottom-width: thin; }\n    .igv-user-feedback div:first-child div {\n      position: absolute;\n      top: 2px;\n      width: 16px;\n      height: 16px;\n      background-color: transparent; }\n    .igv-user-feedback div:first-child div:first-child {\n      left: 8px; }\n    .igv-user-feedback div:first-child div:last-child {\n      cursor: pointer;\n      right: 8px; }\n  .igv-user-feedback div:last-child {\n    width: 100%;\n    height: calc(100% - 24px);\n    border-width: 0; }\n    .igv-user-feedback div:last-child div {\n      width: auto;\n      height: auto;\n      margin: 8px; }\n\n.igv-color-swatch {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: wrap;\n  justify-content: center;\n  align-items: center;\n  width: 32px;\n  height: 32px;\n  border-style: solid;\n  border-width: 2px;\n  border-color: white;\n  border-radius: 4px; }\n\n.igv-colorpicker-menu-close-button {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-end;\n  align-items: center;\n  width: 100%;\n  height: 32px;\n  margin-top: 4px;\n  margin-bottom: 4px;\n  padding-right: 8px; }\n  .igv-colorpicker-menu-close-button i.fa {\n    display: block;\n    margin-left: 4px;\n    margin-right: 4px;\n    color: #5f5f5f; }\n  .igv-colorpicker-menu-close-button i.fa:hover,\n  .igv-colorpicker-menu-close-button i.fa:focus,\n  .igv-colorpicker-menu-close-button i.fa:active {\n    cursor: pointer;\n    color: #0f0f0f; }\n\n.igv-alert-dialog-container {\n  position: absolute;\n  z-index: 2048;\n  top: 30%;\n  left: 50%;\n  margin: -150px 0 0 -150px;\n  width: 300px;\n  height: 256px;\n  border-color: #7F7F7F;\n  border-radius: 4px;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 15px;\n  font-weight: 400;\n  z-index: 2048;\n  background-color: white;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-alert-dialog-container div:first-child {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    width: 100%;\n    height: 24px;\n    cursor: move;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-color: #7F7F7F;\n    border-bottom-style: solid;\n    border-bottom-width: thin;\n    background-color: #eee; }\n    .igv-alert-dialog-container div:first-child div {\n      margin-right: 4px;\n      margin-bottom: 2px;\n      height: 12px;\n      width: 12px;\n      color: #7F7F7F; }\n    .igv-alert-dialog-container div:first-child div:hover {\n      cursor: pointer;\n      color: #444; }\n  .igv-alert-dialog-container #igv-alert-dialog-body {\n    color: #373737;\n    width: 100%;\n    height: calc(100% - 24px - 64px);\n    overflow-y: scroll; }\n    .igv-alert-dialog-container #igv-alert-dialog-body #igv-alert-dialog-body-copy {\n      cursor: pointer;\n      margin: 16px;\n      width: auto;\n      height: auto;\n      overflow-wrap: break-word;\n      word-break: break-word;\n      background-color: white;\n      border: unset; }\n  .igv-alert-dialog-container div:last-child {\n    width: 100%;\n    height: 64px;\n    background-color: white;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: center;\n    align-items: center; }\n    .igv-alert-dialog-container div:last-child div {\n      width: 98px;\n      height: 36px;\n      line-height: 36px;\n      text-align: center;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: medium;\n      font-weight: 400;\n      border-color: #2B81AF;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 4px;\n      background-color: #2B81AF; }\n    .igv-alert-dialog-container div:last-child div:hover {\n      cursor: pointer;\n      border-color: #25597f;\n      background-color: #25597f; }\n\n.igv-generic-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  z-index: 2048;\n  background-color: white;\n  cursor: pointer;\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-generic-container div:first-child {\n    cursor: move;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    height: 24px;\n    width: 100%;\n    background-color: #dddddd; }\n    .igv-generic-container div:first-child i {\n      display: block;\n      color: #5f5f5f;\n      cursor: pointer;\n      width: 14px;\n      height: 14px;\n      margin-right: 8px;\n      margin-bottom: 4px; }\n\n.igv-generic-dialog-container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 300px;\n  height: 200px;\n  border-color: #7F7F7F;\n  border-radius: 4px;\n  border-style: solid;\n  border-width: thin;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: medium;\n  font-weight: 400;\n  z-index: 2048;\n  background-color: white;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center; }\n  .igv-generic-dialog-container .igv-generic-dialog-header {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center;\n    width: 100%;\n    height: 24px;\n    cursor: move;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-color: #7F7F7F;\n    border-bottom-style: solid;\n    border-bottom-width: thin;\n    background-color: #eee; }\n    .igv-generic-dialog-container .igv-generic-dialog-header div {\n      margin-right: 4px;\n      margin-bottom: 2px;\n      height: 12px;\n      width: 12px;\n      color: #7F7F7F; }\n    .igv-generic-dialog-container .igv-generic-dialog-header div:hover {\n      cursor: pointer;\n      color: #444; }\n  .igv-generic-dialog-container .igv-generic-dialog-one-liner {\n    color: #373737;\n    width: 95%;\n    height: 24px;\n    line-height: 24px;\n    text-align: left;\n    margin-top: 8px;\n    padding-left: 8px;\n    overflow-wrap: break-word;\n    background-color: white; }\n  .igv-generic-dialog-container .igv-generic-dialog-label-input {\n    margin-top: 8px;\n    width: 95%;\n    height: 24px;\n    color: #373737;\n    line-height: 24px;\n    padding-left: 8px;\n    background-color: white;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-start;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input div {\n      width: 30%;\n      height: 100%;\n      font-size: 16px;\n      text-align: right;\n      padding-right: 8px;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input input {\n      display: block;\n      height: 100%;\n      width: 100%;\n      padding-left: 4px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      color: #373737;\n      text-align: left;\n      outline: none;\n      border-style: solid;\n      border-width: thin;\n      border-color: #7F7F7F;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-label-input input {\n      width: 50%;\n      font-size: 16px; }\n  .igv-generic-dialog-container .igv-generic-dialog-input {\n    margin-top: 8px;\n    width: calc(100% - 16px);\n    height: 24px;\n    color: #373737;\n    line-height: 24px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-input input {\n      display: block;\n      height: 100%;\n      width: 100%;\n      padding-left: 4px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      color: #373737;\n      text-align: left;\n      outline: none;\n      border-style: solid;\n      border-width: thin;\n      border-color: #7F7F7F;\n      background-color: white; }\n    .igv-generic-dialog-container .igv-generic-dialog-input input {\n      font-size: 16px; }\n  .igv-generic-dialog-container .igv-generic-dialog-ok-cancel {\n    width: 100%;\n    height: 28px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div {\n      margin-top: 32px;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: 14px;\n      font-weight: 400;\n      width: 75px;\n      height: 28px;\n      line-height: 28px;\n      text-align: center;\n      border-color: transparent;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 2px; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:first-child {\n      margin-left: 32px;\n      margin-right: 0;\n      background-color: #5ea4e0; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:last-child {\n      margin-left: 0;\n      margin-right: 32px;\n      background-color: #c4c4c4; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:first-child:hover {\n      cursor: pointer;\n      background-color: #3b5c7f; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok-cancel div:last-child:hover {\n      cursor: pointer;\n      background-color: #7f7f7f; }\n  .igv-generic-dialog-container .igv-generic-dialog-ok {\n    width: 100%;\n    height: 36px;\n    margin-top: 32px;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-around;\n    align-items: center; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok div {\n      width: 98px;\n      height: 36px;\n      line-height: 36px;\n      text-align: center;\n      color: white;\n      font-family: \"Open Sans\", sans-serif;\n      font-size: medium;\n      font-weight: 400;\n      border-color: white;\n      border-style: solid;\n      border-width: thin;\n      border-radius: 4px;\n      background-color: #2B81AF; }\n    .igv-generic-dialog-container .igv-generic-dialog-ok div:hover {\n      cursor: pointer;\n      background-color: #25597f; }\n\n.igv-popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  min-width: 128px;\n  z-index: 4096;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  color: #4b4b4b;\n  background-color: white;\n  border-radius: 4px;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  display: none; }\n\n.igv-popover-header {\n  display: flex;\n  flex-direction: row;\n  flex-wrap: wrap;\n  justify-content: flex-end;\n  align-items: center;\n  width: 100%;\n  height: 24px;\n  cursor: move;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-color: #7F7F7F;\n  border-bottom-style: solid;\n  border-bottom-width: thin;\n  background-color: #eee; }\n  .igv-popover-header div {\n    margin-right: 4px;\n    height: 12px;\n    width: 12px;\n    color: #7F7F7F; }\n  .igv-popover-header div:hover {\n    cursor: pointer;\n    color: #444; }\n\n.igv-popover-track-popup-content {\n  position: relative;\n  top: 0;\n  left: 0;\n  max-height: 384px;\n  overflow-x: hidden;\n  overflow-y: auto;\n  background-color: white; }\n  .igv-popover-track-popup-content div {\n    margin-left: 4px;\n    background-color: white; }\n  .igv-popover-track-popup-content div:hover {\n    cursor: pointer;\n    background-color: #efefef; }\n\n.igv-popover-name-value {\n  cursor: default;\n  text-wrap: none;\n  white-space: nowrap;\n  max-width: 384px; }\n\n.igv-popover-name {\n  font-weight: bold;\n  padding-right: 4px;\n  float: left; }\n\n.igv-popover-value {\n  padding-left: 4px;\n  overflow: hidden;\n  white-space: nowrap;\n  text-overflow: ellipsis;\n  max-width: 256px;\n  display: inline-block; }\n\n.igv-trackgear-container {\n  position: relative;\n  width: 20px;\n  height: 20px;\n  margin-left: 4px;\n  color: #7F7F7F; }\n\n.igv-trackgear-container:hover {\n  cursor: pointer;\n  color: #444; }\n\n.igv-trackgear-popover {\n  position: absolute;\n  top: 0;\n  left: 0;\n  min-width: 132px;\n  z-index: 4096;\n  cursor: pointer;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  color: #4b4b4b;\n  background: white;\n  border-radius: 4px;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: flex-end;\n  text-align: left; }\n  .igv-trackgear-popover > div:not(:first-child) {\n    width: 100%; }\n    .igv-trackgear-popover > div:not(:first-child) > div {\n      background: white; }\n    .igv-trackgear-popover > div:not(:first-child) > div:last-child {\n      border-bottom-left-radius: 4px;\n      border-bottom-right-radius: 4px;\n      border-bottom-color: transparent;\n      border-bottom-style: solid;\n      border-bottom-width: thin; }\n    .igv-trackgear-popover > div:not(:first-child) > div:hover {\n      background: #efefef; }\n\n.igv-trackgear-popover-shim {\n  padding-left: 8px;\n  padding-right: 8px; }\n\n.igv-trackgear-popover-header {\n  position: relative;\n  width: 100%;\n  height: 24px;\n  cursor: move;\n  border-top-color: transparent;\n  border-top-left-radius: 4px;\n  border-top-right-radius: 4px;\n  border-bottom-color: #7F7F7F;\n  border-bottom-style: solid;\n  border-bottom-width: thin;\n  background-color: #eee;\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-end;\n  align-items: center; }\n  .igv-trackgear-popover-header div {\n    margin-right: 4px;\n    height: 12px;\n    width: 12px;\n    color: #7F7F7F; }\n  .igv-trackgear-popover-header div:hover {\n    cursor: pointer;\n    color: #444; }\n\n.igv-trackgear-popover-check-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center;\n  width: 100%;\n  height: 20px;\n  background-color: transparent; }\n  .igv-trackgear-popover-check-container div {\n    padding-top: 2px;\n    padding-left: 8px; }\n  .igv-trackgear-popover-check-container div:first-child {\n    position: relative;\n    width: 12px;\n    height: 12px; }\n    .igv-trackgear-popover-check-container div:first-child svg {\n      position: absolute;\n      width: 12px;\n      height: 12px; }\n\n.igvControlDiv {\n  position: relative; }\n\n.igv-content-header {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: flex-start;\n  align-items: center;\n  margin-top: 10px;\n  height: 16px;\n  width: 100%; }\n  .igv-content-header .igv-ideogram-shim {\n    height: 100%;\n    width: 50px;\n    background-color: white; }\n  .igv-content-header .igv-ideogram-content {\n    height: 100%;\n    background-color: white; }\n  .igv-content-header .igv-ideogram-content-border-right {\n    border-right-color: #292929;\n    border-right-style: solid;\n    border-right-width: 1px; }\n\n.igv-multi-locus-panel-border {\n  position: absolute;\n  top: 0;\n  left: 0;\n  height: 100%;\n  width: 1px;\n  background-color: green;\n  border-right-color: #ff0000;\n  border-right-style: solid;\n  border-right-width: 1px; }\n\n.igv-navbar {\n  position: relative;\n  padding-left: 8px;\n  padding-right: 8px;\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  color: #444;\n  font-size: 12px;\n  font-family: \"Open Sans\", sans-serif;\n  font-weight: 400;\n  line-height: 32px;\n  margin-top: 2px;\n  margin-bottom: 4px;\n  height: 32px;\n  border-style: solid;\n  border-radius: 3px;\n  border-width: thin;\n  border-color: #bfbfbf;\n  background-color: #f3f3f3; }\n\n.igv-nav-bar-left-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 32px;\n  line-height: 32px; }\n  .igv-nav-bar-left-container .igv-logo {\n    width: 34px;\n    height: 32px;\n    margin-top: 6px;\n    margin-right: 8px; }\n  .igv-nav-bar-left-container .igv-current-genome {\n    height: 32px;\n    width: 40px;\n    margin-left: 4px;\n    margin-right: 4px;\n    user-select: none;\n    line-height: 32px;\n    vertical-align: middle;\n    text-align: center; }\n\n.igv-nav-bar-genomic-location {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 100%; }\n\n.igv-chromosome-select-widget-container {\n  height: 100%;\n  width: 125px;\n  margin-right: 4px;\n  display: flex;\n  flex-flow: column;\n  flex-wrap: nowrap;\n  justify-content: space-around;\n  align-items: center; }\n  .igv-chromosome-select-widget-container select {\n    display: block;\n    cursor: pointer;\n    width: 100px;\n    height: 75%;\n    outline: none;\n    font-size: 12px;\n    font-family: \"Open Sans\", sans-serif;\n    font-weight: 400; }\n\n.igv-locus-size-group {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  margin-left: 8px;\n  height: calc(32px - 10px); }\n  .igv-locus-size-group .igv-search-container {\n    width: 200px;\n    height: calc(32px - 10px);\n    line-height: calc(32px - 10px);\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-start;\n    align-items: center; }\n    .igv-locus-size-group .igv-search-container input {\n      cursor: text;\n      width: 85%;\n      height: calc(32px - 10px);\n      line-height: calc(32px - 10px);\n      font-size: 12px;\n      font-family: \"Open Sans\", sans-serif;\n      font-weight: 400;\n      text-align: left;\n      padding-left: 8px;\n      margin-right: 8px;\n      outline: none;\n      border-style: solid;\n      border-radius: 3px;\n      border-width: thin;\n      border-color: #bfbfbf;\n      background-color: white; }\n    .igv-locus-size-group .igv-search-container div {\n      cursor: pointer;\n      height: 16px;\n      width: 16px; }\n  .igv-locus-size-group .igv-windowsizepanel-content-div {\n    margin-left: 4px;\n    user-select: none; }\n\n.igv-nav-bar-right-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  align-items: center;\n  height: 32px;\n  line-height: 32px; }\n  .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container {\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: space-between;\n    align-items: center;\n    height: 100%; }\n    .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container div {\n      margin-left: 0;\n      margin-right: 4px; }\n    .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container div:last-child {\n      margin-left: 0;\n      margin-right: 0; }\n  .igv-nav-bar-right-container .igv-nav-bar-toggle-button-container-750 {\n    display: none; }\n  .igv-nav-bar-right-container .igv-zoom-widget {\n    color: #737373;\n    font-size: 18px;\n    height: 32px;\n    line-height: 32px;\n    margin-left: 8px;\n    user-select: none;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center; }\n    .igv-nav-bar-right-container .igv-zoom-widget div {\n      cursor: pointer;\n      margin-left: unset;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:first-child {\n      height: 24px;\n      width: 24px;\n      margin-left: unset;\n      margin-right: 8px; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:last-child {\n      height: 24px;\n      width: 24px;\n      margin-left: 8px;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget div:nth-child(even) {\n      display: block;\n      height: fit-content; }\n    .igv-nav-bar-right-container .igv-zoom-widget input {\n      display: block;\n      width: 125px; }\n    .igv-nav-bar-right-container .igv-zoom-widget svg {\n      display: block; }\n  .igv-nav-bar-right-container .igv-zoom-widget-900 {\n    color: #737373;\n    font-size: 18px;\n    height: 32px;\n    line-height: 32px;\n    margin-left: 8px;\n    user-select: none;\n    display: flex;\n    flex-flow: row;\n    flex-wrap: nowrap;\n    justify-content: flex-end;\n    align-items: center; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div {\n      cursor: pointer;\n      margin-left: unset;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:first-child {\n      height: 24px;\n      width: 24px;\n      margin-left: unset;\n      margin-right: 8px; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:last-child {\n      height: 24px;\n      width: 24px;\n      margin-left: 8px;\n      margin-right: unset; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 div:nth-child(even) {\n      width: 0;\n      height: 0;\n      display: none; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 input {\n      width: 0;\n      height: 0;\n      display: none; }\n    .igv-nav-bar-right-container .igv-zoom-widget-900 svg {\n      display: block; }\n  .igv-nav-bar-right-container .igv-zoom-widget-hidden {\n    display: none; }\n\n.igv-nav-bar-button {\n  box-sizing: unset;\n  padding-left: 6px;\n  padding-right: 6px;\n  height: 18px;\n  text-transform: capitalize;\n  user-select: none;\n  line-height: 18px;\n  text-align: center;\n  vertical-align: middle;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 11px;\n  font-weight: 200;\n  color: #737373;\n  background-color: #f3f3f3;\n  border-color: #737373;\n  border-style: solid;\n  border-width: thin;\n  border-radius: 6px; }\n\n.igv-nav-bar-button-clicked {\n  color: white;\n  background-color: #737373; }\n\n.igv-nav-bar-button:hover {\n  cursor: pointer; }\n\n.igv-logo-nonav {\n  margin-left: 4px;\n  margin-top: 12px;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 34px;\n  height: 16px; }\n\n.igv-search-results {\n  position: absolute;\n  top: 32px;\n  left: 2px;\n  height: 320px;\n  width: 213px;\n  background-color: white;\n  border-color: #7F7F7F;\n  border-style: solid;\n  border-width: thin;\n  overflow-x: hidden;\n  overflow-y: auto;\n  z-index: 9999; }\n  .igv-search-results tr {\n    font-family: \"Open Sans\", sans-serif;\n    font-size: small;\n    font-weight: 400;\n    color: #444; }\n  .igv-search-results tr:hover,\n  .igv-search-results tr:focus,\n  .igv-search-results tr:active {\n    cursor: pointer;\n    font-weight: 700;\n    color: #141414; }\n\n.igv-root-div {\n  position: relative;\n  left: 0;\n  right: 0;\n  height: auto;\n  margin-left: 10px;\n  margin-right: 10px;\n  padding-top: 4px; }\n\n.igv-content-div {\n  position: relative;\n  width: 100%;\n  height: 100%; }\n\n.igv-track-container-div {\n  user-select: none;\n  position: relative;\n  clear: both; }\n\n.igv-track-div {\n  position: relative;\n  width: 100%;\n  margin-top: 5px;\n  margin-bottom: 5px; }\n\n.igv-viewport-container {\n  position: absolute;\n  left: 50px;\n  right: 50px;\n  height: 100%;\n  white-space: nowrap;\n  overflow-x: hidden;\n  overflow-y: hidden; }\n\n.igv-viewport-div {\n  position: relative;\n  display: inline-block;\n  height: 100%;\n  overflow-x: hidden;\n  overflow-y: hidden; }\n\n.igv-viewport-content-div {\n  position: absolute;\n  width: 100%; }\n\n.igv-viewport-message {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  color: rgba(0, 0, 0, 0.15);\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 25px;\n  font-weight: bold;\n  user-select: none; }\n\n.igv-whole-genome-container {\n  display: flex;\n  flex-flow: row;\n  flex-wrap: nowrap;\n  justify-content: space-between;\n  width: 100%;\n  height: 100%;\n  background-color: white; }\n  .igv-whole-genome-container div {\n    font-family: \"Open Sans\", sans-serif;\n    font-size: 10px;\n    font-weight: 400;\n    color: #444;\n    height: 100%;\n    text-align: center;\n    border-right-color: #bfbfbf;\n    border-right-style: solid;\n    border-right-width: thin; }\n    .igv-whole-genome-container div span {\n      display: block;\n      padding-top: 6px;\n      text-overflow: ellipsis; }\n  .igv-whole-genome-container div:last-child {\n    border-right-color: transparent; }\n  .igv-whole-genome-container div:hover,\n  .igv-whole-genome-container div:focus,\n  .igv-whole-genome-container div:active {\n    cursor: pointer;\n    background-color: #efefef; }\n\n.igv-viewport-div-border-right {\n  border-right-color: #292929;\n  border-right-style: solid;\n  border-right-width: 1px; }\n\n.igv-multi-locus-panel-close-container {\n  position: absolute;\n  top: 4px;\n  right: 4px;\n  width: 16px;\n  height: 16px;\n  color: #666666;\n  z-index: 1000; }\n\n.igv-multi-locus-panel-close-container:hover {\n  cursor: pointer;\n  color: #434343; }\n\n.igv-multi-locus-panel-label-div {\n  position: absolute;\n  left: 50%;\n  top: 25%;\n  transform: translate(-50%, -25%);\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 12px;\n  font-weight: 400;\n  text-align: center;\n  min-width: 16px;\n  z-index: 64;\n  color: #373737;\n  background-color: white;\n  padding: 1px; }\n\n.igv-multi-locus-panel-label-div:hover {\n  cursor: pointer; }\n\n.igv-viewport-ruler {\n  cursor: pointer;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 10px;\n  font-weight: 200;\n  text-align: center; }\n  .igv-viewport-ruler > div {\n    height: 100%; }\n\n.igv-viewport-sequence {\n  font-family: \"Open Sans\", sans-serif;\n  font-size: 8px;\n  font-weight: 200;\n  text-align: center; }\n\n.igv-viewport-spinner {\n  position: absolute;\n  top: 50%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1024;\n  width: 24px;\n  height: 24px;\n  pointer-events: none;\n  color: #737373; }\n\n.igv-track-container-spinner {\n  position: absolute;\n  top: 90%;\n  left: 50%;\n  transform: translate(-50%, -50%);\n  z-index: 1024;\n  width: 24px;\n  height: 24px;\n  pointer-events: none;\n  color: #737373; }\n\n.igv-ruler-sweeper-div {\n  display: none;\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 0;\n  height: 100%;\n  z-index: 99999;\n  background-color: rgba(68, 134, 247, 0.25); }\n\n.igv-right-hand-gutter {\n  position: absolute;\n  right: 0;\n  width: 36px;\n  height: 100%;\n  background: white; }\n\n.igv-left-hand-gutter {\n  position: absolute;\n  left: 0;\n  width: 50px;\n  height: 100%; }\n  .igv-left-hand-gutter canvas {\n    position: absolute; }\n\n.igv-track-menu-border-top {\n  border-top-color: #a2a2a2;\n  border-top-style: solid;\n  border-top-width: thin; }\n\n.igv-track-menu-category {\n  padding-left: 4px;\n  font-weight: 400; }\n\n.igv-track-drag-scrim {\n  position: absolute;\n  left: 0;\n  top: 0;\n  width: 100%;\n  height: 100%;\n  z-index: 256;\n  background-color: rgba(68, 134, 247, 0.25); }\n\n.igv-track-manipulation-handle {\n  cursor: pointer;\n  position: absolute;\n  right: 36px;\n  width: 12px;\n  margin-left: 2px;\n  height: 100%;\n  box-sizing: border-box;\n  font-size: medium;\n  border-color: #c4c4c4;\n  border-style: solid;\n  border-width: thin;\n  border-top-right-radius: 6px;\n  border-bottom-right-radius: 6px;\n  z-index: 512;\n  background-color: #c4c4c4; }\n\n.igv-track-manipulation-handle:hover,\n.igv-track-manipulation-handle:focus,\n.igv-track-manipulation-handle:active {\n  border-color: #7e7e7e;\n  background-color: #7e7e7e; }\n\n.igv-track-label {\n  position: absolute;\n  left: 8px;\n  top: 4px;\n  width: auto;\n  height: auto;\n  max-width: 200px;\n  padding-left: 4px;\n  padding-right: 4px;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-family: \"Open Sans\", sans-serif;\n  font-size: small;\n  font-weight: 400;\n  text-align: center;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  border-color: #444;\n  border-radius: 2px;\n  border-style: solid;\n  border-width: thin;\n  background-color: white;\n  z-index: 128;\n  cursor: pointer; }\n\n.igv-track-label:hover,\n.igv-track-label:focus,\n.igv-track-label:active {\n  background-color: rgba(0, 0, 0, 0.05); }\n\n.igv-scrollbar-outer-div {\n  position: absolute;\n  top: 0;\n  right: 0;\n  width: 14px;\n  height: 100%;\n  background-color: white; }\n  .igv-scrollbar-outer-div div {\n    position: absolute;\n    top: 0;\n    left: 3px;\n    width: 8px;\n    border-style: solid;\n    border-width: thin;\n    border-color: #c4c4c4;\n    border-top-left-radius: 4px;\n    border-top-right-radius: 4px;\n    border-bottom-left-radius: 4px;\n    border-bottom-right-radius: 4px;\n    background-color: white; }\n  .igv-scrollbar-outer-div div:hover,\n  .igv-scrollbar-outer-div div:focus,\n  .igv-scrollbar-outer-div div:active {\n    cursor: pointer;\n    background-color: #c4c4c4; }\n\n.zoom-in-notice-container {\n  position: absolute;\n  top: 10px;\n  left: 50%; }\n  .zoom-in-notice-container div {\n    position: relative;\n    left: -50%;\n    font-family: \"Open Sans\", sans-serif;\n    font-size: medium;\n    font-weight: 400;\n    color: #3f3f3f;\n    background-color: rgba(255, 255, 255, 0.51);\n    z-index: 64; }\n\n.igv-center-guide {\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 8px;\n  z-index: 8;\n  display: none;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none;\n  border-left-style: dashed;\n  border-left-width: thin;\n  border-right-style: dashed;\n  border-right-width: thin; }\n\n.igv-center-guide-wide {\n  background-color: rgba(0, 0, 0, 0);\n  border-left-color: rgba(127, 127, 127, 0.51);\n  border-right-color: rgba(127, 127, 127, 0.51); }\n\n.igv-center-guide-thin {\n  left: 50%;\n  width: 1px;\n  background-color: rgba(0, 0, 0, 0);\n  border-left-color: rgba(127, 127, 127, 0.51);\n  border-right-color: rgba(0, 0, 0, 0);\n  /*background-color: rgba(127, 127, 127, 0.51);*/\n  /*border-left-color: rgba(0,0,0,0);*/\n  /*border-right-color: rgba(0,0,0,0);*/ }\n\n.igv-cursor-tracking-guide {\n  pointer-events: none;\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: 50%;\n  width: 1px;\n  z-index: 1;\n  border-left-style: dotted;\n  border-left-width: thin;\n  border-left-color: rgba(127, 127, 127, 0.76);\n  display: none;\n  user-select: none;\n  -moz-user-select: none;\n  -webkit-user-select: none; }\n\n.igv-clickable {\n  cursor: pointer;\n  background-color: white; }\n\n#color-by-tag {\n  color: #444; }\n\n#color-by-tag:hover,\n#color-by-tag:focus,\n#color-by-tag:active {\n  cursor: pointer;\n  padding-left: 2px;\n  padding-right: 2px;\n  color: white;\n  border-color: #444;\n  border-radius: 2px;\n  border-style: solid;\n  border-width: thin;\n  background-color: #7f7f7f; }\n\n.igv-ellipsis {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis; }\n\n.igv-spinner-container {\n  color: #3f3f3f;\n  width: 100%;\n  height: 100%;\n  text-align: center;\n  padding-top: 8px;\n  font-size: 24px;\n  z-index: 512; }\n\n.igv-fa-check-visible {\n  color: inherit;\n  padding-right: 2px; }\n\n.igv-fa-check-hidden {\n  color: transparent;\n  padding-right: 2px; }\n\n.validateTips {\n  border: 1px solid transparent;\n  padding: 0.3em; }\n  .validateTips fieldset {\n    border: 0; }\n\n.igv-spacer-10 {\n  height: 10px;\n  width: 100%;\n  font-size: 0;\n  margin: 0;\n  padding: 0;\n  border: 0;\n  display: block; }\n\n.igv-fa5-spin {\n  -webkit-animation: igv-fa5-spin 2s infinite linear;\n  animation: igv-fa5-spin 2s infinite linear; }\n\n@-webkit-keyframes igv-fa5-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(360deg);\n    transform: rotate(360deg); } }\n@keyframes igv-fa5-spin {\n  0% {\n    -webkit-transform: rotate(0deg);\n    transform: rotate(0deg); }\n  100% {\n    -webkit-transform: rotate(360deg);\n    transform: rotate(360deg); } }\n\n/*# sourceMappingURL=igv.css.map */\n';
 
     var style = document.createElement('style');
     style.setAttribute('type', 'text/css');
@@ -42808,6 +43153,12 @@ function embedCSS() {
 
 }
 
+const _version = "2.3.2 (d336d4caff62df1409a8218c3a36da1128abf685)";
+
+function version$1() {
+    return _version;
+}
+
 // Defines the top-level API for the igv module
 
 function setGoogleOauthToken(accessToken) {
@@ -42815,7 +43166,7 @@ function setGoogleOauthToken(accessToken) {
 }
 
 function setApiKey(apiKey) {
-    return google$1.setApiKey(apiKey);
+    return google.setApiKey(apiKey);
 }
 
 // for juicebox
@@ -42835,8 +43186,10 @@ var api = {
     visibilityChange,
     setGoogleOauthToken,
     oauth,
+    version: version$1,
 
     //exports below are not supported and will be removed over time
+    download,
     getBrowser,
     doAutoscale,
     graphics,
@@ -43406,7 +43759,7 @@ var hasOwn$1 = class2type$1.hasOwnProperty;
 var support$1 = {};
 
 
-var version$1 = "1.12.4",
+var version$2 = "1.12.4",
 
     // Define a local copy of jQuery
     jQuery$1 = function (selector, context) {
@@ -43432,7 +43785,7 @@ var version$1 = "1.12.4",
 jQuery$1.fn = jQuery$1.prototype = {
 
     // The current version of jQuery being used
-    jquery: version$1,
+    jquery: version$2,
 
     constructor: jQuery$1,
 
@@ -43585,7 +43938,7 @@ jQuery$1.extend = jQuery$1.fn.extend = function () {
 jQuery$1.extend({
 
     // Unique for each copy of jQuery on the page
-    expando: "jQuery" + (version$1 + Math.random()).replace(/\D/g, ""),
+    expando: "jQuery" + (version$2 + Math.random()).replace(/\D/g, ""),
 
     // Assume jQuery is ready without the ready module
     isReady: true,
@@ -72462,7 +72815,43 @@ class BrowserLocalFile {
     }
 }
 
-const  isNode$1 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+const isNode$1 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+
+let fs;
+let fsOpen;
+let fsRead;
+
+if (isNode$1) {
+    const util = require('util');
+    fs = require('fs');
+    fsOpen = fs && util.promisify(fs.open);
+    fsRead = fs && util.promisify(fs.read);
+}
+
+class NodeLocalFile {
+
+    constructor(args) {
+        this.path = args.path;
+    }
+
+
+    async read(position, length) {
+
+        const buffer = Buffer.alloc(length);
+        const fd = await fsOpen(this.path, 'r');
+        const result = await fsRead(fd, buffer, 0, length, position);
+
+        fs.close(fd, function (error) {
+            // TODO Do something with error
+        });
+
+        //TODO -- compare result.bytesRead with length
+        const arrayBuffer = result.buffer.buffer;
+        return arrayBuffer
+    }
+}
+
+const  isNode$2 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
 class RemoteFile {
 
@@ -72480,7 +72869,7 @@ class RemoteFile {
         headers['Range'] = rangeString;
 
         let url = this.url.slice();    // slice => copy
-        if (isNode$1) {
+        if (isNode$2) {
             headers['User-Agent'] = 'straw';
         } else {
             if (this.config.oauthToken) {
@@ -73082,14 +73471,7 @@ class ContactRecord$1 {
     }
 }
 
-const isNode$2 =
-    typeof process !== 'undefined' &&
-    process.versions != null &&
-    process.versions.node != null;
-if(isNode$2)  {
-    require("url");
-}
-
+const isNode$3 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
 const Short_MIN_VALUE = -32768;
 
@@ -73121,25 +73503,26 @@ class HicFile {
             this.file = args.file;
         } else if (args.blob) {
             this.file = new BrowserLocalFile(args.blob);
-        }  else {
-            this.url = args.path || args.url;
+        } else if (args.url || (args.path && !isNode$3)) {
+            this.url = args.url || this.path;
+            this.remote = true;
 
-            if (this.url.startsWith("http://") || this.url.startsWith("https://")) {
-                this.remote = true;
-
-                // Google drive must be rate limited.  Perhaps all
-                const remoteFile = new RemoteFile(args);
-                if(isGoogleDrive$1(this.url)) {
-                    this.file = new ThrottledFile(remoteFile, googleRateLimiter);
-                } else {
-                    this.file = remoteFile;
-                }
-
+            // Google drive must be rate limited.  Perhaps all remote files should be rate limited?
+            const remoteFile = new RemoteFile(args);
+            if (isGoogleDrive$1(this.url)) {
+                this.file = new ThrottledFile(remoteFile, googleRateLimiter);
             } else {
-                throw Error("Arguments must include file, blob, or url")
+                this.file = remoteFile;
             }
+        } else if (args.path) {
+            // path argument, assumed local file
+            this.file = new NodeLocalFile({path: args.path});
+
+        } else {
+            throw Error("Arguments must include file, blob, url, or path")
         }
-    };
+    }
+
 
     async init() {
 
@@ -73373,8 +73756,7 @@ class HicFile {
         }
         if (!idx) {
             return undefined
-        }
-        else {
+        } else {
 
             return this.file.read(idx.filePosition, idx.size)
         }
@@ -73392,8 +73774,7 @@ class HicFile {
         }
         if (!idx) {
             return undefined
-        }
-        else {
+        } else {
 
             let data = await this.file.read(idx.filePosition, idx.size);
 
@@ -73588,8 +73969,7 @@ class HicFile {
                 const nviArray = decodeURIComponent(this.config.nvi).split(",");
                 const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
                 return this.readNormVectorIndex(range)
-            }
-            else {
+            } else {
                 try {
                     await this.readNormExpectedValuesAndNormVectorIndex();
                     return this.normVectorIndex
@@ -73715,8 +74095,7 @@ class HicFile {
         const nEntries = binaryParser.getInt();   // Total # of expected value chunks
         if (nEntries === 0) {
             return range.start + range.size;
-        }
-        else {
+        } else {
             return parseNext(start + 4, nEntries);
         }     // Skip 4 bytes for int
 
@@ -73744,8 +74123,7 @@ class HicFile {
             nEntries--;
             if (nEntries === 0) {
                 return Promise.resolve(p0 + chunkSize);
-            }
-            else {
+            } else {
                 return parseNext(p0 + chunkSize, nEntries);
             }
         }
@@ -73758,8 +74136,7 @@ class HicFile {
         let resolutionArray;
         if (unit === "BP") {
             resolutionArray = this.bpResolutions;
-        }
-        else if (unit === "FRAG") {
+        } else if (unit === "FRAG") {
             resolutionArray = this.fragResolutions;
         } else {
             throw new Error("Invalid unit: " + unit);
@@ -73791,8 +74168,7 @@ class HicFile {
     getFileChrName(chrAlias) {
         if (this.chrAliasTable.hasOwnProperty(chrAlias)) {
             return this.chrAliasTable[chrAlias]
-        }
-        else {
+        } else {
             return chrAlias
         }
     }
