@@ -76,9 +76,6 @@ async function createBrowser(hic_container, config, callback) {
     }
 
     if (queryString) {
-        if (!queryString.includes("?")) {
-            queryString = "?" + queryString;
-        }
         const query = extractQuery(queryString);
         const uriDecode = queryString.includes("%2C");
         decodeQuery(query, config, uriDecode);

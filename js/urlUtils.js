@@ -22,6 +22,7 @@
  */
 import State from './hicState.js';
 import ColorScale from "./colorScale.js"
+import igv from "../node_modules/igv/dist/igv.esm.js";
 
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
@@ -32,14 +33,13 @@ const urlShortcuts = {
 }
 
 
-
 /**
  * Extend config properties with query parameters
  *
  * @param query
  * @param config
  */
-function decodeQuery (query, config, uriDecode) {
+function decodeQuery(query, config, uriDecode) {
 
     var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
         controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
@@ -264,23 +264,25 @@ function extractQuery(uri) {
     query = {};
     i1 = uri.indexOf("?");
     i2 = uri.lastIndexOf("#");
+    const i3 = uri.indexOf("=");
 
-    if (i1 >= 0) {
-        if (i2 < 0) i2 = uri.length;
+    if(i1 > i3) i1 = -1;
 
-        for (i = i1 + 1; i < i2;) {
+    if (i2 < 0) i2 = uri.length;
 
-            j = uri.indexOf("&", i);
-            if (j < 0) j = i2;
+    for (i = i1 + 1; i < i2;) {
 
-            s = uri.substring(i, j);
-            tokens = s.split("=", 2);
-            if (tokens.length === 2) {
-                query[tokens[0]] = tokens[1];
-            }
+        j = uri.indexOf("&", i);
+        if (j < 0) j = i2;
 
-            i = j + 1;
+        s = uri.substring(i, j);
+        tokens = s.split("=", 2);
+        if (tokens.length === 2) {
+            query[tokens[0]] = tokens[1];
         }
+
+        i = j + 1;
+
     }
     return query;
 }
