@@ -63,7 +63,18 @@ const Track2D = function (config, features) {
 
 };
 
-Track2D.loadTrack2D = function (config) {
+Track2D.loadTrack2D = async function (config) {
+
+    if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
+        const json = await igv.google.getDriveFileInfo(config.url)
+        config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
+        if (!config.filename) {
+            config.filename = json.originalFileName || json.name;
+        }
+        if(!config.name) {
+            config.name = json.name || json.originalFileName;
+        }
+    }
 
     return igv.xhr.loadString(config.url, igv.buildOptions(config))
 
@@ -117,6 +128,7 @@ function parseData(data, isBedPE) {
     start = isBedPE ? 0 : 1;
     colorColumn = isBedPE ? 10 : 6;
 
+    let errorCount = 0;
     for (i = start; i < len; i++) {
 
         line = lines[i];
@@ -126,8 +138,13 @@ function parseData(data, isBedPE) {
         }
 
         tokens = lines[i].split(delimiter);
-        if (tokens.length < 7) {
-            //console.log("Could not parse line: " + line);
+        if (tokens.length < 6 && errorCount <=5) {
+            if(errorCount === 5) {
+                console.error("...");
+            } else {
+                console.error("Could not parse line: " + line);
+            }
+            errorCount++;
             continue;
         }
 
@@ -137,8 +154,11 @@ function parseData(data, isBedPE) {
             x2: parseInt(tokens[2]),
             chr2: tokens[3],
             y1: parseInt(tokens[4]),
-            y2: parseInt(tokens[5]),
-            color: "rgb(" + tokens[colorColumn] + ")"
+            y2: parseInt(tokens[5])
+        }
+
+        if(tokens.length > colorColumn) {
+            feature.color = "rgb(" + tokens[colorColumn] + ")"
         }
 
         if (!Number.isNaN(feature.x1)) {
@@ -166,5 +186,8 @@ function validateColor(str) {
     return div.style.borderColor !== "";
 }
 
+function isString(x) {
+    return typeof x === "string" || x instanceof String
+}
 
 export default Track2D
