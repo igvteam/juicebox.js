@@ -1448,7 +1448,7 @@ async function loadDataset(config) {
         // If this is a google url, add api KEY
         if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
             config.url = igv.google.driveDownloadURL(config.url)
-            config.apiKey = igv.google.apiKey
+            //config.apiKey = igv.google.apiKey
         }
     }
 

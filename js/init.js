@@ -35,8 +35,7 @@ const urlShorteners = [];
 async function initApp(container, config) {
 
     let apiKey = config.apiKey;
-    if (apiKey) {
-        if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"
+    if (apiKey && "ABCD" !== apiKey) {
         setApiKey(apiKey);
     }
 
@@ -68,7 +67,6 @@ async function createBrowsers(container, query) {
 
     if (query && query.hasOwnProperty("juicebox")) {
         q = query["juicebox"];
-
         if (q.startsWith("%7B")) {
             q = decodeURIComponent(q);
         }

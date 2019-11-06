@@ -27,7 +27,7 @@ import hic from '../../../js/api.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
-    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchBitlyApiKey : config.apiKey;
+    this.apiKey = config.apiKey;
     this.hostname = config.hostname ? config.hostname : "bit.ly";
     this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
 }

@@ -265,11 +265,9 @@ function extractQuery(uri) {
     i1 = uri.indexOf("?");
     i2 = uri.lastIndexOf("#");
     const i3 = uri.indexOf("=");
-
     if(i1 > i3) i1 = -1;
 
     if (i2 < 0) i2 = uri.length;
-
     for (i = i1 + 1; i < i2;) {
 
         j = uri.indexOf("&", i);

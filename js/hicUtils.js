@@ -202,7 +202,6 @@ async function createBrowser(hic_container, config, callback) {
 function setApiKey(key) {
     apiKey = key;
     igv.setApiKey(key);
-
 }
 
 function deleteBrowserPanel(browser) {
