@@ -88,12 +88,12 @@ function decodeQuery(query, config, uriDecode) {
 
     if (stateString) {
         stateString = paramDecode(stateString, uriDecode);
-        config.state = destringifyStateV0(stateString);
+        config.state = State.parse(stateString);
 
     }
     if (colorScale) {
         colorScale = paramDecode(colorScale, uriDecode);
-        config.colorScale = destringifyColorScale(colorScale);
+        config.colorScale = ColorScale.parse(colorScale);
     }
 
     if (displayMode) {
@@ -137,20 +137,7 @@ function decodeQuery(query, config, uriDecode) {
     if (controlNvi) {
         config.controlNvi = paramDecode(controlNvi, uriDecode);
     }
-
-    function destringifyStateV0(string) {
-        var tokens = string.split(",");
-        return new State(
-            parseInt(tokens[0]),    // chr1
-            parseInt(tokens[1]),    // chr2
-            parseFloat(tokens[2]), // zoom
-            parseFloat(tokens[3]), // x
-            parseFloat(tokens[4]), // y
-            parseFloat(tokens[5]), // pixelSize
-            tokens.length > 6 ? tokens[6] : "NONE"   // normalization
-        )
-    }
-
+    
     function destringifyTracksV0(tracks) {
 
         const trackStringList = tracks.split("|||");
@@ -261,35 +248,6 @@ function extractQuery(uri) {
 
     }
     return query;
-}
-
-function destringifyColorScale(string) {
-
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-        pnstr = string.substring(2).split(":");
-        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-        ratioCS.positiveScale = foo(pnstr[1]);
-        ratioCS.negativeScale = foo(pnstr[2]);
-        return ratioCS;
-    } else {
-        return foo(string);
-    }
-
-    function foo(str) {
-        var cs, tokens;
-
-        tokens = str.split(",");
-
-        cs = {
-            threshold: tokens[0],
-            r: tokens[1],
-            g: tokens[2],
-            b: tokens[3]
-        };
-        return new ColorScale(cs);
-    }
 }
 
 export {decodeQuery, paramDecode, paramEncode, extractQuery}

@@ -83,6 +83,9 @@ async function createBrowser(hic_container, config, callback) {
     if(igv.isString(config.state)) {
         config.state = State.parse(config.state);
     }
+    if(igv.isString(config.colorScale)) {
+        config.colorScale = ColorScale.parse(config.colorScale);
+    }
 
     const browser = new HICBrowser($hic_container, config);
 
