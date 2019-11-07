@@ -1,32 +1,3 @@
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-
-/**
- * @author Jim Robinson
- */
-
-
 import {Track2DDisplaceModes} from './globals.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
@@ -71,19 +42,14 @@ Track2D.loadTrack2D = async function (config) {
         if (!config.filename) {
             config.filename = json.originalFileName || json.name;
         }
-        if(!config.name) {
+        if (!config.name) {
             config.name = json.name || json.originalFileName;
         }
     }
 
-    return igv.xhr.loadString(config.url, igv.buildOptions(config))
-
-        .then(function (data) {
-
-            var features = parseData(data, isBedPE(config));
-
-            return new Track2D(config, features);
-        })
+    const data = await igv.xhr.loadString(config.url, buildOptions(config));
+    const features = parseData(data, isBedPE(config));
+    return new Track2D(config, features);
 }
 
 Track2D.prototype.getColor = function () {
@@ -104,8 +70,7 @@ function isBedPE(config) {
         return config.url.toLowerCase().indexOf(".bedpe") > 0;
     } else if (typeof config.name === "string") {
         return config.name.toLowerCase().indexOf(".bedpe") > 0;
-    }
-    else {
+    } else {
         return true;  // Default
     }
 }
@@ -138,8 +103,8 @@ function parseData(data, isBedPE) {
         }
 
         tokens = lines[i].split(delimiter);
-        if (tokens.length < 6 && errorCount <=5) {
-            if(errorCount === 5) {
+        if (tokens.length < 6 && errorCount <= 5) {
+            if (errorCount === 5) {
                 console.error("...");
             } else {
                 console.error("Could not parse line: " + line);
@@ -157,7 +122,7 @@ function parseData(data, isBedPE) {
             y2: parseInt(tokens[5])
         }
 
-        if(tokens.length > colorColumn) {
+        if (tokens.length > colorColumn) {
             feature.color = "rgb(" + tokens[colorColumn] + ")"
         }
 
@@ -188,6 +153,17 @@ function validateColor(str) {
 
 function isString(x) {
     return typeof x === "string" || x instanceof String
+}
+
+function buildOptions(config, options) {
+    const defaultOptions = {
+        oauthToken: config.oauthToken,
+        headers: config.headers,
+        withCredentials: config.withCredentials,
+        filename: config.filename
+    };
+
+    return Object.assign(defaultOptions, options);
 }
 
 export default Track2D

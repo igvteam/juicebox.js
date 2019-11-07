@@ -18,7 +18,6 @@ class TinyURL {
             throw new Error(response.statusText);
         }
     }
-
 }
 
 

@@ -17688,7 +17688,7 @@ function unbgzf(data, lim) {
             const cDataSize = bsize - xlen - 19;
             if (bytesLeft < cDataSize) break;
 
-            const a = new Uint8Array(data, start, bytesLeft);
+            const a = new Uint8Array(data, start, cDataSize);
             const inflate = new Zlib.RawInflate(a);
             const unc = inflate.decompress();
 
@@ -17712,7 +17712,7 @@ function unbgzf(data, lim) {
             arrayCopy(b, 0, out, cursor, b.length);
             cursor += b.length;
         }
-        return out.buffer;
+        return out;
     }
 }
 
@@ -17814,11 +17814,17 @@ function isFilePath (path) {
     return (path instanceof File);
 }
 
+if (typeof process === 'object' && typeof window === 'undefined') {
+    global.atob = function (str) {
+        return Buffer.from(str, 'base64').toString('binary');
+    };
+}
+
 /**
  * @param dataURI
  * @returns {Array<number>|Uint8Array}
  */
-function decodeDataURI  (dataURI) {
+function decodeDataURI(dataURI) {
 
     const split = dataURI.split(',');
     const info = split[0].split(':')[1];
@@ -17835,7 +17841,7 @@ function decodeDataURI  (dataURI) {
     }
 
     let plain;
-    if(info.indexOf('gzip') > 0) {
+    if (info.indexOf('gzip') > 0) {
         const inflate = new Zlib.Gunzip(bytes);
         plain = inflate.decompress();
     } else {
@@ -17844,7 +17850,7 @@ function decodeDataURI  (dataURI) {
     return plain
 }
 
-function parseUri  (str) {
+function parseUri(str) {
 
     var o = options,
         m = o.parser[ "loose"].exec(str),
@@ -18433,7 +18439,7 @@ function arrayBufferToString(arraybuffer, compression) {
         var inflate = new Zlib.Gunzip(new Uint8Array(arraybuffer));
         plain = inflate.decompress();
     } else if (compression === BGZF) {
-        plain = new Uint8Array(unbgzf(arraybuffer));
+        plain = unbgzf(arraybuffer);
     } else {
         plain = new Uint8Array(arraybuffer);
     }
@@ -19072,11 +19078,12 @@ let KNOWN_GENOMES;
 
 const GenomeUtils = {
 
-    loadGenome: async function (config) {
+    loadGenome: async function (options) {
 
-        const cytobandUrl = config.cytobandURL;
-        const aliasURL = config.aliasURL;
-        const sequence = new FastaSequence(config);
+        const cytobandUrl = options.cytobandURL;
+        const aliasURL = options.aliasURL;
+        const sequence = new FastaSequence(options);
+
 
         await sequence.init();
 
@@ -19090,7 +19097,7 @@ const GenomeUtils = {
             aliases = await loadAliases(aliasURL, sequence.config);
         }
 
-        return new Genome(config, sequence, cytobands, aliases);
+        return new Genome(options, sequence, cytobands, aliases);
 
     },
 
@@ -19124,7 +19131,7 @@ const GenomeUtils = {
         }
     },
 
-    isWholeGenomeView:  function (referenceFrame) {
+    isWholeGenomeView: function (referenceFrame) {
         let chromosomeName = referenceFrame.chrName.toLowerCase();
         return 'all' === chromosomeName;
     }
@@ -19140,10 +19147,11 @@ var Genome = function (config, sequence, ideograms, aliases) {
     this.chromosomes = sequence.chromosomes;  // An object (functions as a dictionary)
     this.ideograms = ideograms;
 
-    if (Object.keys(sequence.chromosomes).length > 1) {
+    this.wholeGenomeView = config.wholeGenomeView === undefined || config.wholeGenomeView;
+    if (this.wholeGenomeView && Object.keys(sequence.chromosomes).length > 1) {
         constructWG(this, config);
     } else {
-        this.wgChromosomeNames = [sequence.chromosomeNames[0]];
+        this.wgChromosomeNames = sequence.chromosomeNames;
     }
 
     /**
@@ -19192,6 +19200,10 @@ var Genome = function (config, sequence, ideograms, aliases) {
 
     this.chrAliasTable = chrAliasTable;
 
+};
+
+Genome.prototype.supportsWholeGenomeView = function () {
+    return this.config.wholeGenomeView
 };
 
 Genome.prototype.toJSON = function () {
@@ -20126,8 +20138,8 @@ ViewPort.prototype.renderSVGContext = async function (context, offset) {
         };
 
     const features = this.tile ? this.tile.features : [];
-
-    draw.call(this, drawConfig, features, this.tile.roiFeatures);
+    const roiFeatures = this.tile ? this.tile.roiFeatures : undefined;
+    draw.call(this, drawConfig, features, roiFeatures);
 
     if (this.$trackLabel && true === this.browser.trackLabelsVisible) {
         renderTrackLabelSVG.call(this, context);
@@ -22823,6 +22835,7 @@ const knownFileExtensions = new Set([
 
     "narrowpeak",
     "broadpeak",
+    "regionpeak",
     "peaks",
     "bedgraph",
     "wig",
@@ -23062,11 +23075,11 @@ function parseLocusString(string) {
 
     const range = {
         chr: t1[0],
-        start: Number.parseInt(t2[0]) - 1
+        start: Number.parseInt(t2[0].replace(/,/g, '')) - 1
     };
 
     if (t2.length > 1) {
-        range.end = Number.parseInt(t2[1]);
+        range.end = Number.parseInt(t2[1].replace(/,/g, ''));
     } else {
         range.end = range.start + 1;
     }
@@ -23133,6 +23146,7 @@ const FeatureParser = function (format, decode, config) {
         switch (this.format) {
             case "narrowpeak":
             case "broadpeak":
+            case "regionpeak":
             case "peaks":
                 this.decode = decodePeak;
                 this.delimiter = /\s+/;
@@ -25794,147 +25808,122 @@ function reg2bins(beg, end) {
  * @param config
  * @returns a Promise for the tribble-style (.idx) index.  The fulfill function takes the index as an argument
  */
-function loadTribbleIndex(indexFile, config, genome) {
+async function loadTribbleIndex(indexFile, config, genome) {
 
-    return new Promise(function (fullfill) {
+    const arrayBuffer = await igvxhr.loadArrayBuffer(indexFile, buildOptions(config));
 
-        igvxhr
-            .loadArrayBuffer(indexFile, buildOptions(config))
-            .then(function (arrayBuffer) {
+    if (arrayBuffer) {
 
-                if (arrayBuffer) {
+        const index = {};
+        const parser = new BinaryParser(new DataView(arrayBuffer));
+        readHeader(parser);
 
-                    var index = {};
-
-                    var parser = new BinaryParser(new DataView(arrayBuffer));
-
-                    readHeader(parser);
-
-                    var nChrs = parser.getInt();
-                    while (nChrs-- > 0) {
-                        // todo -- support interval tree index, we're assuming its a linear index
-                        var chrIdx = readLinear(parser);
-                        index[chrIdx.chr] = chrIdx;
-                    }
-
-                    fullfill(new TribbleIndex(index));
-                } else {
-                    fullfill(null);
-                }
-
-            })
-            .catch(function (error) {
-                fullfill(null);
-            });
-
-        function readHeader(parser) {
-
-            //var magicString = view.getString(4);
-            var magicNumber = parser.getInt();     //   view._getInt32(offset += 32, true);
-            var type = parser.getInt();
-            var version = parser.getInt();
-
-            var indexedFile = parser.getString();
-
-            var indexedFileSize = parser.getLong();
-
-            var indexedFileTS = parser.getLong();
-            var indexedFileMD5 = parser.getString();
-            var flags = parser.getInt();
-
-            if (version >= 3) {
-                var nProperties = parser.getInt();
-                while (nProperties-- > 0) {
-                    var key = parser.getString();
-                    var value = parser.getString();
-                }
-            }
+        let nChrs = parser.getInt();
+        while (nChrs-- > 0) {
+            // todo -- support interval tree index, we're assuming its a linear index
+            const chrIdx = readLinear(parser);
+            index[chrIdx.chr] = chrIdx;
         }
 
-        function readLinear(parser) {
+        return new TribbleIndex(index);
+    } else {
+        return undefined;
+    }
 
-            var chr = parser.getString();
 
-            // Translate to canonical name
-            if (genome) chr = genome.getChromosomeName(chr);
+    /**
+     * Read the header file.   Data here is not used in igv.js but we need to read it to advance the pointer.
+     * @param parser
+     */
+    function readHeader(parser) {
 
-            var binWidth = parser.getInt();
-            var nBins = parser.getInt();
-            var longestFeature = parser.getInt();
-            //largestBlockSize = parser.getInt();
-            // largestBlockSize and totalBlockSize are old V3 index values.  largest block size should be 0 for
-            // all newer V3 block.  This is a nasty hack that should be removed when we go to V4 (XML!) indices
-            var OLD_V3_INDEX = parser.getInt() > 0;
-            var nFeatures = parser.getInt();
-
-            // note the code below accounts for > 60% of the total time to read an index
-            var pos = parser.getLong();
-
-            var blocks = new Array();
-            for (var binNumber = 0; binNumber < nBins; binNumber++) {
-                var nextPos = parser.getLong();
-                blocks.push({min: pos, max: nextPos}); //        {position: pos, size: size});
-                pos = nextPos;
+        const magicNumber = parser.getInt();     //   view._getInt32(offset += 32, true);
+        const type = parser.getInt();
+        const version = parser.getInt();
+        const indexedFile = parser.getString();
+        const indexedFileSize = parser.getLong();
+        const indexedFileTS = parser.getLong();
+        const indexedFileMD5 = parser.getString();
+        const flags = parser.getInt();
+        if (version >= 3) {
+            let nProperties = parser.getInt();
+            while (nProperties-- > 0) {
+                const key = parser.getString();
+                const value = parser.getString();
             }
-
-            return {chr: chr, blocks: blocks, longestFeature: longestFeature, binWidth: binWidth};
-
         }
+    }
 
-    });
+    function readLinear(parser) {
+
+        let chr = parser.getString();
+
+        // Translate to canonical name
+        if (genome) chr = genome.getChromosomeName(chr);
+
+        const binWidth = parser.getInt();
+        const nBins = parser.getInt();
+        const longestFeature = parser.getInt();
+        const OLD_V3_INDEX = parser.getInt() > 0;
+        const nFeatures = parser.getInt();
+
+        // note the code below accounts for > 60% of the total time to read an index
+        let pos = parser.getLong();
+
+        const blocks = new Array();
+        for (let binNumber = 0; binNumber < nBins; binNumber++) {
+            const nextPos = parser.getLong();
+            blocks.push({min: pos, max: nextPos}); //        {position: pos, size: size});
+            pos = nextPos;
+        }
+        return {chr: chr, blocks: blocks, longestFeature: longestFeature, binWidth: binWidth};
+    }
 }
 
-const TribbleIndex = function (chrIndexTable) {
-    this.chrIndex = chrIndexTable;      // Dictionary of chr -> tribble index
-};
+class TribbleIndex {
 
-/**
- * Fetch blocks for a particular genomic range.
- *
- * TODO -- currently this returns all blocks for the chromosome, min and max are ignored.  Fix this.
- *
- * @param queryChr the sequence dictionary index of the chromosome
- * @param min  genomic start position
- * @param max  genomic end position
- */
-TribbleIndex.prototype.blocksForRange = function (queryChr, min, max) { //function (refId, min, max) {
-    var chrIdx = this.chrIndex[queryChr];
-
-    if (chrIdx) {
-        var blocks = chrIdx.blocks;
-        var longestFeature = chrIdx.longestFeature;
-        var binWidth = chrIdx.binWidth;
-        var adjustedPosition = Math.max(min - longestFeature, 0);
-        var startBinNumber = Math.floor(adjustedPosition / binWidth);
-
-        if (startBinNumber >= blocks.length) // are we off the end of the bin list, so return nothing
-            return [];
-        else {
-
-            var endBinNumber = Math.min(Math.floor((max - 1) / binWidth), blocks.length - 1);
-
-            // By definition blocks are adjacent for the liner index.  Combine them into one merged block
-
-            var startPos = blocks[startBinNumber].min;
-            var endPos = blocks[endBinNumber].max;
-            var size = endPos - startPos;
-            if (size === 0) {
-                return [];
-            } else {
-                var mergedBlock = {minv: {block: startPos, offset: 0}, maxv: {block: endPos, offset: 0}};
-                return [mergedBlock];
-            }
-
-
-            //  var blocks = chrIdx.blocks,
-            //      lastBlock = blocks[blocks.length - 1],
-            //     mergedBlock = {minv: {block: blocks[0].min, offset: 0}, maxv: {block: lastBlock.max, offset: 0}};
-            // return [mergedBlock];
-        }
-    } else {
-        return null;
+    constructor(chrIndexTable) {
+        this.chrIndex = chrIndexTable;      // Dictionary of chr -> tribble index
     }
-};
+
+    /**
+     * Fetch blocks for a particular genomic range.
+     *
+     * @param queryChr the sequence dictionary index of the chromosome
+     * @param min  genomic start position
+     * @param max  genomic end position
+     */
+    blocksForRange(queryChr, min, max) { //function (refId, min, max) {
+        const chrIdx = this.chrIndex[queryChr];
+
+        if (chrIdx) {
+            const blocks = chrIdx.blocks;
+            const longestFeature = chrIdx.longestFeature;
+            const binWidth = chrIdx.binWidth;
+            const adjustedPosition = Math.max(min - longestFeature, 0);
+            const startBinNumber = Math.floor(adjustedPosition / binWidth);
+
+            if (startBinNumber >= blocks.length) // are we off the end of the bin list, so return nothing
+                return [];
+            else {
+                const endBinNumber = Math.min(Math.floor((max - 1) / binWidth), blocks.length - 1);
+
+                // By definition blocks are adjacent in the file for the liner index.  Combine them into one merged block
+                const startPos = blocks[startBinNumber].min;
+                const endPos = blocks[endBinNumber].max;
+                const size = endPos - startPos;
+                if (size === 0) {
+                    return [];
+                } else {
+                    const mergedBlock = {minv: {block: startPos, offset: 0}, maxv: {block: endPos, offset: 0}};
+                    return [mergedBlock];
+                }
+            }
+        } else {
+            return undefined;
+        }
+    }
+}
 
 /*
  * The MIT License (MIT)
@@ -26163,11 +26152,11 @@ FeatureFileReader.prototype.loadFeaturesWithIndex = async function (chr, start, 
 
             if (tabix) {
                 const data = await igvxhr.loadArrayBuffer(config.url, options);
-                const inflated = new Uint8Array(unbgzf(data));
+                const inflated = unbgzf(data);
                 parse(inflated);
 
             } else {
-                const inflated = igvxhr.loadString(config.url, options);
+                const inflated = await igvxhr.loadString(config.url, options);
                 parse(inflated);
             }
 
@@ -27144,8 +27133,15 @@ function ga4ghSearch(options) {
             url = options.url,
             body = options.body,
             decode = options.decode,
+            apiKey = google.apiKey,
             paramSeparator = "?",
             fields = options.fields;  // Partial response
+
+
+        if (apiKey) {
+            url = url + paramSeparator + "key=" + apiKey;
+            paramSeparator = "&";
+        }
 
         if (fields) {
             url = url + paramSeparator + "fields=" + fields;
@@ -30709,18 +30705,7 @@ WigTrack.prototype.menuItemList = function () {
     menuItems.push({
         object: createCheckbox("Autoscale", self.autoscale),
         click: function () {
-            var $fa = $(this).find('i');
-
             self.autoscale = !self.autoscale;
-
-            if (true === self.autoscale) {
-                $fa.removeClass('igv-fa-check-hidden');
-                $fa.addClass('igv-fa-check-visible');
-            } else {
-                $fa.removeClass('igv-fa-check-visible');
-                $fa.addClass('igv-fa-check-hidden');
-            }
-
             self.config.autoscale = self.autoscale;
             self.trackView.setDataRange(undefined, undefined, self.autoscale);
         }
@@ -32551,7 +32536,7 @@ const BamUtils = {
                 var header, unc, uncba;
 
                 unc = unbgzf(compressedBuffer);
-                uncba = new Uint8Array(unc);
+                uncba = unc;
 
                 header = BamUtils.decodeBamHeader(uncba, genome);
 
@@ -32737,6 +32722,9 @@ const BamUtils = {
             let cigar = '';
             let p = offset + 36 + nl;
             const cigarArray = [];
+            // concatenate M,=,EQ,and X
+
+            let lastCigRecord;
             for (let c = 0; c < nc; ++c) {
                 var cigop = readInt$1(ba, p);
                 var opLen = (cigop >> 4);
@@ -32746,7 +32734,14 @@ const BamUtils = {
                 cigar = cigar + opLen + opLtr;
                 p += 4;
 
-                cigarArray.push({len: opLen, ltr: opLtr});
+                // if(mOperators.has(opLtr) && mOperators.has(lastCigRecord.ltr)) {
+                //     lastCigRecord.len += opLen;
+                //     lastCigRecord.ltr = 'M'
+                // }
+                // else {
+                    lastCigRecord = {len: opLen, ltr: opLtr};
+                    cigarArray.push(lastCigRecord);
+                //}
             }
 
             alignment.chr = chrNames[refID];
@@ -33179,12 +33174,12 @@ BamReaderNonIndexed.prototype.readAlignments = async function (chr, bpStart, bpE
         if (this.isDataUri) {
             const data = decodeDataURI$1(this.bamPath);
             const unc = unbgzf(data.buffer);
-            parseAlignments.call(this, new Uint8Array(unc));
+            parseAlignments.call(this, unc);
             return fetchAlignments.call(this, chr, bpStart, bpEnd);
         } else {
             const arrayBuffer = await igvxhr.loadArrayBuffer(this.bamPath, buildOptions(this.config));
             const unc = unbgzf(arrayBuffer);
-            parseAlignments.call(this, new Uint8Array(unc));
+            parseAlignments.call(this, unc);
             return fetchAlignments.call(this, chr, bpStart, bpEnd);
         }
     }
@@ -33307,7 +33302,7 @@ BamReader.prototype.readAlignments = async function (chr, bpStart, bpEnd) {
 
             const compressed = await igvxhr.loadArrayBuffer(this.bamPath, buildOptions(this.config, {range: range}));
 
-            var ba = new Uint8Array(unbgzf(compressed)); //new Uint8Array(unbgzf(compressed)); //, c.maxv.block - c.minv.block + 1));
+            var ba = unbgzf(compressed); //new Uint8Array(unbgzf(compressed)); //, c.maxv.block - c.minv.block + 1));
             const done = BamUtils.decodeBamRecords(ba, c.minv.offset, alignmentContainer, this.indexToChr, chrId, bpStart, bpEnd, this.filter);
 
             if(done) {
@@ -33620,7 +33615,7 @@ HtsgetReader.prototype.readAlignments = function (chr, start, end, retryCount) {
 
             const compressedData = concatArrays(dataArr);  // In essence a complete bam file
             const unc = unbgzf(compressedData.buffer);
-            const ba = new Uint8Array(unc);
+            const ba = unc;
 
             if (!self.header) {
                 self.header = BamUtils.decodeBamHeader(ba, genome);
@@ -35220,7 +35215,8 @@ const BAMTrack = extend(TrackBase,
                         chr: range.chr,
                         position: range.start,
                         sortOption: sort.option || "NUCLEOTIDE",
-                        direction: sort.direction || "ASC"
+                        direction: sort.direction === undefined ? true : "ASC" === sort.direction,
+                        tag: sort.tag ? sort.tag.toUpperCase() : undefined
                     };
 
                     break;
@@ -35249,9 +35245,8 @@ BAMTrack.prototype.getFeatures = async function (chr, bpStart, bpEnd, bpPerPixel
 
     if (sort) {
         if (sort.chr === chr && sort.position >= bpStart && sort.position <= bpEnd) {
-
             self.alignmentTrack.sortAlignmentRows(sort, alignmentContainer);
-
+            self.trackView.repaintViews();
         } else {
             delete self.sortObjects[viewport.genomicState.id];
         }
@@ -35372,19 +35367,7 @@ BAMTrack.prototype.menuItemList = function () {
     menuItems.push({
         object: createCheckbox("Show all bases", self.showAllBases),
         click: function () {
-
-            const $fa = $(this).find('i');
-
             self.showAllBases = !self.showAllBases;
-
-            if (true === self.showAllBases) {
-                $fa.removeClass('igv-fa-check-hidden');
-                $fa.addClass('igv-fa-check-visible');
-            } else {
-                $fa.removeClass('igv-fa-check-visible');
-                $fa.addClass('igv-fa-check-hidden');
-            }
-
             self.config.showAllBases = self.showAllBases;
             self.trackView.updateViews(true);
         }
@@ -35397,19 +35380,7 @@ BAMTrack.prototype.menuItemList = function () {
         menuItems.push({
             object: createCheckbox("View as pairs", self.viewAsPairs),
             click: function () {
-
-                const $fa = $(this).find('i');
-
                 self.viewAsPairs = !self.viewAsPairs;
-
-                if (true === self.viewAsPairs) {
-                    $fa.removeClass('igv-fa-check-hidden');
-                    $fa.addClass('igv-fa-check-visible');
-                } else {
-                    $fa.removeClass('igv-fa-check-visible');
-                    $fa.addClass('igv-fa-check-hidden');
-                }
-
                 self.config.viewAsPairs = self.viewAsPairs;
                 self.featureSource.setViewAsPairs(self.viewAsPairs);
                 self.trackView.updateViews(true);
@@ -35420,19 +35391,7 @@ BAMTrack.prototype.menuItemList = function () {
     menuItems.push({
         object: createCheckbox("Show soft clips", self.showSoftClips),
         click: function () {
-
-            const $fa = $(this).find('i');
-
             self.showSoftClips = !self.showSoftClips;
-
-            if (true === self.showSoftClips) {
-                $fa.removeClass('igv-fa-check-hidden');
-                $fa.addClass('igv-fa-check-visible');
-            } else {
-                $fa.removeClass('igv-fa-check-visible');
-                $fa.addClass('igv-fa-check-hidden');
-            }
-
             self.config.showSoftClips = self.showSoftClips;
             self.featureSource.setShowSoftClips(self.showSoftClips);
             self.trackView.updateViews(true);
@@ -35549,11 +35508,11 @@ BAMTrack.prototype.getState = function () {
 
         if (s) {
             config.sort = config.sort || [];
-
             config.sort.push({
                 locus: s.chr + ":" + (s.position + 1),
                 option: s.sortOption,
-                direction: s.direction
+                direction: s.direction ? "ASC" : "DESC",
+                tag: s.tag
             });
         }
     }
@@ -35747,8 +35706,11 @@ var AlignmentTrack = function (config, parent) {
     this.pairColors["LL"] = config.llColor || "rgb(0, 150, 150)";
 
     this.colorBy = config.colorBy || "pairOrientation";
-    this.colorByTag = config.colorByTag;
+    this.colorByTag = config.colorByTag ? config.colorByTag.toUpperCase() : undefined;
     this.bamColorTag = config.bamColorTag === undefined ? "YC" : config.bamColorTag;
+
+    this.hideSmallIndels = config.hideSmallIndels;
+    this.indelSizeThreshold = config.indelSizeThreshold || 1;
 
     this.hasPairs = false;   // Until proven otherwise
 };
@@ -35872,51 +35834,60 @@ AlignmentTrack.prototype.draw = function (options) {
 
     function drawSingleAlignment(alignment, yRect, alignmentHeight) {
 
-        var alignmentColor,
-            lastBlockEnd,
-            blocks,
-            block,
-            b;
-
-        alignmentColor = this.getAlignmentColor(alignment);
-        const outlineColor = alignmentColor;
-
-        blocks = showSoftClips ? alignment.blocks : alignment.blocks.filter(b => 'S' !== b.type);
 
         if ((alignment.start + alignment.lengthOnRef) < bpStart || alignment.start > bpEnd) {
             return;
         }
 
+        const blocks = showSoftClips ? alignment.blocks : alignment.blocks.filter(b => 'S' !== b.type);
+
+        let alignmentColor = this.getAlignmentColor(alignment);
+        const outlineColor = alignmentColor;
         if (alignment.mq <= 0) {
             alignmentColor = IGVColor.addAlpha(alignmentColor, 0.15);
         }
-
         IGVGraphics.setProperties(ctx, {fillStyle: alignmentColor, strokeStyle: outlineColor});
 
-        for (b = 0; b < blocks.length; b++) {   // Can't use forEach here -- we need ability to break
+        let lastBlockEnd;
+        for (let b = 0; b < blocks.length; b++) {   // Can't use forEach here -- we need ability to break
 
-            block = blocks[b];
+            const block = blocks[b];
 
             // Somewhat complex test, neccessary to insure gaps are drawn.
-            // If this is not the last block, and the next block starts before the orign (off screen to left)
-            // then skip.
+            // If this is not the last block, and the next block starts before the orign (off screen to left) then skip.
             if ((b !== blocks.length - 1) && blocks[b + 1].start < bpStart) continue;
 
-            drawBlock.call(this, block);
+            drawBlock.call(this, block, b);
 
-            if ((block.start + block.len) > bpEnd) break;  // Do this after drawBlock to insure gaps are drawn
+            if ((block.start + block.len) > bpEnd) {
+                // Do this after drawBlock to insure gaps are drawn
+                break;
+            }
 
             if (alignment.insertions) {
-                for (let block of alignment.insertions) {
-                    const refOffset = block.start - bpStart;
+                let lastXBlockStart = -1;
+                for (let insertionBlock of alignment.insertions) {
+                    if (this.hideSmallIndels && insertionBlock.len <= this.indelSizeThreshold) {
+                        continue;
+                    }
+                    if (insertionBlock.start < bpStart) {
+                        continue;
+                    }
+                    if (insertionBlock.start > bpEnd) {
+                        break;
+                    }
+                    const refOffset = insertionBlock.start - bpStart;
                     const xBlockStart = refOffset / bpPerPixel - 1;
-                    const widthBlock = 3;
-                    IGVGraphics.fillRect(ctx, xBlockStart, yRect - 1, widthBlock, alignmentHeight + 2, {fillStyle: this.insertionColor});
+                    if ((xBlockStart - lastXBlockStart) > 2) {
+                        const widthBlock = 3;
+                        IGVGraphics.fillRect(ctx, xBlockStart, yRect - 1, widthBlock, alignmentHeight + 2, {fillStyle: this.insertionColor});
+                        lastXBlockStart = xBlockStart;
+                    }
                 }
             }
         }
 
-        function drawBlock(block) {
+        function drawBlock(block, b) {
 
 
             const offsetBP = block.start - alignmentContainer.start;
@@ -35938,7 +35909,11 @@ AlignmentTrack.prototype.draw = function (options) {
 
             if (block.gapType !== undefined && blockEndPixel !== undefined && lastBlockEnd !== undefined) {
                 if ("D" === block.gapType) {
+                    if (blockWidthPixel < 2 && (this.hideSmallIndels && block.len < this.indelSizeThreshold)) {
+                        return;
+                    }
                     IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.deletionColor});
+
                 } else if ("N" === block.gapType) {
                     IGVGraphics.strokeLine(ctx, lastBlockEnd, yStrokedLine, blockStartPixel, yStrokedLine, {strokeStyle: this.skippedColor});
                 }
@@ -36131,6 +36106,7 @@ AlignmentTrack.prototype.contextMenuItemList = function (clickState) {
             sortOption: option
         });
     }
+
     function sortByTag() {
         const config =
             {
@@ -37454,18 +37430,7 @@ EqtlTrack.prototype.menuItemList = function () {
     menuItems.push({
         object: createCheckbox("Autoscale", self.autoscale),
         click: function () {
-            var $fa = $(this).find('i');
-
             self.autoscale = !self.autoscale;
-
-            if (true === self.autoscale) {
-                $fa.removeClass('igv-fa-check-hidden');
-                $fa.addClass('igv-fa-check-visible');
-            } else {
-                $fa.removeClass('igv-fa-check-visible');
-                $fa.addClass('igv-fa-check-hidden');
-            }
-
             self.config.autoscale = self.autoscale;
             self.trackView.setDataRange(undefined, undefined, self.autoscale);
         }
@@ -39717,7 +39682,6 @@ Browser.prototype.loadSessionObject = async function (session) {
 
 };
 
-
 Browser.prototype.loadGenome = async function (idOrConfig, initialLocus) {
 
     // idOrConfig might be json
@@ -39943,12 +39907,27 @@ function knowHowToLoad(config) {
     return undefined === url || isString(url) || url instanceof File;
 }
 
+Browser.prototype.loadROI = async function (config) {
+    if (!this.roi) {
+        this.roi = [];
+    }
+    if (Array.isArray(config)) {
+        for (let c of config) {
+            this.roi.push(new ROI(c, this.genome));
+        }
+    } else {
+        this.roi.push(new ROI(config, this.genome));
+    }
+    await this.updateViews(undefined, undefined, true);
+};
+
 /**
  * Return a promise to load a track
  *
  * @param config
  * @returns {*}
  */
+
 Browser.prototype.loadTrack = async function (config) {
 
     // config might be json
@@ -40020,10 +39999,9 @@ Browser.prototype.loadTrack = async function (config) {
             await newTrack.postInit();
         }
 
-        if(config.sync) {
+        if (config.sync) {
             await this.addTrack(newTrack);
-        }
-        else {
+        } else {
             this.addTrack(newTrack);
         }
 
@@ -40036,7 +40014,6 @@ Browser.prototype.loadTrack = async function (config) {
         if (!config.noSpinner) this.stopSpinner();
     }
 };
-
 
 Browser.prototype.createTrack = function (config) {
 
@@ -40110,7 +40087,6 @@ Browser.prototype.addTrack = async function (track) {
         // Group autoscale groups will get updated later (as a group)
         return trackView.updateViews();
     }
-
 };
 
 Browser.prototype.reorderTracks = function () {
@@ -40215,7 +40191,7 @@ Browser.prototype.visibilityChange = function () {
     this.resize();
 };
 
-Browser.prototype.resize = function () {
+Browser.prototype.resize = async function () {
 
     const self = this;
 
@@ -40264,7 +40240,7 @@ Browser.prototype.resize = function () {
         this.windowSizePanel.updateWithGenomicState(this.genomicStateList[0]);
     }
 
-    this.updateViews();
+    await this.updateViews();
 
     function resizeWillExceedChromosomeLength(genomicState) {
 
@@ -40276,21 +40252,22 @@ Browser.prototype.resize = function () {
 
 };
 
-Browser.prototype.updateViews = function (genomicState, views) {
+Browser.prototype.updateViews = async function (genomicState, views, force) {
 
     var self = this,
         groupAutoscaleTracks, otherTracks;
 
-    if (!genomicState) {
-        genomicState = this.genomicStateList[0];
-    }
     if (!views) {
         views = this.trackViews;
     }
 
-    this.updateLocusSearchWidget(genomicState);
-
-    this.windowSizePanel.updateWithGenomicState(genomicState);
+    if (!genomicState && this.genomicStateList && this.genomicStateList.length == 1) {
+        genomicState = this.genomicStateList[0];
+    }
+    if (genomicState) {
+        this.updateLocusSearchWidget(genomicState);
+        this.windowSizePanel.updateWithGenomicState(genomicState);
+    }
 
     if (this.ideoPanel) {
         this.ideoPanel.repaint();
@@ -40301,9 +40278,9 @@ Browser.prototype.updateViews = function (genomicState, views) {
 
     // Don't autoscale while dragging.
     if (self.isDragging) {
-        views.forEach(function (trackView) {
-            trackView.updateViews();
-        });
+        for (let trackView of views) {
+            await trackView.updateViews();
+        }
     } else {
         // Group autoscale
         groupAutoscaleTracks = {};
@@ -40322,7 +40299,8 @@ Browser.prototype.updateViews = function (genomicState, views) {
             }
         });
 
-        Object.keys(groupAutoscaleTracks).forEach(function (group) {
+        const keys = Object.keys(groupAutoscaleTracks);
+        for (let group of keys) {
 
             var groupTrackViews, promises;
 
@@ -40333,28 +40311,26 @@ Browser.prototype.updateViews = function (genomicState, views) {
                 promises.push(trackView.getInViewFeatures());
             });
 
-            Promise.all(promises)
+            const featureArray = await Promise.all(promises);
 
-                .then(function (featureArray) {
+            var allFeatures = [], dataRange;
 
-                    var allFeatures = [], dataRange;
+            for (let features of featureArray) {
+                allFeatures = allFeatures.concat(features);
+            }
+            dataRange = doAutoscale(allFeatures);
 
-                    featureArray.forEach(function (features) {
-                        allFeatures = allFeatures.concat(features);
-                    });
-                    dataRange = doAutoscale(allFeatures);
+            for (let trackView of groupTrackViews) {
+                trackView.track.dataRange = dataRange;
+                trackView.track.autoscale = false;
+                await trackView.updateViews();
+            }
 
-                    groupTrackViews.forEach(function (trackView) {
-                        trackView.track.dataRange = dataRange;
-                        trackView.track.autoscale = false;
-                        trackView.updateViews();
-                    });
-                });
-        });
+        }
 
-        otherTracks.forEach(function (trackView) {
-            trackView.updateViews();
-        });
+        for (let trackView of otherTracks) {
+            await trackView.updateViews(force);
+        }
     }
 };
 
@@ -40529,7 +40505,7 @@ Browser.prototype.zoomWithRangePercentage = function (percentage) {
 Browser.prototype.zoomWithScaleFactor = function (scaleFactor, centerBPOrUndefined, viewportOrUndefined) {
 
     let viewports = viewportOrUndefined ? [viewportOrUndefined] : this.trackViews[0].viewports;
-    for(let viewport of viewports) {
+    for (let viewport of viewports) {
 
         const referenceFrame = viewport.genomicState.referenceFrame;
         const chromosome = referenceFrame.getChromosome();
@@ -42167,8 +42143,10 @@ ChromosomeSelectWidget.prototype.update = function (genome) {
 
     this.$select.empty();
     const list = this.showAllChromosomes ? genome.chromosomeNames.slice() : genome.wgChromosomeNames.slice();  // slice used to copy list
-    list.unshift('all');
-    list.unshift('');
+    if(genome.supportsWholeGenomeView()) {
+        list.unshift('all');
+        list.unshift('');
+    }
     for (let name of list) {
         var $o;
         $o = $('<option>', {'value': name});
@@ -43153,7 +43131,7 @@ function embedCSS() {
 
 }
 
-const _version = "2.3.2 (d336d4caff62df1409a8218c3a36da1128abf685)";
+const _version = "2.3.3 (baac185739f7462550a50b32c1f59b97a36ecb8d)";
 
 function version$1() {
     return _version;
@@ -43188,10 +43166,10 @@ var api = {
     oauth,
     version: version$1,
 
-    //exports below are not supported and will be removed over time
     download,
     getBrowser,
     doAutoscale,
+    buildOptions,
     graphics,
     createTrack,
     getFilename,
@@ -43223,7 +43201,8 @@ var api = {
     TrackRemovalDialog,
     DataRangeDialog,
     MenuUtils,
-    Alert
+    Alert,
+    google
 };
 
 /*
@@ -43432,14 +43411,13 @@ const urlShortcuts = {
 };
 
 
-
 /**
  * Extend config properties with query parameters
  *
  * @param query
  * @param config
  */
-function decodeQuery (query, config, uriDecode) {
+function decodeQuery(query, config, uriDecode) {
 
     var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
         controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
@@ -43513,7 +43491,7 @@ function decodeQuery (query, config, uriDecode) {
     }
 
     if (selectedGene) {
-        igv.selectedGene = selectedGene;
+        api.selectedGene = selectedGene;
     }
 
     if (captionText) {
@@ -43553,28 +43531,16 @@ function decodeQuery (query, config, uriDecode) {
 
     function destringifyTracksV0(tracks) {
 
-        var trackStringList = tracks.split("|||"),
-            configList = [], keys, key, i, len;
+        const trackStringList = tracks.split("|||");
+        const configList = [];
+        for (let trackString of trackStringList) {
 
-        trackStringList.forEach(function (trackString) {
-            var tokens,
-                url,
-                config,
-                name,
-                dataRangeString,
-                color,
-                r;
-
-            tokens = trackString.split("|");
-            color = tokens.pop();
-
-            url = tokens[0];
-
-            if (url && url.trim().length > 0) {
-
-                keys = Object.keys(urlShortcuts);
-                for (i = 0, len = keys.length; i < len; i++) {
-                    key = keys[i];
+            const tokens = trackString.split("|");
+            const color = tokens.pop();
+            let url = tokens.length > 1 ? tokens[0] : trackString;
+            if (url && url.trim().length > 0 && "undefined" !== url) {
+                const keys = Object.keys(urlShortcuts);
+                for (let key of keys) {
                     var value = urlShortcuts[key];
                     if (url.startsWith(key)) {
                         url = url.replace(key, value);
@@ -43585,23 +43551,17 @@ function decodeQuery (query, config, uriDecode) {
 
                 if (tokens.length > 1) {
                     name = tokens[1];
-                }
-
-                if (tokens.length > 2) {
-                    dataRangeString = tokens[2];
-                }
-
-                if (name) {
                     config.name = replaceAll(name, "$", "|");
                 }
 
-                if (dataRangeString) {
+                if (tokens.length > 2) {
+                    const dataRangeString = tokens[2];
                     if (dataRangeString.startsWith("-")) {
-                        r = dataRangeString.substring(1).split("-");
+                        const r = dataRangeString.substring(1).split("-");
                         config.min = -parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     } else {
-                        r = dataRangeString.split("-");
+                        const r = dataRangeString.split("-");
                         config.min = parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     }
@@ -43610,14 +43570,10 @@ function decodeQuery (query, config, uriDecode) {
                 if (color) {
                     config.color = color;
                 }
-
                 configList.push(config);
             }
-
-        });
-
+        }
         return configList;
-
     }
 
 }
@@ -43664,23 +43620,23 @@ function extractQuery$1(uri) {
     query = {};
     i1 = uri.indexOf("?");
     i2 = uri.lastIndexOf("#");
+    const i3 = uri.indexOf("=");
+    if (i1 > i3) i1 = -1;
 
-    if (i1 >= 0) {
-        if (i2 < 0) i2 = uri.length;
+    if (i2 < 0) i2 = uri.length;
+    for (i = i1 + 1; i < i2;) {
 
-        for (i = i1 + 1; i < i2;) {
+        j = uri.indexOf("&", i);
+        if (j < 0) j = i2;
 
-            j = uri.indexOf("&", i);
-            if (j < 0) j = i2;
-
-            s = uri.substring(i, j);
-            tokens = s.split("=", 2);
-            if (tokens.length === 2) {
-                query[tokens[0]] = tokens[1];
-            }
-
-            i = j + 1;
+        s = uri.substring(i, j);
+        tokens = s.split("=", 2);
+        if (tokens.length === 2) {
+            query[tokens[0]] = tokens[1];
         }
+
+        i = j + 1;
+
     }
     return query;
 }
@@ -56379,10 +56335,5620 @@ function trackRemovalMenuItem$1(trackRenderer) {
     return {object: $e, click: menuClickHandler};
 }
 
-/**
- * @fileoverview Zlib namespace. Zlib の仕様に準拠した圧縮は Zlib.Deflate で実装
- * されている. これは Inflate との共存を考慮している為.
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
  */
+
+const defaultPixelSize = 1;
+
+const defaultSize = {width: 640, height: 640};
+
+/**
+ * The global event bus.  For events outside the scope of a single browser.
+ *
+ * @type {EventBus}
+ */
+const eventBus = new EventBus();
+
+const allBrowsers$1 = [];
+
+igvReplacements(api);
+
+async function createBrowser$1(hic_container, config, callback) {
+
+    const $hic_container = $$2(hic_container);
+
+    setDefaults$1(config);
+
+    const apiKey = config.apiKey;
+    if (apiKey) {
+        api.setApiKey(apiKey);
+    }
+
+    let queryString = config.queryString || config.href;   // href for backward compatibility
+    if (queryString === undefined && config.initFromUrl !== false) {
+        queryString = window.location.href;
+    }
+
+    if (queryString) {
+        const query = extractQuery$1(queryString);
+        const uriDecode = queryString.includes("%2C");
+        decodeQuery(query, config, uriDecode);
+    }
+
+    const browser = new HICBrowser($hic_container, config);
+
+    browser.eventBus.hold();
+
+    allBrowsers$1.push(browser);
+
+    HICBrowser.setCurrentBrowser(browser);
+
+    if (allBrowsers$1.length > 1) {
+        allBrowsers$1.forEach(function (b) {
+            b.$browser_panel_delete_button.show();
+        });
+    }
+
+    if (undefined === api.browser) {
+        createIGV($hic_container, browser);
+    }
+
+    browser.inputDialog = new api.InputDialog($hic_container, browser);
+
+    browser.trackRemovalDialog = new api.TrackRemovalDialog($hic_container, browser);
+
+    browser.dataRangeDialog = new api.DataRangeDialog($hic_container, browser);
+
+    ///////////////////////////////////
+    try {
+        browser.contactMatrixView.startSpinner();
+        browser.$user_interaction_shield.show();
+
+        const hasControl = config.controlUrl !== undefined;
+
+        // if (!config.name) config.name = await extractName(config)
+        // const prefix = hasControl ? "A: " : "";
+        // browser.$contactMaplabel.text(prefix + config.name);
+        // browser.$contactMaplabel.attr('title', config.name);
+
+        await browser.loadHicFile(config, true);
+        await loadControlFile(config);
+
+        if (config.cycle) {
+            config.displayMode = "A";
+        }
+
+        if (config.displayMode) {
+            browser.contactMatrixView.displayMode = config.displayMode;
+            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
+        }
+        if (config.colorScale) {
+            // This must be done after dataset load
+            browser.contactMatrixView.setColorScale(config.colorScale);
+            browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
+        }
+
+        var promises = [];
+        if (config.tracks) {
+            promises.push(browser.loadTracks(config.tracks));
+        }
+
+        if (config.normVectorFiles) {
+            config.normVectorFiles.forEach(function (nv) {
+                promises.push(browser.loadNormalizationFile(nv));
+            });
+        }
+        await Promise.all(promises);
+
+        const tmp = browser.contactMatrixView.colorScaleThresholdCache;
+        browser.eventBus.release();
+        browser.contactMatrixView.colorScaleThresholdCache = tmp;
+
+        if (config.cycle) {
+            browser.controlMapWidget.toggleDisplayModeCycle();
+        } else {
+            browser.update();
+        }
+
+        if (typeof callback === "function") callback();
+    } finally {
+        browser.contactMatrixView.stopSpinner();
+        browser.$user_interaction_shield.hide();
+    }
+
+
+    return browser;
+
+    // Load the control file, if any
+    async function loadControlFile(config) {
+        if (config.controlUrl) {
+            return browser.loadHicControlFile({
+                url: config.controlUrl,
+                name: config.controlName,
+                nvi: config.controlNvi,
+                isControl: true
+            }, true);
+        } else {
+            return undefined;
+        }
+    }
+}
+
+function setApiKey$1(key) {
+    api.setApiKey(key);
+}
+
+function deleteBrowserPanel(browser) {
+
+    if (browser === HICBrowser.getCurrentBrowser()) {
+        HICBrowser.setCurrentBrowser(undefined);
+    }
+
+    allBrowsers$1.splice(_.indexOf(allBrowsers$1, browser), 1);
+    browser.$root.remove();
+    browser = undefined;
+
+    if (1 === allBrowsers$1.length) {
+        HICBrowser.setCurrentBrowser(allBrowsers$1[0]);
+        HICBrowser.getCurrentBrowser().$browser_panel_delete_button.hide();
+    }
+
+}
+
+/**
+ * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
+ * different IDs are used (e.g. GRCh38 vs hg38)
+ * @param d1
+ * @param d2
+ */
+function areCompatible(d1, d2) {
+    return (d1.genomeId === d2.genomeId) || d1.compareChromosomes(d2)
+}
+
+
+function isMobile() {
+    return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+}
+
+function extractFilename(urlOrFile) {
+    var idx,
+        str;
+
+    if (api.isFilePath(urlOrFile)) {
+        return urlOrFile.name;
+    } else {
+
+        str = urlOrFile.split('?').shift();
+        idx = urlOrFile.lastIndexOf("/");
+
+        return idx > 0 ? str.substring(idx + 1) : str;
+    }
+}
+
+function throttle(fn, threshhold, scope) {
+    var last,
+        deferTimer;
+
+    threshhold || (threshhold = 200);
+
+    return function () {
+        var context,
+            now,
+            args;
+
+        context = scope || this;
+        now = +new Date;
+        args = arguments;
+
+        if (last && now < last + threshhold) {
+            // hold on to it
+            clearTimeout(deferTimer);
+            deferTimer = setTimeout(function () {
+                last = now;
+                fn.apply(context, args);
+            }, threshhold);
+        } else {
+            last = now;
+            fn.apply(context, args);
+        }
+    }
+}
+
+function reflectionRotationWithContext(context) {
+    context.scale(-1, 1);
+    context.rotate(Math.PI / 2.0);
+}
+
+function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
+    context.translate(exe, 0);
+    context.scale(-1, 1);
+    context.translate(-exe, 0);
+}
+
+function identityTransformWithContext(context) {
+    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+    context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+
+
+// Set default values for config properties
+function setDefaults$1(config) {
+
+
+    if (config.figureMode === true) {
+        config.showLocusGoto = false;
+        config.showHicContactMapLabel = false;
+        config.showChromosomeSelector = false;
+    } else {
+        if (undefined === config.width) {
+            config.width = defaultSize.width;
+        }
+        if (undefined === config.height) {
+            config.height = defaultSize.height;
+        }
+        if (undefined === config.showLocusGoto) {
+            config.showLocusGoto = true;
+        }
+        if (undefined === config.showHicContactMapLabel) {
+            config.showHicContactMapLabel = true;
+        }
+        if (undefined === config.showChromosomeSelector) {
+            config.showChromosomeSelector = true;
+        }
+    }
+
+    if (config.state) {
+        // convert to state object
+        config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
+            config.state.y, config.state.pixelSize, config.state.normalization);
+    }
+}
+
+
+// mock igv browser objects for igv.js compatibility
+function createIGV($hic_container, hicBrowser) {
+
+    api.browser =
+        {
+            constants: {defaultColor: "rgb(0,0,150)"},
+
+            // Compatibility wit igv menus
+            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+        };
+
+    api.popover = new api.Popover($hic_container, api.browser);
+
+    api.alertDialog = new api.AlertDialog(hicBrowser.$root, hicBrowser);
+
+    // hicBrowser.inputDialog = new igv.InputDialog($hic_container, hicBrowser);
+    //
+    // hicBrowser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, hicBrowser);
+    //
+    // hicBrowser.dataRangeDialog = new igv.DataRangeDialog($hic_container, hicBrowser);
+
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+
+const Track2DDisplaceModes = {
+    displayAllMatrix: 'displayAllMatrix',
+    displayLowerMatrix: 'displayLowerMatrix',
+    displayUpperMatrix: 'displayUpperMatrix'
+};
+
+const Track2D = function (config, features) {
+
+    var self = this;
+
+    this.config = config;
+    this.name = config.name;
+    this.featureMap = {};
+    this.featureCount = 0;
+    this.isVisible = true;
+
+    this.displayMode = Track2DDisplaceModes.displayAllMatrix;
+
+    if (config.color && validateColor(config.color)) {
+        this.color = this.color = config.color;    // If specified, this will override colors of individual records.
+    }
+    this.repColor = features.length > 0 ? features[0].color : "black";
+
+    features.forEach(function (f) {
+
+        self.featureCount++;
+
+        var key = getKey(f.chr1, f.chr2),
+            list = self.featureMap[key];
+
+        if (!list) {
+            list = [];
+            self.featureMap[key] = list;
+        }
+        list.push(f);
+    });
+
+};
+
+Track2D.loadTrack2D = async function (config) {
+
+    if (isString$1(config.url) && config.url.startsWith("https://drive.google.com")) {
+        const json = await api.google.getDriveFileInfo(config.url);
+        config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
+        if (!config.filename) {
+            config.filename = json.originalFileName || json.name;
+        }
+        if (!config.name) {
+            config.name = json.name || json.originalFileName;
+        }
+    }
+
+    const data = await api.xhr.loadString(config.url, buildOptions$1(config));
+    const features = parseData(data, isBedPE(config));
+    return new Track2D(config, features);
+};
+
+Track2D.prototype.getColor = function () {
+    return this.color || this.repColor;
+};
+
+Track2D.prototype.getFeatures = function (chr1, chr2) {
+    var key = getKey(chr1, chr2),
+        features = this.featureMap[key];
+
+    return features || this.featureMap[getAltKey(chr1, chr2)];
+};
+
+
+function isBedPE(config) {
+
+    if (typeof config.url === "string") {
+        return config.url.toLowerCase().indexOf(".bedpe") > 0;
+    } else if (typeof config.name === "string") {
+        return config.name.toLowerCase().indexOf(".bedpe") > 0;
+    } else {
+        return true;  // Default
+    }
+}
+
+function parseData(data, isBedPE) {
+
+    if (!data) return null;
+
+    var feature,
+        lines = api.splitLines(data),
+        len = lines.length,
+        tokens,
+        allFeatures = [],
+        line,
+        i,
+        delimiter = "\t",
+        start,
+        colorColumn;
+
+    start = isBedPE ? 0 : 1;
+    colorColumn = isBedPE ? 10 : 6;
+
+    let errorCount = 0;
+    for (i = start; i < len; i++) {
+
+        line = lines[i];
+
+        if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+            continue;
+        }
+
+        tokens = lines[i].split(delimiter);
+        if (tokens.length < 6 && errorCount <= 5) {
+            if (errorCount === 5) {
+                console.error("...");
+            } else {
+                console.error("Could not parse line: " + line);
+            }
+            errorCount++;
+            continue;
+        }
+
+        feature = {
+            chr1: tokens[0],
+            x1: parseInt(tokens[1]),
+            x2: parseInt(tokens[2]),
+            chr2: tokens[3],
+            y1: parseInt(tokens[4]),
+            y2: parseInt(tokens[5])
+        };
+
+        if (tokens.length > colorColumn) {
+            feature.color = "rgb(" + tokens[colorColumn] + ")";
+        }
+
+        if (!Number.isNaN(feature.x1)) {
+            allFeatures.push(feature);
+        }
+    }
+
+    return allFeatures;
+}
+
+function getKey(chr1, chr2) {
+    return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
+}
+
+function getAltKey(chr1, chr2) {
+    var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
+        chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
+    return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
+}
+
+
+function validateColor(str) {
+    var div = document.createElement("div");
+    div.style.borderColor = str;
+    return div.style.borderColor !== "";
+}
+
+function isString$1(x) {
+    return typeof x === "string" || x instanceof String
+}
+
+function buildOptions$1(config, options) {
+    const defaultOptions = {
+        oauthToken: config.oauthToken,
+        headers: config.headers,
+        withCredentials: config.withCredentials,
+        filename: config.filename
+    };
+
+    return Object.assign(defaultOptions, options);
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const RatioColorScale$1 = function (threshold) {
+
+    this.threshold = threshold;
+
+    this.positiveScale = new ColorScale({
+        threshold: Math.log(threshold),
+        r: 255,
+        g: 0,
+        b: 0
+    });
+    this.negativeScale = new ColorScale(
+        {
+            threshold: Math.log(threshold),
+            r: 0,
+            g: 0,
+            b: 255
+        });
+};
+
+RatioColorScale$1.prototype.setThreshold = function (threshold) {
+    this.threshold = threshold;
+    this.positiveScale.setThreshold(Math.log(threshold));
+    this.negativeScale.setThreshold(Math.log(threshold));
+};
+
+RatioColorScale$1.prototype.getThreshold = function () {
+    return this.threshold;
+};
+
+RatioColorScale$1.prototype.setColorComponents = function (components, plusOrMinus) {
+    if ('-' === plusOrMinus) {
+        return this.negativeScale.setColorComponents(components);
+    }
+    else {
+        return this.positiveScale.setColorComponents(components);
+    }
+};
+
+RatioColorScale$1.prototype.getColorComponents = function (plusOrMinus) {
+
+    if ('-' === plusOrMinus) {
+        return this.negativeScale.getColorComponents();
+    }
+    else {
+        return this.positiveScale.getColorComponents();
+    }
+};
+
+RatioColorScale$1.prototype.getColor = function (score) {
+
+    var logScore = Math.log(score);
+
+    if (logScore < 0) {
+        return this.negativeScale.getColor(-logScore);
+    }
+    else {
+        return this.positiveScale.getColor(logScore);
+    }
+};
+
+RatioColorScale$1.prototype.stringify = function () {
+    return "R:" + this.threshold + ":" + this.positiveScale.stringify() + ":" + this.negativeScale.stringify();
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const ScrollbarWidget = function (browser) {
+
+    var id;
+
+    this.browser = browser;
+    this.isDragging = false;
+
+    // x-axis
+    id = browser.id + '_' + 'x-axis-scrollbar-container';
+    this.$x_axis_scrollbar_container = $$2("<div>", {id: id});
+
+    id = browser.id + '_' + 'x-axis-scrollbar';
+    this.$x_axis_scrollbar = $$2("<div>", {id: id});
+    this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
+
+    this.$x_label = $$2('<div>');
+    this.$x_label.text('');
+    this.$x_axis_scrollbar.append(this.$x_label);
+
+    // y-axis
+    id = browser.id + '_' + 'y-axis-scrollbar-container';
+    this.$y_axis_scrollbar_container = $$2("<div>", {id: id});
+
+    id = browser.id + '_' + 'y-axis-scrollbar';
+    this.$y_axis_scrollbar = $$2("<div>", {id: id});
+    this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
+
+    this.$y_label = $$2('<div class="scrollbar-label-rotation-in-place">');
+    this.$y_label.text('');
+    this.$y_axis_scrollbar.append(this.$y_label);
+
+    // this.$x_axis_scrollbar_container.hide();
+    // this.$y_axis_scrollbar_container.hide();
+
+    // this.$x_axis_scrollbar.draggable({
+    //     containment: 'parent',
+    //     start: function() {
+    //         self.isDragging = true;
+    //     },
+    //     drag: hic.throttle(xAxisDragger, 250),
+    //     stop: function() {
+    //         self.isDragging = false;
+    //     }
+    // });
+
+    // this.$y_axis_scrollbar.draggable({
+    //
+    //     containment: 'parent',
+    //     start: function() {
+    //         self.isDragging = true;
+    //     },
+    //     drag: hic.throttle(yAxisDragger, 250),
+    //     stop: function() {
+    //         self.isDragging = false;
+    //     }
+    // });
+
+    this.browser.eventBus.subscribe("LocusChange", this);
+
+    // function xAxisDragger () {
+    //     var bin,
+    //         st = self.browser.state;
+    //
+    //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
+    //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
+    // }
+
+    // function yAxisDragger () {
+    //     var bin,
+    //         st = self.browser.state;
+    //
+    //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
+    //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
+    // }
+};
+
+ScrollbarWidget.prototype.css2Bin = function (chromosome, $element, attribute) {
+    var numer,
+        denom,
+        percentage;
+
+    numer = $element.css(attribute).slice(0, -2);
+    denom = $element.parent().css('left' === attribute ? 'width' : 'height').slice(0, -2);
+    percentage = parseInt(numer, 10) / parseInt(denom, 10);
+
+    return percentage * chromosome.size / this.browser.dataset.bpResolutions[this.browser.state.zoom];
+};
+
+ScrollbarWidget.prototype.receiveEvent = function (event) {
+    var self = this,
+        chromosomeLengthsBin,
+        chromosomeLengthsPixel,
+        pixels,
+        bins,
+        percentage,
+        percentages;
+
+    if (!this.isDragging && event.type === "LocusChange") {
+
+        var state = event.data.state,
+            dataset = self.browser.dataset;
+
+        if (0 === state.chr1) {
+            this.$x_axis_scrollbar.hide();
+            this.$y_axis_scrollbar.hide();
+        } else {
+
+            this.$x_axis_scrollbar.show();
+            this.$y_axis_scrollbar.show();
+
+            this.$x_axis_scrollbar_container.show();
+            this.$y_axis_scrollbar_container.show();
+
+            chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
+                // bp / bp-per-bin -> bin
+                return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
+            });
+
+            chromosomeLengthsPixel = _.map(chromosomeLengthsBin, function (bin) {
+                // bin * pixel-per-bin -> pixel
+                return bin * state.pixelSize;
+            });
+
+            pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
+
+            // pixel / pixel-per-bin -> bin
+            bins = [_.first(pixels) / state.pixelSize, _.last(pixels) / state.pixelSize];
+
+            // bin / bin -> percentage
+            percentages = _.map(bins, function (bin, i) {
+                var binPercentage,
+                    pixelPercentage;
+
+                binPercentage = Math.min(bin, chromosomeLengthsBin[i]) / chromosomeLengthsBin[i];
+                pixelPercentage = Math.min(chromosomeLengthsPixel[i], pixels[i]) / pixels[i];
+                return Math.max(1, Math.round(100 * binPercentage * pixelPercentage));
+            });
+            this.$x_axis_scrollbar.css('width', (_.first(percentages).toString() + '%'));
+            this.$y_axis_scrollbar.css('height', (_.last(percentages).toString() + '%'));
+
+
+            // bin / bin -> percentage
+            percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
+            percentage = percentage.toString() + '%';
+            this.$x_axis_scrollbar.css('left', percentage);
+
+            // bin / bin -> percentage
+            percentage = Math.round(100 * state.y / _.last(chromosomeLengthsBin));
+            percentage = percentage.toString() + '%';
+            this.$y_axis_scrollbar.css('top', percentage);
+
+            this.$x_label.text(dataset.chromosomes[state.chr1].name);
+            this.$y_label.text(dataset.chromosomes[state.chr2].name);
+
+        }
+
+    }
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const SweepZoom = function (browser, $target) {
+    var id;
+
+    id = browser.id + '_' + 'sweep-zoom-container';
+
+    this.browser = browser;
+    this.$rulerSweeper = $$2("<div>", {id: id});
+    this.$rulerSweeper.hide();
+    this.$target = $target;
+    this.sweepRect = {};
+};
+
+SweepZoom.prototype.initialize = function (pageCoords) {
+
+    this.anchor = pageCoords;
+    this.coordinateFrame = this.$rulerSweeper.parent().offset();
+    this.aspectRatio = this.$target.width() / this.$target.height();
+    this.sweepRect.x = {
+        x: pageCoords.x,
+        y: pageCoords.y,
+        width: 1,
+        height: 1
+    };
+    this.clipped = {value: false};
+};
+
+SweepZoom.prototype.update = function (pageCoords) {
+
+    var anchor = this.anchor,
+        dx = Math.abs(pageCoords.x - anchor.x),
+        dy = Math.abs(pageCoords.y - anchor.y);
+
+    // Adjust deltas to conform to aspect ratio
+    if (dx / dy > this.aspectRatio) {
+        dy = dx / this.aspectRatio;
+    } else {
+        dx = dy * this.aspectRatio;
+    }
+
+    this.sweepRect.width = dx;
+    this.sweepRect.height = dy;
+    this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
+    this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
+
+
+    this.$rulerSweeper.width(this.sweepRect.width);
+    this.$rulerSweeper.height(this.sweepRect.height);
+
+
+    this.$rulerSweeper.offset(
+        {
+            left: this.sweepRect.x,
+            top: this.sweepRect.y
+        }
+    );
+    this.$rulerSweeper.show();
+
+};
+
+SweepZoom.prototype.commit = function () {
+    var state,
+        resolution,
+        posX,
+        posY,
+        x,
+        y,
+        width,
+        height,
+        xMax,
+        yMax,
+        minimumResolution;
+
+    this.$rulerSweeper.hide();
+
+    state = this.browser.state;
+
+    // bp-per-bin
+    resolution = this.browser.resolution();
+
+    // Convert page -> offset coordinates
+    posX = this.sweepRect.x - this.$target.offset().left;
+    posY = this.sweepRect.y - this.$target.offset().top;
+
+
+    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+    x = (state.x + (posX / state.pixelSize)) * resolution;
+    y = (state.y + (posY / state.pixelSize)) * resolution;
+
+    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+    width = (this.sweepRect.width / state.pixelSize) * resolution;
+    height = (this.sweepRect.height / state.pixelSize) * resolution;
+
+    // bp = bp + bp
+    xMax = x + width;
+    yMax = y + height;
+
+    minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
+    this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
+
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const HICMath = {
+
+    mean: function (array) {
+
+        var t = 0, n = 0,
+            i;
+        for (i = 0; i < array.length; i++) {
+            if (!isNaN(array[i])) {
+                t += array[i];
+                n++;
+            }
+        }
+        return n > 0 ? t / n : 0;
+    },
+
+    percentile: function (array, p) {
+
+        if (array.length === 0) return undefined;
+
+        var k = Math.floor(array.length * ((100 - p) / 100));
+        if (k == 0) {
+            array.sort(function (a, b) {
+                return b - a
+            });
+            return array[0];
+        }
+
+        return this.selectElement(array, k);
+
+    },
+
+    selectElement: function (array, k) {
+
+        // Credit Steve Hanov http://stevehanov.ca/blog/index.php?id=122
+        var heap = new BinaryHeap$1(),
+            i;
+
+        for (i = 0; i < array.length; i++) {
+
+            var item = array[i];
+
+            // If we have not yet found k items, or the current item is larger than
+            // the smallest item on the heap, add current item
+            if (heap.content.length < k || item > heap.content[0]) {
+                // If the heap is full, remove the smallest element on the heap.
+                if (heap.content.length === k) {
+                    var r = heap.pop();
+                }
+                heap.push(item);
+            }
+        }
+
+        return heap.content[0];
+    }
+};
+
+
+function BinaryHeap$1() {
+    this.content = [];
+}
+
+BinaryHeap$1.prototype = {
+    push: function (element) {
+        // Add the new element to the end of the array.
+        this.content.push(element);
+        // Allow it to bubble up.
+        this.bubbleUp(this.content.length - 1);
+    },
+
+    pop: function () {
+        // Store the first element so we can return it later.
+        var result = this.content[0];
+        // Get the element at the end of the array.
+        var end = this.content.pop();
+        // If there are any elements left, put the end element at the
+        // start, and let it sink down.
+        if (this.content.length > 0) {
+            this.content[0] = end;
+            this.sinkDown(0);
+        }
+        return result;
+    },
+
+    remove: function (node) {
+        var length = this.content.length;
+        // To remove a value, we must search through the array to find
+        // it.
+        for (var i = 0; i < length; i++) {
+            if (this.content[i] != node) continue;
+            // When it is found, the process seen in 'pop' is repeated
+            // to fill up the hole.
+            var end = this.content.pop();
+            // If the element we popped was the one we needed to remove,
+            // we're done.
+            if (i == length - 1) break;
+            // Otherwise, we replace the removed element with the popped
+            // one, and allow it to float up or sink down as appropriate.
+            this.content[i] = end;
+            this.bubbleUp(i);
+            this.sinkDown(i);
+            break;
+        }
+    },
+
+    size: function () {
+        return this.content.length;
+    },
+
+    bubbleUp: function (n) {
+        // Fetch the element that has to be moved.
+        var element = this.content[n], score = element;
+        // When at 0, an element can not go up any further.
+        while (n > 0) {
+            // Compute the parent element's index, and fetch it.
+            var parentN = Math.floor((n + 1) / 2) - 1,
+                parent = this.content[parentN];
+            // If the parent has a lesser score, things are in order and we
+            // are done.
+            if (score >= parent)
+                break;
+
+            // Otherwise, swap the parent with the current element and
+            // continue.
+            this.content[parentN] = element;
+            this.content[n] = parent;
+            n = parentN;
+        }
+    },
+
+    sinkDown: function (n) {
+        // Look up the target element and its score.
+        var length = this.content.length,
+            element = this.content[n],
+            elemScore = element;
+
+        while (true) {
+            // Compute the indices of the child elements.
+            var child2N = (n + 1) * 2, child1N = child2N - 1;
+            // This is used to store the new position of the element,
+            // if any.
+            var swap = null;
+            // If the first child exists (is inside the array)...
+            if (child1N < length) {
+                // Look it up and compute its score.
+                var child1 = this.content[child1N],
+                    child1Score = child1;
+                // If the score is less than our element's, we need to swap.
+                if (child1Score < elemScore)
+                    swap = child1N;
+            }
+            // Do the same checks for the other child.
+            if (child2N < length) {
+                var child2 = this.content[child2N],
+                    child2Score = child2;
+                if (child2Score < (swap == null ? elemScore : child1Score))
+                    swap = child2N;
+            }
+
+            // No need to swap further, we are done.
+            if (swap == null) break;
+
+            // Otherwise, swap and continue.
+            this.content[n] = this.content[swap];
+            this.content[swap] = element;
+            n = swap;
+        }
+    }
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const DRAG_THRESHOLD = 2;
+const DOUBLE_TAP_DIST_THRESHOLD = 20;
+const DOUBLE_TAP_TIME_THRESHOLD = 300;
+
+const ContactMatrixView = function (browser, $container) {
+    var id;
+
+    this.browser = browser;
+
+    this.scrollbarWidget = new ScrollbarWidget(browser);
+
+    id = browser.id + '_' + 'viewport';
+    this.$viewport = $$2("<div>", {id: id});
+    $container.append(this.$viewport);
+
+    // content canvas
+    this.$canvas = $$2('<canvas>');
+    this.$viewport.append(this.$canvas);
+
+    this.ctx = this.$canvas.get(0).getContext('2d');
+
+    // spinner
+    this.$fa_spinner = $$2('<i class="fa fa-spinner fa-spin">');
+    this.$fa_spinner.css("font-size", "48px");
+    this.$fa_spinner.css("position", "absolute");
+    this.$fa_spinner.css("left", "40%");
+    this.$fa_spinner.css("top", "40%");
+    this.$fa_spinner.css("display", "none");
+    this.$viewport.append(this.$fa_spinner);
+    this.spinnerCount = 0;
+
+    // ruler sweeper widget surface
+    this.sweepZoom = new SweepZoom(browser, this.$viewport);
+    this.$viewport.append(this.sweepZoom.$rulerSweeper);
+
+
+    // x - guide
+    id = browser.id + '_' + 'x-guide';
+    this.$x_guide = $$2("<div>", {id: id});
+    this.$viewport.append(this.$x_guide);
+
+    // y - guide
+    id = browser.id + '_' + 'y-guide';
+    this.$y_guide = $$2("<div>", {id: id});
+    this.$viewport.append(this.$y_guide);
+
+
+    $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
+
+    this.displayMode = 'A';
+    this.imageTileCache = {};
+    this.imageTileCacheKeys = [];
+    this.imageTileCacheLimit = 8; //8 is the minimum number required to support A/B cycling
+    this.colorScaleThresholdCache = {};
+
+    // Set initial color scales.  These might be overriden / adjusted via parameters
+    this.colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
+    this.ratioColorScale = new RatioColorScale$1(5);
+    // this.diffColorScale = new RatioColorScale(100, false);
+
+    this.browser.eventBus.subscribe("NormalizationChange", this);
+    this.browser.eventBus.subscribe("TrackLoad2D", this);
+    this.browser.eventBus.subscribe("TrackState2D", this);
+    this.browser.eventBus.subscribe("MapLoad", this);
+    this.browser.eventBus.subscribe("LocusChange", this);
+    this.browser.eventBus.subscribe("ControlMapLoad", this);
+    this.browser.eventBus.subscribe("ColorChange", this);
+    //this.browser.eventBus.subscribe("DragStopped", this)
+
+    this.drawsInProgress = new Set();
+};
+
+ContactMatrixView.prototype.setColorScale = function (colorScale) {
+
+    switch (this.displayMode) {
+        case 'AOB':
+        case 'BOA':
+            this.ratioColorScale = colorScale;
+            break;
+        case 'AMB':
+            this.diffColorScale = colorScale;
+            break;
+        default:
+            this.colorScale = colorScale;
+    }
+    this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
+};
+
+ContactMatrixView.prototype.setColorScaleThreshold = async function (threshold) {
+
+    this.getColorScale().setThreshold(threshold);
+    this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
+    this.imageTileCache = {};
+    await this.update();
+};
+
+ContactMatrixView.prototype.getColorScale = function () {
+    switch (this.displayMode) {
+        case 'AOB':
+        case 'BOA':
+            return this.ratioColorScale;
+        case 'AMB':
+            return this.diffColorScale;
+        default:
+            return this.colorScale;
+    }
+};
+
+ContactMatrixView.prototype.setDisplayMode = async function (mode) {
+    this.displayMode = mode;
+    this.clearImageCaches();
+    await this.update();
+};
+
+function colorScaleKey(state, displayMode) {
+    return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
+}
+
+ContactMatrixView.prototype.clearImageCaches = function () {
+    this.imageTileCache = {};
+    this.imageTileCacheKeys = [];
+};
+
+ContactMatrixView.prototype.getViewDimensions = function () {
+    return {
+        width: this.$viewport.width(),
+        height: this.$viewport.height()
+    }
+};
+
+ContactMatrixView.prototype.receiveEvent = async function (event) {
+
+    if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
+
+        // Don't enable mouse actions until we have a dataset.
+        if (!this.mouseHandlersEnabled) {
+            addTouchHandlers.call(this, this.$viewport);
+            addMouseHandlers$2.call(this, this.$viewport);
+            this.mouseHandlersEnabled = true;
+        }
+        this.clearImageCaches();
+        this.colorScaleThresholdCache = {};
+    }
+
+    else {
+        if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
+            this.clearImageCaches();
+        }
+        await this.update();
+    }
+};
+
+ContactMatrixView.prototype.update = async function () {
+
+    if (this.disableUpdates) return   // This flag is set during browser startup
+
+    await this.repaint();
+
+};
+
+
+/**
+ * Return a promise to load all neccessary data
+ */
+ContactMatrixView.prototype.repaint = async function () {
+
+    if (!this.browser.dataset) {
+        return;
+    }
+
+    const viewportWidth = this.$viewport.width();
+    const viewportHeight = this.$viewport.height();
+    const canvasWidth = this.$canvas.width();
+    const canvasHeight = this.$canvas.height();
+    if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
+        this.$canvas.width(viewportWidth);
+        this.$canvas.height(viewportHeight);
+        this.$canvas.attr('width', this.$viewport.width());
+        this.$canvas.attr('height', this.$viewport.height());
+    }
+    const state = this.browser.state;
+
+    let ds;
+    let dsControl;
+    switch (this.displayMode) {
+        case 'A':
+            ds = this.browser.dataset;
+            break;
+        case 'B':
+            ds = this.browser.controlDataset;
+            break;
+        case 'AOB':
+        case 'AMB':
+            ds = this.browser.dataset;
+            dsControl = this.browser.controlDataset;
+            break;
+        case 'BOA':
+            ds = this.browser.controlDataset;
+            dsControl = this.browser.dataset;
+    }
+
+    const matrix = await ds.getMatrix(state.chr1, state.chr2);
+    const zd = matrix.bpZoomData[state.zoom];
+
+    let zdControl;
+    if (dsControl) {
+        const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2);
+        zdControl = matrixControl.bpZoomData[state.zoom];
+    }
+
+
+    const blockBinCount = zd.blockBinCount;  // Dimension in bins of a block (width = height = blockBinCount)
+    const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+    const widthInBins = this.$viewport.width() / pixelSizeInt;
+    const heightInBins = this.$viewport.height() / pixelSizeInt;
+    const blockCol1 = Math.floor(state.x / blockBinCount);
+    const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount);
+    const blockRow1 = Math.floor(state.y / blockBinCount);
+    const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount);
+
+    await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization);
+
+    for (let r = blockRow1; r <= blockRow2; r++) {
+        for (let c = blockCol1; c <= blockCol2; c++) {
+            const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state);
+            this.paintTile(tile);
+        }
+    }
+
+    // Record genomic extent of current canvas
+    this.genomicExtent = {
+        chr1: state.chr1,
+        chr2: state.chr2,
+        x: state.x * zd.zoom.binSize,
+        y: state.y * zd.zoom.binSize,
+        w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+        h: viewportHeight * zd.zoom.binSize / state.pixelSize
+    };
+};
+
+/**
+ * Returns a promise for an image tile
+ *
+ * @param zd
+ * @param row
+ * @param column
+ * @param state
+ * @returns {*}
+ */
+
+const inProgressCache = {};
+
+function inProgressTile(imageSize) {
+
+    let image = inProgressCache[imageSize];
+    if (!image) {
+        image = document.createElement('canvas');
+        image.width = imageSize;
+        image.height = imageSize;
+        const ctx = image.getContext('2d');
+        ctx.font = '24px sans-serif';
+        ctx.fillStyle = 'rgb(230, 230, 230)';
+        ctx.fillRect(0, 0, image.width, image.height);
+        ctx.fillStyle = 'black';
+        for (let i = 100; i < imageSize; i += 300) {
+            for (let j = 100; j < imageSize; j += 300) {
+                ctx.fillText('Loading...', i, j);
+            }
+        }
+        inProgressCache[imageSize] = image;
+    }
+    return image;
+}
+
+ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zdControl, row, column, state) {
+
+    const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+    const useImageData = pixelSizeInt === 1;
+    const blockBinCount = zd.blockBinCount;
+    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
+        "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
+    if (this.imageTileCache.hasOwnProperty(key)) {
+        return this.imageTileCache[key]
+
+    } else {
+        if (this.drawsInProgress.has(key)) {
+            //console.log("In progress")
+            const imageSize = Math.ceil(blockBinCount * pixelSizeInt);
+            const image = inProgressTile(imageSize);
+            return {
+                row: row,
+                column: column,
+                blockBinCount: blockBinCount,
+                image: image,
+                inProgress: true
+            }  // TODO return an image at a coarser resolution if avaliable
+
+        }
+        this.drawsInProgress.add(key);
+
+        try {
+            this.startSpinner();
+            const sameChr = zd.chr1.index === zd.chr2.index;
+            const blockColumnCount = zd.blockColumnCount;
+            const widthInBins = zd.blockBinCount;
+            const transpose = sameChr && row < column;
+
+            let blockNumber;
+            if (sameChr && row < column) {
+                blockNumber = column * blockColumnCount + row;
+            }
+            else {
+                blockNumber = row * blockColumnCount + column;
+            }
+
+            // Get blocks
+            const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalization, this.browser.eventBus);
+            let controlBlock;
+            if (zdControl) {
+                controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalization, this.browser.eventBus);
+            }
+
+            const averageCount = zd.averageCount;
+            const ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
+            const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
+
+
+            let image;
+            if (block && block.records.length > 0) {
+
+                const imageSize = Math.ceil(widthInBins * pixelSizeInt);
+                const blockNumber = block.blockNumber;
+                const row = Math.floor(blockNumber / blockColumnCount);
+                const col = blockNumber - row * blockColumnCount;
+                const x0 = blockBinCount * col;
+                const y0 = blockBinCount * row;
+
+                image = document.createElement('canvas');
+                image.width = imageSize;
+                image.height = imageSize;
+                const ctx = image.getContext('2d');
+                //ctx.clearRect(0, 0, image.width, image.height);
+
+                const controlRecords = {};
+                if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
+                    for (let record of controlBlock.records) {
+                        controlRecords[record.getKey()] = record;
+                    }
+                }
+
+                let id;
+                if (useImageData) {
+                    id = ctx.getImageData(0, 0, image.width, image.height);
+                }
+
+                for (let i = 0; i < block.records.length; i++) {
+
+                    const rec = block.records[i];
+                    let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
+                    let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
+
+                    if (transpose) {
+                        const t = y;
+                        y = x;
+                        x = t;
+                    }
+
+                    let color;
+                    switch (this.displayMode) {
+
+                        case 'AOB':
+                        case 'BOA':
+                            let key = rec.getKey();
+                            let controlRec = controlRecords[key];
+                            if (!controlRec) {
+                                continue;    // Skip
+                            }
+                            let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
+
+                            color = this.ratioColorScale.getColor(score);
+
+                            break;
+
+                        case 'AMB':
+                            key = rec.getKey();
+                            controlRec = controlRecords[key];
+                            if (!controlRec) {
+                                continue;    // Skip
+                            }
+                            score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
+
+                            color = this.diffColorScale.getColor(score);
+
+                            break;
+
+                        default:    // Either 'A' or 'B'
+                            color = this.colorScale.getColor(rec.counts);
+                    }
+
+
+                    if (useImageData) {
+                        // TODO -- verify that this bitblting is faster than fillRect
+                        setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                        if (sameChr && row === col) {
+                            setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                        }
+                    }
+                    else {
+                        ctx.fillStyle = color.rgb;
+                        ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
+                        if (sameChr && row === col) {
+                            ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
+                        }
+                    }
+                }
+                if (useImageData) {
+                    ctx.putImageData(id, 0, 0);
+                }
+
+                //Draw 2D tracks
+                ctx.save();
+                ctx.lineWidth = 2;
+                for (let track2D of this.browser.tracks2D) {
+
+                    if (track2D.isVisible) {
+
+                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+
+                        if (features) {
+                            features.forEach(function (f) {
+
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var w = x2 - x1;
+                                var h = y2 - y1;
+
+                                let t;
+                                if (transpose) {
+                                    t = y1;
+                                    y1 = x1;
+                                    x1 = t;
+
+                                    t = h;
+                                    h = w;
+                                    w = t;
+                                }
+
+                                var dim = Math.max(image.width, image.height);
+                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
+
+                                    ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                    ctx.strokeRect(x1, y1, w, h);
+                                    if (sameChr && row === col) {
+                                        ctx.strokeRect(y1, x1, h, w);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+
+                ctx.restore();
+
+                // Uncomment to reveal tile boundaries for debugging.
+                // ctx.fillStyle = "rgb(255,255,255)";
+                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+
+
+            }
+            else {
+                //console.log("No block for " + blockNumber);
+            }
+            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image};
+
+
+            if (this.imageTileCacheLimit > 0) {
+                if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
+                    delete this.imageTileCache[this.imageTileCacheKeys[0]];
+                    this.imageTileCacheKeys.shift();
+                }
+                this.imageTileCache[key] = imageTile;
+
+            }
+
+            this.drawsInProgress.delete(key);
+            return imageTile;
+
+        } finally {
+            //console.log("Finish load for " + key)
+            this.stopSpinner();
+        }
+    }
+
+
+    function setPixel(imageData, x, y, r, g, b, a) {
+        const index = (x + y * imageData.width) * 4;
+        imageData.data[index + 0] = r;
+        imageData.data[index + 1] = g;
+        imageData.data[index + 2] = b;
+        imageData.data[index + 3] = a;
+    }
+};
+
+
+ContactMatrixView.prototype.zoomIn = async function () {
+    const state = this.browser.state;
+    const viewportWidth = this.$viewport.width();
+    const viewportHeight = this.$viewport.height();
+    const matrices = await getMatrices.call(this, state.chr1, state.chr2);
+
+    var matrix = matrices[0];
+
+    if (matrix) {
+        const zd = await matrix.bpZoomData[state.zoom];
+        const newGenomicExtent = {
+            x: state.x * zd.zoom.binSize,
+            y: state.y * zd.zoom.binSize,
+            w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+            h: viewportHeight * zd.zoom.binSize / state.pixelSize
+        };
+
+        // Zoom out not supported
+        if (newGenomicExtent.w > this.genomicExtent.w) return
+
+        const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth;
+        const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight;
+        const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth;
+        const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight;
+        const img = this.$canvas[0];
+
+        const backCanvas = document.createElement('canvas');
+        backCanvas.width = img.width;
+        backCanvas.height = img.height;
+        const backCtx = backCanvas.getContext('2d');
+        backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight);
+
+        this.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
+        this.ctx.drawImage(backCanvas, 0, 0);
+    }
+};
+
+ContactMatrixView.prototype.paintTile = function (imageTile) {
+
+    const state = this.browser.state;
+    const viewportWidth = this.$viewport.width();
+    const viewportHeight = this.$viewport.height();
+
+    var image = imageTile.image,
+        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+
+    if (image != null) {
+        const row = imageTile.row;
+        const col = imageTile.column;
+        const x0 = imageTile.blockBinCount * col;
+        const y0 = imageTile.blockBinCount * row;
+        const offsetX = (x0 - state.x) * state.pixelSize;
+        const offsetY = (y0 - state.y) * state.pixelSize;
+        const scale = state.pixelSize / pixelSizeInt;
+        const scaledWidth = image.width * scale;
+        const scaledHeight = image.height * scale;
+        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
+            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+            this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight);
+            if (scale === 1) {
+                this.ctx.drawImage(image, offsetX, offsetY);
+            }
+            else {
+                this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+            }
+        }
+    }
+};
+
+function getMatrices(chr1, chr2) {
+
+    var promises = [];
+    if ('B' === this.displayMode && this.browser.controlDataset) {
+        promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+    }
+
+    else {
+        promises.push(this.browser.dataset.getMatrix(chr1, chr2));
+        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
+            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
+        }
+    }
+    return Promise.all(promises);
+}
+
+/**
+ * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
+ * data to computer scale.
+ *
+ * @param zd
+ * @param row1
+ * @param row2
+ * @param col1
+ * @param col2
+ * @param normalization
+ * @returns {*}
+ */
+async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
+
+    const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
+    if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
+        return this.ratioColorScale;     // Don't adjust color scale for A/B.
+    }
+
+    if (this.colorScaleThresholdCache[colorKey]) {
+        const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
+        this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
+        if (changed) {
+            this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+        }
+        return this.colorScale;
+    }
+
+    else {
+        const promises = [];
+        const sameChr = zd.chr1.index === zd.chr2.index;
+        let blockNumber;
+        for (let row = row1; row <= row2; row++) {
+            for (let column = col1; column <= col2; column++) {
+                if (sameChr && row < column) {
+                    blockNumber = column * zd.blockColumnCount + row;
+                }
+                else {
+                    blockNumber = row * zd.blockColumnCount + column;
+                }
+
+                promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
+            }
+        }
+
+        try {
+            this.startSpinner();
+            const blocks = await Promise.all(promises);
+            this.stopSpinner();
+
+            let s = computePercentile(blocks, 95);
+
+            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+
+                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+
+                this.colorScale = new ColorScale(this.colorScale);
+                this.colorScale.setThreshold(s);
+                this.computeColorScale = false;
+                this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+            }
+
+            this.colorScaleThresholdCache[colorKey] = s;
+
+            return this.colorScale;
+        } finally {
+            this.stopSpinner();
+        }
+
+
+    }
+
+}
+
+function computePercentile(blockArray, p) {
+
+    var array = [];
+    blockArray.forEach(function (block) {
+        if (block) {
+            for (let i = 0; i < block.records.length; i++) {
+                array.push(block.records[i].counts);
+            }
+        }
+    });
+    return HICMath.percentile(array, p);
+}
+
+ContactMatrixView.prototype.startSpinner = function () {
+
+    if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
+        this.browser.$user_interaction_shield.show();
+    }
+    this.$fa_spinner.css("display", "inline-block");
+    this.spinnerCount++;
+};
+
+ContactMatrixView.prototype.stopSpinner = function () {
+    this.spinnerCount--;
+    if (0 === this.spinnerCount) {
+        this.$fa_spinner.css("display", "none");
+    }
+    this.spinnerCount = Math.max(0, this.spinnerCount);   // This should not be neccessary
+};
+
+
+function addMouseHandlers$2($viewport) {
+
+    var self = this,
+        isMouseDown = false,
+        isSweepZooming = false,
+        mouseDown,
+        mouseLast,
+        mouseOver,
+        lastWheelTime;
+
+    this.isDragging = false;
+
+    if (!this.browser.isMobile) {
+
+        $viewport.dblclick(function (e) {
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var mouseX = e.offsetX || e.layerX,
+                mouseY = e.offsetY || e.layerX;
+
+            self.browser.zoomAndCenter(1, mouseX, mouseY);
+
+        });
+
+        $viewport.on('mouseover', function (e) {
+            mouseOver = true;
+        });
+
+        $viewport.on('mouseout', function (e) {
+            mouseOver = undefined;
+        });
+
+        $viewport.on('mousedown', function (e) {
+            var eFixed;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (self.browser.$menu.is(':visible')) {
+                self.browser.hideMenu();
+            }
+
+            mouseLast = {x: e.offsetX, y: e.offsetY};
+            mouseDown = {x: e.offsetX, y: e.offsetY};
+
+            isSweepZooming = (true === e.altKey);
+            if (isSweepZooming) {
+                eFixed = $$2.event.fix(e);
+                self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
+            }
+
+            isMouseDown = true;
+
+        });
+
+        $viewport.on('mousemove', function (e) {
+
+            var coords,
+                eFixed,
+                xy;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            coords =
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+
+            // Sets pageX and pageY for browsers that don't support them
+            eFixed = $$2.event.fix(e);
+
+            xy =
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
+
+            const { width, height } = $viewport.get(0).getBoundingClientRect();
+            xy.xNormalized = xy.x / width;
+            xy.yNormalized = xy.y / height;
+
+
+            self.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
+
+            if (true === self.willShowCrosshairs) {
+                self.browser.updateCrosshairs(xy);
+                self.browser.showCrosshairs();
+            }
+
+            if (isMouseDown) { // Possibly dragging
+
+                if (isSweepZooming) {
+
+                    self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
+
+                } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
+
+                    self.isDragging = true;
+
+                    var dx = mouseLast.x - coords.x;
+                    var dy = mouseLast.y - coords.y;
+
+                    // If matrix data is updating shift current map image while we wait
+                    if (self.updating) {
+                        shiftCurrentImage(self, -dx, -dy);
+                    }
+
+                    self.browser.shiftPixels(dx, dy);
+
+                }
+
+                mouseLast = coords;
+            }
+
+
+        });
+        //, 10));
+
+        $viewport.on('mouseup', panMouseUpOrMouseOut);
+
+        $viewport.on('mouseleave', function () {
+
+            self.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
+            self.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
+
+            panMouseUpOrMouseOut();
+        });
+
+        // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
+        // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
+
+        $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+
+        // document level events
+        $$2(document).on('keydown.contact_matrix_view', function (e) {
+            if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                self.willShowCrosshairs = true;
+            }
+        });
+
+        $$2(document).on('keyup.contact_matrix_view', function (e) {
+            self.browser.hideCrosshairs();
+            self.willShowCrosshairs = undefined;
+        });
+
+        // for sweep-zoom allow user to sweep beyond viewport extent
+        // sweep area clamps since viewport mouse handlers stop firing
+        // when the viewport boundary is crossed.
+        $$2(document).on('mouseup.contact_matrix_view', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (isSweepZooming) {
+                isSweepZooming = false;
+                self.sweepZoom.commit();
+            }
+        });
+    }
+
+    function panMouseUpOrMouseOut(e) {
+
+        if (true === self.isDragging) {
+            self.isDragging = false;
+            self.browser.eventBus.post(HICEvent("DragStopped"));
+        }
+
+        isMouseDown = false;
+        mouseDown = mouseLast = undefined;
+    }
+
+    function mouseWheelHandler(e) {
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        var t = Date.now();
+
+        if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
+
+            // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
+            var direction = e.deltaY < 0 ? 1 : -1,
+                coords = api.translateMouseCoordinates(e, $viewport),
+                x = coords.x,
+                y = coords.y;
+            self.browser.wheelClickZoom(direction, x, y);
+            lastWheelTime = t;
+        }
+
+    }
+
+
+    function shiftCurrentImage(self, dx, dy) {
+        var canvasWidth = self.$canvas.width(),
+            canvasHeight = self.$canvas.height(),
+            imageData;
+
+        imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+        self.ctx.putImageData(imageData, dx, dy);
+    }
+
+}
+
+
+/**
+ * Add touch handlers.  Touches are mapped to one of the following application level events
+ *  - double tap, equivalent to double click
+ *  - move
+ *  - pinch
+ *
+ * @param $viewport
+ */
+
+function addTouchHandlers($viewport) {
+
+    var self = this,
+
+        lastTouch, pinch,
+        viewport = $viewport[0];
+
+    /**
+     * Touch start -- 3 possibilities
+     *   (1) beginning of a drag (pan)
+     *   (2) first tap of a double tap
+     *   (3) beginning of a pinch
+     */
+    viewport.ontouchstart = function (ev) {
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
+            offsetX = touchCoords.x,
+            offsetY = touchCoords.y,
+            count = ev.targetTouches.length,
+            timeStamp = ev.timeStamp || Date.now(),
+            resolved = false,
+            dx, dy, dist, direction;
+
+        if (count === 2) {
+            touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
+            offsetX = (offsetX + touchCoords.x) / 2;
+            offsetY = (offsetY + touchCoords.y) / 2;
+        }
+
+        // NOTE: If the user makes simultaneous touches, the browser may fire a
+        // separate touchstart event for each touch point. Thus if there are
+        // two simultaneous touches, the first touchstart event will have
+        // targetTouches length of one and the second event will have a length
+        // of two.  In this case replace previous touch with this one and return
+        if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
+            lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
+            return;
+        }
+
+
+        if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
+
+            direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
+            dx = lastTouch.x - offsetX;
+            dy = lastTouch.y - offsetY;
+            dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
+                self.browser.zoomAndCenter(direction, offsetX, offsetY);
+                lastTouch = undefined;
+                resolved = true;
+            }
+        }
+
+        if (!resolved) {
+            lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
+        }
+    };
+
+    viewport.ontouchmove = throttle(function (ev) {
+
+        var touchCoords1, touchCoords2, t;
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        if (ev.targetTouches.length === 2) {
+
+            // Update pinch  (assuming 2 finger movement is a pinch)
+            touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
+            touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport);
+
+            t = {
+                x1: touchCoords1.x,
+                y1: touchCoords1.y,
+                x2: touchCoords2.x,
+                y2: touchCoords2.y
+            };
+
+            if (pinch) {
+                pinch.end = t;
+            } else {
+                pinch = {start: t};
+            }
+        }
+
+        else {
+            // Assuming 1 finger movement is a drag
+
+            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
+                offsetX = touchCoords.x,
+                offsetY = touchCoords.y;
+            if (lastTouch) {
+                var dx = lastTouch.x - offsetX,
+                    dy = lastTouch.y - offsetY;
+                if (!isNaN(dx) && !isNaN(dy)) {
+                    self.isDragging = true;
+                    self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
+                }
+            }
+
+            lastTouch = {
+                x: offsetX,
+                y: offsetY,
+                timeStamp: ev.timeStamp || Date.now(),
+                count: ev.targetTouches.length
+            };
+        }
+
+    }, 50);
+
+    viewport.ontouchend = function (ev) {
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        if (pinch && pinch.end !== undefined) {
+
+            var startT = pinch.start,
+                endT = pinch.end,
+                dxStart = startT.x2 - startT.x1,
+                dyStart = startT.y2 - startT.y1,
+                dxEnd = endT.x2 - endT.x1,
+                dyEnd = endT.y2 - endT.y1,
+                distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
+                distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
+                scale = distEnd / distStart,
+                deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
+                deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
+                anchorPx = (startT.x1 + startT.x2) / 2,
+                anchorPy = (startT.y1 + startT.y2) / 2;
+
+            if (scale < 0.8 || scale > 1.2) {
+                lastTouch = undefined;
+                self.browser.pinchZoom(anchorPx, anchorPy, scale);
+            }
+        } else if (self.isDragging) {
+            self.isDragging = false;
+            self.browser.eventBus.post(HICEvent("DragStopped"));
+        }
+
+        // a touch end always ends a pinch
+        pinch = undefined;
+
+    };
+
+    function translateTouchCoordinates(e, target) {
+
+        var $target = $$2(target),
+            posx,
+            posy;
+
+        posx = e.pageX - $target.offset().left;
+        posy = e.pageY - $target.offset().top;
+
+        return {x: posx, y: posy}
+    }
+
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including 
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE.
+ *
+ */
+
+const ChromosomeSelectorWidget = function (browser, $parent) {
+
+    var self = this,
+        $label,
+        $selector_container,
+        $doit;
+
+    this.browser = browser;
+
+    this.$container = $$2('<div class="hic-chromosome-selector-widget-container">');
+    $parent.append(this.$container);
+
+    $label = $$2('<div>');
+    this.$container.append($label);
+    $label.text('Chromosomes');
+
+    $selector_container = $$2('<div>');
+    this.$container.append($selector_container);
+
+    this.$x_axis_selector = $$2('<select name="x-axis-selector">');
+    $selector_container.append(this.$x_axis_selector);
+
+    this.$y_axis_selector = $$2('<select name="y-axis-selector">');
+    $selector_container.append(this.$y_axis_selector);
+
+    this.$x_axis_selector.on('change', function (e) {
+
+        if (0 === parseInt($$2(this).val(), 10)) {
+            self.$y_axis_selector.val($$2(this).val());
+        } else if (0 === parseInt(self.$y_axis_selector.val(), 10)) {
+            self.$y_axis_selector.val($$2(this).val());
+        }
+
+    });
+
+    this.$y_axis_selector.on('change', function (e) {
+
+        if (0 === parseInt($$2(this).val(), 10)) {
+            self.$x_axis_selector.val($$2(this).val());
+        } else if (0 === parseInt(self.$x_axis_selector.val(), 10)) {
+            self.$x_axis_selector.val($$2(this).val());
+        }
+
+    });
+
+
+    $doit = $$2('<div>');
+    $selector_container.append($doit);
+
+    $doit.on('click', function (e) {
+        var chr1Index,
+            chr2Index;
+
+        chr1Index = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
+        chr2Index = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
+
+        self.browser.setChromosomes(chr1Index, chr2Index);
+
+    });
+
+    this.dataLoadConfig = {
+        receiveEvent: function (event) {
+            if (event.type === "MapLoad") {
+                self.respondToDataLoadWithDataset(event.data);
+            }
+        }
+    };
+
+    this.browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
+
+    this.locusChangeConfig = {
+        receiveEvent: function (event) {
+            if (event.type === "LocusChange") {
+                self.respondToLocusChangeWithState(event.data.state);
+            }
+        }
+    };
+    this.browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
+
+};
+
+ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function (dataset) {
+
+    var elements,
+        str,
+        $xFound,
+        $yFound;
+
+    this.$x_axis_selector.empty();
+    this.$y_axis_selector.empty();
+
+    elements = _.map(dataset.chromosomes, function (chr, index) {
+        return '<option value=' + index.toString() + '>' + chr.name + '</option>';
+    });
+
+    this.$x_axis_selector.append(elements.join(''));
+    this.$y_axis_selector.append(elements.join(''));
+
+    str = 'option[value=' + this.browser.state.chr1.toString() + ']';
+    $xFound = this.$x_axis_selector.find(str);
+    $xFound.prop('selected', true);
+
+    str = 'option[value=' + this.browser.state.chr2.toString() + ']';
+    $yFound = this.$y_axis_selector.find(str);
+    $yFound.prop('selected', true);
+};
+
+ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function (state) {
+    var ssx,
+        ssy,
+        $xFound,
+        $yFound;
+
+    $xFound = this.$x_axis_selector.find('option');
+    $yFound = this.$y_axis_selector.find('option');
+
+    // this happens when the first dataset is loaded.
+    if (0 === _.size($xFound) || 0 === _.size($yFound)) {
+        return;
+    }
+
+    $xFound = this.$x_axis_selector.find('option:selected');
+    $yFound = this.$y_axis_selector.find('option:selected');
+
+    $xFound.prop('selected', false);
+    $yFound.prop('selected', false);
+
+    // chr1 = parseInt($xFound.val(), 10);
+    // chr2 = parseInt($yFound.val(), 10);
+    // // It is the pair of chromosomes that is important,  1-2 == 2-1,  so update only if the pair does not match
+    // if (false === ((chr1 === state.chr1 && chr2 === state.chr2) || (chr1 === state.chr2 && chr2 === state.chr1))) {
+    //     ssx = 'option[value=' + state.chr1.toString() + ']';
+    //     this.$x_axis_selector.find(ssx).attr('selected', 'selected');
+    //
+    //     ssx = 'option[value=' + state.chr2.toString() + ']';
+    //     this.$y_axis_selector.find(ssx).attr('selected', 'selected');
+    // }
+
+    ssx = 'option[value=' + state.chr1.toString() + ']';
+    ssy = 'option[value=' + state.chr2.toString() + ']';
+
+    this.$x_axis_selector.find(ssx).prop('selected', true);
+    this.$y_axis_selector.find(ssy).prop('selected', true);
+
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const ControlMapWidget = function (browser, $parent) {
+
+    const self = this;
+
+    this.browser = browser;
+
+    // container
+    this.$container = $$2('<div class="hic-control-map-selector-container">');
+    this.$container.hide();
+    $parent.append(this.$container);
+
+    // select
+    this.$select = $$2('<select>');
+    this.$select.attr('name', 'control_map_selector');
+    this.$container.append(this.$select);
+
+    // a-b toggle icon
+    const $toggle_container = $$2('<div>');
+    this.$container.append($toggle_container);
+
+    // cycle button
+    const $cycle_container = $$2('<div>');
+    this.$container.append($cycle_container);
+
+    this.controlMapHash = new ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
+
+    browser.eventBus.subscribe("ControlMapLoad", function (event) {
+        self.controlMapHash.updateOptions(browser.getDisplayMode());
+        self.$container.show();
+    });
+
+    browser.eventBus.subscribe("MapLoad", function (event) {
+        if (!browser.controlDataset) {
+            self.$container.hide();
+        }
+    });
+
+    browser.eventBus.subscribe("DisplayMode", function (event) {
+        self.controlMapHash.updateOptions(event.data);
+    });
+
+};
+
+ControlMapWidget.prototype.toggleDisplayMode = function () {
+    this.controlMapHash.toggleDisplayMode();
+};
+
+ControlMapWidget.prototype.toggleDisplayModeCycle = function () {
+    this.controlMapHash.toggleDisplayModeCycle();
+};
+
+ControlMapWidget.prototype.getDisplayModeCycle = function () {
+    return this.controlMapHash.cycleID;
+};
+
+
+
+const ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
+
+    const self = this;
+
+    this.browser = browser;
+    this.$select = $select;
+    this.$toggle = $toggle;
+    this.$cycle = $cycle;
+
+    // a arrow
+    this.$img_a = $img_a;
+    this.$toggle.append(this.$img_a);
+
+    // b arrow
+    this.$img_b = $img_b;
+    this.$toggle.append(this.$img_b);
+
+    const A = {title: 'A', value: 'A', other: 'B', $hidden: $img_b, $shown: $img_a};
+    const B = {title: 'B', value: 'B', other: 'A', $hidden: $img_a, $shown: $img_b};
+    const AOB = {title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a};
+    const BOA = {title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b};
+
+    this.hash =
+        {
+            'A': A,
+            'B': B,
+            'AOB': AOB,
+            'BOA': BOA
+        };
+
+    this.$select.on('change', function (e) {
+        let value;
+
+        self.disableDisplayModeCycle();
+
+        value = $$2(this).val();
+        self.setDisplayMode(value);
+    });
+
+    this.$toggle.on('click', function (e) {
+        self.disableDisplayModeCycle();
+        self.toggleDisplayMode();
+    });
+
+    // cycle outline
+    this.$cycle_outline = cycle_outline();
+    $cycle.append(this.$cycle_outline);
+
+    // cycle solid
+    this.$cycle_solid = cycle_solid();
+    $cycle.append(this.$cycle_solid);
+    this.$cycle_solid.hide();
+
+    $cycle.on('click', function () {
+        self.toggleDisplayModeCycle();
+    });
+
+    $cycle.hide();
+
+};
+
+ControlMapHash.prototype.disableDisplayModeCycle = function () {
+
+    if (this.cycleID) {
+
+        clearTimeout(this.cycleID);
+        this.cycleID = undefined;
+
+        this.$cycle_solid.hide();
+        this.$cycle_outline.show();
+    }
+
+};
+
+ControlMapHash.prototype.toggleDisplayModeCycle = function () {
+    let self = this;
+
+    if (this.cycleID) {
+
+        this.disableDisplayModeCycle();
+    } else {
+
+        doToggle();
+
+        this.$cycle_solid.show();
+        this.$cycle_outline.hide();
+    }
+
+    function doToggle() {
+        self.cycleID = setTimeout(async function () {
+            await self.toggleDisplayMode();
+            doToggle();
+        }, 2500);
+    }
+
+};
+
+ControlMapHash.prototype.toggleDisplayMode = async function () {
+
+    let displayModeOld,
+        displayModeNew,
+        str;
+
+    displayModeOld = this.browser.getDisplayMode();
+
+    // render new display mode
+    displayModeNew = this.hash[displayModeOld].other;
+    await this.browser.setDisplayMode(displayModeNew);
+
+    // update exchange icon
+    this.hash[displayModeNew].$hidden.hide();
+    this.hash[displayModeNew].$shown.show();
+
+    // update select element
+    str = 'option[value=' + displayModeNew + ']';
+
+    this.$select.find(str).prop('selected', true);
+
+};
+
+ControlMapHash.prototype.setDisplayMode = function (displayMode) {
+
+    setDisplayModeHelper.call(this, displayMode);
+
+    this.browser.setDisplayMode(displayMode);
+};
+
+ControlMapHash.prototype.updateOptions = function (displayMode) {
+    let self = this;
+
+    this.$img_a.hide();
+    this.$img_b.hide();
+
+    this.$select.empty();
+
+    Object.keys(this.hash).forEach(function (key) {
+        let item,
+            option;
+
+        item = self.hash[key];
+
+        option = $$2('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
+
+        if (displayMode === item.value) {
+
+            option.attr('selected', true);
+            item.$shown.show();
+
+            setDisplayModeHelper.call(self, displayMode);
+        }
+
+        self.$select.append(option);
+
+    });
+
+};
+
+function setDisplayModeHelper(displayMode) {
+
+    this.hash[displayMode].$hidden.hide();
+    this.hash[displayMode].$shown.show();
+
+    this.$cycle.show();
+    this.$toggle.show();
+
+    // if ('A' === displayMode || 'B' === displayMode) {
+    //     this.$cycle.show();
+    //     this.$toggle.show();
+    // } else {
+    //     this.$cycle.hide();
+    //     this.$toggle.hide();
+    // }
+
+}
+
+function toggle_arrows_up() {
+    let str,
+        a;
+
+    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+        '    <title>Toggle Maps</title>\n' +
+        '    <desc>Created with Sketch.</desc>\n' +
+        '    <defs></defs>\n' +
+        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+        '        <g id="Group">\n' +
+        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+        '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
+        '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#F8F8F8" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
+        '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#5F5F5F" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
+        '            </g>\n' +
+        '        </g>\n' +
+        '    </g>\n' +
+        '</svg>';
+
+    a = str.split('\n').join(' ');
+
+    return $$2(a);
+}
+
+function toggle_arrows_down() {
+    let str,
+        b;
+
+    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+        '    <title>Toggle Maps</title>\n' +
+        '    <desc>Created with Sketch.</desc>\n' +
+        '    <defs></defs>\n' +
+        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+        '        <g id="Group">\n' +
+        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+        '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
+        '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#5F5F5F" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
+        '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#F8F8F8" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
+        '            </g>\n' +
+        '        </g>\n' +
+        '    </g>\n' +
+        '</svg>';
+
+    b = str.split('\n').join(' ');
+
+    return $$2(b);
+}
+
+function cycle_outline() {
+    let str,
+        b;
+
+    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+        '    <title>Cycle Maps</title>\n' +
+        '    <desc>Created with Sketch.</desc>\n' +
+        '    <defs></defs>\n' +
+        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+        '        <g id="Group" fill="#F8F8F8">\n' +
+        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+        '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.75">\n' +
+        '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
+        '            </g>\n' +
+        '        </g>\n' +
+        '    </g>\n' +
+        '</svg>';
+
+    b = str.split('\n').join(' ');
+
+    return $$2(b);
+
+}
+
+function cycle_solid() {
+    let str,
+        b;
+
+    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
+        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
+        '    <title>Cycle Maps</title>\n' +
+        '    <desc>Created with Sketch.</desc>\n' +
+        '    <defs></defs>\n' +
+        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
+        '        <g id="Group">\n' +
+        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
+        '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill="#5F5F5F" fill-rule="nonzero">\n' +
+        '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
+        '            </g>\n' +
+        '        </g>\n' +
+        '    </g>\n' +
+        '</svg>';
+
+    b = str.split('\n').join(' ');
+
+    return $$2(b);
+
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const LocusGoto = function (browser, $container) {
+
+    this.browser = browser;
+
+    this.$container = $$2("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
+    $container.append(this.$container);
+
+    this.$resolution_selector = $$2('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+    this.$container.append(this.$resolution_selector);
+
+    this.$resolution_selector.on('change', function (e) {
+        browser.parseGotoInput($$2(this).val());
+        $$2(this).blur();
+    });
+
+    this.browser.eventBus.subscribe("LocusChange", this);
+};
+
+LocusGoto.prototype.receiveEvent = function (event) {
+
+    var self = this,
+        bpPerBin,
+        pixelsPerBin,
+        dimensionsPixels,
+        startBP1,
+        startBP2,
+        endBP1,
+        endBP2,
+        xy,
+        state,
+        chr1,
+        chr2;
+
+    if (event.type === "LocusChange") {
+
+        state = event.data.state || self.browser.state;
+        if (0 === state.chr1) {
+            xy = 'All';
+        } else {
+            chr1 = self.browser.dataset.chromosomes[state.chr1];
+            chr2 = self.browser.dataset.chromosomes[state.chr2];
+
+            bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
+            dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+            pixelsPerBin = state.pixelSize;
+
+            startBP1 = 1 + Math.round(state.x * bpPerBin);
+            startBP2 = 1 + Math.round(state.y * bpPerBin);
+
+            endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
+            endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
+
+            xy = chr1.name + ":" + api.numberFormatter(startBP1) + "-" + api.numberFormatter(endBP1) + " " +
+                chr2.name + ":" + api.numberFormatter(startBP2) + "-" + api.numberFormatter(endBP2);
+
+        }
+
+        this.$resolution_selector.val(xy);
+    }
+
+
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const ResolutionSelector = function (browser, $parent) {
+    var self = this;
+
+    this.browser = browser;
+
+    this.$container = $$2("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
+    $parent.append(this.$container);
+
+    // label container
+    this.$label_container = $$2('<div id="hic-resolution-label-container">');
+    this.$container.append(this.$label_container);
+
+    // Resolution (kb)
+    this.$label = $$2("<div>");
+    this.$label_container.append(this.$label);
+    this.$label.text('Resolution (kb)');
+    this.$label.hide();
+
+    // lock/unlock
+    this.$resolution_lock = $$2('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
+    this.$label_container.append(this.$resolution_lock);
+    this.$label_container.on('click', function (e) {
+        self.browser.resolutionLocked = !(self.browser.resolutionLocked);
+        self.setResolutionLock(self.browser.resolutionLocked);
+    });
+
+    this.$resolution_selector = $$2('<select name="select">');
+    this.$container.append(this.$resolution_selector);
+
+    this.$resolution_selector.attr('name', 'resolution_selector');
+
+    this.$resolution_selector.on('change', function (e) {
+        var zoomIndex = parseInt($$2(this).val());
+        self.browser.setZoom(zoomIndex);
+    });
+
+
+    this.browser.eventBus.subscribe("LocusChange", this);
+    this.browser.eventBus.subscribe("MapLoad", this);
+    this.browser.eventBus.subscribe("ControlMapLoad", this);
+};
+
+ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
+    this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+    this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+};
+
+ResolutionSelector.prototype.receiveEvent = function (event) {
+
+    var self = this,
+        htmlString,
+        selectedIndex,
+        isWholeGenome,
+        divisor,
+        list;
+
+    if (event.type === "LocusChange") {
+
+        if (true === event.data.resolutionChanged) {
+            this.browser.resolutionLocked = false;
+            self.setResolutionLock(this.browser.resolutionLocked);
+        }
+
+        isWholeGenome = (0 === event.data.state.chr1);
+
+        this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
+
+        selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
+        divisor = isWholeGenome ? 1e6 : 1e3;
+        list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
+
+        htmlString = optionListHTML(list, selectedIndex, divisor);
+        this.$resolution_selector.empty();
+        this.$resolution_selector.append(htmlString);
+
+        this.$resolution_selector
+            .find('option')
+            .filter(function (index) {
+                return index === selectedIndex;
+            })
+            .prop('selected', true);
+
+
+    } else if (event.type === "MapLoad") {
+
+        this.browser.resolutionLocked = false;
+        this.setResolutionLock(this.browser.resolutionLocked);
+
+        htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
+        this.$resolution_selector.empty();
+        this.$resolution_selector.append(htmlString);
+    } else if (event.type === "ControlMapLoad") ;
+
+    function optionListHTML(resolutions, selectedIndex, divisor) {
+        var list;
+
+        list = resolutions.map(function (resolution, index) {
+            var selected, unit, pretty;
+
+            if (resolution >= 1e6) {
+                divisor = 1e6;
+                unit = 'mb';
+            } else if (resolution >= 1e3) {
+                divisor = 1e3;
+                unit = 'kb';
+            } else {
+                divisor = 1;
+                unit = 'bp';
+            }
+
+            pretty = api.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
+            selected = selectedIndex === index;
+
+            if (resolution)
+                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+            else
+                return ''
+        });
+
+        return list.join('');
+    }
+
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const ColorScaleWidget = function (browser, $container) {
+
+    var self = this,
+        $fa,
+        rgbString;
+
+    this.browser = browser;
+
+    this.$container = $$2('<div class="hic-colorscale-widget-container">');
+    $container.append(this.$container);
+
+
+    // '-' color swatch
+    rgbString = getRGBString(browser, '-', "blue");                    // TODO -- get the default from browser.
+    this.$minusButton = colorSwatch(rgbString);
+    this.$container.append(this.$minusButton);
+    this.$minusButton.hide();
+
+    this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
+        self.minusColorPicker.$container.hide();
+    });
+
+    this.minusColorPicker.$container.hide();
+
+    // '+' color swatch
+    rgbString = getRGBString(browser, '+', "red");                     // TODO -- get the default from browser
+    this.$plusButton = colorSwatch(rgbString);
+    this.$container.append(this.$plusButton);
+
+    this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', function () {
+        self.plusColorPicker.$container.hide();
+    });
+
+    this.plusColorPicker.$container.hide();
+
+    this.$minusButton.on('click', function (e) {
+        self.presentColorPicker($$2(this), self.minusColorPicker.$container);
+    });
+
+    this.$plusButton.on('click', function (e) {
+        self.presentColorPicker($$2(this), self.plusColorPicker.$container);
+    });
+
+
+    // threshold
+    this.$high_colorscale_input = $$2('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});
+    this.$container.append(this.$high_colorscale_input);
+    this.$high_colorscale_input.on('change', function (e) {
+        var numeric;
+        numeric = api.numberUnFormatter($$2(this).val());
+        if (isNaN(numeric)) ; else {
+            browser.setColorScaleThreshold(numeric);
+        }
+    });
+
+    // threshold -
+    $fa = $$2("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
+    $fa.on('click', function (e) {
+        updateThreshold(1.0 / 2.0);
+    });
+    this.$container.append($fa);
+
+    // threshold +
+    $fa = $$2("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold'});
+    $fa.on('click', function (e) {
+        updateThreshold(2.0);
+    });
+    this.$container.append($fa);
+
+
+    this.browser.eventBus.subscribe("MapLoad", this);
+    this.browser.eventBus.subscribe("ColorScale", this);
+    this.browser.eventBus.subscribe("DisplayMode", this);
+
+    function updateThreshold(scaleFactor) {
+        var threshold, colorScale;
+        colorScale = browser.getColorScale();
+        threshold = colorScale.getThreshold() * scaleFactor;
+        browser.setColorScaleThreshold(threshold);
+        self.$high_colorscale_input.val(api.numberFormatter(colorScale.getThreshold()));
+    }
+
+};
+
+ColorScaleWidget.prototype.receiveEvent = function (event) {
+
+    if ('ColorScale' === event.type) {
+        this.$high_colorscale_input.val(event.data.threshold);
+        this.$plusButton.find('.fa-square').css({color: api.Color.rgbColor(event.data.r, event.data.g, event.data.b)});
+    } else if ("DisplayMode" === event.type) {
+
+        if ("AOB" === event.data || "BOA" === event.data) {
+            this.$minusButton.show();
+        } else {
+            this.$minusButton.hide();
+        }
+    }
+
+
+};
+
+ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
+
+    this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+    this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+    this.$presentingButton = $presentingButton;
+    this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+    $colorpicker.show();
+};
+
+function getRGBString(browser, type, defaultColor) {
+    var colorScale, comps;
+
+    colorScale = browser.getColorScale();
+    if (colorScale) {
+        comps = colorScale.getColorComponents(type);
+        return api.Color.rgbColor(comps.r, comps.g, comps.b);
+    }
+    else {
+        return defaultColor;
+    }
+}
+
+function createColorPicker(browser, $presentingButton, type, closeHandler) {
+
+    const config =
+        {
+            $parent: $presentingButton,
+            width: 456,
+            height: undefined,
+            closeHandler: closeHandler
+        };
+
+    let colorPicker = new api.GenericContainer(config);
+
+//    igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
+
+
+    return colorPicker;
+}
+
+function colorSwatch(rgbString, doPlusOrMinusOrUndefined) {
+    var $swatch,
+        $fa;
+
+    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
+
+    $fa = $$2('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
+    $swatch.append($fa);
+    $fa.css({color: rgbString});
+
+    // if (undefined === doPlusOrMinusOrUndefined) {
+    //     $fa = $('<i>', { class: 'fa fa-square fa-lg' });
+    //     $swatch.append($fa);
+    //     $fa.css({color: rgbString});
+    //
+    // } else {
+    //
+    //     $span = $('<span>', { class: 'fa-stack' });
+    //     $swatch.append($span);
+    //
+    //     // background square
+    //     $fa_square = $('<i>', { class: 'fa fa-square fa-stack-2x' });
+    //     $span.append($fa_square);
+    //     $fa_square.css({ color: rgbString, '-webkit-text-stroke-width':'2px', '-webkit-text-stroke-color':'transparent' });
+    //
+    //     // foreground +/-
+    //     // str = '+' === doPlusOrMinusOrUndefined ? 'fa fa-plus fa-stack-1x' : 'fa fa-minus fa-stack-1x';
+    //     str = '';
+    //     $fa_plus_minus = $('<i>', { class: str });
+    //     $span.append($fa_plus_minus);
+    //     $fa_plus_minus.css({ color: 'white' });
+    //
+    // }
+
+
+    return $swatch;
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+var labels =
+    {
+        NONE: 'None',
+        VC: 'Coverage',
+        VC_SQRT: 'Coverage - Sqrt',
+        KR: 'Balanced',
+        INTER_VC: 'Interchromosomal Coverage',
+        INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
+        INTER_KR: 'Interchromosomal Balanced',
+        GW_VC: 'Genome-wide Coverage',
+        GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
+        GW_KR: 'Genome-wide Balanced'
+    };
+
+const NormalizationWidget = function (browser, $parent) {
+    var self = this,
+        $label;
+
+    this.browser = browser;
+
+    // container
+    this.$container = $$2("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
+    $parent.append(this.$container);
+
+    // label
+    $label = $$2('<div>');
+    $label.text('Norm');
+    this.$container.append($label);
+    // $label.hide();
+
+    // select
+    this.$normalization_selector = $$2('<select name="select">');
+    this.$normalization_selector.attr('name', 'normalization_selector');
+    this.$normalization_selector.on('change', function (e) {
+        self.browser.setNormalization($$2(this).val());
+    });
+    this.$container.append(this.$normalization_selector);
+
+    // spinner
+    this.$spinner = $$2('<div>');
+    this.$spinner.text('Loading ...');
+    this.$container.append(this.$spinner);
+    this.$spinner.hide();
+
+    this.browser.eventBus.subscribe("MapLoad", this);
+    this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
+    this.browser.eventBus.subscribe("NormalizationFileLoad", this);
+    this.browser.eventBus.subscribe("NormalizationExternalChange", this);
+
+};
+
+NormalizationWidget.prototype.startNotReady = function () {
+    this.$normalization_selector.hide();
+    this.$spinner.show();
+};
+
+NormalizationWidget.prototype.stopNotReady = function () {
+    this.$spinner.hide();
+    this.$normalization_selector.show();
+};
+
+NormalizationWidget.prototype.receiveEvent = function (event) {
+
+    // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
+    // if ("MapLoad" === event.type) {
+    //     // TODO -- start norm widget "not ready" state
+    //     this.startNotReady();
+    //
+    //     updateOptions.call(this);
+    //
+    // } else
+    if ("NormVectorIndexLoad" === event.type) {
+
+        updateOptions.call(this);
+
+        // TODO -- end norm widget "not ready" state
+        this.stopNotReady();
+
+    } else if ("NormalizationFileLoad" === event.type) {
+        if (event.data === "start") {
+            this.startNotReady();
+        } else {
+            this.stopNotReady();
+        }
+    } else if ("NormalizationExternalChange" === event.type) {
+
+        var filter = this.$normalization_selector
+            .find('option')
+            .filter(function (index) {
+                var s1 = this.value;
+                var s2 = event.data;
+                return s1 === s2;
+            })
+            .prop('selected', true);
+    }
+
+    async function updateOptions() {
+        var dataset = event.data,
+            normalizationTypes,
+            elements,
+            norm = this.browser.state.normalization;
+
+        normalizationTypes = await dataset.getNormalizationOptions();
+        if (normalizationTypes) {
+            elements = normalizationTypes.map(function (normalization) {
+                var label,
+                    labelPresentation,
+                    isSelected,
+                    titleString,
+                    valueString;
+
+                label = labels[normalization] || normalization;
+                isSelected = (norm === normalization);
+                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+
+                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
+            });
+
+            this.$normalization_selector.empty();
+            this.$normalization_selector.append(elements.join(''));
+        }
+    }
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const Ruler = function (browser, axis, $parent) {
+    var id;
+
+    this.browser = browser;
+    this.axis = axis;
+
+    id = browser.id + '_' + this.axis + '-axis';
+    this.$axis = $$2("<div>", {id: id});
+    $parent.append(this.$axis);
+
+    // canvas
+    this.$canvas = $$2('<canvas>');
+    this.$axis.append(this.$canvas);
+
+    this.$canvas.width(this.$axis.width());
+    this.$canvas.attr('width', this.$axis.width());
+
+    this.$canvas.height(this.$axis.height());
+    this.$canvas.attr('height', this.$axis.height());
+
+    // whole genome container
+    id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
+    this.$wholeGenomeContainer = $$2("<div>", {id: id});
+    this.$axis.append(this.$wholeGenomeContainer);
+
+    this.ctx = this.$canvas.get(0).getContext("2d");
+
+    this.yAxisTransformWithContext = function (context) {
+        context.scale(-1, 1);
+        context.rotate(Math.PI / 2.0);
+    };
+
+    this.setAxisTransform(axis);
+
+    this.browser.eventBus.subscribe('MapLoad', this);
+    this.browser.eventBus.subscribe("UpdateContactMapMousePosition", this);
+
+
+};
+
+Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axisName, dataset) {
+
+    var self = this,
+        list,
+        dimen,
+        extent,
+        scraps,
+        $div,
+        $firstDiv,
+        $e,
+        className;
+
+    // discard current tiles
+    $wholeGenomeContainer.empty();
+
+    list = dataset.chromosomes.filter(function (chromosome) {
+        return 'all' !== chromosome.name.toLowerCase();
+    });
+
+    extent = 0;    // could use reduce for this
+    list.forEach(function (chromosome) {
+        extent += chromosome.size;
+    });
+
+
+    dimen = 'x' === axisName ? $axis.width() : $axis.height();
+    scraps = 0;
+    this.bboxes = [];
+    $firstDiv = undefined;
+
+    list.forEach(function (chr) {
+        var size,
+            percentage;
+
+        percentage = (chr.bpLength) / extent;
+
+        if (percentage * dimen < 1.0) {
+            scraps += percentage;
+        } else {
+
+            className = self.axis + '-axis-whole-genome-chromosome-container';
+            $div = $$2("<div>", {class: className});
+            $wholeGenomeContainer.append($div);
+            $div.data('label', chr.name);
+
+            if (!$firstDiv) {
+                $firstDiv = $div;
+            }
+
+            if ('x' === axisName) {
+                size = Math.round(percentage * dimen) - 2;
+                $div.width(size);
+            } else {
+                size = Math.round(percentage * dimen) - 2;
+                $div.height(size);
+            }
+
+            className = self.axis + '-axis-whole-genome-chromosome';
+            $e = $$2("<div>", {class: className});
+            $div.append($e);
+            $e.text($div.data('label'));
+            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
+
+            decorate.call(self, $div);
+        }
+
+    });
+
+    scraps *= dimen;
+    scraps = Math.floor(scraps);
+    if (scraps >= 1) {
+
+        className = self.axis + '-axis-whole-genome-chromosome-container';
+        $div = $$2("<div>", {class: className});
+        $wholeGenomeContainer.append($div);
+        $div.data('label', '-');
+
+        $div.width(scraps);
+
+        className = self.axis + '-axis-whole-genome-chromosome';
+        $e = $$2("<div>", {class: className});
+        $div.append($e);
+        $e.text($div.data('label'));
+        // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
+
+        decorate.call(self, $div);
+    }
+
+    $wholeGenomeContainer.children().each(function (index) {
+        self.bboxes.push(bbox(axisName, $$2(this), $firstDiv));
+    });
+
+
+    // initially hide
+    this.hideWholeGenome();
+
+    function decorate($d) {
+        var self = this;
+
+        $d.on('click', function (e) {
+            var $o;
+            $o = $$2(this).first();
+            self.browser.parseGotoInput($o.text());
+
+            self.unhighlightWholeChromosome();
+            self.otherRuler.unhighlightWholeChromosome();
+        });
+
+        // DIAGNOSTIC BACKGROUND COLOR
+        // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
+        // return;
+
+        $d.hover(
+            function () {
+                hoverHandler.call(self, $$2(this), true);
+            },
+
+            function () {
+                hoverHandler.call(self, $$2(this), false);
+            }
+        );
+
+    }
+
+    function hoverHandler($e, doHover) {
+
+        var target,
+            $target;
+
+        target = $e.data('label');
+
+        this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
+            if (target === $$2(this).data('label')) {
+                $target = $$2(this);
+            }
+        });
+
+        if (true === doHover) {
+            $e.addClass('hic-whole-genome-chromosome-highlight');
+            $target.addClass('hic-whole-genome-chromosome-highlight');
+        } else {
+            $e.removeClass('hic-whole-genome-chromosome-highlight');
+            $target.removeClass('hic-whole-genome-chromosome-highlight');
+        }
+    }
+
+};
+
+function bbox(axis, $child, $firstChild) {
+    var delta,
+        size,
+        o,
+        fo;
+
+    o = 'x' === axis ? $child.offset().left : $child.offset().top;
+    fo = 'x' === axis ? $firstChild.offset().left : $firstChild.offset().top;
+
+    delta = o - fo;
+    size = 'x' === axis ? $child.width() : $child.height();
+
+    return {$e: $child, a: delta, b: delta + size};
+
+}
+
+function hitTest(bboxes, value) {
+    var $result,
+        success;
+
+    success = false;
+    $result = undefined;
+    bboxes.forEach(function (bbox) {
+
+        if (false === success) {
+
+            if (value < bbox.a) ; else if (value > bbox.b) ; else {
+                $result = bbox.$e;
+                success = true;
+            }
+
+        }
+
+    });
+
+    return $result;
+}
+
+Ruler.prototype.hideWholeGenome = function () {
+    this.$wholeGenomeContainer.hide();
+    this.$canvas.show();
+};
+
+Ruler.prototype.showWholeGenome = function () {
+    this.$canvas.hide();
+    this.$wholeGenomeContainer.show();
+};
+
+Ruler.prototype.setAxisTransform = function (axis) {
+
+    this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext$1;
+
+    this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) {
+    };
+
+};
+
+Ruler.prototype.unhighlightWholeChromosome = function () {
+    this.$wholeGenomeContainer.children().removeClass('hic-whole-genome-chromosome-highlight');
+};
+
+Ruler.prototype.receiveEvent = function (event) {
+    var offset,
+        $e;
+
+    if ('MapLoad' === event.type) {
+        this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
+    } else if ('UpdateContactMapMousePosition' === event.type) {
+
+        if (this.bboxes) {
+            this.unhighlightWholeChromosome();
+            offset = 'x' === this.axis ? event.data.x : event.data.y;
+            $e = hitTest(this.bboxes, offset);
+            if ($e) {
+                // console.log(this.axis + ' highlight chr ' + $e.text());
+                $e.addClass('hic-whole-genome-chromosome-highlight');
+            }
+        }
+    }
+
+};
+
+Ruler.prototype.locusChange = function (event) {
+
+    this.update();
+
+};
+
+Ruler.prototype.updateWidthWithCalculation = function (calc) {
+
+    this.$axis.css('width', calc);
+
+    this.$canvas.width(this.$axis.width());
+    this.$canvas.attr('width', this.$axis.width());
+
+    this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
+
+    this.update();
+};
+
+Ruler.prototype.updateHeight = function (height) {
+
+    this.$canvas.height(height);
+    this.$canvas.attr('height', height);
+
+    this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
+
+    this.update();
+};
+
+Ruler.prototype.update = function () {
+
+    var w,
+        h,
+        bin,
+        config = {},
+        browser = this.browser;
+
+    if (isBrowserInWholeGenomeView(browser.state)) {
+        this.showWholeGenome();
+        return;
+    }
+
+    this.hideWholeGenome();
+
+    identityTransformWithContext$1(this.ctx);
+    api.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: api.Color.rgbColor(255, 255, 255)});
+
+    this.canvasTransform(this.ctx);
+
+    w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
+    h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
+
+    api.graphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: api.Color.rgbColor(255, 255, 255)});
+
+    config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
+
+    bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
+    config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];
+
+    config.rulerTickMarkReferencePixels = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
+
+    config.rulerLengthPixels = w;
+    config.rulerHeightPixels = h;
+
+    config.height = Math.min(this.$canvas.width(), this.$canvas.height());
+
+    this.draw(config);
+};
+
+Ruler.prototype.draw = function (options) {
+
+    var fontStyle,
+        tickSpec,
+        majorTickSpacing,
+        nTick,
+        pixelLast,
+        pixel,
+        tickSpacingPixels,
+        labelWidthPixels,
+        modulo,
+        l,
+        yShim,
+        tickHeight,
+        rulerLabel,
+        chrSize,
+        chrName,
+        chromosomes = this.browser.dataset.chromosomes;
+
+    chrName = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].name : chromosomes[this.browser.state.chr2].name;
+    chrSize = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].size : chromosomes[this.browser.state.chr2].size;
+
+    if (options.chrName === "all") ; else {
+
+        api.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: api.Color.rgbColor(255, 255, 255)});
+
+        fontStyle = {
+            textAlign: 'center',
+            font: '9px PT Sans',
+            fillStyle: "rgba(64, 64, 64, 1)",
+            strokeStyle: "rgba(64, 64, 64, 1)"
+        };
+
+        tickSpec = findSpacing(Math.floor(options.rulerTickMarkReferencePixels * options.bpPerPixel));
+        majorTickSpacing = tickSpec.majorTick;
+
+        // Find starting point closest to the current origin
+        nTick = Math.floor(options.bpStart / majorTickSpacing) - 1;
+
+        pixel = pixelLast = 0;
+
+        api.graphics.setProperties(this.ctx, fontStyle);
+        this.ctx.lineWidth = 1.0;
+
+        yShim = 1;
+        tickHeight = 8;
+        while (pixel < options.rulerLengthPixels) {
+
+            l = Math.floor(nTick * majorTickSpacing);
+
+            pixel = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
+
+            rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
+
+            tickSpacingPixels = Math.abs(pixel - pixelLast);
+            labelWidthPixels = this.ctx.measureText(rulerLabel).width;
+
+            if (labelWidthPixels > tickSpacingPixels) {
+
+                if (tickSpacingPixels < 32) {
+                    modulo = 4;
+                } else {
+                    modulo = 2;
+                }
+            } else {
+                modulo = 1;
+            }
+
+            // modulo = 1;
+            if (0 === nTick % modulo) {
+
+                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
+
+                    // console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
+
+                    this.ctx.save();
+                    this.labelReflectionTransform(this.ctx, pixel);
+                    api.graphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
+                    this.ctx.restore();
+
+                }
+
+            }
+
+            if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
+                api.graphics.strokeLine(this.ctx,
+                    pixel, options.height - tickHeight,
+                    pixel, options.height - yShim);
+            }
+
+            pixelLast = pixel;
+            nTick++;
+
+        } // while (pixel < options.rulerLengthPixels)
+
+        api.graphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
+
+    }
+
+    function formatNumber(anynum, decimal) {
+        //decimal  - the number of decimals after the digit from 0 to 3
+        //-- Returns the passed number as a string in the xxx,xxx.xx format.
+        //anynum = eval(obj.value);
+        var divider = 10;
+        switch (decimal) {
+            case 0:
+                divider = 1;
+                break;
+            case 1:
+                divider = 10;
+                break;
+            case 2:
+                divider = 100;
+                break;
+            default:       //for 3 decimal places
+                divider = 1000;
+        }
+
+        var workNum = Math.abs((Math.round(anynum * divider) / divider));
+
+        var workStr = "" + workNum;
+
+        if (-1 === workStr.indexOf(".")) {
+            workStr += ".";
+        }
+
+        var dStr = workStr.substr(0, workStr.indexOf("."));
+        var dNum = dStr - 0;
+        var pStr = workStr.substr(workStr.indexOf("."));
+
+        while (pStr.length - 1 < decimal) {
+            pStr += "0";
+        }
+
+        if ('.' === pStr) {
+            pStr = '';
+        }
+
+        //--- Adds a comma in the thousands place.
+        if (dNum >= 1000) {
+            var dLen = dStr.length;
+            dStr = parseInt("" + (dNum / 1000)) + "," + dStr.substring(dLen - 3, dLen);
+        }
+
+        //-- Adds a comma in the millions place.
+        if (dNum >= 1000000) {
+            dLen = dStr.length;
+            dStr = parseInt("" + (dNum / 1000000)) + "," + dStr.substring(dLen - 7, dLen);
+        }
+        var retval = dStr + pStr;
+        //-- Put numbers in parentheses if negative.
+        if (anynum < 0) {
+            retval = "(" + retval + ")";
+        }
+
+        //You could include a dollar sign in the return value.
+        //retval =  "$"+retval
+        return retval;
+    }
+
+};
+
+function isBrowserInWholeGenomeView(state) {
+    return 0 === state.chr1 && state.chr1 === state.chr1;
+}
+
+function TickSpacing(majorTick, majorUnit, unitMultiplier) {
+    this.majorTick = majorTick;
+    this.majorUnit = majorUnit;
+    this.unitMultiplier = unitMultiplier;
+}
+
+function findSpacing(rulerLengthBP) {
+
+    if (rulerLengthBP < 10) {
+        return new TickSpacing(1, "", 1);
+    }
+
+
+    // How many zeroes?
+    var nZeroes = Math.floor(log10(rulerLengthBP));
+    var majorUnit = "";
+    var unitMultiplier = 1;
+    if (nZeroes > 9) {
+        majorUnit = "gb";
+        unitMultiplier = 1000000000;
+    }
+    if (nZeroes > 6) {
+        majorUnit = "mb";
+        unitMultiplier = 1000000;
+    } else if (nZeroes > 3) {
+        majorUnit = "kb";
+        unitMultiplier = 1000;
+    }
+
+    var nMajorTicks = rulerLengthBP / Math.pow(10, nZeroes - 1);
+    if (nMajorTicks < 25) {
+        return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
+    } else {
+        return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
+    }
+
+    function log10(x) {
+        var dn = Math.log(10);
+        return Math.log(x) / dn;
+    }
+}
+
+function reflectionTransformWithContext(context, exe) {
+    context.translate(exe, 0);
+    context.scale(-1, 1);
+    context.translate(-exe, 0);
+}
+
+function identityTransformWithContext$1(context) {
+    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+    context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/**
+ * Created by dat on 4/5/17.
+ */
+
+const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
+
+    this.browser = browser;
+
+    this.trackRenderPair = trackRenderPair;
+
+    this.track = trackPair[axis];
+
+    this.id = _.uniqueId('trackRenderer_');
+    this.axis = axis;
+    this.initializationHelper($container, size, order);
+};
+
+TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
+
+    var str,
+        doShowLabelAndGear,
+        $x_track_label;
+
+    // track canvas container
+    this.$viewport = ('x' === this.axis) ? $$2('<div class="x-track-canvas-container">') : $$2('<div class="y-track-canvas-container">');
+    if (size.width) {
+        this.$viewport.width(size.width);
+    }
+    if (size.height) {
+        this.$viewport.height(size.height);
+    }
+    $container.append(this.$viewport);
+    this.$viewport.css({order: order});
+
+    // canvas
+    this.$canvas = $$2('<canvas>');
+    this.$viewport.append(this.$canvas);
+    this.ctx = this.$canvas.get(0).getContext("2d");
+
+    if ('x' === this.axis) {
+
+        // label
+        this.$label = $$2('<div class="x-track-label">');
+        str = this.track.name || 'untitled';
+        this.$label.text(str);
+
+        // note the pre-existing state of track labels/gear. hide/show accordingly.
+        $x_track_label = $container.find(this.$label);
+        doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
+
+        this.$viewport.append(this.$label);
+    }
+
+    // track spinner container
+    this.$spinner = ('x' === this.axis) ? $$2('<div class="x-track-spinner">') : $$2('<div class="y-track-spinner">');
+    this.$viewport.append(this.$spinner);
+
+
+    this.stopSpinner();
+
+    // color picker
+    if ('x' === this.axis) {
+        this.colorPicker = createColorPicker_ColorScaleWidget_version(this.$viewport, () => {
+            this.colorPicker.$container.hide();
+        }, (color) => {
+            this.setColor(color);
+        });
+        this.colorPicker.$container.hide();
+    }
+
+    if ('x' === this.axis) {
+
+        // igvjs compatibility
+        this.track.trackView = this;
+        this.track.trackView.trackDiv = this.$viewport.get(0);
+
+        api.appendRightHandGutter.call(this, this.$viewport);
+
+        this.$viewport.on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $container.find('.x-track-label').toggle();
+            $container.find('.igv-right-hand-gutter').toggle();
+        });
+
+    }
+
+    this.configTrackTransforms();
+
+};
+
+TrackRenderer.prototype.configTrackTransforms = function () {
+
+    this.canvasTransform = ('y' === this.axis) ? reflectionRotationWithContext : identityTransformWithContext;
+
+    this.labelReflectionTransform = ('y' === this.axis) ? reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */
+    };
+
+};
+
+TrackRenderer.prototype.syncCanvas = function () {
+
+    this.$canvas.width(this.$viewport.width());
+    this.$canvas.attr('width', this.$viewport.width());
+
+    this.$canvas.height(this.$viewport.height());
+    this.$canvas.attr('height', this.$viewport.height());
+
+};
+
+TrackRenderer.prototype.presentColorPicker = function () {
+    const bbox = this.trackDiv.getBoundingClientRect();
+    this.colorPicker.origin = {x: bbox.x, y: 0};
+    this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
+    this.colorPicker.$container.show();
+};
+
+TrackRenderer.prototype.setTrackName = function (name) {
+
+    if ('x' === this.axis) {
+        this.track.name = name;
+        this.$label.text(name);
+    }
+};
+
+TrackRenderer.prototype.setColor = function (color) {
+
+    setColor(this.trackRenderPair.x);
+    setColor(this.trackRenderPair.y);
+
+    function setColor(trackRenderer) {
+        trackRenderer.tile = undefined;
+        trackRenderer.track.color = color;
+    }
+
+    this.browser.renderTrackXY(this.trackRenderPair);
+
+};
+
+TrackRenderer.prototype.setTrackHeight = function (height) {
+    // TODO fix me -- height should apply to both axes.  This method called by gear menu list item
+    console.error("setTrackHeight not implemented");
+};
+
+TrackRenderer.prototype.dataRange = function () {
+    return this.track.dataRange ? this.track.dataRange : undefined;
+};
+
+TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
+
+    if (min !== undefined) {
+        this.track.dataRange.min = min;
+        this.track.config.min = min;
+    }
+
+    if (max !== undefined) {
+        this.track.dataRange.max = max;
+        this.track.config.max = max;
+    }
+
+    this.track.autoscale = autoscale;
+    this.track.config.autoScale = autoscale;
+
+    this.repaint();
+};
+
+
+/**
+ * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
+ * and drawing tile if neccessary.
+ *
+ * @returns {*}
+ */
+TrackRenderer.prototype.readyToPaint = async function () {
+
+    var self = this,
+        lengthPixel, lengthBP, startBP, endBP;
+
+    const genomicState = self.browser.genomicState(self.axis);
+    const chrName = genomicState.chromosome.name;
+
+    const bpp = "all" === chrName.toLowerCase() ?
+        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
+        genomicState.bpp;
+
+    if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
+
+        return;
+
+    } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
+
+        return;
+
+    } else {
+
+        // Expand the requested range so we can pan a bit without reloading
+        lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
+        lengthBP = Math.round(bpp * lengthPixel);
+        startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
+        endBP = startBP + lengthBP;
+
+        const features = await self.track.getFeatures(genomicState.chromosome.name, startBP, endBP, bpp);
+
+
+        var buffer, ctx;
+        buffer = document.createElement('canvas');
+        buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
+        buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
+        ctx = buffer.getContext("2d");
+        if (features) {
+
+            if (typeof self.track.doAutoscale === 'function') {
+                self.track.doAutoscale(features);
+            } else {
+                self.track.dataRange = api.doAutoscale(features);
+            }
+
+            self.canvasTransform(ctx);
+
+            self.drawConfiguration =
+                {
+                    features: features,
+                    context: ctx,
+                    pixelWidth: lengthPixel,
+                    pixelHeight: Math.min(buffer.width, buffer.height),
+                    bpStart: startBP,
+                    bpEnd: endBP,
+                    bpPerPixel: bpp,
+                    genomicState: genomicState,
+                    viewportContainerX: (genomicState.startBP - startBP) / bpp,
+                    viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
+                    labelTransform: self.labelReflectionTransform
+                };
+
+            self.track.draw(self.drawConfiguration);
+
+
+        } else {
+            ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
+        }
+
+        self.tile = new Tile$1(chrName, startBP, endBP, bpp, buffer);
+
+        return self.tile
+    }
+};
+
+/**
+ *
+ */
+TrackRenderer.prototype.repaint = async function () {
+
+    const genomicState = this.browser.genomicState(this.axis);
+    if (!this.checkZoomIn()) {
+        this.tile = undefined;
+        this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
+    }
+
+    const chrName = genomicState.chromosome.name;
+    const bpp = "all" === chrName.toLowerCase() ?
+        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
+        genomicState.bpp;
+
+    if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
+        await this.readyToPaint();
+    }
+    this.drawTileWithGenomicState(this.tile, genomicState);
+};
+
+TrackRenderer.prototype.checkZoomIn = function () {
+
+    if (this.track.visibilityWindow && this.track.visibilityWindow > 0) {
+
+        if ((genomicState.bpp * Math.max(this.$canvas.width(), this.$canvas.height()) > this.track.visibilityWindow)) {
+            return false;
+        }
+    }
+    return true;
+};
+
+TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
+
+    if (tile) {
+
+        this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
+
+        this.offsetPixel = Math.round((tile.startBP - genomicState.startBP) / genomicState.bpp);
+        if ('x' === this.axis) {
+            this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
+        } else {
+            this.ctx.drawImage(tile.buffer, 0, this.offsetPixel);
+        }
+
+        // this.ctx.save();
+        // this.ctx.restore();
+    }
+};
+
+TrackRenderer.prototype.startSpinner = function () {
+    this.browser.startSpinner();
+};
+
+TrackRenderer.prototype.stopSpinner = function () {
+    this.browser.stopSpinner();
+};
+
+TrackRenderer.prototype.isLoading = function () {
+    return !(undefined === this.loading);
+};
+
+// ColorScaleWidget version of color picker
+function createColorPicker_ColorScaleWidget_version($parent, closeHandler, colorHandler) {
+
+    const config =
+        {
+            $parent: $parent,
+            width: 456,
+            height: undefined,
+            closeHandler: closeHandler
+        };
+
+    let genericContainer = new api.GenericContainer(config);
+
+    api.createColorSwatchSelector(genericContainer.$container, colorHandler);
+
+    return genericContainer;
+}
+
+
+const Tile$1 = function (chr, startBP, endBP, bpp, buffer) {
+    this.chr = chr;
+    this.startBP = startBP;
+    this.endBP = endBP;
+    this.bpp = bpp;
+    this.buffer = buffer;
+};
+
+Tile$1.prototype.containsRange = function (chr, startBP, endBP, bpp) {
+    return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
+
+    var $container;
+
+    this.browser = browser;
+    this.trackListRetrievalCallback = trackListRetrievalCallback;
+
+    $container = $$2("<div>", {class: 'hic-annotation-presentation-button-container'});
+    $parent.append($container);
+
+    annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
+
+    annotationPanel.call(this, this.browser.$root, config.title);
+
+};
+
+AnnotationWidget.prototype.updateBody = function (tracks) {
+
+    var self = this,
+        trackRenderers,
+        isTrack2D,
+        zi;
+
+    self.$annotationPanel.find('.hic-annotation-row-container').remove();
+
+    isTrack2D = (_.first(tracks) instanceof Track2D);
+
+    if (isTrack2D) {
+        // Reverse list to present layers in "z" order.
+        for (zi = tracks.length - 1; zi >= 0; zi--) {
+            annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
+        }
+    } else {
+        trackRenderers = tracks;
+        _.each(trackRenderers, function (trackRenderer) {
+            annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
+        });
+    }
+
+};
+
+function annotationPresentationButton($parent, title, alertMessage) {
+    var self = this,
+        $button;
+
+    $button = $$2('<button>', {type: 'button'});
+    $button.text(title);
+    $parent.append($button);
+
+    $button.on('click', function () {
+        var list;
+
+        list = self.trackListRetrievalCallback();
+        if (list.length > 0) {
+            self.updateBody(self.trackListRetrievalCallback());
+            self.$annotationPanel.toggle();
+        } else {
+            api.Alert.presentAlert(alertMessage);
+        }
+
+        self.browser.hideMenu();
+    });
+}
+
+function annotationPanel($parent, title) {
+
+    var self = this,
+        $panel_header,
+        $div,
+        $fa;
+
+    this.$annotationPanel = $$2('<div>', {class: 'hic-annotation-panel-container'});
+    $parent.append(this.$annotationPanel);
+
+    // close button container
+    $panel_header = $$2('<div>', {class: 'hic-annotation-panel-header'});
+    this.$annotationPanel.append($panel_header);
+
+    // panel title
+    $div = $$2('<div>');
+    $div.text(title);
+    $panel_header.append($div);
+
+    // close button
+    $div = $$2('<div>', {class: 'hic-menu-close-button'});
+    $panel_header.append($div);
+
+    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $div.append($fa);
+
+    $fa.on('click', function (e) {
+        self.$annotationPanel.toggle();
+    });
+
+    // TODO: Continue changes for load functions added to side panel
+    // load container
+    // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
+    // this.$annotationPanel.append($load_container);
+    //
+    // // Load
+    // $div = $('<div>');
+    // $load_container.append($div);
+    // $div.text('Load:');
+    //
+    // // Blah
+    // $div = $('<div>');
+    // $load_container.append($div);
+    // $div.text('Blah');
+
+    //this.$annotationPanel.draggable();
+    api.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
+    this.$annotationPanel.hide();
+}
+
+function annotationPanelRow($container, track) {
+    var self = this,
+        $colorpickerContainer,
+        $colorpickerButton,
+        $row_container,
+        $row,
+        $hideShowTrack,
+        $deleteTrack,
+        $upTrack,
+        $downTrack,
+        $e,
+        $o,
+        hidden_color = '#f7f7f7',
+        str,
+        isTrack2D,
+        trackList,
+        xyTrackRendererPair,
+        trackRenderer,
+        track1D,
+        index,
+        upp,
+        dwn;
+
+    isTrack2D = (track instanceof Track2D);
+    trackList = this.trackListRetrievalCallback();
+
+    if (false === isTrack2D) {
+        xyTrackRendererPair = track;
+        track1D = xyTrackRendererPair.x.track;
+        trackRenderer = xyTrackRendererPair.x.track.trackView;
+    }
+
+    // row container
+    $row_container = $$2('<div>', {class: 'hic-annotation-row-container'});
+    $container.append($row_container);
+
+    // one row
+    $row = $$2('<div>', {class: 'hic-annotation-modal-row'});
+    $row_container.append($row);
+
+    // track name
+    $e = $$2("<div>");
+    $e.text(isTrack2D ? track.config.name : track1D.config.name);
+    $row.append($e);
+
+    // track hide/show
+    if (isTrack2D) {
+        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+        $hideShowTrack = $$2("<i>", {class: str, 'aria-hidden': 'true'});
+        $row.append($hideShowTrack);
+        $hideShowTrack.on('click', function (e) {
+
+            if ($hideShowTrack.hasClass('fa-eye')) {
+                $hideShowTrack.addClass('fa-eye-slash');
+                $hideShowTrack.removeClass('fa-eye');
+                track.isVisible = false;
+            } else {
+                $hideShowTrack.addClass('fa-eye');
+                $hideShowTrack.removeClass('fa-eye-slash');
+                track.isVisible = true;
+            }
+
+            self.browser.contactMatrixView.clearImageCaches();
+            self.browser.contactMatrixView.update();
+
+        });
+    }
+
+    if (isTrack2D) {
+
+        // matrix diagonal widget
+        const $matrix_diagonal_div = $$2('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
+        $row.append($matrix_diagonal_div);
+        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
+            e.preventDefault();
+            matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
+        });
+
+    }
+
+    // color swatch selector button
+    $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
+    $row.append($colorpickerButton);
+
+    // color swatch selector
+    $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
+        $row.next('.hic-color-swatch-container').toggle();
+    });
+
+    $colorpickerButton.on('click', function (e) {
+        $row.next('.hic-color-swatch-container').toggle();
+    });
+
+    $colorpickerContainer.hide();
+
+    api.createColorSwatchSelector($colorpickerContainer, function (color) {
+        var $swatch;
+
+        $swatch = $row.find('.fa-square');
+        $swatch.css({'color': color});
+
+        if (isTrack2D) {
+            track.color = color;
+            self.browser.eventBus.post(HICEvent('TrackState2D', track));
+        } else {
+            trackRenderer.setColor(color);
+        }
+
+    });
+
+
+    // track up/down
+    $e = $$2('<div>', {class: 'up-down-arrow-container'});
+    $row.append($e);
+
+    $upTrack = $$2("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
+    $e.append($upTrack);
+
+    $downTrack = $$2("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
+    $e.append($downTrack);
+
+    if (1 === _.size(trackList)) {
+        $upTrack.css('color', hidden_color);
+        $downTrack.css('color', hidden_color);
+    } else if (track === _.first(trackList)) {
+        $o = isTrack2D ? $downTrack : $upTrack;
+        $o.css('color', hidden_color);
+    } else if (track === _.last(trackList)) {
+        $o = isTrack2D ? $upTrack : $downTrack;
+        $o.css('color', hidden_color);
+    }
+
+    index = _.indexOf(trackList, track);
+
+    upp = function (e) {
+
+        track = trackList[(index + 1)];
+        trackList[(index + 1)] = trackList[index];
+        trackList[index] = track;
+        if (isTrack2D) {
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+            self.updateBody(trackList);
+        } else {
+            self.browser.updateLayout();
+            self.updateBody(trackList);
+        }
+    };
+
+    dwn = function (e) {
+
+        track = trackList[(index - 1)];
+        trackList[(index - 1)] = trackList[index];
+        trackList[index] = track;
+        if (isTrack2D) {
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+            self.updateBody(trackList);
+        } else {
+            self.browser.updateLayout();
+            self.updateBody(trackList);
+        }
+    };
+
+    $upTrack.on('click', isTrack2D ? upp : dwn);
+
+    $downTrack.on('click', isTrack2D ? dwn : upp);
+
+
+    // track delete
+    $deleteTrack = $$2("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
+    $row.append($deleteTrack);
+    $deleteTrack.on('click', function (e) {
+        var index;
+
+        if (isTrack2D) {
+
+            index = _.indexOf(trackList, track);
+
+            trackList.splice(index, 1);
+
+            self.browser.contactMatrixView.clearImageCaches();
+            self.browser.contactMatrixView.update();
+
+            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+        } else {
+            self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
+        }
+
+        self.updateBody(trackList);
+    });
+}
+
+function matrixDiagionalWidgetHandler($icon, track2D) {
+
+    if ($icon.hasClass('matrix-diagonal-widget-all')) {
+
+        $icon.removeClass('matrix-diagonal-widget-all');
+
+        $icon.addClass('matrix-diagonal-widget-lower');
+        track2D.displayMode = Track2DDisplaceModes.displayLowerMatrix;
+    } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+
+        $icon.removeClass('matrix-diagonal-widget-lower');
+
+        $icon.addClass('matrix-diagonal-widget-upper');
+        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix;
+    } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+
+        $icon.removeClass('matrix-diagonal-widget-upper');
+
+        $icon.addClass('matrix-diagonal-widget-all');
+        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+    } else {
+
+        $icon.addClass('matrix-diagonal-widget-all');
+        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+    }
+}
+
+function annotationColorSwatch(rgbString) {
+    var $swatch,
+        $fa;
+
+    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
+
+    $fa = $$2('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
+    $swatch.append($fa);
+
+    $fa.css({color: rgbString});
+
+    return $swatch;
+}
+
+function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
+
+    var $container,
+        $header,
+        $fa;
+
+    $container = $$2('<div>', {class: 'hic-color-swatch-container'});
+    $parent.append($container);
+
+    // width
+    if (config && config.width) {
+        $container.width(config.width);
+    }
+
+    // height
+    if (config && config.height) {
+        $container.height(config.height);
+    }
+
+    // header
+    $header = $$2('<div>');
+    $container.append($header);
+
+    // close button
+    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $header.append($fa);
+
+    $fa.on('click', function (e) {
+        closeHandler();
+    });
+
+    return $container;
+}
+
+/**
+ * Created by dat on 4/4/17.
+ */
+
+const LayoutController = function (browser, $root) {
+
+    this.browser = browser;
+
+    createNavBar.call(this, browser, $root);
+
+    createAllContainers.call(this, browser, $root);
+
+    this.scrollbar_height = 20;
+
+    this.axis_height = 32;
+
+    // track dimension
+    this.track_height = 32;
+
+    // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
+    this.track_margin = 2;
+
+};
+
+// Dupes of corresponding juicebox.scss variables
+// Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
+LayoutController.nav_bar_label_height = 36;
+LayoutController.nav_bar_widget_container_height = 36;
+LayoutController.nav_bar_shim_height = 4;
+
+LayoutController.navbarHeight = function () {
+    var height;
+    height = (2 * LayoutController.nav_bar_label_height) + (2 * LayoutController.nav_bar_widget_container_height) + LayoutController.nav_bar_shim_height;
+    return height;
+};
+
+function createNavBar(browser, $root) {
+
+    var id,
+        $navbar_container,
+        $map_container,
+        $upper_widget_container,
+        $lower_widget_container,
+        $e;
+
+    $navbar_container = $$2('<div class="hic-navbar-container">');
+    $root.append($navbar_container);
+
+
+    $navbar_container.on('click', function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        HICBrowser.setCurrentBrowser(browser);
+    });
+
+    // container: contact map label | menu button | browser delete button
+    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
+    $map_container = $$2("<div>", {id: id});
+    $navbar_container.append($map_container);
+
+    // contact map label
+    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
+    browser.$contactMaplabel = $$2("<div>", {id: id});
+    $map_container.append(browser.$contactMaplabel);
+
+    // navbar button container
+    $e = $$2("<div>", {class: 'hic-nav-bar-button-container'});
+    $map_container.append($e);
+
+    // menu present/dismiss button
+    browser.$menuPresentDismiss = $$2("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
+    $e.append(browser.$menuPresentDismiss);
+    browser.$menuPresentDismiss.on('click', function (e) {
+        browser.toggleMenu();
+    });
+
+    // browser delete button
+    browser.$browser_panel_delete_button = $$2("<i>", {
+        class: 'fa fa-minus-circle fa-lg',
+        'title': 'Delete browser panel'
+    });
+    $e.append(browser.$browser_panel_delete_button);
+
+    browser.$browser_panel_delete_button.on('click', function (e) {
+        deleteBrowserPanel(browser);
+    });
+
+    // hide delete buttons for now. Delete button is only
+    // if there is more then one browser instance.
+    browser.$browser_panel_delete_button.hide();
+
+
+    // container: control map label
+    id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
+    $map_container = $$2("<div>", {id: id});
+    $navbar_container.append($map_container);
+
+    // control map label
+    id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
+    browser.$controlMaplabel = $$2("<div>", {id: id});
+    $map_container.append(browser.$controlMaplabel);
+
+    // upper widget container
+    id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
+    $upper_widget_container = $$2("<div>", {id: id});
+    $navbar_container.append($upper_widget_container);
+
+    // location box / goto
+    browser.locusGoto = new LocusGoto(browser, $upper_widget_container);
+
+    // resolution widget
+    browser.resolutionSelector = new ResolutionSelector(browser, $upper_widget_container);
+    browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
+
+
+    // lower widget container
+    id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
+    $lower_widget_container = $$2("<div>", {id: id});
+    $navbar_container.append($lower_widget_container);
+
+    // colorscale
+    browser.colorscaleWidget = new ColorScaleWidget(browser, $lower_widget_container);
+
+    // control map
+    browser.controlMapWidget = new ControlMapWidget(browser, $lower_widget_container);
+
+    // normalization
+    browser.normalizationSelector = new NormalizationWidget(browser, $lower_widget_container);
+
+
+}
+
+function createAllContainers(browser, $root) {
+
+    var id,
+        $container;
+
+    // .hic-x-track-container
+    id = browser.id + '_' + 'x-track-container';
+    this.$x_track_container = $$2("<div>", {id: id});
+    $root.append(this.$x_track_container);
+
+    // track labels
+    id = browser.id + '_' + 'track-shim';
+    this.$track_shim = $$2("<div>", {id: id});
+    this.$x_track_container.append(this.$track_shim);
+
+    // x-tracks
+    id = browser.id + '_' + 'x-tracks';
+    this.$x_tracks = $$2("<div>", {id: id});
+    this.$x_track_container.append(this.$x_tracks);
+
+    // crosshairs guide
+    id = browser.id + '_' + 'y-track-guide';
+    this.$y_track_guide = $$2("<div>", {id: id});
+    this.$x_tracks.append(this.$y_track_guide);
+
+    // content container
+    id = browser.id + '_' + 'content-container';
+    this.$content_container = $$2("<div>", {id: id});
+    $root.append(this.$content_container);
+
+    // menu
+    createMenu(browser, $root);
+
+    // container: x-axis
+    id = browser.id + '_' + 'x-axis-container';
+    $container = $$2("<div>", {id: id});
+    this.$content_container.append($container);
+    this.xAxisRuler = new Ruler(browser, 'x', $container);
+
+
+    // container: y-tracks | y-axis | viewport | y-scrollbar
+    id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
+    $container = $$2("<div>", {id: id});
+    this.$content_container.append($container);
+
+    // y-tracks
+    id = browser.id + '_' + 'y-tracks';
+    this.$y_tracks = $$2("<div>", {id: id});
+    $container.append(this.$y_tracks);
+
+    // crosshairs guide
+    id = browser.id + '_' + 'x-track-guide';
+    this.$x_track_guide = $$2("<div>", {id: id});
+    this.$y_tracks.append(this.$x_track_guide);
+
+    // y-axis
+    this.yAxisRuler = new Ruler(browser, 'y', $container);
+
+    this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
+    this.xAxisRuler.otherRuler = this.yAxisRuler;
+
+    this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
+    this.yAxisRuler.otherRuler = this.xAxisRuler;
+
+    // viewport | y-scrollbar
+    browser.contactMatrixView = new ContactMatrixView(browser, $container);
+
+    // container: x-scrollbar
+    id = browser.id + '_' + 'x-scrollbar-container';
+    $container = $$2("<div>", {id: id});
+    this.$content_container.append($container);
+
+    // x-scrollbar
+    $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+}
+
+function createMenu(browser, $root) {
+
+    var $menu,
+        $div,
+        $fa,
+        config;
+
+    // menu
+    $menu = $$2('<div>', {class: 'hic-menu'});
+    $root.append($menu);
+
+    // menu close button
+    $div = $$2('<div>', {class: 'hic-menu-close-button'});
+    $menu.append($div);
+
+    // $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
+    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $div.append($fa);
+
+    $fa.on('click', function (e) {
+        browser.toggleMenu();
+    });
+
+
+    // chromosome select widget
+    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, $menu);
+
+    config =
+        {
+            title: '2D Annotations',
+            loadTitle: 'Load:',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
+    browser.annotation2DWidget = new AnnotationWidget(browser, $menu, config, function () {
+        return browser.tracks2D;
+    });
+
+    // config =
+    //     {
+    //         title: 'Tracks',
+    //         loadTitle: 'Load Tracks:',
+    //         alertMessage: 'No tracks currently loaded for this map'
+    //     };
+    //
+    // browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
+    //     return browser.trackRenderers;
+    // });
+
+    browser.$menu = $menu;
+
+    browser.$menu.hide();
+
+}
+
+LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
+    var self = this,
+        trackRendererPair;
+
+    self.doLayoutTrackXYPairCount(trackXYPairs.length + self.browser.trackRenderers.length);
+
+    trackXYPairs.forEach(function (trackPair, index) {
+
+        var w, h;
+
+        trackRendererPair = {};
+        w = h = self.track_height;
+        trackRendererPair.x = new TrackRenderer(self.browser, {
+            width: undefined,
+            height: h
+        }, self.$x_tracks, trackRendererPair, trackPair, 'x', index);
+        trackRendererPair.y = new TrackRenderer(self.browser, {
+            width: w,
+            height: undefined
+        }, self.$y_tracks, trackRendererPair, trackPair, 'y', index);
+
+        self.browser.trackRenderers.push(trackRendererPair);
+
+    });
+
+
+};
+
+
+LayoutController.prototype.removeAllTrackXYPairs = function () {
+    var self = this,
+        indices;
+
+    indices = _.range(_.size(this.browser.trackRenderers));
+
+    if (0 === _.size(indices)) {
+        return;
+    }
+
+    _.each(indices, function (unused) {
+        var discard,
+            index;
+
+        // select last track to dicard
+        discard = _.last(self.browser.trackRenderers);
+
+        // discard DOM element's
+        discard['x'].$viewport.remove();
+        discard['y'].$viewport.remove();
+
+        // remove discard from list
+        index = self.browser.trackRenderers.indexOf(discard);
+        self.browser.trackRenderers.splice(index, 1);
+
+        discard = undefined;
+        self.doLayoutTrackXYPairCount(_.size(self.browser.trackRenderers));
+    });
+
+    // this.browser.updateLayout();
+};
+
+LayoutController.prototype.removeLastTrackXYPair = function () {
+    var index,
+        discard;
+
+    if (_.size(this.browser.trackRenderers) > 0) {
+
+        // select last track to dicard
+        discard = _.last(this.browser.trackRenderers);
+
+        // discard DOM element's
+        discard['x'].$viewport.remove();
+        discard['y'].$viewport.remove();
+
+        // remove discard from list
+        index = this.browser.trackRenderers.indexOf(discard);
+        this.browser.trackRenderers.splice(index, 1);
+
+        discard = undefined;
+        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
+
+        this.browser.updateLayout();
+
+    }
+
+};
+
+LayoutController.prototype.removeTrackRendererPair = function (trackRendererPair) {
+
+    var index,
+        discard;
+
+    if (_.size(this.browser.trackRenderers) > 0) {
+
+        discard = trackRendererPair;
+
+        // discard DOM element's
+        discard['x'].$viewport.remove();
+        discard['y'].$viewport.remove();
+
+        // remove discard from list
+        index = this.browser.trackRenderers.indexOf(discard);
+        this.browser.trackRenderers.splice(index, 1);
+
+        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
+
+        this.browser.updateLayout();
+
+
+    }
+
+};
+
+LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount) {
+
+    var track_aggregate_height,
+        tokens,
+        width_calc,
+        height_calc;
+
+
+    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
+
+    tokens = _.map([LayoutController.navbarHeight(), track_aggregate_height], function (number) {
+        return number.toString() + 'px';
+    });
+    height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+    tokens = _.map([track_aggregate_height, this.axis_height, this.scrollbar_height], function (number) {
+        return number.toString() + 'px';
+    });
+    width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
+
+    // x-track container
+    this.$x_track_container.height(track_aggregate_height);
+
+    // track labels
+    this.$track_shim.width(track_aggregate_height);
+
+    // x-tracks
+    this.$x_tracks.css('width', width_calc);
+
+
+    // content container
+    this.$content_container.css('height', height_calc);
+
+    // x-axis - repaint canvas
+    this.xAxisRuler.updateWidthWithCalculation(width_calc);
+
+    // y-tracks
+    this.$y_tracks.width(track_aggregate_height);
+
+    // y-axis - repaint canvas
+    this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
+
+    // viewport
+    this.browser.contactMatrixView.$viewport.css('width', width_calc);
+
+    // x-scrollbar
+    this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css('width', width_calc);
+
+};
+
+LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
+
+    var count;
+
+    this.browser.$root.width(size.width);
+    this.browser.$root.height(size.height + LayoutController.navbarHeight());
+
+    count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
+    this.doLayoutTrackXYPairCount(count);
+
+    this.browser.updateLayout();
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including 
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE.
+ *
+ */
+
+
+/**
+ * @author Jim Robinson
+ */
+
+
+const NormalizationVector = function (type, chrIdx, unit, resolution, values) {
+
+
+    var mean = hic.Math.mean(values), i;
+    if (mean > 0) {
+        for (i = 0; i < values.length; i++) {
+            values[i] /= mean;
+        }
+    }
+
+    this.type = type;
+    this.chrIdx = chrIdx;
+    this.unit = unit;
+    this.resolution = resolution;
+    this.data = values;
+};
+
+NormalizationVector.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {
+    return type + "_" + chrIdx + "_" + unit + "_" + resolution;
+};
+
+NormalizationVector.prototype.getKey = function () {
+    return NormalizationVector.getKey(this.type, this.chrIdx, this.unit, this.resolution);
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const knownGenomes = {
+
+    "hg19": [249250621, 243199373, 198022430],
+    "hg38": [248956422, 242193529, 198295559],
+    "mm10": [195471971, 182113224, 160039680],
+    "mm9": [197195432, 181748087, 159599783],
+    "dm6": [23513712, 25286936, 28110227]
+
+};
+
+const Dataset = function (hicFile) {
+
+    this.hicFile = hicFile;
+    this.matrixCache = {};
+    this.blockCache = {};
+    this.blockCacheKeys = [];
+    this.normVectorCache = {};
+    this.normalizationTypes = ['NONE'];
+
+    // Cache at most 10 blocks
+    this.blockCacheLimit = isMobile() ? 4 : 10;
+
+    this.genomeId = hicFile.genomeId;
+    this.chromosomes = hicFile.chromosomes;
+    this.bpResolutions = hicFile.bpResolutions;
+    this.wholeGenomeChromosome = hicFile.wholeGenomeChromosome;
+    this.wholeGenomeResolution = hicFile.wholeGenomeResolution;
+
+    // Attempt to determine genomeId if not recognized
+    if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+        const tmp = matchGenome(this.chromosomes);
+        if (tmp) this.genomeId = tmp;
+    }
+
+};
+
+Dataset.prototype.clearCaches = function () {
+    this.matrixCache = {};
+    this.blockCache = {};
+    this.normVectorCache = {};
+    this.colorScaleCache = {};
+};
+
+Dataset.prototype.getMatrix = async function (chr1, chr2) {
+    if (chr1 > chr2) {
+        const tmp = chr1;
+        chr1 = chr2;
+        chr2 = tmp;
+    }
+    const key = `${chr1}_${chr2}`;
+
+    if (this.matrixCache.hasOwnProperty(key)) {
+        return this.matrixCache[key];
+
+    } else {
+        const matrix = await this.hicFile.readMatrix(chr1, chr2);
+        this.matrixCache[key] = matrix;
+        return matrix;
+
+    }
+};
+
+Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normalization, eventBus) {
+
+    const block = await this.getBlock(zd, blockNumber);
+
+    if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
+        return block;
+    }
+    else {
+        // Get the norm vectors serially, its very likely they are the same and the second will be cached
+        const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize);
+        const nv2 = zd.chr1 === zd.chr2 ?
+            nv1 :
+            await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize);
+
+        var normRecords = [],
+            normBlock;
+
+        if (nv1 === undefined || nv2 === undefined) {
+            api.Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+            if (eventBus) {
+                eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
+            }
+            return block;
+        }
+
+        else {
+            for (let record of block.records) {
+
+                const x = record.bin1;
+                const y = record.bin2;
+                const nvnv = nv1.data[x] * nv2.data[y];
+
+                if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                    const counts = record.counts / nvnv;
+                    normRecords.push(new ContactRecord(x, y, counts));
+                }
+            }
+
+            normBlock = new Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+            //normBlock.percentile95 = block.percentile95;
+
+            return normBlock;
+        }
+
+    }
+
+};
+
+Dataset.prototype.getBlock = async function (zd, blockNumber) {
+
+    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
+
+    if (this.blockCache.hasOwnProperty(key)) {
+        return this.blockCache[key];
+
+    } else {
+
+        const block = await this.hicFile.readBlock(blockNumber, zd);
+        if (this.blockCacheKeys.length > this.blockCacheLimit) {
+            delete this.blockCache[this.blockCacheKeys[0]];
+            this.blockCacheKeys.shift();
+        }
+        this.blockCacheKeys.push(key);
+        this.blockCache[key] = block;
+
+        return block;
+
+    }
+};
+
+Dataset.prototype.getNormalizationVector = async function (type, chrIdx, unit, binSize) {
+
+    const key = NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+    if (this.normVectorCache.hasOwnProperty(key)) {
+        return this.normVectorCache[key];
+    } else {
+
+        const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize);
+        this.normVectorCache[key] = nv;
+        return nv;
+
+
+    }
+};
+
+Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
+    var i,
+        resolutionArray;
+
+    unit = unit || "BP";
+
+    if (unit === "BP") {
+        resolutionArray = this.bpResolutions;
+    }
+    else if (unit === "FRAG") {
+        resolutionArray = this.fragResolutions;
+    } else {
+        throw new Error("Invalid unit: " + unit);
+    }
+
+    for (i = 0; i < resolutionArray.length; i++) {
+        if (resolutionArray[i] === binSize) return i;
+    }
+
+    return -1;
+};
+
+Dataset.prototype.getChrIndexFromName = function (chrName) {
+    var i;
+    for (i = 0; i < this.chromosomes.length; i++) {
+        if (chrName === this.chromosomes[i].name) return i;
+    }
+    return undefined;
+};
+
+Dataset.prototype.compareChromosomes = function (otherDataset) {
+    const chrs = this.chromosomes;
+    const otherChrs = otherDataset.chromosomes;
+    if (chrs.length !== otherChrs.length) {
+        return false;
+    }
+    for (let i = 0; i < chrs.length; i++) {
+        if (chrs[i].size !== otherChrs[i].size) {
+            return false;
+        }
+    }
+    return true;
+};
+
+Dataset.prototype.getNormVectorIndex = async function () {
+    return this.hicFile.getNormVectorIndex()
+
+};
+
+Dataset.prototype.getNormalizationOptions = async function () {
+    return this.hicFile.getNormalizationOptions()
+};
+
+const Block = function (blockNumber, zoomData, records) {
+    this.blockNumber = blockNumber;
+    this.zoomData = zoomData;
+    this.records = records;
+};
+
+const ContactRecord = function (bin1, bin2, counts) {
+    this.bin1 = bin1;
+    this.bin2 = bin2;
+    this.counts = counts;
+};
+
+ContactRecord.prototype.getKey = function () {
+    return "" + this.bin1 + "_" + this.bin2;
+};
+
+
+function matchGenome(chromosomes) {
+
+
+    var keys = Object.keys(knownGenomes),
+        i, l;
+
+    if (chromosomes.length < 4) return undefined;
+
+    for (i = 0; i < keys.length; i++) {
+        l = knownGenomes[keys[i]];
+        if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
+            return keys[i];
+        }
+    }
+
+    return undefined;
+
+
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+
+/**
+ * @author Jim Robinson
+ */
+
+
+/**
+ *
+ * @param id
+ * @param chromosomes -- an array of hic.Chromosome objects.
+ * @constructor
+ */
+const Genome$1 = function (id, chromosomes) {
+
+    this.id = id;
+    this.chromosomes = chromosomes;
+    this.wgChromosomeNames = [];
+    this.chromosomeLookupTable = {};
+
+    // Alias for size for igv compatibility
+    this.genomeLength = 0;
+    for (let c of this.chromosomes) {
+        c.bpLength = c.size;
+        if ('all' !== c.name.toLowerCase()) {
+            this.genomeLength += c.size;
+            this.wgChromosomeNames.push(c.name);
+        }
+    }
+
+    /**
+     * Maps chr aliases to the offical name.  Deals with
+     * 1 <-> chr1,  chrM <-> MT,  IV <-> chr4, etc.
+     * @param str
+     */
+    var chrAliasTable = {};
+
+    // The standard mappings
+    for (let chromosome of chromosomes) {
+
+        const name = chromosome.name;
+        if (name.startsWith("arm_")) {
+            //Special rule for aidenlab ad-hoc names for dMel
+            const officialName = name.substring(4);
+            chrAliasTable[officialName] = name;
+            chrAliasTable["chr" + officialName] = name;
+        } else {
+            const alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
+            chrAliasTable[alias] = name;
+            if (name === "chrM") chrAliasTable["MT"] = "chrM";
+            if (name === "MT") chrAliasTable["chrmM"] = "MT";
+        }
+        this.chromosomeLookupTable[name.toLowerCase()] = chromosome;
+    }
+
+    this.chrAliasTable = chrAliasTable;
+
+};
+
+Genome$1.prototype.getChromosomeName = function (str) {
+    var chr = this.chrAliasTable[str];
+    return chr ? chr : str;
+};
+
+Genome$1.prototype.getChromosome = function (str) {
+    var chrname = this.getChromosomeName(str).toLowerCase();
+    return this.chromosomeLookupTable[chrname];
+};
+
+/**
+ * Return the genome coordinate for the give chromosome and position.
+ */
+Genome$1.prototype.getGenomeCoordinate = function (chr, bp) {
+    return this.getCumulativeOffset(chr.name) + bp;
+};
+
+Genome$1.prototype.getChromsosomeForCoordinate = function (bp) {
+    var i = 0,
+        offset = 0,
+        l;
+
+    for (i = 1; i < this.chromosomes.length; i++) {
+        l = this.chromosomes[i].size;
+        if (offset + l > bp) return this.chromosomes[i];
+        offset += l;
+    }
+    return this.chromosomes[this.chromosomes.length - 1];
+
+};
+
+
+/**
+ * Return the offset in genome coordinates (kb) of the start of the given chromosome
+ */
+Genome$1.prototype.getCumulativeOffset = function (chr) {
+
+    var queryChr;
+
+    queryChr = this.getChromosomeName(chr);
+
+    if (this.cumulativeOffsets === undefined) {
+        computeCumulativeOffsets$1.call(this);
+    }
+    return this.cumulativeOffsets[queryChr];
+};
+
+function computeCumulativeOffsets$1() {
+    var self = this,
+        cumulativeOffsets,
+        offset,
+        i,
+        chromosome;
+
+    cumulativeOffsets = {};
+    offset = 0;
+    // Skip first chromosome (its chr all).
+    for (i = 1; i < self.chromosomes.length; i++) {
+
+        chromosome = self.chromosomes[i];
+        cumulativeOffsets[chromosome.name] = Math.floor(offset);
+
+        offset += (chromosome.size);
+    }
+    self.cumulativeOffsets = cumulativeOffsets;
+
+}
+
+// Required for igv.js
+Genome$1.prototype.getGenomeLength = function () {
+    return this.genomeLength;
+};
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const geneSearch = function (genomeId, featureName) {
+
+    return new Promise(function (fulfill, reject) {
+
+        // Hardcode this for now
+        var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
+
+        api.xhr.loadString(searchServiceURL)
+            .then(function (data) {
+
+                var results = parseSearchResults(data);
+
+                if (results.length == 0) {
+                    //alert('No feature found with name "' + feature + '"');
+                    fulfill(undefined);
+                }
+                else {
+                    // Just take first result for now
+                    fulfill(results[0]);
+
+                }
+            })
+            .catch(reject);
+    });
+};
+
+function parseSearchResults(data) {
+
+    var lines = api.splitLines(data),
+        linesTrimmed = [],
+        results = [];
+
+    lines.forEach(function (item) {
+        if ("" === item) ; else {
+            linesTrimmed.push(item);
+        }
+    });
+
+    linesTrimmed.forEach(function (line) {
+        // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
+
+        var tokens = line.split("\t");
+
+        if (tokens.length >= 3) {
+            results.push(tokens[1]);
+
+        }
+
+    });
+
+    return results;
+
+}
+
+// from https://github.com/imaya/zlib.js
 
 var Zlib$1 = {
   Huffman: {},
@@ -61771,5123 +67337,3052 @@ Zlib$1.Deflate.prototype.compress = function() {
   return output;
 };
 
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
+const isNode =
+    typeof process !== 'undefined' &&
+    process.versions != null &&
+    process.versions.node != null;
 
-const defaultPixelSize = 1;
 
-const defaultSize = {width: 640, height: 640};
+const crossFetch = isNode ? require("node-fetch") : fetch;
 
-/**
- * The global event bus.  For events outside the scope of a single browser.
- *
- * @type {EventBus}
- */
-const eventBus = new EventBus();
+class BrowserLocalFile {
 
-const allBrowsers$1 = [];
-
-igvReplacements(api);
-
-async function createBrowser$1(hic_container, config, callback) {
-
-    const $hic_container = $$2(hic_container);
-
-    setDefaults$1(config);
-
-    const apiKey = config.apiKey;
-    if (apiKey) {
-        api.setApiKey(apiKey);
+    constructor(blob) {
+        this.file = blob;
     }
 
-    let queryString = config.queryString || config.href;   // href for backward compatibility
-    if (queryString === undefined && config.initFromUrl !== false) {
-        queryString = window.location.href;
-    }
+    async read(position, length) {
 
-    if (queryString) {
-        if (!queryString.includes("?")) {
-            queryString = "?" + queryString;
-        }
-        const query = extractQuery$1(queryString);
-        const uriDecode = queryString.includes("%2C");
-        decodeQuery(query, config, uriDecode);
-    }
+        const file = this.file;
 
-    const browser = new HICBrowser($hic_container, config);
+        return new Promise(function (fullfill, reject) {
 
-    browser.eventBus.hold();
+            const fileReader = new FileReader();
 
-    allBrowsers$1.push(browser);
+            fileReader.onload = function (e) {
+                fullfill(fileReader.result);
+            };
 
-    HICBrowser.setCurrentBrowser(browser);
+            fileReader.onerror = function (e) {
+                console.err("Error reading local file " + file.name);
+                reject(null, fileReader);
+            };
 
-    if (allBrowsers$1.length > 1) {
-        allBrowsers$1.forEach(function (b) {
-            b.$browser_panel_delete_button.show();
+            if (position !== undefined) {
+                const blob = file.slice(position, position + length);
+                fileReader.readAsArrayBuffer(blob);
+
+            } else {
+                fileReader.readAsArrayBuffer(file);
+
+            }
+
         });
     }
+}
 
-    if (undefined === api.browser) {
-        createIGV($hic_container, browser);
+const isNode$1 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+
+let fs;
+let fsOpen;
+let fsRead;
+
+if (isNode$1) {
+    const util = require('util');
+    fs = require('fs');
+    fsOpen = fs && util.promisify(fs.open);
+    fsRead = fs && util.promisify(fs.read);
+}
+
+class NodeLocalFile {
+
+    constructor(args) {
+        this.path = args.path;
     }
 
-    browser.inputDialog = new api.InputDialog($hic_container, browser);
 
-    browser.trackRemovalDialog = new api.TrackRemovalDialog($hic_container, browser);
+    async read(position, length) {
 
-    browser.dataRangeDialog = new api.DataRangeDialog($hic_container, browser);
+        const buffer = Buffer.alloc(length);
+        const fd = await fsOpen(this.path, 'r');
+        const result = await fsRead(fd, buffer, 0, length, position);
 
-    ///////////////////////////////////
-    try {
-        browser.contactMatrixView.startSpinner();
-        browser.$user_interaction_shield.show();
+        fs.close(fd, function (error) {
+            // TODO Do something with error
+        });
 
-        const hasControl = config.controlUrl !== undefined;
+        //TODO -- compare result.bytesRead with length
+        const arrayBuffer = result.buffer.buffer;
+        return arrayBuffer
+    }
+}
 
-        // if (!config.name) config.name = await extractName(config)
-        // const prefix = hasControl ? "A: " : "";
-        // browser.$contactMaplabel.text(prefix + config.name);
-        // browser.$contactMaplabel.attr('title', config.name);
+const  isNode$2 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
 
-        await browser.loadHicFile(config, true);
-        await loadControlFile(config);
+class RemoteFile {
 
-        if (config.cycle) {
-            config.displayMode = "A";
-        }
+    constructor(args) {
+        this.config = args;
+        this.url = mapUrl$1(args.path || args.url);
+    }
 
-        if (config.displayMode) {
-            browser.contactMatrixView.displayMode = config.displayMode;
-            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
-        }
-        if (config.colorScale) {
-            // This must be done after dataset load
-            browser.contactMatrixView.setColorScale(config.colorScale);
-            browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
-        }
 
-        var promises = [];
-        if (config.tracks) {
-            promises.push(browser.loadTracks(config.tracks));
-        }
+    async read(position, length) {
 
-        if (config.normVectorFiles) {
-            config.normVectorFiles.forEach(function (nv) {
-                promises.push(browser.loadNormalizationFile(nv));
-            });
-        }
-        await Promise.all(promises);
+        const headers = this.config.headers || {};
 
-        const tmp = browser.contactMatrixView.colorScaleThresholdCache;
-        browser.eventBus.release();
-        browser.contactMatrixView.colorScaleThresholdCache = tmp;
+        const rangeString = "bytes=" + position + "-" + (position + length - 1);
+        headers['Range'] = rangeString;
 
-        if (config.cycle) {
-            browser.controlMapWidget.toggleDisplayModeCycle();
+        let url = this.url.slice();    // slice => copy
+        if (isNode$2) {
+            headers['User-Agent'] = 'straw';
         } else {
-            browser.update();
+            if (this.config.oauthToken) {
+                const token = resolveToken(this.config.oauthToken);
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            const isSafari = navigator.vendor.indexOf("Apple") == 0 && /\sSafari\//.test(navigator.userAgent);
+            const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
+            const isAmazonV4Signed = this.url.indexOf("X-Amz-Signature") > -1;
+
+            if (isChrome && !isAmazonV4Signed) {
+                url = addParameter(url, "randomSeed", Math.random().toString(36));
+            }
         }
 
-        if (typeof callback === "function") callback();
-    } finally {
-        browser.contactMatrixView.stopSpinner();
-        browser.$user_interaction_shield.hide();
-    }
+        if (this.config.apiKey) {
+            url = addParameter(url, "key", this.config.apiKey);
+        }
 
+        const response = await crossFetch(url, {
+            method: 'GET',
+            headers: headers,
+            redirect: 'follow',
+            mode: 'cors',
 
-    return browser;
+        });
 
-    // Load the control file, if any
-    async function loadControlFile(config) {
-        if (config.controlUrl) {
-            return browser.loadHicControlFile({
-                url: config.controlUrl,
-                name: config.controlName,
-                nvi: config.controlNvi,
-                isControl: true
-            }, true);
+        const status = response.status;
+
+        if (status >= 400) {
+            const err = Error(response.statusText);
+            err.code = status;
+            throw err
         } else {
-            return undefined;
+            return response.arrayBuffer();
         }
+
+        /**
+         * token can be a string, a function that returns a string, or a function that returns a Promise for a string
+         * @param token
+         * @returns {Promise<*>}
+         */
+        async function resolveToken(token) {
+            if (typeof token === 'function') {
+                return await Promise.resolve(token())    // Normalize the result to a promise, since we don't know what the function returns
+            } else {
+                return token
+            }
+        }
+
     }
 }
 
-function setApiKey$1(key) {
-    api.setApiKey(key);
 
-}
+function mapUrl$1(url) {
 
-function deleteBrowserPanel(browser) {
-
-    if (browser === HICBrowser.getCurrentBrowser()) {
-        HICBrowser.setCurrentBrowser(undefined);
-    }
-
-    allBrowsers$1.splice(_.indexOf(allBrowsers$1, browser), 1);
-    browser.$root.remove();
-    browser = undefined;
-
-    if (1 === allBrowsers$1.length) {
-        HICBrowser.setCurrentBrowser(allBrowsers$1[0]);
-        HICBrowser.getCurrentBrowser().$browser_panel_delete_button.hide();
-    }
-
-}
-
-/**
- * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
- * different IDs are used (e.g. GRCh38 vs hg38)
- * @param d1
- * @param d2
- */
-function areCompatible(d1, d2) {
-    return (d1.genomeId === d2.genomeId) || d1.compareChromosomes(d2)
-}
-
-
-function isMobile() {
-    return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
-}
-
-function extractFilename(urlOrFile) {
-    var idx,
-        str;
-
-    if (api.isFilePath(urlOrFile)) {
-        return urlOrFile.name;
+    if (url.includes("//www.dropbox.com")) {
+        return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com");
+    } else if (url.startsWith("ftp://ftp.ncbi.nlm.nih.gov")) {
+        return url.replace("ftp://", "https://")
     } else {
-
-        str = urlOrFile.split('?').shift();
-        idx = urlOrFile.lastIndexOf("/");
-
-        return idx > 0 ? str.substring(idx + 1) : str;
-    }
-}
-
-function throttle(fn, threshhold, scope) {
-    var last,
-        deferTimer;
-
-    threshhold || (threshhold = 200);
-
-    return function () {
-        var context,
-            now,
-            args;
-
-        context = scope || this;
-        now = +new Date;
-        args = arguments;
-
-        if (last && now < last + threshhold) {
-            // hold on to it
-            clearTimeout(deferTimer);
-            deferTimer = setTimeout(function () {
-                last = now;
-                fn.apply(context, args);
-            }, threshhold);
-        } else {
-            last = now;
-            fn.apply(context, args);
-        }
-    }
-}
-
-function reflectionRotationWithContext(context) {
-    context.scale(-1, 1);
-    context.rotate(Math.PI / 2.0);
-}
-
-function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
-    context.translate(exe, 0);
-    context.scale(-1, 1);
-    context.translate(-exe, 0);
-}
-
-function identityTransformWithContext(context) {
-    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-    context.setTransform(1, 0, 0, 1, 0, 0);
-}
-
-
-
-// Set default values for config properties
-function setDefaults$1(config) {
-
-
-    if (config.figureMode === true) {
-        config.showLocusGoto = false;
-        config.showHicContactMapLabel = false;
-        config.showChromosomeSelector = false;
-    } else {
-        if (undefined === config.width) {
-            config.width = defaultSize.width;
-        }
-        if (undefined === config.height) {
-            config.height = defaultSize.height;
-        }
-        if (undefined === config.showLocusGoto) {
-            config.showLocusGoto = true;
-        }
-        if (undefined === config.showHicContactMapLabel) {
-            config.showHicContactMapLabel = true;
-        }
-        if (undefined === config.showChromosomeSelector) {
-            config.showChromosomeSelector = true;
-        }
-    }
-
-    if (config.state) {
-        // convert to state object
-        config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
-            config.state.y, config.state.pixelSize, config.state.normalization);
+        return url
     }
 }
 
 
-// mock igv browser objects for igv.js compatibility
-function createIGV($hic_container, hicBrowser) {
-
-    api.browser =
-        {
-            constants: {defaultColor: "rgb(0,0,150)"},
-
-            // Compatibility wit igv menus
-            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-        };
-
-    api.popover = new api.Popover($hic_container, api.browser);
-
-    api.alertDialog = new api.AlertDialog(hicBrowser.$root, hicBrowser);
-
-    // hicBrowser.inputDialog = new igv.InputDialog($hic_container, hicBrowser);
-    //
-    // hicBrowser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, hicBrowser);
-    //
-    // hicBrowser.dataRangeDialog = new igv.DataRangeDialog($hic_container, hicBrowser);
-
+function addParameter(url, name, value) {
+    const paramSeparator = url.includes("?") ? "&" : "?";
+    return url + paramSeparator + name + "=" + value;
 }
 
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
+class ThrottledFile {
 
-
-const Track2DDisplaceModes = {
-    displayAllMatrix: 'displayAllMatrix',
-    displayLowerMatrix: 'displayLowerMatrix',
-    displayUpperMatrix: 'displayUpperMatrix'
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const Track2D = function (config, features) {
-
-    var self = this;
-
-    this.config = config;
-    this.name = config.name;
-    this.featureMap = {};
-    this.featureCount = 0;
-    this.isVisible = true;
-
-    this.displayMode = Track2DDisplaceModes.displayAllMatrix;
-
-    if (config.color && validateColor(config.color)) {
-        this.color = this.color = config.color;    // If specified, this will override colors of individual records.
+    constructor(file, rateLimiter) {
+        this.file = file;
+        this.rateLimiter = rateLimiter;
     }
-    this.repColor = features.length > 0 ? features[0].color : "black";
 
-    features.forEach(function (f) {
 
-        self.featureCount++;
+    async read(position, length) {
 
-        var key = getKey(f.chr1, f.chr2),
-            list = self.featureMap[key];
+        const file = this.file;
+        const rateLimiter = this.rateLimiter;
 
-        if (!list) {
-            list = [];
-            self.featureMap[key] = list;
-        }
-        list.push(f);
-    });
-
-};
-
-Track2D.loadTrack2D = function (config) {
-
-    return api.xhr.loadString(config.url, api.buildOptions(config))
-
-        .then(function (data) {
-
-            var features = parseData(data, isBedPE(config));
-
-            return new Track2D(config, features);
+        return new Promise(function (fulfill, reject) {
+            rateLimiter.limiter(async function (f) {
+                try {
+                    const result = await f.read(position, length);
+                    fulfill(result);
+                } catch (e) {
+                    reject(e);
+                }
+            })(file);
         })
-};
-
-Track2D.prototype.getColor = function () {
-    return this.color || this.repColor;
-};
-
-Track2D.prototype.getFeatures = function (chr1, chr2) {
-    var key = getKey(chr1, chr2),
-        features = this.featureMap[key];
-
-    return features || this.featureMap[getAltKey(chr1, chr2)];
-};
-
-
-function isBedPE(config) {
-
-    if (typeof config.url === "string") {
-        return config.url.toLowerCase().indexOf(".bedpe") > 0;
-    } else if (typeof config.name === "string") {
-        return config.name.toLowerCase().indexOf(".bedpe") > 0;
-    }
-    else {
-        return true;  // Default
     }
 }
 
-function parseData(data, isBedPE) {
+class RateLimiter$1 {
 
-    if (!data) return null;
+    constructor(wait) {
+        this.wait = wait === undefined ? 100 : wait;
 
-    var feature,
-        lines = api.splitLines(data),
-        len = lines.length,
-        tokens,
-        allFeatures = [],
-        line,
-        i,
-        delimiter = "\t",
-        start,
-        colorColumn;
+        this.isCalled = false;
+        this.calls = [];
+    }
 
-    start = isBedPE ? 0 : 1;
-    colorColumn = isBedPE ? 10 : 6;
 
-    for (i = start; i < len; i++) {
+    limiter(fn) {
 
-        line = lines[i];
+        const self = this;
 
-        if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
-            continue;
-        }
+        let caller = function () {
 
-        tokens = lines[i].split(delimiter);
-        if (tokens.length < 7) {
-            //console.log("Could not parse line: " + line);
-            continue;
-        }
-
-        feature = {
-            chr1: tokens[0],
-            x1: parseInt(tokens[1]),
-            x2: parseInt(tokens[2]),
-            chr2: tokens[3],
-            y1: parseInt(tokens[4]),
-            y2: parseInt(tokens[5]),
-            color: "rgb(" + tokens[colorColumn] + ")"
+            if (self.calls.length && !self.isCalled) {
+                self.isCalled = true;
+                self.calls.shift().call();
+                setTimeout(function () {
+                    self.isCalled = false;
+                    caller();
+                }, self.wait);
+            }
         };
 
-        if (!Number.isNaN(feature.x1)) {
-            allFeatures.push(feature);
-        }
+        return function () {
+            self.calls.push(fn.bind(this, ...arguments));
+            caller();
+        };
     }
 
-    return allFeatures;
 }
 
-function getKey(chr1, chr2) {
-    return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
-}
+class BufferedFile {
 
-function getAltKey(chr1, chr2) {
-    var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
-        chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
-    return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
-}
-
-
-function validateColor(str) {
-    var div = document.createElement("div");
-    div.style.borderColor = str;
-    return div.style.borderColor !== "";
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const RatioColorScale$1 = function (threshold) {
-
-    this.threshold = threshold;
-
-    this.positiveScale = new ColorScale({
-        threshold: Math.log(threshold),
-        r: 255,
-        g: 0,
-        b: 0
-    });
-    this.negativeScale = new ColorScale(
-        {
-            threshold: Math.log(threshold),
-            r: 0,
-            g: 0,
-            b: 255
-        });
-};
-
-RatioColorScale$1.prototype.setThreshold = function (threshold) {
-    this.threshold = threshold;
-    this.positiveScale.setThreshold(Math.log(threshold));
-    this.negativeScale.setThreshold(Math.log(threshold));
-};
-
-RatioColorScale$1.prototype.getThreshold = function () {
-    return this.threshold;
-};
-
-RatioColorScale$1.prototype.setColorComponents = function (components, plusOrMinus) {
-    if ('-' === plusOrMinus) {
-        return this.negativeScale.setColorComponents(components);
+    constructor(args) {
+        this.file = args.file;
+        this.size = args.size || 64000;
+        this.position = 0;
+        this.bufferStart = 0;
+        this.bufferLength = 0;
+        this.buffer = undefined;
     }
-    else {
-        return this.positiveScale.setColorComponents(components);
-    }
-};
-
-RatioColorScale$1.prototype.getColorComponents = function (plusOrMinus) {
-
-    if ('-' === plusOrMinus) {
-        return this.negativeScale.getColorComponents();
-    }
-    else {
-        return this.positiveScale.getColorComponents();
-    }
-};
-
-RatioColorScale$1.prototype.getColor = function (score) {
-
-    var logScore = Math.log(score);
-
-    if (logScore < 0) {
-        return this.negativeScale.getColor(-logScore);
-    }
-    else {
-        return this.positiveScale.getColor(logScore);
-    }
-};
-
-RatioColorScale$1.prototype.stringify = function () {
-    return "R:" + this.threshold + ":" + this.positiveScale.stringify() + ":" + this.negativeScale.stringify();
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const ScrollbarWidget = function (browser) {
-
-    var id;
-
-    this.browser = browser;
-    this.isDragging = false;
-
-    // x-axis
-    id = browser.id + '_' + 'x-axis-scrollbar-container';
-    this.$x_axis_scrollbar_container = $$2("<div>", {id: id});
-
-    id = browser.id + '_' + 'x-axis-scrollbar';
-    this.$x_axis_scrollbar = $$2("<div>", {id: id});
-    this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
-
-    this.$x_label = $$2('<div>');
-    this.$x_label.text('');
-    this.$x_axis_scrollbar.append(this.$x_label);
-
-    // y-axis
-    id = browser.id + '_' + 'y-axis-scrollbar-container';
-    this.$y_axis_scrollbar_container = $$2("<div>", {id: id});
-
-    id = browser.id + '_' + 'y-axis-scrollbar';
-    this.$y_axis_scrollbar = $$2("<div>", {id: id});
-    this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
-
-    this.$y_label = $$2('<div class="scrollbar-label-rotation-in-place">');
-    this.$y_label.text('');
-    this.$y_axis_scrollbar.append(this.$y_label);
-
-    // this.$x_axis_scrollbar_container.hide();
-    // this.$y_axis_scrollbar_container.hide();
-
-    // this.$x_axis_scrollbar.draggable({
-    //     containment: 'parent',
-    //     start: function() {
-    //         self.isDragging = true;
-    //     },
-    //     drag: hic.throttle(xAxisDragger, 250),
-    //     stop: function() {
-    //         self.isDragging = false;
-    //     }
-    // });
-
-    // this.$y_axis_scrollbar.draggable({
-    //
-    //     containment: 'parent',
-    //     start: function() {
-    //         self.isDragging = true;
-    //     },
-    //     drag: hic.throttle(yAxisDragger, 250),
-    //     stop: function() {
-    //         self.isDragging = false;
-    //     }
-    // });
-
-    this.browser.eventBus.subscribe("LocusChange", this);
-
-    // function xAxisDragger () {
-    //     var bin,
-    //         st = self.browser.state;
-    //
-    //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr1 ], self.$x_axis_scrollbar, 'left');
-    //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, bin, st.y, st.pixelSize) );
-    // }
-
-    // function yAxisDragger () {
-    //     var bin,
-    //         st = self.browser.state;
-    //
-    //     bin = self.css2Bin(self.browser.hicReader.chromosomes[ self.browser.state.chr2 ], self.$y_axis_scrollbar, 'top');
-    //     self.browser.setState( new hic.State(st.chr1, st.chr2, st.zoom, st.x, bin, st.pixelSize) );
-    // }
-};
-
-ScrollbarWidget.prototype.css2Bin = function (chromosome, $element, attribute) {
-    var numer,
-        denom,
-        percentage;
-
-    numer = $element.css(attribute).slice(0, -2);
-    denom = $element.parent().css('left' === attribute ? 'width' : 'height').slice(0, -2);
-    percentage = parseInt(numer, 10) / parseInt(denom, 10);
-
-    return percentage * chromosome.size / this.browser.dataset.bpResolutions[this.browser.state.zoom];
-};
-
-ScrollbarWidget.prototype.receiveEvent = function (event) {
-    var self = this,
-        chromosomeLengthsBin,
-        chromosomeLengthsPixel,
-        pixels,
-        bins,
-        percentage,
-        percentages;
-
-    if (!this.isDragging && event.type === "LocusChange") {
-
-        var state = event.data.state,
-            dataset = self.browser.dataset;
-
-        if (0 === state.chr1) {
-            this.$x_axis_scrollbar.hide();
-            this.$y_axis_scrollbar.hide();
-        } else {
-
-            this.$x_axis_scrollbar.show();
-            this.$y_axis_scrollbar.show();
-
-            this.$x_axis_scrollbar_container.show();
-            this.$y_axis_scrollbar_container.show();
-
-            chromosomeLengthsBin = _.map([state.chr1, state.chr2], function (index) {
-                // bp / bp-per-bin -> bin
-                return dataset.chromosomes[index].size / dataset.bpResolutions[state.zoom];
-            });
-
-            chromosomeLengthsPixel = _.map(chromosomeLengthsBin, function (bin) {
-                // bin * pixel-per-bin -> pixel
-                return bin * state.pixelSize;
-            });
-
-            pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
-
-            // pixel / pixel-per-bin -> bin
-            bins = [_.first(pixels) / state.pixelSize, _.last(pixels) / state.pixelSize];
-
-            // bin / bin -> percentage
-            percentages = _.map(bins, function (bin, i) {
-                var binPercentage,
-                    pixelPercentage;
-
-                binPercentage = Math.min(bin, chromosomeLengthsBin[i]) / chromosomeLengthsBin[i];
-                pixelPercentage = Math.min(chromosomeLengthsPixel[i], pixels[i]) / pixels[i];
-                return Math.max(1, Math.round(100 * binPercentage * pixelPercentage));
-            });
-            this.$x_axis_scrollbar.css('width', (_.first(percentages).toString() + '%'));
-            this.$y_axis_scrollbar.css('height', (_.last(percentages).toString() + '%'));
 
 
-            // bin / bin -> percentage
-            percentage = Math.round(100 * state.x / _.first(chromosomeLengthsBin));
-            percentage = percentage.toString() + '%';
-            this.$x_axis_scrollbar.css('left', percentage);
+    async read(position, length) {
 
-            // bin / bin -> percentage
-            percentage = Math.round(100 * state.y / _.last(chromosomeLengthsBin));
-            percentage = percentage.toString() + '%';
-            this.$y_axis_scrollbar.css('top', percentage);
+        const start = position;
+        const end = position + length;
+        const bufferStart = this.bufferStart;
+        const bufferEnd = this.bufferStart + this.bufferLength;
 
-            this.$x_label.text(dataset.chromosomes[state.chr1].name);
-            this.$y_label.text(dataset.chromosomes[state.chr2].name);
 
+        if (length > this.size) {
+            // Request larger than max buffer size,  pass through to underlying file
+            //console.log("0")
+            this.buffer = undefined;
+            this.bufferStart = 0;
+            this.bufferLength = 0;
+            return this.file.read(position, length)
         }
 
-    }
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const SweepZoom = function (browser, $target) {
-    var id;
-
-    id = browser.id + '_' + 'sweep-zoom-container';
-
-    this.browser = browser;
-    this.$rulerSweeper = $$2("<div>", {id: id});
-    this.$rulerSweeper.hide();
-    this.$target = $target;
-    this.sweepRect = {};
-};
-
-SweepZoom.prototype.initialize = function (pageCoords) {
-
-    this.anchor = pageCoords;
-    this.coordinateFrame = this.$rulerSweeper.parent().offset();
-    this.aspectRatio = this.$target.width() / this.$target.height();
-    this.sweepRect.x = {
-        x: pageCoords.x,
-        y: pageCoords.y,
-        width: 1,
-        height: 1
-    };
-    this.clipped = {value: false};
-};
-
-SweepZoom.prototype.update = function (pageCoords) {
-
-    var anchor = this.anchor,
-        dx = Math.abs(pageCoords.x - anchor.x),
-        dy = Math.abs(pageCoords.y - anchor.y);
-
-    // Adjust deltas to conform to aspect ratio
-    if (dx / dy > this.aspectRatio) {
-        dy = dx / this.aspectRatio;
-    } else {
-        dx = dy * this.aspectRatio;
-    }
-
-    this.sweepRect.width = dx;
-    this.sweepRect.height = dy;
-    this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
-    this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
-
-
-    this.$rulerSweeper.width(this.sweepRect.width);
-    this.$rulerSweeper.height(this.sweepRect.height);
-
-
-    this.$rulerSweeper.offset(
-        {
-            left: this.sweepRect.x,
-            top: this.sweepRect.y
-        }
-    );
-    this.$rulerSweeper.show();
-
-};
-
-SweepZoom.prototype.commit = function () {
-    var state,
-        resolution,
-        posX,
-        posY,
-        x,
-        y,
-        width,
-        height,
-        xMax,
-        yMax,
-        minimumResolution;
-
-    this.$rulerSweeper.hide();
-
-    state = this.browser.state;
-
-    // bp-per-bin
-    resolution = this.browser.resolution();
-
-    // Convert page -> offset coordinates
-    posX = this.sweepRect.x - this.$target.offset().left;
-    posY = this.sweepRect.y - this.$target.offset().top;
-
-
-    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    x = (state.x + (posX / state.pixelSize)) * resolution;
-    y = (state.y + (posY / state.pixelSize)) * resolution;
-
-    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    width = (this.sweepRect.width / state.pixelSize) * resolution;
-    height = (this.sweepRect.height / state.pixelSize) * resolution;
-
-    // bp = bp + bp
-    xMax = x + width;
-    yMax = y + height;
-
-    minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
-    this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
-
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const HICMath = {
-
-    mean: function (array) {
-
-        var t = 0, n = 0,
-            i;
-        for (i = 0; i < array.length; i++) {
-            if (!isNaN(array[i])) {
-                t += array[i];
-                n++;
-            }
-        }
-        return n > 0 ? t / n : 0;
-    },
-
-    percentile: function (array, p) {
-
-        if (array.length === 0) return undefined;
-
-        var k = Math.floor(array.length * ((100 - p) / 100));
-        if (k == 0) {
-            array.sort(function (a, b) {
-                return b - a
-            });
-            return array[0];
+        if (start >= bufferStart && end <= bufferEnd) {
+            // Request within buffer bounds
+            //console.log("1")
+            const sliceStart = start - bufferStart;
+            const sliceEnd = sliceStart + length;
+            return this.buffer.slice(sliceStart, sliceEnd)
         }
 
-        return this.selectElement(array, k);
-
-    },
-
-    selectElement: function (array, k) {
-
-        // Credit Steve Hanov http://stevehanov.ca/blog/index.php?id=122
-        var heap = new BinaryHeap$1(),
-            i;
-
-        for (i = 0; i < array.length; i++) {
-
-            var item = array[i];
-
-            // If we have not yet found k items, or the current item is larger than
-            // the smallest item on the heap, add current item
-            if (heap.content.length < k || item > heap.content[0]) {
-                // If the heap is full, remove the smallest element on the heap.
-                if (heap.content.length === k) {
-                    var r = heap.pop();
-                }
-                heap.push(item);
-            }
-        }
-
-        return heap.content[0];
-    }
-};
-
-
-function BinaryHeap$1() {
-    this.content = [];
-}
-
-BinaryHeap$1.prototype = {
-    push: function (element) {
-        // Add the new element to the end of the array.
-        this.content.push(element);
-        // Allow it to bubble up.
-        this.bubbleUp(this.content.length - 1);
-    },
-
-    pop: function () {
-        // Store the first element so we can return it later.
-        var result = this.content[0];
-        // Get the element at the end of the array.
-        var end = this.content.pop();
-        // If there are any elements left, put the end element at the
-        // start, and let it sink down.
-        if (this.content.length > 0) {
-            this.content[0] = end;
-            this.sinkDown(0);
-        }
-        return result;
-    },
-
-    remove: function (node) {
-        var length = this.content.length;
-        // To remove a value, we must search through the array to find
-        // it.
-        for (var i = 0; i < length; i++) {
-            if (this.content[i] != node) continue;
-            // When it is found, the process seen in 'pop' is repeated
-            // to fill up the hole.
-            var end = this.content.pop();
-            // If the element we popped was the one we needed to remove,
-            // we're done.
-            if (i == length - 1) break;
-            // Otherwise, we replace the removed element with the popped
-            // one, and allow it to float up or sink down as appropriate.
-            this.content[i] = end;
-            this.bubbleUp(i);
-            this.sinkDown(i);
-            break;
-        }
-    },
-
-    size: function () {
-        return this.content.length;
-    },
-
-    bubbleUp: function (n) {
-        // Fetch the element that has to be moved.
-        var element = this.content[n], score = element;
-        // When at 0, an element can not go up any further.
-        while (n > 0) {
-            // Compute the parent element's index, and fetch it.
-            var parentN = Math.floor((n + 1) / 2) - 1,
-                parent = this.content[parentN];
-            // If the parent has a lesser score, things are in order and we
-            // are done.
-            if (score >= parent)
-                break;
-
-            // Otherwise, swap the parent with the current element and
-            // continue.
-            this.content[parentN] = element;
-            this.content[n] = parent;
-            n = parentN;
-        }
-    },
-
-    sinkDown: function (n) {
-        // Look up the target element and its score.
-        var length = this.content.length,
-            element = this.content[n],
-            elemScore = element;
-
-        while (true) {
-            // Compute the indices of the child elements.
-            var child2N = (n + 1) * 2, child1N = child2N - 1;
-            // This is used to store the new position of the element,
-            // if any.
-            var swap = null;
-            // If the first child exists (is inside the array)...
-            if (child1N < length) {
-                // Look it up and compute its score.
-                var child1 = this.content[child1N],
-                    child1Score = child1;
-                // If the score is less than our element's, we need to swap.
-                if (child1Score < elemScore)
-                    swap = child1N;
-            }
-            // Do the same checks for the other child.
-            if (child2N < length) {
-                var child2 = this.content[child2N],
-                    child2Score = child2;
-                if (child2Score < (swap == null ? elemScore : child1Score))
-                    swap = child2N;
+        else if (start < bufferStart && end > bufferStart) {
+            // Overlap left, here for completness but this is an unexpected case in straw.  We don't adjust the buffer.
+            //console.log("2")
+            const l1 = bufferStart - start;
+            const a1 = await this.file.read(position, l1);
+            const l2 = length - l1;
+            if (l2 > 0) {
+                //this.buffer = await this.file.read(bufferStart, this.size)
+                const a2 = this.buffer.slice(0, l2);
+                return concatBuffers(a1, a2)
+            } else {
+                return a1
             }
 
-            // No need to swap further, we are done.
-            if (swap == null) break;
-
-            // Otherwise, swap and continue.
-            this.content[n] = this.content[swap];
-            this.content[swap] = element;
-            n = swap;
         }
-    }
-};
 
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const DRAG_THRESHOLD = 2;
-const DOUBLE_TAP_DIST_THRESHOLD = 20;
-const DOUBLE_TAP_TIME_THRESHOLD = 300;
-
-const ContactMatrixView = function (browser, $container) {
-    var id;
-
-    this.browser = browser;
-
-    this.scrollbarWidget = new ScrollbarWidget(browser);
-
-    id = browser.id + '_' + 'viewport';
-    this.$viewport = $$2("<div>", {id: id});
-    $container.append(this.$viewport);
-
-    // content canvas
-    this.$canvas = $$2('<canvas>');
-    this.$viewport.append(this.$canvas);
-
-    this.ctx = this.$canvas.get(0).getContext('2d');
-
-    // spinner
-    this.$fa_spinner = $$2('<i class="fa fa-spinner fa-spin">');
-    this.$fa_spinner.css("font-size", "48px");
-    this.$fa_spinner.css("position", "absolute");
-    this.$fa_spinner.css("left", "40%");
-    this.$fa_spinner.css("top", "40%");
-    this.$fa_spinner.css("display", "none");
-    this.$viewport.append(this.$fa_spinner);
-    this.spinnerCount = 0;
-
-    // ruler sweeper widget surface
-    this.sweepZoom = new SweepZoom(browser, this.$viewport);
-    this.$viewport.append(this.sweepZoom.$rulerSweeper);
-
-
-    // x - guide
-    id = browser.id + '_' + 'x-guide';
-    this.$x_guide = $$2("<div>", {id: id});
-    this.$viewport.append(this.$x_guide);
-
-    // y - guide
-    id = browser.id + '_' + 'y-guide';
-    this.$y_guide = $$2("<div>", {id: id});
-    this.$viewport.append(this.$y_guide);
-
-
-    $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
-
-    this.displayMode = 'A';
-    this.imageTileCache = {};
-    this.imageTileCacheKeys = [];
-    this.imageTileCacheLimit = 8; //8 is the minimum number required to support A/B cycling
-    this.colorScaleThresholdCache = {};
-
-    // Set initial color scales.  These might be overriden / adjusted via parameters
-    this.colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
-    this.ratioColorScale = new RatioColorScale$1(5);
-    // this.diffColorScale = new RatioColorScale(100, false);
-
-    this.browser.eventBus.subscribe("NormalizationChange", this);
-    this.browser.eventBus.subscribe("TrackLoad2D", this);
-    this.browser.eventBus.subscribe("TrackState2D", this);
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("LocusChange", this);
-    this.browser.eventBus.subscribe("ControlMapLoad", this);
-    this.browser.eventBus.subscribe("ColorChange", this);
-    //this.browser.eventBus.subscribe("DragStopped", this)
-
-    this.drawsInProgress = new Set();
-};
-
-ContactMatrixView.prototype.setColorScale = function (colorScale) {
-
-    switch (this.displayMode) {
-        case 'AOB':
-        case 'BOA':
-            this.ratioColorScale = colorScale;
-            break;
-        case 'AMB':
-            this.diffColorScale = colorScale;
-            break;
-        default:
-            this.colorScale = colorScale;
-    }
-    this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = colorScale.threshold;
-};
-
-ContactMatrixView.prototype.setColorScaleThreshold = async function (threshold) {
-
-    this.getColorScale().setThreshold(threshold);
-    this.colorScaleThresholdCache[colorScaleKey(this.browser.state, this.displayMode)] = threshold;
-    this.imageTileCache = {};
-    await this.update();
-};
-
-ContactMatrixView.prototype.getColorScale = function () {
-    switch (this.displayMode) {
-        case 'AOB':
-        case 'BOA':
-            return this.ratioColorScale;
-        case 'AMB':
-            return this.diffColorScale;
-        default:
-            return this.colorScale;
-    }
-};
-
-ContactMatrixView.prototype.setDisplayMode = async function (mode) {
-    this.displayMode = mode;
-    this.clearImageCaches();
-    await this.update();
-};
-
-function colorScaleKey(state, displayMode) {
-    return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
-}
-
-ContactMatrixView.prototype.clearImageCaches = function () {
-    this.imageTileCache = {};
-    this.imageTileCacheKeys = [];
-};
-
-ContactMatrixView.prototype.getViewDimensions = function () {
-    return {
-        width: this.$viewport.width(),
-        height: this.$viewport.height()
-    }
-};
-
-ContactMatrixView.prototype.receiveEvent = async function (event) {
-
-    if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
-
-        // Don't enable mouse actions until we have a dataset.
-        if (!this.mouseHandlersEnabled) {
-            addTouchHandlers.call(this, this.$viewport);
-            addMouseHandlers$2.call(this, this.$viewport);
-            this.mouseHandlersEnabled = true;
-        }
-        this.clearImageCaches();
-        this.colorScaleThresholdCache = {};
-    }
-
-    else {
-        if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
-            this.clearImageCaches();
-        }
-        await this.update();
-    }
-};
-
-ContactMatrixView.prototype.update = async function () {
-
-    if (this.disableUpdates) return   // This flag is set during browser startup
-
-    await this.repaint();
-
-};
-
-
-/**
- * Return a promise to load all neccessary data
- */
-ContactMatrixView.prototype.repaint = async function () {
-
-    if (!this.browser.dataset) {
-        return;
-    }
-
-    const viewportWidth = this.$viewport.width();
-    const viewportHeight = this.$viewport.height();
-    const canvasWidth = this.$canvas.width();
-    const canvasHeight = this.$canvas.height();
-    if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-        this.$canvas.width(viewportWidth);
-        this.$canvas.height(viewportHeight);
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.attr('height', this.$viewport.height());
-    }
-    const state = this.browser.state;
-
-    let ds;
-    let dsControl;
-    switch (this.displayMode) {
-        case 'A':
-            ds = this.browser.dataset;
-            break;
-        case 'B':
-            ds = this.browser.controlDataset;
-            break;
-        case 'AOB':
-        case 'AMB':
-            ds = this.browser.dataset;
-            dsControl = this.browser.controlDataset;
-            break;
-        case 'BOA':
-            ds = this.browser.controlDataset;
-            dsControl = this.browser.dataset;
-    }
-
-    const matrix = await ds.getMatrix(state.chr1, state.chr2);
-    const zd = matrix.bpZoomData[state.zoom];
-
-    let zdControl;
-    if (dsControl) {
-        const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2);
-        zdControl = matrixControl.bpZoomData[state.zoom];
-    }
-
-
-    const blockBinCount = zd.blockBinCount;  // Dimension in bins of a block (width = height = blockBinCount)
-    const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-    const widthInBins = this.$viewport.width() / pixelSizeInt;
-    const heightInBins = this.$viewport.height() / pixelSizeInt;
-    const blockCol1 = Math.floor(state.x / blockBinCount);
-    const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount);
-    const blockRow1 = Math.floor(state.y / blockBinCount);
-    const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount);
-
-    await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization);
-
-    for (let r = blockRow1; r <= blockRow2; r++) {
-        for (let c = blockCol1; c <= blockCol2; c++) {
-            const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state);
-            this.paintTile(tile);
-        }
-    }
-
-    // Record genomic extent of current canvas
-    this.genomicExtent = {
-        chr1: state.chr1,
-        chr2: state.chr2,
-        x: state.x * zd.zoom.binSize,
-        y: state.y * zd.zoom.binSize,
-        w: viewportWidth * zd.zoom.binSize / state.pixelSize,
-        h: viewportHeight * zd.zoom.binSize / state.pixelSize
-    };
-};
-
-/**
- * Returns a promise for an image tile
- *
- * @param zd
- * @param row
- * @param column
- * @param state
- * @returns {*}
- */
-
-const inProgressCache = {};
-
-function inProgressTile(imageSize) {
-
-    let image = inProgressCache[imageSize];
-    if (!image) {
-        image = document.createElement('canvas');
-        image.width = imageSize;
-        image.height = imageSize;
-        const ctx = image.getContext('2d');
-        ctx.font = '24px sans-serif';
-        ctx.fillStyle = 'rgb(230, 230, 230)';
-        ctx.fillRect(0, 0, image.width, image.height);
-        ctx.fillStyle = 'black';
-        for (let i = 100; i < imageSize; i += 300) {
-            for (let j = 100; j < imageSize; j += 300) {
-                ctx.fillText('Loading...', i, j);
-            }
-        }
-        inProgressCache[imageSize] = image;
-    }
-    return image;
-}
-
-ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zdControl, row, column, state) {
-
-    const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-    const useImageData = pixelSizeInt === 1;
-    const blockBinCount = zd.blockBinCount;
-    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-        "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode;
-    if (this.imageTileCache.hasOwnProperty(key)) {
-        return this.imageTileCache[key]
-
-    } else {
-        if (this.drawsInProgress.has(key)) {
-            //console.log("In progress")
-            const imageSize = Math.ceil(blockBinCount * pixelSizeInt);
-            const image = inProgressTile(imageSize);
-            return {
-                row: row,
-                column: column,
-                blockBinCount: blockBinCount,
-                image: image,
-                inProgress: true
-            }  // TODO return an image at a coarser resolution if avaliable
-
-        }
-        this.drawsInProgress.add(key);
-
-        try {
-            this.startSpinner();
-            const sameChr = zd.chr1.index === zd.chr2.index;
-            const blockColumnCount = zd.blockColumnCount;
-            const widthInBins = zd.blockBinCount;
-            const transpose = sameChr && row < column;
-
-            let blockNumber;
-            if (sameChr && row < column) {
-                blockNumber = column * blockColumnCount + row;
-            }
-            else {
-                blockNumber = row * blockColumnCount + column;
-            }
-
-            // Get blocks
-            const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalization, this.browser.eventBus);
-            let controlBlock;
-            if (zdControl) {
-                controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalization, this.browser.eventBus);
-            }
-
-            const averageCount = zd.averageCount;
-            const ctrlAverageCount = zdControl ? zdControl.averageCount : 1;
-            const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2;
-
-
-            let image;
-            if (block && block.records.length > 0) {
-
-                const imageSize = Math.ceil(widthInBins * pixelSizeInt);
-                const blockNumber = block.blockNumber;
-                const row = Math.floor(blockNumber / blockColumnCount);
-                const col = blockNumber - row * blockColumnCount;
-                const x0 = blockBinCount * col;
-                const y0 = blockBinCount * row;
-
-                image = document.createElement('canvas');
-                image.width = imageSize;
-                image.height = imageSize;
-                const ctx = image.getContext('2d');
-                //ctx.clearRect(0, 0, image.width, image.height);
-
-                const controlRecords = {};
-                if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
-                    for (let record of controlBlock.records) {
-                        controlRecords[record.getKey()] = record;
-                    }
-                }
-
-                let id;
-                if (useImageData) {
-                    id = ctx.getImageData(0, 0, image.width, image.height);
-                }
-
-                for (let i = 0; i < block.records.length; i++) {
-
-                    const rec = block.records[i];
-                    let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
-                    let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
-
-                    if (transpose) {
-                        const t = y;
-                        y = x;
-                        x = t;
-                    }
-
-                    let color;
-                    switch (this.displayMode) {
-
-                        case 'AOB':
-                        case 'BOA':
-                            let key = rec.getKey();
-                            let controlRec = controlRecords[key];
-                            if (!controlRec) {
-                                continue;    // Skip
-                            }
-                            let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
-
-                            color = this.ratioColorScale.getColor(score);
-
-                            break;
-
-                        case 'AMB':
-                            key = rec.getKey();
-                            controlRec = controlRecords[key];
-                            if (!controlRec) {
-                                continue;    // Skip
-                            }
-                            score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
-
-                            color = this.diffColorScale.getColor(score);
-
-                            break;
-
-                        default:    // Either 'A' or 'B'
-                            color = this.colorScale.getColor(rec.counts);
-                    }
-
-
-                    if (useImageData) {
-                        // TODO -- verify that this bitblting is faster than fillRect
-                        setPixel(id, x, y, color.red, color.green, color.blue, 255);
-                        if (sameChr && row === col) {
-                            setPixel(id, y, x, color.red, color.green, color.blue, 255);
-                        }
+        else if (start < bufferEnd && end > bufferEnd) {
+            // Overlap right
+            // console.log("3")
+            const l1 = bufferEnd - start;
+            const sliceStart = this.bufferLength - l1;
+            const a1 = this.buffer.slice(sliceStart, this.bufferLength);
+
+            const l2 = length - l1;
+            if (l2 > 0) {
+                try {
+                    this.buffer = await this.file.read(bufferEnd, this.size);
+                    this.bufferStart = bufferEnd;
+                    this.bufferLength = this.buffer.byteLength;
+                    const a2 = this.buffer.slice(0, l2);
+                    return concatBuffers(a1, a2)
+                } catch (e) {
+                    // A "unsatisfiable range" error is expected here if we overlap past the end of file
+                    if (e.code && e.code === 416) {
+                        return a1
                     }
                     else {
-                        ctx.fillStyle = color.rgb;
-                        ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
-                        if (sameChr && row === col) {
-                            ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
-                        }
-                    }
-                }
-                if (useImageData) {
-                    ctx.putImageData(id, 0, 0);
-                }
-
-                //Draw 2D tracks
-                ctx.save();
-                ctx.lineWidth = 2;
-                for (let track2D of this.browser.tracks2D) {
-
-                    if (track2D.isVisible) {
-
-                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
-
-                        if (features) {
-                            features.forEach(function (f) {
-
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var w = x2 - x1;
-                                var h = y2 - y1;
-
-                                let t;
-                                if (transpose) {
-                                    t = y1;
-                                    y1 = x1;
-                                    x1 = t;
-
-                                    t = h;
-                                    h = w;
-                                    w = t;
-                                }
-
-                                var dim = Math.max(image.width, image.height);
-                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
-                                    ctx.strokeStyle = track2D.color ? track2D.color : f.color;
-                                    ctx.strokeRect(x1, y1, w, h);
-                                    if (sameChr && row === col) {
-                                        ctx.strokeRect(y1, x1, h, w);
-                                    }
-                                }
-                            });
-                        }
+                        throw e
                     }
                 }
 
-                ctx.restore();
-
-                // Uncomment to reveal tile boundaries for debugging.
-                // ctx.fillStyle = "rgb(255,255,255)";
-                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
-
-
-            }
-            else {
-                //console.log("No block for " + blockNumber);
-            }
-            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image};
-
-
-            if (this.imageTileCacheLimit > 0) {
-                if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
-                    delete this.imageTileCache[this.imageTileCacheKeys[0]];
-                    this.imageTileCacheKeys.shift();
-                }
-                this.imageTileCache[key] = imageTile;
-
+            } else {
+                return a1
             }
 
-            this.drawsInProgress.delete(key);
-            return imageTile;
-
-        } finally {
-            //console.log("Finish load for " + key)
-            this.stopSpinner();
         }
-    }
 
-
-    function setPixel(imageData, x, y, r, g, b, a) {
-        const index = (x + y * imageData.width) * 4;
-        imageData.data[index + 0] = r;
-        imageData.data[index + 1] = g;
-        imageData.data[index + 2] = b;
-        imageData.data[index + 3] = a;
-    }
-};
-
-
-ContactMatrixView.prototype.zoomIn = async function () {
-    const state = this.browser.state;
-    const viewportWidth = this.$viewport.width();
-    const viewportHeight = this.$viewport.height();
-    const matrices = await getMatrices.call(this, state.chr1, state.chr2);
-
-    var matrix = matrices[0];
-
-    if (matrix) {
-        const zd = await matrix.bpZoomData[state.zoom];
-        const newGenomicExtent = {
-            x: state.x * zd.zoom.binSize,
-            y: state.y * zd.zoom.binSize,
-            w: viewportWidth * zd.zoom.binSize / state.pixelSize,
-            h: viewportHeight * zd.zoom.binSize / state.pixelSize
-        };
-
-        // Zoom out not supported
-        if (newGenomicExtent.w > this.genomicExtent.w) return
-
-        const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth;
-        const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight;
-        const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth;
-        const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight;
-        const img = this.$canvas[0];
-
-        const backCanvas = document.createElement('canvas');
-        backCanvas.width = img.width;
-        backCanvas.height = img.height;
-        const backCtx = backCanvas.getContext('2d');
-        backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight);
-
-        this.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
-        this.ctx.drawImage(backCanvas, 0, 0);
-    }
-};
-
-ContactMatrixView.prototype.paintTile = function (imageTile) {
-
-    const state = this.browser.state;
-    const viewportWidth = this.$viewport.width();
-    const viewportHeight = this.$viewport.height();
-
-    var image = imageTile.image,
-        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-
-    if (image != null) {
-        const row = imageTile.row;
-        const col = imageTile.column;
-        const x0 = imageTile.blockBinCount * col;
-        const y0 = imageTile.blockBinCount * row;
-        const offsetX = (x0 - state.x) * state.pixelSize;
-        const offsetY = (y0 - state.y) * state.pixelSize;
-        const scale = state.pixelSize / pixelSizeInt;
-        const scaledWidth = image.width * scale;
-        const scaledHeight = image.height * scale;
-        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-            this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight);
-            if (scale === 1) {
-                this.ctx.drawImage(image, offsetX, offsetY);
-            }
-            else {
-                this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-            }
+        else {
+            // No overlap with buffer
+            // console.log("4")
+            this.buffer = await this.file.read(position, this.size);
+            this.bufferStart = position;
+            this.bufferLength = this.buffer.byteLength;
+            return this.buffer.slice(0, length)
         }
-    }
-};
 
-function getMatrices(chr1, chr2) {
-
-    var promises = [];
-    if ('B' === this.displayMode && this.browser.controlDataset) {
-        promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
     }
 
-    else {
-        promises.push(this.browser.dataset.getMatrix(chr1, chr2));
-        if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
-            promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
-        }
-    }
-    return Promise.all(promises);
 }
 
 /**
- * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
- * data to computer scale.
+ * concatenates 2 array buffers.
+ * Credit: https://gist.github.com/72lions/4528834
  *
- * @param zd
- * @param row1
- * @param row2
- * @param col1
- * @param col2
- * @param normalization
+ * @private
+ * @param {ArrayBuffers} buffer1 The first buffer.
+ * @param {ArrayBuffers} buffer2 The second buffer.
+ * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
+ */
+var concatBuffers = function (buffer1, buffer2) {
+    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    tmp.set(new Uint8Array(buffer1), 0);
+    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+    return tmp.buffer;
+};
+
+// TODO -- big endian
+
+const BinaryParser$1 = function (dataView, littleEndian) {
+
+    this.littleEndian = littleEndian !== undefined ? littleEndian : true;
+    this.position = 0;
+    this.view = dataView;
+    this.length = dataView.byteLength;
+};
+
+BinaryParser$1.prototype.available = function () {
+    return this.length - this.position;
+};
+
+BinaryParser$1.prototype.remLength = function () {
+    return this.length - this.position;
+};
+
+BinaryParser$1.prototype.hasNext = function () {
+    return this.position < this.length - 1;
+};
+
+BinaryParser$1.prototype.getByte = function () {
+    var retValue = this.view.getUint8(this.position, this.littleEndian);
+    this.position++;
+    return retValue;
+};
+
+BinaryParser$1.prototype.getShort = function () {
+
+    var retValue = this.view.getInt16(this.position, this.littleEndian);
+    this.position += 2;
+    return retValue;
+};
+
+BinaryParser$1.prototype.getUShort = function () {
+
+    // var byte1 = this.getByte(),
+    //     byte2 = this.getByte(),
+    //     retValue = ((byte2 << 24 >>> 16) + (byte1 << 24 >>> 24));
+    //     return retValue;
+
+    //
+    var retValue = this.view.getUint16(this.position, this.littleEndian);
+    this.position += 2;
+    return retValue;
+};
+
+
+BinaryParser$1.prototype.getInt = function () {
+
+    var retValue = this.view.getInt32(this.position, this.littleEndian);
+    this.position += 4;
+    return retValue;
+};
+
+
+BinaryParser$1.prototype.getUInt = function () {
+    var retValue = this.view.getUint32(this.position, this.littleEndian);
+    this.position += 4;
+    return retValue;
+};
+
+BinaryParser$1.prototype.getLong = function () {
+
+    // DataView doesn't support long. So we'll try manually
+
+    var b = [];
+    b[0] = this.view.getUint8(this.position);
+    b[1] = this.view.getUint8(this.position + 1);
+    b[2] = this.view.getUint8(this.position + 2);
+    b[3] = this.view.getUint8(this.position + 3);
+    b[4] = this.view.getUint8(this.position + 4);
+    b[5] = this.view.getUint8(this.position + 5);
+    b[6] = this.view.getUint8(this.position + 6);
+    b[7] = this.view.getUint8(this.position + 7);
+
+    var value = 0;
+    if (this.littleEndian) {
+        for (var i = b.length - 1; i >= 0; i--) {
+            value = (value * 256) + b[i];
+        }
+    } else {
+        for (var i = 0; i < b.length; i++) {
+            value = (value * 256) + b[i];
+        }
+    }
+
+
+    this.position += 8;
+    return value;
+};
+
+BinaryParser$1.prototype.getString = function (len) {
+
+    var s = "";
+    var c;
+    while ((c = this.view.getUint8(this.position++)) != 0) {
+        s += String.fromCharCode(c);
+        if (len && s.length == len) break;
+    }
+    return s;
+};
+
+BinaryParser$1.prototype.getFixedLengthString = function (len) {
+
+    var s = "";
+    var i;
+    var c;
+    for (i = 0; i < len; i++) {
+        c = this.view.getUint8(this.position++);
+        if (c > 0) {
+            s += String.fromCharCode(c);
+        }
+    }
+    return s;
+};
+
+BinaryParser$1.prototype.getFixedLengthTrimmedString = function (len) {
+
+    var s = "";
+    var i;
+    var c;
+    for (i = 0; i < len; i++) {
+        c = this.view.getUint8(this.position++);
+        if (c > 32) {
+            s += String.fromCharCode(c);
+        }
+    }
+    return s;
+};
+
+BinaryParser$1.prototype.getFloat = function () {
+
+    var retValue = this.view.getFloat32(this.position, this.littleEndian);
+    this.position += 4;
+    return retValue;
+
+
+};
+
+BinaryParser$1.prototype.getDouble = function () {
+
+    var retValue = this.view.getFloat64(this.position, this.littleEndian);
+    this.position += 8;
+    return retValue;
+};
+
+BinaryParser$1.prototype.skip = function (n) {
+
+    this.position += n;
+    return this.position;
+};
+
+
+/**
+ * Return a bgzip (bam and tabix) virtual pointer
+ * TODO -- why isn't 8th byte used ?
  * @returns {*}
  */
-async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
+BinaryParser$1.prototype.getVPointer = function () {
 
-    const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
-    if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
-        return this.ratioColorScale;     // Don't adjust color scale for A/B.
+    var position = this.position,
+        offset = (this.view.getUint8(position + 1) << 8) | (this.view.getUint8(position)),
+        byte6 = ((this.view.getUint8(position + 6) & 0xff) * 0x100000000),
+        byte5 = ((this.view.getUint8(position + 5) & 0xff) * 0x1000000),
+        byte4 = ((this.view.getUint8(position + 4) & 0xff) * 0x10000),
+        byte3 = ((this.view.getUint8(position + 3) & 0xff) * 0x100),
+        byte2 = ((this.view.getUint8(position + 2) & 0xff)),
+        block = byte6 + byte5 + byte4 + byte3 + byte2;
+    this.position += 8;
+
+    //       if (block == 0 && offset == 0) {
+    //           return null;
+    //       } else {
+    return new VPointer$1(block, offset);
+    //       }
+};
+
+
+function VPointer$1(block, offset) {
+    this.block = block;
+    this.offset = offset;
+}
+
+VPointer$1.prototype.isLessThan = function (vp) {
+    return this.block < vp.block ||
+        (this.block === vp.block && this.offset < vp.offset);
+};
+
+VPointer$1.prototype.isGreaterThan = function (vp) {
+    return this.block > vp.block ||
+        (this.block === vp.block && this.offset > vp.offset);
+};
+
+VPointer$1.prototype.print = function () {
+    return "" + this.block + ":" + this.offset;
+};
+
+class Matrix {
+  
+    constructor(chr1, chr2, zoomDataList) {
+
+        const self = this;
+
+        this.chr1 = chr1;
+        this.chr2 = chr2;
+        this.bpZoomData = [];
+        this.fragZoomData = [];
+        
+        zoomDataList.forEach(function (zd) {
+            if (zd.zoom.unit === "BP") {
+                self.bpZoomData.push(zd);
+            } else {
+                self.fragZoomData.push(zd);
+            }
+        });
     }
 
-    if (this.colorScaleThresholdCache[colorKey]) {
-        const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
-        this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
-        if (changed) {
-            this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+    getZoomDataByIndex(index, unit) {
+        const zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
+        return zdArray[index]
+    }
+
+
+    findZoomForResolution(binSize, unit) {
+
+        const  zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
+
+        for (let i = 1; i < zdArray.length; i++) {
+            var zd = zdArray[i];
+            if (zd.zoom.binSize < binSize) {
+                return i - 1
+            }
         }
-        return this.colorScale;
+        return zdArray.length - 1
+
     }
 
-    else {
+
+    // Legacy implementation, used only in tests.
+    getZoomData(zoom) {
+
+        const zdArray = zoom.unit === "BP" ? this.bpZoomData : this.fragZoomData;
+
+        for (let i = 0; i < zdArray.length; i++) {
+            var zd = zdArray[i];
+            if (zoom.binSize === zd.zoom.binSize) {
+                return zd
+            }
+        }
+
+        return undefined
+    }
+}
+
+class MatrixZoomData {
+
+    constructor(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
+
+        this.chr1 = chr1;    // chromosome index
+        this.chr2 = chr2;
+        this.zoom = zoom;
+        this.blockBinCount = blockBinCount;
+        this.blockColumnCount = blockColumnCount;
+        this.chr1Sites = chr1Sites;
+        this.chr2Sites = chr2Sites;
+    }
+
+    getKey () {
+        return this.chr1.name + "_" + this.chr2.name + "_" + this.zoom.unit + "_" + this.zoom.binSize;
+    }
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+
+/**
+ * @author Jim Robinson
+ */
+
+class NormalizationVector$1 {
+
+    constructor(type, chrIdx, unit, resolution, values) {
+
+        var avg = mean(values), i;
+        if (avg > 0) {
+            for (i = 0; i < values.length; i++) {
+                values[i] /= avg;
+            }
+        }
+
+        this.type = type;
+        this.chrIdx = chrIdx;
+        this.unit = unit;
+        this.resolution = resolution;
+        this.data = values;
+    }
+
+    getKey() {
+        return NormalizationVector$1.getKey(this.type, this.chrIdx, this.unit, this.resolution);
+    }
+
+
+    static getNormalizationVectorKey(type, chrIdx, unit, resolution) {
+        return type + "_" + chrIdx + "_" + unit + "_" + resolution;
+    }
+
+}
+
+function mean (array) {
+
+    var t = 0, n = 0,
+        i;
+    for (i = 0; i < array.length; i++) {
+        if (!isNaN(array[i])) {
+            t += array[i];
+            n++;
+        }
+    }
+    return n > 0 ? t / n : 0;
+}
+
+class ContactRecord$1 {
+
+    constructor(bin1, bin2, counts) {
+        this.bin1 = bin1;
+        this.bin2 = bin2;
+        this.counts = counts;
+    };
+
+    getKey() {
+        return "" + this.bin1 + "_" + this.bin2;
+    }
+}
+
+const isNode$3 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
+
+const Short_MIN_VALUE = -32768;
+
+const googleRateLimiter = new RateLimiter$1(100);
+
+class Block$1 {
+    constructor(blockNumber, zoomData, records, idx) {
+        this.blockNumber = blockNumber;
+        this.zoomData = zoomData;
+        this.records = records;
+        this.idx = idx;
+    }
+}
+
+class HicFile {
+
+    constructor(args) {
+
+        this.config = args;
+
+        this.loadFragData = args.loadFragData;
+
+        this.fragmentSitesCache = {};
+        this.normVectorCache = {};
+        this.normalizationTypes = ['NONE'];
+
+        // args may specify an io.File object, a local path (Node only), or a url
+        if (args.file) {
+            this.file = args.file;
+        } else if (args.blob) {
+            this.file = new BrowserLocalFile(args.blob);
+        } else if (args.url || (args.path && !isNode$3)) {
+            this.url = args.url || this.path;
+            this.remote = true;
+
+            // Google drive must be rate limited.  Perhaps all remote files should be rate limited?
+            const remoteFile = new RemoteFile(args);
+            if (isGoogleDrive$1(this.url)) {
+                this.file = new ThrottledFile(remoteFile, googleRateLimiter);
+            } else {
+                this.file = remoteFile;
+            }
+        } else if (args.path) {
+            // path argument, assumed local file
+            this.file = new NodeLocalFile({path: args.path});
+
+        } else {
+            throw Error("Arguments must include file, blob, url, or path")
+        }
+    }
+
+
+    async init() {
+
+        if (this.initialized) {
+            return;
+        } else {
+            await this.readHeader();
+            await this.readFooter();
+            this.initialized = true;
+        }
+    }
+
+    async getMetaData() {
+        await this.init();
+        return this.meta
+    }
+
+    async readHeader() {
+
+        const data = await this.file.read(0, 64000);
+
+        if (!data) {
+            return undefined;
+        }
+
+        const binaryParser = new BinaryParser$1(new DataView(data));
+
+        this.magic = binaryParser.getString();
+        this.version = binaryParser.getInt();
+        this.masterIndexPos = binaryParser.getLong();
+        this.genomeId = binaryParser.getString();
+
+        this.attributes = {};
+        let nAttributes = binaryParser.getInt();
+        while (nAttributes-- > 0) {
+            this.attributes[binaryParser.getString()] = binaryParser.getString();
+        }
+
+        this.chromosomes = [];
+        this.chromosomeIndexMap = {};
+        let nChrs = binaryParser.getInt();
+        let i = 0;
+        while (nChrs-- > 0) {
+            const chr = {
+                index: i,
+                name: binaryParser.getString(),
+                size: binaryParser.getInt()
+            };
+            if (chr.name.toLowerCase() === "all") {
+                this.wholeGenomeChromosome = chr;
+                this.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
+            }
+            this.chromosomes.push(chr);
+            this.chromosomeIndexMap[chr.name] = chr.index;
+            i++;
+        }
+
+        this.bpResolutions = [];
+        let nBpResolutions = binaryParser.getInt();
+        while (nBpResolutions-- > 0) {
+            this.bpResolutions.push(binaryParser.getInt());
+        }
+
+        if (this.loadFragData) {
+            this.fragResolutions = [];
+            let nFragResolutions = binaryParser.getInt();
+            while (nFragResolutions-- > 0) {
+                this.fragResolutions.push(binaryParser.getInt());
+            }
+
+            if (nFragResolutions > 0) {
+                this.sites = [];
+                let nSites = binaryParser.getInt();
+                while (nSites-- > 0) {
+                    this.sites.push(binaryParser.getInt());
+                }
+            }
+        }
+
+        // Build lookup table for well-known chr aliases
+        this.chrAliasTable = {};
+        for (let chrName of Object.keys(this.chromosomeIndexMap)) {
+
+            if (chrName.startsWith("chr")) {
+                this.chrAliasTable[chrName.substr(3)] = chrName;
+            } else if (chrName === "MT") {
+                this.chrAliasTable["chrM"] = chrName;
+            } else {
+                this.chrAliasTable["chr" + chrName] = chrName;
+            }
+        }
+
+
+        // Meta data for the API
+        this.meta = {
+            "version": this.version,
+            "genome": this.genomeId,
+            "chromosomes": this.chromosomes,
+            "resolutions": this.bpResolutions,
+        };
+
+
+    }
+
+    async readFooter() {
+
+
+        let data = await this.file.read(this.masterIndexPos, 8);
+        if (!data) {
+            return null;
+        }
+
+        let binaryParser = new BinaryParser$1(new DataView(data));
+        const nBytes = binaryParser.getInt();   // Total size, master index + expected values
+        let nEntries = binaryParser.getInt();
+
+        // Estimate the size of the master index. String length of key is unknown, be conservative (100 bytes)
+        const miSize = nEntries * (100 + 64 + 32);
+        let range = {start: this.masterIndexPos + 8, size: Math.min(miSize, nBytes - 4)};
+        data = await this.file.read(this.masterIndexPos + 8, Math.min(miSize, nBytes - 4));
+        binaryParser = new BinaryParser$1(new DataView(data));
+
+        this.masterIndex = {};
+        while (nEntries-- > 0) {
+            const key = binaryParser.getString();
+            const pos = binaryParser.getLong();
+            const size = binaryParser.getInt();
+            this.masterIndex[key] = {start: pos, size: size};
+        }
+
+        this.expectedValueVectors = {};
+
+        nEntries = binaryParser.getInt();
+
+        // Expected values
+        // while (nEntries-- > 0) {
+        //     type = "NONE";
+        //     unit = binaryParser.getString();
+        //     binSize = binaryParser.getInt();
+        //     nValues = binaryParser.getInt();
+        //     values = [];
+        //     while (nValues-- > 0) {
+        //         values.push(binaryParser.getDouble());
+        //     }
+        //
+        //     nChrScaleFactors = binaryParser.getInt();
+        //     normFactors = {};
+        //     while (nChrScaleFactors-- > 0) {
+        //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
+        //     }
+        //
+        //     // key = unit + "_" + binSize + "_" + type;
+        //     //  NOT USED YET SO DON'T STORE
+        //     //  dataset.expectedValueVectors[key] =
+        //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
+        // }
+
+        this.normExpectedValueVectorsPosition = this.masterIndexPos + 4 + nBytes;
+
+        return this;
+    };
+
+    async readMatrix(chrIdx1, chrIdx2) {
+
+        await this.init();
+
+        if (chrIdx1 > chrIdx2) {
+            const tmp = chrIdx1;
+            chrIdx1 = chrIdx2;
+            chrIdx2 = tmp;
+        }
+
+        const key = "" + chrIdx1 + "_" + chrIdx2;
+
+        const idx = this.masterIndex[key];
+        if (!idx) {
+            return undefined
+        }
+
+        const data = await this.file.read(idx.start, idx.size);
+        if (!data) {
+            return undefined
+        }
+
+        const dis = new BinaryParser$1(new DataView(data));
+        const c1 = dis.getInt();     // Should equal chrIdx1
+        const c2 = dis.getInt();     // Should equal chrIdx2
+
+        // TODO validate this
+        const chr1 = this.chromosomes[c1];
+        const chr2 = this.chromosomes[c2];
+
+        // # of resolution levels (bp and frags)
+        let nResolutions = dis.getInt();
+        const zdList = [];
+
+        const sites1 = await this.getSites.call(this, chr1.name);
+        const sites2 = await this.getSites.call(this, chr2.name);
+
+        let bytesAvailable = dis.available();
+        let filePosition = idx.start;
+        while (nResolutions-- > 0) {
+
+            const zd = parseMatixZoomData(chr1, chr2, sites1, sites2, dis);
+            const bytesUsed = bytesAvailable - dis.available();
+            zd.idx = {
+                start: filePosition,
+                size: bytesUsed
+            };
+            bytesAvailable = dis.available();
+            zdList.push(zd);
+            //console.log(`zd${z++}: ${bytesUsed}`)
+        }
+        return new Matrix(chrIdx1, chrIdx2, zdList);
+
+    }
+
+    /***
+     * Return the raw data for the block.  Function provided for testing and development
+     * @param blockNumber
+     * @param zd
+     * @returns {Promise<void>}
+     */
+    async readBlockData(blockNumber, zd) {
+
+        var idx = null;
+
+        var blockIndex = zd.blockIndexMap;
+        if (blockIndex) {
+            var idx = blockIndex[blockNumber];
+        }
+        if (!idx) {
+            return undefined
+        } else {
+
+            return this.file.read(idx.filePosition, idx.size)
+        }
+    }
+
+    async readBlock(blockNumber, zd) {
+
+        var self = this,
+            idx = null,
+            i, j;
+
+        var blockIndex = zd.blockIndexMap;
+        if (blockIndex) {
+            var idx = blockIndex[blockNumber];
+        }
+        if (!idx) {
+            return undefined
+        } else {
+
+            let data = await this.file.read(idx.filePosition, idx.size);
+
+            if (!data) {
+                return undefined;
+            }
+
+            const inflate = new Zlib$1.Inflate(new Uint8Array(data));
+            const plain = inflate.decompress();
+            //var plain = zlib.inflateSync(Buffer.from(data))   //.decompress();
+            data = plain.buffer;
+
+
+            var parser = new BinaryParser$1(new DataView(data));
+            var nRecords = parser.getInt();
+            var records = [];
+
+            if (self.version < 7) {
+                for (i = 0; i < nRecords; i++) {
+                    var binX = parser.getInt();
+                    var binY = parser.getInt();
+                    var counts = parser.getFloat();
+                    records.push(new ContactRecord$1(binX, binY, counts));
+                }
+            } else {
+
+                var binXOffset = parser.getInt();
+                var binYOffset = parser.getInt();
+
+                var useShort = parser.getByte() == 0;
+                var type = parser.getByte();
+
+                if (type === 1) {
+                    // List-of-rows representation
+                    var rowCount = parser.getShort();
+
+                    for (i = 0; i < rowCount; i++) {
+
+                        binY = binYOffset + parser.getShort();
+                        var colCount = parser.getShort();
+
+                        for (j = 0; j < colCount; j++) {
+
+                            binX = binXOffset + parser.getShort();
+                            counts = useShort ? parser.getShort() : parser.getFloat();
+                            records.push(new ContactRecord$1(binX, binY, counts));
+                        }
+                    }
+                } else if (type == 2) {
+
+                    var nPts = parser.getInt();
+                    var w = parser.getShort();
+
+                    for (i = 0; i < nPts; i++) {
+                        //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
+                        var row = Math.floor(i / w);
+                        var col = i - row * w;
+                        var bin1 = binXOffset + col;
+                        var bin2 = binYOffset + row;
+
+                        if (useShort) {
+                            counts = parser.getShort();
+                            if (counts != Short_MIN_VALUE) {
+                                records.push(new ContactRecord$1(bin1, bin2, counts));
+                            }
+                        } else {
+                            counts = parser.getFloat();
+                            if (!isNaN(counts)) {
+                                records.push(new ContactRecord$1(bin1, bin2, counts));
+                            }
+                        }
+
+                    }
+
+                } else {
+                    throw new Error("Unknown block type: " + type);
+                }
+
+            }
+
+            return new Block$1(blockNumber, zd, records, idx);
+
+
+        }
+    };
+
+    async getSites(chrName) {
+
+        return undefined
+
+        // var self = this;
+        // var sites, entry;
+        //
+        // sites = self.fragmentSitesCache[chrName];
+        //
+        // if (sites) {
+        //     return Promise.resolve(sites);
+        //
+        // } else if (self.fragmentSitesIndex) {
+        //
+        //     entry = self.fragmentSitesIndex[chrName];
+        //
+        //     if (entry !== undefined && entry.nSites > 0) {
+        //
+        //         return readSites(entry.position, entry.nSites)
+        //             .then(function (sites) {
+        //                 self.fragmentSitesCache[chrName] = sites;
+        //                 return sites;
+        //
+        //             })
+        //     }
+        // }
+        // else {
+        //     return Promise.resolve(undefined);
+        // }
+
+    }
+
+    async getNormalizationVector(type, chr, unit, binSize) {
+
+        await this.init();
+
+        let chrIdx;
+        if (Number.isInteger(chr)) {
+            chrIdx = chr;
+        } else {
+            const canonicalName = this.getFileChrName(chr);
+            chrIdx = this.chromosomeIndexMap[canonicalName];
+        }
+
+
+        const key = getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
+
+        if (this.normVectorCache.hasOwnProperty(key)) {
+            return Promise.resolve(this.normVectorCache[key]);
+        }
+
+        const normVectorIndex = await this.getNormVectorIndex();
+
+        if (!normVectorIndex) {
+            return undefined
+        }
+
+        const idx = normVectorIndex[key];
+        if (!idx) {
+            // TODO -- alert in browsers
+            return undefined;
+        }
+
+        const data = await this.file.read(idx.filePosition, idx.size);
+
+        if (!data) {
+            return undefined;
+        }
+
+        const parser = new BinaryParser$1(new DataView(data));
+        const nValues = parser.getInt();
+        const values = [];
+        let allNaN = true;
+        for (let i = 0; i < nValues; i++) {
+            values[i] = parser.getDouble();
+            if (!isNaN(values[i])) {
+                allNaN = false;
+            }
+        }
+        if (allNaN) {
+            return undefined;
+        } else {
+            return new NormalizationVector$1(type, chrIdx, unit, binSize, values);
+        }
+
+    }
+
+    async getNormVectorIndex() {
+
+        if (!this.normVectorIndex) {
+
+            // If nvi is not supplied, try reading from remote lambda service
+            if (!this.config.nvi && this.remote && this.url) {
+                const url = new URL(this.url);
+                const key = encodeURIComponent(url.hostname + url.pathname);
+                const nviResponse = await crossFetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
+                if (nviResponse.status === 200) {
+                    const nvi = await nviResponse.text();
+                    if (nvi) {
+                        this.config.nvi = nvi;
+                    }
+                }
+            }
+
+            if (this.config.nvi) {
+                const nviArray = decodeURIComponent(this.config.nvi).split(",");
+                const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
+                return this.readNormVectorIndex(range)
+            } else {
+                try {
+                    await this.readNormExpectedValuesAndNormVectorIndex();
+                    return this.normVectorIndex
+                } catch (e) {
+                    if (e.code === "416" || e.code === 416) {
+                        // This is expected if file does not contain norm vectors
+                        this.normExpectedValueVectorsPosition = undefined;
+                    } else {
+                        console.error(e);
+                    }
+                }
+            }
+        }
+
+        return this.normVectorIndex
+    }
+
+    async getNormalizationOptions() {
+        // Normalization options are computed as a side effect of loading the index.  A bit
+        // ugly but alternatives are worse.
+        await this.getNormVectorIndex();
+        return this.normalizationTypes;
+    }
+
+    /**
+     * Return a promise to load the normalization vector index
+     *
+     * @param dataset
+     * @param range  -- file range {position, size}
+     * @returns Promise for the normalization vector index
+     */
+    async readNormVectorIndex(range) {
+
+        await this.init();
+
+        this.normalizationVectorIndexRange = range;
+
+        const data = await this.file.read(range.start, range.size);
+
+        const binaryParser = new BinaryParser$1(new DataView(data));
+
+        this.normVectorIndex = {};
+
+        let nEntries = binaryParser.getInt();
+        while (nEntries-- > 0) {
+            this.parseNormVectorEntry(binaryParser);
+        }
+
+        return this.normVectorIndex;
+
+    }
+
+    /**
+     * This function is used when the position of the norm vector index is unknown.  We must read through the expected
+     * values to find the index
+     *
+     * @param dataset
+     * @returns {Promise}
+     */
+    async readNormExpectedValuesAndNormVectorIndex() {
+
+        await this.init();
+
+        if (this.normExpectedValueVectorsPosition === undefined) {
+            return;
+        }
+
+        const nviStart = await this.skipExpectedValues(this.normExpectedValueVectorsPosition);
+        let byteCount = 4;
+
+        let data = await this.file.read(nviStart, 4);
+        const binaryParser = new BinaryParser$1(new DataView(data));
+        const nEntries = binaryParser.getInt();
+        const sizeEstimate = nEntries * 30;
+        const range = {start: nviStart + byteCount, size: sizeEstimate};
+
+        data = await this.file.read(range.start, range.size);
+        this.normalizedExpectedValueVectors = {};
+        this.normVectorIndex = {};
+
+        // Recursively process entries
+        await processEntries.call(this, nEntries, data);
+
+        this.config.nvi = nviStart.toString() + "," + byteCount;
+
+        async function processEntries(nEntries, data) {
+
+            const binaryParser = new BinaryParser$1(new DataView(data));
+
+            while (nEntries-- > 0) {
+
+                if (binaryParser.available() < 100) {
+
+                    nEntries++;   // Reset counter as entry is not processed
+
+                    byteCount += binaryParser.position;
+                    const sizeEstimate = Math.max(1000, nEntries * 30);
+                    const range = {start: nviStart + byteCount, size: sizeEstimate};
+                    const data = await this.file.read(range.start, range.size);
+                    return processEntries.call(this, nEntries, data);
+                }
+
+                this.parseNormVectorEntry(binaryParser);
+
+            }
+            byteCount += binaryParser.position;
+        }
+    }
+
+    /**
+     * This function is used when the position of the norm vector index is unknown.  We must read through the expected
+     * values to find the index
+     *
+     * @param dataset
+     * @returns {Promise}
+     */
+    async skipExpectedValues(start) {
+
+        const file = new BufferedFile({file: this.file, size: 256000});
+        const range = {start: start, size: 4};
+        const data = await file.read(range.start, range.size);
+        const binaryParser = new BinaryParser$1(new DataView(data));
+        const nEntries = binaryParser.getInt();   // Total # of expected value chunks
+        if (nEntries === 0) {
+            return range.start + range.size;
+        } else {
+            return parseNext(start + 4, nEntries);
+        }     // Skip 4 bytes for int
+
+
+        async function parseNext(start, nEntries) {
+
+            let range = {start: start, size: 500};
+            let chunkSize = 0;
+            let p0 = start;
+
+            let data = await file.read(range.start, range.size);
+            let binaryParser = new BinaryParser$1(new DataView(data));
+            binaryParser.getString(); // type
+            binaryParser.getString(); // unit
+            binaryParser.getInt(); // binSize
+            const nValues = binaryParser.getInt();
+            chunkSize += binaryParser.position + nValues * 8;
+
+            range = {start: start + chunkSize, size: 4};
+            data = await file.read(range.start, range.size);
+            binaryParser = new BinaryParser$1(new DataView(data));
+            const nChrScaleFactors = binaryParser.getInt();
+            chunkSize += (4 + nChrScaleFactors * (4 + 8));
+
+            nEntries--;
+            if (nEntries === 0) {
+                return Promise.resolve(p0 + chunkSize);
+            } else {
+                return parseNext(p0 + chunkSize, nEntries);
+            }
+        }
+    }
+
+    getZoomIndexForBinSize(binSize, unit) {
+
+        unit = unit || "BP";
+
+        let resolutionArray;
+        if (unit === "BP") {
+            resolutionArray = this.bpResolutions;
+        } else if (unit === "FRAG") {
+            resolutionArray = this.fragResolutions;
+        } else {
+            throw new Error("Invalid unit: " + unit);
+        }
+
+        for (let i = 0; i < resolutionArray.length; i++) {
+            if (resolutionArray[i] === binSize) return i;
+        }
+
+        return -1;
+    }
+
+    parseNormVectorEntry(binaryParser) {
+        const type = binaryParser.getString();      //15
+        const chrIdx = binaryParser.getInt();       //4
+        const unit = binaryParser.getString();      //3
+        const binSize = binaryParser.getInt();      //4
+        const filePosition = binaryParser.getLong();  //8
+        const sizeInBytes = binaryParser.getInt();     //4
+        const key = type + "_" + chrIdx + "_" + unit + "_" + binSize;
+        // TODO -- why does this not work?  NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+        if (!this.normalizationTypes.includes(type)) {
+            this.normalizationTypes.push(type);
+        }
+        this.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
+    }
+
+    getFileChrName(chrAlias) {
+        if (this.chrAliasTable.hasOwnProperty(chrAlias)) {
+            return this.chrAliasTable[chrAlias]
+        } else {
+            return chrAlias
+        }
+    }
+}
+
+
+function parseMatixZoomData(chr1, chr2, chr1Sites, chr2Sites, dis) {
+
+    var unit, sumCounts, occupiedCellCount, stdDev, percent95, binSize, zoom, blockBinCount,
+        blockColumnCount, zd, nBlocks, blockIndex, nBins1, nBins2, avgCount, blockNumber,
+        filePosition, blockSizeInBytes;
+
+    unit = dis.getString();
+
+    dis.getInt();                // Old "zoom" index -- not used, must be read
+
+    // Stats.  Not used yet, but we need to read them anyway
+    sumCounts = dis.getFloat();
+    occupiedCellCount = dis.getFloat();
+    stdDev = dis.getFloat();
+    percent95 = dis.getFloat();
+
+    binSize = dis.getInt();
+    zoom = {unit: unit, binSize: binSize};
+
+    blockBinCount = dis.getInt();
+    blockColumnCount = dis.getInt();
+
+    zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites);
+
+    nBlocks = dis.getInt();
+    blockIndex = {};
+
+    while (nBlocks-- > 0) {
+        blockNumber = dis.getInt();
+        filePosition = dis.getLong();
+        blockSizeInBytes = dis.getInt();
+        blockIndex[blockNumber] = {filePosition: filePosition, size: blockSizeInBytes};
+    }
+    zd.blockIndexMap = blockIndex;
+
+    nBins1 = (chr1.size / binSize);
+    nBins2 = (chr2.size / binSize);
+    avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
+
+    zd.averageCount = avgCount;
+    zd.sumCounts = sumCounts;
+    zd.stdDev = stdDev;
+    zd.occupiedCellCount = occupiedCellCount;
+    zd.percent95 = percent95;
+
+    return zd;
+}
+
+function getNormalizationVectorKey(type, chrIdx, unit, resolution) {
+    return type + "_" + chrIdx + "_" + unit + "_" + resolution;
+}
+
+function isGoogleDrive$1(url) {
+    return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
+}
+
+class Straw {
+
+    constructor(config) {
+
+        this.config = config;
+        this.hicFile = new HicFile(config);
+
+    }
+
+    async getMetaData() {
+        return await this.hicFile.getMetaData()
+    }
+
+    async getBlocks(region1, region2, units, binsize) {
+
+        await this.hicFile.init();
+
+        const chr1 = this.hicFile.getFileChrName(region1.chr);
+        const chr2 = this.hicFile.getFileChrName(region2.chr);
+        const idx1 = this.hicFile.chromosomeIndexMap[chr1];
+        const idx2 = this.hicFile.chromosomeIndexMap[chr2];
+
+        if(idx1 === undefined) {
+            return []
+        }
+        if(idx2 === undefined) {
+            return []
+        }
+
+        const x1 = (region1.start === undefined) ? undefined : region1.start / binsize;
+        const x2 = (region1.end === undefined) ? undefined : region1.end / binsize;
+        const y1 = (region2.start === undefined) ? undefined : region2.start / binsize;
+        const y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
+
+        const matrix = await this.hicFile.readMatrix(idx1, idx2);
+        if(!matrix) {
+            return []
+        }
+
+        // Find the requested resolution
+        const z = undefined === binsize ? 0 : this.hicFile.getZoomIndexForBinSize(binsize, units);
+        if (z === -1) {
+            throw new Error("Invalid bin size");
+        }
+
+        const zd = matrix.bpZoomData[z];
+        if(zd === null) {
+            let msg = `No data avalailble for resolution: ${binsize}  for map ${region1.chr}-${region2.chr}`;
+            throw new Error(msg)
+        }
+      
+        const blockBinCount = zd.blockBinCount;   // Dimension in bins of a block (width = height = blockBinCount)
+        const col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount);
+        const col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount);
+        const row1 = y1 === undefined ? 0 : Math.floor(y1 / blockBinCount);
+        const row2 = y2 === undefined ? zd.blockColumnCount : Math.floor(y2 / blockBinCount);
+
         const promises = [];
-        const sameChr = zd.chr1.index === zd.chr2.index;
-        let blockNumber;
+        const sameChr = idx1 === idx2;
         for (let row = row1; row <= row2; row++) {
             for (let column = col1; column <= col2; column++) {
+                let blockNumber;
                 if (sameChr && row < column) {
                     blockNumber = column * zd.blockColumnCount + row;
                 }
                 else {
                     blockNumber = row * zd.blockColumnCount + column;
                 }
-
-                promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
+                promises.push(this.hicFile.readBlock(blockNumber, zd));
             }
         }
 
-        try {
-            this.startSpinner();
-            const blocks = await Promise.all(promises);
-            this.stopSpinner();
+        return Promise.all(promises)
+    }
 
-            let s = computePercentile(blocks, 95);
+    //straw <NONE/VC/VC_SQRT/KR> <ile> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize>
+    async getContactRecords(normalization, region1, region2, units, binsize) {
 
-            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+        const blocks = await this.getBlocks(region1, region2, units, binsize);
 
-                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+        if(!blocks || blocks.length === 0) {
+            return []
+        }
 
-                this.colorScale = new ColorScale(this.colorScale);
-                this.colorScale.setThreshold(s);
-                this.computeColorScale = false;
-                this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+        const chr1 = this.hicFile.getFileChrName(region1.chr);
+        const chr2 = this.hicFile.getFileChrName(region2.chr);
+        const x1 = (region1.start === undefined) ? undefined : region1.start / binsize;
+        const x2 = (region1.end === undefined) ? undefined : region1.end / binsize;
+        const y1 = (region2.start === undefined) ? undefined : region2.start / binsize;
+        const y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
+
+        let normVector1;
+        let normVector2;
+        const isNorm = normalization && normalization !== "NONE";
+        if (isNorm) {
+            normVector1 = await this.hicFile.getNormalizationVector(normalization, chr1, units, binsize);
+            if (chr1 === chr2) {
+                normVector2 = normVector1;
+            } else {
+                normVector2 = await this.hicFile.getNormalizationVector(normalization, chr2, units, binsize);
+            }
+        }
+
+
+        const contactRecords = [];
+        for (let block of blocks) {
+
+            if (block) { // This is most likely caused by a base pair range outside the chromosome
+                for (let rec of block.records) {
+
+                    // transpose?
+                    if (x1 === undefined || (rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2)) {
+                        if (isNorm) {
+                            const x = rec.bin1;
+                            const y = rec.bin2;
+                            const nvnv = normVector1.data[x] * normVector2.data[y];
+                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                                const counts = rec.counts / nvnv;
+                                contactRecords.push(new ContactRecord$1(x, y, counts));
+                            }
+
+                        } else {
+                            contactRecords.push(rec);
+                        }
+                    }
+                }
+            }
+        }
+
+        return contactRecords;
+    }
+
+    async getNormalizationOptions() {
+        return this.hicFile.getNormalizationOptions()
+    }
+
+    async getNVI() {
+        await
+            this.hicFile.getNormVectorIndex();
+        return this.hicFile.config.nvi;
+    }
+
+    getFileChrName(chrAlias) {
+        if (this.hicFile.chrAliasTable.hasOwnProperty(chrAlias)) {
+            return this.hicFile.chrAliasTable[chrAlias]
+        }
+        else {
+            return chrAlias
+        }
+    }
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+const MAX_PIXEL_SIZE = 12;
+const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
+const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
+
+const HICBrowser = function ($app_container, config) {
+
+    this.config = config;
+    this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
+    this.resolutionLocked = false;
+    this.eventBus = new EventBus();
+
+
+    this.id = _.uniqueId('browser_');
+    this.trackRenderers = [];
+    this.tracks2D = [];
+    this.normVectorFiles = [];
+
+    this.synchedBrowsers = [];
+
+    this.isMobile = isMobile();
+
+    this.$root = $$2('<div class="hic-root unselect">');
+
+    if (config.width) {
+        this.$root.css("width", String(config.width));
+    }
+    if (config.height) {
+        this.$root.css("height", String(config.height + LayoutController.navbarHeight(this.config.figureMode)));
+    }
+
+    $app_container.append(this.$root);
+
+    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
+
+    // prevent user interaction during lengthy data loads
+    this.$user_interaction_shield = $$2('<div>', {class: 'hic-root-prevent-interaction'});
+    this.$root.append(this.$user_interaction_shield);
+    this.$user_interaction_shield.hide();
+
+    this.hideCrosshairs();
+
+    this.state = config.state ? config.state : defaultState.clone();
+
+    this.eventBus.subscribe("LocusChange", this);
+
+};
+
+
+HICBrowser.getCurrentBrowser = function () {
+
+    if (allBrowsers$1.length === 1) {
+        return allBrowsers$1[0];
+    } else {
+        return HICBrowser.currentBrowser;
+    }
+
+};
+
+HICBrowser.setCurrentBrowser = function (browser) {
+
+    // unselect current browser
+    if (undefined === browser) {
+
+        if (HICBrowser.currentBrowser) {
+            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+        }
+
+        HICBrowser.currentBrowser = browser;
+        return;
+    }
+
+
+    if (browser !== HICBrowser.currentBrowser) {
+
+        if (HICBrowser.currentBrowser) {
+            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+        }
+
+        browser.$root.addClass('hic-root-selected');
+        HICBrowser.currentBrowser = browser;
+
+        eventBus.post(HICEvent("BrowserSelect", browser));
+    }
+
+};
+
+HICBrowser.prototype.toggleMenu = function () {
+
+    if (this.$menu.is(':visible')) {
+        this.hideMenu();
+    } else {
+        this.showMenu();
+    }
+
+};
+
+HICBrowser.prototype.showMenu = function () {
+    this.$menu.show();
+};
+
+HICBrowser.prototype.hideMenu = function () {
+    this.$menu.hide();
+};
+
+HICBrowser.prototype.startSpinner = function () {
+    this.contactMatrixView.startSpinner();
+};
+
+HICBrowser.prototype.stopSpinner = function () {
+    this.contactMatrixView.stopSpinner();
+};
+
+HICBrowser.prototype.setDisplayMode = async function (mode) {
+    await this.contactMatrixView.setDisplayMode(mode);
+    this.eventBus.post(HICEvent("DisplayMode", mode));
+};
+
+HICBrowser.prototype.getDisplayMode = function () {
+    return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+};
+
+HICBrowser.prototype.toggleDisplayMode = function () {
+    this.controlMapWidget.toggleDisplayMode();
+};
+
+HICBrowser.prototype.getColorScale = function () {
+
+    if (!this.contactMatrixView) return undefined;
+
+    switch (this.getDisplayMode()) {
+        case 'AOB':
+        case 'BOA':
+            return this.contactMatrixView.ratioColorScale;
+        case 'AMB':
+            return this.contactMatrixView.diffColorScale;
+        default:
+            return this.contactMatrixView.colorScale;
+    }
+};
+
+HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
+    this.contactMatrixView.setColorScaleThreshold(threshold);
+};
+
+HICBrowser.prototype.updateCrosshairs = function ({x, y, xNormalized, yNormalized}) {
+
+    const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
+    this.contactMatrixView.$x_guide.css(xGuide);
+    this.layoutController.$x_track_guide.css(xGuide);
+
+    const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
+    this.contactMatrixView.$y_guide.css(yGuide);
+    this.layoutController.$y_track_guide.css(yGuide);
+
+    if (this.customCrosshairsHandler) {
+
+        const {x: stateX, y: stateY, pixelSize} = this.state;
+        const resolution = this.resolution();
+
+        const xBP = (stateX + (x / pixelSize)) * resolution;
+        const yBP = (stateY + (y / pixelSize)) * resolution;
+
+        let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
+        let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
+
+        this.customCrosshairsHandler({
+            xBP,
+            yBP,
+            startXBP,
+            startYBP,
+            endXBP,
+            endYBP,
+            interpolantX: xNormalized,
+            interpolantY: yNormalized
+        });
+    }
+
+};
+
+HICBrowser.prototype.setCustomCrosshairsHandler = function (crosshairsHandler) {
+    this.customCrosshairsHandler = crosshairsHandler;
+};
+
+HICBrowser.prototype.hideCrosshairs = function () {
+
+    this.contactMatrixView.$x_guide.hide();
+    this.layoutController.$x_track_guide.hide();
+
+    this.contactMatrixView.$y_guide.hide();
+    this.layoutController.$y_track_guide.hide();
+
+};
+
+HICBrowser.prototype.showCrosshairs = function () {
+
+    this.contactMatrixView.$x_guide.show();
+    this.layoutController.$x_track_guide.show();
+
+    this.contactMatrixView.$y_guide.show();
+    this.layoutController.$y_track_guide.show();
+};
+
+HICBrowser.prototype.genomicState = function (axis) {
+    var gs,
+        bpResolution;
+
+    bpResolution = this.dataset.bpResolutions[this.state.zoom];
+    gs = {
+        bpp: bpResolution / this.state.pixelSize
+    };
+
+    if (axis === "x") {
+        gs.chromosome = this.dataset.chromosomes[this.state.chr1];
+        gs.startBP = this.state.x * bpResolution;
+        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
+    } else {
+        gs.chromosome = this.dataset.chromosomes[this.state.chr2];
+        gs.startBP = this.state.y * bpResolution;
+        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
+    }
+    return gs;
+};
+
+
+/**
+ * Load a list of 1D genome tracks (wig, etc).
+ *
+ * NOTE: public API function
+ *
+ * @param configs
+ */
+HICBrowser.prototype.loadTracks = async function (configs) {
+
+    var self = this, errorPrefix;
+
+    // If loading a single track remember its name, for error message
+    errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
+
+    try {
+        this.contactMatrixView.startSpinner();
+        const ps = inferTypes(configs);
+        const trackConfigurations = await Promise.all(ps);
+
+        var trackXYPairs, promises2D;
+
+        trackXYPairs = [];
+        promises2D = [];
+        const promisesNV = [];
+
+        for (let config of trackConfigurations) {
+            if (config) {
+                var isLocal = config.url instanceof File,
+                    fn = isLocal ? config.url.name : config.url;
+                if ("annotation" === config.type && config.color === undefined) {
+                    config.color = DEFAULT_ANNOTATION_COLOR;
+                }
+                config.height = this.layoutController.track_height;
+
+                if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+                    promisesNV.push(this.loadNormalizationFile(config.url));
+                }
+
+                if (config.type === undefined || "interaction" === config.type) {
+                    // Assume this is a 2D track
+                    promises2D.push(Track2D.loadTrack2D(config));
+                } else {
+                    var track = api.createTrack(config, this);
+                    trackXYPairs.push({x: track, y: track});
+                }
+            }
+        }
+
+        if (trackXYPairs.length > 0) {
+            this.layoutController.tracksLoaded(trackXYPairs);
+            await this.updateLayout();
+        }
+
+        const tracks2D = await Promise.all(promises2D);
+        if (tracks2D && tracks2D.length > 0) {
+            this.tracks2D = self.tracks2D.concat(tracks2D);
+            this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+        }
+
+        const normVectors = await Promise.all(promisesNV);
+
+    } catch (error) {
+        presentError(errorPrefix, error);
+        console.error(error);
+
+    } finally {
+        this.contactMatrixView.stopSpinner();
+    }
+
+    function inferTypes(trackConfigurations) {
+
+        var promises = [];
+        trackConfigurations.forEach(function (config) {
+
+            var url = config.url;
+
+            if (url && typeof url === "string" && url.includes("drive.google.com")) {
+
+                promises.push(api.google.getDriveFileInfo(config.url)
+
+                    .then(function (json) {
+                        // Temporarily switch URL to infer tipes
+                        config.url = json.originalFilename;
+                        api.inferTrackTypes(config);
+                        if (config.name === undefined) {
+                            config.name = json.originalFilename;
+                        }
+                        config.url = url;
+                        return config;
+                    })
+                );
+            } else {
+                api.inferTrackTypes(config);
+                if (!config.name) {
+                    config.name = extractFilename(config.url);
+                }
+                promises.push(Promise.resolve(config));
             }
 
-            this.colorScaleThresholdCache[colorKey] = s;
+        });
 
-            return this.colorScale;
+        return promises;
+    }
+
+
+};
+
+
+HICBrowser.prototype.loadNormalizationFile = function (url) {
+
+    var self = this;
+
+    if (!this.dataset) return;
+
+    self.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
+
+    return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
+
+        .then(function (normVectors) {
+
+            Object.assign(self.dataset.normVectorCache, normVectors);
+
+            normVectors["types"].forEach(function (type) {
+
+                if (!self.dataset.normalizationTypes) {
+                    self.dataset.normalizationTypes = [];
+                }
+                if (_.contains(self.dataset.normalizationTypes, type) === false) {
+                    self.dataset.normalizationTypes.push(type);
+                }
+
+                self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
+            });
+
+            return normVectors;
+        })
+
+};
+
+
+HICBrowser.prototype.renderTracks = function () {
+    var self = this;
+    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+        self.renderTrackXY(xyTrackRenderPair);
+    });
+
+};
+
+/**
+ * Render the XY pair of tracks.
+ *
+ * @param xy
+ */
+HICBrowser.prototype.renderTrackXY = async function (xy) {
+
+    try {
+        this.startSpinner();
+        await xy.x.repaint();
+        await xy.y.repaint();
+    } finally {
+        this.stopSpinner();
+    }
+
+};
+
+
+HICBrowser.prototype.reset = function () {
+    this.layoutController.removeAllTrackXYPairs();
+    this.contactMatrixView.clearImageCaches();
+    this.tracks2D = [];
+    this.tracks = [];
+    this.$contactMaplabel.text("");
+    this.$contactMaplabel.attr('title', "");
+    this.$controlMaplabel.text("");
+    this.$controlMaplabel.attr('title', "");
+    this.dataset = undefined;
+    this.controlDataset = undefined;
+};
+
+
+HICBrowser.prototype.clearSession = function () {
+    // Clear current datasets.
+    this.dataset = undefined;
+    this.controlDataset = undefined;
+    this.setDisplayMode('A');
+};
+
+/**
+ * Load a .hic file
+ *
+ * NOTE: public API function
+ *
+ * @return a promise for a dataset
+ * @param config
+ */
+HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
+
+    if (!config.url) {
+        return undefined;
+    }
+
+    this.clearSession();
+
+    try {
+
+        if (!noUpdates) {
+            this.contactMatrixView.startSpinner();
+            this.$user_interaction_shield.show();
+        }
+
+        const name = await extractName(config);
+        const prefix = this.controlDataset ? "A: " : "";
+        this.$contactMaplabel.text(prefix + name);
+        this.$contactMaplabel.attr('title', name);
+        config.name = name;
+
+        this.dataset = await loadDataset(config);
+        this.dataset.name = name;
+
+        const previousGenomeId = this.genome ? this.genome.id : undefined;
+        this.genome = new Genome$1(this.dataset.genomeId, this.dataset.chromosomes);
+
+        // TODO -- this is not going to work with browsers on different assemblies on the same page.
+        api.browser.genome = this.genome;
+
+        if (this.genome.id !== previousGenomeId) {
+            this.eventBus.post(HICEvent("GenomeChange", this.genome.id));
+        }
+        this.eventBus.post(HICEvent("MapLoad", this.dataset));
+
+        if (config.state) {
+            this.setState(config.state);
+        } else if (config.synchState && this.canBeSynched(config.synchState)) {
+            this.syncState(config.synchState);
+        } else {
+            this.setState(defaultState.clone());
+        }
+    } finally {
+        if (!noUpdates) {
+            this.$user_interaction_shield.hide();
+            this.stopSpinner();
+        }
+    }
+
+    // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
+    // Let it load in the background
+    const eventBus = this.eventBus;
+
+    // If nvi is not supplied, try reading it from remote lambda service
+    if (!config.nvi && typeof config.url === "string") {
+        const url = new URL(config.url);
+        const key = encodeURIComponent(url.hostname + url.pathname);
+        const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
+        if (nviResponse.status === 200) {
+            const nvi = await nviResponse.text();
+            if (nvi) {
+                config.nvi = nvi;
+            }
+        }
+    }
+
+    if (config.nvi) {
+        await this.dataset.getNormVectorIndex(config);
+        eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+    } else {
+        const dataset = this.dataset;
+        dataset.getNormVectorIndex(config)
+            .then(function (normVectorIndex) {
+                if (!config.isControl) {
+                    eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
+                }
+            });
+    }
+};
+
+/**
+ * Load a .hic file for a control map
+ *
+ * NOTE: public API function
+ *
+ * @return a promise for a dataset
+ * @param config
+ */
+HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
+
+    try {
+        this.$user_interaction_shield.show();
+        this.contactMatrixView.startSpinner();
+        this.controlUrl = config.url;
+        const name = await extractName(config);
+        config.name = name;
+
+        const controlDataset = await loadDataset(config);
+        controlDataset.name = name;
+
+        if (!this.dataset || areCompatible(this.dataset, controlDataset)) {
+            this.controlDataset = controlDataset;
+            if (this.dataset) {
+                this.$contactMaplabel.text("A: " + this.dataset.name);
+            }
+            this.$controlMaplabel.text("B: " + controlDataset.name);
+            this.$controlMaplabel.attr('title', controlDataset.name);
+
+            //For the control dataset, block until the norm vector index is loaded
+            await controlDataset.getNormVectorIndex(config);
+            this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
+
+            if (!noUpdates) {
+                this.update();
+            }
+        } else {
+            api.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
+        }
+    } finally {
+        this.$user_interaction_shield.hide();
+        this.stopSpinner();
+    }
+};
+
+
+/**
+ * Return a promise to extract the name of the dataset.  The promise is neccessacary because
+ * google drive urls require a call to the API
+ *
+ * @returns Promise for the name
+ */
+async function extractName(config) {
+
+    if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
+        const json = await api.google.getDriveFileInfo(config.url);
+        return json.name;
+    } else {
+        if (config.name === undefined) {
+            return extractFilename(config.url);
+        } else {
+            return config.name;
+        }
+    }
+}
+
+HICBrowser.prototype.parseGotoInput = async function (string) {
+
+    var self = this,
+        loci = string.split(' '),
+        xLocus,
+        yLocus;
+
+
+    if (loci.length === 1) {
+        xLocus = self.parseLocusString(loci[0]);
+        yLocus = xLocus;
+    } else {
+        xLocus = self.parseLocusString(loci[0]);
+        yLocus = self.parseLocusString(loci[1]);
+        if (yLocus === undefined) yLocus = xLocus;
+    }
+
+    if (xLocus === undefined) {
+        // Try a gene name search.
+        const result = await geneSearch(this.genome.id, loci[0].trim());
+
+        if (result) {
+            api.selectedGene = loci[0].trim();
+            xLocus = self.parseLocusString(result);
+            yLocus = xLocus;
+            self.state.selectedGene = loci[0].trim();
+            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+        } else {
+            alert('No feature found with name "' + loci[0] + '"');
+        }
+
+    } else {
+
+        if (xLocus.wholeChr && yLocus.wholeChr) {
+            self.setChromosomes(xLocus.chr, yLocus.chr);
+        } else {
+            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
+        }
+    }
+
+};
+
+HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
+    var z;
+    for (z = resolutionArray.length - 1; z > 0; z--) {
+        if (resolutionArray[z] >= targetResolution) {
+            return z;
+        }
+    }
+    return 0;
+};
+
+HICBrowser.prototype.parseLocusString = function (locus) {
+
+    var parts,
+        chromosome,
+        extent,
+        locusObject = {},
+        numeric;
+
+    parts = locus.trim().split(':');
+
+
+    chromosome = this.genome.getChromosome(_.first(parts).toLowerCase());
+
+    if (!chromosome) {
+        return undefined;
+    } else {
+        locusObject.chr = chromosome.index;
+    }
+
+
+    if (parts.length === 1) {
+        // Chromosome name only
+        locusObject.start = 0;
+        locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
+        locusObject.wholeChr = true;
+    } else {
+        extent = parts[1].split("-");
+        if (extent.length !== 2) {
+            return undefined;
+        } else {
+            numeric = extent[0].replace(/\,/g, '');
+            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
+
+            numeric = extent[1].replace(/\,/g, '');
+            locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
+        }
+    }
+    return locusObject;
+};
+
+
+/**
+ * @param scaleFactor Values range from greater then 1 to decimal values less then one
+ *                    Value > 1 are magnification (zoom in)
+ *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
+ * @param anchorPx -- anchor position in pixels (should not move after transformation)
+ * @param anchorPy
+ */
+HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
+
+    if (this.state.chr1 === 0) {
+        await this.zoomAndCenter(1, anchorPx, anchorPy);
+    } else {
+        try {
+            this.startSpinner();
+
+            const bpResolutions = this.dataset.bpResolutions;
+            const currentResolution = bpResolutions[this.state.zoom];
+
+            let newResolution;
+            let newZoom;
+            let newPixelSize;
+            let zoomChanged;
+
+            if (this.resolutionLocked ||
+                (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
+                (this.state.zoom === 0 && scaleFactor < 1)) {
+                // Can't change resolution level, must adjust pixel size
+                newResolution = currentResolution;
+                newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
+                newZoom = this.state.zoom;
+                zoomChanged = false;
+            } else {
+                const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
+                newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+                newResolution = bpResolutions[newZoom];
+                zoomChanged = newZoom !== this.state.zoom;
+                newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
+            }
+            const z = await minZoom.call(this, this.state.chr1, this.state.chr2);
+
+
+            if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
+                // Zoom out to whole genome
+                this.setChromosomes(0, 0);
+            } else {
+
+                const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom);
+
+                const state = this.state;
+
+                newPixelSize = Math.max(newPixelSize, minPS);
+
+                // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+                const gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
+                const gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
+
+                state.x = gx / newResolution - anchorPx / newPixelSize;
+                state.y = gy / newResolution - anchorPy / newPixelSize;
+
+                state.zoom = newZoom;
+                state.pixelSize = newPixelSize;
+
+                this.clamp();
+
+                this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor);
+
+                this.eventBus.post(HICEvent("LocusChange", {
+                    state: state,
+                    resolutionChanged: zoomChanged
+                }));
+            }
         } finally {
             this.stopSpinner();
         }
+    }
 
+};
+
+HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
+
+    if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
+        this.zoomAndCenter(direction, centerPX, centerPY);
+    } else {
+        const z = await minZoom.call(this, this.state.chr1, this.state.chr2);
+        var newZoom = this.state.zoom + direction;
+        if (direction < 0 && newZoom < z) {
+            this.setChromosomes(0, 0);
+        } else {
+            this.zoomAndCenter(direction, centerPX, centerPY);
+        }
 
     }
 
-}
+};
 
-function computePercentile(blockArray, p) {
+// Zoom in response to a double-click
+HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
-    var array = [];
-    blockArray.forEach(function (block) {
-        if (block) {
-            for (let i = 0; i < block.records.length; i++) {
-                array.push(block.records[i].counts);
-            }
+    if (!this.dataset) return;
+
+    if (this.state.chr1 === 0 && direction > 0) {
+        // jump from whole genome to chromosome
+        var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
+            genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize,
+            chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX),
+            chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
+        this.setChromosomes(chrX.index, chrY.index);
+    } else {
+        const bpResolutions = this.dataset.bpResolutions;
+        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2;
+        const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2;
+
+        this.state.x += (dx / this.state.pixelSize);
+        this.state.y += (dy / this.state.pixelSize);
+
+        if (this.resolutionLocked ||
+            (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
+            (direction < 0 && this.state.zoom === 0)) {
+
+            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
+            const state = this.state;
+            const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
+
+            const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+            state.pixelSize = newPixelSize;
+            state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
+            state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
+
+            this.clamp();
+            this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false}));
+
+        } else {
+            this.setZoom(this.state.zoom + direction, centerPY, centerPY);
         }
+    }
+
+};
+
+HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
+
+    try {
+        // this.startSpinner()
+        var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
+            newYCenter,
+            newPixelSize, zoomChanged,
+            self = this;
+
+
+        // Shift x,y to maintain center, if possible
+        bpResolutions = this.dataset.bpResolutions;
+        currentResolution = bpResolutions[this.state.zoom];
+        viewDimensions = this.contactMatrixView.getViewDimensions();
+        xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
+        yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+        newResolution = bpResolutions[zoom];
+        newXCenter = xCenter * (currentResolution / newResolution);
+        newYCenter = yCenter * (currentResolution / newResolution);
+
+        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom);
+
+        var state = self.state;
+        newPixelSize = Math.max(defaultPixelSize, minPS);
+        zoomChanged = (state.zoom !== zoom);
+
+        state.zoom = zoom;
+        state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
+        state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
+        state.pixelSize = newPixelSize;
+        self.clamp();
+
+        await self.contactMatrixView.zoomIn();
+
+        self.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+    } finally {
+        // this.stopSpinner()
+    }
+
+};
+
+HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
+
+    try {
+        this.startSpinner();
+
+        this.state.chr1 = Math.min(chr1, chr2);
+        this.state.chr2 = Math.max(chr1, chr2);
+        this.state.x = 0;
+        this.state.y = 0;
+
+        const z = await minZoom.call(this, chr1, chr2);
+        this.state.zoom = z;
+
+        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
+        this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
+        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
+    } finally {
+        this.stopSpinner();
+    }
+};
+
+HICBrowser.prototype.updateLayout = async function () {
+    this.clamp();
+
+    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+        sync(xyTrackRenderPair.x, index);
+        sync(xyTrackRenderPair.y, index);
     });
-    return HICMath.percentile(array, p);
-}
 
-ContactMatrixView.prototype.startSpinner = function () {
-
-    if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
-        this.browser.$user_interaction_shield.show();
+    function sync(trackRenderer, index) {
+        trackRenderer.$viewport.css({order: index});
+        trackRenderer.syncCanvas();
     }
-    this.$fa_spinner.css("display", "inline-block");
-    this.spinnerCount++;
+
+    this.layoutController.xAxisRuler.update();
+    this.layoutController.yAxisRuler.update();
+
+    await this.update();
+
 };
 
-ContactMatrixView.prototype.stopSpinner = function () {
-    this.spinnerCount--;
-    if (0 === this.spinnerCount) {
-        this.$fa_spinner.css("display", "none");
-    }
-    this.spinnerCount = Math.max(0, this.spinnerCount);   // This should not be neccessary
-};
+async function minZoom(chr1, chr2) {
 
+    const viewDimensions = this.contactMatrixView.getViewDimensions();
+    const chr1Length = this.dataset.chromosomes[chr1].size;
+    const chr2Length = this.dataset.chromosomes[chr2].size;
+    const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
 
-function addMouseHandlers$2($viewport) {
+    const matrix = await this.dataset.getMatrix(chr1, chr2);
+    return matrix.findZoomForResolution(binSize);
+}
 
-    var self = this,
-        isMouseDown = false,
-        isSweepZooming = false,
-        mouseDown,
-        mouseLast,
-        mouseOver,
-        lastWheelTime;
+async function minPixelSize(chr1, chr2, z) {
 
-    this.isDragging = false;
+    const viewDimensions = this.contactMatrixView.getViewDimensions();
+    const chr1Length = this.dataset.chromosomes[chr1].size;
+    const chr2Length = this.dataset.chromosomes[chr2].size;
 
-    if (!this.browser.isMobile) {
-
-        $viewport.dblclick(function (e) {
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            var mouseX = e.offsetX || e.layerX,
-                mouseY = e.offsetY || e.layerX;
-
-            self.browser.zoomAndCenter(1, mouseX, mouseY);
-
-        });
-
-        $viewport.on('mouseover', function (e) {
-            mouseOver = true;
-        });
-
-        $viewport.on('mouseout', function (e) {
-            mouseOver = undefined;
-        });
-
-        $viewport.on('mousedown', function (e) {
-            var eFixed;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (self.browser.$menu.is(':visible')) {
-                self.browser.hideMenu();
-            }
-
-            mouseLast = {x: e.offsetX, y: e.offsetY};
-            mouseDown = {x: e.offsetX, y: e.offsetY};
-
-            isSweepZooming = (true === e.altKey);
-            if (isSweepZooming) {
-                eFixed = $$2.event.fix(e);
-                self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
-            }
-
-            isMouseDown = true;
-
-        });
-
-        $viewport.on('mousemove', function (e) {
-
-            var coords,
-                eFixed,
-                xy;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            coords =
-                {
-                    x: e.offsetX,
-                    y: e.offsetY
-                };
-
-            // Sets pageX and pageY for browsers that don't support them
-            eFixed = $$2.event.fix(e);
-
-            xy =
-                {
-                    x: eFixed.pageX - $viewport.offset().left,
-                    y: eFixed.pageY - $viewport.offset().top
-                };
-
-            const { width, height } = $viewport.get(0).getBoundingClientRect();
-            xy.xNormalized = xy.x / width;
-            xy.yNormalized = xy.y / height;
-
-
-            self.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
-
-            if (true === self.willShowCrosshairs) {
-                self.browser.updateCrosshairs(xy);
-                self.browser.showCrosshairs();
-            }
-
-            if (isMouseDown) { // Possibly dragging
-
-                if (isSweepZooming) {
-
-                    self.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
-
-                } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
-
-                    self.isDragging = true;
-
-                    var dx = mouseLast.x - coords.x;
-                    var dy = mouseLast.y - coords.y;
-
-                    // If matrix data is updating shift current map image while we wait
-                    if (self.updating) {
-                        shiftCurrentImage(self, -dx, -dy);
-                    }
-
-                    self.browser.shiftPixels(dx, dy);
-
-                }
-
-                mouseLast = coords;
-            }
-
-
-        });
-        //, 10));
-
-        $viewport.on('mouseup', panMouseUpOrMouseOut);
-
-        $viewport.on('mouseleave', function () {
-
-            self.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
-            self.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
-
-            panMouseUpOrMouseOut();
-        });
-
-        // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
-        // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
-
-        $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
-
-        // document level events
-        $$2(document).on('keydown.contact_matrix_view', function (e) {
-            if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                self.willShowCrosshairs = true;
-            }
-        });
-
-        $$2(document).on('keyup.contact_matrix_view', function (e) {
-            self.browser.hideCrosshairs();
-            self.willShowCrosshairs = undefined;
-        });
-
-        // for sweep-zoom allow user to sweep beyond viewport extent
-        // sweep area clamps since viewport mouse handlers stop firing
-        // when the viewport boundary is crossed.
-        $$2(document).on('mouseup.contact_matrix_view', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (isSweepZooming) {
-                isSweepZooming = false;
-                self.sweepZoom.commit();
-            }
-        });
-    }
-
-    function panMouseUpOrMouseOut(e) {
-
-        if (true === self.isDragging) {
-            self.isDragging = false;
-            self.browser.eventBus.post(HICEvent("DragStopped"));
-        }
-
-        isMouseDown = false;
-        mouseDown = mouseLast = undefined;
-    }
-
-    function mouseWheelHandler(e) {
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        var t = Date.now();
-
-        if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-
-            // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-            var direction = e.deltaY < 0 ? 1 : -1,
-                coords = api.translateMouseCoordinates(e, $viewport),
-                x = coords.x,
-                y = coords.y;
-            self.browser.wheelClickZoom(direction, x, y);
-            lastWheelTime = t;
-        }
-
-    }
-
-
-    function shiftCurrentImage(self, dx, dy) {
-        var canvasWidth = self.$canvas.width(),
-            canvasHeight = self.$canvas.height(),
-            imageData;
-
-        imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        self.ctx.putImageData(imageData, dx, dy);
-    }
+    const matrix = await this.dataset.getMatrix(chr1, chr2);
+    const zd = matrix.getZoomDataByIndex(z, "BP");
+    const binSize = zd.zoom.binSize;
+    const nBins1 = chr1Length / binSize;
+    const nBins2 = chr2Length / binSize;
+    return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
 
 }
+
+/**
+ * Set the matrix state.  Used to restore state from a bookmark
+ * @param state  browser state
+ */
+HICBrowser.prototype.setState = async function (state) {
+
+    this.state = state;
+    // Possibly adjust pixel size
+    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
+    this.state.pixelSize = Math.max(state.pixelSize, minPS);
+    this.eventBus.post(new HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
+};
 
 
 /**
- * Add touch handlers.  Touches are mapped to one of the following application level events
- *  - double tap, equivalent to double click
- *  - move
- *  - pinch
- *
- * @param $viewport
+ * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
+ * and resolution arrays
  */
+HICBrowser.prototype.getSyncState = function () {
+    return {
+        chr1Name: this.dataset.chromosomes[this.state.chr1].name,
+        chr2Name: this.dataset.chromosomes[this.state.chr2].name,
+        binSize: this.dataset.bpResolutions[this.state.zoom],
+        binX: this.state.x,            // TODO -- tranlsate to lower right corner
+        binY: this.state.y,
+        pixelSize: this.state.pixelSize
+    };
+};
 
-function addTouchHandlers($viewport) {
+/**
+ * Return true if this browser can be synched to the given state
+ * @param syncState
+ */
+HICBrowser.prototype.canBeSynched = function (syncState) {
 
-    var self = this,
+    return this.dataset &&
+        (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
+        (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
 
-        lastTouch, pinch,
-        viewport = $viewport[0];
+};
 
-    /**
-     * Touch start -- 3 possibilities
-     *   (1) beginning of a drag (pan)
-     *   (2) first tap of a double tap
-     *   (3) beginning of a pinch
-     */
-    viewport.ontouchstart = function (ev) {
+/**
+ * Used to synch state with other browsers
+ * @param state  browser state
+ */
+HICBrowser.prototype.syncState = function (syncState) {
 
-        ev.preventDefault();
-        ev.stopPropagation();
+    if (!this.dataset) return;
 
-        var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-            offsetX = touchCoords.x,
-            offsetY = touchCoords.y,
-            count = ev.targetTouches.length,
-            timeStamp = ev.timeStamp || Date.now(),
-            resolved = false,
-            dx, dy, dist, direction;
+    var chr1 = this.genome.getChromosome(syncState.chr1Name),
+        chr2 = this.genome.getChromosome(syncState.chr2Name),
+        zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
+        x = syncState.binX,
+        y = syncState.binY,
+        pixelSize = syncState.pixelSize;
 
-        if (count === 2) {
-            touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
-            offsetX = (offsetX + touchCoords.x) / 2;
-            offsetY = (offsetY + touchCoords.y) / 2;
-        }
+    if (!(chr1 && chr2)) {
+        return;   // Can't be synched.
+    }
 
-        // NOTE: If the user makes simultaneous touches, the browser may fire a
-        // separate touchstart event for each touch point. Thus if there are
-        // two simultaneous touches, the first touchstart event will have
-        // targetTouches length of one and the second event will have a length
-        // of two.  In this case replace previous touch with this one and return
-        if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
-            lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
+    if (zoom === undefined) {
+        // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
+        zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
+
+        // Compute equivalent in basepairs / pixel
+        pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
+
+        // Translate bins so that origin is unchanged in basepairs
+        x = (syncState.binX / syncState.pixelSize) * pixelSize;
+        y = (syncState.binY / syncState.pixelSize) * pixelSize;
+
+        if (pixelSize > MAX_PIXEL_SIZE) {
             return;
         }
-
-
-        if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-
-            direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
-            dx = lastTouch.x - offsetX;
-            dy = lastTouch.y - offsetY;
-            dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                self.browser.zoomAndCenter(direction, offsetX, offsetY);
-                lastTouch = undefined;
-                resolved = true;
-            }
-        }
-
-        if (!resolved) {
-            lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
-        }
-    };
-
-    viewport.ontouchmove = throttle(function (ev) {
-
-        var touchCoords1, touchCoords2, t;
-
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        if (ev.targetTouches.length === 2) {
-
-            // Update pinch  (assuming 2 finger movement is a pinch)
-            touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
-            touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport);
-
-            t = {
-                x1: touchCoords1.x,
-                y1: touchCoords1.y,
-                x2: touchCoords2.x,
-                y2: touchCoords2.y
-            };
-
-            if (pinch) {
-                pinch.end = t;
-            } else {
-                pinch = {start: t};
-            }
-        }
-
-        else {
-            // Assuming 1 finger movement is a drag
-
-            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                offsetX = touchCoords.x,
-                offsetY = touchCoords.y;
-            if (lastTouch) {
-                var dx = lastTouch.x - offsetX,
-                    dy = lastTouch.y - offsetY;
-                if (!isNaN(dx) && !isNaN(dy)) {
-                    self.isDragging = true;
-                    self.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
-                }
-            }
-
-            lastTouch = {
-                x: offsetX,
-                y: offsetY,
-                timeStamp: ev.timeStamp || Date.now(),
-                count: ev.targetTouches.length
-            };
-        }
-
-    }, 50);
-
-    viewport.ontouchend = function (ev) {
-
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        if (pinch && pinch.end !== undefined) {
-
-            var startT = pinch.start,
-                endT = pinch.end,
-                dxStart = startT.x2 - startT.x1,
-                dyStart = startT.y2 - startT.y1,
-                dxEnd = endT.x2 - endT.x1,
-                dyEnd = endT.y2 - endT.y1,
-                distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
-                scale = distEnd / distStart,
-                deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
-                deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
-                anchorPx = (startT.x1 + startT.x2) / 2,
-                anchorPy = (startT.y1 + startT.y2) / 2;
-
-            if (scale < 0.8 || scale > 1.2) {
-                lastTouch = undefined;
-                self.browser.pinchZoom(anchorPx, anchorPy, scale);
-            }
-        } else if (self.isDragging) {
-            self.isDragging = false;
-            self.browser.eventBus.post(HICEvent("DragStopped"));
-        }
-
-        // a touch end always ends a pinch
-        pinch = undefined;
-
-    };
-
-    function translateTouchCoordinates(e, target) {
-
-        var $target = $$2(target),
-            posx,
-            posy;
-
-        posx = e.pageX - $target.offset().left;
-        posy = e.pageY - $target.offset().top;
-
-        return {x: posx, y: posy}
     }
 
-}
 
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
- * THE SOFTWARE.
- *
- */
+    var zoomChanged = (this.state.zoom !== zoom);
+    this.state.chr1 = chr1.index;
+    this.state.chr2 = chr2.index;
+    this.state.zoom = zoom;
+    this.state.x = x;
+    this.state.y = y;
+    this.state.pixelSize = pixelSize;
 
-const ChromosomeSelectorWidget = function (browser, $parent) {
-
-    var self = this,
-        $label,
-        $selector_container,
-        $doit;
-
-    this.browser = browser;
-
-    this.$container = $$2('<div class="hic-chromosome-selector-widget-container">');
-    $parent.append(this.$container);
-
-    $label = $$2('<div>');
-    this.$container.append($label);
-    $label.text('Chromosomes');
-
-    $selector_container = $$2('<div>');
-    this.$container.append($selector_container);
-
-    this.$x_axis_selector = $$2('<select name="x-axis-selector">');
-    $selector_container.append(this.$x_axis_selector);
-
-    this.$y_axis_selector = $$2('<select name="y-axis-selector">');
-    $selector_container.append(this.$y_axis_selector);
-
-    this.$x_axis_selector.on('change', function (e) {
-
-        if (0 === parseInt($$2(this).val(), 10)) {
-            self.$y_axis_selector.val($$2(this).val());
-        } else if (0 === parseInt(self.$y_axis_selector.val(), 10)) {
-            self.$y_axis_selector.val($$2(this).val());
-        }
-
-    });
-
-    this.$y_axis_selector.on('change', function (e) {
-
-        if (0 === parseInt($$2(this).val(), 10)) {
-            self.$x_axis_selector.val($$2(this).val());
-        } else if (0 === parseInt(self.$x_axis_selector.val(), 10)) {
-            self.$x_axis_selector.val($$2(this).val());
-        }
-
-    });
-
-
-    $doit = $$2('<div>');
-    $selector_container.append($doit);
-
-    $doit.on('click', function (e) {
-        var chr1Index,
-            chr2Index;
-
-        chr1Index = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
-        chr2Index = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
-
-        self.browser.setChromosomes(chr1Index, chr2Index);
-
-    });
-
-    this.dataLoadConfig = {
-        receiveEvent: function (event) {
-            if (event.type === "MapLoad") {
-                self.respondToDataLoadWithDataset(event.data);
-            }
-        }
-    };
-
-    this.browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
-
-    this.locusChangeConfig = {
-        receiveEvent: function (event) {
-            if (event.type === "LocusChange") {
-                self.respondToLocusChangeWithState(event.data.state);
-            }
-        }
-    };
-    this.browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
+    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}, false));
 
 };
 
-ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function (dataset) {
+HICBrowser.prototype.setNormalization = function (normalization) {
 
-    var elements,
-        str,
-        $xFound,
-        $yFound;
-
-    this.$x_axis_selector.empty();
-    this.$y_axis_selector.empty();
-
-    elements = _.map(dataset.chromosomes, function (chr, index) {
-        return '<option value=' + index.toString() + '>' + chr.name + '</option>';
-    });
-
-    this.$x_axis_selector.append(elements.join(''));
-    this.$y_axis_selector.append(elements.join(''));
-
-    str = 'option[value=' + this.browser.state.chr1.toString() + ']';
-    $xFound = this.$x_axis_selector.find(str);
-    $xFound.prop('selected', true);
-
-    str = 'option[value=' + this.browser.state.chr2.toString() + ']';
-    $yFound = this.$y_axis_selector.find(str);
-    $yFound.prop('selected', true);
+    this.state.normalization = normalization;
+    this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization));
 };
 
-ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function (state) {
-    var ssx,
-        ssy,
-        $xFound,
-        $yFound;
 
-    $xFound = this.$x_axis_selector.find('option');
-    $yFound = this.$y_axis_selector.find('option');
+HICBrowser.prototype.shiftPixels = function (dx, dy) {
 
-    // this happens when the first dataset is loaded.
-    if (0 === _.size($xFound) || 0 === _.size($yFound)) {
-        return;
+    if (!this.dataset) return;
+
+    this.state.x += (dx / this.state.pixelSize);
+    this.state.y += (dy / this.state.pixelSize);
+    this.clamp();
+
+    var locusChangeEvent = HICEvent("LocusChange", {
+        state: this.state,
+        resolutionChanged: false,
+        dragging: true
+    });
+    locusChangeEvent.dragging = true;
+    this.eventBus.post(locusChangeEvent);
+
+
+};
+
+
+HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
+
+
+    var xCenter,
+        yCenter,
+        targetResolution,
+        newResolution,
+        viewDimensions = this.contactMatrixView.getViewDimensions(),
+        bpResolutions = this.dataset.bpResolutions,
+        viewWidth = viewDimensions.width,
+        maxExtent, newZoom, newPixelSize, newXBin, newYBin,
+        zoomChanged;
+
+    targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+
+    if (minResolution && targetResolution < minResolution) {
+        maxExtent = viewWidth * minResolution;
+        xCenter = (bpX + bpXMax) / 2;
+        yCenter = (bpY + bpYMax) / 2;
+        bpX = Math.max(xCenter - maxExtent / 2);
+        bpY = Math.max(0, yCenter - maxExtent / 2);
+        targetResolution = minResolution;
     }
 
-    $xFound = this.$x_axis_selector.find('option:selected');
-    $yFound = this.$y_axis_selector.find('option:selected');
 
-    $xFound.prop('selected', false);
-    $yFound.prop('selected', false);
-
-    // chr1 = parseInt($xFound.val(), 10);
-    // chr2 = parseInt($yFound.val(), 10);
-    // // It is the pair of chromosomes that is important,  1-2 == 2-1,  so update only if the pair does not match
-    // if (false === ((chr1 === state.chr1 && chr2 === state.chr2) || (chr1 === state.chr2 && chr2 === state.chr1))) {
-    //     ssx = 'option[value=' + state.chr1.toString() + ']';
-    //     this.$x_axis_selector.find(ssx).attr('selected', 'selected');
-    //
-    //     ssx = 'option[value=' + state.chr2.toString() + ']';
-    //     this.$y_axis_selector.find(ssx).attr('selected', 'selected');
-    // }
-
-    ssx = 'option[value=' + state.chr1.toString() + ']';
-    ssy = 'option[value=' + state.chr2.toString() + ']';
-
-    this.$x_axis_selector.find(ssx).prop('selected', true);
-    this.$y_axis_selector.find(ssy).prop('selected', true);
-
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const ControlMapWidget = function (browser, $parent) {
-
-    const self = this;
-
-    this.browser = browser;
-
-    // container
-    this.$container = $$2('<div class="hic-control-map-selector-container">');
-    this.$container.hide();
-    $parent.append(this.$container);
-
-    // select
-    this.$select = $$2('<select>');
-    this.$select.attr('name', 'control_map_selector');
-    this.$container.append(this.$select);
-
-    // a-b toggle icon
-    const $toggle_container = $$2('<div>');
-    this.$container.append($toggle_container);
-
-    // cycle button
-    const $cycle_container = $$2('<div>');
-    this.$container.append($cycle_container);
-
-    this.controlMapHash = new ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
-
-    browser.eventBus.subscribe("ControlMapLoad", function (event) {
-        self.controlMapHash.updateOptions(browser.getDisplayMode());
-        self.$container.show();
-    });
-
-    browser.eventBus.subscribe("MapLoad", function (event) {
-        if (!browser.controlDataset) {
-            self.$container.hide();
-        }
-    });
-
-    browser.eventBus.subscribe("DisplayMode", function (event) {
-        self.controlMapHash.updateOptions(event.data);
-    });
-
-};
-
-ControlMapWidget.prototype.toggleDisplayMode = function () {
-    this.controlMapHash.toggleDisplayMode();
-};
-
-ControlMapWidget.prototype.toggleDisplayModeCycle = function () {
-    this.controlMapHash.toggleDisplayModeCycle();
-};
-
-ControlMapWidget.prototype.getDisplayModeCycle = function () {
-    return this.controlMapHash.cycleID;
-};
-
-
-
-const ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img_b) {
-
-    const self = this;
-
-    this.browser = browser;
-    this.$select = $select;
-    this.$toggle = $toggle;
-    this.$cycle = $cycle;
-
-    // a arrow
-    this.$img_a = $img_a;
-    this.$toggle.append(this.$img_a);
-
-    // b arrow
-    this.$img_b = $img_b;
-    this.$toggle.append(this.$img_b);
-
-    const A = {title: 'A', value: 'A', other: 'B', $hidden: $img_b, $shown: $img_a};
-    const B = {title: 'B', value: 'B', other: 'A', $hidden: $img_a, $shown: $img_b};
-    const AOB = {title: 'A/B', value: 'AOB', other: 'BOA', $hidden: $img_b, $shown: $img_a};
-    const BOA = {title: 'B/A', value: 'BOA', other: 'AOB', $hidden: $img_a, $shown: $img_b};
-
-    this.hash =
-        {
-            'A': A,
-            'B': B,
-            'AOB': AOB,
-            'BOA': BOA
-        };
-
-    this.$select.on('change', function (e) {
-        let value;
-
-        self.disableDisplayModeCycle();
-
-        value = $$2(this).val();
-        self.setDisplayMode(value);
-    });
-
-    this.$toggle.on('click', function (e) {
-        self.disableDisplayModeCycle();
-        self.toggleDisplayMode();
-    });
-
-    // cycle outline
-    this.$cycle_outline = cycle_outline();
-    $cycle.append(this.$cycle_outline);
-
-    // cycle solid
-    this.$cycle_solid = cycle_solid();
-    $cycle.append(this.$cycle_solid);
-    this.$cycle_solid.hide();
-
-    $cycle.on('click', function () {
-        self.toggleDisplayModeCycle();
-    });
-
-    $cycle.hide();
-
-};
-
-ControlMapHash.prototype.disableDisplayModeCycle = function () {
-
-    if (this.cycleID) {
-
-        clearTimeout(this.cycleID);
-        this.cycleID = undefined;
-
-        this.$cycle_solid.hide();
-        this.$cycle_outline.show();
-    }
-
-};
-
-ControlMapHash.prototype.toggleDisplayModeCycle = function () {
-    let self = this;
-
-    if (this.cycleID) {
-
-        this.disableDisplayModeCycle();
+    if (true === this.resolutionLocked && minResolution === undefined) {
+        zoomChanged = false;
+        newZoom = this.state.zoom;
     } else {
-
-        doToggle();
-
-        this.$cycle_solid.show();
-        this.$cycle_outline.hide();
+        newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+        zoomChanged = (newZoom !== this.state.zoom);
     }
 
-    function doToggle() {
-        self.cycleID = setTimeout(async function () {
-            await self.toggleDisplayMode();
-            doToggle();
-        }, 2500);
-    }
+    newResolution = bpResolutions[newZoom];
+    newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
+    newXBin = bpX / newResolution;
+    newYBin = bpY / newResolution;
+
+    this.state.chr1 = chr1;
+    this.state.chr2 = chr2;
+    this.state.zoom = newZoom;
+    this.state.x = newXBin;
+    this.state.y = newYBin;
+    this.state.pixelSize = newPixelSize;
+
+    this.contactMatrixView.clearImageCaches();
+    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
 
 };
 
-ControlMapHash.prototype.toggleDisplayMode = async function () {
+HICBrowser.prototype.clamp = function () {
+    var viewDimensions = this.contactMatrixView.getViewDimensions(),
+        chr1Length = this.dataset.chromosomes[this.state.chr1].size,
+        chr2Length = this.dataset.chromosomes[this.state.chr2].size,
+        binSize = this.dataset.bpResolutions[this.state.zoom],
+        maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
+        maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
 
-    let displayModeOld,
-        displayModeNew,
-        str;
+    // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
+    maxX = Math.max(0, maxX);
+    maxY = Math.max(0, maxY);
 
-    displayModeOld = this.browser.getDisplayMode();
 
-    // render new display mode
-    displayModeNew = this.hash[displayModeOld].other;
-    await this.browser.setDisplayMode(displayModeNew);
-
-    // update exchange icon
-    this.hash[displayModeNew].$hidden.hide();
-    this.hash[displayModeNew].$shown.show();
-
-    // update select element
-    str = 'option[value=' + displayModeNew + ']';
-
-    this.$select.find(str).prop('selected', true);
-
+    this.state.x = Math.min(Math.max(0, this.state.x), maxX);
+    this.state.y = Math.min(Math.max(0, this.state.y), maxY);
 };
 
-ControlMapHash.prototype.setDisplayMode = function (displayMode) {
-
-    setDisplayModeHelper.call(this, displayMode);
-
-    this.browser.setDisplayMode(displayMode);
-};
-
-ControlMapHash.prototype.updateOptions = function (displayMode) {
-    let self = this;
-
-    this.$img_a.hide();
-    this.$img_b.hide();
-
-    this.$select.empty();
-
-    Object.keys(this.hash).forEach(function (key) {
-        let item,
-            option;
-
-        item = self.hash[key];
-
-        option = $$2('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
-
-        if (displayMode === item.value) {
-
-            option.attr('selected', true);
-            item.$shown.show();
-
-            setDisplayModeHelper.call(self, displayMode);
-        }
-
-        self.$select.append(option);
-
-    });
-
-};
-
-function setDisplayModeHelper(displayMode) {
-
-    this.hash[displayMode].$hidden.hide();
-    this.hash[displayMode].$shown.show();
-
-    this.$cycle.show();
-    this.$toggle.show();
-
-    // if ('A' === displayMode || 'B' === displayMode) {
-    //     this.$cycle.show();
-    //     this.$toggle.show();
-    // } else {
-    //     this.$cycle.hide();
-    //     this.$toggle.hide();
-    // }
-
-}
-
-function toggle_arrows_up() {
-    let str,
-        a;
-
-    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-        '    <title>Toggle Maps</title>\n' +
-        '    <desc>Created with Sketch.</desc>\n' +
-        '    <defs></defs>\n' +
-        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-        '        <g id="Group">\n' +
-        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
-        '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
-        '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#F8F8F8" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
-        '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#5F5F5F" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
-        '            </g>\n' +
-        '        </g>\n' +
-        '    </g>\n' +
-        '</svg>';
-
-    a = str.split('\n').join(' ');
-
-    return $$2(a);
-}
-
-function toggle_arrows_down() {
-    let str,
-        b;
-
-    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-        '    <title>Toggle Maps</title>\n' +
-        '    <desc>Created with Sketch.</desc>\n' +
-        '    <defs></defs>\n' +
-        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-        '        <g id="Group">\n' +
-        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
-        '            <g id="arrows" transform="translate(6.533947, 7.003452)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.626006904">\n' +
-        '                <path d="M25.9411017,8.76431329 L11.8559464,8.76431329 L11.8559464,6.88629258 C11.8559464,6.05237313 10.8440845,5.63114873 10.2529383,6.22229488 L7.12290378,9.3523294 C6.75622024,9.71905207 6.75622024,10.3136021 7.12290378,10.6802857 L10.2529383,13.8103202 C10.8409153,14.3982581 11.8559464,13.9850935 11.8559464,13.1463616 L11.8559464,11.2683409 L25.9411017,11.2683409 C26.4597093,11.2683409 26.8801121,10.8479381 26.8801121,10.3293306 L26.8801121,9.70332365 C26.8801121,9.18471605 26.4597093,8.76431329 25.9411017,8.76431329 Z" id="down-arrow" fill="#5F5F5F" transform="translate(16.864002, 10.016110) rotate(-90.000000) translate(-16.864002, -10.016110) "></path>\n' +
-        '                <path d="M13.1470856,8.76431329 L-0.938069748,8.76431329 L-0.938069748,6.88629258 C-0.938069748,6.05237313 -1.94993166,5.63114873 -2.5410778,6.22229488 L-5.67111233,9.3523294 C-6.03779587,9.71905207 -6.03779587,10.3136021 -5.67111233,10.6802857 L-2.5410778,13.8103202 C-1.95310082,14.3982581 -0.938069748,13.9850935 -0.938069748,13.1463616 L-0.938069748,11.2683409 L13.1470856,11.2683409 C13.6656932,11.2683409 14.086096,10.8479381 14.086096,10.3293306 L14.086096,9.70332365 C14.086096,9.18471605 13.6656932,8.76431329 13.1470856,8.76431329 Z" id="up-arrow" fill="#F8F8F8" transform="translate(4.069985, 10.016110) scale(1, -1) rotate(-90.000000) translate(-4.069985, -10.016110) "></path>\n' +
-        '            </g>\n' +
-        '        </g>\n' +
-        '    </g>\n' +
-        '</svg>';
-
-    b = str.split('\n').join(' ');
-
-    return $$2(b);
-}
-
-function cycle_outline() {
-    let str,
-        b;
-
-    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-        '    <title>Cycle Maps</title>\n' +
-        '    <desc>Created with Sketch.</desc>\n' +
-        '    <defs></defs>\n' +
-        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-        '        <g id="Group" fill="#F8F8F8">\n' +
-        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
-        '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill-rule="nonzero" stroke="#5F5F5F" stroke-width="0.75">\n' +
-        '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
-        '            </g>\n' +
-        '        </g>\n' +
-        '    </g>\n' +
-        '</svg>';
-
-    b = str.split('\n').join(' ');
-
-    return $$2(b);
-
-}
-
-function cycle_solid() {
-    let str,
-        b;
-
-    str = '<svg width="34px" height="34px" viewBox="0 0 34 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">\n' +
-        '    <!-- Generator: Sketch 51 (57462) - http://www.bohemiancoding.com/sketch -->\n' +
-        '    <title>Cycle Maps</title>\n' +
-        '    <desc>Created with Sketch.</desc>\n' +
-        '    <defs></defs>\n' +
-        '    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">\n' +
-        '        <g id="Group">\n' +
-        '            <rect id="Rectangle" stroke="#A6A6A6" stroke-width="1.25201381" fill="#F8F8F8" x="0.626006904" y="0.626006904" width="32.7479862" height="32.7479862" rx="3.91254315"></rect>\n' +
-        '            <g id="circle-notch-group" transform="translate(5.947066, 6.103567)" fill="#5F5F5F" fill-rule="nonzero">\n' +
-        '                <path d="M12.5012159,1.07356655 L12.5012159,1.81734411 C12.5012159,2.29971235 12.8262916,2.71738683 13.2908449,2.84717621 C16.7518005,3.81392183 19.2875784,6.98762275 19.2875784,10.7595067 C19.2875784,15.2996349 15.6133435,18.9745898 11.072508,18.9745898 C6.53238683,18.9745898 2.85743758,15.3003493 2.85743758,10.7595067 C2.85743758,6.98815851 5.39276905,3.81401113 8.85408182,2.84717621 C9.31872442,2.71738683 9.64380011,2.29962306 9.64380011,1.81721016 L9.64380011,1.07392373 C9.64380011,0.372561009 8.98150471,-0.138381443 8.30233269,0.0365908983 C3.5094195,1.27117502 -0.0270343765,5.6342771 0.00015572077,10.8189768 C0.0323016485,16.9379636 4.97728293,21.8448684 11.0963496,21.8319654 C17.2005487,21.819107 22.1449942,16.8667067 22.1449942,10.7595067 C22.1449942,5.5968181 18.611621,1.2595221 13.831209,0.0336441837 C13.1565464,-0.139363681 12.5012159,0.377070376 12.5012159,1.07356655 Z" id="circle-notch---solid"></path>\n' +
-        '            </g>\n' +
-        '        </g>\n' +
-        '    </g>\n' +
-        '</svg>';
-
-    b = str.split('\n').join(' ');
-
-    return $$2(b);
-
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const LocusGoto = function (browser, $container) {
-
-    this.browser = browser;
-
-    this.$container = $$2("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
-    $container.append(this.$container);
-
-    this.$resolution_selector = $$2('<input type="text" placeholder="chr-x-axis chr-y-axis">');
-    this.$container.append(this.$resolution_selector);
-
-    this.$resolution_selector.on('change', function (e) {
-        browser.parseGotoInput($$2(this).val());
-        $$2(this).blur();
-    });
-
-    this.browser.eventBus.subscribe("LocusChange", this);
-};
-
-LocusGoto.prototype.receiveEvent = function (event) {
-
-    var self = this,
-        bpPerBin,
-        pixelsPerBin,
-        dimensionsPixels,
-        startBP1,
-        startBP2,
-        endBP1,
-        endBP2,
-        xy,
-        state,
-        chr1,
-        chr2;
-
-    if (event.type === "LocusChange") {
-
-        state = event.data.state || self.browser.state;
-        if (0 === state.chr1) {
-            xy = 'All';
-        } else {
-            chr1 = self.browser.dataset.chromosomes[state.chr1];
-            chr2 = self.browser.dataset.chromosomes[state.chr2];
-
-            bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-            dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-            pixelsPerBin = state.pixelSize;
-
-            startBP1 = 1 + Math.round(state.x * bpPerBin);
-            startBP2 = 1 + Math.round(state.y * bpPerBin);
-
-            endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-            endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
-
-            xy = chr1.name + ":" + api.numberFormatter(startBP1) + "-" + api.numberFormatter(endBP1) + " " +
-                chr2.name + ":" + api.numberFormatter(startBP2) + "-" + api.numberFormatter(endBP2);
-
-        }
-
-        this.$resolution_selector.val(xy);
-    }
-
-
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const ResolutionSelector = function (browser, $parent) {
+HICBrowser.prototype.receiveEvent = function (event) {
     var self = this;
 
-    this.browser = browser;
+    if ("LocusChange" === event.type) {
 
-    this.$container = $$2("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
-    $parent.append(this.$container);
+        if (event.propogate) {
 
-    // label container
-    this.$label_container = $$2('<div id="hic-resolution-label-container">');
-    this.$container.append(this.$label_container);
-
-    // Resolution (kb)
-    this.$label = $$2("<div>");
-    this.$label_container.append(this.$label);
-    this.$label.text('Resolution (kb)');
-    this.$label.hide();
-
-    // lock/unlock
-    this.$resolution_lock = $$2('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
-    this.$label_container.append(this.$resolution_lock);
-    this.$label_container.on('click', function (e) {
-        self.browser.resolutionLocked = !(self.browser.resolutionLocked);
-        self.setResolutionLock(self.browser.resolutionLocked);
-    });
-
-    this.$resolution_selector = $$2('<select name="select">');
-    this.$container.append(this.$resolution_selector);
-
-    this.$resolution_selector.attr('name', 'resolution_selector');
-
-    this.$resolution_selector.on('change', function (e) {
-        var zoomIndex = parseInt($$2(this).val());
-        self.browser.setZoom(zoomIndex);
-    });
-
-
-    this.browser.eventBus.subscribe("LocusChange", this);
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("ControlMapLoad", this);
-};
-
-ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-    this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-    this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
-};
-
-ResolutionSelector.prototype.receiveEvent = function (event) {
-
-    var self = this,
-        htmlString,
-        selectedIndex,
-        isWholeGenome,
-        divisor,
-        list;
-
-    if (event.type === "LocusChange") {
-
-        if (true === event.data.resolutionChanged) {
-            this.browser.resolutionLocked = false;
-            self.setResolutionLock(this.browser.resolutionLocked);
-        }
-
-        isWholeGenome = (0 === event.data.state.chr1);
-
-        this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-
-        selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
-        divisor = isWholeGenome ? 1e6 : 1e3;
-        list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
-
-        htmlString = optionListHTML(list, selectedIndex, divisor);
-        this.$resolution_selector.empty();
-        this.$resolution_selector.append(htmlString);
-
-        this.$resolution_selector
-            .find('option')
-            .filter(function (index) {
-                return index === selectedIndex;
-            })
-            .prop('selected', true);
-
-
-    } else if (event.type === "MapLoad") {
-
-        this.browser.resolutionLocked = false;
-        this.setResolutionLock(this.browser.resolutionLocked);
-
-        htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
-        this.$resolution_selector.empty();
-        this.$resolution_selector.append(htmlString);
-    } else if (event.type === "ControlMapLoad") ;
-
-    function optionListHTML(resolutions, selectedIndex, divisor) {
-        var list;
-
-        list = resolutions.map(function (resolution, index) {
-            var selected, unit, pretty;
-
-            if (resolution >= 1e6) {
-                divisor = 1e6;
-                unit = 'mb';
-            } else if (resolution >= 1e3) {
-                divisor = 1e3;
-                unit = 'kb';
-            } else {
-                divisor = 1;
-                unit = 'bp';
-            }
-
-            pretty = api.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
-            selected = selectedIndex === index;
-
-            if (resolution)
-                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
-            else
-                return ''
-        });
-
-        return list.join('');
-    }
-
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const ColorScaleWidget = function (browser, $container) {
-
-    var self = this,
-        $fa,
-        rgbString;
-
-    this.browser = browser;
-
-    this.$container = $$2('<div class="hic-colorscale-widget-container">');
-    $container.append(this.$container);
-
-
-    // '-' color swatch
-    rgbString = getRGBString(browser, '-', "blue");                    // TODO -- get the default from browser.
-    this.$minusButton = colorSwatch(rgbString);
-    this.$container.append(this.$minusButton);
-    this.$minusButton.hide();
-
-    this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
-        self.minusColorPicker.$container.hide();
-    });
-
-    this.minusColorPicker.$container.hide();
-
-    // '+' color swatch
-    rgbString = getRGBString(browser, '+', "red");                     // TODO -- get the default from browser
-    this.$plusButton = colorSwatch(rgbString);
-    this.$container.append(this.$plusButton);
-
-    this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', function () {
-        self.plusColorPicker.$container.hide();
-    });
-
-    this.plusColorPicker.$container.hide();
-
-    this.$minusButton.on('click', function (e) {
-        self.presentColorPicker($$2(this), self.minusColorPicker.$container);
-    });
-
-    this.$plusButton.on('click', function (e) {
-        self.presentColorPicker($$2(this), self.plusColorPicker.$container);
-    });
-
-
-    // threshold
-    this.$high_colorscale_input = $$2('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});
-    this.$container.append(this.$high_colorscale_input);
-    this.$high_colorscale_input.on('change', function (e) {
-        var numeric;
-        numeric = api.numberUnFormatter($$2(this).val());
-        if (isNaN(numeric)) ; else {
-            browser.setColorScaleThreshold(numeric);
-        }
-    });
-
-    // threshold -
-    $fa = $$2("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
-    $fa.on('click', function (e) {
-        updateThreshold(1.0 / 2.0);
-    });
-    this.$container.append($fa);
-
-    // threshold +
-    $fa = $$2("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold'});
-    $fa.on('click', function (e) {
-        updateThreshold(2.0);
-    });
-    this.$container.append($fa);
-
-
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("ColorScale", this);
-    this.browser.eventBus.subscribe("DisplayMode", this);
-
-    function updateThreshold(scaleFactor) {
-        var threshold, colorScale;
-        colorScale = browser.getColorScale();
-        threshold = colorScale.getThreshold() * scaleFactor;
-        browser.setColorScaleThreshold(threshold);
-        self.$high_colorscale_input.val(api.numberFormatter(colorScale.getThreshold()));
-    }
-
-};
-
-ColorScaleWidget.prototype.receiveEvent = function (event) {
-
-    if ('ColorScale' === event.type) {
-        this.$high_colorscale_input.val(event.data.threshold);
-        this.$plusButton.find('.fa-square').css({color: api.Color.rgbColor(event.data.r, event.data.g, event.data.b)});
-    } else if ("DisplayMode" === event.type) {
-
-        if ("AOB" === event.data || "BOA" === event.data) {
-            this.$minusButton.show();
-        } else {
-            this.$minusButton.hide();
-        }
-    }
-
-
-};
-
-ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
-
-    this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-    this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-
-    this.$presentingButton = $presentingButton;
-    this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
-
-    $colorpicker.show();
-};
-
-function getRGBString(browser, type, defaultColor) {
-    var colorScale, comps;
-
-    colorScale = browser.getColorScale();
-    if (colorScale) {
-        comps = colorScale.getColorComponents(type);
-        return api.Color.rgbColor(comps.r, comps.g, comps.b);
-    }
-    else {
-        return defaultColor;
-    }
-}
-
-function createColorPicker(browser, $presentingButton, type, closeHandler) {
-
-    const config =
-        {
-            $parent: $presentingButton,
-            width: 456,
-            height: undefined,
-            closeHandler: closeHandler
-        };
-
-    let colorPicker = new api.GenericContainer(config);
-
-//    igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
-
-
-    return colorPicker;
-}
-
-function colorSwatch(rgbString, doPlusOrMinusOrUndefined) {
-    var $swatch,
-        $fa;
-
-    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
-
-    $fa = $$2('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
-    $swatch.append($fa);
-    $fa.css({color: rgbString});
-
-    // if (undefined === doPlusOrMinusOrUndefined) {
-    //     $fa = $('<i>', { class: 'fa fa-square fa-lg' });
-    //     $swatch.append($fa);
-    //     $fa.css({color: rgbString});
-    //
-    // } else {
-    //
-    //     $span = $('<span>', { class: 'fa-stack' });
-    //     $swatch.append($span);
-    //
-    //     // background square
-    //     $fa_square = $('<i>', { class: 'fa fa-square fa-stack-2x' });
-    //     $span.append($fa_square);
-    //     $fa_square.css({ color: rgbString, '-webkit-text-stroke-width':'2px', '-webkit-text-stroke-color':'transparent' });
-    //
-    //     // foreground +/-
-    //     // str = '+' === doPlusOrMinusOrUndefined ? 'fa fa-plus fa-stack-1x' : 'fa fa-minus fa-stack-1x';
-    //     str = '';
-    //     $fa_plus_minus = $('<i>', { class: str });
-    //     $span.append($fa_plus_minus);
-    //     $fa_plus_minus.css({ color: 'white' });
-    //
-    // }
-
-
-    return $swatch;
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-var labels =
-    {
-        NONE: 'None',
-        VC: 'Coverage',
-        VC_SQRT: 'Coverage - Sqrt',
-        KR: 'Balanced',
-        INTER_VC: 'Interchromosomal Coverage',
-        INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
-        INTER_KR: 'Interchromosomal Balanced',
-        GW_VC: 'Genome-wide Coverage',
-        GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
-        GW_KR: 'Genome-wide Balanced'
-    };
-
-const NormalizationWidget = function (browser, $parent) {
-    var self = this,
-        $label;
-
-    this.browser = browser;
-
-    // container
-    this.$container = $$2("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
-    $parent.append(this.$container);
-
-    // label
-    $label = $$2('<div>');
-    $label.text('Norm');
-    this.$container.append($label);
-    // $label.hide();
-
-    // select
-    this.$normalization_selector = $$2('<select name="select">');
-    this.$normalization_selector.attr('name', 'normalization_selector');
-    this.$normalization_selector.on('change', function (e) {
-        self.browser.setNormalization($$2(this).val());
-    });
-    this.$container.append(this.$normalization_selector);
-
-    // spinner
-    this.$spinner = $$2('<div>');
-    this.$spinner.text('Loading ...');
-    this.$container.append(this.$spinner);
-    this.$spinner.hide();
-
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
-    this.browser.eventBus.subscribe("NormalizationFileLoad", this);
-    this.browser.eventBus.subscribe("NormalizationExternalChange", this);
-
-};
-
-NormalizationWidget.prototype.startNotReady = function () {
-    this.$normalization_selector.hide();
-    this.$spinner.show();
-};
-
-NormalizationWidget.prototype.stopNotReady = function () {
-    this.$spinner.hide();
-    this.$normalization_selector.show();
-};
-
-NormalizationWidget.prototype.receiveEvent = function (event) {
-
-    // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
-    // if ("MapLoad" === event.type) {
-    //     // TODO -- start norm widget "not ready" state
-    //     this.startNotReady();
-    //
-    //     updateOptions.call(this);
-    //
-    // } else
-    if ("NormVectorIndexLoad" === event.type) {
-
-        updateOptions.call(this);
-
-        // TODO -- end norm widget "not ready" state
-        this.stopNotReady();
-
-    } else if ("NormalizationFileLoad" === event.type) {
-        if (event.data === "start") {
-            this.startNotReady();
-        } else {
-            this.stopNotReady();
-        }
-    } else if ("NormalizationExternalChange" === event.type) {
-
-        var filter = this.$normalization_selector
-            .find('option')
-            .filter(function (index) {
-                var s1 = this.value;
-                var s2 = event.data;
-                return s1 === s2;
-            })
-            .prop('selected', true);
-    }
-
-    async function updateOptions() {
-        var dataset = event.data,
-            normalizationTypes,
-            elements,
-            norm = this.browser.state.normalization;
-
-        normalizationTypes = await dataset.getNormalizationOptions();
-        if (normalizationTypes) {
-            elements = normalizationTypes.map(function (normalization) {
-                var label,
-                    labelPresentation,
-                    isSelected,
-                    titleString,
-                    valueString;
-
-                label = labels[normalization] || normalization;
-                isSelected = (norm === normalization);
-                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-
-                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
-                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
+            self.synchedBrowsers.forEach(function (browser) {
+                browser.syncState(self.getSyncState());
             });
 
-            this.$normalization_selector.empty();
-            this.$normalization_selector.append(elements.join(''));
-        }
-    }
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const Ruler = function (browser, axis, $parent) {
-    var id;
-
-    this.browser = browser;
-    this.axis = axis;
-
-    id = browser.id + '_' + this.axis + '-axis';
-    this.$axis = $$2("<div>", {id: id});
-    $parent.append(this.$axis);
-
-    // canvas
-    this.$canvas = $$2('<canvas>');
-    this.$axis.append(this.$canvas);
-
-    this.$canvas.width(this.$axis.width());
-    this.$canvas.attr('width', this.$axis.width());
-
-    this.$canvas.height(this.$axis.height());
-    this.$canvas.attr('height', this.$axis.height());
-
-    // whole genome container
-    id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
-    this.$wholeGenomeContainer = $$2("<div>", {id: id});
-    this.$axis.append(this.$wholeGenomeContainer);
-
-    this.ctx = this.$canvas.get(0).getContext("2d");
-
-    this.yAxisTransformWithContext = function (context) {
-        context.scale(-1, 1);
-        context.rotate(Math.PI / 2.0);
-    };
-
-    this.setAxisTransform(axis);
-
-    this.browser.eventBus.subscribe('MapLoad', this);
-    this.browser.eventBus.subscribe("UpdateContactMapMousePosition", this);
-
-
-};
-
-Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axisName, dataset) {
-
-    var self = this,
-        list,
-        dimen,
-        extent,
-        scraps,
-        $div,
-        $firstDiv,
-        $e,
-        className;
-
-    // discard current tiles
-    $wholeGenomeContainer.empty();
-
-    list = dataset.chromosomes.filter(function (chromosome) {
-        return 'all' !== chromosome.name.toLowerCase();
-    });
-
-    extent = 0;    // could use reduce for this
-    list.forEach(function (chromosome) {
-        extent += chromosome.size;
-    });
-
-
-    dimen = 'x' === axisName ? $axis.width() : $axis.height();
-    scraps = 0;
-    this.bboxes = [];
-    $firstDiv = undefined;
-
-    list.forEach(function (chr) {
-        var size,
-            percentage;
-
-        percentage = (chr.bpLength) / extent;
-
-        if (percentage * dimen < 1.0) {
-            scraps += percentage;
-        } else {
-
-            className = self.axis + '-axis-whole-genome-chromosome-container';
-            $div = $$2("<div>", {class: className});
-            $wholeGenomeContainer.append($div);
-            $div.data('label', chr.name);
-
-            if (!$firstDiv) {
-                $firstDiv = $div;
-            }
-
-            if ('x' === axisName) {
-                size = Math.round(percentage * dimen) - 2;
-                $div.width(size);
-            } else {
-                size = Math.round(percentage * dimen) - 2;
-                $div.height(size);
-            }
-
-            className = self.axis + '-axis-whole-genome-chromosome';
-            $e = $$2("<div>", {class: className});
-            $div.append($e);
-            $e.text($div.data('label'));
-            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
-
-            decorate.call(self, $div);
         }
 
-    });
-
-    scraps *= dimen;
-    scraps = Math.floor(scraps);
-    if (scraps >= 1) {
-
-        className = self.axis + '-axis-whole-genome-chromosome-container';
-        $div = $$2("<div>", {class: className});
-        $wholeGenomeContainer.append($div);
-        $div.data('label', '-');
-
-        $div.width(scraps);
-
-        className = self.axis + '-axis-whole-genome-chromosome';
-        $e = $$2("<div>", {class: className});
-        $div.append($e);
-        $e.text($div.data('label'));
-        // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
-
-        decorate.call(self, $div);
-    }
-
-    $wholeGenomeContainer.children().each(function (index) {
-        self.bboxes.push(bbox(axisName, $$2(this), $firstDiv));
-    });
-
-
-    // initially hide
-    this.hideWholeGenome();
-
-    function decorate($d) {
-        var self = this;
-
-        $d.on('click', function (e) {
-            var $o;
-            $o = $$2(this).first();
-            self.browser.parseGotoInput($o.text());
-
-            self.unhighlightWholeChromosome();
-            self.otherRuler.unhighlightWholeChromosome();
-        });
-
-        // DIAGNOSTIC BACKGROUND COLOR
-        // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
-        // return;
-
-        $d.hover(
-            function () {
-                hoverHandler.call(self, $$2(this), true);
-            },
-
-            function () {
-                hoverHandler.call(self, $$2(this), false);
-            }
-        );
-
-    }
-
-    function hoverHandler($e, doHover) {
-
-        var target,
-            $target;
-
-        target = $e.data('label');
-
-        this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
-            if (target === $$2(this).data('label')) {
-                $target = $$2(this);
-            }
-        });
-
-        if (true === doHover) {
-            $e.addClass('hic-whole-genome-chromosome-highlight');
-            $target.addClass('hic-whole-genome-chromosome-highlight');
-        } else {
-            $e.removeClass('hic-whole-genome-chromosome-highlight');
-            $target.removeClass('hic-whole-genome-chromosome-highlight');
-        }
+        this.update(event);
     }
 
 };
-
-function bbox(axis, $child, $firstChild) {
-    var delta,
-        size,
-        o,
-        fo;
-
-    o = 'x' === axis ? $child.offset().left : $child.offset().top;
-    fo = 'x' === axis ? $firstChild.offset().left : $firstChild.offset().top;
-
-    delta = o - fo;
-    size = 'x' === axis ? $child.width() : $child.height();
-
-    return {$e: $child, a: delta, b: delta + size};
-
-}
-
-function hitTest(bboxes, value) {
-    var $result,
-        success;
-
-    success = false;
-    $result = undefined;
-    bboxes.forEach(function (bbox) {
-
-        if (false === success) {
-
-            if (value < bbox.a) ; else if (value > bbox.b) ; else {
-                $result = bbox.$e;
-                success = true;
-            }
-
-        }
-
-    });
-
-    return $result;
-}
-
-Ruler.prototype.hideWholeGenome = function () {
-    this.$wholeGenomeContainer.hide();
-    this.$canvas.show();
-};
-
-Ruler.prototype.showWholeGenome = function () {
-    this.$canvas.hide();
-    this.$wholeGenomeContainer.show();
-};
-
-Ruler.prototype.setAxisTransform = function (axis) {
-
-    this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext$1;
-
-    this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) {
-    };
-
-};
-
-Ruler.prototype.unhighlightWholeChromosome = function () {
-    this.$wholeGenomeContainer.children().removeClass('hic-whole-genome-chromosome-highlight');
-};
-
-Ruler.prototype.receiveEvent = function (event) {
-    var offset,
-        $e;
-
-    if ('MapLoad' === event.type) {
-        this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
-    } else if ('UpdateContactMapMousePosition' === event.type) {
-
-        if (this.bboxes) {
-            this.unhighlightWholeChromosome();
-            offset = 'x' === this.axis ? event.data.x : event.data.y;
-            $e = hitTest(this.bboxes, offset);
-            if ($e) {
-                // console.log(this.axis + ' highlight chr ' + $e.text());
-                $e.addClass('hic-whole-genome-chromosome-highlight');
-            }
-        }
-    }
-
-};
-
-Ruler.prototype.locusChange = function (event) {
-
-    this.update();
-
-};
-
-Ruler.prototype.updateWidthWithCalculation = function (calc) {
-
-    this.$axis.css('width', calc);
-
-    this.$canvas.width(this.$axis.width());
-    this.$canvas.attr('width', this.$axis.width());
-
-    this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
-
-    this.update();
-};
-
-Ruler.prototype.updateHeight = function (height) {
-
-    this.$canvas.height(height);
-    this.$canvas.attr('height', height);
-
-    this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, this.browser.dataset);
-
-    this.update();
-};
-
-Ruler.prototype.update = function () {
-
-    var w,
-        h,
-        bin,
-        config = {},
-        browser = this.browser;
-
-    if (isBrowserInWholeGenomeView(browser.state)) {
-        this.showWholeGenome();
-        return;
-    }
-
-    this.hideWholeGenome();
-
-    identityTransformWithContext$1(this.ctx);
-    api.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: api.Color.rgbColor(255, 255, 255)});
-
-    this.canvasTransform(this.ctx);
-
-    w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
-    h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
-
-    api.graphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: api.Color.rgbColor(255, 255, 255)});
-
-    config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
-
-    bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
-    config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];
-
-    config.rulerTickMarkReferencePixels = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
-
-    config.rulerLengthPixels = w;
-    config.rulerHeightPixels = h;
-
-    config.height = Math.min(this.$canvas.width(), this.$canvas.height());
-
-    this.draw(config);
-};
-
-Ruler.prototype.draw = function (options) {
-
-    var fontStyle,
-        tickSpec,
-        majorTickSpacing,
-        nTick,
-        pixelLast,
-        pixel,
-        tickSpacingPixels,
-        labelWidthPixels,
-        modulo,
-        l,
-        yShim,
-        tickHeight,
-        rulerLabel,
-        chrSize,
-        chrName,
-        chromosomes = this.browser.dataset.chromosomes;
-
-    chrName = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].name : chromosomes[this.browser.state.chr2].name;
-    chrSize = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].size : chromosomes[this.browser.state.chr2].size;
-
-    if (options.chrName === "all") ; else {
-
-        api.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: api.Color.rgbColor(255, 255, 255)});
-
-        fontStyle = {
-            textAlign: 'center',
-            font: '9px PT Sans',
-            fillStyle: "rgba(64, 64, 64, 1)",
-            strokeStyle: "rgba(64, 64, 64, 1)"
-        };
-
-        tickSpec = findSpacing(Math.floor(options.rulerTickMarkReferencePixels * options.bpPerPixel));
-        majorTickSpacing = tickSpec.majorTick;
-
-        // Find starting point closest to the current origin
-        nTick = Math.floor(options.bpStart / majorTickSpacing) - 1;
-
-        pixel = pixelLast = 0;
-
-        api.graphics.setProperties(this.ctx, fontStyle);
-        this.ctx.lineWidth = 1.0;
-
-        yShim = 1;
-        tickHeight = 8;
-        while (pixel < options.rulerLengthPixels) {
-
-            l = Math.floor(nTick * majorTickSpacing);
-
-            pixel = Math.round(((l - 1) - options.bpStart + 0.5) / options.bpPerPixel);
-
-            rulerLabel = formatNumber(l / tickSpec.unitMultiplier, 0) + " " + tickSpec.majorUnit;
-
-            tickSpacingPixels = Math.abs(pixel - pixelLast);
-            labelWidthPixels = this.ctx.measureText(rulerLabel).width;
-
-            if (labelWidthPixels > tickSpacingPixels) {
-
-                if (tickSpacingPixels < 32) {
-                    modulo = 4;
-                } else {
-                    modulo = 2;
-                }
-            } else {
-                modulo = 1;
-            }
-
-            // modulo = 1;
-            if (0 === nTick % modulo) {
-
-                if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-
-                    // console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
-
-                    this.ctx.save();
-                    this.labelReflectionTransform(this.ctx, pixel);
-                    api.graphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
-                    this.ctx.restore();
-
-                }
-
-            }
-
-            if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                api.graphics.strokeLine(this.ctx,
-                    pixel, options.height - tickHeight,
-                    pixel, options.height - yShim);
-            }
-
-            pixelLast = pixel;
-            nTick++;
-
-        } // while (pixel < options.rulerLengthPixels)
-
-        api.graphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
-
-    }
-
-    function formatNumber(anynum, decimal) {
-        //decimal  - the number of decimals after the digit from 0 to 3
-        //-- Returns the passed number as a string in the xxx,xxx.xx format.
-        //anynum = eval(obj.value);
-        var divider = 10;
-        switch (decimal) {
-            case 0:
-                divider = 1;
-                break;
-            case 1:
-                divider = 10;
-                break;
-            case 2:
-                divider = 100;
-                break;
-            default:       //for 3 decimal places
-                divider = 1000;
-        }
-
-        var workNum = Math.abs((Math.round(anynum * divider) / divider));
-
-        var workStr = "" + workNum;
-
-        if (-1 === workStr.indexOf(".")) {
-            workStr += ".";
-        }
-
-        var dStr = workStr.substr(0, workStr.indexOf("."));
-        var dNum = dStr - 0;
-        var pStr = workStr.substr(workStr.indexOf("."));
-
-        while (pStr.length - 1 < decimal) {
-            pStr += "0";
-        }
-
-        if ('.' === pStr) {
-            pStr = '';
-        }
-
-        //--- Adds a comma in the thousands place.
-        if (dNum >= 1000) {
-            var dLen = dStr.length;
-            dStr = parseInt("" + (dNum / 1000)) + "," + dStr.substring(dLen - 3, dLen);
-        }
-
-        //-- Adds a comma in the millions place.
-        if (dNum >= 1000000) {
-            dLen = dStr.length;
-            dStr = parseInt("" + (dNum / 1000000)) + "," + dStr.substring(dLen - 7, dLen);
-        }
-        var retval = dStr + pStr;
-        //-- Put numbers in parentheses if negative.
-        if (anynum < 0) {
-            retval = "(" + retval + ")";
-        }
-
-        //You could include a dollar sign in the return value.
-        //retval =  "$"+retval
-        return retval;
-    }
-
-};
-
-function isBrowserInWholeGenomeView(state) {
-    return 0 === state.chr1 && state.chr1 === state.chr1;
-}
-
-function TickSpacing(majorTick, majorUnit, unitMultiplier) {
-    this.majorTick = majorTick;
-    this.majorUnit = majorUnit;
-    this.unitMultiplier = unitMultiplier;
-}
-
-function findSpacing(rulerLengthBP) {
-
-    if (rulerLengthBP < 10) {
-        return new TickSpacing(1, "", 1);
-    }
-
-
-    // How many zeroes?
-    var nZeroes = Math.floor(log10(rulerLengthBP));
-    var majorUnit = "";
-    var unitMultiplier = 1;
-    if (nZeroes > 9) {
-        majorUnit = "gb";
-        unitMultiplier = 1000000000;
-    }
-    if (nZeroes > 6) {
-        majorUnit = "mb";
-        unitMultiplier = 1000000;
-    } else if (nZeroes > 3) {
-        majorUnit = "kb";
-        unitMultiplier = 1000;
-    }
-
-    var nMajorTicks = rulerLengthBP / Math.pow(10, nZeroes - 1);
-    if (nMajorTicks < 25) {
-        return new TickSpacing(Math.pow(10, nZeroes - 1), majorUnit, unitMultiplier);
-    } else {
-        return new TickSpacing(Math.pow(10, nZeroes) / 2, majorUnit, unitMultiplier);
-    }
-
-    function log10(x) {
-        var dn = Math.log(10);
-        return Math.log(x) / dn;
-    }
-}
-
-function reflectionTransformWithContext(context, exe) {
-    context.translate(exe, 0);
-    context.scale(-1, 1);
-    context.translate(-exe, 0);
-}
-
-function identityTransformWithContext$1(context) {
-    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
-    context.setTransform(1, 0, 0, 1, 0, 0);
-}
 
 /**
- * Created by dat on 4/5/17.
- */
-
-const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
-
-    this.browser = browser;
-
-    this.trackRenderPair = trackRenderPair;
-
-    this.track = trackPair[axis];
-
-    this.id = _.uniqueId('trackRenderer_');
-    this.axis = axis;
-    this.initializationHelper($container, size, order);
-};
-
-TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
-
-    var str,
-        doShowLabelAndGear,
-        $x_track_label;
-
-    // track canvas container
-    this.$viewport = ('x' === this.axis) ? $$2('<div class="x-track-canvas-container">') : $$2('<div class="y-track-canvas-container">');
-    if (size.width) {
-        this.$viewport.width(size.width);
-    }
-    if (size.height) {
-        this.$viewport.height(size.height);
-    }
-    $container.append(this.$viewport);
-    this.$viewport.css({order: order});
-
-    // canvas
-    this.$canvas = $$2('<canvas>');
-    this.$viewport.append(this.$canvas);
-    this.ctx = this.$canvas.get(0).getContext("2d");
-
-    if ('x' === this.axis) {
-
-        // label
-        this.$label = $$2('<div class="x-track-label">');
-        str = this.track.name || 'untitled';
-        this.$label.text(str);
-
-        // note the pre-existing state of track labels/gear. hide/show accordingly.
-        $x_track_label = $container.find(this.$label);
-        doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
-
-        this.$viewport.append(this.$label);
-    }
-
-    // track spinner container
-    this.$spinner = ('x' === this.axis) ? $$2('<div class="x-track-spinner">') : $$2('<div class="y-track-spinner">');
-    this.$viewport.append(this.$spinner);
-
-
-    this.stopSpinner();
-
-    // color picker
-    if ('x' === this.axis) {
-        this.colorPicker = createColorPicker_ColorScaleWidget_version(this.$viewport, () => {
-            this.colorPicker.$container.hide();
-        }, (color) => {
-            this.setColor(color);
-        });
-        this.colorPicker.$container.hide();
-    }
-
-    if ('x' === this.axis) {
-
-        // igvjs compatibility
-        this.track.trackView = this;
-        this.track.trackView.trackDiv = this.$viewport.get(0);
-
-        api.appendRightHandGutter.call(this, this.$viewport);
-
-        this.$viewport.on('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            $container.find('.x-track-label').toggle();
-            $container.find('.igv-right-hand-gutter').toggle();
-        });
-
-    }
-
-    this.configTrackTransforms();
-
-};
-
-TrackRenderer.prototype.configTrackTransforms = function () {
-
-    this.canvasTransform = ('y' === this.axis) ? reflectionRotationWithContext : identityTransformWithContext;
-
-    this.labelReflectionTransform = ('y' === this.axis) ? reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */
-    };
-
-};
-
-TrackRenderer.prototype.syncCanvas = function () {
-
-    this.$canvas.width(this.$viewport.width());
-    this.$canvas.attr('width', this.$viewport.width());
-
-    this.$canvas.height(this.$viewport.height());
-    this.$canvas.attr('height', this.$viewport.height());
-
-};
-
-TrackRenderer.prototype.presentColorPicker = function () {
-    const bbox = this.trackDiv.getBoundingClientRect();
-    this.colorPicker.origin = {x: bbox.x, y: 0};
-    this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
-    this.colorPicker.$container.show();
-};
-
-TrackRenderer.prototype.setTrackName = function (name) {
-
-    if ('x' === this.axis) {
-        this.track.name = name;
-        this.$label.text(name);
-    }
-};
-
-TrackRenderer.prototype.setColor = function (color) {
-
-    setColor(this.trackRenderPair.x);
-    setColor(this.trackRenderPair.y);
-
-    function setColor(trackRenderer) {
-        trackRenderer.tile = undefined;
-        trackRenderer.track.color = color;
-    }
-
-    this.browser.renderTrackXY(this.trackRenderPair);
-
-};
-
-TrackRenderer.prototype.setTrackHeight = function (height) {
-    // TODO fix me -- height should apply to both axes.  This method called by gear menu list item
-    console.error("setTrackHeight not implemented");
-};
-
-TrackRenderer.prototype.dataRange = function () {
-    return this.track.dataRange ? this.track.dataRange : undefined;
-};
-
-TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
-
-    if (min !== undefined) {
-        this.track.dataRange.min = min;
-        this.track.config.min = min;
-    }
-
-    if (max !== undefined) {
-        this.track.dataRange.max = max;
-        this.track.config.max = max;
-    }
-
-    this.track.autoscale = autoscale;
-    this.track.config.autoScale = autoscale;
-
-    this.repaint();
-};
-
-
-/**
- * Return a promise to get the renderer ready to paint,  that is with a valid tile, loading features
- * and drawing tile if neccessary.
+ * Update the maps and tracks.
  *
- * @returns {*}
+ * @param event
  */
-TrackRenderer.prototype.readyToPaint = async function () {
+HICBrowser.prototype.update = async function (event) {
 
-    var self = this,
-        lengthPixel, lengthBP, startBP, endBP;
+    try {
+        this.startSpinner();
 
-    const genomicState = self.browser.genomicState(self.axis);
-    const chrName = genomicState.chromosome.name;
+        if (event !== undefined && "LocusChange" === event.type) {
+            this.layoutController.xAxisRuler.locusChange(event);
+            this.layoutController.yAxisRuler.locusChange(event);
+        }
 
-    const bpp = "all" === chrName.toLowerCase() ?
-        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
-        genomicState.bpp;
+        this.renderTracks();
+        //this.contactMatrixView.update();
 
-    if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
-
-        return;
-
-    } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
-
-        return;
-
-    } else {
-
-        // Expand the requested range so we can pan a bit without reloading
-        lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
-        lengthBP = Math.round(bpp * lengthPixel);
-        startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
-        endBP = startBP + lengthBP;
-
-        const features = await self.track.getFeatures(genomicState.chromosome.name, startBP, endBP, bpp);
+    } finally {
+        this.stopSpinner();
+    }
+};
 
 
-        var buffer, ctx;
-        buffer = document.createElement('canvas');
-        buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
-        buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
-        ctx = buffer.getContext("2d");
-        if (features) {
+HICBrowser.prototype.repaintMatrix = function () {
+    this.contactMatrixView.imageTileCache = {};
+    this.contactMatrixView.initialImage = undefined;
+    this.contactMatrixView.update();
+};
 
-            if (typeof self.track.doAutoscale === 'function') {
-                self.track.doAutoscale(features);
-            } else {
-                self.track.dataRange = api.doAutoscale(features);
-            }
 
-            self.canvasTransform(ctx);
+HICBrowser.prototype.resolution = function () {
+    return this.dataset.bpResolutions[this.state.zoom];
+};
 
-            self.drawConfiguration =
-                {
-                    features: features,
-                    context: ctx,
-                    pixelWidth: lengthPixel,
-                    pixelHeight: Math.min(buffer.width, buffer.height),
-                    bpStart: startBP,
-                    bpEnd: endBP,
-                    bpPerPixel: bpp,
-                    genomicState: genomicState,
-                    viewportContainerX: (genomicState.startBP - startBP) / bpp,
-                    viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
-                    labelTransform: self.labelReflectionTransform
+
+function getNviString(dataset) {
+
+    return dataset.hicFile.config.nvi
+    // if (dataset.hicFile.normalizationVectorIndexRange) {
+    //     var range = dataset.hicFile.normalizationVectorIndexRange,
+    //         nviString = String(range.start) + "," + String(range.size);
+    //     return nviString
+    // } else {
+    //     return undefined;
+    // }
+}
+
+
+function replaceAll$1(str, target, replacement) {
+    return str.split(target).join(replacement);
+}
+
+
+HICBrowser.prototype.toJSON = function () {
+
+    if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
+
+    const jsonOBJ = {};
+
+    jsonOBJ.hicUrl = this.dataset.url;
+    if (this.dataset.name) {
+        jsonOBJ.name = this.dataset.name;
+    }
+    jsonOBJ.state = this.state.stringify();
+    jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
+    if (api.selectedGene) {
+        jsonOBJ.selectedGene = api.selectedGene;
+    }
+    let nviString = getNviString(this.dataset);
+    if (nviString) {
+        jsonOBJ.nvi = nviString;
+    }
+    if (this.controlDataset) {
+        jsonOBJ.controlUrl = this.controlUrl;
+        if (this.controlDataset.name) {
+            jsonOBJ.controlName = this.controlDataset.name;
+        }
+        const displayMode = this.getDisplayMode();
+        if (displayMode) {
+            jsonOBJ.displayMode = this.getDisplayMode();
+        }
+        nviString = getNviString(this.controlDataset);
+        if (nviString) {
+            jsonOBJ.controlNvi = nviString;
+        }
+        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+            jsonOBJ.cycle = true;
+        }
+    }
+
+    if (this.trackRenderers.length > 0) {
+        let tracks = [];
+        for (let trackRenderer of this.trackRenderers) {
+            const track = trackRenderer.x.track;
+            const config = track.config;
+            if (typeof config.url === "string") {
+                const t = {
+                    url: config.url
                 };
-
-            self.track.draw(self.drawConfiguration);
-
-
-        } else {
-            ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
-        }
-
-        self.tile = new Tile$1(chrName, startBP, endBP, bpp, buffer);
-
-        return self.tile
-    }
-};
-
-/**
- *
- */
-TrackRenderer.prototype.repaint = async function () {
-
-    const genomicState = this.browser.genomicState(this.axis);
-    if (!this.checkZoomIn()) {
-        this.tile = undefined;
-        this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
-    }
-
-    const chrName = genomicState.chromosome.name;
-    const bpp = "all" === chrName.toLowerCase() ?
-        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
-        genomicState.bpp;
-
-    if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
-        await this.readyToPaint();
-    }
-    this.drawTileWithGenomicState(this.tile, genomicState);
-};
-
-TrackRenderer.prototype.checkZoomIn = function () {
-
-    if (this.track.visibilityWindow && this.track.visibilityWindow > 0) {
-
-        if ((genomicState.bpp * Math.max(this.$canvas.width(), this.$canvas.height()) > this.track.visibilityWindow)) {
-            return false;
-        }
-    }
-    return true;
-};
-
-TrackRenderer.prototype.drawTileWithGenomicState = function (tile, genomicState) {
-
-    if (tile) {
-
-        this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
-
-        this.offsetPixel = Math.round((tile.startBP - genomicState.startBP) / genomicState.bpp);
-        if ('x' === this.axis) {
-            this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
-        } else {
-            this.ctx.drawImage(tile.buffer, 0, this.offsetPixel);
-        }
-
-        // this.ctx.save();
-        // this.ctx.restore();
-    }
-};
-
-TrackRenderer.prototype.startSpinner = function () {
-    this.browser.startSpinner();
-};
-
-TrackRenderer.prototype.stopSpinner = function () {
-    this.browser.stopSpinner();
-};
-
-TrackRenderer.prototype.isLoading = function () {
-    return !(undefined === this.loading);
-};
-
-// ColorScaleWidget version of color picker
-function createColorPicker_ColorScaleWidget_version($parent, closeHandler, colorHandler) {
-
-    const config =
-        {
-            $parent: $parent,
-            width: 456,
-            height: undefined,
-            closeHandler: closeHandler
-        };
-
-    let genericContainer = new api.GenericContainer(config);
-
-    api.createColorSwatchSelector(genericContainer.$container, colorHandler);
-
-    return genericContainer;
-}
-
-
-const Tile$1 = function (chr, startBP, endBP, bpp, buffer) {
-    this.chr = chr;
-    this.startBP = startBP;
-    this.endBP = endBP;
-    this.bpp = bpp;
-    this.buffer = buffer;
-};
-
-Tile$1.prototype.containsRange = function (chr, startBP, endBP, bpp) {
-    return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
-
-    var $container;
-
-    this.browser = browser;
-    this.trackListRetrievalCallback = trackListRetrievalCallback;
-
-    $container = $$2("<div>", {class: 'hic-annotation-presentation-button-container'});
-    $parent.append($container);
-
-    annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
-
-    annotationPanel.call(this, this.browser.$root, config.title);
-
-};
-
-AnnotationWidget.prototype.updateBody = function (tracks) {
-
-    var self = this,
-        trackRenderers,
-        isTrack2D,
-        zi;
-
-    self.$annotationPanel.find('.hic-annotation-row-container').remove();
-
-    isTrack2D = (_.first(tracks) instanceof Track2D);
-
-    if (isTrack2D) {
-        // Reverse list to present layers in "z" order.
-        for (zi = tracks.length - 1; zi >= 0; zi--) {
-            annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
-        }
-    } else {
-        trackRenderers = tracks;
-        _.each(trackRenderers, function (trackRenderer) {
-            annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
-        });
-    }
-
-};
-
-function annotationPresentationButton($parent, title, alertMessage) {
-    var self = this,
-        $button;
-
-    $button = $$2('<button>', {type: 'button'});
-    $button.text(title);
-    $parent.append($button);
-
-    $button.on('click', function () {
-        var list;
-
-        list = self.trackListRetrievalCallback();
-        if (list.length > 0) {
-            self.updateBody(self.trackListRetrievalCallback());
-            self.$annotationPanel.toggle();
-        } else {
-            api.Alert.presentAlert(alertMessage);
-        }
-
-        self.browser.hideMenu();
-    });
-}
-
-function annotationPanel($parent, title) {
-
-    var self = this,
-        $panel_header,
-        $div,
-        $fa;
-
-    this.$annotationPanel = $$2('<div>', {class: 'hic-annotation-panel-container'});
-    $parent.append(this.$annotationPanel);
-
-    // close button container
-    $panel_header = $$2('<div>', {class: 'hic-annotation-panel-header'});
-    this.$annotationPanel.append($panel_header);
-
-    // panel title
-    $div = $$2('<div>');
-    $div.text(title);
-    $panel_header.append($div);
-
-    // close button
-    $div = $$2('<div>', {class: 'hic-menu-close-button'});
-    $panel_header.append($div);
-
-    $fa = $$2("<i>", {class: 'fa fa-times'});
-    $div.append($fa);
-
-    $fa.on('click', function (e) {
-        self.$annotationPanel.toggle();
-    });
-
-    // TODO: Continue changes for load functions added to side panel
-    // load container
-    // $load_container = $('<div>', { class:'hic-annotation-panel-load-container' });
-    // this.$annotationPanel.append($load_container);
-    //
-    // // Load
-    // $div = $('<div>');
-    // $load_container.append($div);
-    // $div.text('Load:');
-    //
-    // // Blah
-    // $div = $('<div>');
-    // $load_container.append($div);
-    // $div.text('Blah');
-
-    //this.$annotationPanel.draggable();
-    api.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
-    this.$annotationPanel.hide();
-}
-
-function annotationPanelRow($container, track) {
-    var self = this,
-        $colorpickerContainer,
-        $colorpickerButton,
-        $row_container,
-        $row,
-        $hideShowTrack,
-        $deleteTrack,
-        $upTrack,
-        $downTrack,
-        $e,
-        $o,
-        hidden_color = '#f7f7f7',
-        str,
-        isTrack2D,
-        trackList,
-        xyTrackRendererPair,
-        trackRenderer,
-        track1D,
-        index,
-        upp,
-        dwn;
-
-    isTrack2D = (track instanceof Track2D);
-    trackList = this.trackListRetrievalCallback();
-
-    if (false === isTrack2D) {
-        xyTrackRendererPair = track;
-        track1D = xyTrackRendererPair.x.track;
-        trackRenderer = xyTrackRendererPair.x.track.trackView;
-    }
-
-    // row container
-    $row_container = $$2('<div>', {class: 'hic-annotation-row-container'});
-    $container.append($row_container);
-
-    // one row
-    $row = $$2('<div>', {class: 'hic-annotation-modal-row'});
-    $row_container.append($row);
-
-    // track name
-    $e = $$2("<div>");
-    $e.text(isTrack2D ? track.config.name : track1D.config.name);
-    $row.append($e);
-
-    // track hide/show
-    if (isTrack2D) {
-        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        $hideShowTrack = $$2("<i>", {class: str, 'aria-hidden': 'true'});
-        $row.append($hideShowTrack);
-        $hideShowTrack.on('click', function (e) {
-
-            if ($hideShowTrack.hasClass('fa-eye')) {
-                $hideShowTrack.addClass('fa-eye-slash');
-                $hideShowTrack.removeClass('fa-eye');
-                track.isVisible = false;
-            } else {
-                $hideShowTrack.addClass('fa-eye');
-                $hideShowTrack.removeClass('fa-eye-slash');
-                track.isVisible = true;
+                if (track.name) {
+                    t.name = track.name;
+                }
+                if (track.dataRange) {
+                    t.min = track.dataRange.min;
+                    t.max = track.dataRange.max;
+                }
+                if (track.color) {
+                    t.color = track.color;
+                }
+                tracks.push(t);
             }
-
-            self.browser.contactMatrixView.clearImageCaches();
-            self.browser.contactMatrixView.update();
-
-        });
-    }
-
-    if (isTrack2D) {
-
-        // matrix diagonal widget
-        const $matrix_diagonal_div = $$2('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
-        $row.append($matrix_diagonal_div);
-        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
-            e.preventDefault();
-            matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
-        });
-
-    }
-
-    // color swatch selector button
-    $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
-    $row.append($colorpickerButton);
-
-    // color swatch selector
-    $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
-        $row.next('.hic-color-swatch-container').toggle();
-    });
-
-    $colorpickerButton.on('click', function (e) {
-        $row.next('.hic-color-swatch-container').toggle();
-    });
-
-    $colorpickerContainer.hide();
-
-    api.createColorSwatchSelector($colorpickerContainer, function (color) {
-        var $swatch;
-
-        $swatch = $row.find('.fa-square');
-        $swatch.css({'color': color});
-
-        if (isTrack2D) {
-            track.color = color;
-            self.browser.eventBus.post(HICEvent('TrackState2D', track));
-        } else {
-            trackRenderer.setColor(color);
+            jsonOBJ.tracks = tracks;
         }
-
-    });
-
-
-    // track up/down
-    $e = $$2('<div>', {class: 'up-down-arrow-container'});
-    $row.append($e);
-
-    $upTrack = $$2("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
-    $e.append($upTrack);
-
-    $downTrack = $$2("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
-    $e.append($downTrack);
-
-    if (1 === _.size(trackList)) {
-        $upTrack.css('color', hidden_color);
-        $downTrack.css('color', hidden_color);
-    } else if (track === _.first(trackList)) {
-        $o = isTrack2D ? $downTrack : $upTrack;
-        $o.css('color', hidden_color);
-    } else if (track === _.last(trackList)) {
-        $o = isTrack2D ? $upTrack : $downTrack;
-        $o.css('color', hidden_color);
     }
+    if (this.tracks2D.length > 0) {
+        let tracks = [];
+        for (let track of this.tracks2D) {
+            var config = track.config,
+                url = config.url;
 
-    index = _.indexOf(trackList, track);
-
-    upp = function (e) {
-
-        track = trackList[(index + 1)];
-        trackList[(index + 1)] = trackList[index];
-        trackList[index] = track;
-        if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
-            self.updateBody(trackList);
-        } else {
-            self.browser.updateLayout();
-            self.updateBody(trackList);
+            if (typeof config.url === "string") {
+                const t = {
+                    url: config.url
+                };
+                if (track.name) {
+                    t.name = track.name;
+                }
+                if (track.color) {
+                    t.color = track.color;
+                }
+                tracks.push(t);
+            }
         }
-    };
+        jsonOBJ.tracks2Ds = tracks;
+    }
 
-    dwn = function (e) {
-
-        track = trackList[(index - 1)];
-        trackList[(index - 1)] = trackList[index];
-        trackList[index] = track;
-        if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
-            self.updateBody(trackList);
-        } else {
-            self.browser.updateLayout();
-            self.updateBody(trackList);
+    const captionDiv = document.getElementById('hic-caption');
+    if (captionDiv) {
+        var captionText = captionDiv.textContent;
+        if (captionText) {
+            captionText = captionText.trim();
+            if (captionText) {
+                jsonOBJ.push(paramString("caption", captionText));
+            }
         }
-    };
-
-    $upTrack.on('click', isTrack2D ? upp : dwn);
-
-    $downTrack.on('click', isTrack2D ? dwn : upp);
-
-
-    // track delete
-    $deleteTrack = $$2("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
-    $row.append($deleteTrack);
-    $deleteTrack.on('click', function (e) {
-        var index;
-
-        if (isTrack2D) {
-
-            index = _.indexOf(trackList, track);
-
-            trackList.splice(index, 1);
-
-            self.browser.contactMatrixView.clearImageCaches();
-            self.browser.contactMatrixView.update();
-
-            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
-        } else {
-            self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
-        }
-
-        self.updateBody(trackList);
-    });
-}
-
-function matrixDiagionalWidgetHandler($icon, track2D) {
-
-    if ($icon.hasClass('matrix-diagonal-widget-all')) {
-
-        $icon.removeClass('matrix-diagonal-widget-all');
-
-        $icon.addClass('matrix-diagonal-widget-lower');
-        track2D.displayMode = Track2DDisplaceModes.displayLowerMatrix;
-    } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
-
-        $icon.removeClass('matrix-diagonal-widget-lower');
-
-        $icon.addClass('matrix-diagonal-widget-upper');
-        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix;
-    } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
-
-        $icon.removeClass('matrix-diagonal-widget-upper');
-
-        $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
-    } else {
-
-        $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
-    }
-}
-
-function annotationColorSwatch(rgbString) {
-    var $swatch,
-        $fa;
-
-    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
-
-    $fa = $$2('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
-    $swatch.append($fa);
-
-    $fa.css({color: rgbString});
-
-    return $swatch;
-}
-
-function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
-
-    var $container,
-        $header,
-        $fa;
-
-    $container = $$2('<div>', {class: 'hic-color-swatch-container'});
-    $parent.append($container);
-
-    // width
-    if (config && config.width) {
-        $container.width(config.width);
     }
 
-    // height
-    if (config && config.height) {
-        $container.height(config.height);
-    }
-
-    // header
-    $header = $$2('<div>');
-    $container.append($header);
-
-    // close button
-    $fa = $$2("<i>", {class: 'fa fa-times'});
-    $header.append($fa);
-
-    $fa.on('click', function (e) {
-        closeHandler();
-    });
-
-    return $container;
-}
-
-/**
- * Created by dat on 4/4/17.
- */
-
-const LayoutController = function (browser, $root) {
-
-    this.browser = browser;
-
-    createNavBar.call(this, browser, $root);
-
-    createAllContainers.call(this, browser, $root);
-
-    this.scrollbar_height = 20;
-
-    this.axis_height = 32;
-
-    // track dimension
-    this.track_height = 32;
-
-    // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
-    this.track_margin = 2;
-
-};
-
-// Dupes of corresponding juicebox.scss variables
-// Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
-LayoutController.nav_bar_label_height = 36;
-LayoutController.nav_bar_widget_container_height = 36;
-LayoutController.nav_bar_shim_height = 4;
-
-LayoutController.navbarHeight = function () {
-    var height;
-    height = (2 * LayoutController.nav_bar_label_height) + (2 * LayoutController.nav_bar_widget_container_height) + LayoutController.nav_bar_shim_height;
-    return height;
-};
-
-function createNavBar(browser, $root) {
-
-    var id,
-        $navbar_container,
-        $map_container,
-        $upper_widget_container,
-        $lower_widget_container,
-        $e;
-
-    $navbar_container = $$2('<div class="hic-navbar-container">');
-    $root.append($navbar_container);
-
-
-    $navbar_container.on('click', function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        HICBrowser.setCurrentBrowser(browser);
-    });
-
-    // container: contact map label | menu button | browser delete button
-    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
-    $map_container = $$2("<div>", {id: id});
-    $navbar_container.append($map_container);
-
-    // contact map label
-    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
-    browser.$contactMaplabel = $$2("<div>", {id: id});
-    $map_container.append(browser.$contactMaplabel);
-
-    // navbar button container
-    $e = $$2("<div>", {class: 'hic-nav-bar-button-container'});
-    $map_container.append($e);
-
-    // menu present/dismiss button
-    browser.$menuPresentDismiss = $$2("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
-    $e.append(browser.$menuPresentDismiss);
-    browser.$menuPresentDismiss.on('click', function (e) {
-        browser.toggleMenu();
-    });
-
-    // browser delete button
-    browser.$browser_panel_delete_button = $$2("<i>", {
-        class: 'fa fa-minus-circle fa-lg',
-        'title': 'Delete browser panel'
-    });
-    $e.append(browser.$browser_panel_delete_button);
-
-    browser.$browser_panel_delete_button.on('click', function (e) {
-        deleteBrowserPanel(browser);
-    });
-
-    // hide delete buttons for now. Delete button is only
-    // if there is more then one browser instance.
-    browser.$browser_panel_delete_button.hide();
-
-
-    // container: control map label
-    id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
-    $map_container = $$2("<div>", {id: id});
-    $navbar_container.append($map_container);
-
-    // control map label
-    id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
-    browser.$controlMaplabel = $$2("<div>", {id: id});
-    $map_container.append(browser.$controlMaplabel);
-
-    // upper widget container
-    id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
-    $upper_widget_container = $$2("<div>", {id: id});
-    $navbar_container.append($upper_widget_container);
-
-    // location box / goto
-    browser.locusGoto = new LocusGoto(browser, $upper_widget_container);
-
-    // resolution widget
-    browser.resolutionSelector = new ResolutionSelector(browser, $upper_widget_container);
-    browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
-
-    // lower widget container
-    id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-    $lower_widget_container = $$2("<div>", {id: id});
-    $navbar_container.append($lower_widget_container);
-
-    // colorscale
-    browser.colorscaleWidget = new ColorScaleWidget(browser, $lower_widget_container);
-
-    // control map
-    browser.controlMapWidget = new ControlMapWidget(browser, $lower_widget_container);
-
-    // normalization
-    browser.normalizationSelector = new NormalizationWidget(browser, $lower_widget_container);
-
-
-}
-
-function createAllContainers(browser, $root) {
-
-    var id,
-        $container;
-
-    // .hic-x-track-container
-    id = browser.id + '_' + 'x-track-container';
-    this.$x_track_container = $$2("<div>", {id: id});
-    $root.append(this.$x_track_container);
-
-    // track labels
-    id = browser.id + '_' + 'track-shim';
-    this.$track_shim = $$2("<div>", {id: id});
-    this.$x_track_container.append(this.$track_shim);
-
-    // x-tracks
-    id = browser.id + '_' + 'x-tracks';
-    this.$x_tracks = $$2("<div>", {id: id});
-    this.$x_track_container.append(this.$x_tracks);
-
-    // crosshairs guide
-    id = browser.id + '_' + 'y-track-guide';
-    this.$y_track_guide = $$2("<div>", {id: id});
-    this.$x_tracks.append(this.$y_track_guide);
-
-    // content container
-    id = browser.id + '_' + 'content-container';
-    this.$content_container = $$2("<div>", {id: id});
-    $root.append(this.$content_container);
-
-    // menu
-    createMenu(browser, $root);
-
-    // container: x-axis
-    id = browser.id + '_' + 'x-axis-container';
-    $container = $$2("<div>", {id: id});
-    this.$content_container.append($container);
-    this.xAxisRuler = new Ruler(browser, 'x', $container);
-
-
-    // container: y-tracks | y-axis | viewport | y-scrollbar
-    id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
-    $container = $$2("<div>", {id: id});
-    this.$content_container.append($container);
-
-    // y-tracks
-    id = browser.id + '_' + 'y-tracks';
-    this.$y_tracks = $$2("<div>", {id: id});
-    $container.append(this.$y_tracks);
-
-    // crosshairs guide
-    id = browser.id + '_' + 'x-track-guide';
-    this.$x_track_guide = $$2("<div>", {id: id});
-    this.$y_tracks.append(this.$x_track_guide);
-
-    // y-axis
-    this.yAxisRuler = new Ruler(browser, 'y', $container);
-
-    this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
-    this.xAxisRuler.otherRuler = this.yAxisRuler;
-
-    this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
-    this.yAxisRuler.otherRuler = this.xAxisRuler;
-
-    // viewport | y-scrollbar
-    browser.contactMatrixView = new ContactMatrixView(browser, $container);
-
-    // container: x-scrollbar
-    id = browser.id + '_' + 'x-scrollbar-container';
-    $container = $$2("<div>", {id: id});
-    this.$content_container.append($container);
-
-    // x-scrollbar
-    $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
-
-}
-
-function createMenu(browser, $root) {
-
-    var $menu,
-        $div,
-        $fa,
-        config;
-
-    // menu
-    $menu = $$2('<div>', {class: 'hic-menu'});
-    $root.append($menu);
-
-    // menu close button
-    $div = $$2('<div>', {class: 'hic-menu-close-button'});
-    $menu.append($div);
-
-    // $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
-    $fa = $$2("<i>", {class: 'fa fa-times'});
-    $div.append($fa);
-
-    $fa.on('click', function (e) {
-        browser.toggleMenu();
-    });
-
-
-    // chromosome select widget
-    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, $menu);
-
-    config =
-        {
-            title: '2D Annotations',
-            loadTitle: 'Load:',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-    browser.annotation2DWidget = new AnnotationWidget(browser, $menu, config, function () {
-        return browser.tracks2D;
-    });
-
-    // config =
-    //     {
-    //         title: 'Tracks',
-    //         loadTitle: 'Load Tracks:',
-    //         alertMessage: 'No tracks currently loaded for this map'
-    //     };
+    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
     //
-    // browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
-    //     return browser.trackRenderers;
-    // });
+    //     var normVectorString = "";
+    //     this.config.normVectorFiles.forEach(function (url) {
+    //
+    //         if (normVectorString.length > 0) normVectorString += "|||";
+    //         normVectorString += url;
+    //
+    //     });
+    //     queryString.push(paramString("normVectorFiles", normVectorString));
+    // }
 
-    browser.$menu = $menu;
+    return JSON.stringify(jsonOBJ);
 
-    browser.$menu.hide();
-
-}
-
-LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
-    var self = this,
-        trackRendererPair;
-
-    self.doLayoutTrackXYPairCount(trackXYPairs.length + self.browser.trackRenderers.length);
-
-    trackXYPairs.forEach(function (trackPair, index) {
-
-        var w, h;
-
-        trackRendererPair = {};
-        w = h = self.track_height;
-        trackRendererPair.x = new TrackRenderer(self.browser, {
-            width: undefined,
-            height: h
-        }, self.$x_tracks, trackRendererPair, trackPair, 'x', index);
-        trackRendererPair.y = new TrackRenderer(self.browser, {
-            width: w,
-            height: undefined
-        }, self.$y_tracks, trackRendererPair, trackPair, 'y', index);
-
-        self.browser.trackRenderers.push(trackRendererPair);
-
-    });
-
-
-};
-
-
-LayoutController.prototype.removeAllTrackXYPairs = function () {
-    var self = this,
-        indices;
-
-    indices = _.range(_.size(this.browser.trackRenderers));
-
-    if (0 === _.size(indices)) {
-        return;
-    }
-
-    _.each(indices, function (unused) {
-        var discard,
-            index;
-
-        // select last track to dicard
-        discard = _.last(self.browser.trackRenderers);
-
-        // discard DOM element's
-        discard['x'].$viewport.remove();
-        discard['y'].$viewport.remove();
-
-        // remove discard from list
-        index = self.browser.trackRenderers.indexOf(discard);
-        self.browser.trackRenderers.splice(index, 1);
-
-        discard = undefined;
-        self.doLayoutTrackXYPairCount(_.size(self.browser.trackRenderers));
-    });
-
-    // this.browser.updateLayout();
-};
-
-LayoutController.prototype.removeLastTrackXYPair = function () {
-    var index,
-        discard;
-
-    if (_.size(this.browser.trackRenderers) > 0) {
-
-        // select last track to dicard
-        discard = _.last(this.browser.trackRenderers);
-
-        // discard DOM element's
-        discard['x'].$viewport.remove();
-        discard['y'].$viewport.remove();
-
-        // remove discard from list
-        index = this.browser.trackRenderers.indexOf(discard);
-        this.browser.trackRenderers.splice(index, 1);
-
-        discard = undefined;
-        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
-
-        this.browser.updateLayout();
-
+    function paramString(key, value) {
+        return key + "=" + paramEncode(value)
     }
 
 };
 
-LayoutController.prototype.removeTrackRendererPair = function (trackRendererPair) {
 
-    var index,
-        discard;
+HICBrowser.prototype.getQueryString = function () {
 
-    if (_.size(this.browser.trackRenderers) > 0) {
-
-        discard = trackRendererPair;
-
-        // discard DOM element's
-        discard['x'].$viewport.remove();
-        discard['y'].$viewport.remove();
-
-        // remove discard from list
-        index = this.browser.trackRenderers.indexOf(discard);
-        this.browser.trackRenderers.splice(index, 1);
-
-        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
-
-        this.browser.updateLayout();
-
-
+    if (!(this.dataset && this.dataset.url)) return "";   // URL is required
+    const queryString = [];
+    queryString.push(paramString("hicUrl", this.dataset.url));
+    if (this.dataset.name) {
+        queryString.push(paramString("name", this.dataset.name));
     }
-
-};
-
-LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount) {
-
-    var track_aggregate_height,
-        tokens,
-        width_calc,
-        height_calc;
-
-
-    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
-
-    tokens = _.map([LayoutController.navbarHeight(), track_aggregate_height], function (number) {
-        return number.toString() + 'px';
-    });
-    height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-    tokens = _.map([track_aggregate_height, this.axis_height, this.scrollbar_height], function (number) {
-        return number.toString() + 'px';
-    });
-    width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
-
-    // x-track container
-    this.$x_track_container.height(track_aggregate_height);
-
-    // track labels
-    this.$track_shim.width(track_aggregate_height);
-
-    // x-tracks
-    this.$x_tracks.css('width', width_calc);
-
-
-    // content container
-    this.$content_container.css('height', height_calc);
-
-    // x-axis - repaint canvas
-    this.xAxisRuler.updateWidthWithCalculation(width_calc);
-
-    // y-tracks
-    this.$y_tracks.width(track_aggregate_height);
-
-    // y-axis - repaint canvas
-    this.yAxisRuler.updateHeight(this.yAxisRuler.$axis.height());
-
-    // viewport
-    this.browser.contactMatrixView.$viewport.css('width', width_calc);
-
-    // x-scrollbar
-    this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css('width', width_calc);
-
-};
-
-LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
-
-    var count;
-
-    this.browser.$root.width(size.width);
-    this.browser.$root.height(size.height + LayoutController.navbarHeight());
-
-    count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
-    this.doLayoutTrackXYPairCount(count);
-
-    this.browser.updateLayout();
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
- * THE SOFTWARE.
- *
- */
-
-
-/**
- * @author Jim Robinson
- */
-
-
-const NormalizationVector = function (type, chrIdx, unit, resolution, values) {
-
-
-    var mean = hic.Math.mean(values), i;
-    if (mean > 0) {
-        for (i = 0; i < values.length; i++) {
-            values[i] /= mean;
+    queryString.push(paramString("state", this.state.stringify()));
+    queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
+    if (api.selectedGene) {
+        queryString.push(paramString("selectedGene", api.selectedGene));
+    }
+    let nviString = getNviString(this.dataset);
+    if (nviString) {
+        queryString.push(paramString("nvi", nviString));
+    }
+    if (this.controlDataset) {
+        queryString.push(paramString("controlUrl", this.controlUrl));
+        if (this.controlDataset.name) {
+            queryString.push(paramString("controlName", this.controlDataset.name));
+        }
+        const displayMode = this.getDisplayMode();
+        if (displayMode) {
+            queryString.push(paramString("displayMode", this.getDisplayMode()));
+        }
+        nviString = getNviString(this.controlDataset);
+        if (nviString) {
+            queryString.push(paramString("controlNvi", nviString));
+        }
+        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+            queryString.push(paramString("cycle", "true"));
         }
     }
 
-    this.type = type;
-    this.chrIdx = chrIdx;
-    this.unit = unit;
-    this.resolution = resolution;
-    this.data = values;
+    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+        let trackString = "";
+        this.trackRenderers.forEach(function (trackRenderer) {
+            var track = trackRenderer.x.track,
+                config = track.config,
+                url = config.url,
+                dataRange = track.dataRange;
+
+            if (typeof url === "string") {
+                if (trackString.length > 0) trackString += "|||";
+                trackString += url;
+                trackString += "|" + (track.name ? replaceAll$1(track.name, "|", "$") : '');
+                trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
+                trackString += "|" + track.color;
+            }
+        });
+
+        this.tracks2D.forEach(function (track) {
+            var config = track.config,
+                url = config.url;
+            if (typeof url === "string") {
+                if (trackString.length > 0) trackString += "|||";
+                trackString += url;
+                trackString += "|" + (track.name ? replaceAll$1(track.name, "|", "$") : '');
+                trackString += "|";   // Data range
+                trackString += "|" + track.color;
+            }
+        });
+
+        if (trackString.length > 0) {
+            queryString.push(paramString("tracks", trackString));
+        }
+    }
+
+    var captionDiv = document.getElementById('hic-caption');
+    if (captionDiv) {
+        var captionText = captionDiv.textContent;
+        if (captionText) {
+            captionText = captionText.trim();
+            if (captionText) {
+                queryString.push(paramString("caption", captionText));
+            }
+        }
+    }
+
+    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+    //
+    //     var normVectorString = "";
+    //     this.config.normVectorFiles.forEach(function (url) {
+    //
+    //         if (normVectorString.length > 0) normVectorString += "|||";
+    //         normVectorString += url;
+    //
+    //     });
+    //     queryString.push(paramString("normVectorFiles", normVectorString));
+    // }
+
+    return queryString.join("&");
+
+    function paramString(key, value) {
+        return key + "=" + paramEncode(value)
+    }
+
 };
 
-NormalizationVector.getNormalizationVectorKey = function (type, chrIdx, unit, resolution) {
-    return type + "_" + chrIdx + "_" + unit + "_" + resolution;
-};
+async function loadDataset(config) {
 
-NormalizationVector.prototype.getKey = function () {
-    return NormalizationVector.getKey(this.type, this.chrIdx, this.unit, this.resolution);
-};
+    // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
+    if (config.url instanceof File) {
+        config.blob = config.url;
+        //config.file = new hic.LocalFile(config.url)
+        delete config.url;
+    } else {
+        // If this is a google url, add api KEY
+        if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
+            config.url = api.google.driveDownloadURL(config.url);
+            config.apiKey = api.google.apiKey;
+        }
+    }
+
+    const straw = new Straw(config);
+    const hicFile = straw.hicFile;
+    await hicFile.init();
+    const dataset = new Dataset(hicFile);
+    dataset.url = config.url;
+    return dataset
+}
+
+
+function presentError(prefix, error) {
+    const httpMessages = {
+        "401": "Access unauthorized",
+        "403": "Access forbidden",
+        "404": "Not found"
+    };
+    var msg = error.message;
+    if (httpMessages.hasOwnProperty(msg)) {
+        msg = httpMessages[msg];
+    }
+    api.Alert.presentAlert(prefix + ": " + msg);
+
+}
 
 /*
  *  The MIT License (MIT)
@@ -66912,477 +70407,171 @@ NormalizationVector.prototype.getKey = function () {
  *
  */
 
-const knownGenomes = {
-
-    "hg19": [249250621, 243199373, 198022430],
-    "hg38": [248956422, 242193529, 198295559],
-    "mm10": [195471971, 182113224, 160039680],
-    "mm9": [197195432, 181748087, 159599783],
-    "dm6": [23513712, 25286936, 28110227]
-
+const GoogleURL = function (config) {
+    this.api = "https://www.googleapis.com/urlshortener/v1/url";
+    this.apiKey = config.apiKey;
+    this.hostname = config.hostname || "goo.gl";
 };
 
-const Dataset = function (hicFile) {
+GoogleURL.prototype.shortenURL = function (url) {
 
-    this.hicFile = hicFile;
-    this.matrixCache = {};
-    this.blockCache = {};
-    this.blockCacheKeys = [];
-    this.normVectorCache = {};
-    this.normalizationTypes = ['NONE'];
+    var self = this;
 
-    // Cache at most 10 blocks
-    this.blockCacheLimit = isMobile() ? 4 : 10;
+    return getApiKey.call(this)
 
-    this.genomeId = hicFile.genomeId;
-    this.chromosomes = hicFile.chromosomes;
-    this.bpResolutions = hicFile.bpResolutions;
-    this.wholeGenomeChromosome = hicFile.wholeGenomeChromosome;
-    this.wholeGenomeResolution = hicFile.wholeGenomeResolution;
+        .then(function (key) {
 
-    // Attempt to determine genomeId if not recognized
-    if (!Object.keys(knownGenomes).includes(this.genomeId)) {
-        const tmp = matchGenome(this.chromosomes);
-        if (tmp) this.genomeId = tmp;
-    }
+            var endpoint = self.api + "?key=" + key;
 
+            return igv.xhr.loadJson(endpoint,
+                {
+                    sendData: JSON.stringify({"longUrl": url}),
+                    contentType: "application/json"
+                })
+        })
+        .then(function (json) {
+            return json.id;
+        })
 };
 
-Dataset.prototype.clearCaches = function () {
-    this.matrixCache = {};
-    this.blockCache = {};
-    this.normVectorCache = {};
-    this.colorScaleCache = {};
+
+GoogleURL.prototype.expandURL = function (url) {
+
+    var self = this;
+    return getApiKey.call(this)
+
+        .then(function (apiKey) {
+
+            var endpoint;
+
+            if (url.includes("goo.gl")) {
+
+                endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
+
+                return igv.xhr.loadJson(endpoint, {contentType: "application/json"})
+                    .then(function (json) {
+                        return json.longUrl;
+                    })
+            } else {
+                // Not a google url or no api key
+                return Promise.resolve(url);
+            }
+        })
 };
 
-Dataset.prototype.getMatrix = async function (chr1, chr2) {
-    if (chr1 > chr2) {
-        const tmp = chr1;
-        chr1 = chr2;
-        chr2 = tmp;
-    }
-    const key = `${chr1}_${chr2}`;
+async function getApiKey() {
 
-    if (this.matrixCache.hasOwnProperty(key)) {
-        return this.matrixCache[key];
+    var self = this;
 
+    if (typeof self.apiKey === "string") {
+        return self.apiKey
+    } else if (typeof self.apiKey === "function") {
+        return await self.apiKey();
     } else {
-        const matrix = await this.hicFile.readMatrix(chr1, chr2);
-        this.matrixCache[key] = matrix;
-        return matrix;
-
+        throw new Error("Unknown apiKey type: " + this.apiKey);
     }
+}
+
+var BitlyURL = function (config) {
+    this.api = "https://api-ssl.bitly.com";
+    this.apiKey = config.apiKey;
+    this.hostname = config.hostname ? config.hostname : "bit.ly";
+    this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
 };
 
-Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normalization, eventBus) {
 
-    const block = await this.getBlock(zd, blockNumber);
+BitlyURL.prototype.shortenURL = async function (url) {
 
-    if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-        return block;
+    var self = this;
+
+    if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
+
+    try {
+        const key = await getApiKey$1.call(this);
+
+        var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
+
+        const json = await igv.xhr.loadJson(endpoint, {});
+
+        // TODO check status code
+        if (500 === json.status_code) {
+            alert("Error shortening URL: " + json.status_txt);
+            //igv.Alert.presentAlert("Error shortening URL: " + json.status_txt)
+            return url
+        } else {
+            return json.data.url;
+        }
+    } catch (e) {
+        alert("Error shortening URL: " + e);
+        //igv.Alert.presentAlert("Error shortening URL: " + e)
+        return url
+    }
+
+};
+
+
+BitlyURL.prototype.expandURL = function (url) {
+
+    var self = this;
+
+    return getApiKey$1.call(this)
+
+        .then(function (key) {
+
+            var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
+
+            return igv.xhr.loadJson(endpoint, {})
+        })
+
+        .then(function (json) {
+
+            var longUrl = json.data.expand[0].long_url;
+
+            // Fix some Bitly "normalization"
+            longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
+
+            return longUrl;
+
+        })
+};
+
+async function getApiKey$1() {
+
+    var self = this;
+
+    if (typeof self.apiKey === "string") {
+        return self.apiKey
+    }
+    else if (typeof self.apiKey === "function") {
+        return await self.apiKey();
     }
     else {
-        // Get the norm vectors serially, its very likely they are the same and the second will be cached
-        const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize);
-        const nv2 = zd.chr1 === zd.chr2 ?
-            nv1 :
-            await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize);
+        throw new Error("Unknown apiKey type: " + this.apiKey);
+    }
+}
 
-        var normRecords = [],
-            normBlock;
+class TinyURL {
 
-        if (nv1 === undefined || nv2 === undefined) {
-            api.Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
-            if (eventBus) {
-                eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
-            }
-            return block;
+    constructor({endpoint}) {
+        this.endpoint = endpoint || "https://2et6uxfezb.execute-api.us-east-1.amazonaws.com/dev/tinyurl/";
+    }
+
+    async shortenURL(url) {
+        const enc = encodeURIComponent(url);
+        const response = await fetch(`${this.endpoint}${enc}`);
+        if(response.ok) {
+            return response.text();
         }
-
         else {
-            for (let record of block.records) {
-
-                const x = record.bin1;
-                const y = record.bin2;
-                const nvnv = nv1.data[x] * nv2.data[y];
-
-                if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                    const counts = record.counts / nvnv;
-                    normRecords.push(new ContactRecord(x, y, counts));
-                }
-            }
-
-            normBlock = new Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-            //normBlock.percentile95 = block.percentile95;
-
-            return normBlock;
-        }
-
-    }
-
-};
-
-Dataset.prototype.getBlock = async function (zd, blockNumber) {
-
-    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
-    if (this.blockCache.hasOwnProperty(key)) {
-        return this.blockCache[key];
-
-    } else {
-
-        const block = await this.hicFile.readBlock(blockNumber, zd);
-        if (this.blockCacheKeys.length > this.blockCacheLimit) {
-            delete this.blockCache[this.blockCacheKeys[0]];
-            this.blockCacheKeys.shift();
-        }
-        this.blockCacheKeys.push(key);
-        this.blockCache[key] = block;
-
-        return block;
-
-    }
-};
-
-Dataset.prototype.getNormalizationVector = async function (type, chrIdx, unit, binSize) {
-
-    const key = NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-    if (this.normVectorCache.hasOwnProperty(key)) {
-        return this.normVectorCache[key];
-    } else {
-
-        const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize);
-        this.normVectorCache[key] = nv;
-        return nv;
-
-
-    }
-};
-
-Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
-    var i,
-        resolutionArray;
-
-    unit = unit || "BP";
-
-    if (unit === "BP") {
-        resolutionArray = this.bpResolutions;
-    }
-    else if (unit === "FRAG") {
-        resolutionArray = this.fragResolutions;
-    } else {
-        throw new Error("Invalid unit: " + unit);
-    }
-
-    for (i = 0; i < resolutionArray.length; i++) {
-        if (resolutionArray[i] === binSize) return i;
-    }
-
-    return -1;
-};
-
-Dataset.prototype.getChrIndexFromName = function (chrName) {
-    var i;
-    for (i = 0; i < this.chromosomes.length; i++) {
-        if (chrName === this.chromosomes[i].name) return i;
-    }
-    return undefined;
-};
-
-Dataset.prototype.compareChromosomes = function (otherDataset) {
-    const chrs = this.chromosomes;
-    const otherChrs = otherDataset.chromosomes;
-    if (chrs.length !== otherChrs.length) {
-        return false;
-    }
-    for (let i = 0; i < chrs.length; i++) {
-        if (chrs[i].size !== otherChrs[i].size) {
-            return false;
+            throw new Error(response.statusText);
         }
     }
-    return true;
-};
-
-Dataset.prototype.getNormVectorIndex = async function () {
-    return this.hicFile.getNormVectorIndex()
-
-};
-
-Dataset.prototype.getNormalizationOptions = async function () {
-    return this.hicFile.getNormalizationOptions()
-};
-
-const Block = function (blockNumber, zoomData, records) {
-    this.blockNumber = blockNumber;
-    this.zoomData = zoomData;
-    this.records = records;
-};
-
-const ContactRecord = function (bin1, bin2, counts) {
-    this.bin1 = bin1;
-    this.bin2 = bin2;
-    this.counts = counts;
-};
-
-ContactRecord.prototype.getKey = function () {
-    return "" + this.bin1 + "_" + this.bin2;
-};
-
-
-function matchGenome(chromosomes) {
-
-
-    var keys = Object.keys(knownGenomes),
-        i, l;
-
-    if (chromosomes.length < 4) return undefined;
-
-    for (i = 0; i < keys.length; i++) {
-        l = knownGenomes[keys[i]];
-        if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
-            return keys[i];
-        }
-    }
-
-    return undefined;
-
-
 }
 
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-
 /**
- * @author Jim Robinson
+ * @fileoverview Zlib namespace. Zlib の仕様に準拠した圧縮は Zlib.Deflate で実装
+ * されている. これは Inflate との共存を考慮している為.
  */
-
-
-/**
- *
- * @param id
- * @param chromosomes -- an array of hic.Chromosome objects.
- * @constructor
- */
-const Genome$1 = function (id, chromosomes) {
-
-    this.id = id;
-    this.chromosomes = chromosomes;
-    this.wgChromosomeNames = [];
-    this.chromosomeLookupTable = {};
-
-    // Alias for size for igv compatibility
-    this.genomeLength = 0;
-    for (let c of this.chromosomes) {
-        c.bpLength = c.size;
-        if ('all' !== c.name.toLowerCase()) {
-            this.genomeLength += c.size;
-            this.wgChromosomeNames.push(c.name);
-        }
-    }
-
-    /**
-     * Maps chr aliases to the offical name.  Deals with
-     * 1 <-> chr1,  chrM <-> MT,  IV <-> chr4, etc.
-     * @param str
-     */
-    var chrAliasTable = {};
-
-    // The standard mappings
-    for (let chromosome of chromosomes) {
-
-        const name = chromosome.name;
-        if (name.startsWith("arm_")) {
-            //Special rule for aidenlab ad-hoc names for dMel
-            const officialName = name.substring(4);
-            chrAliasTable[officialName] = name;
-            chrAliasTable["chr" + officialName] = name;
-        } else {
-            const alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
-            chrAliasTable[alias] = name;
-            if (name === "chrM") chrAliasTable["MT"] = "chrM";
-            if (name === "MT") chrAliasTable["chrmM"] = "MT";
-        }
-        this.chromosomeLookupTable[name.toLowerCase()] = chromosome;
-    }
-
-    this.chrAliasTable = chrAliasTable;
-
-};
-
-Genome$1.prototype.getChromosomeName = function (str) {
-    var chr = this.chrAliasTable[str];
-    return chr ? chr : str;
-};
-
-Genome$1.prototype.getChromosome = function (str) {
-    var chrname = this.getChromosomeName(str).toLowerCase();
-    return this.chromosomeLookupTable[chrname];
-};
-
-/**
- * Return the genome coordinate for the give chromosome and position.
- */
-Genome$1.prototype.getGenomeCoordinate = function (chr, bp) {
-    return this.getCumulativeOffset(chr.name) + bp;
-};
-
-Genome$1.prototype.getChromsosomeForCoordinate = function (bp) {
-    var i = 0,
-        offset = 0,
-        l;
-
-    for (i = 1; i < this.chromosomes.length; i++) {
-        l = this.chromosomes[i].size;
-        if (offset + l > bp) return this.chromosomes[i];
-        offset += l;
-    }
-    return this.chromosomes[this.chromosomes.length - 1];
-
-};
-
-
-/**
- * Return the offset in genome coordinates (kb) of the start of the given chromosome
- */
-Genome$1.prototype.getCumulativeOffset = function (chr) {
-
-    var queryChr;
-
-    queryChr = this.getChromosomeName(chr);
-
-    if (this.cumulativeOffsets === undefined) {
-        computeCumulativeOffsets$1.call(this);
-    }
-    return this.cumulativeOffsets[queryChr];
-};
-
-function computeCumulativeOffsets$1() {
-    var self = this,
-        cumulativeOffsets,
-        offset,
-        i,
-        chromosome;
-
-    cumulativeOffsets = {};
-    offset = 0;
-    // Skip first chromosome (its chr all).
-    for (i = 1; i < self.chromosomes.length; i++) {
-
-        chromosome = self.chromosomes[i];
-        cumulativeOffsets[chromosome.name] = Math.floor(offset);
-
-        offset += (chromosome.size);
-    }
-    self.cumulativeOffsets = cumulativeOffsets;
-
-}
-
-// Required for igv.js
-Genome$1.prototype.getGenomeLength = function () {
-    return this.genomeLength;
-};
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const geneSearch = function (genomeId, featureName) {
-
-    return new Promise(function (fulfill, reject) {
-
-        // Hardcode this for now
-        var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
-
-        api.xhr.loadString(searchServiceURL)
-            .then(function (data) {
-
-                var results = parseSearchResults(data);
-
-                if (results.length == 0) {
-                    //alert('No feature found with name "' + feature + '"');
-                    fulfill(undefined);
-                }
-                else {
-                    // Just take first result for now
-                    fulfill(results[0]);
-
-                }
-            })
-            .catch(reject);
-    });
-};
-
-function parseSearchResults(data) {
-
-    var lines = api.splitLines(data),
-        linesTrimmed = [],
-        results = [];
-
-    lines.forEach(function (item) {
-        if ("" === item) ; else {
-            linesTrimmed.push(item);
-        }
-    });
-
-    linesTrimmed.forEach(function (line) {
-        // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
-
-        var tokens = line.split("\t");
-
-        if (tokens.length >= 3) {
-            results.push(tokens[1]);
-
-        }
-
-    });
-
-    return results;
-
-}
-
-// from https://github.com/imaya/zlib.js
 
 var Zlib$2 = {
   Huffman: {},
@@ -72771,3138 +75960,6 @@ Zlib$2.Deflate.prototype.compress = function() {
   return output;
 };
 
-const isNode =
-    typeof process !== 'undefined' &&
-    process.versions != null &&
-    process.versions.node != null;
-
-
-const crossFetch = isNode ? require("node-fetch") : fetch;
-
-class BrowserLocalFile {
-
-    constructor(blob) {
-        this.file = blob;
-    }
-
-    async read(position, length) {
-
-        const file = this.file;
-
-        return new Promise(function (fullfill, reject) {
-
-            const fileReader = new FileReader();
-
-            fileReader.onload = function (e) {
-                fullfill(fileReader.result);
-            };
-
-            fileReader.onerror = function (e) {
-                console.err("Error reading local file " + file.name);
-                reject(null, fileReader);
-            };
-
-            if (position !== undefined) {
-                const blob = file.slice(position, position + length);
-                fileReader.readAsArrayBuffer(blob);
-
-            } else {
-                fileReader.readAsArrayBuffer(file);
-
-            }
-
-        });
-    }
-}
-
-const isNode$1 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
-
-let fs;
-let fsOpen;
-let fsRead;
-
-if (isNode$1) {
-    const util = require('util');
-    fs = require('fs');
-    fsOpen = fs && util.promisify(fs.open);
-    fsRead = fs && util.promisify(fs.read);
-}
-
-class NodeLocalFile {
-
-    constructor(args) {
-        this.path = args.path;
-    }
-
-
-    async read(position, length) {
-
-        const buffer = Buffer.alloc(length);
-        const fd = await fsOpen(this.path, 'r');
-        const result = await fsRead(fd, buffer, 0, length, position);
-
-        fs.close(fd, function (error) {
-            // TODO Do something with error
-        });
-
-        //TODO -- compare result.bytesRead with length
-        const arrayBuffer = result.buffer.buffer;
-        return arrayBuffer
-    }
-}
-
-const  isNode$2 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
-
-class RemoteFile {
-
-    constructor(args) {
-        this.config = args;
-        this.url = mapUrl$1(args.path || args.url);
-    }
-
-
-    async read(position, length) {
-
-        const headers = this.config.headers || {};
-
-        const rangeString = "bytes=" + position + "-" + (position + length - 1);
-        headers['Range'] = rangeString;
-
-        let url = this.url.slice();    // slice => copy
-        if (isNode$2) {
-            headers['User-Agent'] = 'straw';
-        } else {
-            if (this.config.oauthToken) {
-                const token = resolveToken(this.config.oauthToken);
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-            const isSafari = navigator.vendor.indexOf("Apple") == 0 && /\sSafari\//.test(navigator.userAgent);
-            const isChrome = navigator.userAgent.indexOf('Chrome') > -1;
-            const isAmazonV4Signed = this.url.indexOf("X-Amz-Signature") > -1;
-
-            if (isChrome && !isAmazonV4Signed) {
-                url = addParameter(url, "randomSeed", Math.random().toString(36));
-            }
-        }
-
-        if (this.config.apiKey) {
-            url = addParameter(url, "key", this.config.apiKey);
-        }
-
-        const response = await crossFetch(url, {
-            method: 'GET',
-            headers: headers,
-            redirect: 'follow',
-            mode: 'cors',
-
-        });
-
-        const status = response.status;
-
-        if (status >= 400) {
-            const err = Error(response.statusText);
-            err.code = status;
-            throw err
-        } else {
-            return response.arrayBuffer();
-        }
-
-        /**
-         * token can be a string, a function that returns a string, or a function that returns a Promise for a string
-         * @param token
-         * @returns {Promise<*>}
-         */
-        async function resolveToken(token) {
-            if (typeof token === 'function') {
-                return await Promise.resolve(token())    // Normalize the result to a promise, since we don't know what the function returns
-            } else {
-                return token
-            }
-        }
-
-    }
-}
-
-
-function mapUrl$1(url) {
-
-    if (url.includes("//www.dropbox.com")) {
-        return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com");
-    } else if (url.startsWith("ftp://ftp.ncbi.nlm.nih.gov")) {
-        return url.replace("ftp://", "https://")
-    } else {
-        return url
-    }
-}
-
-
-function addParameter(url, name, value) {
-    const paramSeparator = url.includes("?") ? "&" : "?";
-    return url + paramSeparator + name + "=" + value;
-}
-
-class ThrottledFile {
-
-    constructor(file, rateLimiter) {
-        this.file = file;
-        this.rateLimiter = rateLimiter;
-    }
-
-
-    async read(position, length) {
-
-        const file = this.file;
-        const rateLimiter = this.rateLimiter;
-
-        return new Promise(function (fulfill, reject) {
-            rateLimiter.limiter(async function (f) {
-                try {
-                    const result = await f.read(position, length);
-                    fulfill(result);
-                } catch (e) {
-                    reject(e);
-                }
-            })(file);
-        })
-    }
-}
-
-class RateLimiter$1 {
-
-    constructor(wait) {
-        this.wait = wait === undefined ? 100 : wait;
-
-        this.isCalled = false;
-        this.calls = [];
-    }
-
-
-    limiter(fn) {
-
-        const self = this;
-
-        let caller = function () {
-
-            if (self.calls.length && !self.isCalled) {
-                self.isCalled = true;
-                self.calls.shift().call();
-                setTimeout(function () {
-                    self.isCalled = false;
-                    caller();
-                }, self.wait);
-            }
-        };
-
-        return function () {
-            self.calls.push(fn.bind(this, ...arguments));
-            caller();
-        };
-    }
-
-}
-
-class BufferedFile {
-
-    constructor(args) {
-        this.file = args.file;
-        this.size = args.size || 64000;
-        this.position = 0;
-        this.bufferStart = 0;
-        this.bufferLength = 0;
-        this.buffer = undefined;
-    }
-
-
-    async read(position, length) {
-
-        const start = position;
-        const end = position + length;
-        const bufferStart = this.bufferStart;
-        const bufferEnd = this.bufferStart + this.bufferLength;
-
-
-        if (length > this.size) {
-            // Request larger than max buffer size,  pass through to underlying file
-            //console.log("0")
-            this.buffer = undefined;
-            this.bufferStart = 0;
-            this.bufferLength = 0;
-            return this.file.read(position, length)
-        }
-
-        if (start >= bufferStart && end <= bufferEnd) {
-            // Request within buffer bounds
-            //console.log("1")
-            const sliceStart = start - bufferStart;
-            const sliceEnd = sliceStart + length;
-            return this.buffer.slice(sliceStart, sliceEnd)
-        }
-
-        else if (start < bufferStart && end > bufferStart) {
-            // Overlap left, here for completness but this is an unexpected case in straw.  We don't adjust the buffer.
-            //console.log("2")
-            const l1 = bufferStart - start;
-            const a1 = await this.file.read(position, l1);
-            const l2 = length - l1;
-            if (l2 > 0) {
-                //this.buffer = await this.file.read(bufferStart, this.size)
-                const a2 = this.buffer.slice(0, l2);
-                return concatBuffers(a1, a2)
-            } else {
-                return a1
-            }
-
-        }
-
-        else if (start < bufferEnd && end > bufferEnd) {
-            // Overlap right
-            // console.log("3")
-            const l1 = bufferEnd - start;
-            const sliceStart = this.bufferLength - l1;
-            const a1 = this.buffer.slice(sliceStart, this.bufferLength);
-
-            const l2 = length - l1;
-            if (l2 > 0) {
-                try {
-                    this.buffer = await this.file.read(bufferEnd, this.size);
-                    this.bufferStart = bufferEnd;
-                    this.bufferLength = this.buffer.byteLength;
-                    const a2 = this.buffer.slice(0, l2);
-                    return concatBuffers(a1, a2)
-                } catch (e) {
-                    // A "unsatisfiable range" error is expected here if we overlap past the end of file
-                    if (e.code && e.code === 416) {
-                        return a1
-                    }
-                    else {
-                        throw e
-                    }
-                }
-
-            } else {
-                return a1
-            }
-
-        }
-
-        else {
-            // No overlap with buffer
-            // console.log("4")
-            this.buffer = await this.file.read(position, this.size);
-            this.bufferStart = position;
-            this.bufferLength = this.buffer.byteLength;
-            return this.buffer.slice(0, length)
-        }
-
-    }
-
-}
-
-/**
- * concatenates 2 array buffers.
- * Credit: https://gist.github.com/72lions/4528834
- *
- * @private
- * @param {ArrayBuffers} buffer1 The first buffer.
- * @param {ArrayBuffers} buffer2 The second buffer.
- * @return {ArrayBuffers} The new ArrayBuffer created out of the two.
- */
-var concatBuffers = function (buffer1, buffer2) {
-    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-    tmp.set(new Uint8Array(buffer1), 0);
-    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-    return tmp.buffer;
-};
-
-// TODO -- big endian
-
-const BinaryParser$1 = function (dataView, littleEndian) {
-
-    this.littleEndian = littleEndian !== undefined ? littleEndian : true;
-    this.position = 0;
-    this.view = dataView;
-    this.length = dataView.byteLength;
-};
-
-BinaryParser$1.prototype.available = function () {
-    return this.length - this.position;
-};
-
-BinaryParser$1.prototype.remLength = function () {
-    return this.length - this.position;
-};
-
-BinaryParser$1.prototype.hasNext = function () {
-    return this.position < this.length - 1;
-};
-
-BinaryParser$1.prototype.getByte = function () {
-    var retValue = this.view.getUint8(this.position, this.littleEndian);
-    this.position++;
-    return retValue;
-};
-
-BinaryParser$1.prototype.getShort = function () {
-
-    var retValue = this.view.getInt16(this.position, this.littleEndian);
-    this.position += 2;
-    return retValue;
-};
-
-BinaryParser$1.prototype.getUShort = function () {
-
-    // var byte1 = this.getByte(),
-    //     byte2 = this.getByte(),
-    //     retValue = ((byte2 << 24 >>> 16) + (byte1 << 24 >>> 24));
-    //     return retValue;
-
-    //
-    var retValue = this.view.getUint16(this.position, this.littleEndian);
-    this.position += 2;
-    return retValue;
-};
-
-
-BinaryParser$1.prototype.getInt = function () {
-
-    var retValue = this.view.getInt32(this.position, this.littleEndian);
-    this.position += 4;
-    return retValue;
-};
-
-
-BinaryParser$1.prototype.getUInt = function () {
-    var retValue = this.view.getUint32(this.position, this.littleEndian);
-    this.position += 4;
-    return retValue;
-};
-
-BinaryParser$1.prototype.getLong = function () {
-
-    // DataView doesn't support long. So we'll try manually
-
-    var b = [];
-    b[0] = this.view.getUint8(this.position);
-    b[1] = this.view.getUint8(this.position + 1);
-    b[2] = this.view.getUint8(this.position + 2);
-    b[3] = this.view.getUint8(this.position + 3);
-    b[4] = this.view.getUint8(this.position + 4);
-    b[5] = this.view.getUint8(this.position + 5);
-    b[6] = this.view.getUint8(this.position + 6);
-    b[7] = this.view.getUint8(this.position + 7);
-
-    var value = 0;
-    if (this.littleEndian) {
-        for (var i = b.length - 1; i >= 0; i--) {
-            value = (value * 256) + b[i];
-        }
-    } else {
-        for (var i = 0; i < b.length; i++) {
-            value = (value * 256) + b[i];
-        }
-    }
-
-
-    this.position += 8;
-    return value;
-};
-
-BinaryParser$1.prototype.getString = function (len) {
-
-    var s = "";
-    var c;
-    while ((c = this.view.getUint8(this.position++)) != 0) {
-        s += String.fromCharCode(c);
-        if (len && s.length == len) break;
-    }
-    return s;
-};
-
-BinaryParser$1.prototype.getFixedLengthString = function (len) {
-
-    var s = "";
-    var i;
-    var c;
-    for (i = 0; i < len; i++) {
-        c = this.view.getUint8(this.position++);
-        if (c > 0) {
-            s += String.fromCharCode(c);
-        }
-    }
-    return s;
-};
-
-BinaryParser$1.prototype.getFixedLengthTrimmedString = function (len) {
-
-    var s = "";
-    var i;
-    var c;
-    for (i = 0; i < len; i++) {
-        c = this.view.getUint8(this.position++);
-        if (c > 32) {
-            s += String.fromCharCode(c);
-        }
-    }
-    return s;
-};
-
-BinaryParser$1.prototype.getFloat = function () {
-
-    var retValue = this.view.getFloat32(this.position, this.littleEndian);
-    this.position += 4;
-    return retValue;
-
-
-};
-
-BinaryParser$1.prototype.getDouble = function () {
-
-    var retValue = this.view.getFloat64(this.position, this.littleEndian);
-    this.position += 8;
-    return retValue;
-};
-
-BinaryParser$1.prototype.skip = function (n) {
-
-    this.position += n;
-    return this.position;
-};
-
-
-/**
- * Return a bgzip (bam and tabix) virtual pointer
- * TODO -- why isn't 8th byte used ?
- * @returns {*}
- */
-BinaryParser$1.prototype.getVPointer = function () {
-
-    var position = this.position,
-        offset = (this.view.getUint8(position + 1) << 8) | (this.view.getUint8(position)),
-        byte6 = ((this.view.getUint8(position + 6) & 0xff) * 0x100000000),
-        byte5 = ((this.view.getUint8(position + 5) & 0xff) * 0x1000000),
-        byte4 = ((this.view.getUint8(position + 4) & 0xff) * 0x10000),
-        byte3 = ((this.view.getUint8(position + 3) & 0xff) * 0x100),
-        byte2 = ((this.view.getUint8(position + 2) & 0xff)),
-        block = byte6 + byte5 + byte4 + byte3 + byte2;
-    this.position += 8;
-
-    //       if (block == 0 && offset == 0) {
-    //           return null;
-    //       } else {
-    return new VPointer$1(block, offset);
-    //       }
-};
-
-
-function VPointer$1(block, offset) {
-    this.block = block;
-    this.offset = offset;
-}
-
-VPointer$1.prototype.isLessThan = function (vp) {
-    return this.block < vp.block ||
-        (this.block === vp.block && this.offset < vp.offset);
-};
-
-VPointer$1.prototype.isGreaterThan = function (vp) {
-    return this.block > vp.block ||
-        (this.block === vp.block && this.offset > vp.offset);
-};
-
-VPointer$1.prototype.print = function () {
-    return "" + this.block + ":" + this.offset;
-};
-
-class Matrix {
-  
-    constructor(chr1, chr2, zoomDataList) {
-
-        const self = this;
-
-        this.chr1 = chr1;
-        this.chr2 = chr2;
-        this.bpZoomData = [];
-        this.fragZoomData = [];
-        
-        zoomDataList.forEach(function (zd) {
-            if (zd.zoom.unit === "BP") {
-                self.bpZoomData.push(zd);
-            } else {
-                self.fragZoomData.push(zd);
-            }
-        });
-    }
-
-    getZoomDataByIndex(index, unit) {
-        const zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
-        return zdArray[index]
-    }
-
-
-    findZoomForResolution(binSize, unit) {
-
-        const  zdArray = "FRAG" === unit ? this.fragZoomData : this.bpZoomData;
-
-        for (let i = 1; i < zdArray.length; i++) {
-            var zd = zdArray[i];
-            if (zd.zoom.binSize < binSize) {
-                return i - 1
-            }
-        }
-        return zdArray.length - 1
-
-    }
-
-
-    // Legacy implementation, used only in tests.
-    getZoomData(zoom) {
-
-        const zdArray = zoom.unit === "BP" ? this.bpZoomData : this.fragZoomData;
-
-        for (let i = 0; i < zdArray.length; i++) {
-            var zd = zdArray[i];
-            if (zoom.binSize === zd.zoom.binSize) {
-                return zd
-            }
-        }
-
-        return undefined
-    }
-}
-
-class MatrixZoomData {
-
-    constructor(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites) {
-
-        this.chr1 = chr1;    // chromosome index
-        this.chr2 = chr2;
-        this.zoom = zoom;
-        this.blockBinCount = blockBinCount;
-        this.blockColumnCount = blockColumnCount;
-        this.chr1Sites = chr1Sites;
-        this.chr2Sites = chr2Sites;
-    }
-
-    getKey () {
-        return this.chr1.name + "_" + this.chr2.name + "_" + this.zoom.unit + "_" + this.zoom.binSize;
-    }
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-
-/**
- * @author Jim Robinson
- */
-
-class NormalizationVector$1 {
-
-    constructor(type, chrIdx, unit, resolution, values) {
-
-        var avg = mean(values), i;
-        if (avg > 0) {
-            for (i = 0; i < values.length; i++) {
-                values[i] /= avg;
-            }
-        }
-
-        this.type = type;
-        this.chrIdx = chrIdx;
-        this.unit = unit;
-        this.resolution = resolution;
-        this.data = values;
-    }
-
-    getKey() {
-        return NormalizationVector$1.getKey(this.type, this.chrIdx, this.unit, this.resolution);
-    }
-
-
-    static getNormalizationVectorKey(type, chrIdx, unit, resolution) {
-        return type + "_" + chrIdx + "_" + unit + "_" + resolution;
-    }
-
-}
-
-function mean (array) {
-
-    var t = 0, n = 0,
-        i;
-    for (i = 0; i < array.length; i++) {
-        if (!isNaN(array[i])) {
-            t += array[i];
-            n++;
-        }
-    }
-    return n > 0 ? t / n : 0;
-}
-
-class ContactRecord$1 {
-
-    constructor(bin1, bin2, counts) {
-        this.bin1 = bin1;
-        this.bin2 = bin2;
-        this.counts = counts;
-    };
-
-    getKey() {
-        return "" + this.bin1 + "_" + this.bin2;
-    }
-}
-
-const isNode$3 = typeof process !== 'undefined' && process.versions != null && process.versions.node != null;
-
-const Short_MIN_VALUE = -32768;
-
-const googleRateLimiter = new RateLimiter$1(100);
-
-class Block$1 {
-    constructor(blockNumber, zoomData, records, idx) {
-        this.blockNumber = blockNumber;
-        this.zoomData = zoomData;
-        this.records = records;
-        this.idx = idx;
-    }
-}
-
-class HicFile {
-
-    constructor(args) {
-
-        this.config = args;
-
-        this.loadFragData = args.loadFragData;
-
-        this.fragmentSitesCache = {};
-        this.normVectorCache = {};
-        this.normalizationTypes = ['NONE'];
-
-        // args may specify an io.File object, a local path (Node only), or a url
-        if (args.file) {
-            this.file = args.file;
-        } else if (args.blob) {
-            this.file = new BrowserLocalFile(args.blob);
-        } else if (args.url || (args.path && !isNode$3)) {
-            this.url = args.url || this.path;
-            this.remote = true;
-
-            // Google drive must be rate limited.  Perhaps all remote files should be rate limited?
-            const remoteFile = new RemoteFile(args);
-            if (isGoogleDrive$1(this.url)) {
-                this.file = new ThrottledFile(remoteFile, googleRateLimiter);
-            } else {
-                this.file = remoteFile;
-            }
-        } else if (args.path) {
-            // path argument, assumed local file
-            this.file = new NodeLocalFile({path: args.path});
-
-        } else {
-            throw Error("Arguments must include file, blob, url, or path")
-        }
-    }
-
-
-    async init() {
-
-        if (this.initialized) {
-            return;
-        } else {
-            await this.readHeader();
-            await this.readFooter();
-            this.initialized = true;
-        }
-    }
-
-    async getMetaData() {
-        await this.init();
-        return this.meta
-    }
-
-    async readHeader() {
-
-        const data = await this.file.read(0, 64000);
-
-        if (!data) {
-            return undefined;
-        }
-
-        const binaryParser = new BinaryParser$1(new DataView(data));
-
-        this.magic = binaryParser.getString();
-        this.version = binaryParser.getInt();
-        this.masterIndexPos = binaryParser.getLong();
-        this.genomeId = binaryParser.getString();
-
-        this.attributes = {};
-        let nAttributes = binaryParser.getInt();
-        while (nAttributes-- > 0) {
-            this.attributes[binaryParser.getString()] = binaryParser.getString();
-        }
-
-        this.chromosomes = [];
-        this.chromosomeIndexMap = {};
-        let nChrs = binaryParser.getInt();
-        let i = 0;
-        while (nChrs-- > 0) {
-            const chr = {
-                index: i,
-                name: binaryParser.getString(),
-                size: binaryParser.getInt()
-            };
-            if (chr.name.toLowerCase() === "all") {
-                this.wholeGenomeChromosome = chr;
-                this.wholeGenomeResolution = Math.round(chr.size * (1000 / 500));    // Hardcoded in juicer
-            }
-            this.chromosomes.push(chr);
-            this.chromosomeIndexMap[chr.name] = chr.index;
-            i++;
-        }
-
-        this.bpResolutions = [];
-        let nBpResolutions = binaryParser.getInt();
-        while (nBpResolutions-- > 0) {
-            this.bpResolutions.push(binaryParser.getInt());
-        }
-
-        if (this.loadFragData) {
-            this.fragResolutions = [];
-            let nFragResolutions = binaryParser.getInt();
-            while (nFragResolutions-- > 0) {
-                this.fragResolutions.push(binaryParser.getInt());
-            }
-
-            if (nFragResolutions > 0) {
-                this.sites = [];
-                let nSites = binaryParser.getInt();
-                while (nSites-- > 0) {
-                    this.sites.push(binaryParser.getInt());
-                }
-            }
-        }
-
-        // Build lookup table for well-known chr aliases
-        this.chrAliasTable = {};
-        for (let chrName of Object.keys(this.chromosomeIndexMap)) {
-
-            if (chrName.startsWith("chr")) {
-                this.chrAliasTable[chrName.substr(3)] = chrName;
-            } else if (chrName === "MT") {
-                this.chrAliasTable["chrM"] = chrName;
-            } else {
-                this.chrAliasTable["chr" + chrName] = chrName;
-            }
-        }
-
-
-        // Meta data for the API
-        this.meta = {
-            "version": this.version,
-            "genome": this.genomeId,
-            "chromosomes": this.chromosomes,
-            "resolutions": this.bpResolutions,
-        };
-
-
-    }
-
-    async readFooter() {
-
-
-        let data = await this.file.read(this.masterIndexPos, 8);
-        if (!data) {
-            return null;
-        }
-
-        let binaryParser = new BinaryParser$1(new DataView(data));
-        const nBytes = binaryParser.getInt();   // Total size, master index + expected values
-        let nEntries = binaryParser.getInt();
-
-        // Estimate the size of the master index. String length of key is unknown, be conservative (100 bytes)
-        const miSize = nEntries * (100 + 64 + 32);
-        let range = {start: this.masterIndexPos + 8, size: Math.min(miSize, nBytes - 4)};
-        data = await this.file.read(this.masterIndexPos + 8, Math.min(miSize, nBytes - 4));
-        binaryParser = new BinaryParser$1(new DataView(data));
-
-        this.masterIndex = {};
-        while (nEntries-- > 0) {
-            const key = binaryParser.getString();
-            const pos = binaryParser.getLong();
-            const size = binaryParser.getInt();
-            this.masterIndex[key] = {start: pos, size: size};
-        }
-
-        this.expectedValueVectors = {};
-
-        nEntries = binaryParser.getInt();
-
-        // Expected values
-        // while (nEntries-- > 0) {
-        //     type = "NONE";
-        //     unit = binaryParser.getString();
-        //     binSize = binaryParser.getInt();
-        //     nValues = binaryParser.getInt();
-        //     values = [];
-        //     while (nValues-- > 0) {
-        //         values.push(binaryParser.getDouble());
-        //     }
-        //
-        //     nChrScaleFactors = binaryParser.getInt();
-        //     normFactors = {};
-        //     while (nChrScaleFactors-- > 0) {
-        //         normFactors[binaryParser.getInt()] = binaryParser.getDouble();
-        //     }
-        //
-        //     // key = unit + "_" + binSize + "_" + type;
-        //     //  NOT USED YET SO DON'T STORE
-        //     //  dataset.expectedValueVectors[key] =
-        //     //      new ExpectedValueFunction(type, unit, binSize, values, normFactors);
-        // }
-
-        this.normExpectedValueVectorsPosition = this.masterIndexPos + 4 + nBytes;
-
-        return this;
-    };
-
-    async readMatrix(chrIdx1, chrIdx2) {
-
-        await this.init();
-
-        if (chrIdx1 > chrIdx2) {
-            const tmp = chrIdx1;
-            chrIdx1 = chrIdx2;
-            chrIdx2 = tmp;
-        }
-
-        const key = "" + chrIdx1 + "_" + chrIdx2;
-
-        const idx = this.masterIndex[key];
-        if (!idx) {
-            return undefined
-        }
-
-        const data = await this.file.read(idx.start, idx.size);
-        if (!data) {
-            return undefined
-        }
-
-        const dis = new BinaryParser$1(new DataView(data));
-        const c1 = dis.getInt();     // Should equal chrIdx1
-        const c2 = dis.getInt();     // Should equal chrIdx2
-
-        // TODO validate this
-        const chr1 = this.chromosomes[c1];
-        const chr2 = this.chromosomes[c2];
-
-        // # of resolution levels (bp and frags)
-        let nResolutions = dis.getInt();
-        const zdList = [];
-
-        const sites1 = await this.getSites.call(this, chr1.name);
-        const sites2 = await this.getSites.call(this, chr2.name);
-
-        let bytesAvailable = dis.available();
-        let filePosition = idx.start;
-        while (nResolutions-- > 0) {
-
-            const zd = parseMatixZoomData(chr1, chr2, sites1, sites2, dis);
-            const bytesUsed = bytesAvailable - dis.available();
-            zd.idx = {
-                start: filePosition,
-                size: bytesUsed
-            };
-            bytesAvailable = dis.available();
-            zdList.push(zd);
-            //console.log(`zd${z++}: ${bytesUsed}`)
-        }
-        return new Matrix(chrIdx1, chrIdx2, zdList);
-
-    }
-
-    /***
-     * Return the raw data for the block.  Function provided for testing and development
-     * @param blockNumber
-     * @param zd
-     * @returns {Promise<void>}
-     */
-    async readBlockData(blockNumber, zd) {
-
-        var idx = null;
-
-        var blockIndex = zd.blockIndexMap;
-        if (blockIndex) {
-            var idx = blockIndex[blockNumber];
-        }
-        if (!idx) {
-            return undefined
-        } else {
-
-            return this.file.read(idx.filePosition, idx.size)
-        }
-    }
-
-    async readBlock(blockNumber, zd) {
-
-        var self = this,
-            idx = null,
-            i, j;
-
-        var blockIndex = zd.blockIndexMap;
-        if (blockIndex) {
-            var idx = blockIndex[blockNumber];
-        }
-        if (!idx) {
-            return undefined
-        } else {
-
-            let data = await this.file.read(idx.filePosition, idx.size);
-
-            if (!data) {
-                return undefined;
-            }
-
-            const inflate = new Zlib$2.Inflate(new Uint8Array(data));
-            const plain = inflate.decompress();
-            //var plain = zlib.inflateSync(Buffer.from(data))   //.decompress();
-            data = plain.buffer;
-
-
-            var parser = new BinaryParser$1(new DataView(data));
-            var nRecords = parser.getInt();
-            var records = [];
-
-            if (self.version < 7) {
-                for (i = 0; i < nRecords; i++) {
-                    var binX = parser.getInt();
-                    var binY = parser.getInt();
-                    var counts = parser.getFloat();
-                    records.push(new ContactRecord$1(binX, binY, counts));
-                }
-            } else {
-
-                var binXOffset = parser.getInt();
-                var binYOffset = parser.getInt();
-
-                var useShort = parser.getByte() == 0;
-                var type = parser.getByte();
-
-                if (type === 1) {
-                    // List-of-rows representation
-                    var rowCount = parser.getShort();
-
-                    for (i = 0; i < rowCount; i++) {
-
-                        binY = binYOffset + parser.getShort();
-                        var colCount = parser.getShort();
-
-                        for (j = 0; j < colCount; j++) {
-
-                            binX = binXOffset + parser.getShort();
-                            counts = useShort ? parser.getShort() : parser.getFloat();
-                            records.push(new ContactRecord$1(binX, binY, counts));
-                        }
-                    }
-                } else if (type == 2) {
-
-                    var nPts = parser.getInt();
-                    var w = parser.getShort();
-
-                    for (i = 0; i < nPts; i++) {
-                        //int idx = (p.y - binOffset2) * w + (p.x - binOffset1);
-                        var row = Math.floor(i / w);
-                        var col = i - row * w;
-                        var bin1 = binXOffset + col;
-                        var bin2 = binYOffset + row;
-
-                        if (useShort) {
-                            counts = parser.getShort();
-                            if (counts != Short_MIN_VALUE) {
-                                records.push(new ContactRecord$1(bin1, bin2, counts));
-                            }
-                        } else {
-                            counts = parser.getFloat();
-                            if (!isNaN(counts)) {
-                                records.push(new ContactRecord$1(bin1, bin2, counts));
-                            }
-                        }
-
-                    }
-
-                } else {
-                    throw new Error("Unknown block type: " + type);
-                }
-
-            }
-
-            return new Block$1(blockNumber, zd, records, idx);
-
-
-        }
-    };
-
-    async getSites(chrName) {
-
-        return undefined
-
-        // var self = this;
-        // var sites, entry;
-        //
-        // sites = self.fragmentSitesCache[chrName];
-        //
-        // if (sites) {
-        //     return Promise.resolve(sites);
-        //
-        // } else if (self.fragmentSitesIndex) {
-        //
-        //     entry = self.fragmentSitesIndex[chrName];
-        //
-        //     if (entry !== undefined && entry.nSites > 0) {
-        //
-        //         return readSites(entry.position, entry.nSites)
-        //             .then(function (sites) {
-        //                 self.fragmentSitesCache[chrName] = sites;
-        //                 return sites;
-        //
-        //             })
-        //     }
-        // }
-        // else {
-        //     return Promise.resolve(undefined);
-        // }
-
-    }
-
-    async getNormalizationVector(type, chr, unit, binSize) {
-
-        await this.init();
-
-        let chrIdx;
-        if (Number.isInteger(chr)) {
-            chrIdx = chr;
-        } else {
-            const canonicalName = this.getFileChrName(chr);
-            chrIdx = this.chromosomeIndexMap[canonicalName];
-        }
-
-
-        const key = getNormalizationVectorKey(type, chrIdx, unit.toString(), binSize);
-
-        if (this.normVectorCache.hasOwnProperty(key)) {
-            return Promise.resolve(this.normVectorCache[key]);
-        }
-
-        const normVectorIndex = await this.getNormVectorIndex();
-
-        if (!normVectorIndex) {
-            return undefined
-        }
-
-        const idx = normVectorIndex[key];
-        if (!idx) {
-            // TODO -- alert in browsers
-            return undefined;
-        }
-
-        const data = await this.file.read(idx.filePosition, idx.size);
-
-        if (!data) {
-            return undefined;
-        }
-
-        const parser = new BinaryParser$1(new DataView(data));
-        const nValues = parser.getInt();
-        const values = [];
-        let allNaN = true;
-        for (let i = 0; i < nValues; i++) {
-            values[i] = parser.getDouble();
-            if (!isNaN(values[i])) {
-                allNaN = false;
-            }
-        }
-        if (allNaN) {
-            return undefined;
-        } else {
-            return new NormalizationVector$1(type, chrIdx, unit, binSize, values);
-        }
-
-    }
-
-    async getNormVectorIndex() {
-
-        if (!this.normVectorIndex) {
-
-            // If nvi is not supplied, try reading from remote lambda service
-            if (!this.config.nvi && this.remote && this.url) {
-                const url = new URL(this.url);
-                const key = encodeURIComponent(url.hostname + url.pathname);
-                const nviResponse = await crossFetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
-                if (nviResponse.status === 200) {
-                    const nvi = await nviResponse.text();
-                    if (nvi) {
-                        this.config.nvi = nvi;
-                    }
-                }
-            }
-
-            if (this.config.nvi) {
-                const nviArray = decodeURIComponent(this.config.nvi).split(",");
-                const range = {start: parseInt(nviArray[0]), size: parseInt(nviArray[1])};
-                return this.readNormVectorIndex(range)
-            } else {
-                try {
-                    await this.readNormExpectedValuesAndNormVectorIndex();
-                    return this.normVectorIndex
-                } catch (e) {
-                    if (e.code === "416" || e.code === 416) {
-                        // This is expected if file does not contain norm vectors
-                        this.normExpectedValueVectorsPosition = undefined;
-                    } else {
-                        console.error(e);
-                    }
-                }
-            }
-        }
-
-        return this.normVectorIndex
-    }
-
-    async getNormalizationOptions() {
-        // Normalization options are computed as a side effect of loading the index.  A bit
-        // ugly but alternatives are worse.
-        await this.getNormVectorIndex();
-        return this.normalizationTypes;
-    }
-
-    /**
-     * Return a promise to load the normalization vector index
-     *
-     * @param dataset
-     * @param range  -- file range {position, size}
-     * @returns Promise for the normalization vector index
-     */
-    async readNormVectorIndex(range) {
-
-        await this.init();
-
-        this.normalizationVectorIndexRange = range;
-
-        const data = await this.file.read(range.start, range.size);
-
-        const binaryParser = new BinaryParser$1(new DataView(data));
-
-        this.normVectorIndex = {};
-
-        let nEntries = binaryParser.getInt();
-        while (nEntries-- > 0) {
-            this.parseNormVectorEntry(binaryParser);
-        }
-
-        return this.normVectorIndex;
-
-    }
-
-    /**
-     * This function is used when the position of the norm vector index is unknown.  We must read through the expected
-     * values to find the index
-     *
-     * @param dataset
-     * @returns {Promise}
-     */
-    async readNormExpectedValuesAndNormVectorIndex() {
-
-        await this.init();
-
-        if (this.normExpectedValueVectorsPosition === undefined) {
-            return;
-        }
-
-        const nviStart = await this.skipExpectedValues(this.normExpectedValueVectorsPosition);
-        let byteCount = 4;
-
-        let data = await this.file.read(nviStart, 4);
-        const binaryParser = new BinaryParser$1(new DataView(data));
-        const nEntries = binaryParser.getInt();
-        const sizeEstimate = nEntries * 30;
-        const range = {start: nviStart + byteCount, size: sizeEstimate};
-
-        data = await this.file.read(range.start, range.size);
-        this.normalizedExpectedValueVectors = {};
-        this.normVectorIndex = {};
-
-        // Recursively process entries
-        await processEntries.call(this, nEntries, data);
-
-        this.config.nvi = nviStart.toString() + "," + byteCount;
-
-        async function processEntries(nEntries, data) {
-
-            const binaryParser = new BinaryParser$1(new DataView(data));
-
-            while (nEntries-- > 0) {
-
-                if (binaryParser.available() < 100) {
-
-                    nEntries++;   // Reset counter as entry is not processed
-
-                    byteCount += binaryParser.position;
-                    const sizeEstimate = Math.max(1000, nEntries * 30);
-                    const range = {start: nviStart + byteCount, size: sizeEstimate};
-                    const data = await this.file.read(range.start, range.size);
-                    return processEntries.call(this, nEntries, data);
-                }
-
-                this.parseNormVectorEntry(binaryParser);
-
-            }
-            byteCount += binaryParser.position;
-        }
-    }
-
-    /**
-     * This function is used when the position of the norm vector index is unknown.  We must read through the expected
-     * values to find the index
-     *
-     * @param dataset
-     * @returns {Promise}
-     */
-    async skipExpectedValues(start) {
-
-        const file = new BufferedFile({file: this.file, size: 256000});
-        const range = {start: start, size: 4};
-        const data = await file.read(range.start, range.size);
-        const binaryParser = new BinaryParser$1(new DataView(data));
-        const nEntries = binaryParser.getInt();   // Total # of expected value chunks
-        if (nEntries === 0) {
-            return range.start + range.size;
-        } else {
-            return parseNext(start + 4, nEntries);
-        }     // Skip 4 bytes for int
-
-
-        async function parseNext(start, nEntries) {
-
-            let range = {start: start, size: 500};
-            let chunkSize = 0;
-            let p0 = start;
-
-            let data = await file.read(range.start, range.size);
-            let binaryParser = new BinaryParser$1(new DataView(data));
-            binaryParser.getString(); // type
-            binaryParser.getString(); // unit
-            binaryParser.getInt(); // binSize
-            const nValues = binaryParser.getInt();
-            chunkSize += binaryParser.position + nValues * 8;
-
-            range = {start: start + chunkSize, size: 4};
-            data = await file.read(range.start, range.size);
-            binaryParser = new BinaryParser$1(new DataView(data));
-            const nChrScaleFactors = binaryParser.getInt();
-            chunkSize += (4 + nChrScaleFactors * (4 + 8));
-
-            nEntries--;
-            if (nEntries === 0) {
-                return Promise.resolve(p0 + chunkSize);
-            } else {
-                return parseNext(p0 + chunkSize, nEntries);
-            }
-        }
-    }
-
-    getZoomIndexForBinSize(binSize, unit) {
-
-        unit = unit || "BP";
-
-        let resolutionArray;
-        if (unit === "BP") {
-            resolutionArray = this.bpResolutions;
-        } else if (unit === "FRAG") {
-            resolutionArray = this.fragResolutions;
-        } else {
-            throw new Error("Invalid unit: " + unit);
-        }
-
-        for (let i = 0; i < resolutionArray.length; i++) {
-            if (resolutionArray[i] === binSize) return i;
-        }
-
-        return -1;
-    }
-
-    parseNormVectorEntry(binaryParser) {
-        const type = binaryParser.getString();      //15
-        const chrIdx = binaryParser.getInt();       //4
-        const unit = binaryParser.getString();      //3
-        const binSize = binaryParser.getInt();      //4
-        const filePosition = binaryParser.getLong();  //8
-        const sizeInBytes = binaryParser.getInt();     //4
-        const key = type + "_" + chrIdx + "_" + unit + "_" + binSize;
-        // TODO -- why does this not work?  NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-        if (!this.normalizationTypes.includes(type)) {
-            this.normalizationTypes.push(type);
-        }
-        this.normVectorIndex[key] = {filePosition: filePosition, size: sizeInBytes};
-    }
-
-    getFileChrName(chrAlias) {
-        if (this.chrAliasTable.hasOwnProperty(chrAlias)) {
-            return this.chrAliasTable[chrAlias]
-        } else {
-            return chrAlias
-        }
-    }
-}
-
-
-function parseMatixZoomData(chr1, chr2, chr1Sites, chr2Sites, dis) {
-
-    var unit, sumCounts, occupiedCellCount, stdDev, percent95, binSize, zoom, blockBinCount,
-        blockColumnCount, zd, nBlocks, blockIndex, nBins1, nBins2, avgCount, blockNumber,
-        filePosition, blockSizeInBytes;
-
-    unit = dis.getString();
-
-    dis.getInt();                // Old "zoom" index -- not used, must be read
-
-    // Stats.  Not used yet, but we need to read them anyway
-    sumCounts = dis.getFloat();
-    occupiedCellCount = dis.getFloat();
-    stdDev = dis.getFloat();
-    percent95 = dis.getFloat();
-
-    binSize = dis.getInt();
-    zoom = {unit: unit, binSize: binSize};
-
-    blockBinCount = dis.getInt();
-    blockColumnCount = dis.getInt();
-
-    zd = new MatrixZoomData(chr1, chr2, zoom, blockBinCount, blockColumnCount, chr1Sites, chr2Sites);
-
-    nBlocks = dis.getInt();
-    blockIndex = {};
-
-    while (nBlocks-- > 0) {
-        blockNumber = dis.getInt();
-        filePosition = dis.getLong();
-        blockSizeInBytes = dis.getInt();
-        blockIndex[blockNumber] = {filePosition: filePosition, size: blockSizeInBytes};
-    }
-    zd.blockIndexMap = blockIndex;
-
-    nBins1 = (chr1.size / binSize);
-    nBins2 = (chr2.size / binSize);
-    avgCount = (sumCounts / nBins1) / nBins2;   // <= trying to avoid overflows
-
-    zd.averageCount = avgCount;
-    zd.sumCounts = sumCounts;
-    zd.stdDev = stdDev;
-    zd.occupiedCellCount = occupiedCellCount;
-    zd.percent95 = percent95;
-
-    return zd;
-}
-
-function getNormalizationVectorKey(type, chrIdx, unit, resolution) {
-    return type + "_" + chrIdx + "_" + unit + "_" + resolution;
-}
-
-function isGoogleDrive$1(url) {
-    return url.indexOf("drive.google.com") >= 0 || url.indexOf("www.googleapis.com/drive") > 0
-}
-
-class Straw {
-
-    constructor(config) {
-
-        this.config = config;
-        this.hicFile = new HicFile(config);
-
-    }
-
-    async getMetaData() {
-        return await this.hicFile.getMetaData()
-    }
-
-    async getBlocks(region1, region2, units, binsize) {
-
-        await this.hicFile.init();
-
-        const chr1 = this.hicFile.getFileChrName(region1.chr);
-        const chr2 = this.hicFile.getFileChrName(region2.chr);
-        const idx1 = this.hicFile.chromosomeIndexMap[chr1];
-        const idx2 = this.hicFile.chromosomeIndexMap[chr2];
-
-        if(idx1 === undefined) {
-            return []
-        }
-        if(idx2 === undefined) {
-            return []
-        }
-
-        const x1 = (region1.start === undefined) ? undefined : region1.start / binsize;
-        const x2 = (region1.end === undefined) ? undefined : region1.end / binsize;
-        const y1 = (region2.start === undefined) ? undefined : region2.start / binsize;
-        const y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
-
-        const matrix = await this.hicFile.readMatrix(idx1, idx2);
-        if(!matrix) {
-            return []
-        }
-
-        // Find the requested resolution
-        const z = undefined === binsize ? 0 : this.hicFile.getZoomIndexForBinSize(binsize, units);
-        if (z === -1) {
-            throw new Error("Invalid bin size");
-        }
-
-        const zd = matrix.bpZoomData[z];
-        if(zd === null) {
-            let msg = `No data avalailble for resolution: ${binsize}  for map ${region1.chr}-${region2.chr}`;
-            throw new Error(msg)
-        }
-      
-        const blockBinCount = zd.blockBinCount;   // Dimension in bins of a block (width = height = blockBinCount)
-        const col1 = x1 === undefined ? 0 : Math.floor(x1 / blockBinCount);
-        const col2 = x1 === undefined ? zd.blockColumnCount : Math.floor(x2 / blockBinCount);
-        const row1 = y1 === undefined ? 0 : Math.floor(y1 / blockBinCount);
-        const row2 = y2 === undefined ? zd.blockColumnCount : Math.floor(y2 / blockBinCount);
-
-        const promises = [];
-        const sameChr = idx1 === idx2;
-        for (let row = row1; row <= row2; row++) {
-            for (let column = col1; column <= col2; column++) {
-                let blockNumber;
-                if (sameChr && row < column) {
-                    blockNumber = column * zd.blockColumnCount + row;
-                }
-                else {
-                    blockNumber = row * zd.blockColumnCount + column;
-                }
-                promises.push(this.hicFile.readBlock(blockNumber, zd));
-            }
-        }
-
-        return Promise.all(promises)
-    }
-
-    //straw <NONE/VC/VC_SQRT/KR> <ile> <chr1>[:x1:x2] <chr2>[:y1:y2] <BP/FRAG> <binsize>
-    async getContactRecords(normalization, region1, region2, units, binsize) {
-
-        const blocks = await this.getBlocks(region1, region2, units, binsize);
-
-        if(!blocks || blocks.length === 0) {
-            return []
-        }
-
-        const chr1 = this.hicFile.getFileChrName(region1.chr);
-        const chr2 = this.hicFile.getFileChrName(region2.chr);
-        const x1 = (region1.start === undefined) ? undefined : region1.start / binsize;
-        const x2 = (region1.end === undefined) ? undefined : region1.end / binsize;
-        const y1 = (region2.start === undefined) ? undefined : region2.start / binsize;
-        const y2 = (region2.end === undefined) ? undefined : region2.end / binsize;
-
-        let normVector1;
-        let normVector2;
-        const isNorm = normalization && normalization !== "NONE";
-        if (isNorm) {
-            normVector1 = await this.hicFile.getNormalizationVector(normalization, chr1, units, binsize);
-            if (chr1 === chr2) {
-                normVector2 = normVector1;
-            } else {
-                normVector2 = await this.hicFile.getNormalizationVector(normalization, chr2, units, binsize);
-            }
-        }
-
-
-        const contactRecords = [];
-        for (let block of blocks) {
-
-            if (block) { // This is most likely caused by a base pair range outside the chromosome
-                for (let rec of block.records) {
-
-                    // transpose?
-                    if (x1 === undefined || (rec.bin1 >= x1 && rec.bin1 <= x2 && rec.bin2 >= y1 && rec.bin2 <= y2)) {
-                        if (isNorm) {
-                            const x = rec.bin1;
-                            const y = rec.bin2;
-                            const nvnv = normVector1.data[x] * normVector2.data[y];
-                            if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                                const counts = rec.counts / nvnv;
-                                contactRecords.push(new ContactRecord$1(x, y, counts));
-                            }
-
-                        } else {
-                            contactRecords.push(rec);
-                        }
-                    }
-                }
-            }
-        }
-
-        return contactRecords;
-    }
-
-    async getNormalizationOptions() {
-        return this.hicFile.getNormalizationOptions()
-    }
-
-    async getNVI() {
-        await
-            this.hicFile.getNormVectorIndex();
-        return this.hicFile.config.nvi;
-    }
-
-    getFileChrName(chrAlias) {
-        if (this.hicFile.chrAliasTable.hasOwnProperty(chrAlias)) {
-            return this.hicFile.chrAliasTable[chrAlias]
-        }
-        else {
-            return chrAlias
-        }
-    }
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const MAX_PIXEL_SIZE = 12;
-const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
-
-const HICBrowser = function ($app_container, config) {
-
-    this.config = config;
-    this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
-    this.resolutionLocked = false;
-    this.eventBus = new EventBus();
-
-
-    this.id = _.uniqueId('browser_');
-    this.trackRenderers = [];
-    this.tracks2D = [];
-    this.normVectorFiles = [];
-
-    this.synchedBrowsers = [];
-
-    this.isMobile = isMobile();
-
-    this.$root = $$2('<div class="hic-root unselect">');
-
-    if (config.width) {
-        this.$root.css("width", String(config.width));
-    }
-    if (config.height) {
-        this.$root.css("height", String(config.height + LayoutController.navbarHeight(this.config.figureMode)));
-    }
-
-    $app_container.append(this.$root);
-
-    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
-
-    // prevent user interaction during lengthy data loads
-    this.$user_interaction_shield = $$2('<div>', {class: 'hic-root-prevent-interaction'});
-    this.$root.append(this.$user_interaction_shield);
-    this.$user_interaction_shield.hide();
-
-    this.hideCrosshairs();
-
-    this.state = config.state ? config.state : defaultState.clone();
-
-    this.eventBus.subscribe("LocusChange", this);
-
-};
-
-
-HICBrowser.getCurrentBrowser = function () {
-
-    if (allBrowsers$1.length === 1) {
-        return allBrowsers$1[0];
-    } else {
-        return HICBrowser.currentBrowser;
-    }
-
-};
-
-HICBrowser.setCurrentBrowser = function (browser) {
-
-    // unselect current browser
-    if (undefined === browser) {
-
-        if (HICBrowser.currentBrowser) {
-            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
-        }
-
-        HICBrowser.currentBrowser = browser;
-        return;
-    }
-
-
-    if (browser !== HICBrowser.currentBrowser) {
-
-        if (HICBrowser.currentBrowser) {
-            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
-        }
-
-        browser.$root.addClass('hic-root-selected');
-        HICBrowser.currentBrowser = browser;
-
-        eventBus.post(HICEvent("BrowserSelect", browser));
-    }
-
-};
-
-HICBrowser.prototype.toggleMenu = function () {
-
-    if (this.$menu.is(':visible')) {
-        this.hideMenu();
-    } else {
-        this.showMenu();
-    }
-
-};
-
-HICBrowser.prototype.showMenu = function () {
-    this.$menu.show();
-};
-
-HICBrowser.prototype.hideMenu = function () {
-    this.$menu.hide();
-};
-
-HICBrowser.prototype.startSpinner = function () {
-    this.contactMatrixView.startSpinner();
-};
-
-HICBrowser.prototype.stopSpinner = function () {
-    this.contactMatrixView.stopSpinner();
-};
-
-HICBrowser.prototype.setDisplayMode = async function (mode) {
-    await this.contactMatrixView.setDisplayMode(mode);
-    this.eventBus.post(HICEvent("DisplayMode", mode));
-};
-
-HICBrowser.prototype.getDisplayMode = function () {
-    return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-};
-
-HICBrowser.prototype.toggleDisplayMode = function () {
-    this.controlMapWidget.toggleDisplayMode();
-};
-
-HICBrowser.prototype.getColorScale = function () {
-
-    if (!this.contactMatrixView) return undefined;
-
-    switch (this.getDisplayMode()) {
-        case 'AOB':
-        case 'BOA':
-            return this.contactMatrixView.ratioColorScale;
-        case 'AMB':
-            return this.contactMatrixView.diffColorScale;
-        default:
-            return this.contactMatrixView.colorScale;
-    }
-};
-
-HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
-    this.contactMatrixView.setColorScaleThreshold(threshold);
-};
-
-HICBrowser.prototype.updateCrosshairs = function ({ x , y, xNormalized, yNormalized }) {
-
-    const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
-    this.contactMatrixView.$x_guide.css(xGuide);
-    this.layoutController.$x_track_guide.css(xGuide);
-
-    const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
-    this.contactMatrixView.$y_guide.css(yGuide);
-    this.layoutController.$y_track_guide.css(yGuide);
-
-    if (this.customCrosshairsHandler) {
-
-        const { x: stateX, y: stateY, pixelSize } = this.state;
-        const resolution = this.resolution();
-
-        const xBP = (stateX + (x / pixelSize)) * resolution;
-        const yBP = (stateY + (y / pixelSize)) * resolution;
-
-        let { startBP: startXBP, endBP: endXBP } = this.genomicState('x');
-        let { startBP: startYBP, endBP: endYBP } = this.genomicState('y');
-
-        this.customCrosshairsHandler({ xBP, yBP, startXBP, startYBP, endXBP, endYBP, interpolantX: xNormalized, interpolantY: yNormalized });
-    }
-
-};
-
-HICBrowser.prototype.setCustomCrosshairsHandler = function (crosshairsHandler) {
-    this.customCrosshairsHandler = crosshairsHandler;
-};
-
-HICBrowser.prototype.hideCrosshairs = function () {
-
-    this.contactMatrixView.$x_guide.hide();
-    this.layoutController.$x_track_guide.hide();
-
-    this.contactMatrixView.$y_guide.hide();
-    this.layoutController.$y_track_guide.hide();
-
-};
-
-HICBrowser.prototype.showCrosshairs = function () {
-
-    this.contactMatrixView.$x_guide.show();
-    this.layoutController.$x_track_guide.show();
-
-    this.contactMatrixView.$y_guide.show();
-    this.layoutController.$y_track_guide.show();
-};
-
-HICBrowser.prototype.genomicState = function (axis) {
-    var gs,
-        bpResolution;
-
-    bpResolution = this.dataset.bpResolutions[this.state.zoom];
-    gs = {
-        bpp: bpResolution / this.state.pixelSize
-    };
-
-    if (axis === "x") {
-        gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-        gs.startBP = this.state.x * bpResolution;
-        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
-    } else {
-        gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-        gs.startBP = this.state.y * bpResolution;
-        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
-    }
-    return gs;
-};
-
-
-/**
- * Load a list of 1D genome tracks (wig, etc).
- *
- * NOTE: public API function
- *
- * @param configs
- */
-HICBrowser.prototype.loadTracks = async function (configs) {
-
-    var self = this, errorPrefix;
-
-    // If loading a single track remember its name, for error message
-    errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
-
-    try {
-        this.contactMatrixView.startSpinner();
-        const ps = inferTypes(configs);
-        const trackConfigurations = await Promise.all(ps);
-
-        var trackXYPairs, promises2D;
-
-        trackXYPairs = [];
-        promises2D = [];
-        const promisesNV = [];
-
-        for (let config of trackConfigurations) {
-            if (config) {
-                var isLocal = config.url instanceof File,
-                    fn = isLocal ? config.url.name : config.url;
-                if ("annotation" === config.type && config.color === undefined) {
-                    config.color = DEFAULT_ANNOTATION_COLOR;
-                }
-                config.height = this.layoutController.track_height;
-
-                if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
-                    promisesNV.push(this.loadNormalizationFile(config.url));
-                }
-
-                if (config.type === undefined || "interaction" === config.type) {
-                    // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config));
-                } else {
-                    var track = api.createTrack(config, this);
-                    trackXYPairs.push({x: track, y: track});
-                }
-            }
-        }
-
-        if (trackXYPairs.length > 0) {
-            this.layoutController.tracksLoaded(trackXYPairs);
-            await this.updateLayout();
-        }
-
-        const tracks2D = await Promise.all(promises2D);
-        if (tracks2D && tracks2D.length > 0) {
-            this.tracks2D = self.tracks2D.concat(tracks2D);
-            this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
-        }
-
-        const normVectors = await Promise.all(promisesNV);
-
-    } catch (error) {
-        presentError(errorPrefix, error);
-        console.error(error);
-
-    } finally {
-        this.contactMatrixView.stopSpinner();
-    }
-
-    function inferTypes(trackConfigurations) {
-
-        var promises = [];
-        trackConfigurations.forEach(function (config) {
-
-            var url = config.url;
-
-            if (url && typeof url === "string" && url.includes("drive.google.com")) {
-
-                promises.push(api.google.getDriveFileInfo(config.url)
-
-                    .then(function (json) {
-                        // Temporarily switch URL to infer tipes
-                        config.url = json.originalFilename;
-                        api.inferTrackTypes(config);
-                        if (config.name === undefined) {
-                            config.name = json.originalFilename;
-                        }
-                        config.url = url;
-                        return config;
-                    })
-                );
-            } else {
-                api.inferTrackTypes(config);
-                if (!config.name) {
-                    config.name = extractFilename(config.url);
-                }
-                promises.push(Promise.resolve(config));
-            }
-
-        });
-
-        return promises;
-    }
-
-
-};
-
-
-HICBrowser.prototype.loadNormalizationFile = function (url) {
-
-    var self = this;
-
-    if (!this.dataset) return;
-
-    self.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
-
-    return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
-
-        .then(function (normVectors) {
-
-            Object.assign(self.dataset.normVectorCache, normVectors);
-
-            normVectors["types"].forEach(function (type) {
-
-                if (!self.dataset.normalizationTypes) {
-                    self.dataset.normalizationTypes = [];
-                }
-                if (_.contains(self.dataset.normalizationTypes, type) === false) {
-                    self.dataset.normalizationTypes.push(type);
-                }
-
-                self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
-            });
-
-            return normVectors;
-        })
-
-};
-
-
-HICBrowser.prototype.renderTracks = function () {
-    var self = this;
-    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-        self.renderTrackXY(xyTrackRenderPair);
-    });
-
-};
-
-/**
- * Render the XY pair of tracks.
- *
- * @param xy
- */
-HICBrowser.prototype.renderTrackXY = async function (xy) {
-
-    try {
-        this.startSpinner();
-        await xy.x.repaint();
-        await xy.y.repaint();
-    } finally {
-        this.stopSpinner();
-    }
-
-};
-
-
-HICBrowser.prototype.reset = function () {
-    this.layoutController.removeAllTrackXYPairs();
-    this.contactMatrixView.clearImageCaches();
-    this.tracks2D = [];
-    this.tracks = [];
-    this.$contactMaplabel.text("");
-    this.$contactMaplabel.attr('title', "");
-    this.$controlMaplabel.text("");
-    this.$controlMaplabel.attr('title', "");
-    this.dataset = undefined;
-    this.controlDataset = undefined;
-};
-
-
-HICBrowser.prototype.clearSession = function () {
-    // Clear current datasets.
-    this.dataset = undefined;
-    this.controlDataset = undefined;
-    this.setDisplayMode('A');
-};
-
-/**
- * Load a .hic file
- *
- * NOTE: public API function
- *
- * @return a promise for a dataset
- * @param config
- */
-HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
-
-    if (!config.url) {
-        return undefined;
-    }
-
-    this.clearSession();
-
-    try {
-
-        if (!noUpdates) {
-            this.contactMatrixView.startSpinner();
-            this.$user_interaction_shield.show();
-        }
-
-        const name = await extractName(config);
-        const prefix = this.controlDataset ? "A: " : "";
-        this.$contactMaplabel.text(prefix + name);
-        this.$contactMaplabel.attr('title', name);
-        config.name = name;
-
-        this.dataset = await loadDataset(config);
-        this.dataset.name = name;
-
-        const previousGenomeId = this.genome ? this.genome.id : undefined;
-        this.genome = new Genome$1(this.dataset.genomeId, this.dataset.chromosomes);
-
-        // TODO -- this is not going to work with browsers on different assemblies on the same page.
-        api.browser.genome = this.genome;
-
-        if (this.genome.id !== previousGenomeId) {
-            this.eventBus.post(HICEvent("GenomeChange", this.genome.id));
-        }
-        this.eventBus.post(HICEvent("MapLoad", this.dataset));
-
-        if (config.state) {
-            this.setState(config.state);
-        } else if (config.synchState && this.canBeSynched(config.synchState)) {
-            this.syncState(config.synchState);
-        } else {
-            this.setState(defaultState.clone());
-        }
-    } finally {
-        if (!noUpdates) {
-            this.$user_interaction_shield.hide();
-            this.stopSpinner();
-        }
-    }
-
-    // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
-    // Let it load in the background
-    const eventBus = this.eventBus;
-
-    // If nvi is not supplied, try reading it from remote lambda service
-    if (!config.nvi && typeof config.url === "string") {
-        const url = new URL(config.url);
-        const key = encodeURIComponent(url.hostname + url.pathname);
-        const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
-        if (nviResponse.status === 200) {
-            const nvi = await nviResponse.text();
-            if (nvi) {
-                config.nvi = nvi;
-            }
-        }
-    }
-
-    if (config.nvi) {
-        await this.dataset.getNormVectorIndex(config);
-        eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
-    } else {
-        const dataset = this.dataset;
-        dataset.getNormVectorIndex(config)
-            .then(function (normVectorIndex) {
-                if (!config.isControl) {
-                    eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
-                }
-            });
-    }
-};
-
-/**
- * Load a .hic file for a control map
- *
- * NOTE: public API function
- *
- * @return a promise for a dataset
- * @param config
- */
-HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
-
-    try {
-        this.$user_interaction_shield.show();
-        this.contactMatrixView.startSpinner();
-        this.controlUrl = config.url;
-        const name = await extractName(config);
-        config.name = name;
-
-        const controlDataset = await loadDataset(config);
-        controlDataset.name = name;
-
-        if (!this.dataset || areCompatible(this.dataset, controlDataset)) {
-            this.controlDataset = controlDataset;
-            if (this.dataset) {
-                this.$contactMaplabel.text("A: " + this.dataset.name);
-            }
-            this.$controlMaplabel.text("B: " + controlDataset.name);
-            this.$controlMaplabel.attr('title', controlDataset.name);
-
-            //For the control dataset, block until the norm vector index is loaded
-            await controlDataset.getNormVectorIndex(config);
-            this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
-
-            if (!noUpdates) {
-                this.update();
-            }
-        } else {
-            api.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
-        }
-    } finally {
-        this.$user_interaction_shield.hide();
-        this.stopSpinner();
-    }
-};
-
-
-/**
- * Return a promise to extract the name of the dataset.  The promise is neccessacary because
- * google drive urls require a call to the API
- *
- * @returns Promise for the name
- */
-async function extractName(config) {
-
-    if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-        const json = await api.google.getDriveFileInfo(config.url);
-        return json.name;
-    } else {
-        if (config.name === undefined) {
-            return extractFilename(config.url);
-        } else {
-            return config.name;
-        }
-    }
-}
-
-HICBrowser.prototype.parseGotoInput = async function (string) {
-
-    var self = this,
-        loci = string.split(' '),
-        xLocus,
-        yLocus;
-
-
-    if (loci.length === 1) {
-        xLocus = self.parseLocusString(loci[0]);
-        yLocus = xLocus;
-    } else {
-        xLocus = self.parseLocusString(loci[0]);
-        yLocus = self.parseLocusString(loci[1]);
-        if (yLocus === undefined) yLocus = xLocus;
-    }
-
-    if (xLocus === undefined) {
-        // Try a gene name search.
-        const result = await geneSearch(this.genome.id, loci[0].trim());
-
-        if (result) {
-            api.selectedGene = loci[0].trim();
-            xLocus = self.parseLocusString(result);
-            yLocus = xLocus;
-            self.state.selectedGene = loci[0].trim();
-            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
-        } else {
-            alert('No feature found with name "' + loci[0] + '"');
-        }
-
-    } else {
-
-        if (xLocus.wholeChr && yLocus.wholeChr) {
-            self.setChromosomes(xLocus.chr, yLocus.chr);
-        } else {
-            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
-        }
-    }
-
-};
-
-HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
-    var z;
-    for (z = resolutionArray.length - 1; z > 0; z--) {
-        if (resolutionArray[z] >= targetResolution) {
-            return z;
-        }
-    }
-    return 0;
-};
-
-HICBrowser.prototype.parseLocusString = function (locus) {
-
-    var parts,
-        chromosome,
-        extent,
-        locusObject = {},
-        numeric;
-
-    parts = locus.trim().split(':');
-
-
-    chromosome = this.genome.getChromosome(_.first(parts).toLowerCase());
-
-    if (!chromosome) {
-        return undefined;
-    } else {
-        locusObject.chr = chromosome.index;
-    }
-
-
-    if (parts.length === 1) {
-        // Chromosome name only
-        locusObject.start = 0;
-        locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
-        locusObject.wholeChr = true;
-    } else {
-        extent = parts[1].split("-");
-        if (extent.length !== 2) {
-            return undefined;
-        } else {
-            numeric = extent[0].replace(/\,/g, '');
-            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
-
-            numeric = extent[1].replace(/\,/g, '');
-            locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
-        }
-    }
-    return locusObject;
-};
-
-
-/**
- * @param scaleFactor Values range from greater then 1 to decimal values less then one
- *                    Value > 1 are magnification (zoom in)
- *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
- * @param anchorPx -- anchor position in pixels (should not move after transformation)
- * @param anchorPy
- */
-HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
-
-    if (this.state.chr1 === 0) {
-        await this.zoomAndCenter(1, anchorPx, anchorPy);
-    }
-    else {
-        try {
-            this.startSpinner();
-
-            const bpResolutions = this.dataset.bpResolutions;
-            const currentResolution = bpResolutions[this.state.zoom];
-
-            let newResolution;
-            let newZoom;
-            let newPixelSize;
-            let zoomChanged;
-
-            if (this.resolutionLocked ||
-                (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
-                (this.state.zoom === 0 && scaleFactor < 1)) {
-                // Can't change resolution level, must adjust pixel size
-                newResolution = currentResolution;
-                newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
-                newZoom = this.state.zoom;
-                zoomChanged = false;
-            } else {
-                const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
-                newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-                newResolution = bpResolutions[newZoom];
-                zoomChanged = newZoom !== this.state.zoom;
-                newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
-            }
-            const z = await minZoom.call(this, this.state.chr1, this.state.chr2);
-
-
-            if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
-                // Zoom out to whole genome
-                this.setChromosomes(0, 0);
-            } else {
-
-                const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom);
-
-                const state = this.state;
-
-                newPixelSize = Math.max(newPixelSize, minPS);
-
-                // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                const gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
-                const gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
-
-                state.x = gx / newResolution - anchorPx / newPixelSize;
-                state.y = gy / newResolution - anchorPy / newPixelSize;
-
-                state.zoom = newZoom;
-                state.pixelSize = newPixelSize;
-
-                this.clamp();
-
-                this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor);
-
-                this.eventBus.post(HICEvent("LocusChange", {
-                    state: state,
-                    resolutionChanged: zoomChanged
-                }));
-            }
-        } finally {
-            this.stopSpinner();
-        }
-    }
-
-};
-
-HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
-
-    if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
-        this.zoomAndCenter(direction, centerPX, centerPY);
-    } else {
-        const z = await minZoom.call(this, this.state.chr1, this.state.chr2);
-        var newZoom = this.state.zoom + direction;
-        if (direction < 0 && newZoom < z) {
-            this.setChromosomes(0, 0);
-        } else {
-            this.zoomAndCenter(direction, centerPX, centerPY);
-        }
-
-    }
-
-};
-
-// Zoom in response to a double-click
-HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
-
-    if (!this.dataset) return;
-
-    if (this.state.chr1 === 0 && direction > 0) {
-        // jump from whole genome to chromosome
-        var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
-            genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize,
-            chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX),
-            chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
-        this.setChromosomes(chrX.index, chrY.index);
-    } else {
-        const bpResolutions = this.dataset.bpResolutions;
-        const viewDimensions = this.contactMatrixView.getViewDimensions();
-        const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2;
-        const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2;
-
-        this.state.x += (dx / this.state.pixelSize);
-        this.state.y += (dy / this.state.pixelSize);
-
-        if (this.resolutionLocked ||
-            (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
-            (direction < 0 && this.state.zoom === 0)) {
-
-            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
-            const state = this.state;
-            const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
-
-            const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
-            state.pixelSize = newPixelSize;
-            state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
-            state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
-
-            this.clamp();
-            this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false}));
-
-        } else {
-            this.setZoom(this.state.zoom + direction, centerPY, centerPY);
-        }
-    }
-
-};
-
-HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
-
-    try {
-        // this.startSpinner()
-        var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
-            newYCenter,
-            newPixelSize, zoomChanged,
-            self = this;
-
-
-        // Shift x,y to maintain center, if possible
-        bpResolutions = this.dataset.bpResolutions;
-        currentResolution = bpResolutions[this.state.zoom];
-        viewDimensions = this.contactMatrixView.getViewDimensions();
-        xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-        yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
-        newResolution = bpResolutions[zoom];
-        newXCenter = xCenter * (currentResolution / newResolution);
-        newYCenter = yCenter * (currentResolution / newResolution);
-
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom);
-
-        var state = self.state;
-        newPixelSize = Math.max(defaultPixelSize, minPS);
-        zoomChanged = (state.zoom !== zoom);
-
-        state.zoom = zoom;
-        state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
-        state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
-        state.pixelSize = newPixelSize;
-        self.clamp();
-
-        await self.contactMatrixView.zoomIn();
-
-        self.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged}));
-    } finally {
-        // this.stopSpinner()
-    }
-
-};
-
-HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
-
-    try {
-        this.startSpinner();
-
-        this.state.chr1 = Math.min(chr1, chr2);
-        this.state.chr2 = Math.max(chr1, chr2);
-        this.state.x = 0;
-        this.state.y = 0;
-
-        const z = await minZoom.call(this, chr1, chr2);
-        this.state.zoom = z;
-
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
-        this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
-        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
-    } finally {
-        this.stopSpinner();
-    }
-};
-
-HICBrowser.prototype.updateLayout = async function () {
-    this.clamp();
-
-    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-        sync(xyTrackRenderPair.x, index);
-        sync(xyTrackRenderPair.y, index);
-    });
-
-    function sync(trackRenderer, index) {
-        trackRenderer.$viewport.css({order: index});
-        trackRenderer.syncCanvas();
-    }
-
-    this.layoutController.xAxisRuler.update();
-    this.layoutController.yAxisRuler.update();
-
-    await this.update();
-
-};
-
-async function minZoom(chr1, chr2) {
-
-    const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const chr1Length = this.dataset.chromosomes[chr1].size;
-    const chr2Length = this.dataset.chromosomes[chr2].size;
-    const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
-
-    const matrix = await this.dataset.getMatrix(chr1, chr2);
-    return matrix.findZoomForResolution(binSize);
-}
-
-async function minPixelSize(chr1, chr2, z) {
-
-    const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const chr1Length = this.dataset.chromosomes[chr1].size;
-    const chr2Length = this.dataset.chromosomes[chr2].size;
-
-    const matrix = await this.dataset.getMatrix(chr1, chr2);
-    const zd = matrix.getZoomDataByIndex(z, "BP");
-    const binSize = zd.zoom.binSize;
-    const nBins1 = chr1Length / binSize;
-    const nBins2 = chr2Length / binSize;
-    return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
-
-}
-
-/**
- * Set the matrix state.  Used to restore state from a bookmark
- * @param state  browser state
- */
-HICBrowser.prototype.setState = async function (state) {
-
-    this.state = state;
-    // Possibly adjust pixel size
-    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
-    this.state.pixelSize = Math.max(state.pixelSize, minPS);
-    this.eventBus.post(new HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
-};
-
-
-/**
- * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
- * and resolution arrays
- */
-HICBrowser.prototype.getSyncState = function () {
-    return {
-        chr1Name: this.dataset.chromosomes[this.state.chr1].name,
-        chr2Name: this.dataset.chromosomes[this.state.chr2].name,
-        binSize: this.dataset.bpResolutions[this.state.zoom],
-        binX: this.state.x,            // TODO -- tranlsate to lower right corner
-        binY: this.state.y,
-        pixelSize: this.state.pixelSize
-    };
-};
-
-/**
- * Return true if this browser can be synched to the given state
- * @param syncState
- */
-HICBrowser.prototype.canBeSynched = function (syncState) {
-
-    return this.dataset &&
-        (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
-        (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
-
-};
-
-/**
- * Used to synch state with other browsers
- * @param state  browser state
- */
-HICBrowser.prototype.syncState = function (syncState) {
-
-    if (!this.dataset) return;
-
-    var chr1 = this.genome.getChromosome(syncState.chr1Name),
-        chr2 = this.genome.getChromosome(syncState.chr2Name),
-        zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
-        x = syncState.binX,
-        y = syncState.binY,
-        pixelSize = syncState.pixelSize;
-
-    if (!(chr1 && chr2)) {
-        return;   // Can't be synched.
-    }
-
-    if (zoom === undefined) {
-        // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
-        zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
-
-        // Compute equivalent in basepairs / pixel
-        pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
-
-        // Translate bins so that origin is unchanged in basepairs
-        x = (syncState.binX / syncState.pixelSize) * pixelSize;
-        y = (syncState.binY / syncState.pixelSize) * pixelSize;
-
-        if (pixelSize > MAX_PIXEL_SIZE) {
-            return;
-        }
-    }
-
-
-    var zoomChanged = (this.state.zoom !== zoom);
-    this.state.chr1 = chr1.index;
-    this.state.chr2 = chr2.index;
-    this.state.zoom = zoom;
-    this.state.x = x;
-    this.state.y = y;
-    this.state.pixelSize = pixelSize;
-
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}, false));
-
-};
-
-HICBrowser.prototype.setNormalization = function (normalization) {
-
-    this.state.normalization = normalization;
-    this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization));
-};
-
-
-HICBrowser.prototype.shiftPixels = function (dx, dy) {
-
-    if (!this.dataset) return;
-
-    this.state.x += (dx / this.state.pixelSize);
-    this.state.y += (dy / this.state.pixelSize);
-    this.clamp();
-
-    var locusChangeEvent = HICEvent("LocusChange", {
-        state: this.state,
-        resolutionChanged: false,
-        dragging: true
-    });
-    locusChangeEvent.dragging = true;
-    this.eventBus.post(locusChangeEvent);
-
-
-};
-
-
-HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
-
-
-    var xCenter,
-        yCenter,
-        targetResolution,
-        newResolution,
-        viewDimensions = this.contactMatrixView.getViewDimensions(),
-        bpResolutions = this.dataset.bpResolutions,
-        viewWidth = viewDimensions.width,
-        maxExtent, newZoom, newPixelSize, newXBin, newYBin,
-        zoomChanged;
-
-    targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
-
-    if (minResolution && targetResolution < minResolution) {
-        maxExtent = viewWidth * minResolution;
-        xCenter = (bpX + bpXMax) / 2;
-        yCenter = (bpY + bpYMax) / 2;
-        bpX = Math.max(xCenter - maxExtent / 2);
-        bpY = Math.max(0, yCenter - maxExtent / 2);
-        targetResolution = minResolution;
-    }
-
-
-    if (true === this.resolutionLocked && minResolution === undefined) {
-        zoomChanged = false;
-        newZoom = this.state.zoom;
-    } else {
-        newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-        zoomChanged = (newZoom !== this.state.zoom);
-    }
-
-    newResolution = bpResolutions[newZoom];
-    newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
-    newXBin = bpX / newResolution;
-    newYBin = bpY / newResolution;
-
-    this.state.chr1 = chr1;
-    this.state.chr2 = chr2;
-    this.state.zoom = newZoom;
-    this.state.x = newXBin;
-    this.state.y = newYBin;
-    this.state.pixelSize = newPixelSize;
-
-    this.contactMatrixView.clearImageCaches();
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
-
-};
-
-HICBrowser.prototype.clamp = function () {
-    var viewDimensions = this.contactMatrixView.getViewDimensions(),
-        chr1Length = this.dataset.chromosomes[this.state.chr1].size,
-        chr2Length = this.dataset.chromosomes[this.state.chr2].size,
-        binSize = this.dataset.bpResolutions[this.state.zoom],
-        maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
-        maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
-
-    // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
-    maxX = Math.max(0, maxX);
-    maxY = Math.max(0, maxY);
-
-
-    this.state.x = Math.min(Math.max(0, this.state.x), maxX);
-    this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-};
-
-HICBrowser.prototype.receiveEvent = function (event) {
-    var self = this;
-
-    if ("LocusChange" === event.type) {
-
-        if (event.propogate) {
-
-            self.synchedBrowsers.forEach(function (browser) {
-                browser.syncState(self.getSyncState());
-            });
-
-        }
-
-        this.update(event);
-    }
-
-};
-
-/**
- * Update the maps and tracks.
- *
- * @param event
- */
-HICBrowser.prototype.update = async function (event) {
-
-    try {
-        this.startSpinner();
-
-        if (event !== undefined && "LocusChange" === event.type) {
-            this.layoutController.xAxisRuler.locusChange(event);
-            this.layoutController.yAxisRuler.locusChange(event);
-        }
-
-        this.renderTracks();
-        //this.contactMatrixView.update();
-
-    } finally {
-        this.stopSpinner();
-    }
-};
-
-
-HICBrowser.prototype.repaintMatrix = function () {
-    this.contactMatrixView.imageTileCache = {};
-    this.contactMatrixView.initialImage = undefined;
-    this.contactMatrixView.update();
-};
-
-
-HICBrowser.prototype.resolution = function () {
-    return this.dataset.bpResolutions[this.state.zoom];
-};
-
-
-
-
-function getNviString(dataset) {
-
-    return dataset.hicFile.config.nvi
-    // if (dataset.hicFile.normalizationVectorIndexRange) {
-    //     var range = dataset.hicFile.normalizationVectorIndexRange,
-    //         nviString = String(range.start) + "," + String(range.size);
-    //     return nviString
-    // } else {
-    //     return undefined;
-    // }
-}
-
-
-function replaceAll$1(str, target, replacement) {
-    return str.split(target).join(replacement);
-}
-
-
-HICBrowser.prototype.getQueryString = function () {
-
-    var queryString, nviString, trackString, displayMode;
-
-    if (!(this.dataset && this.dataset.url)) return "";   // URL is required
-
-    queryString = [];
-
-    queryString.push(paramString("hicUrl", this.dataset.url));
-
-    if (this.dataset.name) {
-        queryString.push(paramString("name", this.dataset.name));
-    }
-
-    queryString.push(paramString("state", this.state.stringify()));
-
-    queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
-
-    if (api.selectedGene) {
-        queryString.push(paramString("selectedGene", api.selectedGene));
-    }
-
-    nviString = getNviString(this.dataset);
-    if (nviString) {
-        queryString.push(paramString("nvi", nviString));
-    }
-
-    if (this.controlDataset) {
-
-        queryString.push(paramString("controlUrl", this.controlUrl));
-
-        if (this.controlDataset.name) {
-            queryString.push(paramString("controlName", this.controlDataset.name));
-        }
-
-        displayMode = this.getDisplayMode();
-        if (displayMode) {
-            queryString.push(paramString("displayMode", this.getDisplayMode()));
-        }
-
-        nviString = getNviString(this.controlDataset);
-        if (nviString) {
-            queryString.push(paramString("controlNvi", nviString));
-        }
-
-        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
-            queryString.push(paramString("cycle", "true"));
-        }
-
-    }
-
-
-    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-        trackString = "";
-
-        this.trackRenderers.forEach(function (trackRenderer) {
-            var track = trackRenderer.x.track,
-                config = track.config,
-                url = config.url,
-                dataRange = track.dataRange;
-
-            if (typeof url === "string") {
-                if (trackString.length > 0) trackString += "|||";
-                trackString += url;
-                trackString += "|" + (track.name ? replaceAll$1(track.name, "|", "$") : '');
-                trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
-                trackString += "|" + track.color;
-            }
-        });
-
-        this.tracks2D.forEach(function (track) {
-
-            var config = track.config,
-                url = config.url;
-
-            if (typeof url === "string") {
-                if (trackString.length > 0) trackString += "|||";
-                trackString += url;
-                trackString += "|" + (track.name ? replaceAll$1(track.name, "|", "$") : '');
-                trackString += "|";   // Data range
-                trackString += "|" + track.color;
-            }
-        });
-
-        if (trackString.length > 0) {
-            queryString.push(paramString("tracks", trackString));
-        }
-    }
-
-    var captionDiv = document.getElementById('hic-caption');
-    if (captionDiv) {
-        var captionText = captionDiv.textContent;
-        if (captionText) {
-            captionText = captionText.trim();
-            if (captionText) {
-                queryString.push(paramString("caption", captionText));
-            }
-        }
-    }
-
-    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
-    //
-    //     var normVectorString = "";
-    //     this.config.normVectorFiles.forEach(function (url) {
-    //
-    //         if (normVectorString.length > 0) normVectorString += "|||";
-    //         normVectorString += url;
-    //
-    //     });
-    //     queryString.push(paramString("normVectorFiles", normVectorString));
-    // }
-
-    return queryString.join("&");
-
-    function paramString(key, value) {
-        return key + "=" + paramEncode(value)
-    }
-
-};
-
-async function loadDataset(config) {
-
-    // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
-    if (config.url instanceof File) {
-        config.blob = config.url;
-        //config.file = new hic.LocalFile(config.url)
-        delete config.url;
-    } else {
-        // If this is a google url, add api KEY
-        if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
-            config.url = api.google.driveDownloadURL(config.url);
-            config.apiKey = api.google.apiKey;
-        }
-    }
-
-    const straw = new Straw(config);
-    const hicFile = straw.hicFile;
-    await hicFile.init();
-    const dataset = new Dataset(hicFile);
-    dataset.url = config.url;
-    return dataset
-}
-
-
-function presentError (prefix, error) {
-    const httpMessages = {
-        "401": "Access unauthorized",
-        "403": "Access forbidden",
-        "404": "Not found"
-    };
-    var msg = error.message;
-    if (httpMessages.hasOwnProperty(msg)) {
-        msg = httpMessages[msg];
-    }
-    api.Alert.presentAlert(prefix + ": " + msg);
-
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
-const GoogleURL = function (config) {
-    this.api = "https://www.googleapis.com/urlshortener/v1/url";
-    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchGoogleApiKey : config.apiKey;
-    this.hostname = config.hostname || "goo.gl";
-};
-
-GoogleURL.prototype.shortenURL = function (url) {
-
-    var self = this;
-
-    return getApiKey.call(this)
-
-        .then(function (key) {
-
-            var endpoint = self.api + "?key=" + key;
-
-            return hic$1.xhr.loadJson(endpoint,
-                {
-                    sendData: JSON.stringify({"longUrl": url}),
-                    contentType: "application/json"
-                })
-        })
-        .then(function (json) {
-            return json.id;
-        })
-};
-
-
-GoogleURL.prototype.expandURL = function (url) {
-
-    var self = this;
-    return getApiKey.call(this)
-
-        .then(function (apiKey) {
-
-            var endpoint;
-
-            if (url.includes("goo.gl")) {
-
-                endpoint = self.api + "?shortUrl=" + url + "&key=" + apiKey;
-
-                return hic$1.xhr.loadJson(endpoint, {contentType: "application/json"})
-                    .then(function (json) {
-                        return json.longUrl;
-                    })
-            }
-            else {
-                // Not a google url or no api key
-                return Promise.resolve(url);
-            }
-        })
-};
-
-
-async function getApiKey() {
-
-    var self = this;
-
-    if (typeof self.apiKey === "string") {
-        return self.apiKey
-    }
-    else if (typeof self.apiKey === "function") {
-        return await self.apiKey();
-    }
-    else {
-        throw new Error("Unknown apiKey type: " + this.apiKey);
-    }
-}
-
-
-// Example function for fetching an api key.
-async function fetchGoogleApiKey() {
-    const json = await hic$1.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/google.json", {});
-    return json["apiKey"];
-
-}
-
-var BitlyURL = function (config) {
-    this.api = "https://api-ssl.bitly.com";
-    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchBitlyApiKey : config.apiKey;
-    this.hostname = config.hostname ? config.hostname : "bit.ly";
-    this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
-};
-
-
-BitlyURL.prototype.shortenURL = async function (url) {
-
-    var self = this;
-
-    if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
-
-    try {
-        const key = await getApiKey$1.call(this);
-
-        var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
-
-        const json = await hic$1.igv.xhr.loadJson(endpoint, {});
-
-        // TODO check status code
-        if (500 === json.status_code) {
-            alert("Error shortening URL: " + json.status_txt);
-            //igv.Alert.presentAlert("Error shortening URL: " + json.status_txt)
-            return url
-        } else {
-            return json.data.url;
-        }
-    } catch (e) {
-        alert("Error shortening URL: " + e);
-        //igv.Alert.presentAlert("Error shortening URL: " + e)
-        return url
-    }
-
-};
-
-
-BitlyURL.prototype.expandURL = function (url) {
-
-    var self = this;
-
-    return getApiKey$1.call(this)
-
-        .then(function (key) {
-
-            var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
-
-            return hic$1.igv.xhr.loadJson(endpoint, {})
-        })
-
-        .then(function (json) {
-
-            var longUrl = json.data.expand[0].long_url;
-
-            // Fix some Bitly "normalization"
-            longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
-
-            return longUrl;
-
-        })
-};
-
-async function getApiKey$1() {
-
-    var self = this;
-
-    if (typeof self.apiKey === "string") {
-        return self.apiKey
-    }
-    else if (typeof self.apiKey === "function") {
-        return await self.apiKey();
-    }
-    else {
-        throw new Error("Unknown apiKey type: " + this.apiKey);
-    }
-}
-
-
-// Example function for fetching an api key.
-async function fetchBitlyApiKey() {
-    const json = await hic$1.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {});
-    return json["apiKey"];
-
-}
-
 /*
  *  The MIT License (MIT)
  *
@@ -75931,8 +75988,7 @@ const urlShorteners = [];
 async function initApp(container, config) {
 
     let apiKey = config.apiKey;
-    if (apiKey) {
-        if (apiKey === "ABCD") apiKey = "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0";
+    if (apiKey && "ABCD" !== apiKey) {
         setApiKey$1(apiKey);
     }
 
@@ -75962,14 +76018,12 @@ async function createBrowsers(container, query) {
 
     if (query && query.hasOwnProperty("juicebox")) {
         q = query["juicebox"];
-
         if (q.startsWith("%7B")) {
             q = decodeURIComponent(q);
         }
     } else if (query && query.hasOwnProperty("juiceboxData")) {
         q = decompressQueryParameter(query["juiceboxData"]);
     }
-
 
     if (q) {
 
@@ -76080,6 +76134,9 @@ function setURLShortener(shortenerConfigs) {
 
     function getShortener(shortener) {
         if (shortener.provider) {
+            if(shortener.provider === "tinyURL") {
+                return new TinyURL(shortener);
+            }
             if (shortener.provider === "google") {
                 return new GoogleURL(shortener);
             } else if (shortener.provider === "bitly") {
@@ -76123,15 +76180,21 @@ function getCompressedDataString() {
     return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
 }
 
-function getQueryString() {
+function toJSON() {
+    let browserJson = [];
+    allBrowsers$1.forEach(function (browser, index) {
+        browserJson.push(browser.toJSON());
+    });
+    return JSON.stringify(browserJson);
+}
 
+function getQueryString() {
     let queryString = "{";
     allBrowsers$1.forEach(function (browser, index) {
         const state = browser.getQueryString();
         queryString += encodeURIComponent(state);
         queryString += (index === allBrowsers$1.length - 1 ? "}" : "},{");
     });
-
     return queryString;
 }
 
@@ -76143,7 +76206,7 @@ function compressQueryParameter(str) {
     for (var i = 0; i < str.length; i++) {
         bytes.push(str.charCodeAt(i));
     }
-    compressedBytes = new Zlib$1.RawDeflate(bytes).compress();            // UInt8Arry
+    compressedBytes = new Zlib$2.RawDeflate(bytes).compress();            // UInt8Arry
     compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
     enc = btoa(compressedString);
     enc = enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/\=/g, '-');   // URL safe
@@ -76184,7 +76247,7 @@ function decompressQueryParameter(enc) {
     for (let i = 0; i < compressedString.length; i++) {
         compressedBytes.push(compressedString.charCodeAt(i));
     }
-    const bytes = new Zlib$1.RawInflate(compressedBytes).decompress();
+    const bytes = new Zlib$2.RawInflate(compressedBytes).decompress();
 
     let str = '';
     for (let b of bytes) {
@@ -76217,7 +76280,10 @@ function decompressQueryParameter(enc) {
  *
  */
 
-var hic$1 = {createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api};
+var api$1 = {
+    createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
+    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api,
+    toJSON, getQueryString
+};
 
-export default hic$1;
+export default api$1;

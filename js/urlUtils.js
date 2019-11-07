@@ -153,28 +153,16 @@ function decodeQuery(query, config, uriDecode) {
 
     function destringifyTracksV0(tracks) {
 
-        var trackStringList = tracks.split("|||"),
-            configList = [], keys, key, i, len;
+        const trackStringList = tracks.split("|||");
+        const configList = [];
+        for (let trackString of trackStringList) {
 
-        trackStringList.forEach(function (trackString) {
-            var tokens,
-                url,
-                config,
-                name,
-                dataRangeString,
-                color,
-                r;
-
-            tokens = trackString.split("|");
-            color = tokens.pop();
-
-            url = tokens[0];
-
-            if (url && url.trim().length > 0) {
-
-                keys = Object.keys(urlShortcuts);
-                for (i = 0, len = keys.length; i < len; i++) {
-                    key = keys[i];
+            const tokens = trackString.split("|");
+            const color = tokens.pop();
+            let url = tokens.length > 1 ? tokens[0] : trackString;
+            if (url && url.trim().length > 0 && "undefined" !== url) {
+                const keys = Object.keys(urlShortcuts);
+                for (let key of keys) {
                     var value = urlShortcuts[key];
                     if (url.startsWith(key)) {
                         url = url.replace(key, value);
@@ -185,23 +173,17 @@ function decodeQuery(query, config, uriDecode) {
 
                 if (tokens.length > 1) {
                     name = tokens[1];
-                }
-
-                if (tokens.length > 2) {
-                    dataRangeString = tokens[2];
-                }
-
-                if (name) {
                     config.name = replaceAll(name, "$", "|");
                 }
 
-                if (dataRangeString) {
+                if (tokens.length > 2) {
+                    const dataRangeString = tokens[2];
                     if (dataRangeString.startsWith("-")) {
-                        r = dataRangeString.substring(1).split("-");
+                        const r = dataRangeString.substring(1).split("-");
                         config.min = -parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     } else {
-                        r = dataRangeString.split("-");
+                        const r = dataRangeString.split("-");
                         config.min = parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     }
@@ -210,14 +192,10 @@ function decodeQuery(query, config, uriDecode) {
                 if (color) {
                     config.color = color;
                 }
-
                 configList.push(config);
             }
-
-        });
-
+        }
         return configList;
-
     }
 
 }
@@ -265,7 +243,7 @@ function extractQuery(uri) {
     i1 = uri.indexOf("?");
     i2 = uri.lastIndexOf("#");
     const i3 = uri.indexOf("=");
-    if(i1 > i3) i1 = -1;
+    if (i1 > i3) i1 = -1;
 
     if (i2 < 0) i2 = uri.length;
     for (i = i1 + 1; i < i2;) {

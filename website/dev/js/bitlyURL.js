@@ -44,7 +44,7 @@ BitlyURL.prototype.shortenURL = async function (url) {
 
         var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
 
-        const json = await hic.igv.xhr.loadJson(endpoint, {})
+        const json = await igv.xhr.loadJson(endpoint, {})
 
         // TODO check status code
         if (500 === json.status_code) {
@@ -73,7 +73,7 @@ BitlyURL.prototype.expandURL = function (url) {
 
             var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
 
-            return hic.igv.xhr.loadJson(endpoint, {})
+            return igv.xhr.loadJson(endpoint, {})
         })
 
         .then(function (json) {

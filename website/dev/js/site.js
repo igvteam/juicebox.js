@@ -34,24 +34,22 @@
 import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
 import QRCode from './qrcode.js';
+import hic from '../../../js/api.js';
+import igv from '../../../node_modules/igv/dist/igv.esm.js';
 
 let lastGenomeId;
 let qrcode;
 let currentContactMapDropdownButtonID;
-let HICBrowser;
 let allBrowsers;
-let igv;
 
-async function init(container, config, hic) {
+async function init(container, config) {
 
     var genomeChangeListener,
         $appContainer,
         $hic_share_url_modal,
         $e;
 
-     HICBrowser = hic.HICBrowser;
      allBrowsers = hic.allBrowsers;
-     igv = hic.igv;
 
     genomeChangeListener = {
 
@@ -101,8 +99,8 @@ async function init(container, config, hic) {
 
 
         // Must manually trigger the genome change event on initial load
-        if (HICBrowser.currentBrowser && HICBrowser.currentBrowser.genome) {
-            genomeChangeListener.receiveEvent({data: HICBrowser.currentBrowser.genome.id})
+        if (hic.HICBrowser.currentBrowser && hic.HICBrowser.currentBrowser.genome) {
+            genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
         }
 
 
@@ -111,16 +109,6 @@ async function init(container, config, hic) {
         }
 
         $hic_share_url_modal = $('#hic-share-url-modal');
-
-        function maybeShortenURL(url) {
-            if (url.length < 2048) {
-                return shortenURL(url)
-            } else {
-                igv.Alert.presentAlert("URL too long to shorten")
-                return Promise.resolve(url)
-            }
-        }
-
 
         $hic_share_url_modal.on('show.bs.modal', async function (e) {
 
@@ -201,7 +189,7 @@ async function init(container, config, hic) {
         $('#hic-track-dropdown').parent().on('shown.bs.dropdown', function () {
             var browser;
 
-            browser = HICBrowser.getCurrentBrowser();
+            browser = hic.HICBrowser.getCurrentBrowser();
             if (undefined === browser || undefined === browser.dataset) {
                 igv.Alert.presentAlert('Contact map must be loaded and selected before loading tracks');
             }
@@ -225,7 +213,7 @@ async function init(container, config, hic) {
             url = $(this).val();
             $selected = $(this).find('option:selected');
 
-            browser = HICBrowser.getCurrentBrowser();
+            browser = hic.HICBrowser.getCurrentBrowser();
             if (undefined === browser) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
             } else {
@@ -244,7 +232,7 @@ async function init(container, config, hic) {
             var file,
                 suffix;
 
-            if (undefined === HICBrowser.getCurrentBrowser()) {
+            if (undefined === hic.HICBrowser.getCurrentBrowser()) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -255,7 +243,7 @@ async function init(container, config, hic) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    HICBrowser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                    hic.HICBrowser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -270,7 +258,7 @@ async function init(container, config, hic) {
                 paramIdx,
                 path;
 
-            if (undefined === HICBrowser.getCurrentBrowser()) {
+            if (undefined === hic.HICBrowser.getCurrentBrowser()) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
@@ -285,11 +273,11 @@ async function init(container, config, hic) {
         $('#track-load-url').on('change', function (e) {
             var url;
 
-            if (undefined === HICBrowser.getCurrentBrowser()) {
+            if (undefined === hic.HICBrowser.getCurrentBrowser()) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
+                hic.HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -301,7 +289,7 @@ async function init(container, config, hic) {
             var path,
                 name;
 
-            if (undefined === HICBrowser.getCurrentBrowser()) {
+            if (undefined === hic.HICBrowser.getCurrentBrowser()) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
@@ -312,7 +300,7 @@ async function init(container, config, hic) {
                 if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                     config.indexed = false   //UCSC files are never indexed
                 }
-                HICBrowser.getCurrentBrowser().loadTracks([config]);
+                hic.HICBrowser.getCurrentBrowser().loadTracks([config]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -324,14 +312,14 @@ async function init(container, config, hic) {
             var path,
                 name;
 
-            if (undefined === HICBrowser.getCurrentBrowser()) {
+            if (undefined === hic.HICBrowser.getCurrentBrowser()) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
 
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                HICBrowser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                hic.HICBrowser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -355,7 +343,7 @@ async function init(container, config, hic) {
 
                     browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
 
-                    HICBrowser.setCurrentBrowser(browser);
+                    hic.HICBrowser.setCurrentBrowser(browser);
                 })
 
         });
@@ -477,7 +465,7 @@ async function init(container, config, hic) {
 
         isControl = currentContactMapDropdownButtonID === 'hic-control-map-dropdown';
 
-        browser = HICBrowser.getCurrentBrowser();
+        browser = hic.HICBrowser.getCurrentBrowser();
 
         config = {url: url, name: name, isControl: isControl};
 
@@ -550,7 +538,7 @@ async function init(container, config, hic) {
 
 
 function checkBDropdown() {
-    updateBDropdown(HICBrowser.getCurrentBrowser());
+    updateBDropdown(hic.HICBrowser.getCurrentBrowser());
 }
 
 function updateBDropdown(browser) {
@@ -568,7 +556,7 @@ const encodeModal = new ModalTable({
     id: "hic-encode-modal",
     title: "ENCODE",
     selectHandler: function (selected) {
-        HICBrowser.getCurrentBrowser().loadTracks(selected);
+        hic.HICBrowser.getCurrentBrowser().loadTracks(selected);
     }
 })
 
