@@ -1,7 +1,4 @@
 
-import hic from '../../../js/api.js';
-
-
 class TinyURL {
 
     constructor({endpoint}) {
@@ -18,7 +15,6 @@ class TinyURL {
             throw new Error(response.statusText);
         }
     }
-
 }
 
 

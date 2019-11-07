@@ -22,6 +22,7 @@
  */
 import State from './hicState.js';
 import ColorScale from "./colorScale.js"
+import igv from "../node_modules/igv/dist/igv.esm.js";
 
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
@@ -32,14 +33,13 @@ const urlShortcuts = {
 }
 
 
-
 /**
  * Extend config properties with query parameters
  *
  * @param query
  * @param config
  */
-function decodeQuery (query, config, uriDecode) {
+function decodeQuery(query, config, uriDecode) {
 
     var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
         controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
@@ -88,12 +88,12 @@ function decodeQuery (query, config, uriDecode) {
 
     if (stateString) {
         stateString = paramDecode(stateString, uriDecode);
-        config.state = destringifyStateV0(stateString);
+        config.state = State.parse(stateString);
 
     }
     if (colorScale) {
         colorScale = paramDecode(colorScale, uriDecode);
-        config.colorScale = destringifyColorScale(colorScale);
+        config.colorScale = ColorScale.parse(colorScale);
     }
 
     if (displayMode) {
@@ -137,44 +137,19 @@ function decodeQuery (query, config, uriDecode) {
     if (controlNvi) {
         config.controlNvi = paramDecode(controlNvi, uriDecode);
     }
-
-    function destringifyStateV0(string) {
-        var tokens = string.split(",");
-        return new State(
-            parseInt(tokens[0]),    // chr1
-            parseInt(tokens[1]),    // chr2
-            parseFloat(tokens[2]), // zoom
-            parseFloat(tokens[3]), // x
-            parseFloat(tokens[4]), // y
-            parseFloat(tokens[5]), // pixelSize
-            tokens.length > 6 ? tokens[6] : "NONE"   // normalization
-        )
-    }
-
+    
     function destringifyTracksV0(tracks) {
 
-        var trackStringList = tracks.split("|||"),
-            configList = [], keys, key, i, len;
+        const trackStringList = tracks.split("|||");
+        const configList = [];
+        for (let trackString of trackStringList) {
 
-        trackStringList.forEach(function (trackString) {
-            var tokens,
-                url,
-                config,
-                name,
-                dataRangeString,
-                color,
-                r;
-
-            tokens = trackString.split("|");
-            color = tokens.pop();
-
-            url = tokens[0];
-
-            if (url && url.trim().length > 0) {
-
-                keys = Object.keys(urlShortcuts);
-                for (i = 0, len = keys.length; i < len; i++) {
-                    key = keys[i];
+            const tokens = trackString.split("|");
+            const color = tokens.pop();
+            let url = tokens.length > 1 ? tokens[0] : trackString;
+            if (url && url.trim().length > 0 && "undefined" !== url) {
+                const keys = Object.keys(urlShortcuts);
+                for (let key of keys) {
                     var value = urlShortcuts[key];
                     if (url.startsWith(key)) {
                         url = url.replace(key, value);
@@ -185,23 +160,17 @@ function decodeQuery (query, config, uriDecode) {
 
                 if (tokens.length > 1) {
                     name = tokens[1];
-                }
-
-                if (tokens.length > 2) {
-                    dataRangeString = tokens[2];
-                }
-
-                if (name) {
                     config.name = replaceAll(name, "$", "|");
                 }
 
-                if (dataRangeString) {
+                if (tokens.length > 2) {
+                    const dataRangeString = tokens[2];
                     if (dataRangeString.startsWith("-")) {
-                        r = dataRangeString.substring(1).split("-");
+                        const r = dataRangeString.substring(1).split("-");
                         config.min = -parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     } else {
-                        r = dataRangeString.split("-");
+                        const r = dataRangeString.split("-");
                         config.min = parseFloat(r[0]);
                         config.max = parseFloat(r[1]);
                     }
@@ -210,14 +179,10 @@ function decodeQuery (query, config, uriDecode) {
                 if (color) {
                     config.color = color;
                 }
-
                 configList.push(config);
             }
-
-        });
-
+        }
         return configList;
-
     }
 
 }
@@ -264,54 +229,25 @@ function extractQuery(uri) {
     query = {};
     i1 = uri.indexOf("?");
     i2 = uri.lastIndexOf("#");
+    const i3 = uri.indexOf("=");
+    if (i1 > i3) i1 = -1;
 
-    if (i1 >= 0) {
-        if (i2 < 0) i2 = uri.length;
+    if (i2 < 0) i2 = uri.length;
+    for (i = i1 + 1; i < i2;) {
 
-        for (i = i1 + 1; i < i2;) {
+        j = uri.indexOf("&", i);
+        if (j < 0) j = i2;
 
-            j = uri.indexOf("&", i);
-            if (j < 0) j = i2;
-
-            s = uri.substring(i, j);
-            tokens = s.split("=", 2);
-            if (tokens.length === 2) {
-                query[tokens[0]] = tokens[1];
-            }
-
-            i = j + 1;
+        s = uri.substring(i, j);
+        tokens = s.split("=", 2);
+        if (tokens.length === 2) {
+            query[tokens[0]] = tokens[1];
         }
+
+        i = j + 1;
+
     }
     return query;
-}
-
-function destringifyColorScale(string) {
-
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-        pnstr = string.substring(2).split(":");
-        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-        ratioCS.positiveScale = foo(pnstr[1]);
-        ratioCS.negativeScale = foo(pnstr[2]);
-        return ratioCS;
-    } else {
-        return foo(string);
-    }
-
-    function foo(str) {
-        var cs, tokens;
-
-        tokens = str.split(",");
-
-        cs = {
-            threshold: tokens[0],
-            r: tokens[1],
-            g: tokens[2],
-            b: tokens[3]
-        };
-        return new ColorScale(cs);
-    }
 }
 
 export {decodeQuery, paramDecode, paramEncode, extractQuery}

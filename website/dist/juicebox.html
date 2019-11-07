@@ -33,7 +33,7 @@
     <link rel="icon" type="image/png" href="//aidenlab.org/favicon.ico">
 
     <!-- MS polyfill (pointer -> touch -->
-    <script src="https://igv.org/web/jb/release/current/touchpolyfill.min.js"></script>
+    <script src="js/touchpolyfill.min.js"></script>
 
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
@@ -71,9 +71,6 @@
 
     <!-- Twitter -->
     <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
-    <!-- Juicebox JS -->
-    <script src="js/juicebox.min.js"></script>
 
     <!-- Site JS-->
     <script src="js/site-bundle.js"></script>
@@ -673,11 +670,11 @@
                 }
             ],
 
-            apiKey: "ABCD",   // Optional.  TODO -- replace with your Google API Key if supporting Google Drive
+            apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"   // Optional.  TODO -- replace with your Google API Key if supporting Google Drive
 
         };
 
-        juicebox.init($('#app-container'), config, hic);
+        juicebox.init($('#app-container'), config);
     });
 
 </script>

@@ -27,7 +27,7 @@ import hic from '../../../js/api.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
-    this.apiKey = (!config.apiKey || "ABCD" === config.apiKey) ? fetchBitlyApiKey : config.apiKey;
+    this.apiKey = config.apiKey;
     this.hostname = config.hostname ? config.hostname : "bit.ly";
     this.devIP = "192.168.1.11";   // For development, replace with your IP address. Bitly will not shorten localhost !
 }
@@ -44,7 +44,7 @@ BitlyURL.prototype.shortenURL = async function (url) {
 
         var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
 
-        const json = await hic.igv.xhr.loadJson(endpoint, {})
+        const json = await igv.xhr.loadJson(endpoint, {})
 
         // TODO check status code
         if (500 === json.status_code) {
@@ -73,7 +73,7 @@ BitlyURL.prototype.expandURL = function (url) {
 
             var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
 
-            return hic.igv.xhr.loadJson(endpoint, {})
+            return igv.xhr.loadJson(endpoint, {})
         })
 
         .then(function (json) {
@@ -101,14 +101,6 @@ async function getApiKey() {
     else {
         throw new Error("Unknown apiKey type: " + this.apiKey);
     }
-}
-
-
-// Example function for fetching an api key.
-async function fetchBitlyApiKey() {
-    const json = await hic.igv.xhr.loadJson("https://s3.amazonaws.com/igv.org.restricted/bitly.json", {})
-    return json["apiKey"];
-
 }
 
 export default BitlyURL

@@ -39,8 +39,7 @@ const State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
             this.chr2 = chr2;
             this.x = x;
             this.y = y;
-        }
-        else {
+        } else {
             // Transpose
             this.chr1 = chr2;
             this.chr2 = chr1;
@@ -71,6 +70,19 @@ State.prototype.equals = function (state) {
     var s1 = JSON.stringify(this);
     var s2 = JSON.stringify(state);
     return s1 === s2;
+}
+
+State.parse = function (string) {
+    const tokens = string.split(",");
+    return new State(
+        parseInt(tokens[0]),    // chr1
+        parseInt(tokens[1]),    // chr2
+        parseFloat(tokens[2]), // zoom
+        parseFloat(tokens[3]), // x
+        parseFloat(tokens[4]), // y
+        parseFloat(tokens[5]), // pixelSize
+        tokens.length > 6 ? tokens[6] : "NONE"   // normalization
+    )
 }
 
 export default State

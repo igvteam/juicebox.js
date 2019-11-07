@@ -27,9 +27,9 @@
 
 import $ from "../vendor/jquery-1.12.4.js"
 import _ from "../vendor/underscore.js"
-import  * as hic from './hicUtils.js'
+import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
-import EventBus from'./eventBus.js'
+import EventBus from './eventBus.js'
 import LayoutController from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
@@ -38,7 +38,7 @@ import State from './hicState.js'
 import geneSearch from './geneSearch.js'
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import {paramEncode, paramDecode} from "./urlUtils.js"
+import {paramDecode, paramEncode} from "./urlUtils.js"
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -184,7 +184,7 @@ HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
     this.contactMatrixView.setColorScaleThreshold(threshold);
 };
 
-HICBrowser.prototype.updateCrosshairs = function ({ x , y, xNormalized, yNormalized }) {
+HICBrowser.prototype.updateCrosshairs = function ({x, y, xNormalized, yNormalized}) {
 
     const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
     this.contactMatrixView.$x_guide.css(xGuide);
@@ -196,16 +196,25 @@ HICBrowser.prototype.updateCrosshairs = function ({ x , y, xNormalized, yNormali
 
     if (this.customCrosshairsHandler) {
 
-        const { x: stateX, y: stateY, pixelSize } = this.state;
+        const {x: stateX, y: stateY, pixelSize} = this.state;
         const resolution = this.resolution();
 
         const xBP = (stateX + (x / pixelSize)) * resolution;
         const yBP = (stateY + (y / pixelSize)) * resolution;
 
-        let { startBP: startXBP, endBP: endXBP } = this.genomicState('x');
-        let { startBP: startYBP, endBP: endYBP } = this.genomicState('y');
+        let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
+        let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
 
-        this.customCrosshairsHandler({ xBP, yBP, startXBP, startYBP, endXBP, endYBP, interpolantX: xNormalized, interpolantY: yNormalized });
+        this.customCrosshairsHandler({
+            xBP,
+            yBP,
+            startXBP,
+            startYBP,
+            endXBP,
+            endYBP,
+            interpolantX: xNormalized,
+            interpolantY: yNormalized
+        });
     }
 
 };
@@ -718,8 +727,7 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
 
     if (this.state.chr1 === 0) {
         await this.zoomAndCenter(1, anchorPx, anchorPy);
-    }
-    else {
+    } else {
         try {
             this.startSpinner()
 
@@ -1197,8 +1205,6 @@ HICBrowser.prototype.resolution = function () {
 };
 
 
-
-
 function getNviString(dataset) {
 
     return dataset.hicFile.config.nvi
@@ -1249,79 +1255,147 @@ parseUri.options = {
     }
 };
 
-
-function gup(href, name) {
-    name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-    var regexS = "[\\?&]" + name + "=([^&#]*)";
-    var regex = new RegExp(regexS);
-    var results = regex.exec(href);
-    if (results == null)
-        return undefined;
-    else
-        return results[1];
-}
-
-
 function replaceAll(str, target, replacement) {
     return str.split(target).join(replacement);
 }
 
 
+HICBrowser.prototype.toJSON = function () {
+
+    if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
+
+    const jsonOBJ = {};
+
+    jsonOBJ.url = this.dataset.url;
+    if (this.dataset.name) {
+        jsonOBJ.name = this.dataset.name;
+    }
+    jsonOBJ.state = this.state.stringify();
+    jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
+    if (igv.selectedGene) {
+        jsonOBJ.selectedGene = igv.selectedGene;
+    }
+    let nviString = getNviString(this.dataset);
+    if (nviString) {
+        jsonOBJ.nvi = nviString;
+    }
+    if (this.controlDataset) {
+        jsonOBJ.controlUrl = this.controlUrl;
+        if (this.controlDataset.name) {
+            jsonOBJ.controlName = this.controlDataset.name;
+        }
+        const displayMode = this.getDisplayMode();
+        if (displayMode) {
+            jsonOBJ.displayMode = this.getDisplayMode();
+        }
+        nviString = getNviString(this.controlDataset);
+        if (nviString) {
+            jsonOBJ.controlNvi = nviString;
+        }
+        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+            jsonOBJ.cycle = true;
+        }
+    }
+
+    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+        let tracks = [];
+        jsonOBJ.tracks = tracks;
+        for (let trackRenderer of this.trackRenderers) {
+            const track = trackRenderer.x.track;
+            const config = track.config;
+            if (typeof config.url === "string") {
+                const t = {
+                    url: config.url
+                }
+                if (track.name) {
+                    t.name = track.name;
+                }
+                if (track.dataRange) {
+                    t.min = track.dataRange.min;
+                    t.max = track.dataRange.max;
+                }
+                if (track.color) {
+                    t.color = track.color;
+                }
+                tracks.push(t);
+            }
+
+        }
+        for (let track of this.tracks2D) {
+            var config = track.config;
+            if (typeof config.url === "string") {
+                const t = {
+                    url: config.url
+                }
+                if (track.name) {
+                    t.name = track.name;
+                }
+                if (track.color) {
+                    t.color = track.color;
+                }
+                tracks.push(t);
+            }
+        }
+    }
+
+
+    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+    //
+    //     var normVectorString = "";
+    //     this.config.normVectorFiles.forEach(function (url) {
+    //
+    //         if (normVectorString.length > 0) normVectorString += "|||";
+    //         normVectorString += url;
+    //
+    //     });
+    //     queryString.push(paramString("normVectorFiles", normVectorString));
+    // }
+
+    return JSON.stringify(jsonOBJ);
+
+    function paramString(key, value) {
+        return key + "=" + paramEncode(value)
+    }
+
+};
+
 HICBrowser.prototype.getQueryString = function () {
 
-    var queryString, nviString, trackString, displayMode;
-
     if (!(this.dataset && this.dataset.url)) return "";   // URL is required
-
-    queryString = [];
-
+    const queryString = [];
     queryString.push(paramString("hicUrl", this.dataset.url));
-
     if (this.dataset.name) {
         queryString.push(paramString("name", this.dataset.name));
     }
-
     queryString.push(paramString("state", this.state.stringify()));
-
     queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
-
     if (igv.selectedGene) {
         queryString.push(paramString("selectedGene", igv.selectedGene));
     }
-
-    nviString = getNviString(this.dataset);
+    let nviString = getNviString(this.dataset);
     if (nviString) {
         queryString.push(paramString("nvi", nviString));
     }
-
     if (this.controlDataset) {
-
         queryString.push(paramString("controlUrl", this.controlUrl));
-
         if (this.controlDataset.name) {
             queryString.push(paramString("controlName", this.controlDataset.name))
         }
-
-        displayMode = this.getDisplayMode();
+        const displayMode = this.getDisplayMode();
         if (displayMode) {
             queryString.push(paramString("displayMode", this.getDisplayMode()));
         }
-
         nviString = getNviString(this.controlDataset);
         if (nviString) {
             queryString.push(paramString("controlNvi", nviString));
         }
-
         if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
             queryString.push(paramString("cycle", "true"))
         }
-
     }
 
-
     if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-        trackString = "";
-
+        let trackString = "";
         this.trackRenderers.forEach(function (trackRenderer) {
             var track = trackRenderer.x.track,
                 config = track.config,
@@ -1338,10 +1412,8 @@ HICBrowser.prototype.getQueryString = function () {
         });
 
         this.tracks2D.forEach(function (track) {
-
             var config = track.config,
                 url = config.url;
-
             if (typeof url === "string") {
                 if (trackString.length > 0) trackString += "|||";
                 trackString += url;
@@ -1387,56 +1459,6 @@ HICBrowser.prototype.getQueryString = function () {
 
 };
 
-/**
- * Encode an array of strings.  A "|" is used as a delimiter, therefore any "|" in individual elements
- * must be encoded.
- *
- * @param array
- * @returns {string}
- */
-function encodeArray(array) {
-
-    var arrayStr = "", i;
-
-    if (array.length > 0) {
-        arrayStr += encodeArrayElement(array[0]);
-        for (i = 1; i < array.length; i++) {
-            arrayStr += "|";
-            arrayStr += encodeArrayElement(array[i]);
-        }
-    }
-    return arrayStr;
-
-    function encodeArrayElement(elem) {
-        var s = paramEncode(elem);
-        s = replaceAll(s, "|", "%7C");
-        return s;
-    }
-}
-
-/**
- * Decode a string to an array of strings.  Its assumed that the string was created with encodeArray.
- *
- * @param str
- * @returns {Array}
- */
-function decodeArray(str) {
-
-    var array, elements;
-    array = [];
-    elements = str.split("|");
-    elements.forEach(function (elem) {
-        array.push(decodeArrayElement(elem));
-    })
-    return array;
-
-    function decodeArrayElement(elem) {
-        var s = paramDecode(elem, false);
-        s = replaceAll(s, "%7C", "|");
-        return s;
-    }
-}
-
 async function loadDataset(config) {
 
     // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
@@ -1460,8 +1482,7 @@ async function loadDataset(config) {
     return dataset
 }
 
-
-function presentError (prefix, error) {
+function presentError(prefix, error) {
     const httpMessages = {
         "401": "Access unauthorized",
         "403": "Access forbidden",

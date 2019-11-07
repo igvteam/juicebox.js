@@ -29,9 +29,8 @@ import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
 import igvReplacements from "./igvReplacements.js"
 import _ from "../vendor/underscore.js"
-import Zlib from "../vendor/zlib_and_gzip.js";
-import igv from '../node_modules/igv/dist/igv.esm.js';
 import {decodeQuery, extractQuery} from "./urlUtils.js";
+import igv from "../node_modules/igv/dist/igv.esm.js";
 
 let apiKey
 
@@ -76,12 +75,16 @@ async function createBrowser(hic_container, config, callback) {
     }
 
     if (queryString) {
-        if (!queryString.includes("?")) {
-            queryString = "?" + queryString;
-        }
         const query = extractQuery(queryString);
         const uriDecode = queryString.includes("%2C");
         decodeQuery(query, config, uriDecode);
+    }
+
+    if(igv.isString(config.state)) {
+        config.state = State.parse(config.state);
+    }
+    if(igv.isString(config.colorScale)) {
+        config.colorScale = ColorScale.parse(config.colorScale);
     }
 
     const browser = new HICBrowser($hic_container, config);
@@ -205,7 +208,6 @@ async function createBrowser(hic_container, config, callback) {
 function setApiKey(key) {
     apiKey = key;
     igv.setApiKey(key);
-
 }
 
 function deleteBrowserPanel(browser) {
@@ -335,9 +337,15 @@ function setDefaults(config) {
     }
 
     if (config.state) {
-        // convert to state object
-        config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
-            config.state.y, config.state.pixelSize, config.state.normalization)
+
+        if(igv.isString(config.state)) {
+            config.state = State.parse(config.state);
+        }
+        else {
+            // copy
+            config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
+                config.state.y, config.state.pixelSize, config.state.normalization)
+        }
     }
 }
 
