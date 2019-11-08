@@ -54,8 +54,8 @@ async function initApp(container, config) {
         query = await expandJuiceboxUrl(query)
     }
 
-    if(query.hasOwnProperty("session")) {
-        if(query.session.startsWith("blob:")) {
+    if (query.hasOwnProperty("session")) {
+        if (query.session.startsWith("blob:")) {
             const json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
             json.initFromUrl = false;
             await restoreSession(container, json);
@@ -88,7 +88,7 @@ async function restoreSession(container, session) {
     await createBrowser(container, session.browsers[0]);
 
     const promises = [];
-    for(let i=1; i<session.browsers.length; i++) {
+    for (let i = 1; i < session.browsers.length; i++) {
         promises.push(createBrowser(container, session.browsers[i]));
     }
     await Promise.all(promises);
@@ -125,7 +125,7 @@ async function createBrowsers(container, query) {
             }
 
             const tmp = await Promise.all(promises)
-            for(let b of tmp) browsers.push(b);
+            for (let b of tmp) browsers.push(b);
         }
     } else {
         const browser = await createBrowser(container, {})
@@ -192,8 +192,7 @@ function syncBrowsers(browsers) {
 
 async function expandJuiceboxUrl(query) {
     if (query && query.hasOwnProperty("juiceboxURL")) {
-        const jbURL = await
-            expandURL(query["juiceboxURL"])
+        const jbURL = await expandURL(query["juiceboxURL"])   // Legacy bitly urls
         return extractQuery(jbURL);
     } else {
         return query
@@ -221,17 +220,18 @@ function setURLShortener(shortenerConfigs) {
             }
         } else {
             // Custom
-            if (typeof shortener.shortenURL === "function" && typeof shortener.expandURL === "function" && typeof shortener.hostname === "string") {
+            if (typeof shortener.shortenURL === "function")  {
                 return shortener;
             } else {
-                ac.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'");
+                ac.presentAlert("URL shortener object must define functions 'shortenURL'");
             }
         }
     }
 }
 
-function shortenURL(url) {
+async function shortJuiceboxURL(base) {
 
+    const url = `${base}?${getCompressedDataString()}`;
     if (urlShorteners && urlShorteners.length > 0) {
         return urlShorteners[0].shortenURL(url);
     } else {
@@ -239,28 +239,17 @@ function shortenURL(url) {
     }
 }
 
-async function shortJuiceboxURL(base) {
-
-    const url = `${base}?${getCompressedDataString()}`;
-
-    if (url.length > 2048) {
-
-        return url
-    } else {
-        return shortenURL(url)
-    }
-}
-
 function getCompressedDataString() {
     //return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
-    return `session=blob:${compressQueryParameter(toJSON())}`
+    const jsonString = JSON.stringify(toJSON());
+    return `session=blob:${compressQueryParameter(jsonString)}`
 }
 
 function toJSON() {
     const jsonOBJ = {};
     const browserJson = [];
-    for(let browser of allBrowsers) {
-        browserJson.push(JSON.parse(browser.toJSON()));
+    for (let browser of allBrowsers) {
+        browserJson.push(browser.toJSON());
     }
     jsonOBJ.browsers = browserJson;
 
@@ -277,7 +266,7 @@ function toJSON() {
     if (igv.selectedGene) {
         jsonOBJ.selectedGene = igv.selectedGene;
     }
-    return JSON.stringify(jsonOBJ);
+    return jsonOBJ;
 }
 
 function getQueryString() {

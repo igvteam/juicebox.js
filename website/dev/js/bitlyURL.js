@@ -37,6 +37,10 @@ BitlyURL.prototype.shortenURL = async function (url) {
 
     var self = this;
 
+    if(url.length > 2048) {
+        return url;
+    }
+
     if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
 
     try {

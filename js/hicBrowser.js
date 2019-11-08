@@ -1351,7 +1351,8 @@ HICBrowser.prototype.toJSON = function () {
     //     queryString.push(paramString("normVectorFiles", normVectorString));
     // }
 
-    return JSON.stringify(jsonOBJ);
+    return jsonOBJ;
+
 
     function paramString(key, value) {
         return key + "=" + paramEncode(value)

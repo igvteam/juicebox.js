@@ -7379,6 +7379,18 @@ Context.prototype = {
     return s1 === s2;
   };
 
+  State.parse = function (string) {
+    var tokens = string.split(",");
+    return new State(parseInt(tokens[0]), // chr1
+    parseInt(tokens[1]), // chr2
+    parseFloat(tokens[2]), // zoom
+    parseFloat(tokens[3]), // x
+    parseFloat(tokens[4]), // y
+    parseFloat(tokens[5]), // pixelSize
+    tokens.length > 6 ? tokens[6] : "NONE" // normalization
+    );
+  };
+
   /*
    *  The MIT License (MIT)
    *
@@ -7471,6 +7483,32 @@ Context.prototype = {
     return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
   };
 
+  ColorScale.parse = function (string) {
+    var pnstr, ratioCS;
+
+    if (string.startsWith("R:")) {
+      pnstr = string.substring(2).split(":");
+      ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+      ratioCS.positiveScale = foo(pnstr[1]);
+      ratioCS.negativeScale = foo(pnstr[2]);
+      return ratioCS;
+    } else {
+      return foo(string);
+    }
+
+    function foo(str) {
+      var cs, tokens;
+      tokens = str.split(",");
+      cs = {
+        threshold: tokens[0],
+        r: tokens[1],
+        g: tokens[2],
+        b: tokens[3]
+      };
+      return new ColorScale(cs);
+    }
+  };
+
   /*
    *  The MIT License (MIT)
    *
@@ -7553,12 +7591,12 @@ Context.prototype = {
 
     if (stateString) {
       stateString = paramDecode(stateString, uriDecode);
-      config.state = destringifyStateV0(stateString);
+      config.state = State.parse(stateString);
     }
 
     if (colorScale) {
       colorScale = paramDecode(colorScale, uriDecode);
-      config.colorScale = destringifyColorScale(colorScale);
+      config.colorScale = ColorScale.parse(colorScale);
     }
 
     if (displayMode) {
@@ -7600,18 +7638,6 @@ Context.prototype = {
 
     if (controlNvi) {
       config.controlNvi = paramDecode(controlNvi, uriDecode);
-    }
-
-    function destringifyStateV0(string) {
-      var tokens = string.split(",");
-      return new State(parseInt(tokens[0]), // chr1
-      parseInt(tokens[1]), // chr2
-      parseFloat(tokens[2]), // zoom
-      parseFloat(tokens[3]), // x
-      parseFloat(tokens[4]), // y
-      parseFloat(tokens[5]), // pixelSize
-      tokens.length > 6 ? tokens[6] : "NONE" // normalization
-      );
     }
 
     function destringifyTracksV0(tracks) {
@@ -7751,32 +7777,6 @@ Context.prototype = {
     }
 
     return query;
-  }
-
-  function destringifyColorScale(string) {
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-      pnstr = string.substring(2).split(":");
-      ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-      ratioCS.positiveScale = foo(pnstr[1]);
-      ratioCS.negativeScale = foo(pnstr[2]);
-      return ratioCS;
-    } else {
-      return foo(string);
-    }
-
-    function foo(str) {
-      var cs, tokens;
-      tokens = str.split(",");
-      cs = {
-        threshold: tokens[0],
-        r: tokens[1],
-        g: tokens[2],
-        b: tokens[3]
-      };
-      return new ColorScale(cs);
-    }
   }
 
   function _typeof(obj) {
@@ -19538,6 +19538,14 @@ Context.prototype = {
                 decodeQuery(query, config, uriDecode);
               }
 
+              if (api.isString(config.state)) {
+                config.state = State.parse(config.state);
+              }
+
+              if (api.isString(config.colorScale)) {
+                config.colorScale = ColorScale.parse(config.colorScale);
+              }
+
               browser = new HICBrowser($hic_container, config);
               browser.eventBus.hold();
               allBrowsers$1.push(browser);
@@ -19557,7 +19565,7 @@ Context.prototype = {
               browser.trackRemovalDialog = new api.TrackRemovalDialog($hic_container, browser);
               browser.dataRangeDialog = new api.DataRangeDialog($hic_container, browser); ///////////////////////////////////
 
-              _context4.prev = 20;
+              _context4.prev = 22;
               browser.contactMatrixView.startSpinner();
               browser.$user_interaction_shield.show();
               hasControl = config.controlUrl !== undefined; // if (!config.name) config.name = await extractName(config)
@@ -19565,14 +19573,14 @@ Context.prototype = {
               // browser.$contactMaplabel.text(prefix + config.name);
               // browser.$contactMaplabel.attr('title', config.name);
 
-              _context4.next = 26;
+              _context4.next = 28;
               return browser.loadHicFile(config, true);
 
-            case 26:
-              _context4.next = 28;
+            case 28:
+              _context4.next = 30;
               return loadControlFile(config);
 
-            case 28:
+            case 30:
               if (config.cycle) {
                 config.displayMode = "A";
               }
@@ -19606,10 +19614,10 @@ Context.prototype = {
                 });
               }
 
-              _context4.next = 36;
+              _context4.next = 38;
               return Promise.all(promises);
 
-            case 36:
+            case 38:
               tmp = browser.contactMatrixView.colorScaleThresholdCache;
               browser.eventBus.release();
               browser.contactMatrixView.colorScaleThresholdCache = tmp;
@@ -19622,21 +19630,21 @@ Context.prototype = {
 
               if (typeof callback === "function") callback();
 
-            case 41:
-              _context4.prev = 41;
+            case 43:
+              _context4.prev = 43;
               browser.contactMatrixView.stopSpinner();
               browser.$user_interaction_shield.hide();
-              return _context4.finish(41);
+              return _context4.finish(43);
 
-            case 45:
+            case 47:
               return _context4.abrupt("return", browser);
 
-            case 46:
+            case 48:
             case "end":
               return _context4.stop();
           }
         }
-      }, _callee4, null, [[20,, 41, 45]]);
+      }, _callee4, null, [[22,, 43, 47]]);
     }));
     return _createBrowser.apply(this, arguments);
   }
@@ -19755,8 +19763,12 @@ Context.prototype = {
     }
 
     if (config.state) {
-      // convert to state object
-      config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x, config.state.y, config.state.pixelSize, config.state.normalization);
+      if (api.isString(config.state)) {
+        config.state = State.parse(config.state);
+      } else {
+        // copy
+        config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x, config.state.y, config.state.pixelSize, config.state.normalization);
+      }
     }
   } // mock igv browser objects for igv.js compatibility
 
@@ -19923,9 +19935,9 @@ Context.prototype = {
     var errorCount = 0;
 
     for (i = start; i < len; i++) {
-      line = lines[i];
+      line = lines[i].trim();
 
-      if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+      if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser") || line.length === 0) {
         continue;
       }
 
@@ -33732,7 +33744,7 @@ Context.prototype = {
     if (!(this.dataset && this.dataset.url)) return "{}"; // URL is required
 
     var jsonOBJ = {};
-    jsonOBJ.hicUrl = this.dataset.url;
+    jsonOBJ.url = this.dataset.url;
 
     if (this.dataset.name) {
       jsonOBJ.name = this.dataset.name;
@@ -33775,8 +33787,9 @@ Context.prototype = {
       }
     }
 
-    if (this.trackRenderers.length > 0) {
+    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
       var tracks = [];
+      jsonOBJ.tracks = tracks;
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
@@ -33807,8 +33820,6 @@ Context.prototype = {
 
             tracks.push(t);
           }
-
-          jsonOBJ.tracks = tracks;
         }
       } catch (err) {
         _didIteratorError2 = true;
@@ -33824,10 +33835,7 @@ Context.prototype = {
           }
         }
       }
-    }
 
-    if (this.tracks2D.length > 0) {
-      var _tracks = [];
       var _iteratorNormalCompletion3 = true;
       var _didIteratorError3 = false;
       var _iteratorError3 = undefined;
@@ -33835,8 +33843,7 @@ Context.prototype = {
       try {
         for (var _iterator3 = this.tracks2D[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var _track = _step3.value;
-          var config = _track.config,
-              url = config.url;
+          var config = _track.config;
 
           if (typeof config.url === "string") {
             var _t = {
@@ -33851,7 +33858,7 @@ Context.prototype = {
               _t.color = _track.color;
             }
 
-            _tracks.push(_t);
+            tracks.push(_t);
           }
         }
       } catch (err) {
@@ -33868,22 +33875,6 @@ Context.prototype = {
           }
         }
       }
-
-      jsonOBJ.tracks2Ds = _tracks;
-    }
-
-    var captionDiv = document.getElementById('hic-caption');
-
-    if (captionDiv) {
-      var captionText = captionDiv.textContent;
-
-      if (captionText) {
-        captionText = captionText.trim();
-
-        if (captionText) {
-          jsonOBJ.push(paramString("caption", captionText));
-        }
-      }
     } // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
     //
     //     var normVectorString = "";
@@ -33898,10 +33889,6 @@ Context.prototype = {
 
 
     return JSON.stringify(jsonOBJ);
-
-    function paramString(key, value) {
-      return key + "=" + paramEncode(value);
-    }
   };
 
   HICBrowser.prototype.getQueryString = function () {
@@ -40195,7 +40182,7 @@ Context.prototype = {
     _initApp = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee(container, config) {
-      var apiKey, query, unused;
+      var apiKey, query, json;
       return regeneratorRuntime.wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -40230,14 +40217,41 @@ Context.prototype = {
               query = _context.sent;
 
             case 12:
-              _context.next = 14;
+              if (!query.hasOwnProperty("session")) {
+                _context.next = 24;
+                break;
+              }
+
+              if (!query.session.startsWith("blob:")) {
+                _context.next = 20;
+                break;
+              }
+
+              json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
+              json.initFromUrl = false;
+              _context.next = 18;
+              return restoreSession(container, json);
+
+            case 18:
+              _context.next = 22;
+              break;
+
+            case 20:
+              _context.next = 22;
               return createBrowsers(container, query);
 
-            case 14:
-              unused = _context.sent;
+            case 22:
+              _context.next = 26;
+              break;
+
+            case 24:
+              _context.next = 26;
+              return createBrowsers(container, query);
+
+            case 26:
               syncBrowsers(allBrowsers$1);
 
-            case 16:
+            case 27:
             case "end":
               return _context.stop();
           }
@@ -40247,32 +40261,86 @@ Context.prototype = {
     return _initApp.apply(this, arguments);
   }
 
-  function createBrowsers(_x3, _x4) {
+  function restoreSession(_x3, _x4) {
+    return _restoreSession.apply(this, arguments);
+  }
+
+  function _restoreSession() {
+    _restoreSession = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee2(container, session) {
+      var captionText, captionDiv, promises, i;
+      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              if (session.hasOwnProperty("selectedGene")) {
+                api.selectedGene = session.selectedGene;
+              }
+
+              if (session.hasOwnProperty("caption")) {
+                captionText = session.caption;
+                captionDiv = document.getElementById("hic-caption");
+
+                if (captionDiv) {
+                  captionDiv.textContent = captionText;
+                }
+              } // First browser
+
+
+              _context2.next = 4;
+              return createBrowser$1(container, session.browsers[0]);
+
+            case 4:
+              promises = [];
+
+              for (i = 1; i < session.browsers.length; i++) {
+                promises.push(createBrowser$1(container, session.browsers[i]));
+              }
+
+              _context2.next = 8;
+              return Promise.all(promises);
+
+            case 8:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+    return _restoreSession.apply(this, arguments);
+  }
+
+  function createBrowsers(_x5, _x6) {
     return _createBrowsers.apply(this, arguments);
   }
 
   function _createBrowsers() {
     _createBrowsers = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee2(container, query) {
-      var parts, i, q, decoded, _browser, promises, browsers, _browser2;
+    regeneratorRuntime.mark(function _callee3(container, query) {
+      var q, browsers, parts, decoded, browser, promises, i, tmp, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, b, _browser;
 
-      return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      return regeneratorRuntime.wrap(function _callee3$(_context3) {
         while (1) {
-          switch (_context2.prev = _context2.next) {
+          switch (_context3.prev = _context3.next) {
             case 0:
-              if (query && query.hasOwnProperty("juicebox")) {
-                q = query["juicebox"];
+              if (query) {
+                if (query.hasOwnProperty("juicebox")) {
+                  q = query["juicebox"];
 
-                if (q.startsWith("%7B")) {
-                  q = decodeURIComponent(q);
+                  if (q.startsWith("%7B")) {
+                    q = decodeURIComponent(q);
+                  }
+                } else if (query.hasOwnProperty("juiceboxData")) {
+                  q = decompressQueryParameter(query["juiceboxData"]);
                 }
-              } else if (query && query.hasOwnProperty("juiceboxData")) {
-                q = decompressQueryParameter(query["juiceboxData"]);
               }
 
+              browsers = [];
+
               if (!q) {
-                _context2.next = 17;
+                _context3.next = 37;
                 break;
               }
 
@@ -40280,16 +40348,17 @@ Context.prototype = {
 
               parts = q.split("},{");
               decoded = decodeURIComponent(parts[0]);
-              _context2.next = 7;
+              _context3.next = 8;
               return createBrowser$1(container, {
                 queryString: decoded
               });
 
-            case 7:
-              _browser = _context2.sent;
+            case 8:
+              browser = _context3.sent;
+              browsers.push(browser);
 
               if (!(parts && parts.length > 1)) {
-                _context2.next = 14;
+                _context3.next = 35;
                 break;
               }
 
@@ -40303,29 +40372,75 @@ Context.prototype = {
                 // b.eventBus.subscribe("MapLoad", checkBDropdown);
               }
 
-              _context2.next = 13;
+              _context3.next = 15;
               return Promise.all(promises);
 
-            case 13:
-              browsers = _context2.sent;
+            case 15:
+              tmp = _context3.sent;
+              _iteratorNormalCompletion3 = true;
+              _didIteratorError3 = false;
+              _iteratorError3 = undefined;
+              _context3.prev = 19;
 
-            case 14:
-              return _context2.abrupt("return", _browser);
+              for (_iterator3 = tmp[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                b = _step3.value;
+                browsers.push(b);
+              }
 
-            case 17:
-              _context2.next = 19;
+              _context3.next = 27;
+              break;
+
+            case 23:
+              _context3.prev = 23;
+              _context3.t0 = _context3["catch"](19);
+              _didIteratorError3 = true;
+              _iteratorError3 = _context3.t0;
+
+            case 27:
+              _context3.prev = 27;
+              _context3.prev = 28;
+
+              if (!_iteratorNormalCompletion3 && _iterator3["return"] != null) {
+                _iterator3["return"]();
+              }
+
+            case 30:
+              _context3.prev = 30;
+
+              if (!_didIteratorError3) {
+                _context3.next = 33;
+                break;
+              }
+
+              throw _iteratorError3;
+
+            case 33:
+              return _context3.finish(30);
+
+            case 34:
+              return _context3.finish(27);
+
+            case 35:
+              _context3.next = 41;
+              break;
+
+            case 37:
+              _context3.next = 39;
               return createBrowser$1(container, {});
 
-            case 19:
-              _browser2 = _context2.sent;
-              return _context2.abrupt("return", _browser2);
+            case 39:
+              _browser = _context3.sent;
+              browsers.push(_browser);
 
-            case 21:
+            case 41:
+              return _context3.abrupt("return", browsers);
+
+            case 42:
             case "end":
-              return _context2.stop();
+              return _context3.stop();
           }
         }
-      }, _callee2);
+      }, _callee3, null, [[19, 23, 27, 35], [28,, 30, 34]]);
     }));
     return _createBrowsers.apply(this, arguments);
   }
@@ -40380,40 +40495,40 @@ Context.prototype = {
     }
   }
 
-  function expandJuiceboxUrl(_x5) {
+  function expandJuiceboxUrl(_x7) {
     return _expandJuiceboxUrl.apply(this, arguments);
   }
 
   function _expandJuiceboxUrl() {
     _expandJuiceboxUrl = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee3(query) {
+    regeneratorRuntime.mark(function _callee4(query) {
       var jbURL;
-      return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      return regeneratorRuntime.wrap(function _callee4$(_context4) {
         while (1) {
-          switch (_context3.prev = _context3.next) {
+          switch (_context4.prev = _context4.next) {
             case 0:
               if (!(query && query.hasOwnProperty("juiceboxURL"))) {
-                _context3.next = 7;
+                _context4.next = 7;
                 break;
               }
 
-              _context3.next = 3;
+              _context4.next = 3;
               return expandURL(query["juiceboxURL"]);
 
             case 3:
-              jbURL = _context3.sent;
-              return _context3.abrupt("return", extractQuery$1(jbURL));
+              jbURL = _context4.sent;
+              return _context4.abrupt("return", extractQuery$1(jbURL));
 
             case 7:
-              return _context3.abrupt("return", query);
+              return _context4.abrupt("return", query);
 
             case 8:
             case "end":
-              return _context3.stop();
+              return _context4.stop();
           }
         }
-      }, _callee3);
+      }, _callee4);
     }));
     return _expandJuiceboxUrl.apply(this, arguments);
   }
@@ -40457,61 +40572,93 @@ Context.prototype = {
     }
   }
 
-  function shortJuiceboxURL(_x6) {
+  function shortJuiceboxURL(_x8) {
     return _shortJuiceboxURL.apply(this, arguments);
   }
 
   function _shortJuiceboxURL() {
     _shortJuiceboxURL = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee4(base) {
+    regeneratorRuntime.mark(function _callee5(base) {
       var url;
-      return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      return regeneratorRuntime.wrap(function _callee5$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
               url = "".concat(base, "?").concat(getCompressedDataString());
 
               if (!(url.length > 2048)) {
-                _context4.next = 5;
+                _context5.next = 5;
                 break;
               }
 
-              return _context4.abrupt("return", url);
+              return _context5.abrupt("return", url);
 
             case 5:
-              return _context4.abrupt("return", shortenURL(url));
+              return _context5.abrupt("return", shortenURL(url));
 
             case 6:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
-      }, _callee4);
+      }, _callee5);
     }));
     return _shortJuiceboxURL.apply(this, arguments);
   }
 
   function getCompressedDataString() {
-    return "juiceboxData=".concat(compressQueryParameter(getQueryString()));
+    //return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
+    return "session=blob:".concat(compressQueryParameter(toJSON()));
   }
 
   function toJSON() {
+    var jsonOBJ = {};
     var browserJson = [];
-    allBrowsers$1.forEach(function (browser, index) {
-      browserJson.push(browser.toJSON());
-    });
-    return JSON.stringify(browserJson);
-  }
+    var _iteratorNormalCompletion = true;
+    var _didIteratorError = false;
+    var _iteratorError = undefined;
 
-  function getQueryString() {
-    var queryString = "{";
-    allBrowsers$1.forEach(function (browser, index) {
-      var state = browser.getQueryString();
-      queryString += encodeURIComponent(state);
-      queryString += index === allBrowsers$1.length - 1 ? "}" : "},{";
-    });
-    return queryString;
+    try {
+      for (var _iterator = allBrowsers$1[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        var browser = _step.value;
+        browserJson.push(JSON.parse(browser.toJSON()));
+      }
+    } catch (err) {
+      _didIteratorError = true;
+      _iteratorError = err;
+    } finally {
+      try {
+        if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+          _iterator["return"]();
+        }
+      } finally {
+        if (_didIteratorError) {
+          throw _iteratorError;
+        }
+      }
+    }
+
+    jsonOBJ.browsers = browserJson;
+    var captionDiv = document.getElementById('hic-caption');
+
+    if (captionDiv) {
+      var captionText = captionDiv.textContent;
+
+      if (captionText) {
+        captionText = captionText.trim();
+
+        if (captionText) {
+          jsonOBJ.caption = captionText;
+        }
+      }
+    }
+
+    if (api.selectedGene) {
+      jsonOBJ.selectedGene = api.selectedGene;
+    }
+
+    return JSON.stringify(jsonOBJ);
   }
 
   function compressQueryParameter(str) {
@@ -40565,26 +40712,26 @@ Context.prototype = {
 
     var bytes = new Zlib$2.RawInflate(compressedBytes).decompress();
     var str = '';
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+    var _iteratorNormalCompletion2 = true;
+    var _didIteratorError2 = false;
+    var _iteratorError2 = undefined;
 
     try {
-      for (var _iterator = bytes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var b = _step.value;
+      for (var _iterator2 = bytes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var b = _step2.value;
         str += String.fromCharCode(b);
       }
     } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
+      _didIteratorError2 = true;
+      _iteratorError2 = err;
     } finally {
       try {
-        if (!_iteratorNormalCompletion && _iterator["return"] != null) {
-          _iterator["return"]();
+        if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+          _iterator2["return"]();
         }
       } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
+        if (_didIteratorError2) {
+          throw _iteratorError2;
         }
       }
     }
@@ -40626,9 +40773,7 @@ Context.prototype = {
     shortJuiceboxURL: shortJuiceboxURL,
     getCompressedDataString: getCompressedDataString,
     decompressQueryParameter: decompressQueryParameter,
-    igv: api,
-    toJSON: toJSON,
-    getQueryString: getQueryString
+    igv: api
   };
 
   return api$1;

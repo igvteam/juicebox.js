@@ -125,7 +125,7 @@ async function init(container, config) {
 
             const jbUrl = await hic.shortJuiceboxURL(href)
 
-            const embedSnippet = getEmbeddableSnippet(jbUrl);
+            const embedSnippet = await getEmbeddableSnippet();
             const $hic_embed_url = $('#hic-embed');
             $hic_embed_url.val(embedSnippet);
             $hic_embed_url.get(0).select();
@@ -385,13 +385,10 @@ async function init(container, config) {
         });
     }
 
-    function getEmbeddableSnippet(jbUrl) {
-        var idx, embedUrl, params, width, height;
-        idx = jbUrl.indexOf("?");
-        params = jbUrl.substring(idx);
-        embedUrl = (config.embedTarget || getEmbedTarget()) + "?juiceboxURL=" + params;
-        width = $appContainer.width() + 50;
-        height = $appContainer.height();
+    async function getEmbeddableSnippet() {
+        const base = (config.embedTarget || getEmbedTarget())
+        const embedUrl =  await hic.shortJuiceboxURL(base);
+        const height = $appContainer.height();
         return '<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>';
     }
 

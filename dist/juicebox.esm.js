@@ -43246,8 +43246,7 @@ const State = function (chr1, chr2, zoom, x, y, pixelSize, normalization) {
             this.chr2 = chr2;
             this.x = x;
             this.y = y;
-        }
-        else {
+        } else {
             // Transpose
             this.chr1 = chr2;
             this.chr2 = chr1;
@@ -43277,6 +43276,19 @@ State.prototype.equals = function (state) {
     var s1 = JSON.stringify(this);
     var s2 = JSON.stringify(state);
     return s1 === s2;
+};
+
+State.parse = function (string) {
+    const tokens = string.split(",");
+    return new State(
+        parseInt(tokens[0]),    // chr1
+        parseInt(tokens[1]),    // chr2
+        parseFloat(tokens[2]), // zoom
+        parseFloat(tokens[3]), // x
+        parseFloat(tokens[4]), // y
+        parseFloat(tokens[5]), // pixelSize
+        tokens.length > 6 ? tokens[6] : "NONE"   // normalization
+    )
 };
 
 /*
@@ -43379,6 +43391,35 @@ ColorScale.prototype.stringify = function () {
     return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
 };
 
+ColorScale.parse = function (string) {
+
+    var pnstr, ratioCS;
+
+    if (string.startsWith("R:")) {
+        pnstr = string.substring(2).split(":");
+        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+        ratioCS.positiveScale = foo(pnstr[1]);
+        ratioCS.negativeScale = foo(pnstr[2]);
+        return ratioCS;
+    } else {
+        return foo(string);
+    }
+
+    function foo(str) {
+        var cs, tokens;
+
+        tokens = str.split(",");
+
+        cs = {
+            threshold: tokens[0],
+            r: tokens[1],
+            g: tokens[2],
+            b: tokens[3]
+        };
+        return new ColorScale(cs);
+    }
+};
+
 /*
  *  The MIT License (MIT)
  *
@@ -43466,12 +43507,12 @@ function decodeQuery(query, config, uriDecode) {
 
     if (stateString) {
         stateString = paramDecode(stateString, uriDecode);
-        config.state = destringifyStateV0(stateString);
+        config.state = State.parse(stateString);
 
     }
     if (colorScale) {
         colorScale = paramDecode(colorScale, uriDecode);
-        config.colorScale = destringifyColorScale(colorScale);
+        config.colorScale = ColorScale.parse(colorScale);
     }
 
     if (displayMode) {
@@ -43515,20 +43556,7 @@ function decodeQuery(query, config, uriDecode) {
     if (controlNvi) {
         config.controlNvi = paramDecode(controlNvi, uriDecode);
     }
-
-    function destringifyStateV0(string) {
-        var tokens = string.split(",");
-        return new State(
-            parseInt(tokens[0]),    // chr1
-            parseInt(tokens[1]),    // chr2
-            parseFloat(tokens[2]), // zoom
-            parseFloat(tokens[3]), // x
-            parseFloat(tokens[4]), // y
-            parseFloat(tokens[5]), // pixelSize
-            tokens.length > 6 ? tokens[6] : "NONE"   // normalization
-        )
-    }
-
+    
     function destringifyTracksV0(tracks) {
 
         const trackStringList = tracks.split("|||");
@@ -43639,35 +43667,6 @@ function extractQuery$1(uri) {
 
     }
     return query;
-}
-
-function destringifyColorScale(string) {
-
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-        pnstr = string.substring(2).split(":");
-        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-        ratioCS.positiveScale = foo(pnstr[1]);
-        ratioCS.negativeScale = foo(pnstr[2]);
-        return ratioCS;
-    } else {
-        return foo(string);
-    }
-
-    function foo(str) {
-        var cs, tokens;
-
-        tokens = str.split(",");
-
-        cs = {
-            threshold: tokens[0],
-            r: tokens[1],
-            g: tokens[2],
-            b: tokens[3]
-        };
-        return new ColorScale(cs);
-    }
 }
 
 /*!
@@ -56395,6 +56394,13 @@ async function createBrowser$1(hic_container, config, callback) {
         decodeQuery(query, config, uriDecode);
     }
 
+    if(api.isString(config.state)) {
+        config.state = State.parse(config.state);
+    }
+    if(api.isString(config.colorScale)) {
+        config.colorScale = ColorScale.parse(config.colorScale);
+    }
+
     const browser = new HICBrowser($hic_container, config);
 
     browser.eventBus.hold();
@@ -56619,9 +56625,15 @@ function setDefaults$1(config) {
     }
 
     if (config.state) {
-        // convert to state object
-        config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
-            config.state.y, config.state.pixelSize, config.state.normalization);
+
+        if(api.isString(config.state)) {
+            config.state = State.parse(config.state);
+        }
+        else {
+            // copy
+            config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
+                config.state.y, config.state.pixelSize, config.state.normalization);
+        }
     }
 }
 
@@ -56773,13 +56785,10 @@ function parseData(data, isBedPE) {
 
     let errorCount = 0;
     for (i = start; i < len; i++) {
-
-        line = lines[i];
-
-        if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser")) {
+        line = lines[i].trim();
+        if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser") || line.length === 0) {
             continue;
         }
-
         tokens = lines[i].split(delimiter);
         if (tokens.length < 6 && errorCount <= 5) {
             if (errorCount === 5) {
@@ -70125,7 +70134,6 @@ function getNviString(dataset) {
     // }
 }
 
-
 function replaceAll$1(str, target, replacement) {
     return str.split(target).join(replacement);
 }
@@ -70137,7 +70145,7 @@ HICBrowser.prototype.toJSON = function () {
 
     const jsonOBJ = {};
 
-    jsonOBJ.hicUrl = this.dataset.url;
+    jsonOBJ.url = this.dataset.url;
     if (this.dataset.name) {
         jsonOBJ.name = this.dataset.name;
     }
@@ -70168,8 +70176,9 @@ HICBrowser.prototype.toJSON = function () {
         }
     }
 
-    if (this.trackRenderers.length > 0) {
+    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
         let tracks = [];
+        jsonOBJ.tracks = tracks;
         for (let trackRenderer of this.trackRenderers) {
             const track = trackRenderer.x.track;
             const config = track.config;
@@ -70189,15 +70198,10 @@ HICBrowser.prototype.toJSON = function () {
                 }
                 tracks.push(t);
             }
-            jsonOBJ.tracks = tracks;
-        }
-    }
-    if (this.tracks2D.length > 0) {
-        let tracks = [];
-        for (let track of this.tracks2D) {
-            var config = track.config,
-                url = config.url;
 
+        }
+        for (let track of this.tracks2D) {
+            var config = track.config;
             if (typeof config.url === "string") {
                 const t = {
                     url: config.url
@@ -70211,19 +70215,8 @@ HICBrowser.prototype.toJSON = function () {
                 tracks.push(t);
             }
         }
-        jsonOBJ.tracks2Ds = tracks;
     }
 
-    const captionDiv = document.getElementById('hic-caption');
-    if (captionDiv) {
-        var captionText = captionDiv.textContent;
-        if (captionText) {
-            captionText = captionText.trim();
-            if (captionText) {
-                jsonOBJ.push(paramString("caption", captionText));
-            }
-        }
-    }
 
     // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
     //
@@ -70239,12 +70232,7 @@ HICBrowser.prototype.toJSON = function () {
 
     return JSON.stringify(jsonOBJ);
 
-    function paramString(key, value) {
-        return key + "=" + paramEncode(value)
-    }
-
 };
-
 
 HICBrowser.prototype.getQueryString = function () {
 
@@ -70368,7 +70356,6 @@ async function loadDataset(config) {
     dataset.url = config.url;
     return dataset
 }
-
 
 function presentError(prefix, error) {
     const httpMessages = {
@@ -76005,58 +75992,84 @@ async function initApp(container, config) {
         query = await expandJuiceboxUrl(query);
     }
 
-    const unused = await createBrowsers(container, query);
+    if(query.hasOwnProperty("session")) {
+        if(query.session.startsWith("blob:")) {
+            const json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
+            json.initFromUrl = false;
+            await restoreSession(container, json);
+        } else {
+            // TODO - handle session url
+            await createBrowsers(container, query);
+        }
+    } else {
+        await createBrowsers(container, query);
+    }
     syncBrowsers(allBrowsers$1);
 
 }
 
-async function createBrowsers(container, query) {
+async function restoreSession(container, session) {
 
-    var parts, i;
-
-    let q;
-
-    if (query && query.hasOwnProperty("juicebox")) {
-        q = query["juicebox"];
-        if (q.startsWith("%7B")) {
-            q = decodeURIComponent(q);
-        }
-    } else if (query && query.hasOwnProperty("juiceboxData")) {
-        q = decompressQueryParameter(query["juiceboxData"]);
+    if (session.hasOwnProperty("selectedGene")) {
+        api.selectedGene = session.selectedGene;
     }
 
+    if (session.hasOwnProperty("caption")) {
+        const captionText = session.caption;
+        var captionDiv = document.getElementById("hic-caption");
+        if (captionDiv) {
+            captionDiv.textContent = captionText;
+        }
+    }
+
+    // First browser
+    await createBrowser$1(container, session.browsers[0]);
+
+    const promises = [];
+    for(let i=1; i<session.browsers.length; i++) {
+        promises.push(createBrowser$1(container, session.browsers[i]));
+    }
+    await Promise.all(promises);
+
+}
+
+async function createBrowsers(container, query) {
+    let q;
+    if (query) {
+        if (query.hasOwnProperty("juicebox")) {
+            q = query["juicebox"];
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+        } else if (query.hasOwnProperty("juiceboxData")) {
+            q = decompressQueryParameter(query["juiceboxData"]);
+        }
+    }
+
+    const browsers = [];
     if (q) {
-
         q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-        parts = q.split("},{");
-
+        const parts = q.split("},{");
         const decoded = decodeURIComponent(parts[0]);
         const browser = await createBrowser$1(container, {queryString: decoded});
-
-
+        browsers.push(browser);
         if (parts && parts.length > 1) {
-
             const promises = [];
-            for (i = 1; i < parts.length; i++) {
+            for (let i = 1; i < parts.length; i++) {
                 promises.push(createBrowser$1(container, {queryString: decodeURIComponent(parts[i])}));
                 //const b = await createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
                 // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
                 // b.eventBus.subscribe("MapLoad", checkBDropdown);
             }
 
-            const browsers = await Promise.all(promises);
-
+            const tmp = await Promise.all(promises);
+            for(let b of tmp) browsers.push(b);
         }
-
-        return browser
-
-
     } else {
         const browser = await createBrowser$1(container, {});
-
-        return browser
-
+        browsers.push(browser);
     }
+    return browsers;
 }
 
 function syncBrowsers(browsers) {
@@ -76134,7 +76147,7 @@ function setURLShortener(shortenerConfigs) {
 
     function getShortener(shortener) {
         if (shortener.provider) {
-            if(shortener.provider === "tinyURL") {
+            if (shortener.provider === "tinyURL") {
                 return new TinyURL(shortener);
             }
             if (shortener.provider === "google") {
@@ -76158,7 +76171,7 @@ function setURLShortener(shortenerConfigs) {
 function shortenURL(url) {
 
     if (urlShorteners && urlShorteners.length > 0) {
-        return urlShorteners[ 0 ].shortenURL(url);
+        return urlShorteners[0].shortenURL(url);
     } else {
         return Promise.resolve(url);
     }
@@ -76166,7 +76179,7 @@ function shortenURL(url) {
 
 async function shortJuiceboxURL(base) {
 
-    const url = `${ base }?${ getCompressedDataString() }`;
+    const url = `${base}?${getCompressedDataString()}`;
 
     if (url.length > 2048) {
 
@@ -76177,25 +76190,32 @@ async function shortJuiceboxURL(base) {
 }
 
 function getCompressedDataString() {
-    return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
+    //return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
+    return `session=blob:${compressQueryParameter(toJSON())}`
 }
 
 function toJSON() {
-    let browserJson = [];
-    allBrowsers$1.forEach(function (browser, index) {
-        browserJson.push(browser.toJSON());
-    });
-    return JSON.stringify(browserJson);
-}
+    const jsonOBJ = {};
+    const browserJson = [];
+    for(let browser of allBrowsers$1) {
+        browserJson.push(JSON.parse(browser.toJSON()));
+    }
+    jsonOBJ.browsers = browserJson;
 
-function getQueryString() {
-    let queryString = "{";
-    allBrowsers$1.forEach(function (browser, index) {
-        const state = browser.getQueryString();
-        queryString += encodeURIComponent(state);
-        queryString += (index === allBrowsers$1.length - 1 ? "}" : "},{");
-    });
-    return queryString;
+    const captionDiv = document.getElementById('hic-caption');
+    if (captionDiv) {
+        var captionText = captionDiv.textContent;
+        if (captionText) {
+            captionText = captionText.trim();
+            if (captionText) {
+                jsonOBJ.caption = captionText;
+            }
+        }
+    }
+    if (api.selectedGene) {
+        jsonOBJ.selectedGene = api.selectedGene;
+    }
+    return JSON.stringify(jsonOBJ);
 }
 
 function compressQueryParameter(str) {
@@ -76282,8 +76302,7 @@ function decompressQueryParameter(enc) {
 
 var api$1 = {
     createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api,
-    toJSON, getQueryString
+    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api
 };
 
 export default api$1;
