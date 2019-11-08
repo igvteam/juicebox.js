@@ -25,11 +25,9 @@ const LayoutController = function (browser, $root) {
     createAllContainers.call(this, browser, $root);
 
     this.scrollbar_height = 20;
-
-    this.axis_height = 32;
-
-    // track dimension
-    this.track_height = 32;
+    this.axis_height = 40;
+    this.annotationTrackHeight = 40;
+    this.wigTrackHeight = 40;
 
     // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
     this.track_margin = 2;
@@ -291,7 +289,7 @@ LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
         var w, h;
 
         trackRendererPair = {};
-        w = h = self.track_height;
+        w = h = self.wigTrackHeight;
         trackRendererPair.x = new TrackRenderer(self.browser, {
             width: undefined,
             height: h
@@ -405,7 +403,7 @@ LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount
         height_calc;
 
 
-    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
+    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.wigTrackHeight + this.track_margin);
 
     tokens = _.map([LayoutController.navbarHeight(), track_aggregate_height], function (number) {
         return number.toString() + 'px';

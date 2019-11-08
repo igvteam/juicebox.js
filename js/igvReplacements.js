@@ -27,22 +27,19 @@ const igvReplacements = function (igv) {
         var menuItems = [];
 
         menuItems.push(colorPickerMenuItem(trackRenderer));
-
         menuItems.push(trackRenameMenuItem(trackRenderer));
-
-        if (trackRenderer.track.menuItemList) {
-            menuItems = menuItems.concat(trackRenderer.track.menuItemList());
+        if("annotation" !== trackRenderer.track.type) {
+            if (trackRenderer.track.menuItemList) {
+                menuItems = menuItems.concat(trackRenderer.track.menuItemList());
+            }
         }
-
         menuItems.push('<hr/>');
         menuItems.push(trackRemovalMenuItem(trackRenderer));
-
         return menuItems;
     };
 
 
     igv.Alert.presentAlert = function (message, $parent) {
-
 
         const httpMessages = {
             "401": "Access unauthorized",

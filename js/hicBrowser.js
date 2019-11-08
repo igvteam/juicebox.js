@@ -295,8 +295,12 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     fn = isLocal ? config.url.name : config.url;
                 if ("annotation" === config.type && config.color === undefined) {
                     config.color = DEFAULT_ANNOTATION_COLOR;
+                    config.displayMode = "COLLAPSED"
                 }
-                config.height = this.layoutController.track_height;
+                if(config.max === undefined) {
+                    config.autoscale = true;
+                }
+                config.height = ("annotation" === config.type) ? this.layoutController.annotationTrackHeight : this.layoutController.wigTrackHeight;
 
                 if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                     promisesNV.push(this.loadNormalizationFile(config.url))
@@ -417,12 +421,12 @@ HICBrowser.prototype.renderTracks = function () {
  *
  * @param xy
  */
-HICBrowser.prototype.renderTrackXY = async function (xy) {
+HICBrowser.prototype.renderTrackXY = async function (xy, force) {
 
     try {
         this.startSpinner()
-        await xy.x.repaint();
-        await xy.y.repaint();
+        await xy.x.repaint(force);
+        await xy.y.repaint(force);
     } finally {
         this.stopSpinner()
     }

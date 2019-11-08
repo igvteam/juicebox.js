@@ -243,7 +243,7 @@ async function init(container, config) {
                 if ('hic' === suffix) {
                     loadHicFile(file, file.name);
                 } else {
-                    hic.HICBrowser.getCurrentBrowser().loadTracks([{url: file, name: file.name}]);
+                    loadTracks([{url: file, name: file.name}]);
                 }
             }
 
@@ -277,7 +277,7 @@ async function init(container, config) {
                 igv.Alert.presentAlert('ERROR: you must select a map panel.');
             } else {
                 url = $(this).val();
-                hic.HICBrowser.getCurrentBrowser().loadTracks([{url: url}]);
+                loadTracks([{url: url}]);
             }
 
             $(this).val("");
@@ -300,7 +300,7 @@ async function init(container, config) {
                 if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                     config.indexed = false   //UCSC files are never indexed
                 }
-                hic.HICBrowser.getCurrentBrowser().loadTracks([config]);
+                loadTracks([config]);
             }
 
             $('#hic-annotation-select-modal').modal('hide');
@@ -319,7 +319,7 @@ async function init(container, config) {
                 path = $(this).val();
                 name = $(this).find('option:selected').text();
 
-                hic.HICBrowser.getCurrentBrowser().loadTracks([{url: path, name: name}]);
+                loadTracks([{url: path, name: name}]);
             }
 
             $('#hic-annotation-2D-select-modal').modal('hide');
@@ -533,6 +533,14 @@ async function init(container, config) {
 
 }
 
+function loadTracks(tracks) {
+    // Set some juicebox specific defaults
+    for(let t of tracks) {
+        t.autoscale = true;
+        t.displayMode = "COLLAPSED"
+    }
+    hic.HICBrowser.getCurrentBrowser().loadTracks(tracks);
+}
 
 function checkBDropdown() {
     updateBDropdown(hic.HICBrowser.getCurrentBrowser());
@@ -553,7 +561,7 @@ const encodeModal = new ModalTable({
     id: "hic-encode-modal",
     title: "ENCODE",
     selectHandler: function (selected) {
-        hic.HICBrowser.getCurrentBrowser().loadTracks(selected);
+        loadTracks(selected);
     }
 })
 

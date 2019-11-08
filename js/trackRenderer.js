@@ -147,26 +147,24 @@ TrackRenderer.prototype.setTrackHeight = function (height) {
     console.error("setTrackHeight not implemented")
 };
 
+
+
 TrackRenderer.prototype.dataRange = function () {
     return this.track.dataRange ? this.track.dataRange : undefined;
 };
 
 TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
-
     if (min !== undefined) {
         this.track.dataRange.min = min;
         this.track.config.min = min;
     }
-
     if (max !== undefined) {
         this.track.dataRange.max = max;
         this.track.config.max = max;
     }
-
     this.track.autoscale = autoscale;
-    this.track.config.autoScale = autoscale;
-
-    this.repaint();
+    this.track.config.autoScale = autoscale
+    this.repaintViews();
 };
 
 
@@ -189,13 +187,9 @@ TrackRenderer.prototype.readyToPaint = async function () {
         genomicState.bpp
 
     if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
-
         return;
-
     } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
-
         return;
-
     } else {
 
         // Expand the requested range so we can pan a bit without reloading
@@ -214,10 +208,12 @@ TrackRenderer.prototype.readyToPaint = async function () {
         ctx = buffer.getContext("2d");
         if (features) {
 
-            if (typeof self.track.doAutoscale === 'function') {
-                self.track.doAutoscale(features);
-            } else {
-                self.track.dataRange = igv.doAutoscale(features);
+            if(this.track.autoscale || !this.track.dataRange) {
+                if (typeof self.track.doAutoscale === 'function') {
+                    this.track.doAutoscale(features);
+                } else {
+                    this.track.dataRange = igv.doAutoscale(features);
+                }
             }
 
             self.canvasTransform(ctx);
@@ -253,7 +249,7 @@ TrackRenderer.prototype.readyToPaint = async function () {
 /**
  *
  */
-TrackRenderer.prototype.repaint = async function () {
+TrackRenderer.prototype.repaint = async function (force) {
 
     const genomicState = this.browser.genomicState(this.axis);
     if (!this.checkZoomIn()) {
@@ -266,6 +262,9 @@ TrackRenderer.prototype.repaint = async function () {
         this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
         genomicState.bpp
 
+    if(force) {
+        this.tile = undefined;
+    }
     if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
         await this.readyToPaint()
     }
@@ -312,6 +311,19 @@ TrackRenderer.prototype.stopSpinner = function () {
 TrackRenderer.prototype.isLoading = function () {
     return !(undefined === this.loading);
 };
+
+/**
+ * No-op but needed for igv menu compatibility
+ */
+TrackRenderer.prototype.checkContentHeight = function () {
+}
+
+/**
+ * Needed for igv menu compatibility
+ */
+TrackRenderer.prototype.repaintViews = function () {
+    this.browser.renderTrackXY(this.trackRenderPair, true);
+}
 
 // ColorScaleWidget version of color picker
 function createColorPicker_ColorScaleWidget_version($parent, closeHandler, colorHandler) {
