@@ -43,7 +43,7 @@
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
     "hic-straw": "^0.9.8",
-    "igv": "^2.3.3",
+    "igv": "^2.3.4",
     "node-qunit-puppeteer": "^1.0.13",
     "rollup": "^1.21.2",
     "rollup-plugin-babel": "^4.3.3",

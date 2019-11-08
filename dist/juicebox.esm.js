@@ -11732,7 +11732,7 @@ function isSimpleType(value) {
     return (value !== undefined && (simpleTypes.has(valueType) || value.substring || value.toFixed))
 }
 
-const buildOptions = function (config, options) {
+function buildOptions (config, options) {
 
     var defaultOptions = {
         oauthToken: config.oauthToken,
@@ -11742,7 +11742,7 @@ const buildOptions = function (config, options) {
     };
 
     return Object.assign(defaultOptions, options);
-};
+}
 
 
 function download  (filename, data) {
@@ -19973,12 +19973,12 @@ ViewPort.prototype.toSVG = async function (tile) {
 
 function draw(drawConfiguration, features, roiFeatures) {
 
-    if (features) {
+    if (features && features.length > 0) {
         drawConfiguration.features = features;
         this.trackView.track.draw(drawConfiguration);
     }
 
-    if (roiFeatures) {
+    if (roiFeatures && roiFeatures.length > 0) {
         for (let r of roiFeatures) {
             drawConfiguration.features = r.features;
             r.track.draw(drawConfiguration);
@@ -24268,7 +24268,7 @@ function decodeAed(tokens, ignore) {
 
     var feature = new AedFeature(this.aed, tokens);
 
-    if (!feature.chr || !feature.start || !feature.end) {
+    if (!feature.chr || (!feature.start && feature.start!==0) || !feature.end) {
         return undefined;
     }
 
@@ -26073,19 +26073,27 @@ FeatureFileReader.prototype.getParser = function (format, decode, config) {
 FeatureFileReader.prototype.loadIndex = async function () {
 
     let idxFile = this.config.indexURL;
-    if (this.filename.endsWith('.gz') || this.filename.endsWith('.bgz')) {
+    try {
+        let index;
+        if (this.filename.endsWith('.gz') || this.filename.endsWith('.bgz')) {
+            if (!idxFile) {
+                idxFile = this.config.url + '.tbi';
+            }
+            index = await loadBamIndex(idxFile, this.config, true, this.genome);
 
-        if (!idxFile) {
-            idxFile = this.config.url + '.tbi';
+        } else {
+            if (!idxFile) {
+                idxFile = this.config.url + '.idx';
+            }
+            index = await loadTribbleIndex(idxFile, this.config, this.genome);
         }
-        return loadBamIndex(idxFile, this.config, true, this.genome);
-
-    } else {
-
-        if (!idxFile) {
-            idxFile = this.config.url + '.idx';
+        return index;
+    } catch (e) {
+        if(this.config.indexURL) {
+            throw e;
+        } else {
+            return undefined;   // This is an expected condition if an indexFile is not specified.
         }
-        return loadTribbleIndex(idxFile, this.config, this.genome);
     }
 };
 
@@ -39951,7 +39959,7 @@ Browser.prototype.loadTrack = async function (config) {
         const json = await google.getDriveFileInfo(config.url);
         config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
         if (!config.filename) {
-            config.filename = json.originalFileName;
+            config.filename = json.originalFileName || json.name;
         }
         if (!config.format) {
             config.format = inferFileFormat(config.filename);
@@ -43131,7 +43139,7 @@ function embedCSS() {
 
 }
 
-const _version = "2.3.3 (baac185739f7462550a50b32c1f59b97a36ecb8d)";
+const _version = "2.3.4 (5e9a9e5c1750edb5372987dd704dba77e5ff2530)";
 
 function version$1() {
     return _version;
@@ -43169,7 +43177,6 @@ var api = {
     download,
     getBrowser,
     doAutoscale,
-    buildOptions,
     graphics,
     createTrack,
     getFilename,
@@ -56240,22 +56247,19 @@ const igvReplacements = function (igv) {
         var menuItems = [];
 
         menuItems.push(colorPickerMenuItem$1(trackRenderer));
-
         menuItems.push(trackRenameMenuItem$1(trackRenderer));
-
-        if (trackRenderer.track.menuItemList) {
-            menuItems = menuItems.concat(trackRenderer.track.menuItemList());
+        if("annotation" !== trackRenderer.track.type) {
+            if (trackRenderer.track.menuItemList) {
+                menuItems = menuItems.concat(trackRenderer.track.menuItemList());
+            }
         }
-
         menuItems.push('<hr/>');
         menuItems.push(trackRemovalMenuItem$1(trackRenderer));
-
         return menuItems;
     };
 
 
     igv.Alert.presentAlert = function (message, $parent) {
-
 
         const httpMessages = {
             "401": "Access unauthorized",
@@ -60371,26 +60375,24 @@ TrackRenderer.prototype.setTrackHeight = function (height) {
     console.error("setTrackHeight not implemented");
 };
 
+
+
 TrackRenderer.prototype.dataRange = function () {
     return this.track.dataRange ? this.track.dataRange : undefined;
 };
 
 TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
-
     if (min !== undefined) {
         this.track.dataRange.min = min;
         this.track.config.min = min;
     }
-
     if (max !== undefined) {
         this.track.dataRange.max = max;
         this.track.config.max = max;
     }
-
     this.track.autoscale = autoscale;
     this.track.config.autoScale = autoscale;
-
-    this.repaint();
+    this.repaintViews();
 };
 
 
@@ -60413,13 +60415,9 @@ TrackRenderer.prototype.readyToPaint = async function () {
         genomicState.bpp;
 
     if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
-
         return;
-
     } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
-
         return;
-
     } else {
 
         // Expand the requested range so we can pan a bit without reloading
@@ -60438,10 +60436,12 @@ TrackRenderer.prototype.readyToPaint = async function () {
         ctx = buffer.getContext("2d");
         if (features) {
 
-            if (typeof self.track.doAutoscale === 'function') {
-                self.track.doAutoscale(features);
-            } else {
-                self.track.dataRange = api.doAutoscale(features);
+            if(this.track.autoscale || !this.track.dataRange) {
+                if (typeof self.track.doAutoscale === 'function') {
+                    this.track.doAutoscale(features);
+                } else {
+                    this.track.dataRange = api.doAutoscale(features);
+                }
             }
 
             self.canvasTransform(ctx);
@@ -60477,7 +60477,7 @@ TrackRenderer.prototype.readyToPaint = async function () {
 /**
  *
  */
-TrackRenderer.prototype.repaint = async function () {
+TrackRenderer.prototype.repaint = async function (force) {
 
     const genomicState = this.browser.genomicState(this.axis);
     if (!this.checkZoomIn()) {
@@ -60490,6 +60490,9 @@ TrackRenderer.prototype.repaint = async function () {
         this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
         genomicState.bpp;
 
+    if(force) {
+        this.tile = undefined;
+    }
     if (!(this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp))) {
         await this.readyToPaint();
     }
@@ -60535,6 +60538,19 @@ TrackRenderer.prototype.stopSpinner = function () {
 
 TrackRenderer.prototype.isLoading = function () {
     return !(undefined === this.loading);
+};
+
+/**
+ * No-op but needed for igv menu compatibility
+ */
+TrackRenderer.prototype.checkContentHeight = function () {
+};
+
+/**
+ * Needed for igv menu compatibility
+ */
+TrackRenderer.prototype.repaintViews = function () {
+    this.browser.renderTrackXY(this.trackRenderPair, true);
 };
 
 // ColorScaleWidget version of color picker
@@ -60984,11 +61000,9 @@ const LayoutController = function (browser, $root) {
     createAllContainers.call(this, browser, $root);
 
     this.scrollbar_height = 20;
-
-    this.axis_height = 32;
-
-    // track dimension
-    this.track_height = 32;
+    this.axis_height = 40;
+    this.annotationTrackHeight = 40;
+    this.wigTrackHeight = 40;
 
     // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
     this.track_margin = 2;
@@ -61245,7 +61259,7 @@ LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
         var w, h;
 
         trackRendererPair = {};
-        w = h = self.track_height;
+        w = h = self.wigTrackHeight;
         trackRendererPair.x = new TrackRenderer(self.browser, {
             width: undefined,
             height: h
@@ -61355,7 +61369,7 @@ LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount
         height_calc;
 
 
-    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.track_height + this.track_margin);
+    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.wigTrackHeight + this.track_margin);
 
     tokens = _.map([LayoutController.navbarHeight(), track_aggregate_height], function (number) {
         return number.toString() + 'px';
@@ -69236,8 +69250,12 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     fn = isLocal ? config.url.name : config.url;
                 if ("annotation" === config.type && config.color === undefined) {
                     config.color = DEFAULT_ANNOTATION_COLOR;
+                    config.displayMode = "COLLAPSED";
                 }
-                config.height = this.layoutController.track_height;
+                if(config.max === undefined) {
+                    config.autoscale = true;
+                }
+                config.height = ("annotation" === config.type) ? this.layoutController.annotationTrackHeight : this.layoutController.wigTrackHeight;
 
                 if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                     promisesNV.push(this.loadNormalizationFile(config.url));
@@ -69358,12 +69376,12 @@ HICBrowser.prototype.renderTracks = function () {
  *
  * @param xy
  */
-HICBrowser.prototype.renderTrackXY = async function (xy) {
+HICBrowser.prototype.renderTrackXY = async function (xy, force) {
 
     try {
         this.startSpinner();
-        await xy.x.repaint();
-        await xy.y.repaint();
+        await xy.x.repaint(force);
+        await xy.y.repaint(force);
     } finally {
         this.stopSpinner();
     }
@@ -70230,7 +70248,7 @@ HICBrowser.prototype.toJSON = function () {
     //     queryString.push(paramString("normVectorFiles", normVectorString));
     // }
 
-    return JSON.stringify(jsonOBJ);
+    return jsonOBJ;
 
 };
 
@@ -70470,6 +70488,10 @@ var BitlyURL = function (config) {
 BitlyURL.prototype.shortenURL = async function (url) {
 
     var self = this;
+
+    if(url.length > 2048) {
+        return url;
+    }
 
     if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
 
@@ -75992,8 +76014,8 @@ async function initApp(container, config) {
         query = await expandJuiceboxUrl(query);
     }
 
-    if(query.hasOwnProperty("session")) {
-        if(query.session.startsWith("blob:")) {
+    if (query.hasOwnProperty("session")) {
+        if (query.session.startsWith("blob:")) {
             const json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
             json.initFromUrl = false;
             await restoreSession(container, json);
@@ -76026,7 +76048,7 @@ async function restoreSession(container, session) {
     await createBrowser$1(container, session.browsers[0]);
 
     const promises = [];
-    for(let i=1; i<session.browsers.length; i++) {
+    for (let i = 1; i < session.browsers.length; i++) {
         promises.push(createBrowser$1(container, session.browsers[i]));
     }
     await Promise.all(promises);
@@ -76063,7 +76085,7 @@ async function createBrowsers(container, query) {
             }
 
             const tmp = await Promise.all(promises);
-            for(let b of tmp) browsers.push(b);
+            for (let b of tmp) browsers.push(b);
         }
     } else {
         const browser = await createBrowser$1(container, {});
@@ -76130,8 +76152,7 @@ function syncBrowsers(browsers) {
 
 async function expandJuiceboxUrl(query) {
     if (query && query.hasOwnProperty("juiceboxURL")) {
-        const jbURL = await
-            expandURL(query["juiceboxURL"]);
+        const jbURL = await expandURL(query["juiceboxURL"]);   // Legacy bitly urls
         return extractQuery$1(jbURL);
     } else {
         return query
@@ -76159,17 +76180,18 @@ function setURLShortener(shortenerConfigs) {
             }
         } else {
             // Custom
-            if (typeof shortener.shortenURL === "function" && typeof shortener.expandURL === "function" && typeof shortener.hostname === "string") {
+            if (typeof shortener.shortenURL === "function")  {
                 return shortener;
             } else {
-                ac.presentAlert("URL shortener object must define functions 'shortenURL' and 'expandURL' and string constant 'hostname'");
+                ac.presentAlert("URL shortener object must define functions 'shortenURL'");
             }
         }
     }
 }
 
-function shortenURL(url) {
+async function shortJuiceboxURL(base) {
 
+    const url = `${base}?${getCompressedDataString()}`;
     if (urlShorteners && urlShorteners.length > 0) {
         return urlShorteners[0].shortenURL(url);
     } else {
@@ -76177,28 +76199,17 @@ function shortenURL(url) {
     }
 }
 
-async function shortJuiceboxURL(base) {
-
-    const url = `${base}?${getCompressedDataString()}`;
-
-    if (url.length > 2048) {
-
-        return url
-    } else {
-        return shortenURL(url)
-    }
-}
-
 function getCompressedDataString() {
     //return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
-    return `session=blob:${compressQueryParameter(toJSON())}`
+    const jsonString = JSON.stringify(toJSON());
+    return `session=blob:${compressQueryParameter(jsonString)}`
 }
 
 function toJSON() {
     const jsonOBJ = {};
     const browserJson = [];
-    for(let browser of allBrowsers$1) {
-        browserJson.push(JSON.parse(browser.toJSON()));
+    for (let browser of allBrowsers$1) {
+        browserJson.push(browser.toJSON());
     }
     jsonOBJ.browsers = browserJson;
 
@@ -76215,7 +76226,7 @@ function toJSON() {
     if (api.selectedGene) {
         jsonOBJ.selectedGene = api.selectedGene;
     }
-    return JSON.stringify(jsonOBJ);
+    return jsonOBJ;
 }
 
 function compressQueryParameter(str) {
