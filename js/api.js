@@ -25,9 +25,9 @@ import igv from '../node_modules/igv/dist/igv.esm.js';
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
 import {allBrowsers, createBrowser, eventBus} from './hicUtils.js';
-import {decompressQueryParameter, getCompressedDataString, initApp, shortJuiceboxURL, syncBrowsers} from "./init.js";
+import {decompressQueryParameter, getCompressedDataString, initApp, shortJuiceboxURL, syncBrowsers, toJSON} from "./init.js";
 
 export default {
     createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, eventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv
+    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON, igv
 }

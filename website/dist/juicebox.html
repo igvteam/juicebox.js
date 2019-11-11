@@ -1,4 +1,3 @@
-
 <!--
   ~  The MIT License (MIT)
   ~
@@ -75,6 +74,9 @@
     <!-- Site JS-->
     <script src="js/site-bundle.js"></script>
 
+    <!-- Google API -- remove if not supporting Google resources -->
+    <script src="https://apis.google.com/js/platform.js"></script>
+
     <!-- Google Analytics -->
     <script src="../dev/js/analytics.js"></script>
     <script src="../dev/js/clickanalytics.js"></script>
@@ -84,236 +86,19 @@
 <body id="portfolio">
 
 <!-- Share URL Modal -->
-<nav class="navbar fixed-top navbar-expand-sm navbar-dark bg-dark">
-
-    <!--    -->
-    <a href="https://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
-
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#hic-navbar-content"
-            aria-controls="hic-navbar-content" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div id="hic-navbar-content" class="collapse navbar-collapse d-flex flex-row-reverse">
-
-        <ul class="navbar-nav">
-
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">About</a>
-
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="../aboutus.html">Team</a>
-                    <a class="dropdown-item" href="https://news.tc4ga.com/">News</a>
-                    <a class="dropdown-item" href="../join.html">Join</a>
-                </div>
-
-            </li>
-
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Research</a>
-
-                <div class="dropdown-menu">
-                    <a class="dropdown-item" href="../research.html">Projects</a>
-                    <a class="dropdown-item" href="../publications.html">Publications</a>
-                    <a class="dropdown-item" href="../software.html">Software</a>
-                    <a class="dropdown-item" href="../documentation.html">Documentation</a>
-                    <a class="dropdown-item" href="../data.html">Data</a>
-                </div>
-
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="../contactus.html">Contact</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="../forum.html">Forum</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="../assembly.html">Assembly</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="https://aidenlab.org/juicebox">Juicebox</a>
-            </li>
-        </ul>
-
-    </div>
-
-</nav>
-
-<div id="hic-modal-button-container">
-
-    <!-- Contact Map: Select | Local File | URL -->
-    <div class="dropdown">
-
-        <button id="hic-contact-map-dropdown" class="btn btn-outline-dark dropdown-toggle" type="button"
-                data-toggle="dropdown">
-            Load Map
-        </button>
-
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
-        </div>
-
-    </div>
-
-    <!-- Control Map: Select | Local File | URL -->
-    <div class="dropdown">
-
-        <button id="hic-control-map-dropdown" class="btn btn-outline-dark dropdown-toggle disabled" type="button"
-                data-toggle="dropdown">
-            Load "B" Map
-        </button>
-
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
-        </div>
-
-    </div>
-
-    <!-- Track File: ENCODE | Annotations | Local File | URL -->
-    <div class="dropdown">
-
-        <button id="hic-track-dropdown-button" class="btn btn-outline-dark dropdown-toggle" type="button"
-                data-toggle="dropdown">
-            Load Tracks
-        </button>
-
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-encode-modal"
-               id="hic-encode-modal-button">ENCODE</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">Genome
-                Annotations</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">2D
-                Annotations</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Track
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#track-load-url-modal">Track URL</a>
-        </div>
-
-    </div>
-
-    <!-- Share (generate URL) -->
-    <div title="Share">
-        <button id="hic-share-button" class="btn btn-outline-dark" type="button" data-toggle="modal"
-                data-target="#hic-share-url-modal">
-            Share
-        </button>
-    </div>
-
-    <!-- App clone button -->
-    <div class="juicebox-app-clone-button" title="Add Map Panel">
-        <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
-    </div>
-
-</div>
-
-<div class="container-fluid">
-
-    <!-- App container -->
-    <div class="row">
-        <div class="col-md-12">
-
-            <!-- app + caption container-->
-            <div id="app-caption" class="juicebox-app-caption-container">
-
-                <!-- app container-->
-                <div id="app-container" class="juicebox-app-clone-container">
-                </div>
-
-                <!-- caption -->
-                <div id="hic-caption" class="hic-caption-container" contenteditable="true">
-
-                </div>
-
-            </div>
-
-
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div>
-                <span>&nbsp;&nbsp;&nbsp;</span>
-                <span id="hic-version-number">version test</span>
-
-            </div>
-
-        </div>
-    </div>
-
-    <div class="row header">
-        <div class="text-center col-md-offset-2 col-md-8 col-md-offset-2">
-            <br>
-            <h5>
-                <a href="https://github.com/igvteam/juicebox.js" target="_blank">Juicebox.js</a> is cloud-based
-                visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim
-                Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
-                    href="https://igv.org" target="_blank">IGV</a> team, in collaboration with <a
-                    href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a
-                    href="https://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged
-                <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
-                    Juicebox</a>.
-            </h5>
-            <br>
-            <h5>
-                If you use Juicebox in your research, please cite:
-            </h5>
-            <br>
-            <h5>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez
-                Lieberman Aiden.
-                <em>"Juicebox.js Provides a Cloud-Based Visualization System for Hi-C Data."</em> <i>Cell Systems</i>&nbsp;6(2),2018.
-            </h5>
-            <br>
-        </div>
-    </div>
-
-</div>
-
-<div id="footer-white" style="background:#414B5B;">
-    <div class="container">
-        <div class="row" align="center">
-            <div class="newsletter" style="width:60%;">
-                <div class="signup clearfix">
-                    <p style="text-align:center;">
-                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
-                    </p>
-                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
-                        <input type="text" name="email" class="form-control" placeholder="Your email address">
-                        <input type="submit" name="submit" value="Sign up">
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="row credits">
-            <div class="col-md-12">
-                Copyright © 2017. Aiden Lab
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Share URL Modal -->
-<div id="hic-share-url-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
+<div id="hic-share-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-share-url-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Share</div>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button id="hic-share-url-modal-close-button" type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
+                <h4 id="hic-share-url-modal-label" class="modal-title">
+                    Share
+                </h4>
             </div>
 
             <div class="modal-body">
@@ -383,18 +168,58 @@
     </div>
 </div>
 
-<!-- Annotation Select Modal -->
-<div id="hic-annotation-select-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
+<!-- ENCODE Modal -->
+<div id="hicEncodeModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="encodeModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog">
+
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Annotations</div>
 
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
+                <button id="encodeModalTopCloseButton" type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">×</span>
+                    <span class="sr-only">Close</span>
                 </button>
 
+                <h4 class="modal-title" id="encodeModalLabel">
+                    Load Tracks from ENCODE
+                </h4>
+
+            </div>
+
+            <div id="encodeModalBody" class="modal-body">
+            </div>
+
+            <div class="modal-footer">
+                <button id="encodeModalBottomCloseButton" type="button" class="btn btn-default" data-dismiss="modal">
+                    Close
+                </button>
+                <button id="encodeModalGoButton" type="button" class="btn btn-primary" data-dismiss="modal">
+                    Go
+                </button>
+            </div>
+
+
+        </div>
+
+    </div>
+    <
+
+</div>
+
+<!-- Annotation Select Modal -->
+<div id="hic-annotation-select-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-annotation-select-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="hic-annotation-select-modal-label">Annotations</h4>
             </div>
 
             <div class="modal-body">
@@ -411,17 +236,17 @@
 </div>
 
 <!-- 2DAnnotation Select Modal -->
-<div id="hic-annotation-2D-select-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
+<div id="hic-annotation-2D-select-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-annotation-select-2D-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">2D Annotations</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
-
+                <h4 class="modal-title" id="hic-annotation-select-2D-modal-label">2D Annotations</h4>
             </div>
 
             <div class="modal-body">
@@ -438,17 +263,17 @@
 </div>
 
 <!-- Contact Map Select Modal -->
-<div id="hic-contact-map-select-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
+<div id="hic-contact-map-select-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-contact-map-select-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Select Contact Map</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
-
+                <h4 class="modal-title" id="hic-contact-map-select-modal-label">Select Contact Map</h4>
             </div>
 
             <div class="modal-body">
@@ -462,18 +287,19 @@
     </div>
 </div>
 
+
 <!-- Load Local File Modal -->
-<div id="hic-load-local-file-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
+<div id="hic-load-local-file-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="hic-load-local-file-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Load Local File</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
-
+                <h4 class="modal-title" id="hic-load-local-file-modal-label">Load Local File</h4>
             </div>
 
             <div class="modal-body">
@@ -489,17 +315,17 @@
 </div>
 
 <!-- Load URL Modal -->
-<div id="hic-load-url-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
+<div id="hic-load-url-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="hic-load-url-modal-label"
+     aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Load URL</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
-
+                <h4 id="hic-load-url-modal-label" class="modal-title">Load URL</h4>
             </div>
 
             <div class="modal-body">
@@ -515,17 +341,17 @@
 </div>
 
 <!-- Track URL Modal  -- exact copy of hic load url modal, but need to distinguish -->
-<div id="track-load-url-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
+<div id="track-load-url-modal" class="modal fade" tabindex="-1" role="dialog"
+     aria-labelledby="track-load-url-modal-label" aria-hidden="true">
+    <div class="modal-dialog">
         <div class="modal-content">
 
             <div class="modal-header">
-                <div class="modal-title">Load URL</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal">
                     <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
                 </button>
-
+                <h4 id="track-load-url-modal-label" class="modal-title">Load URL</h4>
             </div>
 
             <div class="modal-body">
@@ -536,6 +362,276 @@
 
             </div>
 
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target=".bs-navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="http://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
+        </div>
+        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../aboutus.html" target="_blank">Team</a></li>
+                        <li><a href="http://news.tc4ga.com/" target="_blank">News</a></li>
+                        <li><a href="../join.html" target="_blank">Join</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Research <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="../research.html" target="_blank">Projects</a></li>
+                        <li><a href="../publications.html" target="_blank">Publications</a></li>
+                        <li><a href="../software.html" target="_blank">Software</a></li>
+                        <li><a href="../documentation.html" target="_blank">Documentation</a></li>
+                        <li><a href="../data.html" target="_blank">Data</a></li>
+                    </ul>
+                </li>
+
+                <li><a href="../contactus.html" target="_blank">Contact</a></li>
+                <li><a href="../forum.html" target="_blank">Forum</a></li>
+                <li><a href="../assembly">Assembly</a></li>
+                <li><a href="http://aidenlab.org/juicebox">Juicebox</a></li>
+            </ul>
+        </nav>
+    </div>
+</nav>
+
+
+<div class="container-fluid">
+
+    <!-- Empty row (a shim, basically) -->
+    <div class="row">
+        <div class="col-md-12">
+            <h1>&nbsp;</h1>
+        </div>
+    </div>
+
+    <!-- Modal presentation buttons -->
+    <div class="row">
+
+        <div class="col-md-12">
+
+            <!-- Contact Map: Select | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <button id="hic-contact-map-dropdown" class="btn btn-default dropdown-toggle" type="button"
+                        data-toggle="dropdown">
+                    Load Map &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-contact-map-dropdown">
+
+                    <li role="presentation"><!-- Select Contact Map -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-contact-map-select-modal">
+                            Select Map File
+                        </a>
+                    </li><!-- Select Contact Map -->
+
+                    <li role="presentation"><!-- Local Contact Map File -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-load-local-file-modal">
+                            Local Map File
+                        </a>
+                    </li><!-- Local Contact Map File -->
+
+                    <li role="presentation"><!-- Contact Map URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Map URL
+                        </a>
+                    </li><!-- Contact Map URL -->
+
+                </ul>
+
+            </div>
+
+            <!-- Control Map: Select | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <button id="hic-control-map-dropdown" class="btn btn-default dropdown-toggle disabled" type="button"
+                        data-toggle="dropdown">
+                    Load "B" Map &nbsp;
+                    <span class="caret"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="hic-control-map-dropdown">
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-contact-map-select-modal">
+                            Select Map File
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-load-local-file-modal">
+                            Local Map File
+                        </a>
+                    </li>
+
+                    <li role="presentation">
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal" data-target="#hic-load-url-modal">
+                            Map URL
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- Track File: ENCODE | Annotations | Local File | URL -->
+            <div class="dropdown site-widget">
+
+                <!--  data-toggle="dropdown" -->
+                <button id="hic-track-dropdown-button" class="btn btn-default dropdown-toggle" type="button"
+                        data-toggle="dropdown">
+                    <span>Load Tracks &nbsp;</span>
+                    <span class="caret"></span>
+                </button>
+
+                <ul id="hic-track-dropdown" class="dropdown-menu" role="menu"
+                    aria-labelledby="hic-track-dropdown-button">
+
+                    <li id="hic-encode-modal-list-item" role="presentation">
+                        <span id="hic-encode-loading">&nbsp;&nbsp;&nbsp;&nbsp;ENCODE loading ...</span>
+                        <a id="hic-encode-modal-button" role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hicEncodeModal">ENCODE</a>
+                    </li>
+
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-annotation-select-modal">
+                            Genome Annotations
+                        </a>
+                    </li><!-- Select Annotations -->
+
+                    <li role="presentation"><!-- Select Annotations -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-annotation-2D-select-modal">
+                            2D Annotations
+                        </a>
+                    </li><!-- Select 2D Annotations -->
+
+                    <li role="presentation"><!-- Local Track File -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#hic-load-local-file-modal">
+                            Local Track File
+                        </a>
+                    </li><!-- Local Track File -->
+
+                    <li role="presentation"><!-- Track URL -->
+                        <a role="menuitem" tabindex="-1" href="#" data-toggle="modal"
+                           data-target="#track-load-url-modal">
+                            Track URL
+                        </a>
+                    </li><!-- Track URL -->
+
+                </ul>
+
+            </div>
+
+            <!-- Share (generate URL) -->
+            <div class="site-widget" title="Share">
+                <button id="hic-share-button" class="btn btn-default" type="button" data-toggle="modal"
+                        data-target="#hic-share-url-modal">
+                    Share
+                </button>
+            </div>
+
+            <!-- App clone button -->
+            <div class="juicebox-app-clone-button site-widget" title="Add Map Panel">
+                <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- App container -->
+    <div class="row">
+        <div class="col-md-12">
+
+            <!-- app + caption container-->
+            <div id="app-caption" class="juicebox-app-caption-container">
+
+                <!-- app container-->
+                <div id="app-container" class="juicebox-app-clone-container">
+                </div>
+
+                <!-- caption -->
+                <div id="hic-caption" class="hic-caption-container" contenteditable="true">
+                    Type a caption here.
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div>
+                <span>&nbsp;&nbsp;&nbsp;</span>
+                <span id="hic-version-number">version 1.4.2</span>
+
+            </div>
+
+        </div>
+    </div>
+    <div class="row header">
+        <div class="col-md-offset-2 col-md-8 col-md-offset-2" align="center">
+            <br>
+            <h4><a href="https://github.com/igvteam/juicebox.js" target="_blank">Juicebox.js</a> is cloud-based
+                visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim
+                    Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
+                        href="http://igv.org" target="_blank">IGV</a> team, in collaboration with <a
+                        href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a
+                        href="http://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged
+                <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
+                    Juicebox</a>.</h4><br><br>
+            <h4>If you use Juicebox in your research, please cite:</h4><br>
+            <h4>Neva C. Durand*, James T. Robinson*, Muhammad S. Shamim, Ido Machol, Jill P. Mesirov, Eric S. Lander,
+                and Erez Lieberman Aiden. <em>"Juicebox provides a visualization system for Hi-C contact maps with
+                    unlimited zoom."</em> <i>Cell Systems</i> 3(1), 2016.</h4><br>
+            <h4>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez
+                Lieberman Aiden.
+                <em>"Juicebox.js Provides a Cloud-Based Visualization System for Hi-C Data."</em> <i>Cell Systems</i>&nbsp;6(2), 2018.
+            </h4><br>
+        </div>
+    </div>
+
+</div>
+
+<div id="footer-white" style="background:#414B5B;">
+    <div class="container">
+        <div class="row" align="center">
+            <div class="newsletter" style="width:60%;">
+                <div class="signup clearfix">
+                    <p style="text-align:center;">
+                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+                    </p>
+                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+                        <input type="text" name="email" class="form-control" placeholder="Your email address">
+                        <input type="submit" name="submit" value="Sign up">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row credits">
+            <div class="col-md-12">
+                Copyright © 2018. Aiden Lab
+            </div>
         </div>
     </div>
 </div>
@@ -558,26 +654,38 @@
                 items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
             },
 
-            // URL shortener(s).  Optional.   If developing on localhost use Google,  otherwise Bitly.  Bitly will not shorten localhost
-            // If more than 1 shortener is defined the first is used to shorten URLs
+            // List of URL shorteners.  First in the list is the default and will be used for shortening URLs
+            // Others potentiall used for expanding short URLs.  At least 1 shortener is required for the
+            // "Share" button.
+            // NOTE: you must provide an API key (Google) or access token (Bitly) to use these services on your site
             urlShortener: [
                 {
                     provider: 'tinyURL'
                 },
                 {
                     provider: "bitly",
-                    apiKey: "ABCD",        // TODO -- replace with your Bitly access token, or function to fetch token
+                    apiKey: "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e26",        // TODO -- replace with your Bitly access token
                     hostname: 'bit.ly'
                 },
                 {
                     provider: "google",
-                    apiKey: "ABCD",        // TODO -- replace with your Google API Key, or function to fetch key
+                    apiKey: "<Your google API key>",        // TODO -- replace with your Google API Key.  Supports old google shortened URLs
                     hostname: "goo.gl"
                 }
             ],
 
-            apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0"   // Optional.  TODO -- replace with your Google API Key if supporting Google Drive
-
+            // Supply a Google client id to enable loading of private Google files.  Supply an API key to
+            // enable loading of public Google files without login.
+            google: {
+                clientId: "<Your google client ID>",  // TODO -- replace with your Google client ID (for oAuth)
+                apiKey: "<You google API key>",   // TODO -- replace with your Google API Key
+                scope:
+                    [
+                        'https://www.googleapis.com/auth/devstorage.read_only',
+                        'https://www.googleapis.com/auth/userinfo.profile',
+                        'https://www.googleapis.com/auth/drive.readonly'
+                    ]
+            }
         };
 
         juicebox.init($('#app-container'), config);

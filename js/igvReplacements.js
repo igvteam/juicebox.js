@@ -39,26 +39,26 @@ const igvReplacements = function (igv) {
     };
 
 
-    igv.Alert.presentAlert = function (message, $parent) {
-
-        const httpMessages = {
-            "401": "Access unauthorized",
-            "403": "Access forbidden",
-            "404": "Not found"
-        }
-
-        let string = message.message || message;
-
-        if (httpMessages.hasOwnProperty(string)) {
-            string = httpMessages[string];
-        }
-
-        // TODO fix this -- apparently there used to be a global dialog attached to igv
-        //igv.alertDialog.configure({label: string});
-        //igv.alertDialog.present($parent);
-        alert(string);
-
-    };
+    // igv.Alert.presentAlert = function (message, $parent) {
+    //
+    //     const httpMessages = {
+    //         "401": "Access unauthorized",
+    //         "403": "Access forbidden",
+    //         "404": "Not found"
+    //     }
+    //
+    //     let string = message.message || message;
+    //
+    //     if (httpMessages.hasOwnProperty(string)) {
+    //         string = httpMessages[string];
+    //     }
+    //
+    //     // TODO fix this -- apparently there used to be a global dialog attached to igv
+    //     //igv.alertDialog.configure({label: string});
+    //     //igv.alertDialog.present($parent);
+    //     alert(string);
+    //
+    // };
 
 };
 

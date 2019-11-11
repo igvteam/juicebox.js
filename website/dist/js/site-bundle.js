@@ -57751,25 +57751,27 @@ Context.prototype = {
       menuItems.push('<hr/>');
       menuItems.push(trackRemovalMenuItem$1(trackRenderer));
       return menuItems;
-    };
+    }; // igv.Alert.presentAlert = function (message, $parent) {
+    //
+    //     const httpMessages = {
+    //         "401": "Access unauthorized",
+    //         "403": "Access forbidden",
+    //         "404": "Not found"
+    //     }
+    //
+    //     let string = message.message || message;
+    //
+    //     if (httpMessages.hasOwnProperty(string)) {
+    //         string = httpMessages[string];
+    //     }
+    //
+    //     // TODO fix this -- apparently there used to be a global dialog attached to igv
+    //     //igv.alertDialog.configure({label: string});
+    //     //igv.alertDialog.present($parent);
+    //     alert(string);
+    //
+    // };
 
-    igv.Alert.presentAlert = function (message, $parent) {
-      var httpMessages = {
-        "401": "Access unauthorized",
-        "403": "Access forbidden",
-        "404": "Not found"
-      };
-      var string = message.message || message;
-
-      if (httpMessages.hasOwnProperty(string)) {
-        string = httpMessages[string];
-      } // TODO fix this -- apparently there used to be a global dialog attached to igv
-      //igv.alertDialog.configure({label: string});
-      //igv.alertDialog.present($parent);
-
-
-      alert(string);
-    };
   };
 
   function colorPickerMenuItem$1(trackRender) {
@@ -70495,6 +70497,276 @@ Context.prototype = {
       }
   }
 
+  var GoogleRemoteFile =
+  /*#__PURE__*/
+  function () {
+    function GoogleRemoteFile(args) {
+      _classCallCheck(this, GoogleRemoteFile);
+
+      this.config = args;
+      this.url = args.path || args.url;
+    }
+
+    _createClass(GoogleRemoteFile, [{
+      key: "read",
+      value: function () {
+        var _read = _asyncToGenerator(
+        /*#__PURE__*/
+        regeneratorRuntime.mark(function _callee2(position, length, retry) {
+          var headers, rangeString, url, accessToken, token, response, status, _accessToken, err, resolveToken, _resolveToken;
+
+          return regeneratorRuntime.wrap(function _callee2$(_context2) {
+            while (1) {
+              switch (_context2.prev = _context2.next) {
+                case 0:
+                  _resolveToken = function _ref2() {
+                    _resolveToken = _asyncToGenerator(
+                    /*#__PURE__*/
+                    regeneratorRuntime.mark(function _callee(token) {
+                      return regeneratorRuntime.wrap(function _callee$(_context) {
+                        while (1) {
+                          switch (_context.prev = _context.next) {
+                            case 0:
+                              if (!(typeof token === 'function')) {
+                                _context.next = 6;
+                                break;
+                              }
+
+                              _context.next = 3;
+                              return Promise.resolve(token());
+
+                            case 3:
+                              return _context.abrupt("return", _context.sent);
+
+                            case 6:
+                              return _context.abrupt("return", token);
+
+                            case 7:
+                            case "end":
+                              return _context.stop();
+                          }
+                        }
+                      }, _callee);
+                    }));
+                    return _resolveToken.apply(this, arguments);
+                  };
+
+                  resolveToken = function _ref(_x4) {
+                    return _resolveToken.apply(this, arguments);
+                  };
+
+                  headers = this.config.headers || {};
+                  rangeString = "bytes=" + position + "-" + (position + length - 1);
+                  headers['Range'] = rangeString;
+                  url = this.url.slice(); // slice => copy
+
+                  _context2.t0 = this.config.oauthToken;
+
+                  if (_context2.t0) {
+                    _context2.next = 11;
+                    break;
+                  }
+
+                  _context2.next = 10;
+                  return getGoogleAccessToken$1();
+
+                case 10:
+                  _context2.t0 = _context2.sent;
+
+                case 11:
+                  accessToken = _context2.t0;
+
+                  if (!accessToken) {
+                    _context2.next = 17;
+                    break;
+                  }
+
+                  _context2.next = 15;
+                  return resolveToken(accessToken);
+
+                case 15:
+                  token = _context2.sent;
+                  headers['Authorization'] = "Bearer ".concat(token);
+
+                case 17:
+                  if (api.google.apiKey) {
+                    url = addParameter$1(url, "key", api.google.apiKey);
+                  }
+
+                  _context2.next = 20;
+                  return fetch(url, {
+                    method: 'GET',
+                    headers: headers,
+                    redirect: 'follow',
+                    mode: 'cors'
+                  });
+
+                case 20:
+                  response = _context2.sent;
+                  status = response.status; // For small files a range starting at 0 can return the whole file => 200, otherwise status==200 is an error
+
+                  if (!(status >= 200 && status < 300)) {
+                    _context2.next = 27;
+                    break;
+                  }
+
+                  if (!(position > 0 && status !== 206)) {
+                    _context2.next = 25;
+                    break;
+                  }
+
+                  throw Error("ERROR: range-byte header was ignored for url: " + url);
+
+                case 25:
+                  _context2.next = 47;
+                  break;
+
+                case 27:
+                  if (!((status === 404 || status === 401) && typeof gapi !== "undefined" && !retry)) {
+                    _context2.next = 35;
+                    break;
+                  }
+
+                  _context2.next = 30;
+                  return getGoogleAccessToken$1();
+
+                case 30:
+                  _accessToken = _context2.sent;
+                  this.config.oauthToken = _accessToken;
+                  return _context2.abrupt("return", this.read(position, length, true));
+
+                case 35:
+                  if (!(status === 403)) {
+                    _context2.next = 39;
+                    break;
+                  }
+
+                  throw Error("Access forbidden");
+
+                case 39:
+                  if (!(status === 416)) {
+                    _context2.next = 43;
+                    break;
+                  }
+
+                  throw Error("Unsatisfiable range");
+
+                case 43:
+                  if (!(status >= 400)) {
+                    _context2.next = 47;
+                    break;
+                  }
+
+                  err = Error(response.statusText);
+                  err.code = status;
+                  throw err;
+
+                case 47:
+                  return _context2.abrupt("return", response.arrayBuffer());
+
+                case 48:
+                case "end":
+                  return _context2.stop();
+              }
+            }
+          }, _callee2, this);
+        }));
+
+        function read(_x, _x2, _x3) {
+          return _read.apply(this, arguments);
+        }
+
+        return read;
+      }()
+    }]);
+
+    return GoogleRemoteFile;
+  }();
+
+  function addParameter$1(url, name, value) {
+    var paramSeparator = url.includes("?") ? "&" : "?";
+    return url + paramSeparator + name + "=" + value;
+  }
+  /**
+   * There can be only 1 oAuth promise executing at a time.
+   */
+
+
+  var oauthPromise$1;
+
+  function getGoogleAccessToken$1() {
+    return _getGoogleAccessToken.apply(this, arguments);
+  }
+
+  function _getGoogleAccessToken() {
+    _getGoogleAccessToken = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee3() {
+      var oauth, Alert, authInstance, scope, options;
+      return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        while (1) {
+          switch (_context3.prev = _context3.next) {
+            case 0:
+              oauth = api.oauth;
+              Alert = api.Alert;
+
+              if (!oauth.google.access_token) {
+                _context3.next = 4;
+                break;
+              }
+
+              return _context3.abrupt("return", Promise.resolve(oauth.google.access_token));
+
+            case 4:
+              if (!oauthPromise$1) {
+                _context3.next = 6;
+                break;
+              }
+
+              return _context3.abrupt("return", oauthPromise$1);
+
+            case 6:
+              authInstance = gapi.auth2.getAuthInstance();
+
+              if (authInstance) {
+                _context3.next = 10;
+                break;
+              }
+
+              Alert.presentAlert("Authorization is required, but Google oAuth has not been initalized.  Contact your site administrator for assistance.");
+              return _context3.abrupt("return", undefined);
+
+            case 10:
+              // TODO -- get scope from config
+              scope = "https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.readonly";
+              options = new gapi.auth2.SigninOptionsBuilder();
+              options.setPrompt('select_account');
+              options.setScope(scope);
+              oauthPromise$1 = new Promise(function (resolve, reject) {
+                Alert.presentAlert("Google Login required", function () {
+                  gapi.auth2.getAuthInstance().signIn(options).then(function (user) {
+                    var authResponse = user.getAuthResponse();
+                    oauth.google.setToken(authResponse["access_token"]);
+                    resolve(authResponse["access_token"]);
+                    oauthPromise$1 = undefined;
+                  })["catch"](function (err) {
+                    oauthPromise$1 = undefined;
+                    reject(err);
+                  });
+                });
+              });
+              return _context3.abrupt("return", oauthPromise$1);
+
+            case 16:
+            case "end":
+              return _context3.stop();
+          }
+        }
+      }, _callee3);
+    }));
+    return _getGoogleAccessToken.apply(this, arguments);
+  }
+
   var MAX_PIXEL_SIZE = 12;
   var DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
   var defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
@@ -72423,20 +72695,24 @@ Context.prototype = {
     _loadDataset = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee18(config) {
-      var straw, hicFile, dataset;
+      var copy, straw, hicFile, dataset;
       return regeneratorRuntime.wrap(function _callee18$(_context18) {
         while (1) {
           switch (_context18.prev = _context18.next) {
             case 0:
-              // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
+              // If this is a local file, use the "blob" field for straw
               if (config.url instanceof File) {
-                config.blob = config.url; //config.file = new hic.LocalFile(config.url)
-
+                config.blob = config.url;
                 delete config.url;
               } else {
                 // If this is a google url, add api KEY
-                if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
-                  config.url = api.google.driveDownloadURL(config.url);
+                if (api.google.isGoogleURL(config.url)) {
+                  if (api.google.isGoogleDrive(config.url)) {
+                    config.url = api.google.driveDownloadURL(config.url);
+                  }
+
+                  copy = Object.assign({}, config);
+                  config.file = new GoogleRemoteFile(copy);
                   config.apiKey = api.google.apiKey;
                 }
               }
@@ -78591,6 +78867,44 @@ Context.prototype = {
     return output;
   };
 
+  /*
+   *  The MIT License (MIT)
+   *
+   * Copyright (c) 2016-2017 The Regents of the University of California
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+   * associated documentation files (the "Software"), to deal in the Software without restriction, including
+   * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+   * following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in all copies or substantial
+   * portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+   * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   * THE SOFTWARE.
+   *
+   */
+  function initGoogle(config) {
+    return new Promise(function (resolve, reject) {
+      gapi.load('client:auth2', function () {
+        gapi.client.init({
+          'apiKey': config.apiKey,
+          'clientId': config.clientId,
+          'scope': config.scope.join(' ')
+        }).then(function (ignore) {
+          resolve(ignore);
+        })["catch"](function (error) {
+          reject(error);
+        });
+      });
+    });
+  }
+
   var urlShorteners = [];
 
   function initApp(_x, _x2) {
@@ -78606,12 +78920,17 @@ Context.prototype = {
         while (1) {
           switch (_context.prev = _context.next) {
             case 0:
-              apiKey = config.apiKey;
+              api.Alert.init($(container));
+              apiKey = config.google ? config.google.apiKey : undefined;
 
               if (apiKey && "ABCD" !== apiKey) {
                 setApiKey$1(apiKey);
               }
 
+              _context.next = 5;
+              return initGoogle(config.google);
+
+            case 5:
               if (config.urlShortener) {
                 setURLShortener(config.urlShortener);
               }
@@ -78620,57 +78939,57 @@ Context.prototype = {
               config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
 
               if (!(false === config.queryParametersSupported)) {
-                _context.next = 8;
+                _context.next = 11;
                 break;
               }
 
-              _context.next = 12;
+              _context.next = 15;
               break;
 
-            case 8:
+            case 11:
               query = extractQuery$1(window.location.href);
-              _context.next = 11;
+              _context.next = 14;
               return expandJuiceboxUrl(query);
 
-            case 11:
+            case 14:
               query = _context.sent;
 
-            case 12:
+            case 15:
               if (!query.hasOwnProperty("session")) {
-                _context.next = 24;
+                _context.next = 27;
                 break;
               }
 
               if (!query.session.startsWith("blob:")) {
-                _context.next = 20;
+                _context.next = 23;
                 break;
               }
 
               json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
               json.initFromUrl = false;
-              _context.next = 18;
+              _context.next = 21;
               return restoreSession(container, json);
 
-            case 18:
-              _context.next = 22;
+            case 21:
+              _context.next = 25;
               break;
 
-            case 20:
-              _context.next = 22;
+            case 23:
+              _context.next = 25;
               return createBrowsers(container, query);
 
-            case 22:
-              _context.next = 26;
+            case 25:
+              _context.next = 29;
               break;
-
-            case 24:
-              _context.next = 26;
-              return createBrowsers(container, query);
-
-            case 26:
-              syncBrowsers(allBrowsers$1);
 
             case 27:
+              _context.next = 29;
+              return createBrowsers(container, query);
+
+            case 29:
+              syncBrowsers(allBrowsers$1);
+
+            case 30:
             case "end":
               return _context.stop();
           }
@@ -79185,6 +79504,7 @@ Context.prototype = {
     shortJuiceboxURL: shortJuiceboxURL,
     getCompressedDataString: getCompressedDataString,
     decompressQueryParameter: decompressQueryParameter,
+    toJSON: toJSON,
     igv: api
   };
 

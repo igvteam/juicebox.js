@@ -39,6 +39,7 @@ import geneSearch from './geneSearch.js'
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {paramDecode, paramEncode} from "./urlUtils.js"
+import GoogleRemoteFile from "./googleRemoteFile.js"
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -1466,15 +1467,18 @@ HICBrowser.prototype.getQueryString = function () {
 
 async function loadDataset(config) {
 
-    // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
+    // If this is a local file, use the "blob" field for straw
     if (config.url instanceof File) {
         config.blob = config.url
-        //config.file = new hic.LocalFile(config.url)
         delete config.url
     } else {
         // If this is a google url, add api KEY
-        if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
-            config.url = igv.google.driveDownloadURL(config.url)
+        if (igv.google.isGoogleURL(config.url)) {
+            if(igv.google.isGoogleDrive(config.url)) {
+                config.url = igv.google.driveDownloadURL(config.url)
+            }
+            const copy = Object.assign({}, config);
+            config.file = new GoogleRemoteFile(copy);
             config.apiKey = igv.google.apiKey
         }
     }

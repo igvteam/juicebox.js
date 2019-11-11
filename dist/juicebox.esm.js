@@ -8162,7 +8162,7 @@ jQuery.isNumeric = function (obj) {
         !isNaN(obj - parseFloat(obj));
 };
 
-const $ = jQuery;
+const $$1 = jQuery;
 
 /*!!
  *  Canvas 2 Svg v1.0.19
@@ -9513,7 +9513,7 @@ let dragData;   // Its assumed we are only dragging one element at a time.
 
 function makeDraggable(target, handle) {
 
-    $(handle).on('mousedown' + namespace, dragStart.bind(target));
+    $$1(handle).on('mousedown' + namespace, dragStart.bind(target));
 
 }
 
@@ -9536,10 +9536,10 @@ function dragStart(event) {
             dy: styleY - event.screenY
         };
 
-    $(document).on('mousemove' + namespace, dragFunction);
-    $(document).on('mouseup' + namespace, dragEndFunction);
-    $(document).on('mouseleave' + namespace, dragEndFunction);
-    $(document).on('mouseexit' + namespace, dragEndFunction);
+    $$1(document).on('mousemove' + namespace, dragFunction);
+    $$1(document).on('mouseup' + namespace, dragEndFunction);
+    $$1(document).on('mouseleave' + namespace, dragEndFunction);
+    $$1(document).on('mouseexit' + namespace, dragEndFunction);
 
 }
 
@@ -9579,7 +9579,7 @@ function dragEnd(event) {
     this.style.left = styleX + "px";
     this.style.top = styleY + "px";
 
-    $(document).off(namespace);
+    $$1(document).off(namespace);
     dragData = undefined;
 }
 
@@ -9627,12 +9627,12 @@ const MenuUtils = {
         var $e,
             clickHandler;
 
-        $e = $('<div>');
+        $e = $$1('<div>');
         $e.text('Set data range');
 
         clickHandler = function () {
             trackView.browser.dataRangeDialog.configure({trackView: trackView});
-            trackView.browser.dataRangeDialog.present($(trackView.trackDiv));
+            trackView.browser.dataRangeDialog.present($$1(trackView.trackDiv));
         };
 
         return {object: $e, click: clickHandler};
@@ -9649,19 +9649,19 @@ const MenuUtils = {
 
             // name and object fields checked for backward compatibility
             if (item.name) {
-                $e = $('<div>');
+                $e = $$1('<div>');
                 $e.text(item.name);
             } else if (item.object) {
                 $e = item.object;
             } else if (typeof item.label === 'string') {
-                $e = $('<div>');
+                $e = $$1('<div>');
                 $e.html(item.label);
             } else if (typeof item === 'string') {
 
                 if (item.startsWith("<")) {
-                    $e = $(item);
+                    $e = $$1(item);
                 } else {
-                    $e = $("<div>" + item + "</div>");
+                    $e = $$1("<div>" + item + "</div>");
                 }
             }
 
@@ -9731,11 +9731,11 @@ function visibilityWindowMenuItem(trackView) {
             input: (trackView.track.visibilityWindow),
             click: dialogClickHandler
         });
-        trackView.browser.inputDialog.present($(trackView.trackDiv));
+        trackView.browser.inputDialog.present($$1(trackView.trackDiv));
 
     };
 
-    const $e = $('<div>');
+    const $e = $$1('<div>');
     $e.text('Set visibility window');
 
     return {object: $e, click: menuClickHandler};
@@ -9748,7 +9748,7 @@ function trackRemovalMenuItem(trackView) {
     var $e,
         menuClickHandler;
 
-    $e = $('<div>');
+    $e = $$1('<div>');
     $e.text('Remove track');
 
     menuClickHandler = function () {
@@ -9764,7 +9764,7 @@ function colorPickerMenuItem(trackView) {
     var $e,
         clickHandler;
 
-    $e = $('<div>');
+    $e = $$1('<div>');
     $e.text('Set track color');
 
     clickHandler = function () {
@@ -9783,7 +9783,7 @@ function trackRenameMenuItem(trackView) {
     var $e,
         menuClickHandler;
 
-    $e = $('<div>');
+    $e = $$1('<div>');
     $e.text('Set track name');
 
     menuClickHandler = function () {
@@ -9806,7 +9806,7 @@ function trackRenameMenuItem(trackView) {
             input: (getTrackLabelText(trackView.track) || 'unnamed'),
             click: dialogClickHandler
         });
-        trackView.browser.inputDialog.present($(trackView.trackDiv));
+        trackView.browser.inputDialog.present($$1(trackView.trackDiv));
 
     };
 
@@ -9820,7 +9820,7 @@ function trackHeightMenuItem(trackView) {
     var $e,
         menuClickHandler;
 
-    $e = $('<div>');
+    $e = $$1('<div>');
     $e.text('Set track height');
 
     menuClickHandler = function () {
@@ -9854,7 +9854,7 @@ function trackHeightMenuItem(trackView) {
             input: trackView.trackDiv.clientHeight,
             click: dialogClickHandler
         });
-        trackView.browser.inputDialog.present($(trackView.trackDiv));
+        trackView.browser.inputDialog.present($$1(trackView.trackDiv));
 
     };
 
@@ -9964,15 +9964,15 @@ function getTrackLabelText(track) {
 
 function createCheckbox(name, initialState) {
 
-    let $container = $('<div>', {class: 'igv-trackgear-popover-check-container'});
+    let $container = $$1('<div>', {class: 'igv-trackgear-popover-check-container'});
 
-    let $div = $('<div>');
+    let $div = $$1('<div>');
     $container.append($div);
 
     let $svg = iconMarkup('check', (true === initialState ? '#444' : 'transparent'));
     $div.append($svg);
 
-    let $label = $('<div>'/*, { class: 'igv-some-label-class' }*/);
+    let $label = $$1('<div>'/*, { class: 'igv-some-label-class' }*/);
     $label.text(name);
     $container.append($label);
 
@@ -9980,7 +9980,7 @@ function createCheckbox(name, initialState) {
 }
 
 function createIcon(name, color) {
-    return $(iconMarkup(name, color));
+    return $$1(iconMarkup(name, color));
 }
 
 function iconMarkup(name, color) {
@@ -11440,7 +11440,7 @@ const IGVColor = {
 
 function attachDialogCloseHandlerWithParent($parent, closeHandler) {
 
-    var $container = $('<div>');
+    var $container = $$1('<div>');
     $parent.append($container);
 
     $container.append(createIcon("times"));
@@ -11467,7 +11467,7 @@ function createColorSwatchSelector($genericContainer, colorHandler, defaultColor
 
     for (let color of appleColors) {
 
-        let $swatch = $('<div>', {class: 'igv-color-swatch'});
+        let $swatch = $$1('<div>', {class: 'igv-color-swatch'});
         $genericContainer.append($swatch);
 
         $swatch.css('background-color', color);
@@ -11521,7 +11521,7 @@ function pageCoordinates(e) {
  */
 function translateMouseCoordinates(e, target) {
 
-    var $target = $(target),
+    var $target = $$1(target),
         posx,
         posy;
 
@@ -11578,12 +11578,12 @@ function initializationHelper($parent) {
         $popoverHeader;
 
     // popover container
-    this.$popover = $('<div class="igv-popover">');
+    this.$popover = $$1('<div class="igv-popover">');
 
     $parent.append(this.$popover);
 
     // popover header
-    $popoverHeader = $('<div class="igv-popover-header">');
+    $popoverHeader = $$1('<div class="igv-popover-header">');
     this.$popover.append($popoverHeader);
 
     attachDialogCloseHandlerWithParent($popoverHeader, function () {
@@ -11591,7 +11591,7 @@ function initializationHelper($parent) {
     });
 
     // popover content
-    this.$popoverContent = $('<div>');
+    this.$popoverContent = $$1('<div>');
 
     this.$popover.append(this.$popoverContent);
 
@@ -11611,7 +11611,7 @@ Popover.prototype.presentTrackContextMenu = function (e, menuItems) {
     var $popover = this.$popover;
 
     // Only 1 popover open at a time
-    $('.igv-popover').hide();
+    $$1('.igv-popover').hide();
 
     if (menuItems.length > 0) {
 
@@ -11635,7 +11635,7 @@ Popover.prototype.presentTrackContextMenu = function (e, menuItems) {
 Popover.prototype.presentTrackContent = function (pageX, pageY, content) {
 
     // Only 1 popover open at a time
-    $('.igv-popover').hide();
+    $$1('.igv-popover').hide();
 
     if (undefined === content) {
         return;
@@ -11664,7 +11664,7 @@ function clampPopoverLocation(pageX, pageY, popover) {
 
     var left,
         containerCoordinates = {x: pageX, y: pageY},
-        containerRect = {x: 0, y: 0, width: $(window).width(), height: $(window).height()},
+        containerRect = {x: 0, y: 0, width: $$1(window).width(), height: $$1(window).height()},
         popupRect,
         popupX = pageX,
         popupY = pageY;
@@ -11865,15 +11865,15 @@ const validateLocusExtent = function (chromosomeLengthBP, extent, minimumBP) {
 const RulerSweeper = function (viewport) {
     this.viewport = viewport;
     this.browser = viewport.browser;
-    this.$rulerSweeper = $('<div class="igv-ruler-sweeper-div">');
-    $(viewport.contentDiv).append(this.$rulerSweeper);
+    this.$rulerSweeper = $$1('<div class="igv-ruler-sweeper-div">');
+    $$1(viewport.contentDiv).append(this.$rulerSweeper);
     this.namespace = '.sweeper_' + guid();
     this.addMouseHandlers();
 };
 
 RulerSweeper.prototype.disableMouseHandlers = function () {
 
-    $(document).off(this.namespace);
+    $$1(document).off(this.namespace);
     this.viewport.$viewport.off(this.namespace);
 };
 
@@ -11896,7 +11896,7 @@ RulerSweeper.prototype.addMouseHandlers = function () {
 
     threshold = 1;
 
-    $(this.browser.$root).on('mousedown' + this.namespace, function (e) {
+    $$1(this.browser.$root).on('mousedown' + this.namespace, function (e) {
 
         isMouseIn = true;
 
@@ -11915,7 +11915,7 @@ RulerSweeper.prototype.addMouseHandlers = function () {
 
     });
 
-    $(this.browser.$root).on('mousemove' + this.namespace, function (e) {
+    $$1(this.browser.$root).on('mousemove' + this.namespace, function (e) {
         var mouseCurrent;
 
         if (isMouseDown && isMouseIn) {
@@ -11938,7 +11938,7 @@ RulerSweeper.prototype.addMouseHandlers = function () {
 
     });
 
-    $(this.browser.$root).on('mouseup' + this.namespace, function (e) {
+    $$1(this.browser.$root).on('mouseup' + this.namespace, function (e) {
 
         let extent;
 
@@ -17918,27 +17918,27 @@ const AlertDialog = function ($parent) {
     const self = this;
 
     // container
-    this.$container = $("<div>", {class: 'igv-alert-dialog-container'});
+    this.$container = $$1("<div>", {class: 'igv-alert-dialog-container'});
     $parent.append(this.$container);
 
     // header
-    let $header = $("<div>");
+    let $header = $$1("<div>");
     this.$container.append($header);
 
     // body container
-    let $div = $("<div>", {id: 'igv-alert-dialog-body'});
+    let $div = $$1("<div>", {id: 'igv-alert-dialog-body'});
     this.$container.append($div);
 
     // body copy
-    this.$body = $("<div>", {id: 'igv-alert-dialog-body-copy'});
+    this.$body = $$1("<div>", {id: 'igv-alert-dialog-body-copy'});
     $div.append(this.$body);
 
     // ok container
-    let $ok_container = $("<div>");
+    let $ok_container = $$1("<div>");
     this.$container.append($ok_container);
 
     // ok
-    this.$ok = $("<div>");
+    this.$ok = $$1("<div>");
     $ok_container.append(this.$ok);
     this.$ok.text('OK');
     this.$ok.on('click', function () {
@@ -19508,11 +19508,11 @@ function ViewPort(trackView, $container, genomicState, width) {
     this.browser = trackView.browser;
 
     // viewport
-    this.$viewport = $('<div class="igv-viewport-div">');
+    this.$viewport = $$1('<div class="igv-viewport-div">');
     $container.append(this.$viewport);
 
     // viewport-content
-    const $div = $("<div>", {class: 'igv-viewport-content-div'});
+    const $div = $$1("<div>", {class: 'igv-viewport-content-div'});
     this.$viewport.append($div);
 
     // know the genomic state index
@@ -19523,8 +19523,8 @@ function ViewPort(trackView, $container, genomicState, width) {
     this.contentDiv = $div.get(0);
 
     // viewport canvas
-    const $canvas = $('<canvas>');
-    $(this.contentDiv).append($canvas);
+    const $canvas = $$1('<canvas>');
+    $$1(this.contentDiv).append($canvas);
 
     this.canvas = $canvas.get(0);
     this.ctx = this.canvas.getContext("2d");
@@ -19542,13 +19542,13 @@ function ViewPort(trackView, $container, genomicState, width) {
 
         trackView.track.appendMultiPanelCloseButton(this.$viewport, this.genomicState);
 
-        this.$rulerLabel = $('<div class = "igv-multi-locus-panel-label-div">');
+        this.$rulerLabel = $$1('<div class = "igv-multi-locus-panel-label-div">');
 
         this.$rulerLabel.click(function (e) {
             self.browser.selectMultiLocusPanelWithGenomicState(self.genomicState);
         });
 
-        $(this.contentDiv).append(this.$rulerLabel);
+        $$1(this.contentDiv).append(this.$rulerLabel);
 
         if (true === GenomeUtils.isWholeGenomeView(this.genomicState.referenceFrame)) {
             enableRulerTrackMouseHandlers.call(this);
@@ -19563,7 +19563,7 @@ function ViewPort(trackView, $container, genomicState, width) {
         // const dimen = 32;
         // $spinnerContainer.css({'font-size': dimen + 'px'});
 
-        this.$spinner = $('<div class="igv-viewport-spinner">');
+        this.$spinner = $$1('<div class="igv-viewport-spinner">');
         this.$spinner.append(createIcon("spinner"));
         this.$viewport.append(this.$spinner);
         this.stopSpinner();
@@ -19577,13 +19577,13 @@ function ViewPort(trackView, $container, genomicState, width) {
 
             this.popover.$popover.attr('id', str);
 
-            this.$zoomInNotice = createZoomInNotice.call(this, $(this.contentDiv));
+            this.$zoomInNotice = createZoomInNotice.call(this, $$1(this.contentDiv));
         }
     }
 
     if (trackView.track.name) {
 
-        this.$trackLabel = $('<div class="igv-track-label">');
+        this.$trackLabel = $$1('<div class="igv-track-label">');
         this.$viewport.append(this.$trackLabel);
 
         this.setTrackLabel(trackView.track.name);
@@ -19629,10 +19629,10 @@ function ViewPort(trackView, $container, genomicState, width) {
 
 function createZoomInNotice($parent) {
 
-    const $notice = $('<div class="zoom-in-notice-container">');
+    const $notice = $$1('<div class="zoom-in-notice-container">');
     $parent.append($notice);
 
-    const $e = $('<div>');
+    const $e = $$1('<div>');
     $notice.append($e);
     $e.text('Zoom in to see features');
 
@@ -19756,7 +19756,7 @@ ViewPort.prototype.setTop = function (contentTop) {
     const viewportHeight = this.$viewport.height();
     const viewTop = -contentTop;
     const viewBottom = viewTop + viewportHeight;
-    $(this.contentDiv).css("top", contentTop + "px");
+    $$1(this.contentDiv).css("top", contentTop + "px");
 
     if (!this.canvasVerticalRange ||
         this.canvasVerticalRange.bottom < viewBottom ||
@@ -19774,7 +19774,7 @@ ViewPort.prototype.loadFeatures = async function () {
 
     // Expand the requested range so we can pan a bit without reloading.  But not beyond chromosome bounds
     const chrLength = this.browser.genome.getChromosome(chr).bpLength;
-    const pixelWidth = $(this.contentDiv).width() * 3;
+    const pixelWidth = $$1(this.contentDiv).width() * 3;
     const bpWidth = pixelWidth * referenceFrame.bpPerPixel;
     const bpStart = Math.floor(Math.max(0, referenceFrame.start - bpWidth / 3));
     const bpEnd = Math.ceil(Math.min(chrLength, bpStart + bpWidth));
@@ -19848,11 +19848,11 @@ ViewPort.prototype.repaint = async function (tile) {
     let pixelHeight = Math.min(self.getContentHeight(), 3 * viewportHeight);
     if (0 === pixelWidth || 0 === pixelHeight) {
         if (self.canvas) {
-            $(self.canvas).remove();
+            $$1(self.canvas).remove();
         }
         return;
     }
-    const canvasTop = Math.max(0, -($(this.contentDiv).position().top) - viewportHeight);
+    const canvasTop = Math.max(0, -($$1(this.contentDiv).position().top) - viewportHeight);
 
     // Always use high DPI if in compressed display mode, otherwise use preference setting;
     let devicePixelRatio;
@@ -19880,7 +19880,7 @@ ViewPort.prototype.repaint = async function (tile) {
             viewportContainerWidth: this.browser.viewportContainerWidth()
         };
 
-    const newCanvas = $('<canvas>').get(0);
+    const newCanvas = $$1('<canvas>').get(0);
     newCanvas.style.width = pixelWidth + "px";
     newCanvas.style.height = pixelHeight + "px";
     newCanvas.width = devicePixelRatio * pixelWidth;
@@ -19903,9 +19903,9 @@ ViewPort.prototype.repaint = async function (tile) {
     this.canvasVerticalRange = {top: canvasTop, bottom: canvasTop + pixelHeight};
 
     if (self.canvas) {
-        $(self.canvas).remove();
+        $$1(self.canvas).remove();
     }
-    $(self.contentDiv).append(newCanvas);
+    $$1(self.contentDiv).append(newCanvas);
 
     self.canvas = newCanvas;
     self.ctx = ctx;
@@ -19939,7 +19939,7 @@ ViewPort.prototype.toSVG = async function (tile) {
             viewbox:
                 {
                     x: 0,
-                    y: -$(this.contentDiv).position().top,
+                    y: -$$1(this.contentDiv).position().top,
                     width: pixelWidth,
                     height: pixelHeight
                 }
@@ -19950,7 +19950,7 @@ ViewPort.prototype.toSVG = async function (tile) {
         {
             viewport: this,
             context: ctx,
-            top: -$(this.contentDiv).position().top,
+            top: -$$1(this.contentDiv).position().top,
             pixelTop: 0,   // for compatibility with canvas draw
             pixelWidth: pixelWidth,
             pixelHeight: pixelHeight,
@@ -20040,13 +20040,13 @@ ViewPort.prototype.setContentHeight = function (contentHeight) {
     // Maximum height of a canvas is ~32,000 pixels on Chrome, possibly smaller on other platforms
     contentHeight = Math.min(contentHeight, 32000);
 
-    $(this.contentDiv).height(contentHeight);
+    $$1(this.contentDiv).height(contentHeight);
 
     if (this.tile) this.tile.invalidate = true;
 };
 
 ViewPort.prototype.getContentHeight = function () {
-    return $(this.contentDiv).height();
+    return $$1(this.contentDiv).height();
 };
 
 ViewPort.prototype.getContentTop = function () {
@@ -20065,8 +20065,8 @@ ViewPort.prototype.saveImage = function () {
     const devicePixelRatio = window.devicePixelRatio;
     const w = this.$viewport.width() * devicePixelRatio;
     const h = this.$viewport.height() * devicePixelRatio;
-    const x = -$(this.canvas).position().left * devicePixelRatio;
-    const y = (-$(this.contentDiv).position().top - canvasTop) * devicePixelRatio;
+    const x = -$$1(this.canvas).position().left * devicePixelRatio;
+    const y = (-$$1(this.contentDiv).position().top - canvasTop) * devicePixelRatio;
 
     const imageData = this.ctx.getImageData(x, y, w, h);
     const exportCanvas = document.createElement('canvas');
@@ -20100,7 +20100,7 @@ ViewPort.prototype.renderSVGContext = async function (context, offset) {
         context.restore();
     }
 
-    const yScrollDelta = $(this.contentDiv).position().top;
+    const yScrollDelta = $$1(this.contentDiv).position().top;
     const dx = offset.deltaX + (genomicStateIndex * context.multiLocusGap);
     const dy = offset.deltaY + yScrollDelta;
     const {width, height} = this.$viewport.get(0).getBoundingClientRect();
@@ -20161,7 +20161,7 @@ ViewPort.prototype.saveSVG = function () {
             viewbox:
                 {
                     x: 0,
-                    y: -$(this.contentDiv).position().top,
+                    y: -$$1(this.contentDiv).position().top,
                     width,
                     height
                 }
@@ -20174,7 +20174,7 @@ ViewPort.prototype.saveSVG = function () {
         {
             viewport: this,
             context,
-            top: -$(this.contentDiv).position().top,
+            top: -$$1(this.contentDiv).position().top,
             pixelTop: 0,
             pixelWidth: width,
             pixelHeight: height,
@@ -20237,11 +20237,11 @@ ViewPort.prototype.dispose = function () {
         this.popover.$popover.remove();
     }
 
-    $(this.canvas).off();
-    $(this.canvas).empty();
+    $$1(this.canvas).off();
+    $$1(this.canvas).empty();
 
-    $(this.contentDiv).off();
-    $(this.contentDiv).empty();
+    $$1(this.contentDiv).off();
+    $$1(this.contentDiv).empty();
 
     this.$viewport.off();
     this.$viewport.empty();
@@ -20307,7 +20307,7 @@ function addMouseHandlers() {
 
         // Add items common to all tracks
         if (menuItems.length > 0) {
-            menuItems.push({label: $('<HR>')});
+            menuItems.push({label: $$1('<HR>')});
         }
         menuItems.push(
             {
@@ -20384,7 +20384,7 @@ function addMouseHandlers() {
         }
 
         // Close any currently open popups
-        $('.igv-popover').hide();
+        $$1('.igv-popover').hide();
 
 
         if (browser.isDragging || browser.isScrolling) {
@@ -20585,7 +20585,7 @@ ViewPort.prototype.checkContentHeight = function () {
 
         if (features) {
             let requiredContentHeight = track.computePixelHeight(features);
-            let currentContentHeight = $(this.contentDiv).height();
+            let currentContentHeight = $$1(this.contentDiv).height();
             if (requiredContentHeight !== currentContentHeight) {
                 this.setContentHeight(requiredContentHeight);
             }
@@ -21472,7 +21472,7 @@ RulerTrack.prototype.appendMultiPanelCloseButton = function ($viewport, genomicS
 
     $viewport.addClass('igv-viewport-ruler');
 
-    $close = $('<div class="igv-multi-locus-panel-close-container">');
+    $close = $$1('<div class="igv-multi-locus-panel-close-container">');
     $viewport.append($close);
 
     $close.append(createIcon("times-circle"));
@@ -21716,11 +21716,11 @@ const trackMenuItemListHelper$1 = MenuUtils.trackMenuItemListHelper;
 const TrackGearPopover = function ($parent) {
 
     // popover container
-    this.$popover = $('<div>', {class: 'igv-trackgear-popover'});
+    this.$popover = $$1('<div>', {class: 'igv-trackgear-popover'});
     $parent.append(this.$popover);
 
     // popover header
-    let $popoverHeader = $('<div>', {class: 'igv-trackgear-popover-header'});
+    let $popoverHeader = $$1('<div>', {class: 'igv-trackgear-popover-header'});
     this.$popover.append($popoverHeader);
 
     let self = this;
@@ -21728,7 +21728,7 @@ const TrackGearPopover = function ($parent) {
         self.$popover.hide();
     });
 
-    this.$popoverContent = $('<div>');
+    this.$popoverContent = $$1('<div>');
     this.$popover.append(this.$popoverContent);
 
     makeDraggable(this.$popover.get(0), $popoverHeader.get(0));
@@ -21816,7 +21816,7 @@ const GenericContainer = function ({$parent, width, height, closeHandler}) {
 
     this.namespace = '.generic_container_' + guid();
 
-    let $container = $('<div>', {class: 'igv-generic-container'});
+    let $container = $$1('<div>', {class: 'igv-generic-container'});
     $parent.append($container);
     this.$container = $container;
 
@@ -21833,11 +21833,11 @@ const GenericContainer = function ({$parent, width, height, closeHandler}) {
     this.$container.offset({left: this.origin.x, top: this.origin.y});
 
     // header
-    $header = $('<div>');
+    $header = $$1('<div>');
     this.$container.append($header);
 
     // close button
-    let $div = $('<i>');
+    let $div = $$1('<i>');
     $header.append($div);
 
     $div.append(createIcon("times"));
@@ -21900,7 +21900,7 @@ const TrackView = function (browser, $container, track) {
     this.track = track;
     track.trackView = this;
 
-    $track = $('<div class="igv-track-div">');
+    $track = $$1('<div class="igv-track-div">');
     this.trackDiv = $track.get(0);
     $container.append($track);
 
@@ -21914,14 +21914,14 @@ const TrackView = function (browser, $container, track) {
         this.trackDiv.style.height = track.height + "px";
     }
 
-    this.appendLeftHandGutter($(this.trackDiv));
+    this.appendLeftHandGutter($$1(this.trackDiv));
 
     // if (typeof track.paintAxis === 'function') {
     //     appendLeftHandGutter.call(this, $(this.trackDiv));
     // }
 
-    this.$viewportContainer = $('<div class="igv-viewport-container">');
-    $(this.trackDiv).append(this.$viewportContainer);
+    this.$viewportContainer = $$1('<div class="igv-viewport-container">');
+    $$1(this.trackDiv).append(this.$viewportContainer);
 
     this.viewports = [];
     width = this.browser.viewportContainerWidth() / this.browser.genomicStateList.length;
@@ -21938,11 +21938,11 @@ const TrackView = function (browser, $container, track) {
     this.configureViewportContainer(this.$viewportContainer, this.viewports);
 
     if (true === this.track.ignoreTrackMenu) ; else {
-        this.appendRightHandGutter( $(this.trackDiv));
+        this.appendRightHandGutter( $$1(this.trackDiv));
     }
 
     if (this.track instanceof RulerTrack) ; else {
-        attachDragWidget.call(this, $(this.trackDiv), this.$viewportContainer);
+        attachDragWidget.call(this, $$1(this.trackDiv), this.$viewportContainer);
     }
 
     if ("sequence" === this.track.type) ; else if (this.track instanceof RulerTrack) ; else {
@@ -22022,7 +22022,7 @@ TrackView.prototype.appendLeftHandGutter = function($parent) {
         $leftHandGutter,
         $canvas;
 
-    $leftHandGutter = $('<div class="igv-left-hand-gutter">');
+    $leftHandGutter = $$1('<div class="igv-left-hand-gutter">');
     this.leftHandGutter = $leftHandGutter[0];
     $parent.append($leftHandGutter);
 
@@ -22032,13 +22032,13 @@ TrackView.prototype.appendLeftHandGutter = function($parent) {
 
             $leftHandGutter.click(function (e) {
                 self.browser.dataRangeDialog.configure({trackView: self});
-                self.browser.dataRangeDialog.present($(self.trackDiv));
+                self.browser.dataRangeDialog.present($$1(self.trackDiv));
             });
 
             $leftHandGutter.addClass('igv-clickable');
         }
 
-        $canvas = $('<canvas class ="igv-track-control-canvas">');
+        $canvas = $$1('<canvas class ="igv-track-control-canvas">');
         $leftHandGutter.append($canvas);
         this.controlCanvas = $canvas.get(0);
         resizeControlCanvas.call(this, $leftHandGutter.outerWidth(), $leftHandGutter.outerHeight());
@@ -22048,7 +22048,7 @@ TrackView.prototype.appendLeftHandGutter = function($parent) {
 };
 
 TrackView.prototype.appendRightHandGutter = function($parent) {
-    let $div = $('<div class="igv-right-hand-gutter">');
+    let $div = $$1('<div class="igv-right-hand-gutter">');
     $parent.append($div);
     createTrackGearPopover.call(this, $div);
 };
@@ -22056,7 +22056,7 @@ TrackView.prototype.appendRightHandGutter = function($parent) {
 // Free function for juicebox -- do not attach to prototype!!!
 function createTrackGearPopover ($parent) {
 
-    let $cogContainer = $("<div>", {class: 'igv-trackgear-container'});
+    let $cogContainer = $$1("<div>", {class: 'igv-trackgear-container'});
     $parent.append($cogContainer);
 
     $cogContainer.append(createIcon('cog'));
@@ -22080,12 +22080,12 @@ function resizeControlCanvas(width, height) {
     if (this.leftHandGutter) {
 
         if (this.controlCanvas) {
-            $(this.controlCanvas).remove();
+            $$1(this.controlCanvas).remove();
         }
 
-        var $canvas = $('<canvas class ="igv-track-control-canvas">');
+        var $canvas = $$1('<canvas class ="igv-track-control-canvas">');
         this.controlCanvas = $canvas[0];
-        $(this.leftHandGutter).append($canvas);
+        $$1(this.leftHandGutter).append($canvas);
 
         this.controlCanvas.height = devicePixelRatio * height;
         this.controlCanvas.width = devicePixelRatio * width;
@@ -22101,11 +22101,11 @@ function attachDragWidget($track, $viewportContainer) {
     const self = this;
     const browser = this.browser;
 
-    this.$trackDragScrim = $('<div class="igv-track-drag-scrim">');
+    this.$trackDragScrim = $$1('<div class="igv-track-drag-scrim">');
     $viewportContainer.append(this.$trackDragScrim);
     this.$trackDragScrim.hide();
 
-    self.$trackManipulationHandle = $('<div class="igv-track-manipulation-handle">');
+    self.$trackManipulationHandle = $$1('<div class="igv-track-manipulation-handle">');
     $track.append(self.$trackManipulationHandle);
 
     self.$trackManipulationHandle.on('mousedown', function (e) {
@@ -22176,7 +22176,7 @@ TrackView.prototype.createColorPicker = function () {
 
     const config =
         {
-            $parent: $(this.trackDiv),
+            $parent: $$1(this.trackDiv),
 
             width: 384,
 
@@ -22216,7 +22216,7 @@ TrackView.prototype.setTrackHeight = function (newHeight, update, force) {
     this.track.height = newHeight;
     this.track.config.height = newHeight;
 
-    $(this.trackDiv).height(newHeight);
+    $$1(this.trackDiv).height(newHeight);
 
     // If the track does not manage its own content height set it here
     if (typeof this.track.computePixelHeight !== "function") {
@@ -22228,11 +22228,11 @@ TrackView.prototype.setTrackHeight = function (newHeight, update, force) {
     }
 
 
-    resizeControlCanvas.call(this, $(this.leftHandGutter).outerWidth(), newHeight);
+    resizeControlCanvas.call(this, $$1(this.leftHandGutter).outerWidth(), newHeight);
 
 
     if (this.track.paintAxis) {
-        this.track.paintAxis(this.controlCtx, $(this.controlCanvas).width(), $(this.controlCanvas).height());
+        this.track.paintAxis(this.controlCtx, $$1(this.controlCanvas).width(), $$1(this.controlCanvas).height());
     }
 
     if (this.scrollbar) {
@@ -22257,7 +22257,7 @@ TrackView.prototype.resize = function () {
         viewport.setWidth(width);
     });
 
-    var $leftHandGutter = $(this.leftHandGutter);
+    var $leftHandGutter = $$1(this.leftHandGutter);
     resizeControlCanvas.call(this, $leftHandGutter.outerWidth(), $leftHandGutter.outerHeight());
 
     this.updateViews(true);
@@ -22273,7 +22273,7 @@ TrackView.prototype.repaintViews = function () {
         viewport.repaint();
     });
     if (this.track.paintAxis) {
-        this.track.paintAxis(this.controlCtx, $(this.controlCanvas).width(), $(this.controlCanvas).height());
+        this.track.paintAxis(this.controlCtx, $$1(this.controlCanvas).width(), $$1(this.controlCanvas).height());
     }
 };
 
@@ -22307,7 +22307,7 @@ TrackView.prototype.updateViews = async function (force) {
         for (let vp of visibleViewports) {
             const referenceFrame = vp.genomicState.referenceFrame;
             const start = referenceFrame.start;
-            const end = start + referenceFrame.toBP($(vp.contentDiv).width());
+            const end = start + referenceFrame.toBP($$1(vp.contentDiv).width());
 
             if (vp.tile && vp.tile.features) {
                 allFeatures = allFeatures.concat(FeatureUtils.findOverlapping(vp.tile.features, start, end));
@@ -22360,7 +22360,7 @@ TrackView.prototype.getInViewFeatures = async function (force) {
         if (vp.tile && vp.tile.features) {
             const referenceFrame = vp.genomicState.referenceFrame;
             const start = referenceFrame.start;
-            const end = start + referenceFrame.toBP($(vp.contentDiv).width());
+            const end = start + referenceFrame.toBP($$1(vp.contentDiv).width());
             allFeatures = allFeatures.concat(FeatureUtils.findOverlapping(vp.tile.features, start, end));
         }
     }
@@ -22383,7 +22383,7 @@ function viewportsToReload(force) {
             const referenceFrame = viewport.genomicState.referenceFrame;
             const chr = referenceFrame.chrName;
             const start = referenceFrame.start;
-            const end = start + referenceFrame.toBP($(viewport.contentDiv).width());
+            const end = start + referenceFrame.toBP($$1(viewport.contentDiv).width());
             const bpPerPixel = referenceFrame.bpPerPixel;
             return force || (!viewport.tile || viewport.tile.invalidate || !viewport.tile.containsRange(chr, start, end, bpPerPixel));
         }
@@ -22406,7 +22406,7 @@ function adjustTrackHeight() {
     if (this.track.autoHeight) {
         this.setTrackHeight(maxHeight, false);
     } else if (this.track.paintAxis) {   // Avoid duplication, paintAxis is already called in setTrackHeight
-        this.track.paintAxis(this.controlCtx, $(this.controlCanvas).width(), $(this.controlCanvas).height());
+        this.track.paintAxis(this.controlCtx, $$1(this.controlCanvas).width(), $$1(this.controlCanvas).height());
     }
 
     if (this.scrollbar) {
@@ -22414,7 +22414,7 @@ function adjustTrackHeight() {
         const newTop = Math.min(0, this.$viewportContainer.height() - minContentHeight(this.viewports));
         if (currentTop < newTop) {
             this.viewports.forEach(function (viewport) {
-                $(viewport.contentDiv).css("top", newTop + "px");
+                $$1(viewport.contentDiv).css("top", newTop + "px");
             });
         }
         this.scrollbar.update();
@@ -22454,7 +22454,7 @@ TrackView.prototype.dispose = function () {
         this.scrollbar.dispose();
     }
 
-    $(document).off(this.namespace);
+    $$1(document).off(this.namespace);
 
     if (typeof this.track.dispose === "function") {
         this.track.dispose();
@@ -22492,9 +22492,9 @@ const TrackScrollbar = function ($viewportContainer, viewports, rootDiv) {
     const namespace = '.trackscrollbar' + guid();
     this.namespace = namespace;
 
-    const $outerScroll = $('<div class="igv-scrollbar-outer-div">');
+    const $outerScroll = $$1('<div class="igv-scrollbar-outer-div">');
     this.$outerScroll = $outerScroll;
-    this.$innerScroll = $('<div>');
+    this.$innerScroll = $$1('<div>');
 
     this.$outerScroll.append(this.$innerScroll);
 
@@ -22521,9 +22521,9 @@ const TrackScrollbar = function ($viewportContainer, viewports, rootDiv) {
 
         lastY = page.y;
 
-        $(document).on('mousemove' + namespace, mouseMove);
-        $(document).on('mouseup' + namespace, mouseUp);
-        $(document).on('mouseleave' + namespace, mouseUp);
+        $$1(document).on('mousemove' + namespace, mouseMove);
+        $$1(document).on('mouseup' + namespace, mouseUp);
+        $$1(document).on('mouseleave' + namespace, mouseUp);
 
         // prevents start of horizontal track panning)
         event.stopPropagation();
@@ -22541,7 +22541,7 @@ const TrackScrollbar = function ($viewportContainer, viewports, rootDiv) {
     }
 
     function mouseUp(event) {
-        $(document).off(self.namespace);
+        $$1(document).off(self.namespace);
     }
 
 };
@@ -22573,7 +22573,7 @@ TrackScrollbar.prototype.moveScrollerTo = function (y) {
 };
 
 TrackScrollbar.prototype.dispose = function () {
-    $(window).off(this.namespace);
+    $$1(window).off(this.namespace);
 };
 
 TrackScrollbar.prototype.update = function () {
@@ -29178,11 +29178,11 @@ FeatureTrack.prototype.menuItemList = function () {
             });
         });
 
-        menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+        menuItems.push({object: $$1('<div class="igv-track-menu-border-top">')});
 
     }
 
-    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+    menuItems.push({object: $$1('<div class="igv-track-menu-border-top">')});
 
     ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode) {
         const lut =
@@ -35353,7 +35353,7 @@ BAMTrack.prototype.menuItemList = function () {
 
     const menuItems = [];
 
-    const $e = $('<div class="igv-track-menu-category igv-track-menu-border-top">');
+    const $e = $$1('<div class="igv-track-menu-category igv-track-menu-border-top">');
     $e.text('Color by');
     menuItems.push({name: undefined, object: $e, click: undefined, init: undefined});
 
@@ -35371,7 +35371,7 @@ BAMTrack.prototype.menuItemList = function () {
         menuItems.push(colorByCB(item, selected));
     });
 
-    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+    menuItems.push({object: $$1('<div class="igv-track-menu-border-top">')});
     menuItems.push({
         object: createCheckbox("Show all bases", self.showAllBases),
         click: function () {
@@ -35381,7 +35381,7 @@ BAMTrack.prototype.menuItemList = function () {
         }
     });
 
-    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+    menuItems.push({object: $$1('<div class="igv-track-menu-border-top">')});
 
     if (self.pairsSupported && self.alignmentTrack.hasPairs) {
 
@@ -35434,7 +35434,7 @@ BAMTrack.prototype.menuItemList = function () {
                         self.config.colorByTag = tag;
 
                         self.alignmentTrack.tagColors = new PaletteColorTable("Set1");
-                        $('#color-by-tag').text(self.alignmentTrack.colorByTag);
+                        $$1('#color-by-tag').text(self.alignmentTrack.colorByTag);
                     }
 
                     self.trackView.repaintViews();
@@ -35448,7 +35448,7 @@ BAMTrack.prototype.menuItemList = function () {
                     };
 
                 self.browser.inputDialog.configure(config);
-                self.browser.inputDialog.present($(self.trackView.trackDiv));
+                self.browser.inputDialog.present($$1(self.trackView.trackDiv));
 
             } else {
 
@@ -36132,7 +36132,7 @@ AlignmentTrack.prototype.contextMenuItemList = function (clickState) {
                 }
             };
         self.browser.inputDialog.configure(config);
-        self.browser.inputDialog.present($(self.parent.trackView.trackDiv));
+        self.browser.inputDialog.present($$1(self.parent.trackView.trackDiv));
     }
 
     function sortRows(options) {
@@ -37131,7 +37131,7 @@ VariantTrack.prototype.menuItemList = function () {
         menuItems = [];
 
 
-    menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
+    menuItems.push({object: $$1('<div class="igv-track-menu-border-top">')});
 
     ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode) {
         var lut =
@@ -38881,7 +38881,7 @@ IdeoPanel.prototype.buildPanels = function ($parent, width) {
 
     var self = this;
 
-    $parent.append($('<div class="igv-ideogram-shim"></div>'));
+    $parent.append($$1('<div class="igv-ideogram-shim"></div>'));
 
     this.panels = this.browser.genomicStateList.map(function (genomicState) {
         return panelWithGenomicState.call(self, $parent, genomicState, width)
@@ -38994,7 +38994,7 @@ function panelWithGenomicState($parent, genomicState, width) {
 
     panel.genomicState = genomicState;
 
-    panel.$ideogram = $('<div class="igv-ideogram-content"></div>');
+    panel.$ideogram = $$1('<div class="igv-ideogram-content"></div>');
 
     $parent.append(panel.$ideogram);
 
@@ -39002,7 +39002,7 @@ function panelWithGenomicState($parent, genomicState, width) {
 
     panel.$ideogram.outerWidth(width);
 
-    panel.$canvas = $('<canvas>');
+    panel.$canvas = $$1('<canvas>');
     panel.$ideogram.append(panel.$canvas);
 
     setupCanvasSize(panel);
@@ -39389,7 +39389,7 @@ const Browser = function (options, trackContainerDiv) {
     this.guid = guid();
     this.namespace = '.browser_' + this.guid;
     this.config = options;
-    this.$root = $('<div class="igv-root-div">');
+    this.$root = $$1('<div class="igv-root-div">');
 
     initialize.call(this, options);
 
@@ -39409,9 +39409,9 @@ const Browser = function (options, trackContainerDiv) {
     // Map of event name -> [ handlerFn, ... ]
     this.eventHandlers = {};
 
-    this.$spinner = $('<div class="igv-track-container-spinner">');
+    this.$spinner = $$1('<div class="igv-track-container-spinner">');
     this.$spinner.append(createIcon("spinner"));
-    $(this.trackContainerDiv).append(this.$spinner);
+    $$1(this.trackContainerDiv).append(this.$spinner);
     this.stopSpinner();
 
     addMouseHandlers$1.call(this);
@@ -40085,7 +40085,7 @@ Browser.prototype.createTrack = function (config) {
 Browser.prototype.addTrack = async function (track) {
 
     var trackView;
-    trackView = new TrackView(this, $(this.trackContainerDiv), track);
+    trackView = new TrackView(this, $$1(this.trackContainerDiv), track);
     this.trackViews.push(trackView);
 
     toggleTrackLabels(this.trackViews, this.trackLabelsVisible);
@@ -40108,7 +40108,7 @@ Browser.prototype.reorderTracks = function () {
     });
 
     // Reattach the divs to the dom in the correct order
-    $(this.trackContainerDiv).children("igv-track-div").detach();
+    $$1(this.trackContainerDiv).children("igv-track-div").detach();
 
     this.trackViews.forEach(function (trackView) {
         myself.trackContainerDiv.appendChild(trackView.trackDiv);
@@ -40139,7 +40139,7 @@ Browser.prototype.removeTrack = function (track) {
 
     if (trackPanelRemoved) {
         this.trackViews.splice(i, 1);
-        $(trackPanelRemoved.trackDiv).remove();
+        $$1(trackPanelRemoved.trackDiv).remove();
         this.fireEvent('trackremoved', [trackPanelRemoved.track]);
         trackPanelRemoved.dispose();
     }
@@ -40422,10 +40422,10 @@ Browser.prototype.viewportContainerWidth = function () {
             $viewportContainer,
             width;
 
-        $track = $('<div class="igv-track-div">');
-        $(this.trackContainerDiv).append($track);
+        $track = $$1('<div class="igv-track-div">');
+        $$1(this.trackContainerDiv).append($track);
 
-        $viewportContainer = $('<div class="igv-viewport-container">');
+        $viewportContainer = $$1('<div class="igv-viewport-container">');
         $track.append($viewportContainer);
 
         width = $viewportContainer.width();
@@ -41113,8 +41113,8 @@ Browser.prototype.fireEvent = function (eventName, args, thisObj) {
 
 Browser.prototype.dispose = function () {
 
-    $(window).off(this.namespace);
-    $(document).off(this.namespace);
+    $$1(window).off(this.namespace);
+    $$1(document).off(this.namespace);
     this.eventHandlers = undefined;
     this.trackViews.forEach(function (tv) {
         tv.dispose();
@@ -41335,22 +41335,22 @@ function addMouseHandlers$1() {
 
     var self = this;
 
-    $(window).on('resize' + this.namespace, function () {
+    $$1(window).on('resize' + this.namespace, function () {
         self.resize();
     });
 
-    $(this.root).on('mouseup', mouseUpOrLeave);
-    $(this.root).on('mouseleave', mouseUpOrLeave);
+    $$1(this.root).on('mouseup', mouseUpOrLeave);
+    $$1(this.root).on('mouseleave', mouseUpOrLeave);
 
-    $(this.trackContainerDiv).on('mousemove', handleMouseMove);
+    $$1(this.trackContainerDiv).on('mousemove', handleMouseMove);
 
-    $(this.trackContainerDiv).on('touchmove', handleMouseMove);
+    $$1(this.trackContainerDiv).on('touchmove', handleMouseMove);
 
-    $(this.trackContainerDiv).on('mouseleave', mouseUpOrLeave);
+    $$1(this.trackContainerDiv).on('mouseleave', mouseUpOrLeave);
 
-    $(this.trackContainerDiv).on('mouseup', mouseUpOrLeave);
+    $$1(this.trackContainerDiv).on('mouseup', mouseUpOrLeave);
 
-    $(this.trackContainerDiv).on('touchend', mouseUpOrLeave);
+    $$1(this.trackContainerDiv).on('touchend', mouseUpOrLeave);
 
     function handleMouseMove(e) {
 
@@ -41444,7 +41444,7 @@ function addMouseHandlers$1() {
 
 const WindowSizePanel = function ($parent, browser) {
 
-    this.$content = $('<div class="igv-windowsizepanel-content-div">');
+    this.$content = $$1('<div class="igv-windowsizepanel-content-div">');
     $parent.append(this.$content);
     this.browser = browser;
 
@@ -41524,12 +41524,12 @@ const InputDialog = function ($parent) {
 
 
     // dialog container
-    this.$container = $("<div>", {class: 'igv-generic-dialog-container'});
+    this.$container = $$1("<div>", {class: 'igv-generic-dialog-container'});
     $parent.append(this.$container);
     this.$container.offset({left: 0, top: 0});
 
     // dialog header
-    $header = $("<div>", {class: 'igv-generic-dialog-header'});
+    $header = $$1("<div>", {class: 'igv-generic-dialog-header'});
     this.$container.append($header);
     attachDialogCloseHandlerWithParent($header, function () {
         self.$input.val(undefined);
@@ -41538,29 +41538,29 @@ const InputDialog = function ($parent) {
     });
 
     // dialog label
-    this.$label = $("<div>", {class: 'igv-generic-dialog-one-liner'});
+    this.$label = $$1("<div>", {class: 'igv-generic-dialog-one-liner'});
     this.$container.append(this.$label);
     this.$label.text('Unlabeled');
 
     // input container
-    this.$input_container = $("<div>", {class: 'igv-generic-dialog-input'});
+    this.$input_container = $$1("<div>", {class: 'igv-generic-dialog-input'});
     this.$container.append(this.$input_container);
     //
-    this.$input = $("<input>");
+    this.$input = $$1("<input>");
     this.$input_container.append(this.$input);
 
 
     // ok | cancel
-    $buttons = $("<div>", {class: 'igv-generic-dialog-ok-cancel'});
+    $buttons = $$1("<div>", {class: 'igv-generic-dialog-ok-cancel'});
     this.$container.append($buttons);
 
     // ok
-    this.$ok = $("<div>");
+    this.$ok = $$1("<div>");
     $buttons.append(this.$ok);
     this.$ok.text('OK');
 
     // cancel
-    this.$cancel = $("<div>");
+    this.$cancel = $$1("<div>");
     $buttons.append(this.$cancel);
     this.$cancel.text('Cancel');
 
@@ -41612,7 +41612,7 @@ InputDialog.prototype.present = function ($parent) {
         scroll_top;
 
     offset_top = $parent.offset().top;
-    scroll_top = $('body').scrollTop();
+    scroll_top = $$1('body').scrollTop();
 
     this.$container.offset({left: $parent.width() - this.$container.width(), top: (offset_top + scroll_top)});
     this.$container.show();
@@ -41653,12 +41653,12 @@ const DataRangeDialog = function ($parent, browser) {
     this.browser = browser;
 
     // dialog container
-    this.$container = $("<div>", {class: 'igv-generic-dialog-container'});
+    this.$container = $$1("<div>", {class: 'igv-generic-dialog-container'});
     $parent.append(this.$container);
     this.$container.offset({left: 0, top: 0});
 
     // dialog header
-    $header = $("<div>", {class: 'igv-generic-dialog-header'});
+    $header = $$1("<div>", {class: 'igv-generic-dialog-header'});
     this.$container.append($header);
     attachDialogCloseHandlerWithParent($header, function () {
         self.$minimum_input.val(undefined);
@@ -41669,39 +41669,39 @@ const DataRangeDialog = function ($parent, browser) {
 
 
     // minimun
-    this.$minimum = $("<div>", {class: 'igv-generic-dialog-label-input'});
+    this.$minimum = $$1("<div>", {class: 'igv-generic-dialog-label-input'});
     this.$container.append(this.$minimum);
     //
-    $div = $('<div>');
+    $div = $$1('<div>');
     $div.text('Minimum');
     this.$minimum.append($div);
     //
-    this.$minimum_input = $("<input>");
+    this.$minimum_input = $$1("<input>");
     this.$minimum.append(this.$minimum_input);
 
 
     // maximum
-    this.$maximum = $("<div>", {class: 'igv-generic-dialog-label-input'});
+    this.$maximum = $$1("<div>", {class: 'igv-generic-dialog-label-input'});
     this.$container.append(this.$maximum);
     //
-    $div = $('<div>');
+    $div = $$1('<div>');
     $div.text('Maximum');
     this.$maximum.append($div);
     //
-    this.$maximum_input = $("<input>");
+    this.$maximum_input = $$1("<input>");
     this.$maximum.append(this.$maximum_input);
 
     // ok | cancel
-    $buttons = $("<div>", {class: 'igv-generic-dialog-ok-cancel'});
+    $buttons = $$1("<div>", {class: 'igv-generic-dialog-ok-cancel'});
     this.$container.append($buttons);
 
     // ok
-    this.$ok = $("<div>");
+    this.$ok = $$1("<div>");
     $buttons.append(this.$ok);
     this.$ok.text('OK');
 
     // cancel
-    this.$cancel = $("<div>");
+    this.$cancel = $$1("<div>");
     $buttons.append(this.$cancel);
     this.$cancel.text('Cancel');
 
@@ -41770,7 +41770,7 @@ function processResults(config) {
     } else {
 
         if (true === config.trackView.track.autoscale) {
-            $('#datarange-autoscale').trigger('click');
+            $$1('#datarange-autoscale').trigger('click');
         }
 
         config.trackView.setDataRange(min, max, false);
@@ -41788,7 +41788,7 @@ DataRangeDialog.prototype.present = function ($parent) {
         scroll_top;
 
     offset_top = $parent.offset().top;
-    scroll_top = $('body').scrollTop();
+    scroll_top = $$1('body').scrollTop();
 
     this.$container.offset({left: $parent.width() - this.$container.width(), top: (offset_top + scroll_top)});
     this.$container.show();
@@ -41826,12 +41826,12 @@ const TrackRemovalDialog = function ($parent) {
         $buttons;
 
     // dialog container
-    this.$container = $("<div>", {class: 'igv-generic-dialog-container'});
+    this.$container = $$1("<div>", {class: 'igv-generic-dialog-container'});
     $parent.append(this.$container);
     this.$container.offset({left: 0, top: 0});
 
     // dialog header
-    $header = $("<div>", {class: 'igv-generic-dialog-header'});
+    $header = $$1("<div>", {class: 'igv-generic-dialog-header'});
     this.$container.append($header);
     attachDialogCloseHandlerWithParent($header, function () {
         self.$track_name.text(undefined);
@@ -41840,26 +41840,26 @@ const TrackRemovalDialog = function ($parent) {
     });
 
     // dialog label
-    this.$label = $("<div>", {class: 'igv-generic-dialog-one-liner'});
+    this.$label = $$1("<div>", {class: 'igv-generic-dialog-one-liner'});
     this.$container.append(this.$label);
     this.$label.text('Remove track:');
 
     // track name
-    this.$track_name = $("<div>", {class: 'igv-generic-dialog-one-liner igv-ellipsis'});
+    this.$track_name = $$1("<div>", {class: 'igv-generic-dialog-one-liner igv-ellipsis'});
     this.$container.append(this.$track_name);
     // this.$track_name.text('this is a really long track name so I better make it interesting');
 
     // ok | cancel
-    $buttons = $("<div>", {class: 'igv-generic-dialog-ok-cancel'});
+    $buttons = $$1("<div>", {class: 'igv-generic-dialog-ok-cancel'});
     this.$container.append($buttons);
 
     // ok
-    this.$ok = $("<div>");
+    this.$ok = $$1("<div>");
     $buttons.append(this.$ok);
     this.$ok.text('OK');
 
     // cancel
-    this.$cancel = $("<div>");
+    this.$cancel = $$1("<div>");
     $buttons.append(this.$cancel);
     this.$cancel.text('Cancel');
 
@@ -41895,7 +41895,7 @@ TrackRemovalDialog.prototype.present = function ($parent) {
         scroll_top;
 
     offset_top = $parent.offset().top;
-    scroll_top = $('body').scrollTop();
+    scroll_top = $$1('body').scrollTop();
 
     this.$container.offset({left: $parent.width() - this.$container.width(), top: (offset_top + scroll_top)});
     this.$container.show();
@@ -41928,32 +41928,32 @@ TrackRemovalDialog.prototype.present = function ($parent) {
 
 const UserFeedback = function ($parent) {
 
-    this.$container = $('<div class="igv-user-feedback">');
+    this.$container = $$1('<div class="igv-user-feedback">');
     $parent.append(this.$container);
 
     // header
-    let $header = $('<div>');
+    let $header = $$1('<div>');
     this.$container.append($header);
 
     // alert
-    let $exclamation = $('<div>');
+    let $exclamation = $$1('<div>');
     $header.append($exclamation);
 
     let $a = createIcon("exclamation-triangle", 'red');
     $exclamation.append($a);
 
     // dismiss
-    let $dismiss = $('<div>');
+    let $dismiss = $$1('<div>');
     $header.append($dismiss);
 
     let $b = createIcon("times-circle", 'grey');
     $dismiss.append($b);
 
     // body copy
-    let $bodyCopyContainer = $('<div>');
+    let $bodyCopyContainer = $$1('<div>');
     this.$container.append($bodyCopyContainer);
 
-    let $bodyCopy = $('<div>');
+    let $bodyCopy = $$1('<div>');
     $bodyCopyContainer.append($bodyCopy);
     $bodyCopy.text('i am user feedback');
 
@@ -42001,7 +42001,7 @@ UserFeedback.prototype.hide = function () {
 
 const SVGSaveControl = function ($parent, browser) {
 
-    let $button = $('<div class="igv-nav-bar-button">');
+    let $button = $$1('<div class="igv-nav-bar-button">');
     $parent.append($button);
 
     $button.text('Save SVG');
@@ -42042,11 +42042,11 @@ const ZoomWidget = function (browser, $parent) {
 
     let $div;
 
-    this.$zoomContainer = $('<div class="igv-zoom-widget">');
+    this.$zoomContainer = $$1('<div class="igv-zoom-widget">');
     $parent.append(this.$zoomContainer);
 
     // zoom out
-    $div = $('<div>');
+    $div = $$1('<div>');
     this.$zoomContainer.append($div);
 
     $div.append(createIcon("minus-circle"));
@@ -42056,10 +42056,10 @@ const ZoomWidget = function (browser, $parent) {
     });
 
     // Range slider
-    $div = $('<div>');
+    $div = $$1('<div>');
     this.$zoomContainer.append($div);
 
-    this.$slider = $('<input type="range"/>');
+    this.$slider = $$1('<input type="range"/>');
     $div.append(this.$slider);
 
     this.$slider.on('change', function (e) {
@@ -42067,7 +42067,7 @@ const ZoomWidget = function (browser, $parent) {
     });
 
     // zoom in
-    $div = $('<div>');
+    $div = $$1('<div>');
     this.$zoomContainer.append($div);
 
     $div.append(createIcon("plus-circle"));
@@ -42130,17 +42130,17 @@ const ChromosomeSelectWidget = function (browser, $parent) {
 
     this.showAllChromosomes = browser.config.showAllChromosomes;
 
-    this.$container = $('<div>', {class: 'igv-chromosome-select-widget-container'});
+    this.$container = $$1('<div>', {class: 'igv-chromosome-select-widget-container'});
     $parent.append(this.$container);
 
-    this.$select = $('<select>', {'name': 'chromosome-select-widget'});
+    this.$select = $$1('<select>', {'name': 'chromosome-select-widget'});
     this.$container.append(this.$select);
 
     this.$select.on('change', function () {
-        const value = $(this).val();
+        const value = $$1(this).val();
         if (value !== '') {
-            browser.search($(this).val());
-            $(this).blur();
+            browser.search($$1(this).val());
+            $$1(this).blur();
         }
     });
 
@@ -42157,7 +42157,7 @@ ChromosomeSelectWidget.prototype.update = function (genome) {
     }
     for (let name of list) {
         var $o;
-        $o = $('<option>', {'value': name});
+        $o = $$1('<option>', {'value': name});
         this.$select.append($o);
         $o.text(name);
     }
@@ -42196,7 +42196,7 @@ const TrackLabelControl = function ($parent, browser) {
 
     this.browser = browser;
 
-    this.$button = $('<div class="igv-nav-bar-button">');
+    this.$button = $$1('<div class="igv-nav-bar-button">');
     $parent.append(this.$button);
     this.$button.text('track labels');
 
@@ -42268,13 +42268,13 @@ const CenterGuide = function ($guideParent, $controlParent, config, browser) {
 
     this.browser = browser;
 
-    this.$container = $('<div class="igv-center-guide igv-center-guide-thin">');
+    this.$container = $$1('<div class="igv-center-guide igv-center-guide-thin">');
 
     $guideParent.append(this.$container);
 
     if (true === config.showCenterGuideButton) {
 
-        this.$centerGuideToggle = $('<div class="igv-nav-bar-button">');
+        this.$centerGuideToggle = $$1('<div class="igv-nav-bar-button">');
         $controlParent.append(this.$centerGuideToggle);
         this.$centerGuideToggle.text('center line');
 
@@ -42425,7 +42425,7 @@ const CursorGuide = function ($cursorGuideParent, $controlParent, config, browse
 
     this.browser = browser;
 
-    this.$guide = $('<div class="igv-cursor-tracking-guide">');
+    this.$guide = $$1('<div class="igv-cursor-tracking-guide">');
     $cursorGuideParent.append(this.$guide);
 
     // Guide line is bound within track area, and offset by 5 pixels so as not to interfere mouse clicks.
@@ -42433,7 +42433,7 @@ const CursorGuide = function ($cursorGuideParent, $controlParent, config, browse
 
         e.preventDefault();
 
-        const $canvas = $(document.elementFromPoint(e.clientX, e.clientY));
+        const $canvas = $$1(document.elementFromPoint(e.clientX, e.clientY));
         const $viewportContent = $canvas.parent();
 
         if ($viewportContent.hasClass('igv-viewport-content-div')) {
@@ -42451,7 +42451,7 @@ const CursorGuide = function ($cursorGuideParent, $controlParent, config, browse
 
     if (true === config.showCursorTrackingGuideButton) {
 
-        this.$button = $('<div class="igv-nav-bar-button">');
+        this.$button = $$1('<div class="igv-nav-bar-button">');
         $controlParent.append(this.$button);
         this.$button.text('cursor guide');
 
@@ -42667,7 +42667,7 @@ let allBrowsers = [];
  */
 async function createBrowser(parentDiv, config) {
 
-    Alert.init($(parentDiv));
+    Alert.init($$1(parentDiv));
 
     if (undefined === config) config = {};
 
@@ -42684,17 +42684,17 @@ async function createBrowser(parentDiv, config) {
     // Set track order explicitly. Otherwise they will be ordered randomly as each completes its async load
     setTrackOrder(config);
 
-    const browser = new Browser(config, $('<div class="igv-track-container-div">')[0]);
+    const browser = new Browser(config, $$1('<div class="igv-track-container-div">')[0]);
 
     browser.parent = parentDiv;
 
-    $(parentDiv).append(browser.$root);
+    $$1(parentDiv).append(browser.$root);
 
     setControls(browser, config);
 
-    browser.$content = $('<div class="igv-content-div">');
+    browser.$content = $$1('<div class="igv-content-div">');
     browser.$root.append(browser.$content);
-    browser.$contentHeader = $('<div>', {class: 'igv-content-header'});
+    browser.$contentHeader = $$1('<div>', {class: 'igv-content-header'});
     browser.$content.append(browser.$contentHeader);
     browser.$content.append(browser.trackContainerDiv);
 
@@ -42830,10 +42830,10 @@ function setControls(browser, conf) {
 
     // Create controls. Can be customized by passing in a creation function that returns a div containing the controls
     controlDiv = conf.createControls ? conf.createControls(browser, conf) : createStandardControls(browser, conf);
-    browser.$root.append($(controlDiv));
+    browser.$root.append($$1(controlDiv));
 
     if (false === conf.showControls) {
-        $(controlDiv).hide();
+        $$1(controlDiv).hide();
     }
 
 }
@@ -42852,18 +42852,18 @@ function createStandardControls(browser, config) {
         $navigation,
         $searchContainer;
 
-    $controls = $('<div>', {class: 'igvControlDiv'});
+    $controls = $$1('<div>', {class: 'igvControlDiv'});
 
-    $navigation = $('<div>', {class: 'igv-navbar'});
+    $navigation = $$1('<div>', {class: 'igv-navbar'});
     $controls.append($navigation);
     browser.$navigation = $navigation;
     browser.navbarManager = new NavbarManager(browser);
 
-    $igv_nav_bar_left_container = $('<div>', {class: 'igv-nav-bar-left-container'});
+    $igv_nav_bar_left_container = $$1('<div>', {class: 'igv-nav-bar-left-container'});
     $navigation.append($igv_nav_bar_left_container);
 
     // IGV logo
-    logoDiv = $('<div>', {class: 'igv-logo'});
+    logoDiv = $$1('<div>', {class: 'igv-logo'});
     logoSvg = logo();
     logoSvg.css("width", "34px");
     logoSvg.css("height", "32px");
@@ -42871,12 +42871,12 @@ function createStandardControls(browser, config) {
     $igv_nav_bar_left_container.append(logoDiv);
 
     // current genome
-    browser.$current_genome = $('<div>', {class: 'igv-current-genome'});
+    browser.$current_genome = $$1('<div>', {class: 'igv-current-genome'});
     $igv_nav_bar_left_container.append(browser.$current_genome);
     browser.$current_genome.text('');
 
     //
-    $genomic_location = $('<div>', {class: 'igv-nav-bar-genomic-location'});
+    $genomic_location = $$1('<div>', {class: 'igv-nav-bar-genomic-location'});
     $igv_nav_bar_left_container.append($genomic_location);
 
     // chromosome select widget
@@ -42891,20 +42891,20 @@ function createStandardControls(browser, config) {
     }
 
 
-    $locus_size_group = $('<div>', {class: 'igv-locus-size-group'});
+    $locus_size_group = $$1('<div>', {class: 'igv-locus-size-group'});
     $genomic_location.append($locus_size_group);
 
     // locus goto widget container
-    $searchContainer = $('<div>', {class: 'igv-search-container'});
+    $searchContainer = $$1('<div>', {class: 'igv-search-container'});
     $locus_size_group.append($searchContainer);
 
     // locus goto input
-    browser.$searchInput = $('<input type="text" placeholder="Locus Search">');
+    browser.$searchInput = $$1('<input type="text" placeholder="Locus Search">');
     $searchContainer.append(browser.$searchInput);
 
     browser.$searchInput.change(function (e) {
 
-        browser.search($(this).val())
+        browser.search($$1(this).val())
 
             .catch(function (error) {
                 browser.presentAlert(error);
@@ -42912,7 +42912,7 @@ function createStandardControls(browser, config) {
     });
 
     // search icon container
-    $div = $('<div>');
+    $div = $$1('<div>');
     $searchContainer.append($div);
 
     // search icon svg
@@ -42938,18 +42938,18 @@ function createStandardControls(browser, config) {
 
     // cursor guide | center guide | track labels
 
-    $igv_nav_bar_right_container = $('<div class="igv-nav-bar-right-container">');
+    $igv_nav_bar_right_container = $$1('<div class="igv-nav-bar-right-container">');
     $navigation.append($igv_nav_bar_right_container);
 
-    $toggle_button_container = $('<div class="igv-nav-bar-toggle-button-container">');
+    $toggle_button_container = $$1('<div class="igv-nav-bar-toggle-button-container">');
     $igv_nav_bar_right_container.append($toggle_button_container);
     browser.$toggle_button_container = $toggle_button_container;
 
     // cursor guide
-    browser.cursorGuide = new CursorGuide($(browser.trackContainerDiv), $toggle_button_container, config, browser);
+    browser.cursorGuide = new CursorGuide($$1(browser.trackContainerDiv), $toggle_button_container, config, browser);
 
     // center guide
-    browser.centerGuide = new CenterGuide($(browser.trackContainerDiv), $toggle_button_container, config, browser);
+    browser.centerGuide = new CenterGuide($$1(browser.trackContainerDiv), $toggle_button_container, config, browser);
 
     // toggle track labels
     if (true === config.showTrackLabelButton) {
@@ -43111,7 +43111,7 @@ function extractQuery(config) {
 
 function logo() {
 
-    return $(
+    return $$1(
         '<svg width="690px" height="324px" viewBox="0 0 690 324" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">' +
         '<title>IGV</title>' +
         '<g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">' +
@@ -43692,7 +43692,7 @@ function extractQuery$1(uri) {
 
 // Modified for encapsulation in igv module -- ES6 export
 
-var $$1, jQuery$1;
+var $$2, jQuery$1;
 
 
 // Support: Firefox 18+
@@ -54579,9 +54579,9 @@ jQuery$1.fn.size = function () {
 
 jQuery$1.fn.andSelf = jQuery$1.fn.addBack;
 
-$$1 = jQuery$1;
+$$2 = jQuery$1;
 
-var $$2 = $$1;
+var $$3 = $$2;
 
 //     Underscore.js 1.8.3
 //     http://underscorejs.org
@@ -56259,26 +56259,26 @@ const igvReplacements = function (igv) {
     };
 
 
-    igv.Alert.presentAlert = function (message, $parent) {
-
-        const httpMessages = {
-            "401": "Access unauthorized",
-            "403": "Access forbidden",
-            "404": "Not found"
-        };
-
-        let string = message.message || message;
-
-        if (httpMessages.hasOwnProperty(string)) {
-            string = httpMessages[string];
-        }
-
-        // TODO fix this -- apparently there used to be a global dialog attached to igv
-        //igv.alertDialog.configure({label: string});
-        //igv.alertDialog.present($parent);
-        alert(string);
-
-    };
+    // igv.Alert.presentAlert = function (message, $parent) {
+    //
+    //     const httpMessages = {
+    //         "401": "Access unauthorized",
+    //         "403": "Access forbidden",
+    //         "404": "Not found"
+    //     }
+    //
+    //     let string = message.message || message;
+    //
+    //     if (httpMessages.hasOwnProperty(string)) {
+    //         string = httpMessages[string];
+    //     }
+    //
+    //     // TODO fix this -- apparently there used to be a global dialog attached to igv
+    //     //igv.alertDialog.configure({label: string});
+    //     //igv.alertDialog.present($parent);
+    //     alert(string);
+    //
+    // };
 
 };
 
@@ -56286,7 +56286,7 @@ function colorPickerMenuItem$1(trackRender) {
     var $e,
         clickHandler;
 
-    $e = $$2('<div>');
+    $e = $$3('<div>');
     $e.text('Set track color');
 
     clickHandler = function () {
@@ -56300,7 +56300,7 @@ function trackRenameMenuItem$1(trackRenderer) {
 
     var $e, menuClickHandler;
 
-    $e = $$2('<div>');
+    $e = $$3('<div>');
     $e.text('Set track name');
 
     menuClickHandler = function menuClickHandler() {
@@ -56318,7 +56318,7 @@ function trackRenameMenuItem$1(trackRenderer) {
             input: trackRenderer.track.name,
             click: dialogClickHandler
         });
-        trackRenderer.browser.inputDialog.present($$2(trackRenderer.trackDiv));
+        trackRenderer.browser.inputDialog.present($$3(trackRenderer.trackDiv));
     };
 
     return {object: $e, click: menuClickHandler};
@@ -56327,7 +56327,7 @@ function trackRemovalMenuItem$1(trackRenderer) {
 
     var $e, menuClickHandler;
 
-    $e = $$2('<div>');
+    $e = $$3('<div>');
     $e.text('Remove track');
 
     menuClickHandler = function menuClickHandler() {
@@ -56378,7 +56378,7 @@ igvReplacements(api);
 
 async function createBrowser$1(hic_container, config, callback) {
 
-    const $hic_container = $$2(hic_container);
+    const $hic_container = $$3(hic_container);
 
     setDefaults$1(config);
 
@@ -56976,25 +56976,25 @@ const ScrollbarWidget = function (browser) {
 
     // x-axis
     id = browser.id + '_' + 'x-axis-scrollbar-container';
-    this.$x_axis_scrollbar_container = $$2("<div>", {id: id});
+    this.$x_axis_scrollbar_container = $$3("<div>", {id: id});
 
     id = browser.id + '_' + 'x-axis-scrollbar';
-    this.$x_axis_scrollbar = $$2("<div>", {id: id});
+    this.$x_axis_scrollbar = $$3("<div>", {id: id});
     this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
 
-    this.$x_label = $$2('<div>');
+    this.$x_label = $$3('<div>');
     this.$x_label.text('');
     this.$x_axis_scrollbar.append(this.$x_label);
 
     // y-axis
     id = browser.id + '_' + 'y-axis-scrollbar-container';
-    this.$y_axis_scrollbar_container = $$2("<div>", {id: id});
+    this.$y_axis_scrollbar_container = $$3("<div>", {id: id});
 
     id = browser.id + '_' + 'y-axis-scrollbar';
-    this.$y_axis_scrollbar = $$2("<div>", {id: id});
+    this.$y_axis_scrollbar = $$3("<div>", {id: id});
     this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
 
-    this.$y_label = $$2('<div class="scrollbar-label-rotation-in-place">');
+    this.$y_label = $$3('<div class="scrollbar-label-rotation-in-place">');
     this.$y_label.text('');
     this.$y_axis_scrollbar.append(this.$y_label);
 
@@ -57155,7 +57155,7 @@ const SweepZoom = function (browser, $target) {
     id = browser.id + '_' + 'sweep-zoom-container';
 
     this.browser = browser;
-    this.$rulerSweeper = $$2("<div>", {id: id});
+    this.$rulerSweeper = $$3("<div>", {id: id});
     this.$rulerSweeper.hide();
     this.$target = $target;
     this.sweepRect = {};
@@ -57477,17 +57477,17 @@ const ContactMatrixView = function (browser, $container) {
     this.scrollbarWidget = new ScrollbarWidget(browser);
 
     id = browser.id + '_' + 'viewport';
-    this.$viewport = $$2("<div>", {id: id});
+    this.$viewport = $$3("<div>", {id: id});
     $container.append(this.$viewport);
 
     // content canvas
-    this.$canvas = $$2('<canvas>');
+    this.$canvas = $$3('<canvas>');
     this.$viewport.append(this.$canvas);
 
     this.ctx = this.$canvas.get(0).getContext('2d');
 
     // spinner
-    this.$fa_spinner = $$2('<i class="fa fa-spinner fa-spin">');
+    this.$fa_spinner = $$3('<i class="fa fa-spinner fa-spin">');
     this.$fa_spinner.css("font-size", "48px");
     this.$fa_spinner.css("position", "absolute");
     this.$fa_spinner.css("left", "40%");
@@ -57503,12 +57503,12 @@ const ContactMatrixView = function (browser, $container) {
 
     // x - guide
     id = browser.id + '_' + 'x-guide';
-    this.$x_guide = $$2("<div>", {id: id});
+    this.$x_guide = $$3("<div>", {id: id});
     this.$viewport.append(this.$x_guide);
 
     // y - guide
     id = browser.id + '_' + 'y-guide';
-    this.$y_guide = $$2("<div>", {id: id});
+    this.$y_guide = $$3("<div>", {id: id});
     this.$viewport.append(this.$y_guide);
 
 
@@ -58210,7 +58210,7 @@ function addMouseHandlers$2($viewport) {
 
             isSweepZooming = (true === e.altKey);
             if (isSweepZooming) {
-                eFixed = $$2.event.fix(e);
+                eFixed = $$3.event.fix(e);
                 self.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
             }
 
@@ -58234,7 +58234,7 @@ function addMouseHandlers$2($viewport) {
                 };
 
             // Sets pageX and pageY for browsers that don't support them
-            eFixed = $$2.event.fix(e);
+            eFixed = $$3.event.fix(e);
 
             xy =
                 {
@@ -58299,13 +58299,13 @@ function addMouseHandlers$2($viewport) {
         $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
 
         // document level events
-        $$2(document).on('keydown.contact_matrix_view', function (e) {
+        $$3(document).on('keydown.contact_matrix_view', function (e) {
             if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
                 self.willShowCrosshairs = true;
             }
         });
 
-        $$2(document).on('keyup.contact_matrix_view', function (e) {
+        $$3(document).on('keyup.contact_matrix_view', function (e) {
             self.browser.hideCrosshairs();
             self.willShowCrosshairs = undefined;
         });
@@ -58313,7 +58313,7 @@ function addMouseHandlers$2($viewport) {
         // for sweep-zoom allow user to sweep beyond viewport extent
         // sweep area clamps since viewport mouse handlers stop firing
         // when the viewport boundary is crossed.
-        $$2(document).on('mouseup.contact_matrix_view', function (e) {
+        $$3(document).on('mouseup.contact_matrix_view', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -58529,7 +58529,7 @@ function addTouchHandlers($viewport) {
 
     function translateTouchCoordinates(e, target) {
 
-        var $target = $$2(target),
+        var $target = $$3(target),
             posx,
             posy;
 
@@ -58573,44 +58573,44 @@ const ChromosomeSelectorWidget = function (browser, $parent) {
 
     this.browser = browser;
 
-    this.$container = $$2('<div class="hic-chromosome-selector-widget-container">');
+    this.$container = $$3('<div class="hic-chromosome-selector-widget-container">');
     $parent.append(this.$container);
 
-    $label = $$2('<div>');
+    $label = $$3('<div>');
     this.$container.append($label);
     $label.text('Chromosomes');
 
-    $selector_container = $$2('<div>');
+    $selector_container = $$3('<div>');
     this.$container.append($selector_container);
 
-    this.$x_axis_selector = $$2('<select name="x-axis-selector">');
+    this.$x_axis_selector = $$3('<select name="x-axis-selector">');
     $selector_container.append(this.$x_axis_selector);
 
-    this.$y_axis_selector = $$2('<select name="y-axis-selector">');
+    this.$y_axis_selector = $$3('<select name="y-axis-selector">');
     $selector_container.append(this.$y_axis_selector);
 
     this.$x_axis_selector.on('change', function (e) {
 
-        if (0 === parseInt($$2(this).val(), 10)) {
-            self.$y_axis_selector.val($$2(this).val());
+        if (0 === parseInt($$3(this).val(), 10)) {
+            self.$y_axis_selector.val($$3(this).val());
         } else if (0 === parseInt(self.$y_axis_selector.val(), 10)) {
-            self.$y_axis_selector.val($$2(this).val());
+            self.$y_axis_selector.val($$3(this).val());
         }
 
     });
 
     this.$y_axis_selector.on('change', function (e) {
 
-        if (0 === parseInt($$2(this).val(), 10)) {
-            self.$x_axis_selector.val($$2(this).val());
+        if (0 === parseInt($$3(this).val(), 10)) {
+            self.$x_axis_selector.val($$3(this).val());
         } else if (0 === parseInt(self.$x_axis_selector.val(), 10)) {
-            self.$x_axis_selector.val($$2(this).val());
+            self.$x_axis_selector.val($$3(this).val());
         }
 
     });
 
 
-    $doit = $$2('<div>');
+    $doit = $$3('<div>');
     $selector_container.append($doit);
 
     $doit.on('click', function (e) {
@@ -58740,21 +58740,21 @@ const ControlMapWidget = function (browser, $parent) {
     this.browser = browser;
 
     // container
-    this.$container = $$2('<div class="hic-control-map-selector-container">');
+    this.$container = $$3('<div class="hic-control-map-selector-container">');
     this.$container.hide();
     $parent.append(this.$container);
 
     // select
-    this.$select = $$2('<select>');
+    this.$select = $$3('<select>');
     this.$select.attr('name', 'control_map_selector');
     this.$container.append(this.$select);
 
     // a-b toggle icon
-    const $toggle_container = $$2('<div>');
+    const $toggle_container = $$3('<div>');
     this.$container.append($toggle_container);
 
     // cycle button
-    const $cycle_container = $$2('<div>');
+    const $cycle_container = $$3('<div>');
     this.$container.append($cycle_container);
 
     this.controlMapHash = new ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
@@ -58825,7 +58825,7 @@ const ControlMapHash = function (browser, $select, $toggle, $cycle, $img_a, $img
 
         self.disableDisplayModeCycle();
 
-        value = $$2(this).val();
+        value = $$3(this).val();
         self.setDisplayMode(value);
     });
 
@@ -58931,7 +58931,7 @@ ControlMapHash.prototype.updateOptions = function (displayMode) {
 
         item = self.hash[key];
 
-        option = $$2('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
+        option = $$3('<option>').attr('title', item.title).attr('value', item.value).text(item.title);
 
         if (displayMode === item.value) {
 
@@ -58987,7 +58987,7 @@ function toggle_arrows_up() {
 
     a = str.split('\n').join(' ');
 
-    return $$2(a);
+    return $$3(a);
 }
 
 function toggle_arrows_down() {
@@ -59012,7 +59012,7 @@ function toggle_arrows_down() {
 
     b = str.split('\n').join(' ');
 
-    return $$2(b);
+    return $$3(b);
 }
 
 function cycle_outline() {
@@ -59036,7 +59036,7 @@ function cycle_outline() {
 
     b = str.split('\n').join(' ');
 
-    return $$2(b);
+    return $$3(b);
 
 }
 
@@ -59061,7 +59061,7 @@ function cycle_solid() {
 
     b = str.split('\n').join(' ');
 
-    return $$2(b);
+    return $$3(b);
 
 }
 
@@ -59092,15 +59092,15 @@ const LocusGoto = function (browser, $container) {
 
     this.browser = browser;
 
-    this.$container = $$2("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
+    this.$container = $$3("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
     $container.append(this.$container);
 
-    this.$resolution_selector = $$2('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+    this.$resolution_selector = $$3('<input type="text" placeholder="chr-x-axis chr-y-axis">');
     this.$container.append(this.$resolution_selector);
 
     this.$resolution_selector.on('change', function (e) {
-        browser.parseGotoInput($$2(this).val());
-        $$2(this).blur();
+        browser.parseGotoInput($$3(this).val());
+        $$3(this).blur();
     });
 
     this.browser.eventBus.subscribe("LocusChange", this);
@@ -59179,34 +59179,34 @@ const ResolutionSelector = function (browser, $parent) {
 
     this.browser = browser;
 
-    this.$container = $$2("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
+    this.$container = $$3("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
     $parent.append(this.$container);
 
     // label container
-    this.$label_container = $$2('<div id="hic-resolution-label-container">');
+    this.$label_container = $$3('<div id="hic-resolution-label-container">');
     this.$container.append(this.$label_container);
 
     // Resolution (kb)
-    this.$label = $$2("<div>");
+    this.$label = $$3("<div>");
     this.$label_container.append(this.$label);
     this.$label.text('Resolution (kb)');
     this.$label.hide();
 
     // lock/unlock
-    this.$resolution_lock = $$2('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
+    this.$resolution_lock = $$3('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
     this.$label_container.append(this.$resolution_lock);
     this.$label_container.on('click', function (e) {
         self.browser.resolutionLocked = !(self.browser.resolutionLocked);
         self.setResolutionLock(self.browser.resolutionLocked);
     });
 
-    this.$resolution_selector = $$2('<select name="select">');
+    this.$resolution_selector = $$3('<select name="select">');
     this.$container.append(this.$resolution_selector);
 
     this.$resolution_selector.attr('name', 'resolution_selector');
 
     this.$resolution_selector.on('change', function (e) {
-        var zoomIndex = parseInt($$2(this).val());
+        var zoomIndex = parseInt($$3(this).val());
         self.browser.setZoom(zoomIndex);
     });
 
@@ -59329,7 +59329,7 @@ const ColorScaleWidget = function (browser, $container) {
 
     this.browser = browser;
 
-    this.$container = $$2('<div class="hic-colorscale-widget-container">');
+    this.$container = $$3('<div class="hic-colorscale-widget-container">');
     $container.append(this.$container);
 
 
@@ -59357,34 +59357,34 @@ const ColorScaleWidget = function (browser, $container) {
     this.plusColorPicker.$container.hide();
 
     this.$minusButton.on('click', function (e) {
-        self.presentColorPicker($$2(this), self.minusColorPicker.$container);
+        self.presentColorPicker($$3(this), self.minusColorPicker.$container);
     });
 
     this.$plusButton.on('click', function (e) {
-        self.presentColorPicker($$2(this), self.plusColorPicker.$container);
+        self.presentColorPicker($$3(this), self.plusColorPicker.$container);
     });
 
 
     // threshold
-    this.$high_colorscale_input = $$2('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});
+    this.$high_colorscale_input = $$3('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});
     this.$container.append(this.$high_colorscale_input);
     this.$high_colorscale_input.on('change', function (e) {
         var numeric;
-        numeric = api.numberUnFormatter($$2(this).val());
+        numeric = api.numberUnFormatter($$3(this).val());
         if (isNaN(numeric)) ; else {
             browser.setColorScaleThreshold(numeric);
         }
     });
 
     // threshold -
-    $fa = $$2("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
+    $fa = $$3("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
     $fa.on('click', function (e) {
         updateThreshold(1.0 / 2.0);
     });
     this.$container.append($fa);
 
     // threshold +
-    $fa = $$2("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold'});
+    $fa = $$3("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold'});
     $fa.on('click', function (e) {
         updateThreshold(2.0);
     });
@@ -59468,9 +59468,9 @@ function colorSwatch(rgbString, doPlusOrMinusOrUndefined) {
     var $swatch,
         $fa;
 
-    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
+    $swatch = $$3('<div>', {class: 'igv-color-swatch'});
 
-    $fa = $$2('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
+    $fa = $$3('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
     $swatch.append($fa);
     $fa.css({color: rgbString});
 
@@ -59546,25 +59546,25 @@ const NormalizationWidget = function (browser, $parent) {
     this.browser = browser;
 
     // container
-    this.$container = $$2("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
+    this.$container = $$3("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
     $parent.append(this.$container);
 
     // label
-    $label = $$2('<div>');
+    $label = $$3('<div>');
     $label.text('Norm');
     this.$container.append($label);
     // $label.hide();
 
     // select
-    this.$normalization_selector = $$2('<select name="select">');
+    this.$normalization_selector = $$3('<select name="select">');
     this.$normalization_selector.attr('name', 'normalization_selector');
     this.$normalization_selector.on('change', function (e) {
-        self.browser.setNormalization($$2(this).val());
+        self.browser.setNormalization($$3(this).val());
     });
     this.$container.append(this.$normalization_selector);
 
     // spinner
-    this.$spinner = $$2('<div>');
+    this.$spinner = $$3('<div>');
     this.$spinner.text('Loading ...');
     this.$container.append(this.$spinner);
     this.$spinner.hide();
@@ -59681,11 +59681,11 @@ const Ruler = function (browser, axis, $parent) {
     this.axis = axis;
 
     id = browser.id + '_' + this.axis + '-axis';
-    this.$axis = $$2("<div>", {id: id});
+    this.$axis = $$3("<div>", {id: id});
     $parent.append(this.$axis);
 
     // canvas
-    this.$canvas = $$2('<canvas>');
+    this.$canvas = $$3('<canvas>');
     this.$axis.append(this.$canvas);
 
     this.$canvas.width(this.$axis.width());
@@ -59696,7 +59696,7 @@ const Ruler = function (browser, axis, $parent) {
 
     // whole genome container
     id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
-    this.$wholeGenomeContainer = $$2("<div>", {id: id});
+    this.$wholeGenomeContainer = $$3("<div>", {id: id});
     this.$axis.append(this.$wholeGenomeContainer);
 
     this.ctx = this.$canvas.get(0).getContext("2d");
@@ -59755,7 +59755,7 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
         } else {
 
             className = self.axis + '-axis-whole-genome-chromosome-container';
-            $div = $$2("<div>", {class: className});
+            $div = $$3("<div>", {class: className});
             $wholeGenomeContainer.append($div);
             $div.data('label', chr.name);
 
@@ -59772,7 +59772,7 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
             }
 
             className = self.axis + '-axis-whole-genome-chromosome';
-            $e = $$2("<div>", {class: className});
+            $e = $$3("<div>", {class: className});
             $div.append($e);
             $e.text($div.data('label'));
             // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
@@ -59787,14 +59787,14 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
     if (scraps >= 1) {
 
         className = self.axis + '-axis-whole-genome-chromosome-container';
-        $div = $$2("<div>", {class: className});
+        $div = $$3("<div>", {class: className});
         $wholeGenomeContainer.append($div);
         $div.data('label', '-');
 
         $div.width(scraps);
 
         className = self.axis + '-axis-whole-genome-chromosome';
-        $e = $$2("<div>", {class: className});
+        $e = $$3("<div>", {class: className});
         $div.append($e);
         $e.text($div.data('label'));
         // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
@@ -59803,7 +59803,7 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
     }
 
     $wholeGenomeContainer.children().each(function (index) {
-        self.bboxes.push(bbox(axisName, $$2(this), $firstDiv));
+        self.bboxes.push(bbox(axisName, $$3(this), $firstDiv));
     });
 
 
@@ -59815,7 +59815,7 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
 
         $d.on('click', function (e) {
             var $o;
-            $o = $$2(this).first();
+            $o = $$3(this).first();
             self.browser.parseGotoInput($o.text());
 
             self.unhighlightWholeChromosome();
@@ -59828,11 +59828,11 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
 
         $d.hover(
             function () {
-                hoverHandler.call(self, $$2(this), true);
+                hoverHandler.call(self, $$3(this), true);
             },
 
             function () {
-                hoverHandler.call(self, $$2(this), false);
+                hoverHandler.call(self, $$3(this), false);
             }
         );
 
@@ -59846,8 +59846,8 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
         target = $e.data('label');
 
         this.otherRuler.$wholeGenomeContainer.children().each(function (index) {
-            if (target === $$2(this).data('label')) {
-                $target = $$2(this);
+            if (target === $$3(this).data('label')) {
+                $target = $$3(this);
             }
         });
 
@@ -60255,7 +60255,7 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         $x_track_label;
 
     // track canvas container
-    this.$viewport = ('x' === this.axis) ? $$2('<div class="x-track-canvas-container">') : $$2('<div class="y-track-canvas-container">');
+    this.$viewport = ('x' === this.axis) ? $$3('<div class="x-track-canvas-container">') : $$3('<div class="y-track-canvas-container">');
     if (size.width) {
         this.$viewport.width(size.width);
     }
@@ -60266,14 +60266,14 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
     this.$viewport.css({order: order});
 
     // canvas
-    this.$canvas = $$2('<canvas>');
+    this.$canvas = $$3('<canvas>');
     this.$viewport.append(this.$canvas);
     this.ctx = this.$canvas.get(0).getContext("2d");
 
     if ('x' === this.axis) {
 
         // label
-        this.$label = $$2('<div class="x-track-label">');
+        this.$label = $$3('<div class="x-track-label">');
         str = this.track.name || 'untitled';
         this.$label.text(str);
 
@@ -60285,7 +60285,7 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
     }
 
     // track spinner container
-    this.$spinner = ('x' === this.axis) ? $$2('<div class="x-track-spinner">') : $$2('<div class="y-track-spinner">');
+    this.$spinner = ('x' === this.axis) ? $$3('<div class="x-track-spinner">') : $$3('<div class="y-track-spinner">');
     this.$viewport.append(this.$spinner);
 
 
@@ -60614,7 +60614,7 @@ const AnnotationWidget = function (browser, $parent, config, trackListRetrievalC
     this.browser = browser;
     this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-    $container = $$2("<div>", {class: 'hic-annotation-presentation-button-container'});
+    $container = $$3("<div>", {class: 'hic-annotation-presentation-button-container'});
     $parent.append($container);
 
     annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
@@ -60652,7 +60652,7 @@ function annotationPresentationButton($parent, title, alertMessage) {
     var self = this,
         $button;
 
-    $button = $$2('<button>', {type: 'button'});
+    $button = $$3('<button>', {type: 'button'});
     $button.text(title);
     $parent.append($button);
 
@@ -60678,23 +60678,23 @@ function annotationPanel($parent, title) {
         $div,
         $fa;
 
-    this.$annotationPanel = $$2('<div>', {class: 'hic-annotation-panel-container'});
+    this.$annotationPanel = $$3('<div>', {class: 'hic-annotation-panel-container'});
     $parent.append(this.$annotationPanel);
 
     // close button container
-    $panel_header = $$2('<div>', {class: 'hic-annotation-panel-header'});
+    $panel_header = $$3('<div>', {class: 'hic-annotation-panel-header'});
     this.$annotationPanel.append($panel_header);
 
     // panel title
-    $div = $$2('<div>');
+    $div = $$3('<div>');
     $div.text(title);
     $panel_header.append($div);
 
     // close button
-    $div = $$2('<div>', {class: 'hic-menu-close-button'});
+    $div = $$3('<div>', {class: 'hic-menu-close-button'});
     $panel_header.append($div);
 
-    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $fa = $$3("<i>", {class: 'fa fa-times'});
     $div.append($fa);
 
     $fa.on('click', function (e) {
@@ -60754,22 +60754,22 @@ function annotationPanelRow($container, track) {
     }
 
     // row container
-    $row_container = $$2('<div>', {class: 'hic-annotation-row-container'});
+    $row_container = $$3('<div>', {class: 'hic-annotation-row-container'});
     $container.append($row_container);
 
     // one row
-    $row = $$2('<div>', {class: 'hic-annotation-modal-row'});
+    $row = $$3('<div>', {class: 'hic-annotation-modal-row'});
     $row_container.append($row);
 
     // track name
-    $e = $$2("<div>");
+    $e = $$3("<div>");
     $e.text(isTrack2D ? track.config.name : track1D.config.name);
     $row.append($e);
 
     // track hide/show
     if (isTrack2D) {
         str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        $hideShowTrack = $$2("<i>", {class: str, 'aria-hidden': 'true'});
+        $hideShowTrack = $$3("<i>", {class: str, 'aria-hidden': 'true'});
         $row.append($hideShowTrack);
         $hideShowTrack.on('click', function (e) {
 
@@ -60792,7 +60792,7 @@ function annotationPanelRow($container, track) {
     if (isTrack2D) {
 
         // matrix diagonal widget
-        const $matrix_diagonal_div = $$2('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
+        const $matrix_diagonal_div = $$3('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
         $row.append($matrix_diagonal_div);
         $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
             e.preventDefault();
@@ -60833,13 +60833,13 @@ function annotationPanelRow($container, track) {
 
 
     // track up/down
-    $e = $$2('<div>', {class: 'up-down-arrow-container'});
+    $e = $$3('<div>', {class: 'up-down-arrow-container'});
     $row.append($e);
 
-    $upTrack = $$2("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
+    $upTrack = $$3("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
     $e.append($upTrack);
 
-    $downTrack = $$2("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
+    $downTrack = $$3("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
     $e.append($downTrack);
 
     if (1 === _.size(trackList)) {
@@ -60889,7 +60889,7 @@ function annotationPanelRow($container, track) {
 
 
     // track delete
-    $deleteTrack = $$2("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
+    $deleteTrack = $$3("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
     $row.append($deleteTrack);
     $deleteTrack.on('click', function (e) {
         var index;
@@ -60943,9 +60943,9 @@ function annotationColorSwatch(rgbString) {
     var $swatch,
         $fa;
 
-    $swatch = $$2('<div>', {class: 'igv-color-swatch'});
+    $swatch = $$3('<div>', {class: 'igv-color-swatch'});
 
-    $fa = $$2('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
+    $fa = $$3('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
     $swatch.append($fa);
 
     $fa.css({color: rgbString});
@@ -60959,7 +60959,7 @@ function createAnnotationPanelColorpickerContainer($parent, config, closeHandler
         $header,
         $fa;
 
-    $container = $$2('<div>', {class: 'hic-color-swatch-container'});
+    $container = $$3('<div>', {class: 'hic-color-swatch-container'});
     $parent.append($container);
 
     // width
@@ -60973,11 +60973,11 @@ function createAnnotationPanelColorpickerContainer($parent, config, closeHandler
     }
 
     // header
-    $header = $$2('<div>');
+    $header = $$3('<div>');
     $container.append($header);
 
     // close button
-    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $fa = $$3("<i>", {class: 'fa fa-times'});
     $header.append($fa);
 
     $fa.on('click', function (e) {
@@ -61030,7 +61030,7 @@ function createNavBar(browser, $root) {
         $lower_widget_container,
         $e;
 
-    $navbar_container = $$2('<div class="hic-navbar-container">');
+    $navbar_container = $$3('<div class="hic-navbar-container">');
     $root.append($navbar_container);
 
 
@@ -61042,27 +61042,27 @@ function createNavBar(browser, $root) {
 
     // container: contact map label | menu button | browser delete button
     id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
-    $map_container = $$2("<div>", {id: id});
+    $map_container = $$3("<div>", {id: id});
     $navbar_container.append($map_container);
 
     // contact map label
     id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
-    browser.$contactMaplabel = $$2("<div>", {id: id});
+    browser.$contactMaplabel = $$3("<div>", {id: id});
     $map_container.append(browser.$contactMaplabel);
 
     // navbar button container
-    $e = $$2("<div>", {class: 'hic-nav-bar-button-container'});
+    $e = $$3("<div>", {class: 'hic-nav-bar-button-container'});
     $map_container.append($e);
 
     // menu present/dismiss button
-    browser.$menuPresentDismiss = $$2("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
+    browser.$menuPresentDismiss = $$3("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
     $e.append(browser.$menuPresentDismiss);
     browser.$menuPresentDismiss.on('click', function (e) {
         browser.toggleMenu();
     });
 
     // browser delete button
-    browser.$browser_panel_delete_button = $$2("<i>", {
+    browser.$browser_panel_delete_button = $$3("<i>", {
         class: 'fa fa-minus-circle fa-lg',
         'title': 'Delete browser panel'
     });
@@ -61079,17 +61079,17 @@ function createNavBar(browser, $root) {
 
     // container: control map label
     id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
-    $map_container = $$2("<div>", {id: id});
+    $map_container = $$3("<div>", {id: id});
     $navbar_container.append($map_container);
 
     // control map label
     id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
-    browser.$controlMaplabel = $$2("<div>", {id: id});
+    browser.$controlMaplabel = $$3("<div>", {id: id});
     $map_container.append(browser.$controlMaplabel);
 
     // upper widget container
     id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
-    $upper_widget_container = $$2("<div>", {id: id});
+    $upper_widget_container = $$3("<div>", {id: id});
     $navbar_container.append($upper_widget_container);
 
     // location box / goto
@@ -61102,7 +61102,7 @@ function createNavBar(browser, $root) {
 
     // lower widget container
     id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-    $lower_widget_container = $$2("<div>", {id: id});
+    $lower_widget_container = $$3("<div>", {id: id});
     $navbar_container.append($lower_widget_container);
 
     // colorscale
@@ -61124,27 +61124,27 @@ function createAllContainers(browser, $root) {
 
     // .hic-x-track-container
     id = browser.id + '_' + 'x-track-container';
-    this.$x_track_container = $$2("<div>", {id: id});
+    this.$x_track_container = $$3("<div>", {id: id});
     $root.append(this.$x_track_container);
 
     // track labels
     id = browser.id + '_' + 'track-shim';
-    this.$track_shim = $$2("<div>", {id: id});
+    this.$track_shim = $$3("<div>", {id: id});
     this.$x_track_container.append(this.$track_shim);
 
     // x-tracks
     id = browser.id + '_' + 'x-tracks';
-    this.$x_tracks = $$2("<div>", {id: id});
+    this.$x_tracks = $$3("<div>", {id: id});
     this.$x_track_container.append(this.$x_tracks);
 
     // crosshairs guide
     id = browser.id + '_' + 'y-track-guide';
-    this.$y_track_guide = $$2("<div>", {id: id});
+    this.$y_track_guide = $$3("<div>", {id: id});
     this.$x_tracks.append(this.$y_track_guide);
 
     // content container
     id = browser.id + '_' + 'content-container';
-    this.$content_container = $$2("<div>", {id: id});
+    this.$content_container = $$3("<div>", {id: id});
     $root.append(this.$content_container);
 
     // menu
@@ -61152,24 +61152,24 @@ function createAllContainers(browser, $root) {
 
     // container: x-axis
     id = browser.id + '_' + 'x-axis-container';
-    $container = $$2("<div>", {id: id});
+    $container = $$3("<div>", {id: id});
     this.$content_container.append($container);
     this.xAxisRuler = new Ruler(browser, 'x', $container);
 
 
     // container: y-tracks | y-axis | viewport | y-scrollbar
     id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
-    $container = $$2("<div>", {id: id});
+    $container = $$3("<div>", {id: id});
     this.$content_container.append($container);
 
     // y-tracks
     id = browser.id + '_' + 'y-tracks';
-    this.$y_tracks = $$2("<div>", {id: id});
+    this.$y_tracks = $$3("<div>", {id: id});
     $container.append(this.$y_tracks);
 
     // crosshairs guide
     id = browser.id + '_' + 'x-track-guide';
-    this.$x_track_guide = $$2("<div>", {id: id});
+    this.$x_track_guide = $$3("<div>", {id: id});
     this.$y_tracks.append(this.$x_track_guide);
 
     // y-axis
@@ -61186,7 +61186,7 @@ function createAllContainers(browser, $root) {
 
     // container: x-scrollbar
     id = browser.id + '_' + 'x-scrollbar-container';
-    $container = $$2("<div>", {id: id});
+    $container = $$3("<div>", {id: id});
     this.$content_container.append($container);
 
     // x-scrollbar
@@ -61202,15 +61202,15 @@ function createMenu(browser, $root) {
         config;
 
     // menu
-    $menu = $$2('<div>', {class: 'hic-menu'});
+    $menu = $$3('<div>', {class: 'hic-menu'});
     $root.append($menu);
 
     // menu close button
-    $div = $$2('<div>', {class: 'hic-menu-close-button'});
+    $div = $$3('<div>', {class: 'hic-menu-close-button'});
     $menu.append($div);
 
     // $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
-    $fa = $$2("<i>", {class: 'fa fa-times'});
+    $fa = $$3("<i>", {class: 'fa fa-times'});
     $div.append($fa);
 
     $fa.on('click', function (e) {
@@ -68972,6 +68972,136 @@ class Straw {
     }
 }
 
+class GoogleRemoteFile {
+
+    constructor(args) {
+        this.config = args;
+        this.url = args.path || args.url;
+    }
+
+
+    async read(position, length, retry) {
+
+        const headers = this.config.headers || {};
+        const rangeString = "bytes=" + position + "-" + (position + length - 1);
+        headers['Range'] = rangeString;
+
+        let url = this.url.slice();    // slice => copy
+
+        const accessToken =
+            this.config.oauthToken ||
+            await getGoogleAccessToken$1();
+
+        if (accessToken) {
+            const token = await resolveToken(accessToken);
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        if (api.google.apiKey) {
+            url = addParameter$1(url, "key", api.google.apiKey);
+        }
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: headers,
+            redirect: 'follow',
+            mode: 'cors',
+
+        });
+
+        const status = response.status;
+
+        // For small files a range starting at 0 can return the whole file => 200, otherwise status==200 is an error
+        if (status >= 200 && status < 300) {
+            if (position > 0 && status !== 206) {
+                throw Error("ERROR: range-byte header was ignored for url: " + url)
+            }
+        } else if ((status === 404 || status === 401) && typeof gapi !== "undefined" && !retry) {
+            const accessToken = await getGoogleAccessToken$1();
+            this.config.oauthToken = accessToken;
+            return this.read(position, length, true);
+        } else if (status === 403) {
+            throw Error("Access forbidden")
+        } else if (status === 416) {
+            //  Tried to read off the end of the file.   This shouldn't happen.
+            throw Error("Unsatisfiable range");
+        } else if (status >= 400) {
+            const err = Error(response.statusText);
+            err.code = status;
+            throw err
+        }
+
+        return response.arrayBuffer();
+
+
+        /**
+         * token can be a string, a function that returns a string, or a function that returns a Promise for a string
+         * @param token
+         * @returns {Promise<*>}
+         */
+        async function resolveToken(token) {
+            if (typeof token === 'function') {
+                return await Promise.resolve(token())    // Normalize the result to a promise, since we don't know what the function returns
+            } else {
+                return token
+            }
+        }
+
+    }
+}
+
+function addParameter$1(url, name, value) {
+    const paramSeparator = url.includes("?") ? "&" : "?";
+    return url + paramSeparator + name + "=" + value;
+}
+
+/**
+ * There can be only 1 oAuth promise executing at a time.
+ */
+let oauthPromise$1;
+
+async function getGoogleAccessToken$1() {
+
+    const oauth = api.oauth;
+    const Alert = api.Alert;
+
+    if (oauth.google.access_token) {
+        return Promise.resolve(oauth.google.access_token);
+    }
+    if (oauthPromise$1) {
+        return oauthPromise$1;
+    }
+
+    const authInstance = gapi.auth2.getAuthInstance();
+    if (!authInstance) {
+        Alert.presentAlert("Authorization is required, but Google oAuth has not been initalized.  Contact your site administrator for assistance.");
+        return undefined;
+    }
+
+    // TODO -- get scope from config
+    const scope = "https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.readonly";
+    const options = new gapi.auth2.SigninOptionsBuilder();
+    options.setPrompt('select_account');
+    options.setScope(scope);
+    oauthPromise$1 = new Promise(function (resolve, reject) {
+        Alert.presentAlert("Google Login required", function () {
+            gapi.auth2.getAuthInstance().signIn(options)
+                .then(function (user) {
+                    const authResponse = user.getAuthResponse();
+                    oauth.google.setToken(authResponse["access_token"]);
+                    resolve(authResponse["access_token"]);
+                    oauthPromise$1 = undefined;
+                })
+                .catch(function (err) {
+                    oauthPromise$1 = undefined;
+                    reject(err);
+                });
+        });
+    });
+
+    return oauthPromise$1;
+}
+
 /*
  *  The MIT License (MIT)
  *
@@ -69016,7 +69146,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.isMobile = isMobile();
 
-    this.$root = $$2('<div class="hic-root unselect">');
+    this.$root = $$3('<div class="hic-root unselect">');
 
     if (config.width) {
         this.$root.css("width", String(config.width));
@@ -69030,7 +69160,7 @@ const HICBrowser = function ($app_container, config) {
     this.layoutController = new LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
 
     // prevent user interaction during lengthy data loads
-    this.$user_interaction_shield = $$2('<div>', {class: 'hic-root-prevent-interaction'});
+    this.$user_interaction_shield = $$3('<div>', {class: 'hic-root-prevent-interaction'});
     this.$root.append(this.$user_interaction_shield);
     this.$user_interaction_shield.hide();
 
@@ -70354,15 +70484,18 @@ HICBrowser.prototype.getQueryString = function () {
 
 async function loadDataset(config) {
 
-    // If this is a local file, supply an io.File object.  Straw knows nothing about browser local files
+    // If this is a local file, use the "blob" field for straw
     if (config.url instanceof File) {
         config.blob = config.url;
-        //config.file = new hic.LocalFile(config.url)
         delete config.url;
     } else {
         // If this is a google url, add api KEY
-        if (config.url.indexOf("drive.google.com") >= 0 || config.url.indexOf("www.googleapis.com") > 0) {
-            config.url = api.google.driveDownloadURL(config.url);
+        if (api.google.isGoogleURL(config.url)) {
+            if(api.google.isGoogleDrive(config.url)) {
+                config.url = api.google.driveDownloadURL(config.url);
+            }
+            const copy = Object.assign({}, config);
+            config.file = new GoogleRemoteFile(copy);
             config.apiKey = api.google.apiKey;
         }
     }
@@ -75992,14 +76125,62 @@ Zlib$2.Deflate.prototype.compress = function() {
  *
  */
 
+
+function initGoogle(config) {
+
+    return new Promise(function (resolve, reject) {
+        gapi.load('client:auth2', function () {
+            gapi.client.init({
+                'apiKey': config.apiKey,
+                'clientId': config.clientId,
+                'scope': config.scope.join(' ')
+            })
+                .then(function (ignore) {
+                    resolve(ignore);
+                })
+                .catch(function (error) {
+                    reject(error);
+                });
+        });
+    })
+}
+
+/*
+ *  The MIT License (MIT)
+ *
+ * Copyright (c) 2016-2017 The Regents of the University of California
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ * following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+
 const urlShorteners = [];
 
 async function initApp(container, config) {
 
-    let apiKey = config.apiKey;
+    api.Alert.init($(container));
+
+    const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
         setApiKey$1(apiKey);
     }
+
+    await initGoogle(config.google);
 
     if (config.urlShortener) {
         setURLShortener(config.urlShortener);
@@ -76180,7 +76361,7 @@ function setURLShortener(shortenerConfigs) {
             }
         } else {
             // Custom
-            if (typeof shortener.shortenURL === "function")  {
+            if (typeof shortener.shortenURL === "function") {
                 return shortener;
             } else {
                 ac.presentAlert("URL shortener object must define functions 'shortenURL'");
@@ -76313,7 +76494,7 @@ function decompressQueryParameter(enc) {
 
 var api$1 = {
     createBrowser: createBrowser$1, decodeQuery, extractQuery: extractQuery$1, HICBrowser, allBrowsers: allBrowsers$1, eventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, igv: api
+    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON, igv: api
 };
 
 export default api$1;

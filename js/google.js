@@ -21,40 +21,24 @@
  *
  */
 
-const LocalFile = class {
 
-    constructor(file) {
-        this.file = file
-    }
+function initGoogle(config) {
 
-    async read(position, length) {
-
-        const file = this.file;
-
-        return new Promise(function (fullfill, reject) {
-
-            const fileReader = new FileReader();
-
-            fileReader.onload = function (e) {
-                fullfill(fileReader.result);
-            };
-
-            fileReader.onerror = function (e) {
-                console.err("Error reading local file " + localfile.name);
-                reject(null, fileReader);
-            };
-
-            if (position !== undefined) {
-                const blob = file.slice(position, position + length);
-                fileReader.readAsArrayBuffer(blob);
-
-            } else {
-                fileReader.readAsArrayBuffer(file);
-
-            }
-
-        });
-    }
+    return new Promise(function (resolve, reject) {
+        gapi.load('client:auth2', function () {
+            gapi.client.init({
+                'apiKey': config.apiKey,
+                'clientId': config.clientId,
+                'scope': config.scope.join(' ')
+            })
+                .then(function (ignore) {
+                    resolve(ignore);
+                })
+                .catch(function (error) {
+                    reject(error);
+                })
+        })
+    })
 }
 
-export default LocalFile
+export {initGoogle};

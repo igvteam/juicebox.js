@@ -29,15 +29,21 @@ import GoogleURL from "../website/dev/js/googleURL.js"
 import BitlyURL from "../website/dev/js/bitlyURL.js"
 import TinyURL from "../website/dev/js/tinyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
+import {initGoogle} from "./google.js";
+
 
 const urlShorteners = [];
 
 async function initApp(container, config) {
 
-    let apiKey = config.apiKey;
+    igv.Alert.init($(container));
+
+    const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
         setApiKey(apiKey);
     }
+
+    await initGoogle(config.google);
 
     if (config.urlShortener) {
         setURLShortener(config.urlShortener);
@@ -220,7 +226,7 @@ function setURLShortener(shortenerConfigs) {
             }
         } else {
             // Custom
-            if (typeof shortener.shortenURL === "function")  {
+            if (typeof shortener.shortenURL === "function") {
                 return shortener;
             } else {
                 ac.presentAlert("URL shortener object must define functions 'shortenURL'");

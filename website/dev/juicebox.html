@@ -42,6 +42,10 @@
     <!-- Twitter -->
     <script src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
+    <!-- Google API -- remove if not supporting Google resources -->
+    <script src="https://apis.google.com/js/platform.js"></script>
+
+<!--    <script src="https://cdn.jsdelivr.net/npm/igv@2.3.4/dist/igv.js"></script>-->
 
 </head>
 
@@ -505,48 +509,11 @@
 <script type="module">
 
     import juicebox from './js/site.js';
-
-    const config = {
-        mapMenu: {
-            id: 'dataset_selector',
-            items: 'res/mapMenuData.txt'
-        },
-        trackMenu: {
-            id: 'annotation-selector',
-            items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_$GENOME_ID.txt'
-        },
-        trackMenu2D: {
-            id: 'annotation-2D-selector',
-            items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
-        },
-
-        // List of URL shorteners.  First in the list is the default and will be used for shortening URLs
-        // Others potentiall used for expanding short URLs.  At least 1 shortener is required for the
-        // "Share" button.
-        // NOTE: you must provide an API key (Google) or access token (Bitly) to use these services on your site
-        urlShortener: [
-            {
-                provider: 'tinyURL'
-            },
-            {
-                provider: "bitly",
-                apiKey: "ABCD",        // TODO -- replace with your Bitly access token
-                hostname: 'bit.ly'
-            },
-            {
-                provider: "google",
-                apiKey: "ABCD",        // TODO -- replace with your Google API Key
-                hostname: "goo.gl"
-            }
-
-        ],
-
-        apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",   // TODO -- replace with your Google API Key
-
-    };
-
+    import hic from '../../js/api.js';    // For testing
+    import config from './juiceboxConfig.js';
     juicebox.init(document.getElementById('app-container'), config);
 
+    window.hic = hic;    // For testing from console
 
 </script>
 </body>
