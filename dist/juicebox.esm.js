@@ -60250,9 +60250,7 @@ const TrackRenderer = function (browser, size, $container, trackRenderPair, trac
 
 TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
 
-    var str,
-        doShowLabelAndGear,
-        $x_track_label;
+    var self = this;
 
     // track canvas container
     this.$viewport = ('x' === this.axis) ? $$3('<div class="x-track-canvas-container">') : $$3('<div class="y-track-canvas-container">');
@@ -60274,14 +60272,16 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
 
         // label
         this.$label = $$3('<div class="x-track-label">');
-        str = this.track.name || 'untitled';
+        const str = this.track.name || 'untitled';
         this.$label.text(str);
 
-        // note the pre-existing state of track labels/gear. hide/show accordingly.
-        $x_track_label = $container.find(this.$label);
-        doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
-
         this.$viewport.append(this.$label);
+
+        if (true === self.browser.showTrackLabelAndGutter) {
+            this.$label.show();
+        } else {
+            this.$label.hide();
+        }
     }
 
     // track spinner container
@@ -60312,8 +60312,15 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         this.$viewport.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            $container.find('.x-track-label').toggle();
-            $container.find('.igv-right-hand-gutter').toggle();
+
+            self.browser.toggleTrackLabelAndGutterState();
+            if (true === self.browser.showTrackLabelAndGutter) {
+                $$3('.x-track-label').show();
+                $$3('.igv-right-hand-gutter').show();
+            } else {
+                $$3('.x-track-label').hide();
+                $$3('.igv-right-hand-gutter').hide();
+            }
         });
 
     }
@@ -69136,6 +69143,7 @@ const HICBrowser = function ($app_container, config) {
     this.resolutionLocked = false;
     this.eventBus = new EventBus();
 
+    this.showTrackLabelAndGutter = true;
 
     this.id = _.uniqueId('browser_');
     this.trackRenderers = [];
@@ -69209,6 +69217,10 @@ HICBrowser.setCurrentBrowser = function (browser) {
         eventBus.post(HICEvent("BrowserSelect", browser));
     }
 
+};
+
+HICBrowser.prototype.toggleTrackLabelAndGutterState = function () {
+    this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
 };
 
 HICBrowser.prototype.toggleMenu = function () {
@@ -69402,7 +69414,16 @@ HICBrowser.prototype.loadTracks = async function (configs) {
         }
 
         if (trackXYPairs.length > 0) {
+
             this.layoutController.tracksLoaded(trackXYPairs);
+
+            const $gear_container = $$3('.igv-right-hand-gutter');
+            if (true === this.showTrackLabelAndGutter) {
+                $gear_container.show();
+            } else {
+                $gear_container.hide();
+            }
+
             await this.updateLayout();
         }
 

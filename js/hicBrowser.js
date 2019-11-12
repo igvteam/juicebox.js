@@ -52,6 +52,7 @@ const HICBrowser = function ($app_container, config) {
     this.resolutionLocked = false;
     this.eventBus = new EventBus();
 
+    this.showTrackLabelAndGutter = true;
 
     this.id = _.uniqueId('browser_');
     this.trackRenderers = [];
@@ -125,6 +126,10 @@ HICBrowser.setCurrentBrowser = function (browser) {
         hic.eventBus.post(HICEvent("BrowserSelect", browser));
     }
 
+};
+
+HICBrowser.prototype.toggleTrackLabelAndGutterState = function () {
+    this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
 };
 
 HICBrowser.prototype.toggleMenu = function () {
@@ -318,7 +323,16 @@ HICBrowser.prototype.loadTracks = async function (configs) {
         }
 
         if (trackXYPairs.length > 0) {
+
             this.layoutController.tracksLoaded(trackXYPairs);
+
+            const $gear_container = $('.igv-right-hand-gutter');
+            if (true === this.showTrackLabelAndGutter) {
+                $gear_container.show();
+            } else {
+                $gear_container.hide();
+            }
+
             await this.updateLayout();
         }
 

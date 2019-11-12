@@ -59912,9 +59912,7 @@ Context.prototype = {
   TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
     var _this = this;
 
-    var str,
-        doShowLabelAndGear,
-        $x_track_label; // track canvas container
+    var self = this; // track canvas container
 
     this.$viewport = 'x' === this.axis ? $$3('<div class="x-track-canvas-container">') : $$3('<div class="y-track-canvas-container">');
 
@@ -59938,12 +59936,15 @@ Context.prototype = {
     if ('x' === this.axis) {
       // label
       this.$label = $$3('<div class="x-track-label">');
-      str = this.track.name || 'untitled';
-      this.$label.text(str); // note the pre-existing state of track labels/gear. hide/show accordingly.
-
-      $x_track_label = $container.find(this.$label);
-      doShowLabelAndGear = 0 === _.size($x_track_label) ? true : $x_track_label.is(':visible');
+      var str = this.track.name || 'untitled';
+      this.$label.text(str);
       this.$viewport.append(this.$label);
+
+      if (true === self.browser.showTrackLabelAndGutter) {
+        this.$label.show();
+      } else {
+        this.$label.hide();
+      }
     } // track spinner container
 
 
@@ -59968,8 +59969,15 @@ Context.prototype = {
       this.$viewport.on('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        $container.find('.x-track-label').toggle();
-        $container.find('.igv-right-hand-gutter').toggle();
+        self.browser.toggleTrackLabelAndGutterState();
+
+        if (true === self.browser.showTrackLabelAndGutter) {
+          $$3('.x-track-label').show();
+          $$3('.igv-right-hand-gutter').show();
+        } else {
+          $$3('.x-track-label').hide();
+          $$3('.igv-right-hand-gutter').hide();
+        }
       });
     }
 
@@ -69010,6 +69018,7 @@ Context.prototype = {
 
     this.resolutionLocked = false;
     this.eventBus = new EventBus();
+    this.showTrackLabelAndGutter = true;
     this.id = _.uniqueId('browser_');
     this.trackRenderers = [];
     this.tracks2D = [];
@@ -69068,6 +69077,10 @@ Context.prototype = {
       HICBrowser.currentBrowser = browser;
       eventBus.post(HICEvent("BrowserSelect", browser));
     }
+  };
+
+  HICBrowser.prototype.toggleTrackLabelAndGutterState = function () {
+    this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
   };
 
   HICBrowser.prototype.toggleMenu = function () {
@@ -69255,7 +69268,7 @@ Context.prototype = {
     var _ref3 = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee2(configs) {
-      var self, errorPrefix, ps, trackConfigurations, trackXYPairs, promises2D, promisesNV, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, config, isLocal, fn, track, tracks2D, normVectors, inferTypes;
+      var self, errorPrefix, ps, trackConfigurations, trackXYPairs, promises2D, promisesNV, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, config, isLocal, fn, track, $gear_container, tracks2D, normVectors, inferTypes;
 
       return regeneratorRuntime.wrap(function _callee2$(_context2) {
         while (1) {
@@ -69380,19 +69393,27 @@ Context.prototype = {
 
             case 31:
               if (!(trackXYPairs.length > 0)) {
-                _context2.next = 35;
+                _context2.next = 37;
                 break;
               }
 
               this.layoutController.tracksLoaded(trackXYPairs);
-              _context2.next = 35;
+              $gear_container = $$3('.igv-right-hand-gutter');
+
+              if (true === this.showTrackLabelAndGutter) {
+                $gear_container.show();
+              } else {
+                $gear_container.hide();
+              }
+
+              _context2.next = 37;
               return this.updateLayout();
 
-            case 35:
-              _context2.next = 37;
+            case 37:
+              _context2.next = 39;
               return Promise.all(promises2D);
 
-            case 37:
+            case 39:
               tracks2D = _context2.sent;
 
               if (tracks2D && tracks2D.length > 0) {
@@ -69400,31 +69421,31 @@ Context.prototype = {
                 this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
               }
 
-              _context2.next = 41;
+              _context2.next = 43;
               return Promise.all(promisesNV);
 
-            case 41:
+            case 43:
               normVectors = _context2.sent;
-              _context2.next = 48;
+              _context2.next = 50;
               break;
 
-            case 44:
-              _context2.prev = 44;
+            case 46:
+              _context2.prev = 46;
               _context2.t1 = _context2["catch"](3);
               presentError(errorPrefix, _context2.t1);
               console.error(_context2.t1);
 
-            case 48:
-              _context2.prev = 48;
+            case 50:
+              _context2.prev = 50;
               this.contactMatrixView.stopSpinner();
-              return _context2.finish(48);
+              return _context2.finish(50);
 
-            case 51:
+            case 53:
             case "end":
               return _context2.stop();
           }
         }
-      }, _callee2, this, [[3, 44, 48, 51], [15, 19, 23, 31], [24,, 26, 30]]);
+      }, _callee2, this, [[3, 46, 50, 53], [15, 19, 23, 31], [24,, 26, 30]]);
     }));
 
     return function (_x2) {
