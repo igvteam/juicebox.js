@@ -21,10 +21,7 @@ const TrackRenderer = function (browser, size, $container, trackRenderPair, trac
 
 TrackRenderer.prototype.initializationHelper = function ($container, size, order) {
 
-    var self = this,
-        str,
-        doShowLabelAndGear,
-        $x_track_label;
+    var self = this;
 
     // track canvas container
     this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
@@ -46,14 +43,16 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
 
         // label
         this.$label = $('<div class="x-track-label">');
-        str = this.track.name || 'untitled';
+        const str = this.track.name || 'untitled';
         this.$label.text(str);
 
-        // note the pre-existing state of track labels/gear. hide/show accordingly.
-        $x_track_label = $container.find(this.$label);
-        doShowLabelAndGear = (0 === _.size($x_track_label)) ? true : $x_track_label.is(':visible');
-
         this.$viewport.append(this.$label);
+
+        if (true === self.browser.showTrackLabelAndGutter) {
+            this.$label.show();
+        } else {
+            this.$label.hide();
+        }
     }
 
     // track spinner container
@@ -84,8 +83,15 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         this.$viewport.on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            $container.find('.x-track-label').toggle();
-            $container.find('.igv-right-hand-gutter').toggle();
+
+            self.browser.toggleTrackLabelAndGutterState();
+            if (true === self.browser.showTrackLabelAndGutter) {
+                $('.x-track-label').show();
+                $('.igv-right-hand-gutter').show();
+            } else {
+                $('.x-track-label').hide();
+                $('.igv-right-hand-gutter').hide();
+            }
         });
 
     }
