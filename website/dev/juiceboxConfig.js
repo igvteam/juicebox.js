@@ -26,12 +26,12 @@ export default {
         },
         {
             provider: "bitly",
-            apiKey: "<Bitly access token>",        // TODO -- replace with your Bitly access token
+            apiKey: "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e2",        // TODO -- replace with your Bitly access token
             hostname: 'bit.ly'
         },
         {
             provider: "google",
-            apiKey: "<Your google API key>",        // TODO -- replace with your Google API Key.  Supports old google shortened URLs
+            apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",        // TODO -- replace with your Google API Key.  Supports old google shortened URLs
             hostname: "goo.gl"
         }
     ],
@@ -39,8 +39,8 @@ export default {
     // Supply a Google client id to enable loading of private Google files.  Supply an API key to
     // enable loading of public Google files without login.
     google: {
-        clientId: "<Your google client ID>",  // TODO -- replace with your Google client ID (for oAuth)
-        apiKey: "<You google API key>",   // TODO -- replace with your Google API Key
+        clientId: "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com",  // TODO -- replace with your Google client ID (for oAuth)
+        apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",   // TODO -- replace with your Google API Key
         scope:
             [
                 'https://www.googleapis.com/auth/devstorage.read_only',
