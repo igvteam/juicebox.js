@@ -5,23 +5,6 @@ import $ from "../vendor/jquery-1.12.4.js"
 
 const igvReplacements = function (igv) {
 
-    // igv.trackMenuItem = function (trackRenderer, menuItemLabel, dialogLabelHandler, dialogInputValue, dialogClickHandler) {
-    //
-    //     var $e,
-    //         clickHandler;
-    //
-    //     $e = $('<div>');
-    //     $e.text(menuItemLabel);
-    //
-    //     clickHandler = function () {
-    //         igv.inputDialog.configure(dialogLabelHandler, dialogInputValue, dialogClickHandler, undefined, undefined);
-    //         igv.inputDialog.show(trackRenderer.$viewport);
-    //     };
-    //
-    //     return {object: $e, click: clickHandler};
-    //
-    // };
-
     igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
 
         var menuItems = [];
@@ -37,29 +20,6 @@ const igvReplacements = function (igv) {
         menuItems.push(trackRemovalMenuItem(trackRenderer));
         return menuItems;
     };
-
-
-    // igv.Alert.presentAlert = function (message, $parent) {
-    //
-    //     const httpMessages = {
-    //         "401": "Access unauthorized",
-    //         "403": "Access forbidden",
-    //         "404": "Not found"
-    //     }
-    //
-    //     let string = message.message || message;
-    //
-    //     if (httpMessages.hasOwnProperty(string)) {
-    //         string = httpMessages[string];
-    //     }
-    //
-    //     // TODO fix this -- apparently there used to be a global dialog attached to igv
-    //     //igv.alertDialog.configure({label: string});
-    //     //igv.alertDialog.present($parent);
-    //     alert(string);
-    //
-    // };
-
 };
 
 function colorPickerMenuItem(trackRender) {

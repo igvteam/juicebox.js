@@ -25,7 +25,8 @@
 /**
  * @author Jim Robinson
  */
-import igv from '../node_modules/igv/dist/igv.esm.js';
+
+import { igvxhr, DOMUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 const geneSearch = function (genomeId, featureName) {
 
@@ -34,12 +35,12 @@ const geneSearch = function (genomeId, featureName) {
         // Hardcode this for now
         var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
 
-        igv.xhr.loadString(searchServiceURL)
+        igvxhr.loadString(searchServiceURL)
             .then(function (data) {
 
                 var results = parseSearchResults(data);
 
-                if (results.length == 0) {
+                if (results.length === 0) {
                     //alert('No feature found with name "' + feature + '"');
                     fulfill(undefined);
                 }
@@ -55,7 +56,7 @@ const geneSearch = function (genomeId, featureName) {
 
 function parseSearchResults(data) {
 
-    var lines = igv.splitLines(data),
+    var lines = DOMUtils.splitLines(data),
         linesTrimmed = [],
         results = [];
 

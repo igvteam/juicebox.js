@@ -1,4 +1,5 @@
 import igv from "../node_modules/igv/dist/igv.esm.js";
+import { Alert, oauth } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 class GoogleRemoteFile {
 
@@ -89,9 +90,6 @@ function addParameter(url, name, value) {
 let oauthPromise;
 
 async function getGoogleAccessToken() {
-
-    const oauth = igv.oauth;
-    const Alert = igv.Alert;
 
     if (oauth.google.access_token) {
         return Promise.resolve(oauth.google.access_token);
