@@ -27,7 +27,6 @@
  */
 
 import $ from "../vendor/jquery-1.12.4.js";
-import _ from "../vendor/underscore.js";
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const Ruler = function (browser, axis, $parent) {
@@ -537,31 +536,6 @@ Ruler.prototype.draw = function (options) {
         //retval =  "$"+retval
         return retval;
     }
-
-    function drawAll() {
-
-        var self = this,
-            lastX = 0,
-            yShim = 2,
-            tickHeight = 10;
-
-        _.each(self.browser.genome.chromosomes, function (chromosome) {
-
-            var chrName = chromosome.name,
-                bp = self.browser.genome.getGenomeCoordinate(chrName, chromosome.size),
-                x = Math.round((bp - options.bpStart) / options.bpPerPixel),
-                chrLabel = chrName.startsWith("chr") ? chrName.substr(3) : chrName;
-
-            self.ctx.textAlign = 'center';
-            igv.graphics.strokeLine(self.ctx, x, self.height - tickHeight, x, self.height - yShim);
-            igv.graphics.fillText(self.ctx, chrLabel, (lastX + x) / 2, self.height - (tickHeight / 0.75));
-
-            lastX = x;
-
-        });
-        igv.graphics.strokeLine(self.ctx, 0, self.height - yShim, options.rulerLengthPixels, self.height - yShim);
-    }
-
 };
 
 function isBrowserInWholeGenomeView(state) {

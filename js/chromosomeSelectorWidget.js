@@ -4,19 +4,19 @@
  * Copyright (c) 2016-2017 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including 
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
+ * associated documentation files (the "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
  * following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all copies or substantial 
+ * The above copyright notice and this permission notice shall be included in all copies or substantial
  * portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND 
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, 
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
  */
@@ -25,7 +25,6 @@
  * Created by dat on 3/22/17.
  */
 import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
 
 const ChromosomeSelectorWidget = function (browser, $parent) {
 
@@ -118,9 +117,7 @@ ChromosomeSelectorWidget.prototype.respondToDataLoadWithDataset = function (data
     this.$x_axis_selector.empty();
     this.$y_axis_selector.empty();
 
-    elements = _.map(dataset.chromosomes, function (chr, index) {
-        return '<option value=' + index.toString() + '>' + chr.name + '</option>';
-    });
+    elements = dataset.chromosomes.map(({ name }, index) => `<option value=${ index.toString() }>${ name }</option>` );
 
     this.$x_axis_selector.append(elements.join(''));
     this.$y_axis_selector.append(elements.join(''));
@@ -147,7 +144,7 @@ ChromosomeSelectorWidget.prototype.respondToLocusChangeWithState = function (sta
     $yFound = this.$y_axis_selector.find('option');
 
     // this happens when the first dataset is loaded.
-    if (0 === _.size($xFound) || 0 === _.size($yFound)) {
+    if (0 === $xFound.length || 0 === $yFound.length) {
         return;
     }
 

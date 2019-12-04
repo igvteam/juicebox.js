@@ -2,7 +2,6 @@
  * Created by dat on 4/4/17.
  */
 import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
 import HICBrowser from './hicBrowser.js'
 import ContactMatrixView from './contactMatrixView.js'
 import ChromosomeSelectorWidget from './chromosomeSelectorWidget.js'
@@ -308,56 +307,50 @@ LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
 
 
 LayoutController.prototype.removeAllTrackXYPairs = function () {
-    var self = this,
-        indices;
 
-    indices = _.range(_.size(this.browser.trackRenderers));
+    // map trackRenderers items to array indices
+    const indices = [...Array(this.browser.trackRenderers.length).keys()];
 
-    if (0 === _.size(indices)) {
+    if (0 === indices.length) {
         return;
     }
 
-    _.each(indices, function (unused) {
-        var discard,
-            index;
+    [...Array(this.browser.trackRenderers.length).keys()].forEach(() => {
 
-        // select last track to dicard
-        discard = _.last(self.browser.trackRenderers);
+        // select last track to discard
+        let discard = this.browser.trackRenderers[ this.browser.trackRenderers.length - 1 ];
 
         // discard DOM element's
         discard['x'].$viewport.remove();
         discard['y'].$viewport.remove();
 
         // remove discard from list
-        index = self.browser.trackRenderers.indexOf(discard);
-        self.browser.trackRenderers.splice(index, 1);
-
-        discard = undefined;
-        self.doLayoutTrackXYPairCount(_.size(self.browser.trackRenderers));
-    });
-
-    // this.browser.updateLayout();
-};
-
-LayoutController.prototype.removeLastTrackXYPair = function () {
-    var index,
-        discard;
-
-    if (_.size(this.browser.trackRenderers) > 0) {
-
-        // select last track to dicard
-        discard = _.last(this.browser.trackRenderers);
-
-        // discard DOM element's
-        discard['x'].$viewport.remove();
-        discard['y'].$viewport.remove();
-
-        // remove discard from list
-        index = this.browser.trackRenderers.indexOf(discard);
+        const index = this.browser.trackRenderers.indexOf(discard);
         this.browser.trackRenderers.splice(index, 1);
 
         discard = undefined;
-        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
+        this.doLayoutTrackXYPairCount(this.browser.trackRenderers.length);
+
+    });
+};
+
+LayoutController.prototype.removeLastTrackXYPair = function () {
+
+    if (this.browser.trackRenderers.length > 0) {
+
+        // select last track to dicard
+        let discard = this.browser.trackRenderers[ this.browser.trackRenderers.length - 1 ];
+
+        // discard DOM element's
+        discard['x'].$viewport.remove();
+        discard['y'].$viewport.remove();
+
+        // remove discard from list
+        const index = this.browser.trackRenderers.indexOf(discard);
+        this.browser.trackRenderers.splice(index, 1);
+
+        discard = undefined;
+        this.doLayoutTrackXYPairCount(this.browser.trackRenderers.length);
 
         this.browser.updateLayout();
 
@@ -372,7 +365,7 @@ LayoutController.prototype.removeTrackRendererPair = function (trackRendererPair
     var index,
         discard;
 
-    if (_.size(this.browser.trackRenderers) > 0) {
+    if (this.browser.trackRenderers.length > 0) {
 
         discard = trackRendererPair;
 
@@ -384,7 +377,7 @@ LayoutController.prototype.removeTrackRendererPair = function (trackRendererPair
         index = this.browser.trackRenderers.indexOf(discard);
         this.browser.trackRenderers.splice(index, 1);
 
-        this.doLayoutTrackXYPairCount(_.size(this.browser.trackRenderers));
+        this.doLayoutTrackXYPairCount(this.browser.trackRenderers.length);
 
         this.browser.updateLayout();
 
@@ -405,14 +398,10 @@ LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount
 
     track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.wigTrackHeight + this.track_margin);
 
-    tokens = _.map([LayoutController.navbarHeight(), track_aggregate_height], function (number) {
-        return number.toString() + 'px';
-    });
+    tokens = [ LayoutController.navbarHeight(), track_aggregate_height ].map(number => `${ number }px`);
     height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
-    tokens = _.map([track_aggregate_height, this.axis_height, this.scrollbar_height], function (number) {
-        return number.toString() + 'px';
-    });
+    tokens = [ track_aggregate_height, this.axis_height, this.scrollbar_height ].map(number => `${ number }px`);
     width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
     // x-track container
@@ -452,7 +441,7 @@ LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
     this.browser.$root.width(size.width);
     this.browser.$root.height(size.height + LayoutController.navbarHeight());
 
-    count = _.size(this.browser.trackRenderers) > 0 ? _.size(this.browser.trackRenderers) : 0;
+    count = this.browser.trackRenderers.length > 0 ? this.browser.trackRenderers.length : 0;
     this.doLayoutTrackXYPairCount(count);
 
     this.browser.updateLayout();

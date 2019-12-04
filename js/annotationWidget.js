@@ -23,7 +23,6 @@
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
 import {Track2DDisplaceModes} from './globals.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
@@ -52,7 +51,7 @@ AnnotationWidget.prototype.updateBody = function (tracks) {
 
     self.$annotationPanel.find('.hic-annotation-row-container').remove();
 
-    isTrack2D = (_.first(tracks) instanceof Track2D);
+    isTrack2D = (tracks[0] instanceof Track2D);
 
     if (isTrack2D) {
         // Reverse list to present layers in "z" order.
@@ -61,9 +60,9 @@ AnnotationWidget.prototype.updateBody = function (tracks) {
         }
     } else {
         trackRenderers = tracks;
-        _.each(trackRenderers, function (trackRenderer) {
+        for (let trackRenderer of trackRenderers) {
             annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
-        });
+        }
     }
 
 };
@@ -264,18 +263,18 @@ function annotationPanelRow($container, track) {
     $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
     $e.append($downTrack);
 
-    if (1 === _.size(trackList)) {
+    if (1 === trackList.length) {
         $upTrack.css('color', hidden_color);
         $downTrack.css('color', hidden_color);
-    } else if (track === _.first(trackList)) {
+    } else if (track === trackList[ 0 ]) {
         $o = isTrack2D ? $downTrack : $upTrack;
         $o.css('color', hidden_color);
-    } else if (track === _.last(trackList)) {
+    } else if (track === trackList[ trackList.length - 1 ]) {
         $o = isTrack2D ? $upTrack : $downTrack;
         $o.css('color', hidden_color);
     }
 
-    index = _.indexOf(trackList, track);
+    index = trackList.indexOf(track);
 
     upp = function (e) {
 
@@ -318,7 +317,7 @@ function annotationPanelRow($container, track) {
 
         if (isTrack2D) {
 
-            index = _.indexOf(trackList, track);
+            index = trackList.indexOf(track);
 
             trackList.splice(index, 1);
 
