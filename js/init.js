@@ -22,8 +22,10 @@
  */
 
 
-import {allBrowsers, areCompatible, createBrowser, setApiKey, deleteAllBrowsers} from "./hicUtils.js";
+import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+
+import {allBrowsers, areCompatible, createBrowser, setApiKey} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
 import BitlyURL from "./bitlyURL.js"
@@ -34,13 +36,10 @@ import $ from "../vendor/jquery-1.12.4.js";
 
 
 const urlShorteners = [];
-let appContainer;
 
 async function initApp(container, config) {
 
-    appContainer = container;
-
-    igv.Alert.init($(container));
+    Alert.init($(container));
 
     const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
@@ -79,15 +78,10 @@ async function initApp(container, config) {
         await createBrowsers(container, query);
     }
     syncBrowsers(allBrowsers);
-}
 
-async function loadSession(json) {
-    return restoreSession(appContainer, json);
 }
 
 async function restoreSession(container, session) {
-
-    deleteAllBrowsers();
 
     if (session.hasOwnProperty("selectedGene")) {
         igv.selectedGene = session.selectedGene;
@@ -187,7 +181,7 @@ function syncBrowsers(browsers) {
     });
 
     if (incompatibleDatasets.length > 0) {
-        igv.Alert.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
+        Alert.presentAlert("Not all maps could be synchronized.  Incompatible assemblies: " + browsers[0].dataset.genomeId + " vs " + incompatibleDatasets.join());
     }
 
 
@@ -331,7 +325,7 @@ function expandURL(url) {
         }
     }
 
-    igv.Alert.presentAlert("No expanders for URL: " + url);
+    Alert.presentAlert("No expanders for URL: " + url);
 
     return Promise.resolve(url);
 }
@@ -355,8 +349,6 @@ function decompressQueryParameter(enc) {
     return str;
 }
 
-
-
 export {
     decompressQueryParameter,
     getCompressedDataString,
@@ -364,6 +356,5 @@ export {
     syncBrowsers,
     shortJuiceboxURL,
     toJSON,
-    getQueryString,
-    loadSession
+    getQueryString
 };

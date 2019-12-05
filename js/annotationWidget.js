@@ -20,12 +20,14 @@
  * THE SOFTWARE.
  *
  */
+
+import igv from '../node_modules/igv/dist/igv.esm.js';
+import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { makeDraggable } from '../node_modules/igv-ui/dist/igv-ui.js';
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import $ from "../vendor/jquery-1.12.4.js"
 import {Track2DDisplaceModes} from './globals.js'
-import igv from '../node_modules/igv/dist/igv.esm.js';
-import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
 
@@ -138,7 +140,7 @@ function annotationPanel($parent, title) {
     // $div.text('Blah');
 
     //this.$annotationPanel.draggable();
-    igv.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
+    makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
     this.$annotationPanel.hide();
 }
 

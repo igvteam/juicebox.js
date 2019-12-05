@@ -26,8 +26,9 @@
  * @author Jim Robinson
  */
 
-import $ from "../vendor/jquery-1.12.4.js";
+import { IGVColor } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+import $ from "../vendor/jquery-1.12.4.js";
 
 const Ruler = function (browser, axis, $parent) {
     var id;
@@ -131,7 +132,6 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
             $e = $("<div>", {class: className});
             $div.append($e);
             $e.text($div.data('label'));
-            // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
 
             decorate.call(self, $div);
         }
@@ -153,8 +153,6 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
         $e = $("<div>", {class: className});
         $div.append($e);
         $e.text($div.data('label'));
-        // $e.css({ 'background-color': igv.Color.randomRGBConstantAlpha(128, 255, 0.75) });
-
         decorate.call(self, $div);
     }
 
@@ -177,10 +175,6 @@ Ruler.prototype.wholeGenomeLayout = function ($axis, $wholeGenomeContainer, axis
             self.unhighlightWholeChromosome();
             self.otherRuler.unhighlightWholeChromosome();
         });
-
-        // DIAGNOSTIC BACKGROUND COLOR
-        // $d.css({ 'background-color': igv.Color.randomRGB(128, 255) });
-        // return;
 
         $d.hover(
             function () {
@@ -348,14 +342,14 @@ Ruler.prototype.update = function () {
     this.hideWholeGenome();
 
     identityTransformWithContext(this.ctx);
-    igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: igv.Color.rgbColor(255, 255, 255)});
+    igv.graphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
     this.canvasTransform(this.ctx);
 
     w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
     h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
 
-    igv.graphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: igv.Color.rgbColor(255, 255, 255)});
+    igv.graphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
     config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
 
@@ -399,7 +393,7 @@ Ruler.prototype.draw = function (options) {
 
     } else {
 
-        igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: igv.Color.rgbColor(255, 255, 255)});
+        igv.graphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
         fontStyle = {
             textAlign: 'center',

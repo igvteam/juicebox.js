@@ -1,5 +1,7 @@
-import {Track2DDisplaceModes} from './globals.js';
+import { igvxhr, StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+
+import {Track2DDisplaceModes} from './globals.js';
 
 const Track2D = function (config, features) {
 
@@ -47,7 +49,7 @@ Track2D.loadTrack2D = async function (config) {
         }
     }
 
-    const data = await igv.xhr.loadString(config.url, buildOptions(config));
+    const data = await igvxhr.loadString(config.url, buildOptions(config));
     const features = parseData(data, isBedPE(config));
     return new Track2D(config, features);
 }
@@ -80,7 +82,7 @@ function parseData(data, isBedPE) {
     if (!data) return null;
 
     var feature,
-        lines = igv.splitLines(data),
+        lines = StringUtils.splitLines(data),
         len = lines.length,
         tokens,
         allFeatures = [],

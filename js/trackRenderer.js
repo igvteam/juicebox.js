@@ -2,10 +2,12 @@
  * Created by dat on 4/5/17.
  */
 
-import { DOMUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
+
 import $ from "../vendor/jquery-1.12.4.js";
 import  * as hic from './hicUtils.js';
-import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
 
@@ -15,7 +17,7 @@ const TrackRenderer = function (browser, size, $container, trackRenderPair, trac
 
     this.track = trackPair[axis];
 
-    this.id = `trackRender_${ DOMUtils.guid() }`;
+    this.id = `trackRender_${ DomUtils.guid() }`;
     this.axis = axis;
     this.initializationHelper($container, size, order);
 };
@@ -343,7 +345,7 @@ function createColorPicker_ColorScaleWidget_version($parent, closeHandler, color
             closeHandler: closeHandler
         };
 
-    let genericContainer = new igv.GenericContainer(config);
+    let genericContainer = new GenericContainer(config);
 
     igv.createColorSwatchSelector(genericContainer.$container, colorHandler);
 

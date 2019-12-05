@@ -26,10 +26,10 @@
  * @author Jim Robinson
  */
 
+import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import  * as hic from './hicUtils.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'
-import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const knownGenomes = {
 
@@ -111,7 +111,7 @@ Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normaliz
             normBlock;
 
         if (nv1 === undefined || nv2 === undefined) {
-            igv.Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+            Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
             if (eventBus) {
                 eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
             }

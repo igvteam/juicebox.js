@@ -24,8 +24,9 @@
 /**
  * Created by dat on 3/4/17.
  */
+
+import { StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import $ from "../vendor/jquery-1.12.4.js";
-import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const ResolutionSelector = function (browser, $parent) {
     var self = this;
@@ -170,7 +171,7 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
                 unit = 'bp'
             }
 
-            pretty = igv.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
+            pretty = StringUtils.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
             selected = selectedIndex === index;
 
             if (resolution)
