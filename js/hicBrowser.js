@@ -26,7 +26,7 @@
  */
 
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { Alert, TrackUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import $ from "../vendor/jquery-1.12.4.js"
@@ -362,7 +362,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
             if (url && typeof url === "string" && url.includes("drive.google.com")) {
 
-                promises.push(igv.google.getDriveFileInfo(config.url)
+                promises.push(google.getDriveFileInfo(config.url)
 
                     .then(function (json) {
                         // Temporarily switch URL to infer tipes
@@ -616,7 +616,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
 async function extractName(config) {
 
     if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-        const json = await igv.google.getDriveFileInfo(config.url)
+        const json = await google.getDriveFileInfo(config.url)
         return json.name;
     } else {
         if (config.name === undefined) {
@@ -1490,13 +1490,13 @@ async function loadDataset(config) {
         delete config.url
     } else {
         // If this is a google url, add api KEY
-        if (igv.google.isGoogleURL(config.url)) {
-            if(igv.google.isGoogleDrive(config.url)) {
-                config.url = igv.google.driveDownloadURL(config.url)
+        if (google.isGoogleURL(config.url)) {
+            if(google.isGoogleDrive(config.url)) {
+                config.url = google.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
             config.file = new GoogleRemoteFile(copy);
-            config.apiKey = igv.google.apiKey
+            config.apiKey = google.apiKey
         }
     }
 
