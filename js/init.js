@@ -39,7 +39,7 @@ const urlShorteners = [];
 
 async function initApp(container, config) {
 
-    Alert.init($(container));
+    Alert.init(container);
 
     const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
