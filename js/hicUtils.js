@@ -21,7 +21,7 @@
  *
  */
 
-import { StringUtils, FileUtils, TrackUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { StringUtils, FileUtils, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from "../node_modules/igv/dist/igv.esm.js";
 import $ from "../vendor/jquery-1.12.4.js"
 import HICBrowser from './hicBrowser.js'
@@ -66,7 +66,7 @@ async function createBrowser(hic_container, config, callback) {
 
     const apiKey = config.apiKey;
     if (apiKey) {
-        igv.setApiKey(apiKey);
+        google.setApiKey(apiKey);
     }
 
     let queryString = config.queryString || config.href;   // href for backward compatibility
@@ -203,11 +203,6 @@ async function createBrowser(hic_container, config, callback) {
             return undefined;
         }
     }
-}
-
-function setApiKey(key) {
-    apiKey = key;
-    igv.setApiKey(key);
 }
 
 function deleteBrowserPanel(browser) {
@@ -365,12 +360,6 @@ function createIGV($hic_container, hicBrowser) {
 
     igv.alertDialog = new igv.AlertDialog(hicBrowser.$root, hicBrowser);
 
-    // hicBrowser.inputDialog = new igv.InputDialog($hic_container, hicBrowser);
-    //
-    // hicBrowser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, hicBrowser);
-    //
-    // hicBrowser.dataRangeDialog = new igv.DataRangeDialog($hic_container, hicBrowser);
-
 }
 
 
@@ -397,7 +386,7 @@ function createIGV($hic_container, hicBrowser) {
 
 
 export {
-    defaultPixelSize, eventBus, allBrowsers, apiKey, setApiKey, createBrowser, deleteBrowserPanel,
+    defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteBrowserPanel,
     areCompatible, isMobile, extractFilename, igvSupports,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     updateAllBrowsers, HICBrowser

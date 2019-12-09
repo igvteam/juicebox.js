@@ -41,6 +41,7 @@ import State from './hicState.js'
 import geneSearch from './geneSearch.js'
 import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
+import { Globals } from "./globals.js";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -666,10 +667,10 @@ HICBrowser.prototype.parseGotoInput = async function (string) {
         const result = await geneSearch(this.genome.id, loci[0].trim())
 
         if (result) {
-            igv.selectedGene = loci[0].trim();
+            Globals.selectedGene = loci[0].trim();
             xLocus = self.parseLocusString(result);
             yLocus = xLocus;
-            self.state.selectedGene = loci[0].trim();
+            self.state.selectedGene = Globals.selectedGene;
             self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
         } else {
             alert('No feature found with name "' + loci[0] + '"');
@@ -678,7 +679,7 @@ HICBrowser.prototype.parseGotoInput = async function (string) {
     } else {
 
         if (xLocus.wholeChr && yLocus.wholeChr) {
-            self.setChromosomes(xLocus.chr, yLocus.chr);
+            await self.setChromosomes(xLocus.chr, yLocus.chr);
         } else {
             self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
         }
@@ -1294,8 +1295,8 @@ HICBrowser.prototype.toJSON = function () {
     }
     jsonOBJ.state = this.state.stringify();
     jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
-    if (igv.selectedGene) {
-        jsonOBJ.selectedGene = igv.selectedGene;
+    if (Globals.selectedGene) {
+        jsonOBJ.selectedGene = Globals.selectedGene;
     }
     let nviString = getNviString(this.dataset);
     if (nviString) {
@@ -1392,8 +1393,8 @@ HICBrowser.prototype.getQueryString = function () {
     }
     queryString.push(paramString("state", this.state.stringify()));
     queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
-    if (igv.selectedGene) {
-        queryString.push(paramString("selectedGene", igv.selectedGene));
+    if (Globals.selectedGene) {
+        queryString.push(paramString("selectedGene", Globals.selectedGene));
     }
     let nviString = getNviString(this.dataset);
     if (nviString) {
