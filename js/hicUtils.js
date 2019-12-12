@@ -21,13 +21,12 @@
  *
  */
 
-import { StringUtils, FileUtils, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { EventBus, StringUtils, FileUtils, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from "../node_modules/igv/dist/igv.esm.js";
 import $ from "../vendor/jquery-1.12.4.js"
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
-import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
 import igvReplacements from "./igvReplacements.js"
 import {decodeQuery, extractQuery} from "./urlUtils.js";

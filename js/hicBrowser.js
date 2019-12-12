@@ -26,13 +26,12 @@
  */
 
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { Alert, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { EventBus, Alert, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import $ from "../vendor/jquery-1.12.4.js"
 import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
-import EventBus from './eventBus.js'
 import LayoutController from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
