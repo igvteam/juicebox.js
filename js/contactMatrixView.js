@@ -24,7 +24,7 @@
 /**
  * @author Jim Robinson
  */
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-3.3.1.slim.js"
 import ColorScale from './colorScale.js'
 import RatioColorScale from './ratioColorScale.js'
 import ScrollbarWidget from './scrollbarWidget.js'
@@ -32,7 +32,6 @@ import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
-import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import { WidgetUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 const DRAG_THRESHOLD = 2;

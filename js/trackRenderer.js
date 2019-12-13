@@ -2,11 +2,11 @@
  * Created by dat on 4/5/17.
  */
 
-import { GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { IGVUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
-import $ from "../vendor/jquery-1.12.4.js";
+import $ from "../vendor/jquery-3.3.1.slim.js";
 import  * as hic from './hicUtils.js';
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
@@ -221,7 +221,8 @@ TrackRenderer.prototype.readyToPaint = async function () {
                 if (typeof self.track.doAutoscale === 'function') {
                     this.track.doAutoscale(features);
                 } else {
-                    this.track.dataRange = igv.doAutoscale(features);
+                    // this.track.dataRange = igv.doAutoscale(features);
+                    this.track.dataRange = IGVUtils.doAutoscale(features);
                 }
             }
 

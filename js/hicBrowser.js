@@ -26,10 +26,10 @@
  */
 
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { EventBus, Alert, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { EventBus, Alert, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-3.3.1.slim.js"
 import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
 import LayoutController from './layoutController.js'
@@ -362,7 +362,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
             if (url && typeof url === "string" && url.includes("drive.google.com")) {
 
-                promises.push(google.getDriveFileInfo(config.url)
+                promises.push(GoogleUtils.getDriveFileInfo(config.url)
 
                     .then(function (json) {
                         // Temporarily switch URL to infer tipes
@@ -616,7 +616,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
 async function extractName(config) {
 
     if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-        const json = await google.getDriveFileInfo(config.url)
+        const json = await GoogleUtils.getDriveFileInfo(config.url)
         return json.name;
     } else {
         if (config.name === undefined) {
@@ -1490,13 +1490,13 @@ async function loadDataset(config) {
         delete config.url
     } else {
         // If this is a google url, add api KEY
-        if (google.isGoogleURL(config.url)) {
-            if(google.isGoogleDrive(config.url)) {
-                config.url = google.driveDownloadURL(config.url)
+        if (GoogleUtils.isGoogleURL(config.url)) {
+            if(GoogleUtils.isGoogleDrive(config.url)) {
+                config.url = GoogleUtils.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
             config.file = new GoogleRemoteFile(copy);
-            config.apiKey = google.apiKey
+            config.apiKey = GoogleUtils.apiKey
         }
     }
 

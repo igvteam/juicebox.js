@@ -25,7 +25,7 @@ import { Alert, WidgetUtils } from '../node_modules/igv-widgets/dist/igv-widgets
 import { makeDraggable } from '../node_modules/igv-ui/dist/igv-ui.js';
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-3.3.1.slim.js"
 import {Track2DDisplaceModes} from './globals.js'
 
 const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {

@@ -22,18 +22,15 @@
  */
 
 
-import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import igv from '../node_modules/igv/dist/igv.esm.js';
-
-import {allBrowsers, areCompatible, createBrowser, setApiKey} from "./hicUtils.js";
+import { Alert, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import {allBrowsers, areCompatible, createBrowser} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
-import GoogleURL from "./googleURL.js"
-import BitlyURL from "./bitlyURL.js"
-import TinyURL from "./tinyURL.js"
+import GoogleURL from "../website/dev/js/googleURL.js"
+import BitlyURL from "../website/dev/js/bitlyURL.js"
+import TinyURL from "../website/dev/js/tinyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
 import {initGoogle} from "./google.js";
-import $ from "../vendor/jquery-1.12.4.js";
-
+import { Globals } from "./globals.js";
 
 const urlShorteners = [];
 
@@ -43,7 +40,7 @@ async function initApp(container, config) {
 
     const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
-        setApiKey(apiKey);
+        GoogleUtils.setApiKey(apiKey);
     }
 
     if(typeof gapi !== "undefined" && config.google) {
@@ -84,7 +81,7 @@ async function initApp(container, config) {
 async function restoreSession(container, session) {
 
     if (session.hasOwnProperty("selectedGene")) {
-        igv.selectedGene = session.selectedGene;
+        Globals.selectedGene = session.selectedGene;
     }
 
     if (session.hasOwnProperty("caption")) {
@@ -274,8 +271,8 @@ function toJSON() {
             }
         }
     }
-    if (igv.selectedGene) {
-        jsonOBJ.selectedGene = igv.selectedGene;
+    if (Globals.selectedGene) {
+        jsonOBJ.selectedGene = Globals.selectedGene;
     }
     return jsonOBJ;
 }

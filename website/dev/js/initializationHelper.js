@@ -1,3 +1,4 @@
+import $ from "../../../vendor/jquery-3.3.1.slim.js"
 import { Alert, TrackUtils, StringUtils, igvxhr } from '../../../node_modules/igv-widgets/dist/igv-widgets.js';
 import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
