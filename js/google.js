@@ -22,23 +22,17 @@
  */
 
 
-function initGoogle(config) {
+const initGoogle = config => {
 
-    return new Promise(function (resolve, reject) {
-        gapi.load('client:auth2', function () {
-            gapi.client.init({
-                'apiKey': config.apiKey,
-                'clientId': config.clientId,
-                'scope': config.scope.join(' ')
-            })
-                .then(function (ignore) {
-                    resolve(ignore);
-                })
-                .catch(function (error) {
-                    reject(error);
-                })
-        })
-    })
-}
+    const doLoad = async () => {
+
+        const { apiKey, clientId, scope: scopeList } = config;
+        await gapi.client.init({ apiKey, clientId, scope: scopeList.join(' ') });
+
+    };
+
+    gapi.load('client:auth2', doLoad);
+
+};
 
 export {initGoogle};

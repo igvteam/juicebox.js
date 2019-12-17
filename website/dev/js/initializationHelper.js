@@ -57,7 +57,6 @@ const initializationHelper = async ($appContainer, config) => {
         await genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
     }
 
-
     if (config.mapMenu) {
         await populatePulldown(config.mapMenu);
     }
@@ -136,6 +135,7 @@ const initializationHelper = async ($appContainer, config) => {
         $('#hic-qr-code-image').toggle();
     });
 
+    const $contact_map_select_modal = $('#hic-contact-map-select-modal');
     $('#dataset_selector').on('change', function (e) {
 
         const url = $(this).val();
@@ -148,12 +148,11 @@ const initializationHelper = async ($appContainer, config) => {
             loadHicFile(url, $selected.text());
         }
 
-        $('#hic-contact-map-select-modal').modal('hide');
+        $contact_map_select_modal.modal('hide');
+
         $(this).find('option').removeAttr("selected");
 
     });
-
-    $('.selectpicker').selectpicker();
 
     $('#hic-load-local-file').on('change', function (e) {
 
@@ -454,7 +453,7 @@ const populatePulldown = async menu => {
 
         }
 
-        parent.selectpicker("refresh");
+        // parent.selectpicker("refresh");
 
     }
 
