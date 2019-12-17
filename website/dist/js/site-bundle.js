@@ -777,1772 +777,25 @@ Context.prototype = {
     return Constructor;
   }
 
-  class ModalTable {
-
-      constructor(args) {
-
-          this.datasource = args.datasource;
-          this.selectHandler = args.selectHandler;
-
-          const id = args.id;
-          const title = args.title || '';
-          const parent = args.parent ? $(args.parent) : $('body');
-          const html = `
-        <div id="${id}" class="modal fade">
-        
-            <div class="modal-dialog modal-xl">
-        
-                <div class="modal-content">
-        
-                    <div class="modal-header">
-                        <div class="modal-title">${title}</div>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-        
-                    <div class="modal-body">
-        
-                        <div id="${id}-spinner" class="spinner-border" style="display: none;">
-                            <!-- spinner -->
-                        </div>
-        
-                        <div id="${id}-datatable-container">
-        
-                        </div>
-                    </div>
-        
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">OK</button>
-                    </div>
-        
-                </div>
-        
-            </div>
-        
-        </div>
-    `;
-          const $m = $(html);
-          parent.append($m);
-
-          this.$modal = $m;
-          this.$datatableContainer = $m.find(`#${id}-datatable-container`);
-          this.$spinner = $m.find(`#${id}-spinner`);
-          const $okButton = $m.find('.modal-footer button:nth-child(2)');
-
-          $m.on('shown.bs.modal', (e) => {
-              this.buildTable();
-          });
-
-          $m.on('hidden.bs.modal', (e) => {
-              $(e.relatedTarget).find('tr.selected').removeClass('selected');
-          });
-
-          $okButton.on('click', (e) => {
-              const selected = this.getSelectedTableRowsData.call(this, this.$dataTable.$('tr.selected'));
-              if (selected && this.selectHandler) {
-                  this.selectHandler(selected);
-              }
-          });
-      }
-
-      remove() {
-          this.$modal.remove();
-      }
-
-      setDatasource(datasource) {
-          this.datasource = datasource;
-          this.$datatableContainer.empty();
-          this.$table = undefined;
-      }
-
-      async buildTable () {
-
-          if (!this.$table && this.datasource) {
-
-              this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
-              this.$datatableContainer.append(this.$table);
-
-              try {
-                  this.startSpinner();
-                  const datasource = this.datasource;
-                  const tableData = await datasource.tableData();
-                  const tableColumns = await datasource.tableColumns();
-                  const columnFormat = tableColumns.map(c => ({title: c, data: c}));
-                  const config =
-                      {
-                          data: tableData,
-                          columns: columnFormat,
-                          autoWidth: false,
-                          paging: true,
-                          scrollX: true,
-                          scrollY: '400px',
-                          scroller: true,
-                          scrollCollapse: true
-                      };
-
-                  this.tableData = tableData;
-                  this.$dataTable = this.$table.dataTable(config);
-                  this.$table.api().columns.adjust().draw();   // Don't try to simplify this, you'll break it
-
-                  this.$table.find('tbody').on('click', 'tr', function () {
-
-                      if ($(this).hasClass('selected')) {
-                          $(this).removeClass('selected');
-                      } else {
-                          $(this).addClass('selected');
-                      }
-
-                  });
-
-              } catch (e) {
-
-              } finally {
-                  this.stopSpinner();
-              }
-          }
-      }
-
-
-      getSelectedTableRowsData($rows) {
-          const tableData = this.tableData;
-          const result = [];
-          if ($rows.length > 0) {
-              $rows.removeClass('selected');
-              const api = this.$table.api();
-              $rows.each(function () {
-                  const index = api.row(this).index();
-                  result.push(tableData[index]);
-              });
-          }
-          return result
-      }
-
-
-      startSpinner () {
-          if (this.$spinner)
-              this.$spinner.show();
-      }
-
-
-      stopSpinner () {
-          if (this.$spinner)
-              this.$spinner.hide();
-      }
-
-
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
   }
 
-  /*
-   * The MIT License (MIT)
-   *
-   * Copyright (c) 2016-2017 The Regents of the University of California
-   * Author: Jim Robinson
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining a copy
-   * of this software and associated documentation files (the "Software"), to deal
-   * in the Software without restriction, including without limitation the rights
-   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-   * copies of the Software, and to permit persons to whom the Software is
-   * furnished to do so, subject to the following conditions:
-   *
-   * The above copyright notice and this permission notice shall be included in
-   * all copies or substantial portions of the Software.
-   *
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-   * THE SOFTWARE.
-   */
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
 
-  const getDataWrapper = function (data) {
-
-      if (typeof(data) == 'string' || data instanceof String) {
-          return new StringDataWrapper(data);
-      } else {
-          return new ByteArrayDataWrapper(data);
-      }
-  };
-
-
-  // Data might be a string, or an UInt8Array
-  var StringDataWrapper = function (string) {
-      this.data = string;
-      this.ptr = 0;
-  };
-
-  StringDataWrapper.prototype.nextLine = function () {
-      //return this.split(/\r\n|\n|\r/gm);
-      var start = this.ptr,
-          idx = this.data.indexOf('\n', start);
-
-      if (idx > 0) {
-          this.ptr = idx + 1;   // Advance pointer for next line
-          return idx === start ? undefined : this.data.substring(start, idx).trim();
-      }
-      else {
-          // Last line
-          this.ptr = this.data.length;
-          return (start >= this.data.length) ? undefined : this.data.substring(start).trim();
-      }
-  };
-
-  // For use in applications where whitespace carries meaning
-  // Returns "" for an empty row (not undefined like nextLine), since this is needed in AED
-  StringDataWrapper.prototype.nextLineNoTrim = function () {
-      var start = this.ptr,
-          idx = this.data.indexOf('\n', start),
-          data = this.data;
-
-      if (idx > 0) {
-          this.ptr = idx + 1;   // Advance pointer for next line
-          if (idx > start && data.charAt(idx - 1) === '\r') {
-              // Trim CR manually in CR/LF sequence
-              return data.substring(start, idx - 1);
-          }
-          return data.substring(start, idx);
-      }
-      else {
-          var length = data.length;
-          this.ptr = length;
-          // Return undefined only at the very end of the data
-          return (start >= length) ? undefined : data.substring(start);
-      }
-  };
-
-  var ByteArrayDataWrapper = function (array) {
-      this.data = array;
-      this.length = this.data.length;
-      this.ptr = 0;
-  };
-
-  ByteArrayDataWrapper.prototype.nextLine = function () {
-
-      var c, result;
-      result = "";
-
-      if (this.ptr >= this.length) return undefined;
-
-      for (var i = this.ptr; i < this.length; i++) {
-          c = String.fromCharCode(this.data[i]);
-          if (c === '\r') continue;
-          if (c === '\n') break;
-          result = result + c;
-      }
-
-      this.ptr = i + 1;
-      return result;
-  };
-
-  // The ByteArrayDataWrapper does not do any trimming by default, can reuse the function
-  ByteArrayDataWrapper.prototype.nextLineNoTrim = ByteArrayDataWrapper.prototype.nextLine;
-
-  /*
-   * The MIT License (MIT)
-   *
-   * Copyright (c) 2019 The Regents of the University of California
-   * Author: Jim Robinson
-   *
-   * Permission is hereby granted, free of charge, to any person obtaining a copy
-   * of this software and associated documentation files (the "Software"), to deal
-   * in the Software without restriction, including without limitation the rights
-   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-   * copies of the Software, and to permit persons to whom the Software is
-   * furnished to do so, subject to the following conditions:
-   *
-   * The above copyright notice and this permission notice shall be included in
-   * all copies or substantial portions of the Software.
-   *
-   *
-   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-   * THE SOFTWARE.
-   */
-
-  const columns = [
-      'Biosample',
-      'Target',
-      'Assay Type',
-      'Output Type',
-      'Bio Rep',
-      'Tech Rep',
-      'Format',
-      'Experiment',
-      'Accession',
-      'Lab'
-  ];
-
-  class EncodeDataSource {
-
-      constructor(genomeId, filter, suffix) {
-          this.genomeId = genomeId;
-          this.filter = filter;
-          this.suffix = suffix || ".txt";
-      };
-
-      async tableData() {
-          return this.fetchData()
-      };
-
-      async tableColumns() {
-          return columns;
-      };
-
-      async fetchData() {
-
-          const id = canonicalId(this.genomeId);
-          const url = "https://s3.amazonaws.com/igv.org.app/encode/" + id + this.suffix;
-          const response = await fetch(url);
-          const data = await response.text();
-          const records = parseTabData(data, this.filter);
-          records.sort(encodeSort);
-          return records
-      }
-
-      static supportsGenome(genomeId) {
-          const knownGenomes = new Set(["ce10", "ce11", "dm3", "dm6", "GRCh38", "hg19", "mm9", "mm10"]);
-          const id = canonicalId(genomeId);
-          return knownGenomes.has(id)
-      }
-
-  }
-
-  function parseTabData(data, filter) {
-
-      var dataWrapper,
-          line;
-
-      dataWrapper = getDataWrapper(data);
-
-      let records = [];
-
-      dataWrapper.nextLine();  // Skip header
-      while (line = dataWrapper.nextLine()) {
-
-          let tokens = line.split("\t");
-          let record = {
-              "Assembly": tokens[1],
-              "ExperimentID": tokens[0],
-              "Experiment": tokens[0].substr(13).replace("/", ""),
-              "Biosample": tokens[2],
-              "Assay Type": tokens[3],
-              "Target": tokens[4],
-              "Format": tokens[8],
-              "Output Type": tokens[7],
-              "Lab": tokens[9],
-              "url": "https://www.encodeproject.org" + tokens[10],
-              "Bio Rep": tokens[5],
-              "Tech Rep": tokens[6],
-              "Accession": tokens[11]
-          };
-          record["Name"] = constructName(record);
-
-          if (filter === undefined || filter(record)) {
-              records.push(record);
-          }
-      }
-
-      return records;
-  }
-
-  function constructName(record) {
-
-      let name = record["Cell Type"] || "";
-
-      if (record["Target"]) {
-          name += " " + record["Target"];
-      }
-      if (record["Assay Type"].toLowerCase() !== "chip-seq") {
-          name += " " + record["Assay Type"];
-      }
-      if (record["Bio Rep"]) {
-          name += " " + record["Bio Rep"];
-      }
-      if (record["Tech Rep"]) {
-          name += (record["Bio Rep"] ? ":" : " 0:") + record["Tech Rep"];
-      }
-
-      name += " " + record["Output Type"];
-
-      name += " " + record["Experiment"];
-
-      return name
-
-  }
-
-  function encodeSort(a, b) {
-      var aa1,
-          aa2,
-          cc1,
-          cc2,
-          tt1,
-          tt2;
-
-      aa1 = a['Assay Type'];
-      aa2 = b['Assay Type'];
-      cc1 = a['Biosample'];
-      cc2 = b['Biosample'];
-      tt1 = a['Target'];
-      tt2 = b['Target'];
-
-      if (aa1 === aa2) {
-          if (cc1 === cc2) {
-              if (tt1 === tt2) {
-                  return 0;
-              } else if (tt1 < tt2) {
-                  return -1;
-              } else {
-                  return 1;
-              }
-          } else if (cc1 < cc2) {
-              return -1;
-          } else {
-              return 1;
-          }
-      } else {
-          if (aa1 < aa2) {
-              return -1;
-          } else {
-              return 1;
-          }
-      }
-  }
-
-  function canonicalId(genomeId) {
-
-      switch(genomeId) {
-          case "hg38":
-              return "GRCh38"
-          case "CRCh37":
-              return "hg19"
-          case "GRCm38":
-              return "mm10"
-          case "NCBI37":
-              return "mm9"
-          case "WBcel235":
-              return "ce11"
-          case "WS220":
-              return "ce10"
-          default:
-              return genomeId
-      }
-
-  }
-
-  /**
-   * @fileoverview
-   * - Using the 'QRCode for Javascript library'
-   * - Fixed dataset of 'QRCode for Javascript library' for support full-spec.
-   * - this library has no dependencies.
-   *
-   * @author davidshimjs
-   * @see <a href="http://www.d-project.com/" target="_blank">http://www.d-project.com/</a>
-   * @see <a href="http://jeromeetienne.github.com/jquery-qrcode/" target="_blank">http://jeromeetienne.github.com/jquery-qrcode/</a>
-   */
-  //---------------------------------------------------------------------
-  // QRCode for JavaScript
-  //
-  // Copyright (c) 2009 Kazuhiko Arase
-  //
-  // URL: http://www.d-project.com/
-  //
-  // Licensed under the MIT license:
-  //   http://www.opensource.org/licenses/mit-license.php
-  //
-  // The word "QR Code" is registered trademark of
-  // DENSO WAVE INCORPORATED
-  //   http://www.denso-wave.com/qrcode/faqpatent-e.html
-  //
-  //---------------------------------------------------------------------
-  function QR8bitByte(data) {
-    this.mode = QRMode.MODE_8BIT_BYTE;
-    this.data = data;
-    this.parsedData = []; // Added to support UTF-8 Characters
-
-    for (var i = 0, l = this.data.length; i < l; i++) {
-      var byteArray = [];
-      var code = this.data.charCodeAt(i);
-
-      if (code > 0x10000) {
-        byteArray[0] = 0xF0 | (code & 0x1C0000) >>> 18;
-        byteArray[1] = 0x80 | (code & 0x3F000) >>> 12;
-        byteArray[2] = 0x80 | (code & 0xFC0) >>> 6;
-        byteArray[3] = 0x80 | code & 0x3F;
-      } else if (code > 0x800) {
-        byteArray[0] = 0xE0 | (code & 0xF000) >>> 12;
-        byteArray[1] = 0x80 | (code & 0xFC0) >>> 6;
-        byteArray[2] = 0x80 | code & 0x3F;
-      } else if (code > 0x80) {
-        byteArray[0] = 0xC0 | (code & 0x7C0) >>> 6;
-        byteArray[1] = 0x80 | code & 0x3F;
-      } else {
-        byteArray[0] = code;
-      }
-
-      this.parsedData.push(byteArray);
-    }
-
-    this.parsedData = Array.prototype.concat.apply([], this.parsedData);
-
-    if (this.parsedData.length != this.data.length) {
-      this.parsedData.unshift(191);
-      this.parsedData.unshift(187);
-      this.parsedData.unshift(239);
+      return arr2;
     }
   }
 
-  QR8bitByte.prototype = {
-    getLength: function getLength(buffer) {
-      return this.parsedData.length;
-    },
-    write: function write(buffer) {
-      for (var i = 0, l = this.parsedData.length; i < l; i++) {
-        buffer.put(this.parsedData[i], 8);
-      }
-    }
-  };
-
-  function QRCodeModel(typeNumber, errorCorrectLevel) {
-    this.typeNumber = typeNumber;
-    this.errorCorrectLevel = errorCorrectLevel;
-    this.modules = null;
-    this.moduleCount = 0;
-    this.dataCache = null;
-    this.dataList = [];
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
   }
 
-  QRCodeModel.prototype = {
-    addData: function addData(data) {
-      var newData = new QR8bitByte(data);
-      this.dataList.push(newData);
-      this.dataCache = null;
-    },
-    isDark: function isDark(row, col) {
-      if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
-        throw new Error(row + "," + col);
-      }
-
-      return this.modules[row][col];
-    },
-    getModuleCount: function getModuleCount() {
-      return this.moduleCount;
-    },
-    make: function make() {
-      this.makeImpl(false, this.getBestMaskPattern());
-    },
-    makeImpl: function makeImpl(test, maskPattern) {
-      this.moduleCount = this.typeNumber * 4 + 17;
-      this.modules = new Array(this.moduleCount);
-
-      for (var row = 0; row < this.moduleCount; row++) {
-        this.modules[row] = new Array(this.moduleCount);
-
-        for (var col = 0; col < this.moduleCount; col++) {
-          this.modules[row][col] = null;
-        }
-      }
-
-      this.setupPositionProbePattern(0, 0);
-      this.setupPositionProbePattern(this.moduleCount - 7, 0);
-      this.setupPositionProbePattern(0, this.moduleCount - 7);
-      this.setupPositionAdjustPattern();
-      this.setupTimingPattern();
-      this.setupTypeInfo(test, maskPattern);
-
-      if (this.typeNumber >= 7) {
-        this.setupTypeNumber(test);
-      }
-
-      if (this.dataCache == null) {
-        this.dataCache = QRCodeModel.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
-      }
-
-      this.mapData(this.dataCache, maskPattern);
-    },
-    setupPositionProbePattern: function setupPositionProbePattern(row, col) {
-      for (var r = -1; r <= 7; r++) {
-        if (row + r <= -1 || this.moduleCount <= row + r) continue;
-
-        for (var c = -1; c <= 7; c++) {
-          if (col + c <= -1 || this.moduleCount <= col + c) continue;
-
-          if (0 <= r && r <= 6 && (c == 0 || c == 6) || 0 <= c && c <= 6 && (r == 0 || r == 6) || 2 <= r && r <= 4 && 2 <= c && c <= 4) {
-            this.modules[row + r][col + c] = true;
-          } else {
-            this.modules[row + r][col + c] = false;
-          }
-        }
-      }
-    },
-    getBestMaskPattern: function getBestMaskPattern() {
-      var minLostPoint = 0;
-      var pattern = 0;
-
-      for (var i = 0; i < 8; i++) {
-        this.makeImpl(true, i);
-        var lostPoint = QRUtil.getLostPoint(this);
-
-        if (i == 0 || minLostPoint > lostPoint) {
-          minLostPoint = lostPoint;
-          pattern = i;
-        }
-      }
-
-      return pattern;
-    },
-    createMovieClip: function createMovieClip(target_mc, instance_name, depth) {
-      var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
-      var cs = 1;
-      this.make();
-
-      for (var row = 0; row < this.modules.length; row++) {
-        var y = row * cs;
-
-        for (var col = 0; col < this.modules[row].length; col++) {
-          var x = col * cs;
-          var dark = this.modules[row][col];
-
-          if (dark) {
-            qr_mc.beginFill(0, 100);
-            qr_mc.moveTo(x, y);
-            qr_mc.lineTo(x + cs, y);
-            qr_mc.lineTo(x + cs, y + cs);
-            qr_mc.lineTo(x, y + cs);
-            qr_mc.endFill();
-          }
-        }
-      }
-
-      return qr_mc;
-    },
-    setupTimingPattern: function setupTimingPattern() {
-      for (var r = 8; r < this.moduleCount - 8; r++) {
-        if (this.modules[r][6] != null) {
-          continue;
-        }
-
-        this.modules[r][6] = r % 2 == 0;
-      }
-
-      for (var c = 8; c < this.moduleCount - 8; c++) {
-        if (this.modules[6][c] != null) {
-          continue;
-        }
-
-        this.modules[6][c] = c % 2 == 0;
-      }
-    },
-    setupPositionAdjustPattern: function setupPositionAdjustPattern() {
-      var pos = QRUtil.getPatternPosition(this.typeNumber);
-
-      for (var i = 0; i < pos.length; i++) {
-        for (var j = 0; j < pos.length; j++) {
-          var row = pos[i];
-          var col = pos[j];
-
-          if (this.modules[row][col] != null) {
-            continue;
-          }
-
-          for (var r = -2; r <= 2; r++) {
-            for (var c = -2; c <= 2; c++) {
-              if (r == -2 || r == 2 || c == -2 || c == 2 || r == 0 && c == 0) {
-                this.modules[row + r][col + c] = true;
-              } else {
-                this.modules[row + r][col + c] = false;
-              }
-            }
-          }
-        }
-      }
-    },
-    setupTypeNumber: function setupTypeNumber(test) {
-      var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
-
-      for (var i = 0; i < 18; i++) {
-        var mod = !test && (bits >> i & 1) == 1;
-        this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
-      }
-
-      for (var i = 0; i < 18; i++) {
-        var mod = !test && (bits >> i & 1) == 1;
-        this.modules[i % 3 + this.moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
-      }
-    },
-    setupTypeInfo: function setupTypeInfo(test, maskPattern) {
-      var data = this.errorCorrectLevel << 3 | maskPattern;
-      var bits = QRUtil.getBCHTypeInfo(data);
-
-      for (var i = 0; i < 15; i++) {
-        var mod = !test && (bits >> i & 1) == 1;
-
-        if (i < 6) {
-          this.modules[i][8] = mod;
-        } else if (i < 8) {
-          this.modules[i + 1][8] = mod;
-        } else {
-          this.modules[this.moduleCount - 15 + i][8] = mod;
-        }
-      }
-
-      for (var i = 0; i < 15; i++) {
-        var mod = !test && (bits >> i & 1) == 1;
-
-        if (i < 8) {
-          this.modules[8][this.moduleCount - i - 1] = mod;
-        } else if (i < 9) {
-          this.modules[8][15 - i - 1 + 1] = mod;
-        } else {
-          this.modules[8][15 - i - 1] = mod;
-        }
-      }
-
-      this.modules[this.moduleCount - 8][8] = !test;
-    },
-    mapData: function mapData(data, maskPattern) {
-      var inc = -1;
-      var row = this.moduleCount - 1;
-      var bitIndex = 7;
-      var byteIndex = 0;
-
-      for (var col = this.moduleCount - 1; col > 0; col -= 2) {
-        if (col == 6) col--;
-
-        while (true) {
-          for (var c = 0; c < 2; c++) {
-            if (this.modules[row][col - c] == null) {
-              var dark = false;
-
-              if (byteIndex < data.length) {
-                dark = (data[byteIndex] >>> bitIndex & 1) == 1;
-              }
-
-              var mask = QRUtil.getMask(maskPattern, row, col - c);
-
-              if (mask) {
-                dark = !dark;
-              }
-
-              this.modules[row][col - c] = dark;
-              bitIndex--;
-
-              if (bitIndex == -1) {
-                byteIndex++;
-                bitIndex = 7;
-              }
-            }
-          }
-
-          row += inc;
-
-          if (row < 0 || this.moduleCount <= row) {
-            row -= inc;
-            inc = -inc;
-            break;
-          }
-        }
-      }
-    }
-  };
-  QRCodeModel.PAD0 = 0xEC;
-  QRCodeModel.PAD1 = 0x11;
-
-  QRCodeModel.createData = function (typeNumber, errorCorrectLevel, dataList) {
-    var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
-    var buffer = new QRBitBuffer();
-
-    for (var i = 0; i < dataList.length; i++) {
-      var data = dataList[i];
-      buffer.put(data.mode, 4);
-      buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber));
-      data.write(buffer);
-    }
-
-    var totalDataCount = 0;
-
-    for (var i = 0; i < rsBlocks.length; i++) {
-      totalDataCount += rsBlocks[i].dataCount;
-    }
-
-    if (buffer.getLengthInBits() > totalDataCount * 8) {
-      throw new Error("code length overflow. (" + buffer.getLengthInBits() + ">" + totalDataCount * 8 + ")");
-    }
-
-    if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
-      buffer.put(0, 4);
-    }
-
-    while (buffer.getLengthInBits() % 8 != 0) {
-      buffer.putBit(false);
-    }
-
-    while (true) {
-      if (buffer.getLengthInBits() >= totalDataCount * 8) {
-        break;
-      }
-
-      buffer.put(QRCodeModel.PAD0, 8);
-
-      if (buffer.getLengthInBits() >= totalDataCount * 8) {
-        break;
-      }
-
-      buffer.put(QRCodeModel.PAD1, 8);
-    }
-
-    return QRCodeModel.createBytes(buffer, rsBlocks);
-  };
-
-  QRCodeModel.createBytes = function (buffer, rsBlocks) {
-    var offset = 0;
-    var maxDcCount = 0;
-    var maxEcCount = 0;
-    var dcdata = new Array(rsBlocks.length);
-    var ecdata = new Array(rsBlocks.length);
-
-    for (var r = 0; r < rsBlocks.length; r++) {
-      var dcCount = rsBlocks[r].dataCount;
-      var ecCount = rsBlocks[r].totalCount - dcCount;
-      maxDcCount = Math.max(maxDcCount, dcCount);
-      maxEcCount = Math.max(maxEcCount, ecCount);
-      dcdata[r] = new Array(dcCount);
-
-      for (var i = 0; i < dcdata[r].length; i++) {
-        dcdata[r][i] = 0xff & buffer.buffer[i + offset];
-      }
-
-      offset += dcCount;
-      var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
-      var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
-      var modPoly = rawPoly.mod(rsPoly);
-      ecdata[r] = new Array(rsPoly.getLength() - 1);
-
-      for (var i = 0; i < ecdata[r].length; i++) {
-        var modIndex = i + modPoly.getLength() - ecdata[r].length;
-        ecdata[r][i] = modIndex >= 0 ? modPoly.get(modIndex) : 0;
-      }
-    }
-
-    var totalCodeCount = 0;
-
-    for (var i = 0; i < rsBlocks.length; i++) {
-      totalCodeCount += rsBlocks[i].totalCount;
-    }
-
-    var data = new Array(totalCodeCount);
-    var index = 0;
-
-    for (var i = 0; i < maxDcCount; i++) {
-      for (var r = 0; r < rsBlocks.length; r++) {
-        if (i < dcdata[r].length) {
-          data[index++] = dcdata[r][i];
-        }
-      }
-    }
-
-    for (var i = 0; i < maxEcCount; i++) {
-      for (var r = 0; r < rsBlocks.length; r++) {
-        if (i < ecdata[r].length) {
-          data[index++] = ecdata[r][i];
-        }
-      }
-    }
-
-    return data;
-  };
-
-  var QRMode = {
-    MODE_NUMBER: 1 << 0,
-    MODE_ALPHA_NUM: 1 << 1,
-    MODE_8BIT_BYTE: 1 << 2,
-    MODE_KANJI: 1 << 3
-  };
-  var QRErrorCorrectLevel = {
-    L: 1,
-    M: 0,
-    Q: 3,
-    H: 2
-  };
-  var QRMaskPattern = {
-    PATTERN000: 0,
-    PATTERN001: 1,
-    PATTERN010: 2,
-    PATTERN011: 3,
-    PATTERN100: 4,
-    PATTERN101: 5,
-    PATTERN110: 6,
-    PATTERN111: 7
-  };
-  var QRUtil = {
-    PATTERN_POSITION_TABLE: [[], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50], [6, 30, 54], [6, 32, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48, 70], [6, 26, 50, 74], [6, 30, 54, 78], [6, 30, 56, 82], [6, 30, 58, 86], [6, 34, 62, 90], [6, 28, 50, 72, 94], [6, 26, 50, 74, 98], [6, 30, 54, 78, 102], [6, 28, 54, 80, 106], [6, 32, 58, 84, 110], [6, 30, 58, 86, 114], [6, 34, 62, 90, 118], [6, 26, 50, 74, 98, 122], [6, 30, 54, 78, 102, 126], [6, 26, 52, 78, 104, 130], [6, 30, 56, 82, 108, 134], [6, 34, 60, 86, 112, 138], [6, 30, 58, 86, 114, 142], [6, 34, 62, 90, 118, 146], [6, 30, 54, 78, 102, 126, 150], [6, 24, 50, 76, 102, 128, 154], [6, 28, 54, 80, 106, 132, 158], [6, 32, 58, 84, 110, 136, 162], [6, 26, 54, 82, 110, 138, 166], [6, 30, 58, 86, 114, 142, 170]],
-    G15: 1 << 10 | 1 << 8 | 1 << 5 | 1 << 4 | 1 << 2 | 1 << 1 | 1 << 0,
-    G18: 1 << 12 | 1 << 11 | 1 << 10 | 1 << 9 | 1 << 8 | 1 << 5 | 1 << 2 | 1 << 0,
-    G15_MASK: 1 << 14 | 1 << 12 | 1 << 10 | 1 << 4 | 1 << 1,
-    getBCHTypeInfo: function getBCHTypeInfo(data) {
-      var d = data << 10;
-
-      while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
-        d ^= QRUtil.G15 << QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15);
-      }
-
-      return (data << 10 | d) ^ QRUtil.G15_MASK;
-    },
-    getBCHTypeNumber: function getBCHTypeNumber(data) {
-      var d = data << 12;
-
-      while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
-        d ^= QRUtil.G18 << QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18);
-      }
-
-      return data << 12 | d;
-    },
-    getBCHDigit: function getBCHDigit(data) {
-      var digit = 0;
-
-      while (data != 0) {
-        digit++;
-        data >>>= 1;
-      }
-
-      return digit;
-    },
-    getPatternPosition: function getPatternPosition(typeNumber) {
-      return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
-    },
-    getMask: function getMask(maskPattern, i, j) {
-      switch (maskPattern) {
-        case QRMaskPattern.PATTERN000:
-          return (i + j) % 2 == 0;
-
-        case QRMaskPattern.PATTERN001:
-          return i % 2 == 0;
-
-        case QRMaskPattern.PATTERN010:
-          return j % 3 == 0;
-
-        case QRMaskPattern.PATTERN011:
-          return (i + j) % 3 == 0;
-
-        case QRMaskPattern.PATTERN100:
-          return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 == 0;
-
-        case QRMaskPattern.PATTERN101:
-          return i * j % 2 + i * j % 3 == 0;
-
-        case QRMaskPattern.PATTERN110:
-          return (i * j % 2 + i * j % 3) % 2 == 0;
-
-        case QRMaskPattern.PATTERN111:
-          return (i * j % 3 + (i + j) % 2) % 2 == 0;
-
-        default:
-          throw new Error("bad maskPattern:" + maskPattern);
-      }
-    },
-    getErrorCorrectPolynomial: function getErrorCorrectPolynomial(errorCorrectLength) {
-      var a = new QRPolynomial([1], 0);
-
-      for (var i = 0; i < errorCorrectLength; i++) {
-        a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0));
-      }
-
-      return a;
-    },
-    getLengthInBits: function getLengthInBits(mode, type) {
-      if (1 <= type && type < 10) {
-        switch (mode) {
-          case QRMode.MODE_NUMBER:
-            return 10;
-
-          case QRMode.MODE_ALPHA_NUM:
-            return 9;
-
-          case QRMode.MODE_8BIT_BYTE:
-            return 8;
-
-          case QRMode.MODE_KANJI:
-            return 8;
-
-          default:
-            throw new Error("mode:" + mode);
-        }
-      } else if (type < 27) {
-        switch (mode) {
-          case QRMode.MODE_NUMBER:
-            return 12;
-
-          case QRMode.MODE_ALPHA_NUM:
-            return 11;
-
-          case QRMode.MODE_8BIT_BYTE:
-            return 16;
-
-          case QRMode.MODE_KANJI:
-            return 10;
-
-          default:
-            throw new Error("mode:" + mode);
-        }
-      } else if (type < 41) {
-        switch (mode) {
-          case QRMode.MODE_NUMBER:
-            return 14;
-
-          case QRMode.MODE_ALPHA_NUM:
-            return 13;
-
-          case QRMode.MODE_8BIT_BYTE:
-            return 16;
-
-          case QRMode.MODE_KANJI:
-            return 12;
-
-          default:
-            throw new Error("mode:" + mode);
-        }
-      } else {
-        throw new Error("type:" + type);
-      }
-    },
-    getLostPoint: function getLostPoint(qrCode) {
-      var moduleCount = qrCode.getModuleCount();
-      var lostPoint = 0;
-
-      for (var row = 0; row < moduleCount; row++) {
-        for (var col = 0; col < moduleCount; col++) {
-          var sameCount = 0;
-          var dark = qrCode.isDark(row, col);
-
-          for (var r = -1; r <= 1; r++) {
-            if (row + r < 0 || moduleCount <= row + r) {
-              continue;
-            }
-
-            for (var c = -1; c <= 1; c++) {
-              if (col + c < 0 || moduleCount <= col + c) {
-                continue;
-              }
-
-              if (r == 0 && c == 0) {
-                continue;
-              }
-
-              if (dark == qrCode.isDark(row + r, col + c)) {
-                sameCount++;
-              }
-            }
-          }
-
-          if (sameCount > 5) {
-            lostPoint += 3 + sameCount - 5;
-          }
-        }
-      }
-
-      for (var row = 0; row < moduleCount - 1; row++) {
-        for (var col = 0; col < moduleCount - 1; col++) {
-          var count = 0;
-          if (qrCode.isDark(row, col)) count++;
-          if (qrCode.isDark(row + 1, col)) count++;
-          if (qrCode.isDark(row, col + 1)) count++;
-          if (qrCode.isDark(row + 1, col + 1)) count++;
-
-          if (count == 0 || count == 4) {
-            lostPoint += 3;
-          }
-        }
-      }
-
-      for (var row = 0; row < moduleCount; row++) {
-        for (var col = 0; col < moduleCount - 6; col++) {
-          if (qrCode.isDark(row, col) && !qrCode.isDark(row, col + 1) && qrCode.isDark(row, col + 2) && qrCode.isDark(row, col + 3) && qrCode.isDark(row, col + 4) && !qrCode.isDark(row, col + 5) && qrCode.isDark(row, col + 6)) {
-            lostPoint += 40;
-          }
-        }
-      }
-
-      for (var col = 0; col < moduleCount; col++) {
-        for (var row = 0; row < moduleCount - 6; row++) {
-          if (qrCode.isDark(row, col) && !qrCode.isDark(row + 1, col) && qrCode.isDark(row + 2, col) && qrCode.isDark(row + 3, col) && qrCode.isDark(row + 4, col) && !qrCode.isDark(row + 5, col) && qrCode.isDark(row + 6, col)) {
-            lostPoint += 40;
-          }
-        }
-      }
-
-      var darkCount = 0;
-
-      for (var col = 0; col < moduleCount; col++) {
-        for (var row = 0; row < moduleCount; row++) {
-          if (qrCode.isDark(row, col)) {
-            darkCount++;
-          }
-        }
-      }
-
-      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
-      lostPoint += ratio * 10;
-      return lostPoint;
-    }
-  };
-  var QRMath = {
-    glog: function glog(n) {
-      if (n < 1) {
-        throw new Error("glog(" + n + ")");
-      }
-
-      return QRMath.LOG_TABLE[n];
-    },
-    gexp: function gexp(n) {
-      while (n < 0) {
-        n += 255;
-      }
-
-      while (n >= 256) {
-        n -= 255;
-      }
-
-      return QRMath.EXP_TABLE[n];
-    },
-    EXP_TABLE: new Array(256),
-    LOG_TABLE: new Array(256)
-  };
-
-  for (var i = 0; i < 8; i++) {
-    QRMath.EXP_TABLE[i] = 1 << i;
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
   }
-
-  for (var i = 8; i < 256; i++) {
-    QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4] ^ QRMath.EXP_TABLE[i - 5] ^ QRMath.EXP_TABLE[i - 6] ^ QRMath.EXP_TABLE[i - 8];
-  }
-
-  for (var i = 0; i < 255; i++) {
-    QRMath.LOG_TABLE[QRMath.EXP_TABLE[i]] = i;
-  }
-
-  function QRPolynomial(num, shift) {
-    if (num.length == undefined) {
-      throw new Error(num.length + "/" + shift);
-    }
-
-    var offset = 0;
-
-    while (offset < num.length && num[offset] == 0) {
-      offset++;
-    }
-
-    this.num = new Array(num.length - offset + shift);
-
-    for (var i = 0; i < num.length - offset; i++) {
-      this.num[i] = num[i + offset];
-    }
-  }
-
-  QRPolynomial.prototype = {
-    get: function get(index) {
-      return this.num[index];
-    },
-    getLength: function getLength() {
-      return this.num.length;
-    },
-    multiply: function multiply(e) {
-      var num = new Array(this.getLength() + e.getLength() - 1);
-
-      for (var i = 0; i < this.getLength(); i++) {
-        for (var j = 0; j < e.getLength(); j++) {
-          num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i)) + QRMath.glog(e.get(j)));
-        }
-      }
-
-      return new QRPolynomial(num, 0);
-    },
-    mod: function mod(e) {
-      if (this.getLength() - e.getLength() < 0) {
-        return this;
-      }
-
-      var ratio = QRMath.glog(this.get(0)) - QRMath.glog(e.get(0));
-      var num = new Array(this.getLength());
-
-      for (var i = 0; i < this.getLength(); i++) {
-        num[i] = this.get(i);
-      }
-
-      for (var i = 0; i < e.getLength(); i++) {
-        num[i] ^= QRMath.gexp(QRMath.glog(e.get(i)) + ratio);
-      }
-
-      return new QRPolynomial(num, 0).mod(e);
-    }
-  };
-
-  function QRRSBlock(totalCount, dataCount) {
-    this.totalCount = totalCount;
-    this.dataCount = dataCount;
-  }
-
-  QRRSBlock.RS_BLOCK_TABLE = [[1, 26, 19], [1, 26, 16], [1, 26, 13], [1, 26, 9], [1, 44, 34], [1, 44, 28], [1, 44, 22], [1, 44, 16], [1, 70, 55], [1, 70, 44], [2, 35, 17], [2, 35, 13], [1, 100, 80], [2, 50, 32], [2, 50, 24], [4, 25, 9], [1, 134, 108], [2, 67, 43], [2, 33, 15, 2, 34, 16], [2, 33, 11, 2, 34, 12], [2, 86, 68], [4, 43, 27], [4, 43, 19], [4, 43, 15], [2, 98, 78], [4, 49, 31], [2, 32, 14, 4, 33, 15], [4, 39, 13, 1, 40, 14], [2, 121, 97], [2, 60, 38, 2, 61, 39], [4, 40, 18, 2, 41, 19], [4, 40, 14, 2, 41, 15], [2, 146, 116], [3, 58, 36, 2, 59, 37], [4, 36, 16, 4, 37, 17], [4, 36, 12, 4, 37, 13], [2, 86, 68, 2, 87, 69], [4, 69, 43, 1, 70, 44], [6, 43, 19, 2, 44, 20], [6, 43, 15, 2, 44, 16], [4, 101, 81], [1, 80, 50, 4, 81, 51], [4, 50, 22, 4, 51, 23], [3, 36, 12, 8, 37, 13], [2, 116, 92, 2, 117, 93], [6, 58, 36, 2, 59, 37], [4, 46, 20, 6, 47, 21], [7, 42, 14, 4, 43, 15], [4, 133, 107], [8, 59, 37, 1, 60, 38], [8, 44, 20, 4, 45, 21], [12, 33, 11, 4, 34, 12], [3, 145, 115, 1, 146, 116], [4, 64, 40, 5, 65, 41], [11, 36, 16, 5, 37, 17], [11, 36, 12, 5, 37, 13], [5, 109, 87, 1, 110, 88], [5, 65, 41, 5, 66, 42], [5, 54, 24, 7, 55, 25], [11, 36, 12], [5, 122, 98, 1, 123, 99], [7, 73, 45, 3, 74, 46], [15, 43, 19, 2, 44, 20], [3, 45, 15, 13, 46, 16], [1, 135, 107, 5, 136, 108], [10, 74, 46, 1, 75, 47], [1, 50, 22, 15, 51, 23], [2, 42, 14, 17, 43, 15], [5, 150, 120, 1, 151, 121], [9, 69, 43, 4, 70, 44], [17, 50, 22, 1, 51, 23], [2, 42, 14, 19, 43, 15], [3, 141, 113, 4, 142, 114], [3, 70, 44, 11, 71, 45], [17, 47, 21, 4, 48, 22], [9, 39, 13, 16, 40, 14], [3, 135, 107, 5, 136, 108], [3, 67, 41, 13, 68, 42], [15, 54, 24, 5, 55, 25], [15, 43, 15, 10, 44, 16], [4, 144, 116, 4, 145, 117], [17, 68, 42], [17, 50, 22, 6, 51, 23], [19, 46, 16, 6, 47, 17], [2, 139, 111, 7, 140, 112], [17, 74, 46], [7, 54, 24, 16, 55, 25], [34, 37, 13], [4, 151, 121, 5, 152, 122], [4, 75, 47, 14, 76, 48], [11, 54, 24, 14, 55, 25], [16, 45, 15, 14, 46, 16], [6, 147, 117, 4, 148, 118], [6, 73, 45, 14, 74, 46], [11, 54, 24, 16, 55, 25], [30, 46, 16, 2, 47, 17], [8, 132, 106, 4, 133, 107], [8, 75, 47, 13, 76, 48], [7, 54, 24, 22, 55, 25], [22, 45, 15, 13, 46, 16], [10, 142, 114, 2, 143, 115], [19, 74, 46, 4, 75, 47], [28, 50, 22, 6, 51, 23], [33, 46, 16, 4, 47, 17], [8, 152, 122, 4, 153, 123], [22, 73, 45, 3, 74, 46], [8, 53, 23, 26, 54, 24], [12, 45, 15, 28, 46, 16], [3, 147, 117, 10, 148, 118], [3, 73, 45, 23, 74, 46], [4, 54, 24, 31, 55, 25], [11, 45, 15, 31, 46, 16], [7, 146, 116, 7, 147, 117], [21, 73, 45, 7, 74, 46], [1, 53, 23, 37, 54, 24], [19, 45, 15, 26, 46, 16], [5, 145, 115, 10, 146, 116], [19, 75, 47, 10, 76, 48], [15, 54, 24, 25, 55, 25], [23, 45, 15, 25, 46, 16], [13, 145, 115, 3, 146, 116], [2, 74, 46, 29, 75, 47], [42, 54, 24, 1, 55, 25], [23, 45, 15, 28, 46, 16], [17, 145, 115], [10, 74, 46, 23, 75, 47], [10, 54, 24, 35, 55, 25], [19, 45, 15, 35, 46, 16], [17, 145, 115, 1, 146, 116], [14, 74, 46, 21, 75, 47], [29, 54, 24, 19, 55, 25], [11, 45, 15, 46, 46, 16], [13, 145, 115, 6, 146, 116], [14, 74, 46, 23, 75, 47], [44, 54, 24, 7, 55, 25], [59, 46, 16, 1, 47, 17], [12, 151, 121, 7, 152, 122], [12, 75, 47, 26, 76, 48], [39, 54, 24, 14, 55, 25], [22, 45, 15, 41, 46, 16], [6, 151, 121, 14, 152, 122], [6, 75, 47, 34, 76, 48], [46, 54, 24, 10, 55, 25], [2, 45, 15, 64, 46, 16], [17, 152, 122, 4, 153, 123], [29, 74, 46, 14, 75, 47], [49, 54, 24, 10, 55, 25], [24, 45, 15, 46, 46, 16], [4, 152, 122, 18, 153, 123], [13, 74, 46, 32, 75, 47], [48, 54, 24, 14, 55, 25], [42, 45, 15, 32, 46, 16], [20, 147, 117, 4, 148, 118], [40, 75, 47, 7, 76, 48], [43, 54, 24, 22, 55, 25], [10, 45, 15, 67, 46, 16], [19, 148, 118, 6, 149, 119], [18, 75, 47, 31, 76, 48], [34, 54, 24, 34, 55, 25], [20, 45, 15, 61, 46, 16]];
-
-  QRRSBlock.getRSBlocks = function (typeNumber, errorCorrectLevel) {
-    var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
-
-    if (rsBlock == undefined) {
-      throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
-    }
-
-    var length = rsBlock.length / 3;
-    var list = [];
-
-    for (var i = 0; i < length; i++) {
-      var count = rsBlock[i * 3 + 0];
-      var totalCount = rsBlock[i * 3 + 1];
-      var dataCount = rsBlock[i * 3 + 2];
-
-      for (var j = 0; j < count; j++) {
-        list.push(new QRRSBlock(totalCount, dataCount));
-      }
-    }
-
-    return list;
-  };
-
-  QRRSBlock.getRsBlockTable = function (typeNumber, errorCorrectLevel) {
-    switch (errorCorrectLevel) {
-      case QRErrorCorrectLevel.L:
-        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
-
-      case QRErrorCorrectLevel.M:
-        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
-
-      case QRErrorCorrectLevel.Q:
-        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
-
-      case QRErrorCorrectLevel.H:
-        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
-
-      default:
-        return undefined;
-    }
-  };
-
-  function QRBitBuffer() {
-    this.buffer = [];
-    this.length = 0;
-  }
-
-  QRBitBuffer.prototype = {
-    get: function get(index) {
-      var bufIndex = Math.floor(index / 8);
-      return (this.buffer[bufIndex] >>> 7 - index % 8 & 1) == 1;
-    },
-    put: function put(num, length) {
-      for (var i = 0; i < length; i++) {
-        this.putBit((num >>> length - i - 1 & 1) == 1);
-      }
-    },
-    getLengthInBits: function getLengthInBits() {
-      return this.length;
-    },
-    putBit: function putBit(bit) {
-      var bufIndex = Math.floor(this.length / 8);
-
-      if (this.buffer.length <= bufIndex) {
-        this.buffer.push(0);
-      }
-
-      if (bit) {
-        this.buffer[bufIndex] |= 0x80 >>> this.length % 8;
-      }
-
-      this.length++;
-    }
-  };
-  var QRCodeLimitLength = [[17, 14, 11, 7], [32, 26, 20, 14], [53, 42, 32, 24], [78, 62, 46, 34], [106, 84, 60, 44], [134, 106, 74, 58], [154, 122, 86, 64], [192, 152, 108, 84], [230, 180, 130, 98], [271, 213, 151, 119], [321, 251, 177, 137], [367, 287, 203, 155], [425, 331, 241, 177], [458, 362, 258, 194], [520, 412, 292, 220], [586, 450, 322, 250], [644, 504, 364, 280], [718, 560, 394, 310], [792, 624, 442, 338], [858, 666, 482, 382], [929, 711, 509, 403], [1003, 779, 565, 439], [1091, 857, 611, 461], [1171, 911, 661, 511], [1273, 997, 715, 535], [1367, 1059, 751, 593], [1465, 1125, 805, 625], [1528, 1190, 868, 658], [1628, 1264, 908, 698], [1732, 1370, 982, 742], [1840, 1452, 1030, 790], [1952, 1538, 1112, 842], [2068, 1628, 1168, 898], [2188, 1722, 1228, 958], [2303, 1809, 1283, 983], [2431, 1911, 1351, 1051], [2563, 1989, 1423, 1093], [2699, 2099, 1499, 1139], [2809, 2213, 1579, 1219], [2953, 2331, 1663, 1273]];
-
-  function _isSupportCanvas() {
-    return typeof CanvasRenderingContext2D != "undefined";
-  } // android 2.x doesn't support Data-URI spec
-
-
-  function _getAndroid() {
-    var android = false;
-    var sAgent = navigator.userAgent;
-
-    if (/android/i.test(sAgent)) {
-      // android
-      android = true;
-      var aMat = sAgent.toString().match(/android ([0-9]\.[0-9])/i);
-
-      if (aMat && aMat[1]) {
-        android = parseFloat(aMat[1]);
-      }
-    }
-
-    return android;
-  }
-
-  var svgDrawer = function () {
-    var Drawing = function Drawing(el, htOption) {
-      this._el = el;
-      this._htOption = htOption;
-    };
-
-    Drawing.prototype.draw = function (oQRCode) {
-      var _htOption = this._htOption;
-      var _el = this._el;
-      var nCount = oQRCode.getModuleCount();
-      var nWidth = Math.floor(_htOption.width / nCount);
-      var nHeight = Math.floor(_htOption.height / nCount);
-      this.clear();
-
-      function makeSVG(tag, attrs) {
-        var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-
-        for (var k in attrs) {
-          if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
-        }
-
-        return el;
-      }
-
-      var svg = makeSVG("svg", {
-        'viewBox': '0 0 ' + String(nCount) + " " + String(nCount),
-        'width': '100%',
-        'height': '100%',
-        'fill': _htOption.colorLight
-      });
-      svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-      _el.appendChild(svg);
-
-      svg.appendChild(makeSVG("rect", {
-        "fill": _htOption.colorLight,
-        "width": "100%",
-        "height": "100%"
-      }));
-      svg.appendChild(makeSVG("rect", {
-        "fill": _htOption.colorDark,
-        "width": "1",
-        "height": "1",
-        "id": "template"
-      }));
-
-      for (var row = 0; row < nCount; row++) {
-        for (var col = 0; col < nCount; col++) {
-          if (oQRCode.isDark(row, col)) {
-            var child = makeSVG("use", {
-              "x": String(col),
-              "y": String(row)
-            });
-            child.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#template");
-            svg.appendChild(child);
-          }
-        }
-      }
-    };
-
-    Drawing.prototype.clear = function () {
-      while (this._el.hasChildNodes()) {
-        this._el.removeChild(this._el.lastChild);
-      }
-    };
-
-    return Drawing;
-  }();
-
-  var useSVG = document.documentElement.tagName.toLowerCase() === "svg"; // Drawing in DOM by using Table tag
-
-  var Drawing = useSVG ? svgDrawer : !_isSupportCanvas() ? function () {
-    var Drawing = function Drawing(el, htOption) {
-      this._el = el;
-      this._htOption = htOption;
-    };
-    /**
-     * Draw the QRCode
-     *
-     * @param {QRCode} oQRCode
-     */
-
-
-    Drawing.prototype.draw = function (oQRCode) {
-      var _htOption = this._htOption;
-      var _el = this._el;
-      var nCount = oQRCode.getModuleCount();
-      var nWidth = Math.floor(_htOption.width / nCount);
-      var nHeight = Math.floor(_htOption.height / nCount);
-      var aHTML = ['<table style="border:0;border-collapse:collapse;">'];
-
-      for (var row = 0; row < nCount; row++) {
-        aHTML.push('<tr>');
-
-        for (var col = 0; col < nCount; col++) {
-          aHTML.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:' + nWidth + 'px;height:' + nHeight + 'px;background-color:' + (oQRCode.isDark(row, col) ? _htOption.colorDark : _htOption.colorLight) + ';"></td>');
-        }
-
-        aHTML.push('</tr>');
-      }
-
-      aHTML.push('</table>');
-      _el.innerHTML = aHTML.join(''); // Fix the margin values as real size.
-
-      var elTable = _el.childNodes[0];
-      var nLeftMarginTable = (_htOption.width - elTable.offsetWidth) / 2;
-      var nTopMarginTable = (_htOption.height - elTable.offsetHeight) / 2;
-
-      if (nLeftMarginTable > 0 && nTopMarginTable > 0) {
-        elTable.style.margin = nTopMarginTable + "px " + nLeftMarginTable + "px";
-      }
-    };
-    /**
-     * Clear the QRCode
-     */
-
-
-    Drawing.prototype.clear = function () {
-      this._el.innerHTML = '';
-    };
-
-    return Drawing;
-  }() : function () {
-    // Drawing in Canvas
-    function _onMakeImage() {
-      this._elImage.src = this._elCanvas.toDataURL("image/png");
-      this._elImage.style.display = "block";
-      this._elCanvas.style.display = "none";
-    }
-    /**
-     * Check whether the user's browser supports Data URI or not
-     *
-     * @private
-     * @param {Function} fSuccess Occurs if it supports Data URI
-     * @param {Function} fFail Occurs if it doesn't support Data URI
-     */
-
-
-    function _safeSetDataURI(fSuccess, fFail) {
-      var self = this;
-      self._fFail = fFail;
-      self._fSuccess = fSuccess; // Check it just once
-
-      if (self._bSupportDataURI === null) {
-        var el = document.createElement("img");
-
-        var fOnError = function fOnError() {
-          self._bSupportDataURI = false;
-
-          if (self._fFail) {
-            self._fFail.call(self);
-          }
-        };
-
-        var fOnSuccess = function fOnSuccess() {
-          self._bSupportDataURI = true;
-
-          if (self._fSuccess) {
-            self._fSuccess.call(self);
-          }
-        };
-
-        el.onabort = fOnError;
-        el.onerror = fOnError;
-        el.onload = fOnSuccess;
-        el.src = "data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="; // the Image contains 1px data.
-
-        return;
-      } else if (self._bSupportDataURI === true && self._fSuccess) {
-        self._fSuccess.call(self);
-      } else if (self._bSupportDataURI === false && self._fFail) {
-        self._fFail.call(self);
-      }
-    }
-    /**
-     * Drawing QRCode by using canvas
-     *
-     * @constructor
-     * @param {HTMLElement} el
-     * @param {Object} htOption QRCode Options
-     */
-
-    var Drawing = function Drawing(el, htOption) {
-      this._bIsPainted = false;
-      this._android = _getAndroid();
-      this._htOption = htOption;
-      this._elCanvas = document.createElement("canvas");
-      this._elCanvas.width = htOption.width;
-      this._elCanvas.height = htOption.height;
-      el.appendChild(this._elCanvas);
-      this._el = el;
-      this._oContext = this._elCanvas.getContext("2d");
-      this._bIsPainted = false;
-      this._elImage = document.createElement("img");
-      this._elImage.alt = "Scan me!";
-      this._elImage.style.display = "none";
-
-      this._el.appendChild(this._elImage);
-
-      this._bSupportDataURI = null;
-    };
-    /**
-     * Draw the QRCode
-     *
-     * @param {QRCode} oQRCode
-     */
-
-
-    Drawing.prototype.draw = function (oQRCode) {
-      var _elImage = this._elImage;
-      var _oContext = this._oContext;
-      var _htOption = this._htOption;
-      var nCount = oQRCode.getModuleCount();
-      var nWidth = _htOption.width / nCount;
-      var nHeight = _htOption.height / nCount;
-      var nRoundedWidth = Math.round(nWidth);
-      var nRoundedHeight = Math.round(nHeight);
-      _elImage.style.display = "none";
-      this.clear();
-
-      for (var row = 0; row < nCount; row++) {
-        for (var col = 0; col < nCount; col++) {
-          var bIsDark = oQRCode.isDark(row, col);
-          var nLeft = col * nWidth;
-          var nTop = row * nHeight;
-          _oContext.strokeStyle = bIsDark ? _htOption.colorDark : _htOption.colorLight;
-          _oContext.lineWidth = 1;
-          _oContext.fillStyle = bIsDark ? _htOption.colorDark : _htOption.colorLight;
-
-          _oContext.fillRect(nLeft, nTop, nWidth, nHeight); // 안티 앨리어싱 방지 처리
-
-
-          _oContext.strokeRect(Math.floor(nLeft) + 0.5, Math.floor(nTop) + 0.5, nRoundedWidth, nRoundedHeight);
-
-          _oContext.strokeRect(Math.ceil(nLeft) - 0.5, Math.ceil(nTop) - 0.5, nRoundedWidth, nRoundedHeight);
-        }
-      }
-
-      this._bIsPainted = true;
-    };
-    /**
-     * Make the image from Canvas if the browser supports Data URI.
-     */
-
-
-    Drawing.prototype.makeImage = function () {
-      if (this._bIsPainted) {
-        _safeSetDataURI.call(this, _onMakeImage);
-      }
-    };
-    /**
-     * Return whether the QRCode is painted or not
-     *
-     * @return {Boolean}
-     */
-
-
-    Drawing.prototype.isPainted = function () {
-      return this._bIsPainted;
-    };
-    /**
-     * Clear the QRCode
-     */
-
-
-    Drawing.prototype.clear = function () {
-      this._oContext.clearRect(0, 0, this._elCanvas.width, this._elCanvas.height);
-
-      this._bIsPainted = false;
-    };
-    /**
-     * @private
-     * @param {Number} nNumber
-     */
-
-
-    Drawing.prototype.round = function (nNumber) {
-      if (!nNumber) {
-        return nNumber;
-      }
-
-      return Math.floor(nNumber * 1000) / 1000;
-    };
-
-    return Drawing;
-  }();
-  /**
-   * Get the type by string length
-   *
-   * @private
-   * @param {String} sText
-   * @param {Number} nCorrectLevel
-   * @return {Number} type
-   */
-
-  function _getTypeNumber(sText, nCorrectLevel) {
-    var nType = 1;
-
-    var length = _getUTF8Length(sText);
-
-    for (var i = 0, len = QRCodeLimitLength.length; i <= len; i++) {
-      var nLimit = 0;
-
-      switch (nCorrectLevel) {
-        case QRErrorCorrectLevel.L:
-          nLimit = QRCodeLimitLength[i][0];
-          break;
-
-        case QRErrorCorrectLevel.M:
-          nLimit = QRCodeLimitLength[i][1];
-          break;
-
-        case QRErrorCorrectLevel.Q:
-          nLimit = QRCodeLimitLength[i][2];
-          break;
-
-        case QRErrorCorrectLevel.H:
-          nLimit = QRCodeLimitLength[i][3];
-          break;
-      }
-
-      if (length <= nLimit) {
-        break;
-      } else {
-        nType++;
-      }
-    }
-
-    if (nType > QRCodeLimitLength.length) {
-      throw new Error("Too long data");
-    }
-
-    return nType;
-  }
-
-  function _getUTF8Length(sText) {
-    var replacedText = encodeURI(sText).toString().replace(/\%[0-9a-fA-F]{2}/g, 'a');
-    return replacedText.length + (replacedText.length != sText ? 3 : 0);
-  }
-  /**
-   * @class QRCode
-   * @constructor
-   * @example
-   * new QRCode(document.getElementById("test"), "http://jindo.dev.naver.com/collie");
-   *
-   * @example
-   * var oQRCode = new QRCode("test", {
-   *    text : "http://naver.com",
-   *    width : 128,
-   *    height : 128
-   * });
-   *
-   * oQRCode.clear(); // Clear the QRCode.
-   * oQRCode.makeCode("http://map.naver.com"); // Re-create the QRCode.
-   *
-   * @param {HTMLElement|String} el target element or 'id' attribute of element.
-   * @param {Object|String} vOption
-   * @param {String} vOption.text QRCode link data
-   * @param {Number} [vOption.width=256]
-   * @param {Number} [vOption.height=256]
-   * @param {String} [vOption.colorDark="#000000"]
-   * @param {String} [vOption.colorLight="#ffffff"]
-   * @param {QRCode.CorrectLevel} [vOption.correctLevel=QRCode.CorrectLevel.H] [L|M|Q|H]
-   */
-
-
-  var QRCode = function QRCode(el, vOption) {
-    this._htOption = {
-      width: 256,
-      height: 256,
-      typeNumber: 4,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRErrorCorrectLevel.H
-    };
-
-    if (typeof vOption === 'string') {
-      vOption = {
-        text: vOption
-      };
-    } // Overwrites options
-
-
-    if (vOption) {
-      for (var i in vOption) {
-        this._htOption[i] = vOption[i];
-      }
-    }
-
-    if (typeof el == "string") {
-      el = document.getElementById(el);
-    }
-
-    if (this._htOption.useSVG) {
-      Drawing = svgDrawer;
-    }
-
-    this._android = _getAndroid();
-    this._el = el;
-    this._oQRCode = null;
-    this._oDrawing = new Drawing(this._el, this._htOption);
-
-    if (this._htOption.text) {
-      this.makeCode(this._htOption.text);
-    }
-  };
-  /**
-   * Make the QRCode
-   *
-   * @param {String} sText link data
-   */
-
-
-  QRCode.prototype.makeCode = function (sText) {
-    this._oQRCode = new QRCodeModel(_getTypeNumber(sText, this._htOption.correctLevel), this._htOption.correctLevel);
-
-    this._oQRCode.addData(sText);
-
-    this._oQRCode.make();
-
-    this._el.title = sText;
-
-    this._oDrawing.draw(this._oQRCode);
-
-    this.makeImage();
-  };
-  /**
-   * Make the Image from Canvas element
-   * - It occurs automatically
-   * - Android below 3 doesn't support Data-URI spec.
-   *
-   * @private
-   */
-
-
-  QRCode.prototype.makeImage = function () {
-    if (typeof this._oDrawing.makeImage == "function" && (!this._android || this._android >= 3)) {
-      this._oDrawing.makeImage();
-    }
-  };
-  /**
-   * Clear the QRCode
-   */
-
-
-  QRCode.prototype.clear = function () {
-    this._oDrawing.clear();
-  };
-  /**
-   * @name QRCode.CorrectLevel
-   */
-
-
-  QRCode.CorrectLevel = QRErrorCorrectLevel;
 
   /*!
    * jQuery JavaScript Library v3.3.1 -ajax,-ajax/jsonp,-ajax/load,-ajax/parseXML,-ajax/script,-ajax/var/location,-ajax/var/nonce,-ajax/var/rquery,-ajax/xhr,-manipulation/_evalUrl,-event/ajax,-effects,-effects/Tween,-effects/animatedSelector
@@ -19990,7 +18243,7 @@ Context.prototype = {
    * THE SOFTWARE.
    */
 
-  const google = {
+  const google$1 = {
 
           fileInfoCache: {},
 
@@ -20659,15 +18912,15 @@ Context.prototype = {
                   return new Promise(function (fullfill, reject) {
 
                       // Various Google tansformations
-                      if (google.isGoogleURL(url)) {
+                      if (google$1.isGoogleURL(url)) {
                           if (url.startsWith("gs://")) {
-                              url = google.translateGoogleCloudURL(url);
-                          } else if (google.isGoogleStorageURL(url)) {
+                              url = google$1.translateGoogleCloudURL(url);
+                          } else if (google$1.isGoogleStorageURL(url)) {
                               if (!url.includes("altMedia=")) {
                                   url += (url.includes("?") ? "&altMedia=true" : "?altMedia=true");
                               }
                           }
-                          url = google.addApiKey(url);
+                          url = google$1.addApiKey(url);
                       }
 
 
@@ -20731,7 +18984,7 @@ Context.prototype = {
                               }
                           } else if ((typeof gapi !== "undefined") &&
                               ((xhr.status === 404 || xhr.status === 401) &&
-                                  google.isGoogleURL(url)) &&
+                                  google$1.isGoogleURL(url)) &&
                               !options.retries) {
 
                               options.retries = 1;
@@ -20938,7 +19191,7 @@ Context.prototype = {
   function getOauthToken(url) {
       const host = parseUri(url).host;
       let token = oauth.getToken(host);
-      if (!token && google.isGoogleURL(url)) {
+      if (!token && google$1.isGoogleURL(url)) {
           token = oauth.google.access_token;
       }
       return token;
@@ -20961,7 +19214,7 @@ Context.prototype = {
       if (url.includes("//www.dropbox.com")) {
           return url.replace("//www.dropbox.com", "//dl.dropboxusercontent.com");
       } else if (url.includes("//drive.google.com")) {
-          return google.driveDownloadURL(url);
+          return google$1.driveDownloadURL(url);
       } else if (url.includes("//www.broadinstitute.org/igvdata")) {
           return url.replace("//www.broadinstitute.org/igvdata", "//data.broadinstitute.org/igvdata");
       } else if (url.includes("//igvdata.broadinstitute.org")) {
@@ -25168,23 +23421,23 @@ Context.prototype = {
    * THE SOFTWARE.
    */
 
-  function getDataWrapper$1 (data) {
+  function getDataWrapper (data) {
 
           if (typeof(data) == 'string' || data instanceof String) {
-              return new StringDataWrapper$1(data);
+              return new StringDataWrapper(data);
           } else {
-              return new ByteArrayDataWrapper$1(data);
+              return new ByteArrayDataWrapper(data);
           }
       }
 
 
   // Data might be a string, or an UInt8Array
-      var StringDataWrapper$1 = function (string) {
+      var StringDataWrapper = function (string) {
           this.data = string;
           this.ptr = 0;
       };
 
-      StringDataWrapper$1.prototype.nextLine = function () {
+      StringDataWrapper.prototype.nextLine = function () {
           //return this.split(/\r\n|\n|\r/gm);
           var start = this.ptr,
               idx = this.data.indexOf('\n', start);
@@ -25202,7 +23455,7 @@ Context.prototype = {
 
       // For use in applications where whitespace carries meaning
       // Returns "" for an empty row (not undefined like nextLine), since this is needed in AED
-      StringDataWrapper$1.prototype.nextLineNoTrim = function () {
+      StringDataWrapper.prototype.nextLineNoTrim = function () {
           var start = this.ptr,
               idx = this.data.indexOf('\n', start),
               data = this.data;
@@ -25223,13 +23476,13 @@ Context.prototype = {
           }
       };
 
-      var ByteArrayDataWrapper$1 = function (array) {
+      var ByteArrayDataWrapper = function (array) {
           this.data = array;
           this.length = this.data.length;
           this.ptr = 0;
       };
 
-      ByteArrayDataWrapper$1.prototype.nextLine = function () {
+      ByteArrayDataWrapper.prototype.nextLine = function () {
 
           var c, result;
           result = "";
@@ -25248,7 +23501,7 @@ Context.prototype = {
       };
 
       // The ByteArrayDataWrapper does not do any trimming by default, can reuse the function
-      ByteArrayDataWrapper$1.prototype.nextLineNoTrim = ByteArrayDataWrapper$1.prototype.nextLine;
+      ByteArrayDataWrapper.prototype.nextLineNoTrim = ByteArrayDataWrapper.prototype.nextLine;
 
   const FileFormats = {
 
@@ -25797,7 +24050,7 @@ Context.prototype = {
           header,
           dataWrapper;
 
-      dataWrapper = getDataWrapper$1(data);
+      dataWrapper = getDataWrapper(data);
 
       while (line = dataWrapper.nextLine()) {
           if (line.startsWith("track") || line.startsWith("#") || line.startsWith("browser")) {
@@ -25900,7 +24153,7 @@ Context.prototype = {
           return tokens;
       }
 
-      dataWrapper = getDataWrapper$1(data);
+      dataWrapper = getDataWrapper(data);
       if (format === 'aed') {
           nextLine = dataWrapper.nextLineNoTrim.bind(dataWrapper);
       } else {
@@ -27687,7 +25940,7 @@ Context.prototype = {
           gtIdx,
           type;
 
-      dataWrapper = getDataWrapper$1(data);
+      dataWrapper = getDataWrapper(data);
 
       // First line must be file format
       line = dataWrapper.nextLine();
@@ -27800,7 +26053,7 @@ Context.prototype = {
           token;
 
 
-      dataWrapper = getDataWrapper$1(data);
+      dataWrapper = getDataWrapper(data);
 
       while (line = dataWrapper.nextLine()) {
 
@@ -29687,7 +27940,7 @@ Context.prototype = {
               url = options.url,
               body = options.body,
               decode = options.decode,
-              apiKey = google.apiKey,
+              apiKey = google$1.apiKey,
               paramSeparator = "?",
               fields = options.fields;  // Partial response
 
@@ -40817,7 +39070,7 @@ Context.prototype = {
 
           if (!data) return null;
 
-          const dataWrapper = getDataWrapper$1(data);
+          const dataWrapper = getDataWrapper(data);
 
           let header = true;
           let line;
@@ -42502,7 +40755,7 @@ Context.prototype = {
       }
 
       if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
-          const json = await google.getDriveFileInfo(config.url);
+          const json = await google$1.getDriveFileInfo(config.url);
           config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
           if (!config.filename) {
               config.filename = json.originalFileName || json.name;
@@ -42511,7 +40764,7 @@ Context.prototype = {
               config.format = inferFileFormat(config.filename);
           }
           if (config.indexURL && config.indexURL.startsWith("https://drive.google.com")) {
-              config.indexURL = google.driveDownloadURL(config.indexURL);
+              config.indexURL = google$1.driveDownloadURL(config.indexURL);
           }
 
       } else {
@@ -45259,7 +43512,7 @@ Context.prototype = {
       browser.dataRangeDialog = new DataRangeDialog(browser.$root, browser);
 
       if (config.apiKey) {
-          google.setApiKey(config.apiKey);
+          google$1.setApiKey(config.apiKey);
       }
 
       if (config.oauthToken) {
@@ -45698,7 +43951,7 @@ Context.prototype = {
   }
 
   function setApiKey(apiKey) {
-      return google.setApiKey(apiKey);
+      return google$1.setApiKey(apiKey);
   }
 
   // for juicebox
@@ -45743,7 +43996,7 @@ Context.prototype = {
       splitLines,
       isString,
       numberFormatter,
-      getDataWrapper: getDataWrapper$1,
+      getDataWrapper,
       setApiKey,
       createColorSwatchSelector,
       makeDraggable,
@@ -45755,8 +44008,1775 @@ Context.prototype = {
       DataRangeDialog,
       MenuUtils,
       Alert,
-      google
+      google: google$1
   };
+
+  class ModalTable {
+
+      constructor(args) {
+
+          this.datasource = args.datasource;
+          this.selectHandler = args.selectHandler;
+
+          const id = args.id;
+          const title = args.title || '';
+          const parent = args.parent ? $(args.parent) : $('body');
+          const html = `
+        <div id="${id}" class="modal fade">
+        
+            <div class="modal-dialog modal-xl">
+        
+                <div class="modal-content">
+        
+                    <div class="modal-header">
+                        <div class="modal-title">${title}</div>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+        
+                    <div class="modal-body">
+        
+                        <div id="${id}-spinner" class="spinner-border" style="display: none;">
+                            <!-- spinner -->
+                        </div>
+        
+                        <div id="${id}-datatable-container">
+        
+                        </div>
+                    </div>
+        
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-dismiss="modal">OK</button>
+                    </div>
+        
+                </div>
+        
+            </div>
+        
+        </div>
+    `;
+          const $m = $(html);
+          parent.append($m);
+
+          this.$modal = $m;
+          this.$datatableContainer = $m.find(`#${id}-datatable-container`);
+          this.$spinner = $m.find(`#${id}-spinner`);
+          const $okButton = $m.find('.modal-footer button:nth-child(2)');
+
+          $m.on('shown.bs.modal', (e) => {
+              this.buildTable();
+          });
+
+          $m.on('hidden.bs.modal', (e) => {
+              $(e.relatedTarget).find('tr.selected').removeClass('selected');
+          });
+
+          $okButton.on('click', (e) => {
+              const selected = this.getSelectedTableRowsData.call(this, this.$dataTable.$('tr.selected'));
+              if (selected && this.selectHandler) {
+                  this.selectHandler(selected);
+              }
+          });
+      }
+
+      remove() {
+          this.$modal.remove();
+      }
+
+      setDatasource(datasource) {
+          this.datasource = datasource;
+          this.$datatableContainer.empty();
+          this.$table = undefined;
+      }
+
+      async buildTable () {
+
+          if (!this.$table && this.datasource) {
+
+              this.$table = $('<table cellpadding="0" cellspacing="0" border="0" class="display"></table>');
+              this.$datatableContainer.append(this.$table);
+
+              try {
+                  this.startSpinner();
+                  const datasource = this.datasource;
+                  const tableData = await datasource.tableData();
+                  const tableColumns = await datasource.tableColumns();
+                  const columnFormat = tableColumns.map(c => ({title: c, data: c}));
+                  const config =
+                      {
+                          data: tableData,
+                          columns: columnFormat,
+                          autoWidth: false,
+                          paging: true,
+                          scrollX: true,
+                          scrollY: '400px',
+                          scroller: true,
+                          scrollCollapse: true
+                      };
+
+                  this.tableData = tableData;
+                  this.$dataTable = this.$table.dataTable(config);
+                  this.$table.api().columns.adjust().draw();   // Don't try to simplify this, you'll break it
+
+                  this.$table.find('tbody').on('click', 'tr', function () {
+
+                      if ($(this).hasClass('selected')) {
+                          $(this).removeClass('selected');
+                      } else {
+                          $(this).addClass('selected');
+                      }
+
+                  });
+
+              } catch (e) {
+
+              } finally {
+                  this.stopSpinner();
+              }
+          }
+      }
+
+
+      getSelectedTableRowsData($rows) {
+          const tableData = this.tableData;
+          const result = [];
+          if ($rows.length > 0) {
+              $rows.removeClass('selected');
+              const api = this.$table.api();
+              $rows.each(function () {
+                  const index = api.row(this).index();
+                  result.push(tableData[index]);
+              });
+          }
+          return result
+      }
+
+
+      startSpinner () {
+          if (this.$spinner)
+              this.$spinner.show();
+      }
+
+
+      stopSpinner () {
+          if (this.$spinner)
+              this.$spinner.hide();
+      }
+
+
+  }
+
+  /*
+   * The MIT License (MIT)
+   *
+   * Copyright (c) 2016-2017 The Regents of the University of California
+   * Author: Jim Robinson
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy
+   * of this software and associated documentation files (the "Software"), to deal
+   * in the Software without restriction, including without limitation the rights
+   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is
+   * furnished to do so, subject to the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in
+   * all copies or substantial portions of the Software.
+   *
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   * THE SOFTWARE.
+   */
+
+  const getDataWrapper$1 = function (data) {
+
+      if (typeof(data) == 'string' || data instanceof String) {
+          return new StringDataWrapper$1(data);
+      } else {
+          return new ByteArrayDataWrapper$1(data);
+      }
+  };
+
+
+  // Data might be a string, or an UInt8Array
+  var StringDataWrapper$1 = function (string) {
+      this.data = string;
+      this.ptr = 0;
+  };
+
+  StringDataWrapper$1.prototype.nextLine = function () {
+      //return this.split(/\r\n|\n|\r/gm);
+      var start = this.ptr,
+          idx = this.data.indexOf('\n', start);
+
+      if (idx > 0) {
+          this.ptr = idx + 1;   // Advance pointer for next line
+          return idx === start ? undefined : this.data.substring(start, idx).trim();
+      }
+      else {
+          // Last line
+          this.ptr = this.data.length;
+          return (start >= this.data.length) ? undefined : this.data.substring(start).trim();
+      }
+  };
+
+  // For use in applications where whitespace carries meaning
+  // Returns "" for an empty row (not undefined like nextLine), since this is needed in AED
+  StringDataWrapper$1.prototype.nextLineNoTrim = function () {
+      var start = this.ptr,
+          idx = this.data.indexOf('\n', start),
+          data = this.data;
+
+      if (idx > 0) {
+          this.ptr = idx + 1;   // Advance pointer for next line
+          if (idx > start && data.charAt(idx - 1) === '\r') {
+              // Trim CR manually in CR/LF sequence
+              return data.substring(start, idx - 1);
+          }
+          return data.substring(start, idx);
+      }
+      else {
+          var length = data.length;
+          this.ptr = length;
+          // Return undefined only at the very end of the data
+          return (start >= length) ? undefined : data.substring(start);
+      }
+  };
+
+  var ByteArrayDataWrapper$1 = function (array) {
+      this.data = array;
+      this.length = this.data.length;
+      this.ptr = 0;
+  };
+
+  ByteArrayDataWrapper$1.prototype.nextLine = function () {
+
+      var c, result;
+      result = "";
+
+      if (this.ptr >= this.length) return undefined;
+
+      for (var i = this.ptr; i < this.length; i++) {
+          c = String.fromCharCode(this.data[i]);
+          if (c === '\r') continue;
+          if (c === '\n') break;
+          result = result + c;
+      }
+
+      this.ptr = i + 1;
+      return result;
+  };
+
+  // The ByteArrayDataWrapper does not do any trimming by default, can reuse the function
+  ByteArrayDataWrapper$1.prototype.nextLineNoTrim = ByteArrayDataWrapper$1.prototype.nextLine;
+
+  /*
+   * The MIT License (MIT)
+   *
+   * Copyright (c) 2019 The Regents of the University of California
+   * Author: Jim Robinson
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy
+   * of this software and associated documentation files (the "Software"), to deal
+   * in the Software without restriction, including without limitation the rights
+   * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is
+   * furnished to do so, subject to the following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in
+   * all copies or substantial portions of the Software.
+   *
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   * THE SOFTWARE.
+   */
+
+  const columns = [
+      'Biosample',
+      'Target',
+      'Assay Type',
+      'Output Type',
+      'Bio Rep',
+      'Tech Rep',
+      'Format',
+      'Experiment',
+      'Accession',
+      'Lab'
+  ];
+
+  class EncodeDataSource {
+
+      constructor(genomeId, filter, suffix) {
+          this.genomeId = genomeId;
+          this.filter = filter;
+          this.suffix = suffix || ".txt";
+      };
+
+      async tableData() {
+          return this.fetchData()
+      };
+
+      async tableColumns() {
+          return columns;
+      };
+
+      async fetchData() {
+
+          const id = canonicalId(this.genomeId);
+          const url = "https://s3.amazonaws.com/igv.org.app/encode/" + id + this.suffix;
+          const response = await fetch(url);
+          const data = await response.text();
+          const records = parseTabData(data, this.filter);
+          records.sort(encodeSort);
+          return records
+      }
+
+      static supportsGenome(genomeId) {
+          const knownGenomes = new Set(["ce10", "ce11", "dm3", "dm6", "GRCh38", "hg19", "mm9", "mm10"]);
+          const id = canonicalId(genomeId);
+          return knownGenomes.has(id)
+      }
+
+  }
+
+  function parseTabData(data, filter) {
+
+      var dataWrapper,
+          line;
+
+      dataWrapper = getDataWrapper$1(data);
+
+      let records = [];
+
+      dataWrapper.nextLine();  // Skip header
+      while (line = dataWrapper.nextLine()) {
+
+          let tokens = line.split("\t");
+          let record = {
+              "Assembly": tokens[1],
+              "ExperimentID": tokens[0],
+              "Experiment": tokens[0].substr(13).replace("/", ""),
+              "Biosample": tokens[2],
+              "Assay Type": tokens[3],
+              "Target": tokens[4],
+              "Format": tokens[8],
+              "Output Type": tokens[7],
+              "Lab": tokens[9],
+              "url": "https://www.encodeproject.org" + tokens[10],
+              "Bio Rep": tokens[5],
+              "Tech Rep": tokens[6],
+              "Accession": tokens[11]
+          };
+          record["name"] = constructName(record);
+
+          if (filter === undefined || filter(record)) {
+              records.push(record);
+          }
+      }
+
+      return records;
+  }
+
+  function constructName(record) {
+
+      let name = record["Cell Type"] || "";
+
+      if (record["Target"]) {
+          name += " " + record["Target"];
+      }
+      if (record["Assay Type"].toLowerCase() !== "chip-seq") {
+          name += " " + record["Assay Type"];
+      }
+      if (record["Bio Rep"]) {
+          name += " " + record["Bio Rep"];
+      }
+      if (record["Tech Rep"]) {
+          name += (record["Bio Rep"] ? ":" : " 0:") + record["Tech Rep"];
+      }
+
+      name += " " + record["Output Type"];
+
+      name += " " + record["Experiment"];
+
+      return name
+
+  }
+
+  function encodeSort(a, b) {
+      var aa1,
+          aa2,
+          cc1,
+          cc2,
+          tt1,
+          tt2;
+
+      aa1 = a['Assay Type'];
+      aa2 = b['Assay Type'];
+      cc1 = a['Biosample'];
+      cc2 = b['Biosample'];
+      tt1 = a['Target'];
+      tt2 = b['Target'];
+
+      if (aa1 === aa2) {
+          if (cc1 === cc2) {
+              if (tt1 === tt2) {
+                  return 0;
+              } else if (tt1 < tt2) {
+                  return -1;
+              } else {
+                  return 1;
+              }
+          } else if (cc1 < cc2) {
+              return -1;
+          } else {
+              return 1;
+          }
+      } else {
+          if (aa1 < aa2) {
+              return -1;
+          } else {
+              return 1;
+          }
+      }
+  }
+
+  function canonicalId(genomeId) {
+
+      switch(genomeId) {
+          case "hg38":
+              return "GRCh38"
+          case "CRCh37":
+              return "hg19"
+          case "GRCm38":
+              return "mm10"
+          case "NCBI37":
+              return "mm9"
+          case "WBcel235":
+              return "ce11"
+          case "WS220":
+              return "ce10"
+          default:
+              return genomeId
+      }
+
+  }
+
+  /**
+   * @fileoverview
+   * - Using the 'QRCode for Javascript library'
+   * - Fixed dataset of 'QRCode for Javascript library' for support full-spec.
+   * - this library has no dependencies.
+   *
+   * @author davidshimjs
+   * @see <a href="http://www.d-project.com/" target="_blank">http://www.d-project.com/</a>
+   * @see <a href="http://jeromeetienne.github.com/jquery-qrcode/" target="_blank">http://jeromeetienne.github.com/jquery-qrcode/</a>
+   */
+  //---------------------------------------------------------------------
+  // QRCode for JavaScript
+  //
+  // Copyright (c) 2009 Kazuhiko Arase
+  //
+  // URL: http://www.d-project.com/
+  //
+  // Licensed under the MIT license:
+  //   http://www.opensource.org/licenses/mit-license.php
+  //
+  // The word "QR Code" is registered trademark of
+  // DENSO WAVE INCORPORATED
+  //   http://www.denso-wave.com/qrcode/faqpatent-e.html
+  //
+  //---------------------------------------------------------------------
+  function QR8bitByte(data) {
+    this.mode = QRMode.MODE_8BIT_BYTE;
+    this.data = data;
+    this.parsedData = []; // Added to support UTF-8 Characters
+
+    for (var i = 0, l = this.data.length; i < l; i++) {
+      var byteArray = [];
+      var code = this.data.charCodeAt(i);
+
+      if (code > 0x10000) {
+        byteArray[0] = 0xF0 | (code & 0x1C0000) >>> 18;
+        byteArray[1] = 0x80 | (code & 0x3F000) >>> 12;
+        byteArray[2] = 0x80 | (code & 0xFC0) >>> 6;
+        byteArray[3] = 0x80 | code & 0x3F;
+      } else if (code > 0x800) {
+        byteArray[0] = 0xE0 | (code & 0xF000) >>> 12;
+        byteArray[1] = 0x80 | (code & 0xFC0) >>> 6;
+        byteArray[2] = 0x80 | code & 0x3F;
+      } else if (code > 0x80) {
+        byteArray[0] = 0xC0 | (code & 0x7C0) >>> 6;
+        byteArray[1] = 0x80 | code & 0x3F;
+      } else {
+        byteArray[0] = code;
+      }
+
+      this.parsedData.push(byteArray);
+    }
+
+    this.parsedData = Array.prototype.concat.apply([], this.parsedData);
+
+    if (this.parsedData.length != this.data.length) {
+      this.parsedData.unshift(191);
+      this.parsedData.unshift(187);
+      this.parsedData.unshift(239);
+    }
+  }
+
+  QR8bitByte.prototype = {
+    getLength: function getLength(buffer) {
+      return this.parsedData.length;
+    },
+    write: function write(buffer) {
+      for (var i = 0, l = this.parsedData.length; i < l; i++) {
+        buffer.put(this.parsedData[i], 8);
+      }
+    }
+  };
+
+  function QRCodeModel(typeNumber, errorCorrectLevel) {
+    this.typeNumber = typeNumber;
+    this.errorCorrectLevel = errorCorrectLevel;
+    this.modules = null;
+    this.moduleCount = 0;
+    this.dataCache = null;
+    this.dataList = [];
+  }
+
+  QRCodeModel.prototype = {
+    addData: function addData(data) {
+      var newData = new QR8bitByte(data);
+      this.dataList.push(newData);
+      this.dataCache = null;
+    },
+    isDark: function isDark(row, col) {
+      if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+        throw new Error(row + "," + col);
+      }
+
+      return this.modules[row][col];
+    },
+    getModuleCount: function getModuleCount() {
+      return this.moduleCount;
+    },
+    make: function make() {
+      this.makeImpl(false, this.getBestMaskPattern());
+    },
+    makeImpl: function makeImpl(test, maskPattern) {
+      this.moduleCount = this.typeNumber * 4 + 17;
+      this.modules = new Array(this.moduleCount);
+
+      for (var row = 0; row < this.moduleCount; row++) {
+        this.modules[row] = new Array(this.moduleCount);
+
+        for (var col = 0; col < this.moduleCount; col++) {
+          this.modules[row][col] = null;
+        }
+      }
+
+      this.setupPositionProbePattern(0, 0);
+      this.setupPositionProbePattern(this.moduleCount - 7, 0);
+      this.setupPositionProbePattern(0, this.moduleCount - 7);
+      this.setupPositionAdjustPattern();
+      this.setupTimingPattern();
+      this.setupTypeInfo(test, maskPattern);
+
+      if (this.typeNumber >= 7) {
+        this.setupTypeNumber(test);
+      }
+
+      if (this.dataCache == null) {
+        this.dataCache = QRCodeModel.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+      }
+
+      this.mapData(this.dataCache, maskPattern);
+    },
+    setupPositionProbePattern: function setupPositionProbePattern(row, col) {
+      for (var r = -1; r <= 7; r++) {
+        if (row + r <= -1 || this.moduleCount <= row + r) continue;
+
+        for (var c = -1; c <= 7; c++) {
+          if (col + c <= -1 || this.moduleCount <= col + c) continue;
+
+          if (0 <= r && r <= 6 && (c == 0 || c == 6) || 0 <= c && c <= 6 && (r == 0 || r == 6) || 2 <= r && r <= 4 && 2 <= c && c <= 4) {
+            this.modules[row + r][col + c] = true;
+          } else {
+            this.modules[row + r][col + c] = false;
+          }
+        }
+      }
+    },
+    getBestMaskPattern: function getBestMaskPattern() {
+      var minLostPoint = 0;
+      var pattern = 0;
+
+      for (var i = 0; i < 8; i++) {
+        this.makeImpl(true, i);
+        var lostPoint = QRUtil.getLostPoint(this);
+
+        if (i == 0 || minLostPoint > lostPoint) {
+          minLostPoint = lostPoint;
+          pattern = i;
+        }
+      }
+
+      return pattern;
+    },
+    createMovieClip: function createMovieClip(target_mc, instance_name, depth) {
+      var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+      var cs = 1;
+      this.make();
+
+      for (var row = 0; row < this.modules.length; row++) {
+        var y = row * cs;
+
+        for (var col = 0; col < this.modules[row].length; col++) {
+          var x = col * cs;
+          var dark = this.modules[row][col];
+
+          if (dark) {
+            qr_mc.beginFill(0, 100);
+            qr_mc.moveTo(x, y);
+            qr_mc.lineTo(x + cs, y);
+            qr_mc.lineTo(x + cs, y + cs);
+            qr_mc.lineTo(x, y + cs);
+            qr_mc.endFill();
+          }
+        }
+      }
+
+      return qr_mc;
+    },
+    setupTimingPattern: function setupTimingPattern() {
+      for (var r = 8; r < this.moduleCount - 8; r++) {
+        if (this.modules[r][6] != null) {
+          continue;
+        }
+
+        this.modules[r][6] = r % 2 == 0;
+      }
+
+      for (var c = 8; c < this.moduleCount - 8; c++) {
+        if (this.modules[6][c] != null) {
+          continue;
+        }
+
+        this.modules[6][c] = c % 2 == 0;
+      }
+    },
+    setupPositionAdjustPattern: function setupPositionAdjustPattern() {
+      var pos = QRUtil.getPatternPosition(this.typeNumber);
+
+      for (var i = 0; i < pos.length; i++) {
+        for (var j = 0; j < pos.length; j++) {
+          var row = pos[i];
+          var col = pos[j];
+
+          if (this.modules[row][col] != null) {
+            continue;
+          }
+
+          for (var r = -2; r <= 2; r++) {
+            for (var c = -2; c <= 2; c++) {
+              if (r == -2 || r == 2 || c == -2 || c == 2 || r == 0 && c == 0) {
+                this.modules[row + r][col + c] = true;
+              } else {
+                this.modules[row + r][col + c] = false;
+              }
+            }
+          }
+        }
+      }
+    },
+    setupTypeNumber: function setupTypeNumber(test) {
+      var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+
+      for (var i = 0; i < 18; i++) {
+        var mod = !test && (bits >> i & 1) == 1;
+        this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+      }
+
+      for (var i = 0; i < 18; i++) {
+        var mod = !test && (bits >> i & 1) == 1;
+        this.modules[i % 3 + this.moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+      }
+    },
+    setupTypeInfo: function setupTypeInfo(test, maskPattern) {
+      var data = this.errorCorrectLevel << 3 | maskPattern;
+      var bits = QRUtil.getBCHTypeInfo(data);
+
+      for (var i = 0; i < 15; i++) {
+        var mod = !test && (bits >> i & 1) == 1;
+
+        if (i < 6) {
+          this.modules[i][8] = mod;
+        } else if (i < 8) {
+          this.modules[i + 1][8] = mod;
+        } else {
+          this.modules[this.moduleCount - 15 + i][8] = mod;
+        }
+      }
+
+      for (var i = 0; i < 15; i++) {
+        var mod = !test && (bits >> i & 1) == 1;
+
+        if (i < 8) {
+          this.modules[8][this.moduleCount - i - 1] = mod;
+        } else if (i < 9) {
+          this.modules[8][15 - i - 1 + 1] = mod;
+        } else {
+          this.modules[8][15 - i - 1] = mod;
+        }
+      }
+
+      this.modules[this.moduleCount - 8][8] = !test;
+    },
+    mapData: function mapData(data, maskPattern) {
+      var inc = -1;
+      var row = this.moduleCount - 1;
+      var bitIndex = 7;
+      var byteIndex = 0;
+
+      for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+        if (col == 6) col--;
+
+        while (true) {
+          for (var c = 0; c < 2; c++) {
+            if (this.modules[row][col - c] == null) {
+              var dark = false;
+
+              if (byteIndex < data.length) {
+                dark = (data[byteIndex] >>> bitIndex & 1) == 1;
+              }
+
+              var mask = QRUtil.getMask(maskPattern, row, col - c);
+
+              if (mask) {
+                dark = !dark;
+              }
+
+              this.modules[row][col - c] = dark;
+              bitIndex--;
+
+              if (bitIndex == -1) {
+                byteIndex++;
+                bitIndex = 7;
+              }
+            }
+          }
+
+          row += inc;
+
+          if (row < 0 || this.moduleCount <= row) {
+            row -= inc;
+            inc = -inc;
+            break;
+          }
+        }
+      }
+    }
+  };
+  QRCodeModel.PAD0 = 0xEC;
+  QRCodeModel.PAD1 = 0x11;
+
+  QRCodeModel.createData = function (typeNumber, errorCorrectLevel, dataList) {
+    var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+    var buffer = new QRBitBuffer();
+
+    for (var i = 0; i < dataList.length; i++) {
+      var data = dataList[i];
+      buffer.put(data.mode, 4);
+      buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber));
+      data.write(buffer);
+    }
+
+    var totalDataCount = 0;
+
+    for (var i = 0; i < rsBlocks.length; i++) {
+      totalDataCount += rsBlocks[i].dataCount;
+    }
+
+    if (buffer.getLengthInBits() > totalDataCount * 8) {
+      throw new Error("code length overflow. (" + buffer.getLengthInBits() + ">" + totalDataCount * 8 + ")");
+    }
+
+    if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+      buffer.put(0, 4);
+    }
+
+    while (buffer.getLengthInBits() % 8 != 0) {
+      buffer.putBit(false);
+    }
+
+    while (true) {
+      if (buffer.getLengthInBits() >= totalDataCount * 8) {
+        break;
+      }
+
+      buffer.put(QRCodeModel.PAD0, 8);
+
+      if (buffer.getLengthInBits() >= totalDataCount * 8) {
+        break;
+      }
+
+      buffer.put(QRCodeModel.PAD1, 8);
+    }
+
+    return QRCodeModel.createBytes(buffer, rsBlocks);
+  };
+
+  QRCodeModel.createBytes = function (buffer, rsBlocks) {
+    var offset = 0;
+    var maxDcCount = 0;
+    var maxEcCount = 0;
+    var dcdata = new Array(rsBlocks.length);
+    var ecdata = new Array(rsBlocks.length);
+
+    for (var r = 0; r < rsBlocks.length; r++) {
+      var dcCount = rsBlocks[r].dataCount;
+      var ecCount = rsBlocks[r].totalCount - dcCount;
+      maxDcCount = Math.max(maxDcCount, dcCount);
+      maxEcCount = Math.max(maxEcCount, ecCount);
+      dcdata[r] = new Array(dcCount);
+
+      for (var i = 0; i < dcdata[r].length; i++) {
+        dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+      }
+
+      offset += dcCount;
+      var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+      var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+      var modPoly = rawPoly.mod(rsPoly);
+      ecdata[r] = new Array(rsPoly.getLength() - 1);
+
+      for (var i = 0; i < ecdata[r].length; i++) {
+        var modIndex = i + modPoly.getLength() - ecdata[r].length;
+        ecdata[r][i] = modIndex >= 0 ? modPoly.get(modIndex) : 0;
+      }
+    }
+
+    var totalCodeCount = 0;
+
+    for (var i = 0; i < rsBlocks.length; i++) {
+      totalCodeCount += rsBlocks[i].totalCount;
+    }
+
+    var data = new Array(totalCodeCount);
+    var index = 0;
+
+    for (var i = 0; i < maxDcCount; i++) {
+      for (var r = 0; r < rsBlocks.length; r++) {
+        if (i < dcdata[r].length) {
+          data[index++] = dcdata[r][i];
+        }
+      }
+    }
+
+    for (var i = 0; i < maxEcCount; i++) {
+      for (var r = 0; r < rsBlocks.length; r++) {
+        if (i < ecdata[r].length) {
+          data[index++] = ecdata[r][i];
+        }
+      }
+    }
+
+    return data;
+  };
+
+  var QRMode = {
+    MODE_NUMBER: 1 << 0,
+    MODE_ALPHA_NUM: 1 << 1,
+    MODE_8BIT_BYTE: 1 << 2,
+    MODE_KANJI: 1 << 3
+  };
+  var QRErrorCorrectLevel = {
+    L: 1,
+    M: 0,
+    Q: 3,
+    H: 2
+  };
+  var QRMaskPattern = {
+    PATTERN000: 0,
+    PATTERN001: 1,
+    PATTERN010: 2,
+    PATTERN011: 3,
+    PATTERN100: 4,
+    PATTERN101: 5,
+    PATTERN110: 6,
+    PATTERN111: 7
+  };
+  var QRUtil = {
+    PATTERN_POSITION_TABLE: [[], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50], [6, 30, 54], [6, 32, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48, 70], [6, 26, 50, 74], [6, 30, 54, 78], [6, 30, 56, 82], [6, 30, 58, 86], [6, 34, 62, 90], [6, 28, 50, 72, 94], [6, 26, 50, 74, 98], [6, 30, 54, 78, 102], [6, 28, 54, 80, 106], [6, 32, 58, 84, 110], [6, 30, 58, 86, 114], [6, 34, 62, 90, 118], [6, 26, 50, 74, 98, 122], [6, 30, 54, 78, 102, 126], [6, 26, 52, 78, 104, 130], [6, 30, 56, 82, 108, 134], [6, 34, 60, 86, 112, 138], [6, 30, 58, 86, 114, 142], [6, 34, 62, 90, 118, 146], [6, 30, 54, 78, 102, 126, 150], [6, 24, 50, 76, 102, 128, 154], [6, 28, 54, 80, 106, 132, 158], [6, 32, 58, 84, 110, 136, 162], [6, 26, 54, 82, 110, 138, 166], [6, 30, 58, 86, 114, 142, 170]],
+    G15: 1 << 10 | 1 << 8 | 1 << 5 | 1 << 4 | 1 << 2 | 1 << 1 | 1 << 0,
+    G18: 1 << 12 | 1 << 11 | 1 << 10 | 1 << 9 | 1 << 8 | 1 << 5 | 1 << 2 | 1 << 0,
+    G15_MASK: 1 << 14 | 1 << 12 | 1 << 10 | 1 << 4 | 1 << 1,
+    getBCHTypeInfo: function getBCHTypeInfo(data) {
+      var d = data << 10;
+
+      while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+        d ^= QRUtil.G15 << QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15);
+      }
+
+      return (data << 10 | d) ^ QRUtil.G15_MASK;
+    },
+    getBCHTypeNumber: function getBCHTypeNumber(data) {
+      var d = data << 12;
+
+      while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+        d ^= QRUtil.G18 << QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18);
+      }
+
+      return data << 12 | d;
+    },
+    getBCHDigit: function getBCHDigit(data) {
+      var digit = 0;
+
+      while (data != 0) {
+        digit++;
+        data >>>= 1;
+      }
+
+      return digit;
+    },
+    getPatternPosition: function getPatternPosition(typeNumber) {
+      return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+    getMask: function getMask(maskPattern, i, j) {
+      switch (maskPattern) {
+        case QRMaskPattern.PATTERN000:
+          return (i + j) % 2 == 0;
+
+        case QRMaskPattern.PATTERN001:
+          return i % 2 == 0;
+
+        case QRMaskPattern.PATTERN010:
+          return j % 3 == 0;
+
+        case QRMaskPattern.PATTERN011:
+          return (i + j) % 3 == 0;
+
+        case QRMaskPattern.PATTERN100:
+          return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 == 0;
+
+        case QRMaskPattern.PATTERN101:
+          return i * j % 2 + i * j % 3 == 0;
+
+        case QRMaskPattern.PATTERN110:
+          return (i * j % 2 + i * j % 3) % 2 == 0;
+
+        case QRMaskPattern.PATTERN111:
+          return (i * j % 3 + (i + j) % 2) % 2 == 0;
+
+        default:
+          throw new Error("bad maskPattern:" + maskPattern);
+      }
+    },
+    getErrorCorrectPolynomial: function getErrorCorrectPolynomial(errorCorrectLength) {
+      var a = new QRPolynomial([1], 0);
+
+      for (var i = 0; i < errorCorrectLength; i++) {
+        a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0));
+      }
+
+      return a;
+    },
+    getLengthInBits: function getLengthInBits(mode, type) {
+      if (1 <= type && type < 10) {
+        switch (mode) {
+          case QRMode.MODE_NUMBER:
+            return 10;
+
+          case QRMode.MODE_ALPHA_NUM:
+            return 9;
+
+          case QRMode.MODE_8BIT_BYTE:
+            return 8;
+
+          case QRMode.MODE_KANJI:
+            return 8;
+
+          default:
+            throw new Error("mode:" + mode);
+        }
+      } else if (type < 27) {
+        switch (mode) {
+          case QRMode.MODE_NUMBER:
+            return 12;
+
+          case QRMode.MODE_ALPHA_NUM:
+            return 11;
+
+          case QRMode.MODE_8BIT_BYTE:
+            return 16;
+
+          case QRMode.MODE_KANJI:
+            return 10;
+
+          default:
+            throw new Error("mode:" + mode);
+        }
+      } else if (type < 41) {
+        switch (mode) {
+          case QRMode.MODE_NUMBER:
+            return 14;
+
+          case QRMode.MODE_ALPHA_NUM:
+            return 13;
+
+          case QRMode.MODE_8BIT_BYTE:
+            return 16;
+
+          case QRMode.MODE_KANJI:
+            return 12;
+
+          default:
+            throw new Error("mode:" + mode);
+        }
+      } else {
+        throw new Error("type:" + type);
+      }
+    },
+    getLostPoint: function getLostPoint(qrCode) {
+      var moduleCount = qrCode.getModuleCount();
+      var lostPoint = 0;
+
+      for (var row = 0; row < moduleCount; row++) {
+        for (var col = 0; col < moduleCount; col++) {
+          var sameCount = 0;
+          var dark = qrCode.isDark(row, col);
+
+          for (var r = -1; r <= 1; r++) {
+            if (row + r < 0 || moduleCount <= row + r) {
+              continue;
+            }
+
+            for (var c = -1; c <= 1; c++) {
+              if (col + c < 0 || moduleCount <= col + c) {
+                continue;
+              }
+
+              if (r == 0 && c == 0) {
+                continue;
+              }
+
+              if (dark == qrCode.isDark(row + r, col + c)) {
+                sameCount++;
+              }
+            }
+          }
+
+          if (sameCount > 5) {
+            lostPoint += 3 + sameCount - 5;
+          }
+        }
+      }
+
+      for (var row = 0; row < moduleCount - 1; row++) {
+        for (var col = 0; col < moduleCount - 1; col++) {
+          var count = 0;
+          if (qrCode.isDark(row, col)) count++;
+          if (qrCode.isDark(row + 1, col)) count++;
+          if (qrCode.isDark(row, col + 1)) count++;
+          if (qrCode.isDark(row + 1, col + 1)) count++;
+
+          if (count == 0 || count == 4) {
+            lostPoint += 3;
+          }
+        }
+      }
+
+      for (var row = 0; row < moduleCount; row++) {
+        for (var col = 0; col < moduleCount - 6; col++) {
+          if (qrCode.isDark(row, col) && !qrCode.isDark(row, col + 1) && qrCode.isDark(row, col + 2) && qrCode.isDark(row, col + 3) && qrCode.isDark(row, col + 4) && !qrCode.isDark(row, col + 5) && qrCode.isDark(row, col + 6)) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      for (var col = 0; col < moduleCount; col++) {
+        for (var row = 0; row < moduleCount - 6; row++) {
+          if (qrCode.isDark(row, col) && !qrCode.isDark(row + 1, col) && qrCode.isDark(row + 2, col) && qrCode.isDark(row + 3, col) && qrCode.isDark(row + 4, col) && !qrCode.isDark(row + 5, col) && qrCode.isDark(row + 6, col)) {
+            lostPoint += 40;
+          }
+        }
+      }
+
+      var darkCount = 0;
+
+      for (var col = 0; col < moduleCount; col++) {
+        for (var row = 0; row < moduleCount; row++) {
+          if (qrCode.isDark(row, col)) {
+            darkCount++;
+          }
+        }
+      }
+
+      var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+      lostPoint += ratio * 10;
+      return lostPoint;
+    }
+  };
+  var QRMath = {
+    glog: function glog(n) {
+      if (n < 1) {
+        throw new Error("glog(" + n + ")");
+      }
+
+      return QRMath.LOG_TABLE[n];
+    },
+    gexp: function gexp(n) {
+      while (n < 0) {
+        n += 255;
+      }
+
+      while (n >= 256) {
+        n -= 255;
+      }
+
+      return QRMath.EXP_TABLE[n];
+    },
+    EXP_TABLE: new Array(256),
+    LOG_TABLE: new Array(256)
+  };
+
+  for (var i = 0; i < 8; i++) {
+    QRMath.EXP_TABLE[i] = 1 << i;
+  }
+
+  for (var i = 8; i < 256; i++) {
+    QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4] ^ QRMath.EXP_TABLE[i - 5] ^ QRMath.EXP_TABLE[i - 6] ^ QRMath.EXP_TABLE[i - 8];
+  }
+
+  for (var i = 0; i < 255; i++) {
+    QRMath.LOG_TABLE[QRMath.EXP_TABLE[i]] = i;
+  }
+
+  function QRPolynomial(num, shift) {
+    if (num.length == undefined) {
+      throw new Error(num.length + "/" + shift);
+    }
+
+    var offset = 0;
+
+    while (offset < num.length && num[offset] == 0) {
+      offset++;
+    }
+
+    this.num = new Array(num.length - offset + shift);
+
+    for (var i = 0; i < num.length - offset; i++) {
+      this.num[i] = num[i + offset];
+    }
+  }
+
+  QRPolynomial.prototype = {
+    get: function get(index) {
+      return this.num[index];
+    },
+    getLength: function getLength() {
+      return this.num.length;
+    },
+    multiply: function multiply(e) {
+      var num = new Array(this.getLength() + e.getLength() - 1);
+
+      for (var i = 0; i < this.getLength(); i++) {
+        for (var j = 0; j < e.getLength(); j++) {
+          num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i)) + QRMath.glog(e.get(j)));
+        }
+      }
+
+      return new QRPolynomial(num, 0);
+    },
+    mod: function mod(e) {
+      if (this.getLength() - e.getLength() < 0) {
+        return this;
+      }
+
+      var ratio = QRMath.glog(this.get(0)) - QRMath.glog(e.get(0));
+      var num = new Array(this.getLength());
+
+      for (var i = 0; i < this.getLength(); i++) {
+        num[i] = this.get(i);
+      }
+
+      for (var i = 0; i < e.getLength(); i++) {
+        num[i] ^= QRMath.gexp(QRMath.glog(e.get(i)) + ratio);
+      }
+
+      return new QRPolynomial(num, 0).mod(e);
+    }
+  };
+
+  function QRRSBlock(totalCount, dataCount) {
+    this.totalCount = totalCount;
+    this.dataCount = dataCount;
+  }
+
+  QRRSBlock.RS_BLOCK_TABLE = [[1, 26, 19], [1, 26, 16], [1, 26, 13], [1, 26, 9], [1, 44, 34], [1, 44, 28], [1, 44, 22], [1, 44, 16], [1, 70, 55], [1, 70, 44], [2, 35, 17], [2, 35, 13], [1, 100, 80], [2, 50, 32], [2, 50, 24], [4, 25, 9], [1, 134, 108], [2, 67, 43], [2, 33, 15, 2, 34, 16], [2, 33, 11, 2, 34, 12], [2, 86, 68], [4, 43, 27], [4, 43, 19], [4, 43, 15], [2, 98, 78], [4, 49, 31], [2, 32, 14, 4, 33, 15], [4, 39, 13, 1, 40, 14], [2, 121, 97], [2, 60, 38, 2, 61, 39], [4, 40, 18, 2, 41, 19], [4, 40, 14, 2, 41, 15], [2, 146, 116], [3, 58, 36, 2, 59, 37], [4, 36, 16, 4, 37, 17], [4, 36, 12, 4, 37, 13], [2, 86, 68, 2, 87, 69], [4, 69, 43, 1, 70, 44], [6, 43, 19, 2, 44, 20], [6, 43, 15, 2, 44, 16], [4, 101, 81], [1, 80, 50, 4, 81, 51], [4, 50, 22, 4, 51, 23], [3, 36, 12, 8, 37, 13], [2, 116, 92, 2, 117, 93], [6, 58, 36, 2, 59, 37], [4, 46, 20, 6, 47, 21], [7, 42, 14, 4, 43, 15], [4, 133, 107], [8, 59, 37, 1, 60, 38], [8, 44, 20, 4, 45, 21], [12, 33, 11, 4, 34, 12], [3, 145, 115, 1, 146, 116], [4, 64, 40, 5, 65, 41], [11, 36, 16, 5, 37, 17], [11, 36, 12, 5, 37, 13], [5, 109, 87, 1, 110, 88], [5, 65, 41, 5, 66, 42], [5, 54, 24, 7, 55, 25], [11, 36, 12], [5, 122, 98, 1, 123, 99], [7, 73, 45, 3, 74, 46], [15, 43, 19, 2, 44, 20], [3, 45, 15, 13, 46, 16], [1, 135, 107, 5, 136, 108], [10, 74, 46, 1, 75, 47], [1, 50, 22, 15, 51, 23], [2, 42, 14, 17, 43, 15], [5, 150, 120, 1, 151, 121], [9, 69, 43, 4, 70, 44], [17, 50, 22, 1, 51, 23], [2, 42, 14, 19, 43, 15], [3, 141, 113, 4, 142, 114], [3, 70, 44, 11, 71, 45], [17, 47, 21, 4, 48, 22], [9, 39, 13, 16, 40, 14], [3, 135, 107, 5, 136, 108], [3, 67, 41, 13, 68, 42], [15, 54, 24, 5, 55, 25], [15, 43, 15, 10, 44, 16], [4, 144, 116, 4, 145, 117], [17, 68, 42], [17, 50, 22, 6, 51, 23], [19, 46, 16, 6, 47, 17], [2, 139, 111, 7, 140, 112], [17, 74, 46], [7, 54, 24, 16, 55, 25], [34, 37, 13], [4, 151, 121, 5, 152, 122], [4, 75, 47, 14, 76, 48], [11, 54, 24, 14, 55, 25], [16, 45, 15, 14, 46, 16], [6, 147, 117, 4, 148, 118], [6, 73, 45, 14, 74, 46], [11, 54, 24, 16, 55, 25], [30, 46, 16, 2, 47, 17], [8, 132, 106, 4, 133, 107], [8, 75, 47, 13, 76, 48], [7, 54, 24, 22, 55, 25], [22, 45, 15, 13, 46, 16], [10, 142, 114, 2, 143, 115], [19, 74, 46, 4, 75, 47], [28, 50, 22, 6, 51, 23], [33, 46, 16, 4, 47, 17], [8, 152, 122, 4, 153, 123], [22, 73, 45, 3, 74, 46], [8, 53, 23, 26, 54, 24], [12, 45, 15, 28, 46, 16], [3, 147, 117, 10, 148, 118], [3, 73, 45, 23, 74, 46], [4, 54, 24, 31, 55, 25], [11, 45, 15, 31, 46, 16], [7, 146, 116, 7, 147, 117], [21, 73, 45, 7, 74, 46], [1, 53, 23, 37, 54, 24], [19, 45, 15, 26, 46, 16], [5, 145, 115, 10, 146, 116], [19, 75, 47, 10, 76, 48], [15, 54, 24, 25, 55, 25], [23, 45, 15, 25, 46, 16], [13, 145, 115, 3, 146, 116], [2, 74, 46, 29, 75, 47], [42, 54, 24, 1, 55, 25], [23, 45, 15, 28, 46, 16], [17, 145, 115], [10, 74, 46, 23, 75, 47], [10, 54, 24, 35, 55, 25], [19, 45, 15, 35, 46, 16], [17, 145, 115, 1, 146, 116], [14, 74, 46, 21, 75, 47], [29, 54, 24, 19, 55, 25], [11, 45, 15, 46, 46, 16], [13, 145, 115, 6, 146, 116], [14, 74, 46, 23, 75, 47], [44, 54, 24, 7, 55, 25], [59, 46, 16, 1, 47, 17], [12, 151, 121, 7, 152, 122], [12, 75, 47, 26, 76, 48], [39, 54, 24, 14, 55, 25], [22, 45, 15, 41, 46, 16], [6, 151, 121, 14, 152, 122], [6, 75, 47, 34, 76, 48], [46, 54, 24, 10, 55, 25], [2, 45, 15, 64, 46, 16], [17, 152, 122, 4, 153, 123], [29, 74, 46, 14, 75, 47], [49, 54, 24, 10, 55, 25], [24, 45, 15, 46, 46, 16], [4, 152, 122, 18, 153, 123], [13, 74, 46, 32, 75, 47], [48, 54, 24, 14, 55, 25], [42, 45, 15, 32, 46, 16], [20, 147, 117, 4, 148, 118], [40, 75, 47, 7, 76, 48], [43, 54, 24, 22, 55, 25], [10, 45, 15, 67, 46, 16], [19, 148, 118, 6, 149, 119], [18, 75, 47, 31, 76, 48], [34, 54, 24, 34, 55, 25], [20, 45, 15, 61, 46, 16]];
+
+  QRRSBlock.getRSBlocks = function (typeNumber, errorCorrectLevel) {
+    var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+
+    if (rsBlock == undefined) {
+      throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+    }
+
+    var length = rsBlock.length / 3;
+    var list = [];
+
+    for (var i = 0; i < length; i++) {
+      var count = rsBlock[i * 3 + 0];
+      var totalCount = rsBlock[i * 3 + 1];
+      var dataCount = rsBlock[i * 3 + 2];
+
+      for (var j = 0; j < count; j++) {
+        list.push(new QRRSBlock(totalCount, dataCount));
+      }
+    }
+
+    return list;
+  };
+
+  QRRSBlock.getRsBlockTable = function (typeNumber, errorCorrectLevel) {
+    switch (errorCorrectLevel) {
+      case QRErrorCorrectLevel.L:
+        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+
+      case QRErrorCorrectLevel.M:
+        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+
+      case QRErrorCorrectLevel.Q:
+        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+
+      case QRErrorCorrectLevel.H:
+        return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+
+      default:
+        return undefined;
+    }
+  };
+
+  function QRBitBuffer() {
+    this.buffer = [];
+    this.length = 0;
+  }
+
+  QRBitBuffer.prototype = {
+    get: function get(index) {
+      var bufIndex = Math.floor(index / 8);
+      return (this.buffer[bufIndex] >>> 7 - index % 8 & 1) == 1;
+    },
+    put: function put(num, length) {
+      for (var i = 0; i < length; i++) {
+        this.putBit((num >>> length - i - 1 & 1) == 1);
+      }
+    },
+    getLengthInBits: function getLengthInBits() {
+      return this.length;
+    },
+    putBit: function putBit(bit) {
+      var bufIndex = Math.floor(this.length / 8);
+
+      if (this.buffer.length <= bufIndex) {
+        this.buffer.push(0);
+      }
+
+      if (bit) {
+        this.buffer[bufIndex] |= 0x80 >>> this.length % 8;
+      }
+
+      this.length++;
+    }
+  };
+  var QRCodeLimitLength = [[17, 14, 11, 7], [32, 26, 20, 14], [53, 42, 32, 24], [78, 62, 46, 34], [106, 84, 60, 44], [134, 106, 74, 58], [154, 122, 86, 64], [192, 152, 108, 84], [230, 180, 130, 98], [271, 213, 151, 119], [321, 251, 177, 137], [367, 287, 203, 155], [425, 331, 241, 177], [458, 362, 258, 194], [520, 412, 292, 220], [586, 450, 322, 250], [644, 504, 364, 280], [718, 560, 394, 310], [792, 624, 442, 338], [858, 666, 482, 382], [929, 711, 509, 403], [1003, 779, 565, 439], [1091, 857, 611, 461], [1171, 911, 661, 511], [1273, 997, 715, 535], [1367, 1059, 751, 593], [1465, 1125, 805, 625], [1528, 1190, 868, 658], [1628, 1264, 908, 698], [1732, 1370, 982, 742], [1840, 1452, 1030, 790], [1952, 1538, 1112, 842], [2068, 1628, 1168, 898], [2188, 1722, 1228, 958], [2303, 1809, 1283, 983], [2431, 1911, 1351, 1051], [2563, 1989, 1423, 1093], [2699, 2099, 1499, 1139], [2809, 2213, 1579, 1219], [2953, 2331, 1663, 1273]];
+
+  function _isSupportCanvas() {
+    return typeof CanvasRenderingContext2D != "undefined";
+  } // android 2.x doesn't support Data-URI spec
+
+
+  function _getAndroid() {
+    var android = false;
+    var sAgent = navigator.userAgent;
+
+    if (/android/i.test(sAgent)) {
+      // android
+      android = true;
+      var aMat = sAgent.toString().match(/android ([0-9]\.[0-9])/i);
+
+      if (aMat && aMat[1]) {
+        android = parseFloat(aMat[1]);
+      }
+    }
+
+    return android;
+  }
+
+  var svgDrawer = function () {
+    var Drawing = function Drawing(el, htOption) {
+      this._el = el;
+      this._htOption = htOption;
+    };
+
+    Drawing.prototype.draw = function (oQRCode) {
+      var _htOption = this._htOption;
+      var _el = this._el;
+      var nCount = oQRCode.getModuleCount();
+      var nWidth = Math.floor(_htOption.width / nCount);
+      var nHeight = Math.floor(_htOption.height / nCount);
+      this.clear();
+
+      function makeSVG(tag, attrs) {
+        var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+
+        for (var k in attrs) {
+          if (attrs.hasOwnProperty(k)) el.setAttribute(k, attrs[k]);
+        }
+
+        return el;
+      }
+
+      var svg = makeSVG("svg", {
+        'viewBox': '0 0 ' + String(nCount) + " " + String(nCount),
+        'width': '100%',
+        'height': '100%',
+        'fill': _htOption.colorLight
+      });
+      svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+
+      _el.appendChild(svg);
+
+      svg.appendChild(makeSVG("rect", {
+        "fill": _htOption.colorLight,
+        "width": "100%",
+        "height": "100%"
+      }));
+      svg.appendChild(makeSVG("rect", {
+        "fill": _htOption.colorDark,
+        "width": "1",
+        "height": "1",
+        "id": "template"
+      }));
+
+      for (var row = 0; row < nCount; row++) {
+        for (var col = 0; col < nCount; col++) {
+          if (oQRCode.isDark(row, col)) {
+            var child = makeSVG("use", {
+              "x": String(col),
+              "y": String(row)
+            });
+            child.setAttributeNS("http://www.w3.org/1999/xlink", "href", "#template");
+            svg.appendChild(child);
+          }
+        }
+      }
+    };
+
+    Drawing.prototype.clear = function () {
+      while (this._el.hasChildNodes()) {
+        this._el.removeChild(this._el.lastChild);
+      }
+    };
+
+    return Drawing;
+  }();
+
+  var useSVG = document.documentElement.tagName.toLowerCase() === "svg"; // Drawing in DOM by using Table tag
+
+  var Drawing = useSVG ? svgDrawer : !_isSupportCanvas() ? function () {
+    var Drawing = function Drawing(el, htOption) {
+      this._el = el;
+      this._htOption = htOption;
+    };
+    /**
+     * Draw the QRCode
+     *
+     * @param {QRCode} oQRCode
+     */
+
+
+    Drawing.prototype.draw = function (oQRCode) {
+      var _htOption = this._htOption;
+      var _el = this._el;
+      var nCount = oQRCode.getModuleCount();
+      var nWidth = Math.floor(_htOption.width / nCount);
+      var nHeight = Math.floor(_htOption.height / nCount);
+      var aHTML = ['<table style="border:0;border-collapse:collapse;">'];
+
+      for (var row = 0; row < nCount; row++) {
+        aHTML.push('<tr>');
+
+        for (var col = 0; col < nCount; col++) {
+          aHTML.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:' + nWidth + 'px;height:' + nHeight + 'px;background-color:' + (oQRCode.isDark(row, col) ? _htOption.colorDark : _htOption.colorLight) + ';"></td>');
+        }
+
+        aHTML.push('</tr>');
+      }
+
+      aHTML.push('</table>');
+      _el.innerHTML = aHTML.join(''); // Fix the margin values as real size.
+
+      var elTable = _el.childNodes[0];
+      var nLeftMarginTable = (_htOption.width - elTable.offsetWidth) / 2;
+      var nTopMarginTable = (_htOption.height - elTable.offsetHeight) / 2;
+
+      if (nLeftMarginTable > 0 && nTopMarginTable > 0) {
+        elTable.style.margin = nTopMarginTable + "px " + nLeftMarginTable + "px";
+      }
+    };
+    /**
+     * Clear the QRCode
+     */
+
+
+    Drawing.prototype.clear = function () {
+      this._el.innerHTML = '';
+    };
+
+    return Drawing;
+  }() : function () {
+    // Drawing in Canvas
+    function _onMakeImage() {
+      this._elImage.src = this._elCanvas.toDataURL("image/png");
+      this._elImage.style.display = "block";
+      this._elCanvas.style.display = "none";
+    }
+    /**
+     * Check whether the user's browser supports Data URI or not
+     *
+     * @private
+     * @param {Function} fSuccess Occurs if it supports Data URI
+     * @param {Function} fFail Occurs if it doesn't support Data URI
+     */
+
+
+    function _safeSetDataURI(fSuccess, fFail) {
+      var self = this;
+      self._fFail = fFail;
+      self._fSuccess = fSuccess; // Check it just once
+
+      if (self._bSupportDataURI === null) {
+        var el = document.createElement("img");
+
+        var fOnError = function fOnError() {
+          self._bSupportDataURI = false;
+
+          if (self._fFail) {
+            self._fFail.call(self);
+          }
+        };
+
+        var fOnSuccess = function fOnSuccess() {
+          self._bSupportDataURI = true;
+
+          if (self._fSuccess) {
+            self._fSuccess.call(self);
+          }
+        };
+
+        el.onabort = fOnError;
+        el.onerror = fOnError;
+        el.onload = fOnSuccess;
+        el.src = "data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="; // the Image contains 1px data.
+
+        return;
+      } else if (self._bSupportDataURI === true && self._fSuccess) {
+        self._fSuccess.call(self);
+      } else if (self._bSupportDataURI === false && self._fFail) {
+        self._fFail.call(self);
+      }
+    }
+    /**
+     * Drawing QRCode by using canvas
+     *
+     * @constructor
+     * @param {HTMLElement} el
+     * @param {Object} htOption QRCode Options
+     */
+
+    var Drawing = function Drawing(el, htOption) {
+      this._bIsPainted = false;
+      this._android = _getAndroid();
+      this._htOption = htOption;
+      this._elCanvas = document.createElement("canvas");
+      this._elCanvas.width = htOption.width;
+      this._elCanvas.height = htOption.height;
+      el.appendChild(this._elCanvas);
+      this._el = el;
+      this._oContext = this._elCanvas.getContext("2d");
+      this._bIsPainted = false;
+      this._elImage = document.createElement("img");
+      this._elImage.alt = "Scan me!";
+      this._elImage.style.display = "none";
+
+      this._el.appendChild(this._elImage);
+
+      this._bSupportDataURI = null;
+    };
+    /**
+     * Draw the QRCode
+     *
+     * @param {QRCode} oQRCode
+     */
+
+
+    Drawing.prototype.draw = function (oQRCode) {
+      var _elImage = this._elImage;
+      var _oContext = this._oContext;
+      var _htOption = this._htOption;
+      var nCount = oQRCode.getModuleCount();
+      var nWidth = _htOption.width / nCount;
+      var nHeight = _htOption.height / nCount;
+      var nRoundedWidth = Math.round(nWidth);
+      var nRoundedHeight = Math.round(nHeight);
+      _elImage.style.display = "none";
+      this.clear();
+
+      for (var row = 0; row < nCount; row++) {
+        for (var col = 0; col < nCount; col++) {
+          var bIsDark = oQRCode.isDark(row, col);
+          var nLeft = col * nWidth;
+          var nTop = row * nHeight;
+          _oContext.strokeStyle = bIsDark ? _htOption.colorDark : _htOption.colorLight;
+          _oContext.lineWidth = 1;
+          _oContext.fillStyle = bIsDark ? _htOption.colorDark : _htOption.colorLight;
+
+          _oContext.fillRect(nLeft, nTop, nWidth, nHeight); // 안티 앨리어싱 방지 처리
+
+
+          _oContext.strokeRect(Math.floor(nLeft) + 0.5, Math.floor(nTop) + 0.5, nRoundedWidth, nRoundedHeight);
+
+          _oContext.strokeRect(Math.ceil(nLeft) - 0.5, Math.ceil(nTop) - 0.5, nRoundedWidth, nRoundedHeight);
+        }
+      }
+
+      this._bIsPainted = true;
+    };
+    /**
+     * Make the image from Canvas if the browser supports Data URI.
+     */
+
+
+    Drawing.prototype.makeImage = function () {
+      if (this._bIsPainted) {
+        _safeSetDataURI.call(this, _onMakeImage);
+      }
+    };
+    /**
+     * Return whether the QRCode is painted or not
+     *
+     * @return {Boolean}
+     */
+
+
+    Drawing.prototype.isPainted = function () {
+      return this._bIsPainted;
+    };
+    /**
+     * Clear the QRCode
+     */
+
+
+    Drawing.prototype.clear = function () {
+      this._oContext.clearRect(0, 0, this._elCanvas.width, this._elCanvas.height);
+
+      this._bIsPainted = false;
+    };
+    /**
+     * @private
+     * @param {Number} nNumber
+     */
+
+
+    Drawing.prototype.round = function (nNumber) {
+      if (!nNumber) {
+        return nNumber;
+      }
+
+      return Math.floor(nNumber * 1000) / 1000;
+    };
+
+    return Drawing;
+  }();
+  /**
+   * Get the type by string length
+   *
+   * @private
+   * @param {String} sText
+   * @param {Number} nCorrectLevel
+   * @return {Number} type
+   */
+
+  function _getTypeNumber(sText, nCorrectLevel) {
+    var nType = 1;
+
+    var length = _getUTF8Length(sText);
+
+    for (var i = 0, len = QRCodeLimitLength.length; i <= len; i++) {
+      var nLimit = 0;
+
+      switch (nCorrectLevel) {
+        case QRErrorCorrectLevel.L:
+          nLimit = QRCodeLimitLength[i][0];
+          break;
+
+        case QRErrorCorrectLevel.M:
+          nLimit = QRCodeLimitLength[i][1];
+          break;
+
+        case QRErrorCorrectLevel.Q:
+          nLimit = QRCodeLimitLength[i][2];
+          break;
+
+        case QRErrorCorrectLevel.H:
+          nLimit = QRCodeLimitLength[i][3];
+          break;
+      }
+
+      if (length <= nLimit) {
+        break;
+      } else {
+        nType++;
+      }
+    }
+
+    if (nType > QRCodeLimitLength.length) {
+      throw new Error("Too long data");
+    }
+
+    return nType;
+  }
+
+  function _getUTF8Length(sText) {
+    var replacedText = encodeURI(sText).toString().replace(/\%[0-9a-fA-F]{2}/g, 'a');
+    return replacedText.length + (replacedText.length != sText ? 3 : 0);
+  }
+  /**
+   * @class QRCode
+   * @constructor
+   * @example
+   * new QRCode(document.getElementById("test"), "http://jindo.dev.naver.com/collie");
+   *
+   * @example
+   * var oQRCode = new QRCode("test", {
+   *    text : "http://naver.com",
+   *    width : 128,
+   *    height : 128
+   * });
+   *
+   * oQRCode.clear(); // Clear the QRCode.
+   * oQRCode.makeCode("http://map.naver.com"); // Re-create the QRCode.
+   *
+   * @param {HTMLElement|String} el target element or 'id' attribute of element.
+   * @param {Object|String} vOption
+   * @param {String} vOption.text QRCode link data
+   * @param {Number} [vOption.width=256]
+   * @param {Number} [vOption.height=256]
+   * @param {String} [vOption.colorDark="#000000"]
+   * @param {String} [vOption.colorLight="#ffffff"]
+   * @param {QRCode.CorrectLevel} [vOption.correctLevel=QRCode.CorrectLevel.H] [L|M|Q|H]
+   */
+
+
+  var QRCode = function QRCode(el, vOption) {
+    this._htOption = {
+      width: 256,
+      height: 256,
+      typeNumber: 4,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRErrorCorrectLevel.H
+    };
+
+    if (typeof vOption === 'string') {
+      vOption = {
+        text: vOption
+      };
+    } // Overwrites options
+
+
+    if (vOption) {
+      for (var i in vOption) {
+        this._htOption[i] = vOption[i];
+      }
+    }
+
+    if (typeof el == "string") {
+      el = document.getElementById(el);
+    }
+
+    if (this._htOption.useSVG) {
+      Drawing = svgDrawer;
+    }
+
+    this._android = _getAndroid();
+    this._el = el;
+    this._oQRCode = null;
+    this._oDrawing = new Drawing(this._el, this._htOption);
+
+    if (this._htOption.text) {
+      this.makeCode(this._htOption.text);
+    }
+  };
+  /**
+   * Make the QRCode
+   *
+   * @param {String} sText link data
+   */
+
+
+  QRCode.prototype.makeCode = function (sText) {
+    this._oQRCode = new QRCodeModel(_getTypeNumber(sText, this._htOption.correctLevel), this._htOption.correctLevel);
+
+    this._oQRCode.addData(sText);
+
+    this._oQRCode.make();
+
+    this._el.title = sText;
+
+    this._oDrawing.draw(this._oQRCode);
+
+    this.makeImage();
+  };
+  /**
+   * Make the Image from Canvas element
+   * - It occurs automatically
+   * - Android below 3 doesn't support Data-URI spec.
+   *
+   * @private
+   */
+
+
+  QRCode.prototype.makeImage = function () {
+    if (typeof this._oDrawing.makeImage == "function" && (!this._android || this._android >= 3)) {
+      this._oDrawing.makeImage();
+    }
+  };
+  /**
+   * Clear the QRCode
+   */
+
+
+  QRCode.prototype.clear = function () {
+    this._oDrawing.clear();
+  };
+  /**
+   * @name QRCode.CorrectLevel
+   */
+
+
+  QRCode.CorrectLevel = QRErrorCorrectLevel;
 
   /*
    *  The MIT License (MIT)
@@ -71289,6 +71309,32 @@ Context.prototype = {
     this.controlDataset = undefined;
     this.setDisplayMode('A');
   };
+
+  HICBrowser.prototype.loadSession =
+  /*#__PURE__*/
+  function () {
+    var _ref6 = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee4(session) {
+      return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return this.loadHicFile(session, true);
+
+            case 2:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, _callee4, this);
+    }));
+
+    return function (_x5) {
+      return _ref6.apply(this, arguments);
+    };
+  }();
   /**
    * Load a .hic file
    *
@@ -71296,50 +71342,51 @@ Context.prototype = {
    *
    * @return a promise for a dataset
    * @param config
+   * @param noUpdates
    */
 
 
   HICBrowser.prototype.loadHicFile =
   /*#__PURE__*/
   function () {
-    var _ref6 = _asyncToGenerator(
+    var _ref7 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee4(config, noUpdates) {
+    regeneratorRuntime.mark(function _callee5(config, noUpdates) {
       var name, prefix, previousGenomeId, eventBus, url, key, nviResponse, nvi, dataset;
-      return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      return regeneratorRuntime.wrap(function _callee5$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
               if (config.url) {
-                _context4.next = 2;
+                _context5.next = 2;
                 break;
               }
 
-              return _context4.abrupt("return", undefined);
+              return _context5.abrupt("return", undefined);
 
             case 2:
               this.clearSession();
-              _context4.prev = 3;
+              _context5.prev = 3;
 
               if (!noUpdates) {
                 this.contactMatrixView.startSpinner();
                 this.$user_interaction_shield.show();
               }
 
-              _context4.next = 7;
+              _context5.next = 7;
               return extractName(config);
 
             case 7:
-              name = _context4.sent;
+              name = _context5.sent;
               prefix = this.controlDataset ? "A: " : "";
               this.$contactMaplabel.text(prefix + name);
               this.$contactMaplabel.attr('title', name);
               config.name = name;
-              _context4.next = 14;
+              _context5.next = 14;
               return loadDataset(config);
 
             case 14:
-              this.dataset = _context4.sent;
+              this.dataset = _context5.sent;
               this.dataset.name = name;
               previousGenomeId = this.genome ? this.genome.id : undefined;
               this.genome = new Genome$1(this.dataset.genomeId, this.dataset.chromosomes); // TODO -- this is not going to work with browsers on different assemblies on the same page.
@@ -71361,14 +71408,14 @@ Context.prototype = {
               }
 
             case 22:
-              _context4.prev = 22;
+              _context5.prev = 22;
 
               if (!noUpdates) {
                 this.$user_interaction_shield.hide();
                 this.stopSpinner();
               }
 
-              return _context4.finish(22);
+              return _context5.finish(22);
 
             case 25:
               // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
@@ -71376,28 +71423,28 @@ Context.prototype = {
               eventBus = this.eventBus; // If nvi is not supplied, try reading it from remote lambda service
 
               if (!(!config.nvi && typeof config.url === "string")) {
-                _context4.next = 37;
+                _context5.next = 37;
                 break;
               }
 
               url = new URL(config.url);
               key = encodeURIComponent(url.hostname + url.pathname);
-              _context4.next = 31;
+              _context5.next = 31;
               return fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
 
             case 31:
-              nviResponse = _context4.sent;
+              nviResponse = _context5.sent;
 
               if (!(nviResponse.status === 200)) {
-                _context4.next = 37;
+                _context5.next = 37;
                 break;
               }
 
-              _context4.next = 35;
+              _context5.next = 35;
               return nviResponse.text();
 
             case 35:
-              nvi = _context4.sent;
+              nvi = _context5.sent;
 
               if (nvi) {
                 config.nvi = nvi;
@@ -71405,16 +71452,16 @@ Context.prototype = {
 
             case 37:
               if (!config.nvi) {
-                _context4.next = 43;
+                _context5.next = 43;
                 break;
               }
 
-              _context4.next = 40;
+              _context5.next = 40;
               return this.dataset.getNormVectorIndex(config);
 
             case 40:
               eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
-              _context4.next = 45;
+              _context5.next = 45;
               break;
 
             case 43:
@@ -71427,14 +71474,14 @@ Context.prototype = {
 
             case 45:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
-      }, _callee4, this, [[3,, 22, 25]]);
+      }, _callee5, this, [[3,, 22, 25]]);
     }));
 
-    return function (_x5, _x6) {
-      return _ref6.apply(this, arguments);
+    return function (_x6, _x7) {
+      return _ref7.apply(this, arguments);
     };
   }();
   /**
@@ -71450,33 +71497,33 @@ Context.prototype = {
   HICBrowser.prototype.loadHicControlFile =
   /*#__PURE__*/
   function () {
-    var _ref7 = _asyncToGenerator(
+    var _ref8 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee5(config, noUpdates) {
+    regeneratorRuntime.mark(function _callee6(config, noUpdates) {
       var name, controlDataset;
-      return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      return regeneratorRuntime.wrap(function _callee6$(_context6) {
         while (1) {
-          switch (_context5.prev = _context5.next) {
+          switch (_context6.prev = _context6.next) {
             case 0:
-              _context5.prev = 0;
+              _context6.prev = 0;
               this.$user_interaction_shield.show();
               this.contactMatrixView.startSpinner();
               this.controlUrl = config.url;
-              _context5.next = 6;
+              _context6.next = 6;
               return extractName(config);
 
             case 6:
-              name = _context5.sent;
+              name = _context6.sent;
               config.name = name;
-              _context5.next = 10;
+              _context6.next = 10;
               return loadDataset(config);
 
             case 10:
-              controlDataset = _context5.sent;
+              controlDataset = _context6.sent;
               controlDataset.name = name;
 
               if (!(!this.dataset || areCompatible(this.dataset, controlDataset))) {
-                _context5.next = 23;
+                _context6.next = 23;
                 break;
               }
 
@@ -71489,7 +71536,7 @@ Context.prototype = {
               this.$controlMaplabel.text("B: " + controlDataset.name);
               this.$controlMaplabel.attr('title', controlDataset.name); //For the control dataset, block until the norm vector index is loaded
 
-              _context5.next = 19;
+              _context6.next = 19;
               return controlDataset.getNormVectorIndex(config);
 
             case 19:
@@ -71499,28 +71546,28 @@ Context.prototype = {
                 this.update();
               }
 
-              _context5.next = 24;
+              _context6.next = 24;
               break;
 
             case 23:
               api.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
 
             case 24:
-              _context5.prev = 24;
+              _context6.prev = 24;
               this.$user_interaction_shield.hide();
               this.stopSpinner();
-              return _context5.finish(24);
+              return _context6.finish(24);
 
             case 28:
             case "end":
-              return _context5.stop();
+              return _context6.stop();
           }
         }
-      }, _callee5, this, [[0,, 24, 28]]);
+      }, _callee6, this, [[0,, 24, 28]]);
     }));
 
-    return function (_x7, _x8) {
-      return _ref7.apply(this, arguments);
+    return function (_x8, _x9) {
+      return _ref8.apply(this, arguments);
     };
   }();
   /**
@@ -71531,48 +71578,48 @@ Context.prototype = {
    */
 
 
-  function extractName(_x9) {
+  function extractName(_x10) {
     return _extractName.apply(this, arguments);
   }
 
   function _extractName() {
     _extractName = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee15(config) {
+    regeneratorRuntime.mark(function _callee16(config) {
       var json;
-      return regeneratorRuntime.wrap(function _callee15$(_context15) {
+      return regeneratorRuntime.wrap(function _callee16$(_context16) {
         while (1) {
-          switch (_context15.prev = _context15.next) {
+          switch (_context16.prev = _context16.next) {
             case 0:
               if (!(config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com"))) {
-                _context15.next = 7;
+                _context16.next = 7;
                 break;
               }
 
-              _context15.next = 3;
+              _context16.next = 3;
               return api.google.getDriveFileInfo(config.url);
 
             case 3:
-              json = _context15.sent;
-              return _context15.abrupt("return", json.name);
+              json = _context16.sent;
+              return _context16.abrupt("return", json.name);
 
             case 7:
               if (!(config.name === undefined)) {
-                _context15.next = 11;
+                _context16.next = 11;
                 break;
               }
 
-              return _context15.abrupt("return", extractFilename(config.url));
+              return _context16.abrupt("return", extractFilename(config.url));
 
             case 11:
-              return _context15.abrupt("return", config.name);
+              return _context16.abrupt("return", config.name);
 
             case 12:
             case "end":
-              return _context15.stop();
+              return _context16.stop();
           }
         }
-      }, _callee15);
+      }, _callee16);
     }));
     return _extractName.apply(this, arguments);
   }
@@ -71580,13 +71627,13 @@ Context.prototype = {
   HICBrowser.prototype.parseGotoInput =
   /*#__PURE__*/
   function () {
-    var _ref8 = _asyncToGenerator(
+    var _ref9 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee6(string) {
+    regeneratorRuntime.mark(function _callee7(string) {
       var self, loci, xLocus, yLocus, result;
-      return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      return regeneratorRuntime.wrap(function _callee7$(_context7) {
         while (1) {
-          switch (_context6.prev = _context6.next) {
+          switch (_context7.prev = _context7.next) {
             case 0:
               self = this, loci = string.split(' ');
 
@@ -71600,15 +71647,15 @@ Context.prototype = {
               }
 
               if (!(xLocus === undefined)) {
-                _context6.next = 9;
+                _context7.next = 9;
                 break;
               }
 
-              _context6.next = 5;
+              _context7.next = 5;
               return geneSearch(this.genome.id, loci[0].trim());
 
             case 5:
-              result = _context6.sent;
+              result = _context7.sent;
 
               if (result) {
                 api.selectedGene = loci[0].trim();
@@ -71620,7 +71667,7 @@ Context.prototype = {
                 alert('No feature found with name "' + loci[0] + '"');
               }
 
-              _context6.next = 10;
+              _context7.next = 10;
               break;
 
             case 9:
@@ -71632,14 +71679,14 @@ Context.prototype = {
 
             case 10:
             case "end":
-              return _context6.stop();
+              return _context7.stop();
           }
         }
-      }, _callee6, this);
+      }, _callee7, this);
     }));
 
-    return function (_x10) {
-      return _ref8.apply(this, arguments);
+    return function (_x11) {
+      return _ref9.apply(this, arguments);
     };
   }();
 
@@ -71702,28 +71749,28 @@ Context.prototype = {
   HICBrowser.prototype.pinchZoom =
   /*#__PURE__*/
   function () {
-    var _ref9 = _asyncToGenerator(
+    var _ref10 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee7(anchorPx, anchorPy, scaleFactor) {
+    regeneratorRuntime.mark(function _callee8(anchorPx, anchorPy, scaleFactor) {
       var bpResolutions, currentResolution, newResolution, newZoom, newPixelSize, zoomChanged, targetResolution, z, minPS, state, gx, gy;
-      return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      return regeneratorRuntime.wrap(function _callee8$(_context8) {
         while (1) {
-          switch (_context7.prev = _context7.next) {
+          switch (_context8.prev = _context8.next) {
             case 0:
               if (!(this.state.chr1 === 0)) {
-                _context7.next = 5;
+                _context8.next = 5;
                 break;
               }
 
-              _context7.next = 3;
+              _context8.next = 3;
               return this.zoomAndCenter(1, anchorPx, anchorPy);
 
             case 3:
-              _context7.next = 34;
+              _context8.next = 34;
               break;
 
             case 5:
-              _context7.prev = 5;
+              _context8.prev = 5;
               this.startSpinner();
               bpResolutions = this.dataset.bpResolutions;
               currentResolution = bpResolutions[this.state.zoom];
@@ -71742,28 +71789,28 @@ Context.prototype = {
                 newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
               }
 
-              _context7.next = 12;
+              _context8.next = 12;
               return minZoom.call(this, this.state.chr1, this.state.chr2);
 
             case 12:
-              z = _context7.sent;
+              z = _context8.sent;
 
               if (!(!this.resolutionLocked && scaleFactor < 1 && newZoom < z)) {
-                _context7.next = 17;
+                _context8.next = 17;
                 break;
               }
 
               // Zoom out to whole genome
               this.setChromosomes(0, 0);
-              _context7.next = 31;
+              _context8.next = 31;
               break;
 
             case 17:
-              _context7.next = 19;
+              _context8.next = 19;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom);
 
             case 19:
-              minPS = _context7.sent;
+              minPS = _context8.sent;
               state = this.state;
               newPixelSize = Math.max(newPixelSize, minPS); // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
 
@@ -71781,50 +71828,50 @@ Context.prototype = {
               }));
 
             case 31:
-              _context7.prev = 31;
+              _context8.prev = 31;
               this.stopSpinner();
-              return _context7.finish(31);
+              return _context8.finish(31);
 
             case 34:
             case "end":
-              return _context7.stop();
+              return _context8.stop();
           }
         }
-      }, _callee7, this, [[5,, 31, 34]]);
+      }, _callee8, this, [[5,, 31, 34]]);
     }));
 
-    return function (_x11, _x12, _x13) {
-      return _ref9.apply(this, arguments);
+    return function (_x12, _x13, _x14) {
+      return _ref10.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.wheelClickZoom =
   /*#__PURE__*/
   function () {
-    var _ref10 = _asyncToGenerator(
+    var _ref11 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee8(direction, centerPX, centerPY) {
+    regeneratorRuntime.mark(function _callee9(direction, centerPX, centerPY) {
       var z, newZoom;
-      return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      return regeneratorRuntime.wrap(function _callee9$(_context9) {
         while (1) {
-          switch (_context8.prev = _context8.next) {
+          switch (_context9.prev = _context9.next) {
             case 0:
               if (!(this.resolutionLocked || this.state.chr1 === 0)) {
-                _context8.next = 4;
+                _context9.next = 4;
                 break;
               }
 
               // Resolution locked OR whole genome view
               this.zoomAndCenter(direction, centerPX, centerPY);
-              _context8.next = 9;
+              _context9.next = 9;
               break;
 
             case 4:
-              _context8.next = 6;
+              _context9.next = 6;
               return minZoom.call(this, this.state.chr1, this.state.chr2);
 
             case 6:
-              z = _context8.sent;
+              z = _context9.sent;
               newZoom = this.state.zoom + direction;
 
               if (direction < 0 && newZoom < z) {
@@ -71835,14 +71882,14 @@ Context.prototype = {
 
             case 9:
             case "end":
-              return _context8.stop();
+              return _context9.stop();
           }
         }
-      }, _callee8, this);
+      }, _callee9, this);
     }));
 
-    return function (_x14, _x15, _x16) {
-      return _ref10.apply(this, arguments);
+    return function (_x15, _x16, _x17) {
+      return _ref11.apply(this, arguments);
     };
   }(); // Zoom in response to a double-click
 
@@ -71850,31 +71897,31 @@ Context.prototype = {
   HICBrowser.prototype.zoomAndCenter =
   /*#__PURE__*/
   function () {
-    var _ref11 = _asyncToGenerator(
+    var _ref12 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee9(direction, centerPX, centerPY) {
+    regeneratorRuntime.mark(function _callee10(direction, centerPX, centerPY) {
       var genomeCoordX, genomeCoordY, chrX, chrY, bpResolutions, viewDimensions, dx, dy, minPS, state, newPixelSize, shiftRatio;
-      return regeneratorRuntime.wrap(function _callee9$(_context9) {
+      return regeneratorRuntime.wrap(function _callee10$(_context10) {
         while (1) {
-          switch (_context9.prev = _context9.next) {
+          switch (_context10.prev = _context10.next) {
             case 0:
               if (this.dataset) {
-                _context9.next = 2;
+                _context10.next = 2;
                 break;
               }
 
-              return _context9.abrupt("return");
+              return _context10.abrupt("return");
 
             case 2:
               if (!(this.state.chr1 === 0 && direction > 0)) {
-                _context9.next = 7;
+                _context10.next = 7;
                 break;
               }
 
               // jump from whole genome to chromosome
               genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize, genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize, chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX), chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
               this.setChromosomes(chrX.index, chrY.index);
-              _context9.next = 28;
+              _context10.next = 28;
               break;
 
             case 7:
@@ -71886,15 +71933,15 @@ Context.prototype = {
               this.state.y += dy / this.state.pixelSize;
 
               if (!(this.resolutionLocked || direction > 0 && this.state.zoom === bpResolutions.length - 1 || direction < 0 && this.state.zoom === 0)) {
-                _context9.next = 27;
+                _context10.next = 27;
                 break;
               }
 
-              _context9.next = 16;
+              _context10.next = 16;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 16:
-              minPS = _context9.sent;
+              minPS = _context10.sent;
               state = this.state;
               newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
               shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
@@ -71906,7 +71953,7 @@ Context.prototype = {
                 state: state,
                 resolutionChanged: false
               }));
-              _context9.next = 28;
+              _context10.next = 28;
               break;
 
             case 27:
@@ -71914,29 +71961,29 @@ Context.prototype = {
 
             case 28:
             case "end":
-              return _context9.stop();
+              return _context10.stop();
           }
         }
-      }, _callee9, this);
+      }, _callee10, this);
     }));
 
-    return function (_x17, _x18, _x19) {
-      return _ref11.apply(this, arguments);
+    return function (_x18, _x19, _x20) {
+      return _ref12.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.setZoom =
   /*#__PURE__*/
   function () {
-    var _ref12 = _asyncToGenerator(
+    var _ref13 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee10(zoom, cpx, cpy) {
+    regeneratorRuntime.mark(function _callee11(zoom, cpx, cpy) {
       var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter, newYCenter, newPixelSize, zoomChanged, self, minPS, state;
-      return regeneratorRuntime.wrap(function _callee10$(_context10) {
+      return regeneratorRuntime.wrap(function _callee11$(_context11) {
         while (1) {
-          switch (_context10.prev = _context10.next) {
+          switch (_context11.prev = _context11.next) {
             case 0:
-              _context10.prev = 0;
+              _context11.prev = 0;
               // this.startSpinner()
               self = this; // Shift x,y to maintain center, if possible
 
@@ -71950,11 +71997,11 @@ Context.prototype = {
               newResolution = bpResolutions[zoom];
               newXCenter = xCenter * (currentResolution / newResolution);
               newYCenter = yCenter * (currentResolution / newResolution);
-              _context10.next = 12;
+              _context11.next = 12;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom);
 
             case 12:
-              minPS = _context10.sent;
+              minPS = _context11.sent;
               state = self.state;
               newPixelSize = Math.max(defaultPixelSize, minPS);
               zoomChanged = state.zoom !== zoom;
@@ -71963,7 +72010,7 @@ Context.prototype = {
               state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
               state.pixelSize = newPixelSize;
               self.clamp();
-              _context10.next = 23;
+              _context11.next = 23;
               return self.contactMatrixView.zoomIn();
 
             case 23:
@@ -71973,50 +72020,50 @@ Context.prototype = {
               }));
 
             case 24:
-              _context10.prev = 24;
-              return _context10.finish(24);
+              _context11.prev = 24;
+              return _context11.finish(24);
 
             case 26:
             case "end":
-              return _context10.stop();
+              return _context11.stop();
           }
         }
-      }, _callee10, this, [[0,, 24, 26]]);
+      }, _callee11, this, [[0,, 24, 26]]);
     }));
 
-    return function (_x20, _x21, _x22) {
-      return _ref12.apply(this, arguments);
+    return function (_x21, _x22, _x23) {
+      return _ref13.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.setChromosomes =
   /*#__PURE__*/
   function () {
-    var _ref13 = _asyncToGenerator(
+    var _ref14 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee11(chr1, chr2) {
+    regeneratorRuntime.mark(function _callee12(chr1, chr2) {
       var z, minPS;
-      return regeneratorRuntime.wrap(function _callee11$(_context11) {
+      return regeneratorRuntime.wrap(function _callee12$(_context12) {
         while (1) {
-          switch (_context11.prev = _context11.next) {
+          switch (_context12.prev = _context12.next) {
             case 0:
-              _context11.prev = 0;
+              _context12.prev = 0;
               this.startSpinner();
               this.state.chr1 = Math.min(chr1, chr2);
               this.state.chr2 = Math.max(chr1, chr2);
               this.state.x = 0;
               this.state.y = 0;
-              _context11.next = 8;
+              _context12.next = 8;
               return minZoom.call(this, chr1, chr2);
 
             case 8:
-              z = _context11.sent;
+              z = _context12.sent;
               this.state.zoom = z;
-              _context11.next = 12;
+              _context12.next = 12;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 12:
-              minPS = _context11.sent;
+              minPS = _context12.sent;
               this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
               this.eventBus.post(HICEvent("LocusChange", {
                 state: this.state,
@@ -72024,20 +72071,20 @@ Context.prototype = {
               }));
 
             case 15:
-              _context11.prev = 15;
+              _context12.prev = 15;
               this.stopSpinner();
-              return _context11.finish(15);
+              return _context12.finish(15);
 
             case 18:
             case "end":
-              return _context11.stop();
+              return _context12.stop();
           }
         }
-      }, _callee11, this, [[0,, 15, 18]]);
+      }, _callee12, this, [[0,, 15, 18]]);
     }));
 
-    return function (_x23, _x24) {
-      return _ref13.apply(this, arguments);
+    return function (_x24, _x25) {
+      return _ref14.apply(this, arguments);
     };
   }();
 
@@ -72045,13 +72092,13 @@ Context.prototype = {
   /*#__PURE__*/
   _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee12() {
+  regeneratorRuntime.mark(function _callee13() {
     var sync;
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
-            sync = function _ref15(trackRenderer, index) {
+            sync = function _ref16(trackRenderer, index) {
               trackRenderer.$viewport.css({
                 order: index
               });
@@ -72064,52 +72111,52 @@ Context.prototype = {
             });
             this.layoutController.xAxisRuler.update();
             this.layoutController.yAxisRuler.update();
-            _context12.next = 8;
+            _context13.next = 8;
             return this.update();
 
           case 8:
           case "end":
-            return _context12.stop();
+            return _context13.stop();
         }
       }
-    }, _callee12, this);
+    }, _callee13, this);
   }));
 
-  function minZoom(_x25, _x26) {
+  function minZoom(_x26, _x27) {
     return _minZoom.apply(this, arguments);
   }
 
   function _minZoom() {
     _minZoom = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee16(chr1, chr2) {
+    regeneratorRuntime.mark(function _callee17(chr1, chr2) {
       var viewDimensions, chr1Length, chr2Length, binSize, matrix;
-      return regeneratorRuntime.wrap(function _callee16$(_context16) {
+      return regeneratorRuntime.wrap(function _callee17$(_context17) {
         while (1) {
-          switch (_context16.prev = _context16.next) {
+          switch (_context17.prev = _context17.next) {
             case 0:
               viewDimensions = this.contactMatrixView.getViewDimensions();
               chr1Length = this.dataset.chromosomes[chr1].size;
               chr2Length = this.dataset.chromosomes[chr2].size;
               binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
-              _context16.next = 6;
+              _context17.next = 6;
               return this.dataset.getMatrix(chr1, chr2);
 
             case 6:
-              matrix = _context16.sent;
-              return _context16.abrupt("return", matrix.findZoomForResolution(binSize));
+              matrix = _context17.sent;
+              return _context17.abrupt("return", matrix.findZoomForResolution(binSize));
 
             case 8:
             case "end":
-              return _context16.stop();
+              return _context17.stop();
           }
         }
-      }, _callee16, this);
+      }, _callee17, this);
     }));
     return _minZoom.apply(this, arguments);
   }
 
-  function minPixelSize(_x27, _x28, _x29) {
+  function minPixelSize(_x28, _x29, _x30) {
     return _minPixelSize.apply(this, arguments);
   }
   /**
@@ -72121,32 +72168,32 @@ Context.prototype = {
   function _minPixelSize() {
     _minPixelSize = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee17(chr1, chr2, z) {
+    regeneratorRuntime.mark(function _callee18(chr1, chr2, z) {
       var viewDimensions, chr1Length, chr2Length, matrix, zd, binSize, nBins1, nBins2;
-      return regeneratorRuntime.wrap(function _callee17$(_context17) {
+      return regeneratorRuntime.wrap(function _callee18$(_context18) {
         while (1) {
-          switch (_context17.prev = _context17.next) {
+          switch (_context18.prev = _context18.next) {
             case 0:
               viewDimensions = this.contactMatrixView.getViewDimensions();
               chr1Length = this.dataset.chromosomes[chr1].size;
               chr2Length = this.dataset.chromosomes[chr2].size;
-              _context17.next = 5;
+              _context18.next = 5;
               return this.dataset.getMatrix(chr1, chr2);
 
             case 5:
-              matrix = _context17.sent;
+              matrix = _context18.sent;
               zd = matrix.getZoomDataByIndex(z, "BP");
               binSize = zd.zoom.binSize;
               nBins1 = chr1Length / binSize;
               nBins2 = chr2Length / binSize;
-              return _context17.abrupt("return", Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
+              return _context18.abrupt("return", Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
 
             case 11:
             case "end":
-              return _context17.stop();
+              return _context18.stop();
           }
         }
-      }, _callee17, this);
+      }, _callee18, this);
     }));
     return _minPixelSize.apply(this, arguments);
   }
@@ -72154,21 +72201,21 @@ Context.prototype = {
   HICBrowser.prototype.setState =
   /*#__PURE__*/
   function () {
-    var _ref16 = _asyncToGenerator(
+    var _ref17 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee13(state) {
+    regeneratorRuntime.mark(function _callee14(state) {
       var minPS;
-      return regeneratorRuntime.wrap(function _callee13$(_context13) {
+      return regeneratorRuntime.wrap(function _callee14$(_context14) {
         while (1) {
-          switch (_context13.prev = _context13.next) {
+          switch (_context14.prev = _context14.next) {
             case 0:
               this.state = state; // Possibly adjust pixel size
 
-              _context13.next = 3;
+              _context14.next = 3;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 3:
-              minPS = _context13.sent;
+              minPS = _context14.sent;
               this.state.pixelSize = Math.max(state.pixelSize, minPS);
               this.eventBus.post(new HICEvent("LocusChange", {
                 state: this.state,
@@ -72177,14 +72224,14 @@ Context.prototype = {
 
             case 6:
             case "end":
-              return _context13.stop();
+              return _context14.stop();
           }
         }
-      }, _callee13, this);
+      }, _callee14, this);
     }));
 
-    return function (_x30) {
-      return _ref16.apply(this, arguments);
+    return function (_x31) {
+      return _ref17.apply(this, arguments);
     };
   }();
   /**
@@ -72365,12 +72412,12 @@ Context.prototype = {
   HICBrowser.prototype.update =
   /*#__PURE__*/
   function () {
-    var _ref17 = _asyncToGenerator(
+    var _ref18 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee14(event) {
-      return regeneratorRuntime.wrap(function _callee14$(_context14) {
+    regeneratorRuntime.mark(function _callee15(event) {
+      return regeneratorRuntime.wrap(function _callee15$(_context15) {
         while (1) {
-          switch (_context14.prev = _context14.next) {
+          switch (_context15.prev = _context15.next) {
             case 0:
               try {
                 this.startSpinner();
@@ -72387,14 +72434,14 @@ Context.prototype = {
 
             case 1:
             case "end":
-              return _context14.stop();
+              return _context15.stop();
           }
         }
-      }, _callee14, this);
+      }, _callee15, this);
     }));
 
-    return function (_x31) {
-      return _ref17.apply(this, arguments);
+    return function (_x32) {
+      return _ref18.apply(this, arguments);
     };
   }();
 
@@ -72687,18 +72734,18 @@ Context.prototype = {
     }
   };
 
-  function loadDataset(_x32) {
+  function loadDataset(_x33) {
     return _loadDataset.apply(this, arguments);
   }
 
   function _loadDataset() {
     _loadDataset = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee18(config) {
+    regeneratorRuntime.mark(function _callee19(config) {
       var copy, straw, hicFile, dataset;
-      return regeneratorRuntime.wrap(function _callee18$(_context18) {
+      return regeneratorRuntime.wrap(function _callee19$(_context19) {
         while (1) {
-          switch (_context18.prev = _context18.next) {
+          switch (_context19.prev = _context19.next) {
             case 0:
               // If this is a local file, use the "blob" field for straw
               if (config.url instanceof File) {
@@ -72719,20 +72766,20 @@ Context.prototype = {
 
               straw = new Straw(config);
               hicFile = straw.hicFile;
-              _context18.next = 5;
+              _context19.next = 5;
               return hicFile.init();
 
             case 5:
               dataset = new Dataset(hicFile);
               dataset.url = config.url;
-              return _context18.abrupt("return", dataset);
+              return _context19.abrupt("return", dataset);
 
             case 8:
             case "end":
-              return _context18.stop();
+              return _context19.stop();
           }
         }
-      }, _callee18);
+      }, _callee19);
     }));
     return _loadDataset.apply(this, arguments);
   }
@@ -79508,10 +79555,1420 @@ Context.prototype = {
     igv: api
   };
 
+  /*
+   *  The MIT License (MIT)
+   *
+   * Copyright (c) 2016-2017 The Regents of the University of California
+   *
+   * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+   * associated documentation files (the "Software"), to deal in the Software without restriction, including
+   * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+   * following conditions:
+   *
+   * The above copyright notice and this permission notice shall be included in all copies or substantial
+   * portions of the Software.
+   *
+   * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+   * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
+   * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+   * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   * THE SOFTWARE.
+   *
+   */
+  var picker;
+
+  function createDropdownButtonPicker(multipleFileSelection, filePickerHandler) {
+    getAccessToken().then(function (accessToken) {
+      return accessToken;
+    }).then(function (accessToken) {
+      var view, teamView;
+      view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+      view.setIncludeFolders(true);
+      teamView = new google.picker.DocsView(google.picker.ViewId.DOCS);
+      teamView.setEnableTeamDrives(true);
+      teamView.setIncludeFolders(true);
+
+      if (accessToken) {
+        if (multipleFileSelection) {
+          picker = new google.picker.PickerBuilder().enableFeature(google.picker.Feature.MULTISELECT_ENABLED).setOAuthToken(api.oauth.google.access_token).addView(view).addView(teamView).enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES).setCallback(function (data) {
+            if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+              filePickerHandler(data[google.picker.Response.DOCUMENTS]);
+            }
+          }).build();
+        } else {
+          picker = new google.picker.PickerBuilder().disableFeature(google.picker.Feature.MULTISELECT_ENABLED).setOAuthToken(api.oauth.google.access_token).addView(view).addView(teamView).enableFeature(google.picker.Feature.SUPPORT_TEAM_DRIVES).setCallback(function (data) {
+            if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
+              filePickerHandler(data[google.picker.Response.DOCUMENTS]);
+            }
+          }).build();
+        }
+
+        picker.setVisible(true);
+      } else {
+        api.Alert.presentAlert("Sign into Google before using picker");
+      }
+    })["catch"](function (error) {});
+  }
+
+  function signInHandler() {
+    var scope, options;
+    scope = ['https://www.googleapis.com/auth/devstorage.read_only', 'https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/drive.readonly'];
+    options = new gapi.auth2.SigninOptionsBuilder();
+    options.setPrompt('select_account');
+    options.setScope(scope.join(' '));
+    return gapi.auth2.getAuthInstance().signIn(options).then(function (user) {
+      var authResponse;
+      authResponse = user.getAuthResponse();
+      api.setGoogleOauthToken(authResponse["access_token"]);
+      return authResponse["access_token"];
+    });
+  }
+
+  function getAccessToken() {
+    if (api.oauth.google.access_token) {
+      return Promise.resolve(api.oauth.google.access_token);
+    } else {
+      return signInHandler();
+    }
+  }
+
+  var validIndexExtensionSet = new Set(['fai', 'bai', 'crai', 'tbi', 'idx']);
+
+  var isValidIndexExtension = function isValidIndexExtension(path) {
+    // let set;
+    // set = new Set(['fai', 'bai', 'crai', 'tbi', 'idx']);
+    return validIndexExtensionSet.has(getExtension$1(path));
+  };
+
+  var getIndexObjectWithDataName = function getIndexObjectWithDataName(name) {
+    var extension, dataSuffix, lookup, indexObject, aa;
+    extension = getExtension$1(name);
+
+    if (false === isKnownFileExtension(extension)) {
+      return undefined;
+    }
+
+    dataSuffix = name.split('.').pop();
+    lookup = indexLookup(dataSuffix);
+    indexObject = {}; // aa
+
+    aa = name + '.' + lookup.index;
+    indexObject[aa] = {};
+    indexObject[aa].data = name;
+    indexObject[aa].isOptional = lookup.isOptional;
+
+    if ('bam' === extension || 'cram' === extension) {
+      var bb, parts; // bb
+
+      parts = name.split('.');
+      parts.pop();
+      bb = parts.join('.') + '.' + lookup.index;
+      indexObject[bb] = {};
+      indexObject[bb].data = name;
+      indexObject[bb].isOptional = lookup.isOptional;
+    }
+
+    return indexObject;
+  };
+
+  var isKnownFileExtension = function isKnownFileExtension(extension) {
+    var fasta = new Set(['fa', 'fasta']);
+    var union = new Set([].concat(_toConsumableArray(api.knownFileExtensions), _toConsumableArray(fasta)));
+    return union.has(extension);
+  };
+
+  var getFilename$1 = function getFilename(path) {
+    return path.google_url ? path.name : api.getFilename(path);
+  };
+
+  var getExtension$1 = function getExtension(path) {
+    return api.getExtension({
+      url: path.google_url ? path.name : path
+    });
+  };
+
+  var configureModal = function configureModal(fileLoadWidget, $modal) {
+    var okHandler = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+    var $dismiss, $ok; // upper dismiss - x - button
+
+    $dismiss = $modal.find('.modal-header button:nth-child(1)');
+    $dismiss.on('click', function () {
+      fileLoadWidget.dismiss();
+      $modal.modal('hide');
+    }); // lower dismiss - close - button
+
+    $dismiss = $modal.find('.modal-footer button:nth-child(1)');
+    $dismiss.on('click', function () {
+      fileLoadWidget.dismiss();
+      $modal.modal('hide');
+    }); // ok - button
+
+    $ok = $modal.find('.modal-footer button:nth-child(2)');
+    $ok.on('click', function () {
+      var status = true;
+
+      if (okHandler) {
+        status = okHandler(fileLoadWidget.fileLoadManager);
+      } else {
+        status = fileLoadWidget.fileLoadManager.okHandler();
+      }
+
+      if (true === status) {
+        fileLoadWidget.dismiss();
+        $modal.modal('hide');
+      }
+    });
+  };
+
+  var indexLookup = function indexLookup(dataSuffix) {
+    var fa = {
+      index: 'fai',
+      isOptional: false
+    };
+    var fasta = {
+      index: 'fai',
+      isOptional: false
+    };
+    var bam = {
+      index: 'bai',
+      isOptional: false
+    };
+    var cram = {
+      index: 'crai',
+      isOptional: false
+    };
+    var gz = {
+      index: 'tbi',
+      isOptional: true
+    };
+    var bgz = {
+      index: 'tbi',
+      isOptional: true
+    };
+    var any = {
+      index: 'idx',
+      isOptional: true
+    };
+    var lut = {
+      fa: fa,
+      fasta: fasta,
+      bam: bam,
+      cram: cram,
+      gz: gz,
+      bgz: bgz
+    };
+
+    if (lut[dataSuffix]) {
+      return lut[dataSuffix];
+    } else {
+      return any;
+    }
+  };
+
+  var indexableFormats = new Set(["vcf", "bed", "gff", "gtf", "gff3", "bedgraph"]);
+
+  var MultipleFileLoadController =
+  /*#__PURE__*/
+  function () {
+    function MultipleFileLoadController(_ref) {
+      var browser = _ref.browser,
+          $modal = _ref.$modal,
+          modalTitle = _ref.modalTitle,
+          $localFileInput = _ref.$localFileInput,
+          multipleFileSelection = _ref.multipleFileSelection,
+          $dropboxButton = _ref.$dropboxButton,
+          $googleDriveButton = _ref.$googleDriveButton,
+          configurationHandler = _ref.configurationHandler,
+          jsonFileValidator = _ref.jsonFileValidator,
+          pathValidator = _ref.pathValidator,
+          fileLoadHandler = _ref.fileLoadHandler;
+
+      _classCallCheck(this, MultipleFileLoadController);
+
+      this.browser = browser;
+      this.$modal = $modal;
+      this.$modal_body = $modal.find('.modal-body');
+      this.modalTitle = modalTitle;
+      this.createLocalInput($localFileInput);
+      this.createDropboxButton($dropboxButton, multipleFileSelection);
+
+      if ($googleDriveButton) {
+        this.createGoogleDriveButton($googleDriveButton, multipleFileSelection);
+      }
+
+      this.configurationHandler = configurationHandler;
+      this.jsonFileValidator = jsonFileValidator;
+      this.pathValidator = pathValidator;
+      this.fileLoadHander = fileLoadHandler;
+    }
+
+    _createClass(MultipleFileLoadController, [{
+      key: "ingestPaths",
+      value: function () {
+        var _ingestPaths = _asyncToGenerator(
+        /*#__PURE__*/
+        regeneratorRuntime.mark(function _callee(paths) {
+          var _this = this;
+
+          var self, dataPaths, indexPathCandidates, indexPaths, indexPathNameSet, indexPathNamesLackingDataPaths, jsonPromises, configurations, tmp, googleDrivePaths, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _path2, fileInfo, jsonPaths, remainingPaths, jsons, booleans, invalids, json, path, o, xmlPaths, _path, _o, extensions, results, invalid, key;
+
+          return regeneratorRuntime.wrap(function _callee$(_context) {
+            while (1) {
+              switch (_context.prev = _context.next) {
+                case 0:
+                  self = this; // handle Google Drive paths (not already handled via Google Drive Picker)
+
+                  tmp = [];
+                  googleDrivePaths = [];
+                  _iteratorNormalCompletion = true;
+                  _didIteratorError = false;
+                  _iteratorError = undefined;
+                  _context.prev = 6;
+                  _iterator = paths[Symbol.iterator]();
+
+                case 8:
+                  if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                    _context.next = 25;
+                    break;
+                  }
+
+                  _path2 = _step.value;
+
+                  if (!api.isFilePath(_path2)) {
+                    _context.next = 14;
+                    break;
+                  }
+
+                  tmp.push(_path2);
+                  _context.next = 22;
+                  break;
+
+                case 14:
+                  if (!(undefined === _path2.google_url && _path2.includes('drive.google.com'))) {
+                    _context.next = 21;
+                    break;
+                  }
+
+                  _context.next = 17;
+                  return api.google.getDriveFileInfo(_path2);
+
+                case 17:
+                  fileInfo = _context.sent;
+                  googleDrivePaths.push({
+                    filename: fileInfo.name,
+                    name: fileInfo.name,
+                    google_url: _path2
+                  });
+                  _context.next = 22;
+                  break;
+
+                case 21:
+                  tmp.push(_path2);
+
+                case 22:
+                  _iteratorNormalCompletion = true;
+                  _context.next = 8;
+                  break;
+
+                case 25:
+                  _context.next = 31;
+                  break;
+
+                case 27:
+                  _context.prev = 27;
+                  _context.t0 = _context["catch"](6);
+                  _didIteratorError = true;
+                  _iteratorError = _context.t0;
+
+                case 31:
+                  _context.prev = 31;
+                  _context.prev = 32;
+
+                  if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+                    _iterator["return"]();
+                  }
+
+                case 34:
+                  _context.prev = 34;
+
+                  if (!_didIteratorError) {
+                    _context.next = 37;
+                    break;
+                  }
+
+                  throw _iteratorError;
+
+                case 37:
+                  return _context.finish(34);
+
+                case 38:
+                  return _context.finish(31);
+
+                case 39:
+                  paths = tmp.concat(googleDrivePaths); // isolate JSON paths
+
+                  jsonPaths = paths.filter(function (path) {
+                    return 'json' === getExtension$1(path);
+                  });
+
+                  if (!(jsonPaths.length > 0)) {
+                    _context.next = 59;
+                    break;
+                  }
+
+                  // accumulate JSON retrieval Promises
+                  jsonPromises = jsonPaths.map(function (path) {
+                    var url = path.google_url || path;
+                    return {
+                      name: getFilename$1(path),
+                      promise: api.xhr.loadJson(url)
+                    };
+                  }); // validate JSON
+
+                  _context.next = 45;
+                  return Promise.all(jsonPromises.map(function (task) {
+                    return task.promise;
+                  }));
+
+                case 45:
+                  jsons = _context.sent;
+                  booleans = jsons.map(function (json) {
+                    _this.jsonFileValidator(json);
+                  });
+                  invalids = booleans.map(function (_boolean, index) {
+                    return {
+                      isValid: _boolean,
+                      path: jsonPaths[index]
+                    };
+                  }).filter(function (o) {
+                    return false === o.isValid;
+                  });
+
+                  if (!(invalids.length > 0)) {
+                    _context.next = 51;
+                    break;
+                  }
+
+                  this.presentInvalidFiles(invalids.map(function (o) {
+                    return o.path;
+                  }));
+                  return _context.abrupt("return");
+
+                case 51:
+                  // Handle Session file. There can only be ONE.
+                  json = jsons.pop();
+
+                  if (!(true === this.jsonFileValidator(json))) {
+                    _context.next = 56;
+                    break;
+                  }
+
+                  path = jsonPaths.pop();
+
+                  if (path.google_url) {
+                    this.browser.loadSession({
+                      url: path.google_url,
+                      filename: path.name
+                    });
+                  } else {
+                    o = {};
+                    o.filename = getFilename$1(path);
+
+                    if (true === api.isFilePath(path)) {
+                      o.file = path;
+                    } else {
+                      o.url = path;
+                    }
+
+                    this.browser.loadSession(o);
+                  }
+
+                  return _context.abrupt("return");
+
+                case 56:
+                  // non-JSON paths
+                  remainingPaths = paths.filter(function (path) {
+                    return 'json' !== getExtension$1(path);
+                  });
+                  _context.next = 60;
+                  break;
+
+                case 59:
+                  // there are no JSON paths
+                  remainingPaths = paths;
+
+                case 60:
+                  if (!(0 === jsonPaths.length && 0 === remainingPaths.length)) {
+                    _context.next = 63;
+                    break;
+                  }
+
+                  api.Alert.presentAlert("ERROR: No valid data files submitted");
+                  return _context.abrupt("return");
+
+                case 63:
+                  // Isolate XML paths. We only care about one and we assume it is a session path
+                  xmlPaths = remainingPaths.filter(function (path) {
+                    return 'xml' === getExtension$1(path);
+                  });
+
+                  if (!(xmlPaths.length > 0)) {
+                    _context.next = 71;
+                    break;
+                  }
+
+                  _path = xmlPaths.pop();
+                  _o = {};
+                  _o.filename = getFilename$1(_path);
+
+                  if (true === api.isFilePath(_path)) {
+                    _o.file = _path;
+                  } else {
+                    _o.url = _path.google_url || _path;
+                  }
+
+                  this.browser.loadSession(_o);
+                  return _context.abrupt("return");
+
+                case 71:
+                  // validate data paths (non-JSON)
+                  extensions = remainingPaths.map(function (path) {
+                    return getExtension$1(path);
+                  });
+
+                  if (!(extensions.length > 0)) {
+                    _context.next = 79;
+                    break;
+                  }
+
+                  results = extensions.map(function (extension) {
+                    return _this.pathValidator(extension);
+                  });
+
+                  if (!(results.length > 0)) {
+                    _context.next = 79;
+                    break;
+                  }
+
+                  invalid = results.map(function (_boolean2, index) {
+                    return {
+                      isValid: _boolean2,
+                      path: remainingPaths[index]
+                    };
+                  }).filter(function (obj) {
+                    return false === obj.isValid;
+                  });
+
+                  if (!(invalid.length > 0)) {
+                    _context.next = 79;
+                    break;
+                  }
+
+                  this.presentInvalidFiles(invalid.map(function (o) {
+                    return o.path;
+                  }));
+                  return _context.abrupt("return");
+
+                case 79:
+                  // isolate data paths in dictionary
+                  dataPaths = createDataPathDictionary(remainingPaths); // isolate index path candidates in dictionary
+
+                  indexPathCandidates = createIndexPathCandidateDictionary(remainingPaths); // identify index paths that are
+                  // 1) present
+                  // 2) names of missing index paths for later error reporting
+
+                  indexPaths = getIndexPaths(dataPaths, indexPathCandidates);
+                  indexPathNameSet = new Set();
+
+                  for (key in indexPaths) {
+                    if (indexPaths.hasOwnProperty(key)) {
+                      indexPaths[key].forEach(function (obj) {
+                        if (obj) {
+                          indexPathNameSet.add(obj.name);
+                        }
+                      });
+                    }
+                  }
+
+                  indexPathNamesLackingDataPaths = Object.keys(indexPathCandidates).reduce(function (accumulator, key) {
+                    if (false === indexPathNameSet.has(key)) {
+                      accumulator.push(key);
+                    }
+
+                    return accumulator;
+                  }, []);
+                  configurations = Object.keys(dataPaths).reduce(function (accumulator, key) {
+                    if (false === dataPathIsMissingIndexPath(key, indexPaths)) {
+                      accumulator.push(self.configurationHandler(key, dataPaths[key], indexPaths));
+                    }
+
+                    return accumulator;
+                  }, []);
+
+                  if (jsonPaths.length > 0) {
+                    this.jsonRetrievalSerial(jsonPromises, configurations, dataPaths, indexPaths, indexPathNamesLackingDataPaths);
+                  } else {
+                    if (configurations.length > 0) {
+                      this.fileLoadHander(configurations);
+                    }
+
+                    this.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, new Set());
+                  }
+
+                case 87:
+                case "end":
+                  return _context.stop();
+              }
+            }
+          }, _callee, this, [[6, 27, 31, 39], [32,, 34, 38]]);
+        }));
+
+        function ingestPaths(_x) {
+          return _ingestPaths.apply(this, arguments);
+        }
+
+        return ingestPaths;
+      }()
+    }, {
+      key: "createLocalInput",
+      value: function createLocalInput($input) {
+        var self = this;
+        $input.on('change', function () {
+          if (true === MultipleFileLoadController.isValidLocalFileInput($(this))) {
+            var input = $(this).get(0);
+            var list = Array.from(input.files);
+            input.value = '';
+            self.ingestPaths(list);
+          }
+        });
+      }
+    }, {
+      key: "createDropboxButton",
+      value: function createDropboxButton($dropboxButton, multipleFileSelection) {
+        var self = this;
+        $dropboxButton.on('click', function () {
+          var obj;
+          obj = {
+            success: function success(dbFiles) {
+              return self.ingestPaths(dbFiles.map(function (dbFile) {
+                return dbFile.link;
+              }));
+            },
+            cancel: function cancel() {},
+            linkType: "preview",
+            multiselect: multipleFileSelection,
+            folderselect: false
+          };
+          Dropbox.choose(obj);
+        });
+      }
+    }, {
+      key: "createGoogleDriveButton",
+      value: function createGoogleDriveButton($button, multipleFileSelection) {
+        var self = this,
+            paths;
+        $button.on('click', function () {
+          createDropdownButtonPicker(multipleFileSelection, function (googleDriveResponses) {
+            // paths = googleDriveResponses.map((response) => ({ name: response.name, google_url: response.url }));
+            paths = googleDriveResponses.map(function (response) {
+              var result = {
+                filename: response.name,
+                name: response.name,
+                google_url: response.url
+              };
+              return result;
+            });
+            self.ingestPaths(paths);
+          });
+        });
+      }
+    }, {
+      key: "jsonRetrievalParallel",
+      value: function jsonRetrievalParallel(retrievalTasks, configurations, dataPaths, indexPaths, indexPathNamesLackingDataPaths) {
+        var self = this;
+        Promise.all(retrievalTasks.map(function (task) {
+          return task.promise;
+        })).then(function (list) {
+          if (list && list.length > 0) {
+            var jsonConfigurations;
+            jsonConfigurations = list.reduce(function (accumulator, item) {
+              if (true === Array.isArray(item)) {
+                item.forEach(function (config) {
+                  accumulator.push(config);
+                });
+              } else {
+                accumulator.push(item);
+              }
+
+              return accumulator;
+            }, []);
+            configurations.push.apply(configurations, jsonConfigurations);
+            self.fileLoadHander(configurations);
+            self.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, new Set());
+          } else {
+            self.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, new Set());
+          }
+        })["catch"](function (error) {
+          self.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, new Set());
+        });
+      }
+    }, {
+      key: "jsonRetrievalSerial",
+      value: function jsonRetrievalSerial(retrievalTasks, configurations, dataPaths, indexPaths, indexPathNamesLackingDataPaths) {
+        var self = this,
+            taskSet,
+            successSet,
+            jsonConfigurations;
+        taskSet = new Set(retrievalTasks.map(function (task) {
+          return task.name;
+        }));
+        successSet = new Set();
+        jsonConfigurations = [];
+        retrievalTasks.reduce(function (promiseChain, task) {
+          return promiseChain.then(function (chainResults) {
+            var promise;
+            promise = task.promise;
+            return promise.then(function (currentResult) {
+              successSet.add(task.name);
+              jsonConfigurations = [].concat(_toConsumableArray(chainResults), [currentResult]);
+              return jsonConfigurations;
+            });
+          });
+        }, Promise.resolve([])).then(function (ignore) {
+          self.jsonConfigurator(dataPaths, indexPaths, indexPathNamesLackingDataPaths, jsonConfigurations, configurations, taskSet, successSet);
+        })["catch"](function (error) {
+          self.jsonConfigurator(dataPaths, indexPaths, indexPathNamesLackingDataPaths, jsonConfigurations, configurations, taskSet, successSet);
+        });
+      }
+    }, {
+      key: "renderTrackFileSelection",
+      value: function renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, jsonFailureNameSet) {
+        var markup;
+        markup = Object.keys(dataPaths).reduce(function (accumulator, name) {
+          if (true === dataPathIsMissingIndexPath(name, indexPaths)) {
+            accumulator.push('<div><span>&nbsp;&nbsp;&nbsp;&nbsp;' + name + '</span>' + '&nbsp;&nbsp;&nbsp;ERROR: index file must also be selected</div>');
+          }
+
+          return accumulator;
+        }, []);
+        indexPathNamesLackingDataPaths.forEach(function (name) {
+          markup.push('<div><span>&nbsp;&nbsp;&nbsp;&nbsp;' + name + '</span>' + '&nbsp;&nbsp;&nbsp;ERROR: data file must also be selected</div>');
+        });
+        jsonFailureNameSet.forEach(function (name) {
+          markup.push('<div><span>&nbsp;&nbsp;&nbsp;&nbsp;' + name + '</span>' + '&nbsp;&nbsp;&nbsp;ERROR: problems parsing JSON</div>');
+        });
+
+        if (markup.length > 0) {
+          var header;
+          header = '<div> The following files were not loaded ...</div>';
+          markup.unshift(header);
+          this.$modal.find('.modal-title').text(this.modalTitle);
+          this.$modal_body.empty();
+          this.$modal_body.append(markup.join(''));
+          this.$modal.modal('show');
+        }
+      }
+    }, {
+      key: "jsonConfigurator",
+      value: function jsonConfigurator(dataPaths, indexPaths, indexPathNamesLackingDataPaths, jsonConfigurations, configurations, taskSet, successSet) {
+        var self = this,
+            failureSet;
+
+        if (jsonConfigurations.length > 0) {
+          var reduction;
+          reduction = jsonConfigurations.reduce(function (accumulator, item) {
+            if (true === Array.isArray(item)) {
+              item.forEach(function (config) {
+                accumulator.push(config);
+              });
+            } else {
+              accumulator.push(item);
+            }
+
+            return accumulator;
+          }, []);
+          configurations.push.apply(configurations, reduction);
+          self.fileLoadHander(configurations);
+          failureSet = _toConsumableArray(taskSet).filter(function (x) {
+            return !successSet.has(x);
+          });
+          self.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, failureSet);
+        } else {
+          if (configurations.length > 0) {
+            self.fileLoadHander(configurations);
+          }
+
+          failureSet = _toConsumableArray(taskSet).filter(function (x) {
+            return !successSet.has(x);
+          });
+          self.renderTrackFileSelection(dataPaths, indexPaths, indexPathNamesLackingDataPaths, failureSet);
+        }
+      }
+    }, {
+      key: "presentInvalidFiles",
+      value: function presentInvalidFiles(paths) {
+        var markup = [];
+        var header = '<div> Invalid Files </div>';
+        markup.push(header);
+        var _iteratorNormalCompletion2 = true;
+        var _didIteratorError2 = false;
+        var _iteratorError2 = undefined;
+
+        try {
+          for (var _iterator2 = paths[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+            var path = _step2.value;
+            var name = getFilename$1(path);
+            markup.push('<div><span>' + name + '</span>' + '</div>');
+          }
+        } catch (err) {
+          _didIteratorError2 = true;
+          _iteratorError2 = err;
+        } finally {
+          try {
+            if (!_iteratorNormalCompletion2 && _iterator2["return"] != null) {
+              _iterator2["return"]();
+            }
+          } finally {
+            if (_didIteratorError2) {
+              throw _iteratorError2;
+            }
+          }
+        }
+
+        this.$modal.find('.modal-title').text(this.modalTitle);
+        this.$modal_body.empty();
+        this.$modal_body.append(markup.join(''));
+        this.$modal.modal('show');
+      }
+    }], [{
+      key: "isValidLocalFileInput",
+      value: function isValidLocalFileInput($input) {
+        return $input.get(0).files && $input.get(0).files.length > 0;
+      } //
+
+    }, {
+      key: "trackConfigurator",
+      value: function trackConfigurator(dataKey, dataValue, indexPaths) {
+        var config;
+        config = {
+          name: dataKey,
+          filename: dataKey,
+          format: api.inferFileFormat(dataKey),
+          url: dataValue,
+          indexURL: getIndexURL(indexPaths[dataKey])
+        };
+        var indexURL = getIndexURL(indexPaths[dataKey]);
+
+        if (indexURL) {
+          config.indexURL = indexURL;
+        } else {
+          if (indexableFormats.has(config.format)) {
+            config.indexed = false;
+          }
+        }
+
+        api.inferTrackTypes(config);
+        return config;
+      }
+    }, {
+      key: "genomeConfigurator",
+      value: function genomeConfigurator(dataKey, dataValue, indexPaths) {
+        var config;
+        config = {
+          fastaURL: dataValue,
+          indexURL: getIndexURL(indexPaths[dataKey])
+        };
+        return config;
+      }
+    }, {
+      key: "sessionConfigurator",
+      value: function sessionConfigurator(dataKey, dataValue, indexPaths) {
+        return {
+          session: dataValue
+        };
+      } //
+
+    }, {
+      key: "genomeJSONValidator",
+      value: function genomeJSONValidator(json) {
+        var candidateSet = new Set(Object.keys(json));
+        return candidateSet.has('fastaURL');
+      }
+    }, {
+      key: "sessionJSONValidator",
+      value: function sessionJSONValidator(json) {
+        var candidateSet = new Set(Object.keys(json));
+        return candidateSet.has('genome') || candidateSet.has('reference');
+      }
+    }, {
+      key: "trackJSONValidator",
+      value: function trackJSONValidator(json) {
+        var candidateSet = new Set(Object.keys(json));
+        return candidateSet.has('url');
+      } //
+
+    }, {
+      key: "genomePathValidator",
+      value: function genomePathValidator(extension) {
+        var referenceSet = new Set(['fai', 'fa', 'fasta']);
+        return referenceSet.has(extension);
+      }
+    }, {
+      key: "trackPathValidator",
+      value: function trackPathValidator(extension) {
+        return api.knownFileExtensions.has(extension) || validIndexExtensionSet.has(extension);
+      }
+    }]);
+
+    return MultipleFileLoadController;
+  }();
+
+  function createDataPathDictionary(paths) {
+    return paths.filter(function (path) {
+      return isKnownFileExtension(getExtension$1(path));
+    }).reduce(function (accumulator, path) {
+      accumulator[getFilename$1(path)] = path.google_url || path;
+      return accumulator;
+    }, {});
+  }
+
+  function createIndexPathCandidateDictionary(paths) {
+    return paths.filter(function (path) {
+      return isValidIndexExtension(getExtension$1(path));
+    }).reduce(function (accumulator, path) {
+      accumulator[getFilename$1(path)] = path.google_url || path;
+      return accumulator;
+    }, {});
+  }
+
+  function getIndexURL(indexValue) {
+    if (indexValue) {
+      if (indexValue[0]) {
+        return indexValue[0].path;
+      } else if (indexValue[1]) {
+        return indexValue[1].path;
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
+  }
+
+  function getIndexPaths(dataPathNames, indexPathCandidates) {
+    var list, indexPaths; // add info about presence and requirement (or not) of an index path
+
+    list = Object.keys(dataPathNames).map(function (dataPathName) {
+      var indexObject; // assess the data files need/requirement for index files
+
+      indexObject = getIndexObjectWithDataName(dataPathName); // identify the presence/absence of associated index files
+
+      for (var p in indexObject) {
+        if (indexObject.hasOwnProperty(p)) {
+          indexObject[p].missing = undefined === indexPathCandidates[p];
+        }
+      }
+
+      return indexObject;
+    }).filter(function (indexObject) {
+      // prune optional AND missing index files
+      if (1 === Object.keys(indexObject).length) {
+        var obj;
+        obj = indexObject[Object.keys(indexObject)[0]];
+
+        if (true === obj.missing && true === obj.isOptional) {
+          return false;
+        } else if (false === obj.missing && false === obj.isOptional) {
+          return true;
+        } else if (true === obj.missing && false === obj.isOptional) {
+          return true;
+        } else
+          /*( false === obj.missing && true === obj.isOptional)*/
+          {
+            return true;
+          }
+      } else {
+        return true;
+      }
+    });
+    indexPaths = list.reduce(function (accumulator, indexObject) {
+      for (var key in indexObject) {
+        if (indexObject.hasOwnProperty(key)) {
+          var value = void 0;
+          value = indexObject[key];
+
+          if (undefined === accumulator[value.data]) {
+            accumulator[value.data] = [];
+          }
+
+          accumulator[value.data].push(false === value.missing ? {
+            name: key,
+            path: indexPathCandidates[key]
+          } : undefined);
+        }
+      }
+
+      return accumulator;
+    }, {});
+    return indexPaths;
+  }
+
+  function dataPathIsMissingIndexPath(dataName, indexPaths) {
+    var status, aa; // if index for data is not in indexPaths it has been culled
+    // because it is optional AND missing
+
+    if (undefined === indexPaths[dataName]) {
+      status = false;
+    } else if (indexPaths && indexPaths[dataName]) {
+      aa = indexPaths[dataName][0];
+
+      if (1 === indexPaths[dataName].length) {
+        status = undefined === aa;
+      } else
+        /* BAM Track with two naming conventions */
+        {
+          var bb;
+          bb = indexPaths[dataName][1];
+
+          if (aa || bb) {
+            status = false;
+          } else {
+            status = true;
+          }
+        }
+    } else {
+      status = true;
+    }
+
+    return status;
+  }
+
+  var FileLoadWidget =
+  /*#__PURE__*/
+  function () {
+    function FileLoadWidget(config, fileLoadManager) {
+      _classCallCheck(this, FileLoadWidget);
+
+      var self = this,
+          obj;
+      this.config = config;
+
+      if (undefined === this.config.dataOnly) {
+        this.config.dataOnly = false;
+      }
+
+      this.config.dataTitle = config.dataTitle || 'Data';
+      this.config.indexTitle = config.indexTitle || 'Index';
+      this.$parent = config.$widgetParent;
+      this.fileLoadManager = fileLoadManager;
+      this.fileLoadManager.fileLoadWidget = this; // file load widget
+
+      this.$container = $('<div>', {
+        "class": 'igv-file-load-widget-container'
+      });
+      this.$parent.append(this.$container);
+
+      if ('localFile' === config.mode) {
+        // local data/index
+        obj = {
+          doURL: false,
+          dataTitle: config.dataTitle + ' file',
+          indexTitle: config.indexTitle + ' file',
+          dataOnly: this.config.dataOnly
+        };
+      } else {
+        // url data/index
+        obj = {
+          doURL: true,
+          dataTitle: config.dataTitle + ' URL',
+          indexTitle: config.indexTitle + ' URL',
+          dataOnly: this.config.dataOnly
+        };
+      }
+
+      this.createInputContainer(this.$container, obj); // error message container
+
+      this.$error_message = $("<div>", {
+        "class": "igv-flw-error-message-container"
+      });
+      this.$container.append(this.$error_message); // error message
+
+      this.$error_message.append($("<div>", {
+        "class": "igv-flw-error-message"
+      })); // error dismiss button
+
+      api.attachDialogCloseHandlerWithParent(this.$error_message, function () {
+        self.dismissErrorMessage();
+      });
+      this.dismissErrorMessage();
+    }
+
+    _createClass(FileLoadWidget, [{
+      key: "presentErrorMessage",
+      value: function presentErrorMessage(message) {
+        this.$error_message.find('.igv-flw-error-message').text(message);
+        this.$error_message.show();
+      }
+    }, {
+      key: "dismissErrorMessage",
+      value: function dismissErrorMessage() {
+        this.$error_message.hide();
+        this.$error_message.find('.igv-flw-error-message').text('');
+      }
+    }, {
+      key: "present",
+      value: function present() {
+        this.$container.show();
+      }
+    }, {
+      key: "dismiss",
+      value: function dismiss() {
+        this.dismissErrorMessage();
+        this.$container.find('input').val(undefined);
+        this.$container.find('.igv-flw-local-file-name-container').hide();
+        this.fileLoadManager.reset();
+      }
+    }, {
+      key: "customizeLayout",
+      value: function customizeLayout(customizer) {
+        customizer(this.$container);
+      }
+    }, {
+      key: "createInputContainer",
+      value: function createInputContainer($parent, config) {
+        var $container, $input_data_row, $input_index_row, $label; // container
+
+        $container = $("<div>", {
+          "class": "igv-flw-input-container"
+        });
+        $parent.append($container); // data
+
+        $input_data_row = $("<div>", {
+          "class": "igv-flw-input-row"
+        });
+        $container.append($input_data_row); // label
+
+        $label = $("<div>", {
+          "class": "igv-flw-input-label"
+        });
+        $input_data_row.append($label);
+        $label.text(config.dataTitle);
+
+        if (true === config.doURL) {
+          this.createURLContainer($input_data_row, 'igv-flw-data-url', false);
+        } else {
+          this.createLocalFileContainer($input_data_row, 'igv-flw-local-data-file', false);
+        }
+
+        if (true === config.dataOnly) {
+          return;
+        } // index
+
+
+        $input_index_row = $("<div>", {
+          "class": "igv-flw-input-row"
+        });
+        $container.append($input_index_row); // label
+
+        $label = $("<div>", {
+          "class": "igv-flw-input-label"
+        });
+        $input_index_row.append($label);
+        $label.text(config.indexTitle);
+
+        if (true === config.doURL) {
+          this.createURLContainer($input_index_row, 'igv-flw-index-url', true);
+        } else {
+          this.createLocalFileContainer($input_index_row, 'igv-flw-local-index-file', true);
+        }
+      }
+    }, {
+      key: "createURLContainer",
+      value: function createURLContainer($parent, id, isIndexFile) {
+        var self = this,
+            $input;
+        $input = $('<input>', {
+          type: 'text',
+          placeholder: true === isIndexFile ? 'Enter index URL' : 'Enter data URL'
+        });
+        $parent.append($input);
+
+        if (isIndexFile) {
+          this.$inputIndex = $input;
+        } else {
+          this.$inputData = $input;
+        } // $input.on('focus', function () {
+        //     self.dismissErrorMessage();
+        // });
+        //
+        // $input.on('change', function (e) {
+        //     self.dismissErrorMessage();
+        //     self.fileLoadManager.inputHandler($(this).val(), isIndexFile);
+        // });
+
+
+        $parent.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.dismissErrorMessage();
+        }).on('dragover dragenter', function (e) {
+          $(this).addClass('igv-flw-input-row-hover-state');
+        }).on('dragleave dragend drop', function (e) {
+          $(this).removeClass('igv-flw-input-row-hover-state');
+        }).on('drop', function (e) {
+          if (false === self.fileLoadManager.didDragDrop(e.originalEvent.dataTransfer)) {
+            self.fileLoadManager.dragDropHandler(e.originalEvent.dataTransfer, isIndexFile);
+            var value = isIndexFile ? self.fileLoadManager.indexName() : self.fileLoadManager.dataName();
+            $input.val(value);
+          }
+        });
+      }
+    }, {
+      key: "createLocalFileContainer",
+      value: function createLocalFileContainer($parent, id, isIndexFile) {
+        var self = this,
+            $file_chooser_container,
+            $label,
+            $input,
+            $file_name,
+            str;
+        $file_chooser_container = $("<div>", {
+          "class": "igv-flw-file-chooser-container"
+        });
+        $parent.append($file_chooser_container);
+        str = id + api.guid();
+        $label = $('<label>', {
+          "for": str
+        });
+        $file_chooser_container.append($label);
+        $label.text('Choose file');
+        $input = $('<input>', {
+          "class": "igv-flw-file-chooser-input",
+          id: str,
+          name: str,
+          type: 'file'
+        });
+        $file_chooser_container.append($input);
+        $file_chooser_container.hover(function () {
+          $label.removeClass('igv-flw-label-color');
+          $label.addClass('igv-flw-label-color-hover');
+        }, function () {
+          $label.removeClass('igv-flw-label-color-hover');
+          $label.addClass('igv-flw-label-color');
+        });
+        $file_name = $("<div>", {
+          "class": "igv-flw-local-file-name-container"
+        });
+        $parent.append($file_name);
+        $file_name.hide();
+        $input.on('change', function (e) {
+          self.dismissErrorMessage();
+          self.fileLoadManager.inputHandler(e.target.files[0], isIndexFile);
+          $file_name.text(e.target.files[0].name);
+          $file_name.attr('title', e.target.files[0].name);
+          $file_name.show();
+        });
+        $parent.on('drag dragstart dragend dragover dragenter dragleave drop', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.dismissErrorMessage();
+        }).on('dragover dragenter', function (e) {
+          $(this).addClass('igv-flw-input-row-hover-state');
+        }).on('dragleave dragend drop', function (e) {
+          $(this).removeClass('igv-flw-input-row-hover-state');
+        }).on('drop', function (e) {
+          var str;
+
+          if (true === self.fileLoadManager.didDragDrop(e.originalEvent.dataTransfer)) {
+            self.fileLoadManager.dragDropHandler(e.originalEvent.dataTransfer, isIndexFile);
+            str = isIndexFile ? self.fileLoadManager.indexName() : self.fileLoadManager.dataName();
+            $file_name.text(str);
+            $file_name.attr('title', str);
+            $file_name.show();
+          }
+        });
+      }
+    }]);
+
+    return FileLoadWidget;
+  }();
+
+  var FileLoadManager =
+  /*#__PURE__*/
+  function () {
+    function FileLoadManager() {
+      _classCallCheck(this, FileLoadManager);
+
+      this.dictionary = {};
+    }
+
+    _createClass(FileLoadManager, [{
+      key: "inputHandler",
+      value: function inputHandler(path, isIndexFile) {
+        this.ingestPath(path, isIndexFile);
+      }
+    }, {
+      key: "getPaths",
+      value: function getPaths() {
+        var paths = [];
+        this.ingestPaths();
+
+        if (this.dictionary) {
+          if (this.dictionary.data) {
+            paths.push(this.dictionary.data);
+          }
+
+          if (this.dictionary.index) {
+            paths.push(this.dictionary.index);
+          }
+        }
+
+        return paths;
+      }
+    }, {
+      key: "ingestPaths",
+      value: function ingestPaths() {
+        this.ingestPath(this.fileLoadWidget.$inputData.val(), false);
+
+        if (this.fileLoadWidget.$inputIndex) {
+          this.ingestPath(this.fileLoadWidget.$inputIndex.val(), true);
+        }
+      }
+    }, {
+      key: "ingestPath",
+      value: function ingestPath(path, isIndexFile) {
+        var key = true === isIndexFile ? 'index' : 'data';
+        this.dictionary[key] = path.trim();
+      }
+    }, {
+      key: "didDragDrop",
+      value: function didDragDrop(dataTransfer) {
+        var files;
+        files = dataTransfer.files;
+        return files && files.length > 0;
+      }
+    }, {
+      key: "dragDropHandler",
+      value: function dragDropHandler(dataTransfer, isIndexFile) {
+        var url, files;
+        url = dataTransfer.getData('text/uri-list');
+        files = dataTransfer.files;
+
+        if (files && files.length > 0) {
+          this.ingestPath(files[0], isIndexFile);
+        } else if (url && '' !== url) {
+          this.ingestPath(url, isIndexFile);
+        }
+      }
+    }, {
+      key: "indexName",
+      value: function indexName() {
+        return itemName(this.dictionary.index);
+      }
+    }, {
+      key: "dataName",
+      value: function dataName() {
+        return itemName(this.dictionary.data);
+      }
+    }, {
+      key: "reset",
+      value: function reset() {
+        this.dictionary = {};
+      }
+    }]);
+
+    return FileLoadManager;
+  }();
+
+  function itemName(item) {
+    return api.isFilePath(item) ? item.name : item;
+  }
+
+  var SessionController = function SessionController(_ref) {
+    var browser = _ref.browser,
+        $loadSessionModal = _ref.$loadSessionModal,
+        $saveButton = _ref.$saveButton,
+        $saveSessionModal = _ref.$saveSessionModal,
+        uberFileLoader = _ref.uberFileLoader;
+
+    _classCallCheck(this, SessionController);
+
+    var urlConfig = {
+      dataTitle: 'Load Session',
+      $widgetParent: $loadSessionModal.find('.modal-body'),
+      mode: 'url',
+      dataOnly: true
+    };
+    this.urlWidget = new FileLoadWidget(urlConfig, new FileLoadManager()); // Configure load session modal
+
+    configureModal(this.urlWidget, $loadSessionModal, function (fileLoadManager) {
+      uberFileLoader.ingestPaths(fileLoadManager.getPaths());
+      return true;
+    }); // Configure save session modal
+
+    configureSaveSessionModal(browser, $saveButton, $saveSessionModal);
+  };
+
+  var input_default_value = 'juicebox-session.json';
+
+  function configureSaveSessionModal(browser, $saveButton, $saveSessionModal) {
+    $saveButton.on('click', function (e) {
+      $saveSessionModal.modal('show');
+    });
+    var $input = $saveSessionModal.find('input');
+    $saveSessionModal.on('show.bs.modal', function (e) {
+      $input.val(input_default_value);
+    });
+    $saveSessionModal.on('hidden.bs.modal', function (e) {
+      $input.val(input_default_value);
+    });
+    var $ok = $saveSessionModal.find('.modal-footer button:nth-child(2)');
+
+    var okHandler = function okHandler() {
+      var extensions = new Set(['json', 'xml']);
+      var filename = $input.val();
+
+      if (undefined === filename || '' === filename) {
+        filename = $input.attr('placeholder');
+      } else if (false === extensions.has(getExtension$1(filename))) {
+        filename = filename + '.json';
+      }
+
+      $saveSessionModal.modal('hide');
+      var json = browser.toJSON();
+      var jsonString = JSON.stringify(json, null, '\t');
+      var data = URL.createObjectURL(new Blob([jsonString], {
+        type: "application/octet-stream"
+      }));
+      api.download(filename, data);
+    };
+
+    $ok.on('click', okHandler);
+    $input.on('keyup', function (e) {
+      if (13 === e.keyCode) {
+        okHandler();
+      }
+    }); // upper dismiss - x - button
+
+    var $dismiss = $saveSessionModal.find('.modal-header button:nth-child(1)');
+    $dismiss.on('click', function () {
+      $saveSessionModal.modal('hide');
+    }); // lower dismiss - close - button
+
+    $dismiss = $saveSessionModal.find('.modal-footer button:nth-child(1)');
+    $dismiss.on('click', function () {
+      $saveSessionModal.modal('hide');
+    });
+  }
+
   var lastGenomeId;
   var qrcode;
   var currentContactMapDropdownButtonID;
   var allBrowsers$2;
+  var sessionController;
+  var sessionMultipleFileLoadController;
 
   function init$3(_x, _x2) {
     return _init.apply(this, arguments);
@@ -79699,6 +81156,36 @@ Context.prototype = {
                     data: hic$1.HICBrowser.currentBrowser.genome.id
                   });
                 }
+
+                var $multipleFileLoadModal = $('#igv-app-multiple-file-load-modal'); // Multiple File Session Controller
+
+                var sessionMultipleFileLoadConfig = {
+                  browser: hic$1.HICBrowser.currentBrowser,
+                  $modal: $multipleFileLoadModal,
+                  modalTitle: 'Session File Error',
+                  $localFileInput: $('#igv-app-dropdown-local-session-file-input'),
+                  multipleFileSelection: false,
+                  $dropboxButton: $('#igv-app-dropdown-dropbox-session-file-button'),
+                  // $googleDriveButton: googleEnabled ? $igv_app_dropdown_google_drive_session_file_button : undefined,
+                  $googleDriveButton: undefined,
+                  configurationHandler: MultipleFileLoadController.sessionConfigurator,
+                  // jsonFileValidator: MultipleFileLoadController.sessionJSONValidator,
+                  jsonFileValidator: function jsonFileValidator(json) {
+                    return true;
+                  },
+                  pathValidator: undefined,
+                  fileLoadHandler: undefined
+                };
+                sessionMultipleFileLoadController = new MultipleFileLoadController(sessionMultipleFileLoadConfig); // Session Controller
+
+                var sessionConfig = {
+                  browser: hic$1.HICBrowser.currentBrowser,
+                  $loadSessionModal: $('#igv-app-session-from-url-modal'),
+                  $saveButton: $('#hic-save-session-button'),
+                  $saveSessionModal: $('#igv-app-session-save-modal'),
+                  uberFileLoader: sessionMultipleFileLoadController
+                };
+                sessionController = new SessionController(sessionConfig);
 
                 if (config.mapMenu) {
                   populatePulldown(config.mapMenu);

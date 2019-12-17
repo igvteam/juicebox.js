@@ -6,6 +6,24 @@
   justify-content: center;
   align-items: center; }
 
+.navbar a {
+  color: white;
+  text-decoration: none; }
+
+.igv-app-dropdown-item-cloud-storage {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+  height: 18px;
+  margin-top: 4px;
+  margin-bottom: 4px; }
+  .igv-app-dropdown-item-cloud-storage div:first-child {
+    margin-right: 4px; }
+  .igv-app-dropdown-item-cloud-storage div:last-child {
+    margin-left: 4px; }
+
 #hic-modal-button-container {
   display: flex;
   flex-flow: row;
