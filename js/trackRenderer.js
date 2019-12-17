@@ -5,8 +5,6 @@
 import { IGVUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
-
-import $ from "../vendor/jquery-3.3.1.slim.js";
 import  * as hic from './hicUtils.js';
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {

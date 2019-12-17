@@ -26,7 +26,6 @@
  */
 
 import { StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import $ from "../vendor/jquery-3.3.1.slim.js";
 
 const ResolutionSelector = function (browser, $parent) {
     var self = this;

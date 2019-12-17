@@ -29,7 +29,6 @@ import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import { EventBus, Alert, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import $ from "../vendor/jquery-3.3.1.slim.js"
 import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
 import LayoutController from './layoutController.js'

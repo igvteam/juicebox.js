@@ -24,7 +24,7 @@
 /**
  * @author Jim Robinson
  */
-import $ from "../vendor/jquery-3.3.1.slim.js"
+
 import ColorScale from './colorScale.js'
 import RatioColorScale from './ratioColorScale.js'
 import ScrollbarWidget from './scrollbarWidget.js'

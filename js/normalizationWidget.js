@@ -24,7 +24,6 @@
 /**
  * Created by dat on 3/21/17.
  */
-import $ from "../vendor/jquery-3.3.1.slim.js"
 
 var labels =
     {

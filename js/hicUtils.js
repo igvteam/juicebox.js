@@ -23,7 +23,6 @@
 
 import { EventBus, StringUtils, FileUtils, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from "../node_modules/igv/dist/igv.esm.js";
-import $ from "../vendor/jquery-3.3.1.slim.js"
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
