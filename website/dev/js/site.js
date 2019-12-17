@@ -30,18 +30,21 @@
 
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
-
+import igv from '../../../node_modules/igv/dist/igv.esm.js';
 import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
 import QRCode from './qrcode.js';
 import hic from '../../../js/api.js';
-import igv from '../../../node_modules/igv/dist/igv.esm.js';
+import MultipleFileLoadController from "../../../js/multipleFileLoadController.js";
+import SessionController from "../../../js/sessionController.js";
 
 let lastGenomeId;
 let qrcode;
 let currentContactMapDropdownButtonID;
 let allBrowsers;
-
+let sessionController;
+let sessionMultipleFileLoadController;
+let googleEnabled = false;
 async function init(container, config) {
 
     var genomeChangeListener,
@@ -49,7 +52,7 @@ async function init(container, config) {
         $hic_share_url_modal,
         $e;
 
-     allBrowsers = hic.allBrowsers;
+    allBrowsers = hic.allBrowsers;
 
     genomeChangeListener = {
 
@@ -103,6 +106,38 @@ async function init(container, config) {
             genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
         }
 
+        let $multipleFileLoadModal = $('#igv-app-multiple-file-load-modal');
+
+        // Multiple File Session Controller
+        const sessionMultipleFileLoadConfig =
+            {
+                browser: hic.HICBrowser.currentBrowser,
+                $modal: $multipleFileLoadModal,
+                modalTitle: 'Session File Error',
+                $localFileInput: $('#igv-app-dropdown-local-session-file-input'),
+                multipleFileSelection: false,
+                $dropboxButton: $('#igv-app-dropdown-dropbox-session-file-button'),
+                // $googleDriveButton: googleEnabled ? $igv_app_dropdown_google_drive_session_file_button : undefined,
+                $googleDriveButton: undefined,
+                configurationHandler: MultipleFileLoadController.sessionConfigurator,
+                jsonFileValidator: MultipleFileLoadController.sessionJSONValidator,
+                pathValidator: undefined,
+                fileLoadHandler: undefined
+            };
+
+        sessionMultipleFileLoadController = new MultipleFileLoadController(sessionMultipleFileLoadConfig);
+
+        // Session Controller
+        const sessionConfig =
+            {
+                browser: hic.HICBrowser.currentBrowser,
+                $loadSessionModal: $('#igv-app-session-from-url-modal'),
+                $saveButton: $('#hic-save-session-button'),
+                $saveSessionModal: $('#igv-app-session-save-modal'),
+                uberFileLoader: sessionMultipleFileLoadController
+            };
+
+        sessionController = new SessionController(sessionConfig);
 
         if (config.mapMenu) {
             populatePulldown(config.mapMenu);
