@@ -111,15 +111,16 @@ class MultipleFileLoadController {
             }
 
             // Handle Session file. There can only be ONE.
-            this.sessionHandler(jsons[ 0 ]);
-            // this.browser.loadSession({ filename, url });
+            if (true === this.jsonFileValidator(jsons[ 0 ])) {
 
+                this.sessionHandler(jsons[ 0 ]);
+                // this.browser.loadSession({ filename, url });
 
-            return;
+                return;
+            }
 
-
-
-
+            // TODO: Get this all sorted out. Also, update igv-widgets version as well.
+            //       Revisit how session files are handled.
             // if (true === this.jsonFileValidator(json)) {
             //     let path = jsonPaths.pop();
             //
