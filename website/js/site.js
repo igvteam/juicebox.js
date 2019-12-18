@@ -121,8 +121,7 @@ var juicebox = (function (site) {
                 if (url.length < 2048) {
                     return hic.shortenURL(url)
                 } else {
-                    igv.presentAlert("URL too long to shorten")
-                    return Promise.resolve(url)
+                    return igv.xhr.loadString("https://2et6uxfezb.execute-api.us-east-1.amazonaws.com/dev/tinyurl/" + encodeURIComponent(url));
                 }
             }
 
