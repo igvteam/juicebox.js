@@ -189,7 +189,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
     }
 
-//    igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
+   igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
 
 
     return colorPicker;
