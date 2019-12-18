@@ -30,7 +30,7 @@ const indexableFormats = new Set(["vcf", "bed", "gff", "gtf", "gff3", "bedgraph"
 
 class MultipleFileLoadController {
 
-    constructor ({ browser, $modal, modalTitle, $localFileInput, multipleFileSelection, $dropboxButton, $googleDriveButton, configurationHandler, jsonFileValidator, pathValidator, fileLoadHandler }) {
+    constructor ({ browser, $modal, modalTitle, $localFileInput, multipleFileSelection, $dropboxButton, $googleDriveButton, configurationHandler, jsonFileValidator, sessionHandler, pathValidator, fileLoadHandler }) {
 
         this.browser = browser;
 
@@ -49,6 +49,7 @@ class MultipleFileLoadController {
 
         this.configurationHandler = configurationHandler;
         this.jsonFileValidator = jsonFileValidator;
+        this.sessionHandler = sessionHandler;
 
         this.pathValidator = pathValidator;
         this.fileLoadHander = fileLoadHandler;
@@ -57,8 +58,7 @@ class MultipleFileLoadController {
 
     async ingestPaths(paths) {
 
-        let self = this,
-            dataPaths,
+        let dataPaths,
             indexPathCandidates,
             indexPaths,
             indexPathNameSet,
@@ -111,25 +111,38 @@ class MultipleFileLoadController {
             }
 
             // Handle Session file. There can only be ONE.
-            const json = jsons.pop();
-            if (true === this.jsonFileValidator(json)) {
-                let path = jsonPaths.pop();
+            this.sessionHandler(jsons[ 0 ]);
+            // this.browser.loadSession({ filename, url });
 
-                if (path.google_url) {
-                    this.browser.loadSession({ url:path.google_url, filename:path.name });
-                } else {
-                    let o = {};
-                    o.filename = getFilename(path);
-                    if (true === igv.isFilePath(path)) {
-                        o.file = path;
-                    } else {
-                        o.url = path;
-                    }
-                    this.browser.loadSession(o);
-                }
 
-                return;
-            }
+            return;
+
+
+
+
+            // if (true === this.jsonFileValidator(json)) {
+            //     let path = jsonPaths.pop();
+            //
+            //     if (path.google_url) {
+            //         // this.browser.loadSession({ url:path.google_url, filename:path.name });
+            //         this.sessionHandler({ url:path.google_url, filename:path.name })
+            //     } else {
+            //         const filename = getFilename(path);
+            //         if (true === igv.isFilePath(path)) {
+            //             const file = path;
+            //             this.sessionHandler({ filename, file });
+            //             // this.browser.loadSession({ filename, file });
+            //
+            //         } else {
+            //             const url = path;
+            //             this.sessionHandler({ filename, url })
+            //             // this.browser.loadSession({ filename, url });
+            //         }
+            //
+            //     }
+            //
+            //     return;
+            // }
 
             // non-JSON paths
             remainingPaths = paths.filter((path) => ('json' !== getExtension(path)) )
@@ -223,7 +236,7 @@ class MultipleFileLoadController {
             .reduce((accumulator, key) => {
 
                 if (false === dataPathIsMissingIndexPath(key, indexPaths) ) {
-                    accumulator.push( self.configurationHandler(key, dataPaths[key], indexPaths) )
+                    accumulator.push( this.configurationHandler(key, dataPaths[key], indexPaths) )
                 }
 
                 return accumulator;

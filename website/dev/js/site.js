@@ -122,6 +122,7 @@ async function init(container, config) {
                 configurationHandler: MultipleFileLoadController.sessionConfigurator,
                 // jsonFileValidator: MultipleFileLoadController.sessionJSONValidator,
                 jsonFileValidator: json => true,
+                sessionHandler: json => hic.loadSession(json),
                 pathValidator: undefined,
                 fileLoadHandler: undefined
             };

@@ -344,6 +344,10 @@ function decompressQueryParameter(enc) {
     return str;
 }
 
+function loadSession(json) {
+    console.log(json);
+}
+
 export {
     decompressQueryParameter,
     getCompressedDataString,
@@ -351,5 +355,6 @@ export {
     syncBrowsers,
     shortJuiceboxURL,
     toJSON,
-    getQueryString
+    getQueryString,
+    loadSession
 };
