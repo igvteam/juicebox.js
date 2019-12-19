@@ -303,7 +303,7 @@ const loadAnnotationSelector = async ($container, url, type) => {
     try {
         data = await igvxhr.loadString(url);
     } catch (e) {
-        console.log("Error loading track menu: " + url + "  " + error);
+        Alert.presentAlert(`Error loading track menu: ${ url } ${ e }`);
     }
 
     let lines = data ? StringUtils.splitLines(data) : [];

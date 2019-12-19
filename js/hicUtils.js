@@ -45,7 +45,7 @@ const defaultSize = {width: 640, height: 640}
  */
 const eventBus = new EventBus()
 
-const allBrowsers = []
+let allBrowsers = []
 
 igvReplacements(igv);
 
@@ -54,6 +54,13 @@ async function updateAllBrowsers() {
     for (let b of allBrowsers) {
         await b.update()
     }
+}
+
+function deleteAllBrowsers() {
+    for (let b of allBrowsers) {
+        b.$root.remove();
+    }
+    allBrowsers = [];
 }
 
 async function createBrowser(hic_container, config, callback) {
@@ -342,7 +349,6 @@ function setDefaults(config) {
     }
 }
 
-
 // mock igv browser objects for igv.js compatibility
 function createIGV($hic_container, hicBrowser) {
 
@@ -359,32 +365,8 @@ function createIGV($hic_container, hicBrowser) {
     igv.alertDialog = new igv.AlertDialog(hicBrowser.$root, hicBrowser);
 
 }
-
-
-// function decompressQueryParameter(enc) {
-//
-//     enc = enc.replace(/\./g, '+').replace(/_/g, '/').replace(/-/g, '=')
-//
-//     const compressedString = atob(enc);
-//     const compressedBytes = [];
-//     for (let i = 0; i < compressedString.length; i++) {
-//         compressedBytes.push(compressedString.charCodeAt(i));
-//     }
-//     const bytes = new Zlib.RawInflate(compressedBytes).decompress();
-//
-//     let str = ''
-//     for (let b of bytes) {
-//         str += String.fromCharCode(b)
-//     }
-//
-//     return str;
-// }
-
-//export default hic
-
-
 export {
-    defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteBrowserPanel,
+    defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteAllBrowsers, deleteBrowserPanel,
     areCompatible, isMobile, extractFilename, igvSupports,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     updateAllBrowsers, HICBrowser

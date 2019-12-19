@@ -23,7 +23,7 @@
 
 
 import { Alert, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import {allBrowsers, areCompatible, createBrowser} from "./hicUtils.js";
+import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "../website/dev/js/googleURL.js"
 import BitlyURL from "../website/dev/js/bitlyURL.js"
@@ -33,10 +33,13 @@ import {initGoogle} from "./google.js";
 import { Globals } from "./globals.js";
 
 const urlShorteners = [];
+let appContainer;
 
 async function initApp(container, config) {
 
     Alert.init(container);
+
+    appContainer = container;
 
     const { google } = config;
     const apiKey = google ? google.apiKey : undefined;
@@ -81,7 +84,13 @@ async function initApp(container, config) {
 
 }
 
+async function loadSession(json) {
+    return restoreSession(appContainer, json);
+}
+
 async function restoreSession(container, session) {
+
+    deleteAllBrowsers();
 
     if (session.hasOwnProperty("selectedGene")) {
         Globals.selectedGene = session.selectedGene;
@@ -227,14 +236,14 @@ function setURLShortener(shortenerConfigs) {
             } else if (shortener.provider === "bitly") {
                 return new BitlyURL(shortener);
             } else {
-                ac.presentAlert("Unknown url shortener provider: " + shortener.provider);
+                Alert.presentAlert("Unknown url shortener provider: " + shortener.provider);
             }
         } else {
             // Custom
             if (typeof shortener.shortenURL === "function") {
                 return shortener;
             } else {
-                ac.presentAlert("URL shortener object must define functions 'shortenURL'");
+                Alert.presentAlert("URL shortener object must define functions 'shortenURL'");
             }
         }
     }
@@ -274,8 +283,8 @@ function toJSON() {
             }
         }
     }
-    if (Globals.selectedGene) {
-        jsonOBJ.selectedGene = Globals.selectedGene;
+    if (igv.selectedGene) {
+        jsonOBJ.selectedGene = igv.selectedGene;
     }
     return jsonOBJ;
 }
@@ -325,7 +334,7 @@ function expandURL(url) {
         }
     }
 
-    Alert.presentAlert("No expanders for URL: " + url);
+    igv.Alert.presentAlert("No expanders for URL: " + url);
 
     return Promise.resolve(url);
 }
@@ -349,6 +358,8 @@ function decompressQueryParameter(enc) {
     return str;
 }
 
+
+
 export {
     decompressQueryParameter,
     getCompressedDataString,
@@ -356,5 +367,6 @@ export {
     syncBrowsers,
     shortJuiceboxURL,
     toJSON,
-    getQueryString
+    getQueryString,
+    loadSession
 };
