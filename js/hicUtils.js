@@ -47,7 +47,7 @@ const defaultSize = {width: 640, height: 640}
  */
 const eventBus = new EventBus()
 
-const allBrowsers = []
+let allBrowsers = []
 
 igvReplacements(igv);
 
@@ -56,6 +56,13 @@ async function updateAllBrowsers() {
     for (let b of allBrowsers) {
         await b.update()
     }
+}
+
+function deleteAllBrowsers() {
+    for (let b of allBrowsers) {
+        b.$root.remove();
+    }
+    allBrowsers = [];
 }
 
 async function createBrowser(hic_container, config, callback) {
@@ -80,10 +87,10 @@ async function createBrowser(hic_container, config, callback) {
         decodeQuery(query, config, uriDecode);
     }
 
-    if(igv.isString(config.state)) {
+    if (igv.isString(config.state)) {
         config.state = State.parse(config.state);
     }
-    if(igv.isString(config.colorScale)) {
+    if (igv.isString(config.colorScale)) {
         config.colorScale = ColorScale.parse(config.colorScale);
     }
 
@@ -309,7 +316,6 @@ function identityTransformWithContext(context) {
 }
 
 
-
 // Set default values for config properties
 function setDefaults(config) {
 
@@ -338,10 +344,9 @@ function setDefaults(config) {
 
     if (config.state) {
 
-        if(igv.isString(config.state)) {
+        if (igv.isString(config.state)) {
             config.state = State.parse(config.state);
-        }
-        else {
+        } else {
             // copy
             config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
                 config.state.y, config.state.pixelSize, config.state.normalization)
@@ -400,5 +405,5 @@ export {
     defaultPixelSize, eventBus, allBrowsers, apiKey, setApiKey, createBrowser, deleteBrowserPanel,
     areCompatible, isMobile, extractFilename, igvSupports,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
-    updateAllBrowsers, HICBrowser
+    updateAllBrowsers, deleteAllBrowsers, HICBrowser
 }

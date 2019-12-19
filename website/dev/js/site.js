@@ -132,7 +132,6 @@ async function init(container, config) {
         // Session Controller
         const sessionConfig =
             {
-                browser: hic.HICBrowser.currentBrowser,
                 $loadSessionModal: $('#igv-app-session-from-url-modal'),
                 $saveButton: $('#hic-save-session-button'),
                 $saveSessionModal: $('#igv-app-session-save-modal'),

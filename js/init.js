@@ -22,7 +22,7 @@
  */
 
 
-import {allBrowsers, areCompatible, createBrowser, setApiKey} from "./hicUtils.js";
+import {allBrowsers, areCompatible, createBrowser, setApiKey, deleteAllBrowsers} from "./hicUtils.js";
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "../website/dev/js/googleURL.js"
@@ -33,8 +33,11 @@ import {initGoogle} from "./google.js";
 
 
 const urlShorteners = [];
+let appContainer;
 
 async function initApp(container, config) {
+
+    appContainer = container;
 
     igv.Alert.init($(container));
 
@@ -73,10 +76,15 @@ async function initApp(container, config) {
         await createBrowsers(container, query);
     }
     syncBrowsers(allBrowsers);
+}
 
+async function loadSession(json) {
+    return restoreSession(appContainer, json);
 }
 
 async function restoreSession(container, session) {
+
+    deleteAllBrowsers();
 
     if (session.hasOwnProperty("selectedGene")) {
         igv.selectedGene = session.selectedGene;
@@ -344,9 +352,7 @@ function decompressQueryParameter(enc) {
     return str;
 }
 
-function loadSession(json) {
-    console.log(json);
-}
+
 
 export {
     decompressQueryParameter,

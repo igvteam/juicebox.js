@@ -25,10 +25,11 @@ import igv from '../node_modules/igv/dist/igv.esm.js';
 import FileLoadWidget from "./fileLoadWidget.js";
 import FileLoadManager from "./fileLoadManager.js";
 import {configureModal, getExtension } from "./utils.js";
+import {toJSON} from "./init.js"
 
 class SessionController {
 
-    constructor ({ browser, $loadSessionModal, $saveButton, $saveSessionModal, uberFileLoader }) {
+    constructor ({ $loadSessionModal, $saveButton, $saveSessionModal, uberFileLoader }) {
 
         let urlConfig =
             {
@@ -47,7 +48,7 @@ class SessionController {
         });
 
         // Configure save session modal
-        configureSaveSessionModal(browser, $saveButton, $saveSessionModal);
+        configureSaveSessionModal($saveButton, $saveSessionModal);
 
     }
 
@@ -57,7 +58,7 @@ class SessionController {
 
 const input_default_value = 'juicebox-session.json';
 
-function configureSaveSessionModal(browser, $saveButton, $saveSessionModal){
+function configureSaveSessionModal($saveButton, $saveSessionModal){
 
     $saveButton.on('click', (e) => {
         $saveSessionModal.modal('show');
@@ -91,7 +92,7 @@ function configureSaveSessionModal(browser, $saveButton, $saveSessionModal){
 
         $saveSessionModal.modal('hide');
 
-        const json = browser.toJSON();
+        const json = toJSON();
         const jsonString = JSON.stringify(json, null, '\t');
         const data = URL.createObjectURL(new Blob([ jsonString ], { type: "application/octet-stream" }));
 
