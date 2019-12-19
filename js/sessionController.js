@@ -21,6 +21,7 @@
  *
  */
 
+import igv from '../node_modules/igv/dist/igv.esm.js';
 import FileLoadWidget from "./fileLoadWidget.js";
 import FileLoadManager from "./fileLoadManager.js";
 import {configureModal, getExtension } from "./utils.js";
@@ -54,7 +55,7 @@ class SessionController {
 
 }
 
-const input_default_value = 'igv-app-session.json';
+const input_default_value = 'juicebox-session.json';
 
 function configureSaveSessionModal(browser, $saveButton, $saveSessionModal){
 

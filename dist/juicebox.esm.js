@@ -69561,6 +69561,10 @@ HICBrowser.prototype.clearSession = function () {
     this.setDisplayMode('A');
 };
 
+HICBrowser.prototype.loadSession = async function (session) {
+    await this.loadHicFile(session, true);
+};
+
 /**
  * Load a .hic file
  *
@@ -69568,6 +69572,7 @@ HICBrowser.prototype.clearSession = function () {
  *
  * @return a promise for a dataset
  * @param config
+ * @param noUpdates
  */
 HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
 

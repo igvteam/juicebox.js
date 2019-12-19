@@ -69543,6 +69543,32 @@ Context.prototype = {
     this.controlDataset = undefined;
     this.setDisplayMode('A');
   };
+
+  HICBrowser.prototype.loadSession =
+  /*#__PURE__*/
+  function () {
+    var _ref6 = _asyncToGenerator(
+    /*#__PURE__*/
+    regeneratorRuntime.mark(function _callee4(session) {
+      return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _context4.next = 2;
+              return this.loadHicFile(session, true);
+
+            case 2:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, _callee4, this);
+    }));
+
+    return function (_x5) {
+      return _ref6.apply(this, arguments);
+    };
+  }();
   /**
    * Load a .hic file
    *
@@ -69550,50 +69576,51 @@ Context.prototype = {
    *
    * @return a promise for a dataset
    * @param config
+   * @param noUpdates
    */
 
 
   HICBrowser.prototype.loadHicFile =
   /*#__PURE__*/
   function () {
-    var _ref6 = _asyncToGenerator(
+    var _ref7 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee4(config, noUpdates) {
+    regeneratorRuntime.mark(function _callee5(config, noUpdates) {
       var name, prefix, previousGenomeId, eventBus, url, key, nviResponse, nvi, dataset;
-      return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      return regeneratorRuntime.wrap(function _callee5$(_context5) {
         while (1) {
-          switch (_context4.prev = _context4.next) {
+          switch (_context5.prev = _context5.next) {
             case 0:
               if (config.url) {
-                _context4.next = 2;
+                _context5.next = 2;
                 break;
               }
 
-              return _context4.abrupt("return", undefined);
+              return _context5.abrupt("return", undefined);
 
             case 2:
               this.clearSession();
-              _context4.prev = 3;
+              _context5.prev = 3;
 
               if (!noUpdates) {
                 this.contactMatrixView.startSpinner();
                 this.$user_interaction_shield.show();
               }
 
-              _context4.next = 7;
+              _context5.next = 7;
               return extractName(config);
 
             case 7:
-              name = _context4.sent;
+              name = _context5.sent;
               prefix = this.controlDataset ? "A: " : "";
               this.$contactMaplabel.text(prefix + name);
               this.$contactMaplabel.attr('title', name);
               config.name = name;
-              _context4.next = 14;
+              _context5.next = 14;
               return loadDataset(config);
 
             case 14:
-              this.dataset = _context4.sent;
+              this.dataset = _context5.sent;
               this.dataset.name = name;
               previousGenomeId = this.genome ? this.genome.id : undefined;
               this.genome = new Genome$1(this.dataset.genomeId, this.dataset.chromosomes); // TODO -- this is not going to work with browsers on different assemblies on the same page.
@@ -69615,14 +69642,14 @@ Context.prototype = {
               }
 
             case 22:
-              _context4.prev = 22;
+              _context5.prev = 22;
 
               if (!noUpdates) {
                 this.$user_interaction_shield.hide();
                 this.stopSpinner();
               }
 
-              return _context4.finish(22);
+              return _context5.finish(22);
 
             case 25:
               // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
@@ -69630,28 +69657,28 @@ Context.prototype = {
               eventBus = this.eventBus; // If nvi is not supplied, try reading it from remote lambda service
 
               if (!(!config.nvi && typeof config.url === "string")) {
-                _context4.next = 37;
+                _context5.next = 37;
                 break;
               }
 
               url = new URL(config.url);
               key = encodeURIComponent(url.hostname + url.pathname);
-              _context4.next = 31;
+              _context5.next = 31;
               return fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key);
 
             case 31:
-              nviResponse = _context4.sent;
+              nviResponse = _context5.sent;
 
               if (!(nviResponse.status === 200)) {
-                _context4.next = 37;
+                _context5.next = 37;
                 break;
               }
 
-              _context4.next = 35;
+              _context5.next = 35;
               return nviResponse.text();
 
             case 35:
-              nvi = _context4.sent;
+              nvi = _context5.sent;
 
               if (nvi) {
                 config.nvi = nvi;
@@ -69659,16 +69686,16 @@ Context.prototype = {
 
             case 37:
               if (!config.nvi) {
-                _context4.next = 43;
+                _context5.next = 43;
                 break;
               }
 
-              _context4.next = 40;
+              _context5.next = 40;
               return this.dataset.getNormVectorIndex(config);
 
             case 40:
               eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
-              _context4.next = 45;
+              _context5.next = 45;
               break;
 
             case 43:
@@ -69681,14 +69708,14 @@ Context.prototype = {
 
             case 45:
             case "end":
-              return _context4.stop();
+              return _context5.stop();
           }
         }
-      }, _callee4, this, [[3,, 22, 25]]);
+      }, _callee5, this, [[3,, 22, 25]]);
     }));
 
-    return function (_x5, _x6) {
-      return _ref6.apply(this, arguments);
+    return function (_x6, _x7) {
+      return _ref7.apply(this, arguments);
     };
   }();
   /**
@@ -69704,33 +69731,33 @@ Context.prototype = {
   HICBrowser.prototype.loadHicControlFile =
   /*#__PURE__*/
   function () {
-    var _ref7 = _asyncToGenerator(
+    var _ref8 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee5(config, noUpdates) {
+    regeneratorRuntime.mark(function _callee6(config, noUpdates) {
       var name, controlDataset;
-      return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      return regeneratorRuntime.wrap(function _callee6$(_context6) {
         while (1) {
-          switch (_context5.prev = _context5.next) {
+          switch (_context6.prev = _context6.next) {
             case 0:
-              _context5.prev = 0;
+              _context6.prev = 0;
               this.$user_interaction_shield.show();
               this.contactMatrixView.startSpinner();
               this.controlUrl = config.url;
-              _context5.next = 6;
+              _context6.next = 6;
               return extractName(config);
 
             case 6:
-              name = _context5.sent;
+              name = _context6.sent;
               config.name = name;
-              _context5.next = 10;
+              _context6.next = 10;
               return loadDataset(config);
 
             case 10:
-              controlDataset = _context5.sent;
+              controlDataset = _context6.sent;
               controlDataset.name = name;
 
               if (!(!this.dataset || areCompatible(this.dataset, controlDataset))) {
-                _context5.next = 23;
+                _context6.next = 23;
                 break;
               }
 
@@ -69743,7 +69770,7 @@ Context.prototype = {
               this.$controlMaplabel.text("B: " + controlDataset.name);
               this.$controlMaplabel.attr('title', controlDataset.name); //For the control dataset, block until the norm vector index is loaded
 
-              _context5.next = 19;
+              _context6.next = 19;
               return controlDataset.getNormVectorIndex(config);
 
             case 19:
@@ -69753,28 +69780,28 @@ Context.prototype = {
                 this.update();
               }
 
-              _context5.next = 24;
+              _context6.next = 24;
               break;
 
             case 23:
               api.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
 
             case 24:
-              _context5.prev = 24;
+              _context6.prev = 24;
               this.$user_interaction_shield.hide();
               this.stopSpinner();
-              return _context5.finish(24);
+              return _context6.finish(24);
 
             case 28:
             case "end":
-              return _context5.stop();
+              return _context6.stop();
           }
         }
-      }, _callee5, this, [[0,, 24, 28]]);
+      }, _callee6, this, [[0,, 24, 28]]);
     }));
 
-    return function (_x7, _x8) {
-      return _ref7.apply(this, arguments);
+    return function (_x8, _x9) {
+      return _ref8.apply(this, arguments);
     };
   }();
   /**
@@ -69785,48 +69812,48 @@ Context.prototype = {
    */
 
 
-  function extractName(_x9) {
+  function extractName(_x10) {
     return _extractName.apply(this, arguments);
   }
 
   function _extractName() {
     _extractName = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee15(config) {
+    regeneratorRuntime.mark(function _callee16(config) {
       var json;
-      return regeneratorRuntime.wrap(function _callee15$(_context15) {
+      return regeneratorRuntime.wrap(function _callee16$(_context16) {
         while (1) {
-          switch (_context15.prev = _context15.next) {
+          switch (_context16.prev = _context16.next) {
             case 0:
               if (!(config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com"))) {
-                _context15.next = 7;
+                _context16.next = 7;
                 break;
               }
 
-              _context15.next = 3;
+              _context16.next = 3;
               return api.google.getDriveFileInfo(config.url);
 
             case 3:
-              json = _context15.sent;
-              return _context15.abrupt("return", json.name);
+              json = _context16.sent;
+              return _context16.abrupt("return", json.name);
 
             case 7:
               if (!(config.name === undefined)) {
-                _context15.next = 11;
+                _context16.next = 11;
                 break;
               }
 
-              return _context15.abrupt("return", extractFilename(config.url));
+              return _context16.abrupt("return", extractFilename(config.url));
 
             case 11:
-              return _context15.abrupt("return", config.name);
+              return _context16.abrupt("return", config.name);
 
             case 12:
             case "end":
-              return _context15.stop();
+              return _context16.stop();
           }
         }
-      }, _callee15);
+      }, _callee16);
     }));
     return _extractName.apply(this, arguments);
   }
@@ -69834,13 +69861,13 @@ Context.prototype = {
   HICBrowser.prototype.parseGotoInput =
   /*#__PURE__*/
   function () {
-    var _ref8 = _asyncToGenerator(
+    var _ref9 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee6(string) {
+    regeneratorRuntime.mark(function _callee7(string) {
       var self, loci, xLocus, yLocus, result;
-      return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      return regeneratorRuntime.wrap(function _callee7$(_context7) {
         while (1) {
-          switch (_context6.prev = _context6.next) {
+          switch (_context7.prev = _context7.next) {
             case 0:
               self = this, loci = string.split(' ');
 
@@ -69854,15 +69881,15 @@ Context.prototype = {
               }
 
               if (!(xLocus === undefined)) {
-                _context6.next = 9;
+                _context7.next = 9;
                 break;
               }
 
-              _context6.next = 5;
+              _context7.next = 5;
               return geneSearch(this.genome.id, loci[0].trim());
 
             case 5:
-              result = _context6.sent;
+              result = _context7.sent;
 
               if (result) {
                 api.selectedGene = loci[0].trim();
@@ -69874,7 +69901,7 @@ Context.prototype = {
                 alert('No feature found with name "' + loci[0] + '"');
               }
 
-              _context6.next = 10;
+              _context7.next = 10;
               break;
 
             case 9:
@@ -69886,14 +69913,14 @@ Context.prototype = {
 
             case 10:
             case "end":
-              return _context6.stop();
+              return _context7.stop();
           }
         }
-      }, _callee6, this);
+      }, _callee7, this);
     }));
 
-    return function (_x10) {
-      return _ref8.apply(this, arguments);
+    return function (_x11) {
+      return _ref9.apply(this, arguments);
     };
   }();
 
@@ -69956,28 +69983,28 @@ Context.prototype = {
   HICBrowser.prototype.pinchZoom =
   /*#__PURE__*/
   function () {
-    var _ref9 = _asyncToGenerator(
+    var _ref10 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee7(anchorPx, anchorPy, scaleFactor) {
+    regeneratorRuntime.mark(function _callee8(anchorPx, anchorPy, scaleFactor) {
       var bpResolutions, currentResolution, newResolution, newZoom, newPixelSize, zoomChanged, targetResolution, z, minPS, state, gx, gy;
-      return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      return regeneratorRuntime.wrap(function _callee8$(_context8) {
         while (1) {
-          switch (_context7.prev = _context7.next) {
+          switch (_context8.prev = _context8.next) {
             case 0:
               if (!(this.state.chr1 === 0)) {
-                _context7.next = 5;
+                _context8.next = 5;
                 break;
               }
 
-              _context7.next = 3;
+              _context8.next = 3;
               return this.zoomAndCenter(1, anchorPx, anchorPy);
 
             case 3:
-              _context7.next = 34;
+              _context8.next = 34;
               break;
 
             case 5:
-              _context7.prev = 5;
+              _context8.prev = 5;
               this.startSpinner();
               bpResolutions = this.dataset.bpResolutions;
               currentResolution = bpResolutions[this.state.zoom];
@@ -69996,28 +70023,28 @@ Context.prototype = {
                 newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
               }
 
-              _context7.next = 12;
+              _context8.next = 12;
               return minZoom.call(this, this.state.chr1, this.state.chr2);
 
             case 12:
-              z = _context7.sent;
+              z = _context8.sent;
 
               if (!(!this.resolutionLocked && scaleFactor < 1 && newZoom < z)) {
-                _context7.next = 17;
+                _context8.next = 17;
                 break;
               }
 
               // Zoom out to whole genome
               this.setChromosomes(0, 0);
-              _context7.next = 31;
+              _context8.next = 31;
               break;
 
             case 17:
-              _context7.next = 19;
+              _context8.next = 19;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom);
 
             case 19:
-              minPS = _context7.sent;
+              minPS = _context8.sent;
               state = this.state;
               newPixelSize = Math.max(newPixelSize, minPS); // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
 
@@ -70035,50 +70062,50 @@ Context.prototype = {
               }));
 
             case 31:
-              _context7.prev = 31;
+              _context8.prev = 31;
               this.stopSpinner();
-              return _context7.finish(31);
+              return _context8.finish(31);
 
             case 34:
             case "end":
-              return _context7.stop();
+              return _context8.stop();
           }
         }
-      }, _callee7, this, [[5,, 31, 34]]);
+      }, _callee8, this, [[5,, 31, 34]]);
     }));
 
-    return function (_x11, _x12, _x13) {
-      return _ref9.apply(this, arguments);
+    return function (_x12, _x13, _x14) {
+      return _ref10.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.wheelClickZoom =
   /*#__PURE__*/
   function () {
-    var _ref10 = _asyncToGenerator(
+    var _ref11 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee8(direction, centerPX, centerPY) {
+    regeneratorRuntime.mark(function _callee9(direction, centerPX, centerPY) {
       var z, newZoom;
-      return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      return regeneratorRuntime.wrap(function _callee9$(_context9) {
         while (1) {
-          switch (_context8.prev = _context8.next) {
+          switch (_context9.prev = _context9.next) {
             case 0:
               if (!(this.resolutionLocked || this.state.chr1 === 0)) {
-                _context8.next = 4;
+                _context9.next = 4;
                 break;
               }
 
               // Resolution locked OR whole genome view
               this.zoomAndCenter(direction, centerPX, centerPY);
-              _context8.next = 9;
+              _context9.next = 9;
               break;
 
             case 4:
-              _context8.next = 6;
+              _context9.next = 6;
               return minZoom.call(this, this.state.chr1, this.state.chr2);
 
             case 6:
-              z = _context8.sent;
+              z = _context9.sent;
               newZoom = this.state.zoom + direction;
 
               if (direction < 0 && newZoom < z) {
@@ -70089,14 +70116,14 @@ Context.prototype = {
 
             case 9:
             case "end":
-              return _context8.stop();
+              return _context9.stop();
           }
         }
-      }, _callee8, this);
+      }, _callee9, this);
     }));
 
-    return function (_x14, _x15, _x16) {
-      return _ref10.apply(this, arguments);
+    return function (_x15, _x16, _x17) {
+      return _ref11.apply(this, arguments);
     };
   }(); // Zoom in response to a double-click
 
@@ -70104,31 +70131,31 @@ Context.prototype = {
   HICBrowser.prototype.zoomAndCenter =
   /*#__PURE__*/
   function () {
-    var _ref11 = _asyncToGenerator(
+    var _ref12 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee9(direction, centerPX, centerPY) {
+    regeneratorRuntime.mark(function _callee10(direction, centerPX, centerPY) {
       var genomeCoordX, genomeCoordY, chrX, chrY, bpResolutions, viewDimensions, dx, dy, minPS, state, newPixelSize, shiftRatio;
-      return regeneratorRuntime.wrap(function _callee9$(_context9) {
+      return regeneratorRuntime.wrap(function _callee10$(_context10) {
         while (1) {
-          switch (_context9.prev = _context9.next) {
+          switch (_context10.prev = _context10.next) {
             case 0:
               if (this.dataset) {
-                _context9.next = 2;
+                _context10.next = 2;
                 break;
               }
 
-              return _context9.abrupt("return");
+              return _context10.abrupt("return");
 
             case 2:
               if (!(this.state.chr1 === 0 && direction > 0)) {
-                _context9.next = 7;
+                _context10.next = 7;
                 break;
               }
 
               // jump from whole genome to chromosome
               genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize, genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize, chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX), chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
               this.setChromosomes(chrX.index, chrY.index);
-              _context9.next = 28;
+              _context10.next = 28;
               break;
 
             case 7:
@@ -70140,15 +70167,15 @@ Context.prototype = {
               this.state.y += dy / this.state.pixelSize;
 
               if (!(this.resolutionLocked || direction > 0 && this.state.zoom === bpResolutions.length - 1 || direction < 0 && this.state.zoom === 0)) {
-                _context9.next = 27;
+                _context10.next = 27;
                 break;
               }
 
-              _context9.next = 16;
+              _context10.next = 16;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 16:
-              minPS = _context9.sent;
+              minPS = _context10.sent;
               state = this.state;
               newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
               shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
@@ -70160,7 +70187,7 @@ Context.prototype = {
                 state: state,
                 resolutionChanged: false
               }));
-              _context9.next = 28;
+              _context10.next = 28;
               break;
 
             case 27:
@@ -70168,29 +70195,29 @@ Context.prototype = {
 
             case 28:
             case "end":
-              return _context9.stop();
+              return _context10.stop();
           }
         }
-      }, _callee9, this);
+      }, _callee10, this);
     }));
 
-    return function (_x17, _x18, _x19) {
-      return _ref11.apply(this, arguments);
+    return function (_x18, _x19, _x20) {
+      return _ref12.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.setZoom =
   /*#__PURE__*/
   function () {
-    var _ref12 = _asyncToGenerator(
+    var _ref13 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee10(zoom, cpx, cpy) {
+    regeneratorRuntime.mark(function _callee11(zoom, cpx, cpy) {
       var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter, newYCenter, newPixelSize, zoomChanged, self, minPS, state;
-      return regeneratorRuntime.wrap(function _callee10$(_context10) {
+      return regeneratorRuntime.wrap(function _callee11$(_context11) {
         while (1) {
-          switch (_context10.prev = _context10.next) {
+          switch (_context11.prev = _context11.next) {
             case 0:
-              _context10.prev = 0;
+              _context11.prev = 0;
               // this.startSpinner()
               self = this; // Shift x,y to maintain center, if possible
 
@@ -70204,11 +70231,11 @@ Context.prototype = {
               newResolution = bpResolutions[zoom];
               newXCenter = xCenter * (currentResolution / newResolution);
               newYCenter = yCenter * (currentResolution / newResolution);
-              _context10.next = 12;
+              _context11.next = 12;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom);
 
             case 12:
-              minPS = _context10.sent;
+              minPS = _context11.sent;
               state = self.state;
               newPixelSize = Math.max(defaultPixelSize, minPS);
               zoomChanged = state.zoom !== zoom;
@@ -70217,7 +70244,7 @@ Context.prototype = {
               state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
               state.pixelSize = newPixelSize;
               self.clamp();
-              _context10.next = 23;
+              _context11.next = 23;
               return self.contactMatrixView.zoomIn();
 
             case 23:
@@ -70227,50 +70254,50 @@ Context.prototype = {
               }));
 
             case 24:
-              _context10.prev = 24;
-              return _context10.finish(24);
+              _context11.prev = 24;
+              return _context11.finish(24);
 
             case 26:
             case "end":
-              return _context10.stop();
+              return _context11.stop();
           }
         }
-      }, _callee10, this, [[0,, 24, 26]]);
+      }, _callee11, this, [[0,, 24, 26]]);
     }));
 
-    return function (_x20, _x21, _x22) {
-      return _ref12.apply(this, arguments);
+    return function (_x21, _x22, _x23) {
+      return _ref13.apply(this, arguments);
     };
   }();
 
   HICBrowser.prototype.setChromosomes =
   /*#__PURE__*/
   function () {
-    var _ref13 = _asyncToGenerator(
+    var _ref14 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee11(chr1, chr2) {
+    regeneratorRuntime.mark(function _callee12(chr1, chr2) {
       var z, minPS;
-      return regeneratorRuntime.wrap(function _callee11$(_context11) {
+      return regeneratorRuntime.wrap(function _callee12$(_context12) {
         while (1) {
-          switch (_context11.prev = _context11.next) {
+          switch (_context12.prev = _context12.next) {
             case 0:
-              _context11.prev = 0;
+              _context12.prev = 0;
               this.startSpinner();
               this.state.chr1 = Math.min(chr1, chr2);
               this.state.chr2 = Math.max(chr1, chr2);
               this.state.x = 0;
               this.state.y = 0;
-              _context11.next = 8;
+              _context12.next = 8;
               return minZoom.call(this, chr1, chr2);
 
             case 8:
-              z = _context11.sent;
+              z = _context12.sent;
               this.state.zoom = z;
-              _context11.next = 12;
+              _context12.next = 12;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 12:
-              minPS = _context11.sent;
+              minPS = _context12.sent;
               this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
               this.eventBus.post(HICEvent("LocusChange", {
                 state: this.state,
@@ -70278,20 +70305,20 @@ Context.prototype = {
               }));
 
             case 15:
-              _context11.prev = 15;
+              _context12.prev = 15;
               this.stopSpinner();
-              return _context11.finish(15);
+              return _context12.finish(15);
 
             case 18:
             case "end":
-              return _context11.stop();
+              return _context12.stop();
           }
         }
-      }, _callee11, this, [[0,, 15, 18]]);
+      }, _callee12, this, [[0,, 15, 18]]);
     }));
 
-    return function (_x23, _x24) {
-      return _ref13.apply(this, arguments);
+    return function (_x24, _x25) {
+      return _ref14.apply(this, arguments);
     };
   }();
 
@@ -70299,13 +70326,13 @@ Context.prototype = {
   /*#__PURE__*/
   _asyncToGenerator(
   /*#__PURE__*/
-  regeneratorRuntime.mark(function _callee12() {
+  regeneratorRuntime.mark(function _callee13() {
     var sync;
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
-            sync = function _ref15(trackRenderer, index) {
+            sync = function _ref16(trackRenderer, index) {
               trackRenderer.$viewport.css({
                 order: index
               });
@@ -70318,52 +70345,52 @@ Context.prototype = {
             });
             this.layoutController.xAxisRuler.update();
             this.layoutController.yAxisRuler.update();
-            _context12.next = 8;
+            _context13.next = 8;
             return this.update();
 
           case 8:
           case "end":
-            return _context12.stop();
+            return _context13.stop();
         }
       }
-    }, _callee12, this);
+    }, _callee13, this);
   }));
 
-  function minZoom(_x25, _x26) {
+  function minZoom(_x26, _x27) {
     return _minZoom.apply(this, arguments);
   }
 
   function _minZoom() {
     _minZoom = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee16(chr1, chr2) {
+    regeneratorRuntime.mark(function _callee17(chr1, chr2) {
       var viewDimensions, chr1Length, chr2Length, binSize, matrix;
-      return regeneratorRuntime.wrap(function _callee16$(_context16) {
+      return regeneratorRuntime.wrap(function _callee17$(_context17) {
         while (1) {
-          switch (_context16.prev = _context16.next) {
+          switch (_context17.prev = _context17.next) {
             case 0:
               viewDimensions = this.contactMatrixView.getViewDimensions();
               chr1Length = this.dataset.chromosomes[chr1].size;
               chr2Length = this.dataset.chromosomes[chr2].size;
               binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
-              _context16.next = 6;
+              _context17.next = 6;
               return this.dataset.getMatrix(chr1, chr2);
 
             case 6:
-              matrix = _context16.sent;
-              return _context16.abrupt("return", matrix.findZoomForResolution(binSize));
+              matrix = _context17.sent;
+              return _context17.abrupt("return", matrix.findZoomForResolution(binSize));
 
             case 8:
             case "end":
-              return _context16.stop();
+              return _context17.stop();
           }
         }
-      }, _callee16, this);
+      }, _callee17, this);
     }));
     return _minZoom.apply(this, arguments);
   }
 
-  function minPixelSize(_x27, _x28, _x29) {
+  function minPixelSize(_x28, _x29, _x30) {
     return _minPixelSize.apply(this, arguments);
   }
   /**
@@ -70375,32 +70402,32 @@ Context.prototype = {
   function _minPixelSize() {
     _minPixelSize = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee17(chr1, chr2, z) {
+    regeneratorRuntime.mark(function _callee18(chr1, chr2, z) {
       var viewDimensions, chr1Length, chr2Length, matrix, zd, binSize, nBins1, nBins2;
-      return regeneratorRuntime.wrap(function _callee17$(_context17) {
+      return regeneratorRuntime.wrap(function _callee18$(_context18) {
         while (1) {
-          switch (_context17.prev = _context17.next) {
+          switch (_context18.prev = _context18.next) {
             case 0:
               viewDimensions = this.contactMatrixView.getViewDimensions();
               chr1Length = this.dataset.chromosomes[chr1].size;
               chr2Length = this.dataset.chromosomes[chr2].size;
-              _context17.next = 5;
+              _context18.next = 5;
               return this.dataset.getMatrix(chr1, chr2);
 
             case 5:
-              matrix = _context17.sent;
+              matrix = _context18.sent;
               zd = matrix.getZoomDataByIndex(z, "BP");
               binSize = zd.zoom.binSize;
               nBins1 = chr1Length / binSize;
               nBins2 = chr2Length / binSize;
-              return _context17.abrupt("return", Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
+              return _context18.abrupt("return", Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
 
             case 11:
             case "end":
-              return _context17.stop();
+              return _context18.stop();
           }
         }
-      }, _callee17, this);
+      }, _callee18, this);
     }));
     return _minPixelSize.apply(this, arguments);
   }
@@ -70408,21 +70435,21 @@ Context.prototype = {
   HICBrowser.prototype.setState =
   /*#__PURE__*/
   function () {
-    var _ref16 = _asyncToGenerator(
+    var _ref17 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee13(state) {
+    regeneratorRuntime.mark(function _callee14(state) {
       var minPS;
-      return regeneratorRuntime.wrap(function _callee13$(_context13) {
+      return regeneratorRuntime.wrap(function _callee14$(_context14) {
         while (1) {
-          switch (_context13.prev = _context13.next) {
+          switch (_context14.prev = _context14.next) {
             case 0:
               this.state = state; // Possibly adjust pixel size
 
-              _context13.next = 3;
+              _context14.next = 3;
               return minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
 
             case 3:
-              minPS = _context13.sent;
+              minPS = _context14.sent;
               this.state.pixelSize = Math.max(state.pixelSize, minPS);
               this.eventBus.post(new HICEvent("LocusChange", {
                 state: this.state,
@@ -70431,14 +70458,14 @@ Context.prototype = {
 
             case 6:
             case "end":
-              return _context13.stop();
+              return _context14.stop();
           }
         }
-      }, _callee13, this);
+      }, _callee14, this);
     }));
 
-    return function (_x30) {
-      return _ref16.apply(this, arguments);
+    return function (_x31) {
+      return _ref17.apply(this, arguments);
     };
   }();
   /**
@@ -70619,12 +70646,12 @@ Context.prototype = {
   HICBrowser.prototype.update =
   /*#__PURE__*/
   function () {
-    var _ref17 = _asyncToGenerator(
+    var _ref18 = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee14(event) {
-      return regeneratorRuntime.wrap(function _callee14$(_context14) {
+    regeneratorRuntime.mark(function _callee15(event) {
+      return regeneratorRuntime.wrap(function _callee15$(_context15) {
         while (1) {
-          switch (_context14.prev = _context14.next) {
+          switch (_context15.prev = _context15.next) {
             case 0:
               try {
                 this.startSpinner();
@@ -70641,14 +70668,14 @@ Context.prototype = {
 
             case 1:
             case "end":
-              return _context14.stop();
+              return _context15.stop();
           }
         }
-      }, _callee14, this);
+      }, _callee15, this);
     }));
 
-    return function (_x31) {
-      return _ref17.apply(this, arguments);
+    return function (_x32) {
+      return _ref18.apply(this, arguments);
     };
   }();
 
@@ -70941,18 +70968,18 @@ Context.prototype = {
     }
   };
 
-  function loadDataset(_x32) {
+  function loadDataset(_x33) {
     return _loadDataset.apply(this, arguments);
   }
 
   function _loadDataset() {
     _loadDataset = _asyncToGenerator(
     /*#__PURE__*/
-    regeneratorRuntime.mark(function _callee18(config) {
+    regeneratorRuntime.mark(function _callee19(config) {
       var copy, straw, hicFile, dataset;
-      return regeneratorRuntime.wrap(function _callee18$(_context18) {
+      return regeneratorRuntime.wrap(function _callee19$(_context19) {
         while (1) {
-          switch (_context18.prev = _context18.next) {
+          switch (_context19.prev = _context19.next) {
             case 0:
               // If this is a local file, use the "blob" field for straw
               if (config.url instanceof File) {
@@ -70973,20 +71000,20 @@ Context.prototype = {
 
               straw = new Straw(config);
               hicFile = straw.hicFile;
-              _context18.next = 5;
+              _context19.next = 5;
               return hicFile.init();
 
             case 5:
               dataset = new Dataset(hicFile);
               dataset.url = config.url;
-              return _context18.abrupt("return", dataset);
+              return _context19.abrupt("return", dataset);
 
             case 8:
             case "end":
-              return _context18.stop();
+              return _context19.stop();
           }
         }
-      }, _callee18);
+      }, _callee19);
     }));
     return _loadDataset.apply(this, arguments);
   }

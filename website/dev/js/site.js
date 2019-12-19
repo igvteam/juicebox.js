@@ -120,7 +120,9 @@ async function init(container, config) {
                 // $googleDriveButton: googleEnabled ? $igv_app_dropdown_google_drive_session_file_button : undefined,
                 $googleDriveButton: undefined,
                 configurationHandler: MultipleFileLoadController.sessionConfigurator,
-                jsonFileValidator: MultipleFileLoadController.sessionJSONValidator,
+                // jsonFileValidator: MultipleFileLoadController.sessionJSONValidator,
+                jsonFileValidator: json => true,
+                sessionHandler: json => hic.loadSession(json),
                 pathValidator: undefined,
                 fileLoadHandler: undefined
             };
