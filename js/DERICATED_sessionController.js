@@ -22,78 +22,102 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import { Utils, FileUtils, FileLoadManager, FileLoadWidget } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import FileLoadWidget from "./fileLoadWidget.js";
+import FileLoadManager from "./fileLoadManager.js";
+import {configureModal, getExtension } from "./utils.js";
+import {toJSON} from "./init.js"
 
 class SessionController {
 
-    constructor ({ sessionLoadModal, sessionSaveModal, sessionFileLoad, JSONProvider }) {
+    constructor ({ $loadSessionModal, $saveButton, $saveSessionModal, uberFileLoader }) {
 
-        let config =
+        let urlConfig =
             {
-                widgetParent: sessionLoadModal.querySelector('.modal-body'),
                 dataTitle: 'Load Session',
-                indexTitle: undefined,
+                $widgetParent: $loadSessionModal.find('.modal-body'),
                 mode: 'url',
-                fileLoadManager: new FileLoadManager(),
-                dataOnly: true,
-                doURL: undefined
+                dataOnly: true
             };
 
-        this.urlWidget = new FileLoadWidget(config);
+        this.urlWidget = new FileLoadWidget(urlConfig, new FileLoadManager());
 
         // Configure load session modal
-        Utils.configureModal(this.urlWidget, sessionLoadModal, async fileLoadWidget => {
-            await sessionFileLoad.loadPaths(fileLoadWidget.retrievePaths());
+        configureModal(this.urlWidget, $loadSessionModal, (fileLoadManager) => {
+            uberFileLoader.ingestPaths(fileLoadManager.getPaths());
             return true;
         });
 
         // Configure save session modal
-        configureSaveSessionModal(JSONProvider, sessionSaveModal);
+        configureSaveSessionModal($saveButton, $saveSessionModal);
 
     }
 
+
+
 }
 
-const input_default_value = 'juiceboxjs-session.json';
+const input_default_value = 'juicebox-session.json';
 
-function configureSaveSessionModal(JSONProvider, sessionSaveModal){
+function configureSaveSessionModal($saveButton, $saveSessionModal){
 
-    let input = sessionSaveModal.querySelector('input');
+    $saveButton.on('click', (e) => {
+        $saveSessionModal.modal('show');
+    });
+
+    let $input = $saveSessionModal.find('input');
+
+    $saveSessionModal.on('show.bs.modal', (e) => {
+        $input.val(input_default_value);
+    });
+
+    $saveSessionModal.on('hidden.bs.modal', (e) => {
+        $input.val(input_default_value);
+    });
+
+    let $ok = $saveSessionModal.find('.modal-footer button:nth-child(2)');
 
     let okHandler = () => {
 
         const extensions = new Set(['json', 'xml']);
 
-        let filename = input.value;
+        let filename = $input.val();
 
         if (undefined === filename || '' === filename) {
-            filename = input.getAttribute('placeholder');
-        } else if (false === extensions.has( FileUtils.getExtension( filename ) )) {
+
+            filename = $input.attr('placeholder');
+        } else if (false === extensions.has( getExtension( filename ) )) {
+
             filename = filename + '.json';
         }
 
-        const json = JSONProvider();
+        $saveSessionModal.modal('hide');
+
+        const json = toJSON();
         const jsonString = JSON.stringify(json, null, '\t');
         const data = URL.createObjectURL(new Blob([ jsonString ], { type: "application/octet-stream" }));
 
         igv.download(filename, data);
 
-        $(sessionSaveModal).modal('hide');
     };
 
-    const $ok = $(sessionSaveModal).find('.modal-footer button:nth-child(2)');
     $ok.on('click', okHandler);
 
-    $(sessionSaveModal).on('show.bs.modal', (e) => {
-        input.value = input_default_value;
-    });
-
-    input.addEventListener('keyup', e => {
-
-        // enter key key-up
+    $input.on('keyup', (e) => {
         if (13 === e.keyCode) {
             okHandler();
         }
+    });
+
+    // upper dismiss - x - button
+    let $dismiss = $saveSessionModal.find('.modal-header button:nth-child(1)');
+    $dismiss.on('click', function () {
+        $saveSessionModal.modal('hide');
+    });
+
+    // lower dismiss - close - button
+    $dismiss = $saveSessionModal.find('.modal-footer button:nth-child(1)');
+    $dismiss.on('click', function () {
+        $saveSessionModal.modal('hide');
     });
 
 }

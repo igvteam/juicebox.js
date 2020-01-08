@@ -283,8 +283,8 @@ function toJSON() {
             }
         }
     }
-    if (igv.selectedGene) {
-        jsonOBJ.selectedGene = igv.selectedGene;
+    if (Globals.selectedGene) {
+        jsonOBJ.selectedGene = Globals.selectedGene;
     }
     return jsonOBJ;
 }

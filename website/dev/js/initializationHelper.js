@@ -1,13 +1,18 @@
-import { Alert, TrackUtils, StringUtils, igvxhr } from '../../../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert, TrackUtils, StringUtils, igvxhr, SessionFileLoad } from '../../../node_modules/igv-widgets/dist/igv-widgets.js';
 import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
 import hic from "../../../js/api.js";
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
+import SessionController from "../../../js/sessionController.js";
+import { toJSON } from "../../../js/init.js";
+
+let googleEnabled = false;
 
 let lastGenomeId = undefined;
 let qrcode = undefined;
 let currentContactMapDropdownButtonID = undefined;
+let sessionController;
 
 let $hic_share_url_modal;
 
@@ -55,6 +60,30 @@ const initializationHelper = async ($appContainer, config) => {
     if (hic.HICBrowser.currentBrowser && hic.HICBrowser.currentBrowser.genome) {
         await genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
     }
+
+
+
+    // session file load config
+    const sessionFileLoadConfig =
+        {
+            localFileInput: document.querySelector('#igv-app-dropdown-local-session-file-input'),
+            dropboxButton: document.querySelector('#igv-app-dropdown-dropbox-session-file-button'),
+            googleEnabled,
+            googleDriveButton: document.querySelector('#igv-app-dropdown-google-drive-session-file-button'),
+            loadHandler: config => hic.loadSession(config)
+        };
+
+    // Session Controller
+    const sessionControllerConfig =
+        {
+            sessionLoadModal: document.querySelector('#igv-app-session-from-url-modal'),
+            sessionSaveModal: document.querySelector('#igv-app-session-save-modal'),
+            sessionFileLoad: new SessionFileLoad(sessionFileLoadConfig),
+            JSONProvider: () => toJSON()
+        };
+    sessionController = new SessionController(sessionControllerConfig);
+
+
 
     if (config.mapMenu) {
         await populatePulldown(config.mapMenu);
