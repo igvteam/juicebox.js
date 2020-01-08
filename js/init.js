@@ -47,7 +47,7 @@ async function initApp(container, config) {
         setApiKey(apiKey);
     }
 
-    if(typeof gapi !== "undefined") {
+    if(typeof gapi !== "undefined" && config.google) {
         await initGoogle(config.google);
     }
 
