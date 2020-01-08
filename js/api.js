@@ -26,8 +26,10 @@ import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
 import {allBrowsers, createBrowser, eventBus} from './hicUtils.js';
 import {decompressQueryParameter, getCompressedDataString, initApp, shortJuiceboxURL, syncBrowsers, toJSON, loadSession} from "./init.js";
+import * as utils from './utils.js';
 
 export default {
     loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, eventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON, igv
+    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON,
+    utils, igv
 }

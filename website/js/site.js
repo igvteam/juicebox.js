@@ -30,14 +30,15 @@
 
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
-import igv from '../../../node_modules/igv/dist/igv.esm.js';
-import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
-import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
-import QRCode from './qrcode.js';
-import hic from '../../../js/api.js';
-import MultipleFileLoadController from "../../../js/multipleFileLoadController.js";
-import SessionController from "../../../js/sessionController.js";
 
+import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
+import QRCode from './qrcode.js';
+import MultipleFileLoadController from "./multipleFileLoadController.js";
+import SessionController from "./sessionController.js";
+import hic from '../../dist/juicebox.esm.js';//  '../../../js/api.js';
+
+const igv = hic.igv;
 let lastGenomeId;
 let qrcode;
 let currentContactMapDropdownButtonID;

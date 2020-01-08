@@ -1,4 +1,3 @@
-
-This folder contains the aidenlab.org/juicebox webpage.   
+Mockup site based on the "aidenlab" used for testing jb component. 
 
 

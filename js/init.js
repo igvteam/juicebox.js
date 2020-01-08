@@ -25,11 +25,12 @@
 import {allBrowsers, areCompatible, createBrowser, setApiKey, deleteAllBrowsers} from "./hicUtils.js";
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {extractQuery} from "./urlUtils.js"
-import GoogleURL from "../website/dev/js/googleURL.js"
-import BitlyURL from "../website/dev/js/bitlyURL.js"
-import TinyURL from "../website/dev/js/tinyURL.js"
+import GoogleURL from "./googleURL.js"
+import BitlyURL from "./bitlyURL.js"
+import TinyURL from "./tinyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
 import {initGoogle} from "./google.js";
+import $ from "../vendor/jquery-1.12.4.js";
 
 
 const urlShorteners = [];
@@ -46,7 +47,9 @@ async function initApp(container, config) {
         setApiKey(apiKey);
     }
 
-    await initGoogle(config.google);
+    if(typeof gapi !== "undefined") {
+        await initGoogle(config.google);
+    }
 
     if (config.urlShortener) {
         setURLShortener(config.urlShortener);

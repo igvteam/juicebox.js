@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="css/site.css">
 
     <!-- Juicebox CSS-->
-    <link rel="stylesheet" href="../../css/juicebox.css">
+    <link rel="stylesheet" href="../css/juicebox.css">
 
     <!-- Bootstrap 4 and Dependancies -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
@@ -56,7 +56,7 @@
 
 <nav class="navbar navbar-dark bg-dark fixed-top navbar-expand justify-content-between">
 
-    <a href="https://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
+    <a href="https://igv.org" class="navbar-brand" target="_blank">igv.org</a>
 
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#hic-navbar-content">
         <span class="navbar-toggler-icon"></span>
@@ -246,14 +246,7 @@
                 Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
                     href="https://igv.org" target="_blank">IGV</a> team, in collaboration with <a
                     href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a
-                    href="https://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged
-                <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
-                    Juicebox</a>.
-            </h5>
-            <br>
-            <h5>
-                If you use Juicebox in your research, please cite:
-            </h5>
+                    href="https://aidenlab.org" target="_blank">Aiden Lab</a>.  If you use Juicebox in your research, please cite:
             <br>
             <h5>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez
                 Lieberman Aiden.
@@ -265,28 +258,7 @@
 
 </div>
 
-<div id="footer-white" style="background:#414B5B;">
-    <div class="container">
-        <div class="row" align="center">
-            <div class="newsletter" style="width:60%;">
-                <div class="signup clearfix">
-                    <p style="text-align:center;">
-                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
-                    </p>
-                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
-                        <input type="text" name="email" class="form-control" placeholder="Your email address">
-                        <input type="submit" name="submit" value="Sign up">
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="row credits">
-            <div class="col-md-12">
-                Copyright © 2017. Aiden Lab
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Save Session -->
 <div id="igv-app-session-save-modal" class="modal fade igv-app-file-save-modal" tabindex="-1" role="dialog"
@@ -624,11 +596,60 @@
 <script type="module">
 
     import juicebox from './js/site.js';
-    import hic from '../../js/api.js';    // For testing
-    import config from './juiceboxConfig.js';
+    //import hic from '../../js/api.js';    // For testing
+    //import config from './juiceboxConfig.js';
+
+    const config = {
+        mapMenu: {
+            id: 'dataset_selector',
+            items: 'res/mapMenuData.txt'
+        },
+        trackMenu: {
+            id: 'annotation-selector',
+            items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_$GENOME_ID.txt'
+        },
+        trackMenu2D: {
+            id: 'annotation-2D-selector',
+            items: 'https://hicfiles.s3.amazonaws.com/internal/tracksMenu_2D.$GENOME_ID.txt'
+        },
+
+        // List of URL shorteners.  First in the list is the default and will be used for shortening URLs
+        // Others potentiall used for expanding short URLs.  At least 1 shortener is required for the
+        // "Share" button.
+        // NOTE: you must provide an API key (Google) or access token (Bitly) to use these services on your site
+        urlShortener: [
+            {
+                provider: 'tinyURL'
+            },
+            {
+                provider: "bitly",
+                apiKey: "76670dc60b519eaf9be4fc1c227b4f3e3b3a5e2",        // TODO -- replace with your Bitly access token
+                hostname: 'bit.ly'
+            },
+            {
+                provider: "google",
+                apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",        // TODO -- replace with your Google API Key.  Supports old google shortened URLs
+                hostname: "goo.gl"
+            }
+        ],
+
+        // Supply a Google client id to enable loading of private Google files.  Supply an API key to
+        // enable loading of public Google files without login.
+        google: {
+            clientId: "661332306814-8nt29308rppg325bkq372vli8nm3na14.apps.googleusercontent.com",  // TODO -- replace with your Google client ID (for oAuth)
+            apiKey: "AIzaSyDUUAUFpQEN4mumeMNIRWXSiTh5cPtUAD0",   // TODO -- replace with your Google API Key
+            scope:
+                [
+                    'https://www.googleapis.com/auth/devstorage.read_only',
+                    'https://www.googleapis.com/auth/userinfo.profile',
+                    'https://www.googleapis.com/auth/drive.readonly'
+                ]
+        }
+    }
+
     juicebox.init(document.getElementById('app-container'), config);
 
-    window.hic = hic;    // For testing from console
+    //window.hic = hic;    // For testing from console
 
 </script>
 </body>

@@ -24,7 +24,8 @@
  * THE SOFTWARE.
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
+import hic from '../../dist/juicebox.esm.js';//  '../../../js/api.js';
+const igv = hic.igv;
 
 class FileLoadManager {
 

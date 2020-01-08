@@ -21,8 +21,6 @@
  *
  */
 
-import hic from '../../../js/api.js';
-
 const GoogleURL = function (config) {
     this.api = "https://www.googleapis.com/urlshortener/v1/url";
     this.apiKey = config.apiKey;

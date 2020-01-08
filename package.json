@@ -17,12 +17,10 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "npx rollup --config && npm run build-umd && npm run build-es6 && npm run build-site && node scripts/copyArtifacts",
+    "build": "npx rollup --config && npm run build-umd && npm run build-es6 && node scripts/copyArtifacts",
     "build-umd": "node scripts/injectRuntime.js; npx terser --compress --mangle --source-map \"url='juicebox.min.js.map'\" --output  dist/juicebox.min.js -- dist/juicebox.js",
     "build-es6": "npx terser --module --compress --mangle --source-map \"url='juicebox.esm.min.js.map'\" --output  dist/juicebox.esm.min.js -- dist/juicebox.esm.js",
-    "build-site": "npx terser --compress --mangle --source-map \"url='site-bundle.map'\" --output  website/dist/js/site-bundle.min.js -- website/dist/js/site-bundle.js",
-    "prepack": "npm run build",
-    "http-server": "npx http-server ."
+    "prepack": "npm run build"
   },
   "keywords": [
     "conformation capture",
@@ -35,21 +33,21 @@
     "url": "git+https://github.com/igvteam/juicebox.js.git"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.0",
-    "@babel/plugin-transform-regenerator": "^7.4.5",
-    "@babel/plugin-transform-runtime": "^7.6.0",
-    "@babel/preset-env": "^7.6.0",
+    "@babel/core": "^7.7.7",
+    "@babel/plugin-transform-regenerator": "^7.7.5",
+    "@babel/plugin-transform-runtime": "^7.7.6",
+    "@babel/preset-env": "^7.7.7",
     "data-modal": "github:igvteam/data-modal",
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
     "hic-straw": "^0.9.8",
-    "igv": "^2.3.4",
-    "node-qunit-puppeteer": "^1.0.13",
-    "rollup": "^1.21.2",
+    "igv": "^2.3.5",
+    "node-qunit-puppeteer": "^1.0.16",
+    "rollup": "^1.29.0",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-strip": "^1.2.2",
     "serve-static": "^1.14.1",
-    "terser": "^4.3.1"
+    "terser": "^4.6.2"
   }
 }

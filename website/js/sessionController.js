@@ -21,11 +21,12 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
 import FileLoadWidget from "./fileLoadWidget.js";
 import FileLoadManager from "./fileLoadManager.js";
-import {configureModal, getExtension } from "./utils.js";
-import {toJSON} from "./init.js"
+import hic from '../../dist/juicebox.esm.js';//  '../../../js/api.js';
+
+const igv = hic.igv;
+const utils = hic.utils;
 
 class SessionController {
 
@@ -42,7 +43,7 @@ class SessionController {
         this.urlWidget = new FileLoadWidget(urlConfig, new FileLoadManager());
 
         // Configure load session modal
-        configureModal(this.urlWidget, $loadSessionModal, (fileLoadManager) => {
+        utils.configureModal(this.urlWidget, $loadSessionModal, (fileLoadManager) => {
             uberFileLoader.ingestPaths(fileLoadManager.getPaths());
             return true;
         });
@@ -85,14 +86,14 @@ function configureSaveSessionModal($saveButton, $saveSessionModal){
         if (undefined === filename || '' === filename) {
 
             filename = $input.attr('placeholder');
-        } else if (false === extensions.has( getExtension( filename ) )) {
+        } else if (false === extensions.has( utils.getExtension( filename ) )) {
 
             filename = filename + '.json';
         }
 
         $saveSessionModal.modal('hide');
 
-        const json = toJSON();
+        const json = hic.toJSON();
         const jsonString = JSON.stringify(json, null, '\t');
         const data = URL.createObjectURL(new Blob([ jsonString ], { type: "application/octet-stream" }));
 

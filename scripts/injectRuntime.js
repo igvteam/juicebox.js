@@ -6,13 +6,8 @@
 
 const fs = require('fs');
 
-
 let input = require.resolve('../tmp/juicebox.js');
 let out = './dist/juicebox.js';
-inject(input, out);
-
-input = require.resolve('../tmp/site-bundle.js');
-out = './website/dist/js/site-bundle.js';
 inject(input, out);
 
 function inject(input, out) {

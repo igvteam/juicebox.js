@@ -22,9 +22,11 @@
  */
 
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
 import * as app_google from './app-google.js';
-import { getExtension, getFilename, validIndexExtensionSet, isKnownFileExtension, isValidIndexExtension, getIndexObjectWithDataName } from './utils.js';
+import hic from '../../dist/juicebox.esm.js';//  '../../../js/api.js';
+
+const igv = hic.igv;
+const utils = hic.utils;
 
 const indexableFormats = new Set(["vcf", "bed", "gff", "gtf", "gff3", "bedgraph"]);
 
@@ -84,7 +86,7 @@ class MultipleFileLoadController {
         paths = tmp.concat(googleDrivePaths);
 
         // isolate JSON paths
-        let jsonPaths = paths.filter(path => 'json' === getExtension(path) );
+        let jsonPaths = paths.filter(path => 'json' === utils.getExtension(path) );
 
         let remainingPaths;
         if (jsonPaths.length > 0) {
@@ -93,7 +95,7 @@ class MultipleFileLoadController {
             jsonPromises = jsonPaths
                 .map((path) => {
                     let url = (path.google_url || path);
-                    return { name: getFilename(path), promise: igv.xhr.loadJson(url) }
+                    return { name: utils.getFilename(path), promise: igv.xhr.loadJson(url) }
                 });
 
             // validate JSON
@@ -128,7 +130,7 @@ class MultipleFileLoadController {
             //         // this.browser.loadSession({ url:path.google_url, filename:path.name });
             //         this.sessionHandler({ url:path.google_url, filename:path.name })
             //     } else {
-            //         const filename = getFilename(path);
+            //         const filename = utils.getFilename(path);
             //         if (true === igv.isFilePath(path)) {
             //             const file = path;
             //             this.sessionHandler({ filename, file });
@@ -146,7 +148,7 @@ class MultipleFileLoadController {
             // }
 
             // non-JSON paths
-            remainingPaths = paths.filter((path) => ('json' !== getExtension(path)) )
+            remainingPaths = paths.filter((path) => ('json' !== utils.getExtension(path)) )
 
         } else {
 
@@ -162,12 +164,12 @@ class MultipleFileLoadController {
 
 
         // Isolate XML paths. We only care about one and we assume it is a session path
-        let xmlPaths = remainingPaths.filter(path => 'xml' === getExtension(path) );
+        let xmlPaths = remainingPaths.filter(path => 'xml' === utils.getExtension(path) );
 
         if (xmlPaths.length > 0) {
             let path = xmlPaths.pop();
             let o = {};
-            o.filename = getFilename(path);
+            o.filename = utils.getFilename(path);
             if (true === igv.isFilePath(path)) {
                 o.file = path;
             } else {
@@ -179,7 +181,7 @@ class MultipleFileLoadController {
         }
 
         // validate data paths (non-JSON)
-        let extensions = remainingPaths.map(path => getExtension(path));
+        let extensions = remainingPaths.map(path => utils.getExtension(path));
 
         if (extensions.length > 0) {
             let results = extensions.map((extension) => this.pathValidator( extension ));
@@ -489,7 +491,7 @@ class MultipleFileLoadController {
         markup.push(header);
 
         for (let path of paths) {
-            let name = getFilename(path);
+            let name = utils.getFilename(path);
             markup.push('<div><span>' + name + '</span>' + '</div>');
         }
 
@@ -575,7 +577,7 @@ class MultipleFileLoadController {
     }
 
     static trackPathValidator(extension) {
-        return igv.knownFileExtensions.has(extension) || validIndexExtensionSet.has(extension);
+        return igv.knownFileExtensions.has(extension) || utils.validIndexExtensionSet.has(extension);
     }
 
 }
@@ -583,9 +585,9 @@ class MultipleFileLoadController {
 function createDataPathDictionary(paths) {
 
     return paths
-        .filter((path) => (isKnownFileExtension( getExtension(path) )))
+        .filter((path) => (utils.isKnownFileExtension( utils.getExtension(path) )))
         .reduce((accumulator, path) => {
-            accumulator[ getFilename(path) ] = (path.google_url || path);
+            accumulator[ utils.getFilename(path) ] = (path.google_url || path);
             return accumulator;
         }, {});
 
@@ -594,9 +596,9 @@ function createDataPathDictionary(paths) {
 function createIndexPathCandidateDictionary (paths) {
 
     return paths
-        .filter((path) => isValidIndexExtension( getExtension(path) ))
+        .filter((path) => utils.isValidIndexExtension( utils.getExtension(path) ))
         .reduce(function(accumulator, path) {
-            accumulator[ getFilename(path) ] = (path.google_url || path);
+            accumulator[ utils.getFilename(path) ] = (path.google_url || path);
             return accumulator;
         }, {});
 
@@ -631,7 +633,7 @@ function getIndexPaths(dataPathNames, indexPathCandidates) {
             let indexObject;
 
             // assess the data files need/requirement for index files
-            indexObject  = getIndexObjectWithDataName(dataPathName);
+            indexObject  = utils.getIndexObjectWithDataName(dataPathName);
 
             // identify the presence/absence of associated index files
             for (let p in indexObject) {

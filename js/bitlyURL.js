@@ -23,8 +23,6 @@
  *
  */
 
-import hic from '../../../js/api.js';
-
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
     this.apiKey = config.apiKey;
