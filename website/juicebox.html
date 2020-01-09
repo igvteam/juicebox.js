@@ -13,14 +13,13 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
     <!-- Bootstrap 4 CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css"/>
 
     <!-- Bootstrap-Select Plugin CSS -->
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.9/dist/css/bootstrap-select.min.css">
 
     <!-- site CSS -->
     <link rel="stylesheet" href="css/site.css">
@@ -30,8 +29,8 @@
 
     <!-- Bootstrap 4 and Dependancies -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
     <!-- Dropbox Chooser API-->
     <script src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs" data-app-key="8glijwyao9fq8we"></script>
@@ -56,7 +55,7 @@
 
 <nav class="navbar navbar-dark bg-dark fixed-top navbar-expand justify-content-between">
 
-    <a href="https://igv.org" class="navbar-brand" target="_blank">igv.org</a>
+    <a href="https://www.aidenlab.org/index.html" class="navbar-brand" target="_blank">Aiden Lab</a>
 
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#hic-navbar-content">
         <span class="navbar-toggler-icon"></span>
@@ -246,13 +245,21 @@
             <br>
             <h5>
                 <a href="https://github.com/igvteam/juicebox.js" target="_blank">Juicebox.js</a> is cloud-based
-                visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
+                visualization software for Hi-C data created by <a href="https://github.com/jrobinso" target="_blank">Jim
+                Robinson</a> and <a href="https://github.com/turner" target="_blank">Douglass Turner</a> of the <a
                     href="https://igv.org" target="_blank">IGV</a> team, in collaboration with <a
                     href="https://github.com/nchernia" target="_blank">Neva C. Durand</a> and the <a
-                    href="https://aidenlab.org" target="_blank">Aiden Lab</a>.  If you use Juicebox in your research, please cite:
+                    href="https://aidenlab.org" target="_blank">Aiden Lab</a>. You can also download a full-fledged
+                <a href="https://github.com/theaidenlab/juicebox/wiki/Download" target="_blank">desktop version of
+                    Juicebox</a>.
             </h5>
             <br>
-            <h5>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez Lieberman Aiden.
+            <h5>
+                If you use Juicebox in your research, please cite:
+            </h5>
+            <br>
+            <h5>James T. Robinson, Douglass Turner, Neva C. Durand, Helga Thorvaldsdóttir, Jill P. Mesirov, Erez
+                Lieberman Aiden.
                 <em>"Juicebox.js Provides a Cloud-Based Visualization System for Hi-C Data."</em> <i>Cell Systems</i>&nbsp;6(2),2018.
             </h5>
             <br>
@@ -261,7 +268,28 @@
 
 </div>
 
-
+<div id="footer-white" style="background:#414B5B;">
+    <div class="container">
+        <div class="row" align="center">
+            <div class="newsletter" style="width:60%;">
+                <div class="signup clearfix">
+                    <p style="text-align:center;">
+                        Sign up for our newsletter and we'll inform you of updates on projects in the lab.
+                    </p>
+                    <form role="form" id="newsletter-form" method="post" action="../newsletter.php">
+                        <input type="text" name="email" class="form-control" placeholder="Your email address">
+                        <input type="submit" name="submit" value="Sign up">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row credits">
+            <div class="col-md-12">
+                Copyright © 2017. Aiden Lab
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Save Session -->
 <div id="igv-app-session-save-modal" class="modal fade igv-app-file-save-modal">
@@ -455,9 +483,7 @@
             <div class="modal-body">
 
                 <div class="form-group">
-                    <select id="annotation-selector" name="annotation-selector" class="form-control"
-                            title="Select Annotation">
-
+                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
                     </select>
                 </div>
             </div>
@@ -482,9 +508,7 @@
             <div class="modal-body">
 
                 <div class="form-group">
-                    <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control"
-                            title="Select 2D Annotation">
-
+                    <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
                     </select>
                 </div>
             </div>
@@ -595,12 +619,17 @@
 </div>
 
 <script type="module">
-    import juicebox from './js/site.js';
+
+    import { init } from './js/site.js';
+    import hic from '../js/api.js';    // For testing
     import config from './juiceboxConfig.js';
-    juicebox.init(document.getElementById('app-container'), config);
+
+    (async () => {
+        await init(document.getElementById('app-container'), config);
+        window.hic = hic;    // For testing from console
+    })();
 
 </script>
 </body>
-
 
 </html>
