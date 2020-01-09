@@ -1,6 +1,3 @@
-@import "encode";
-@import "file-load-widget";
-
 //
 $hic-color-swatch-size: 24px;
 
@@ -216,28 +213,6 @@ $default-font-family: 'Open Sans', sans-serif;
   }
 }
 
-.igv-app-dropdown-item-cloud-storage {
-
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  align-items: center;
-
-  height: 18px;
-
-  margin-top: 4px;
-  margin-bottom: 4px;
-
-  div:first-child {
-    margin-right: 4px;
-  }
-  div:last-child {
-    margin-left: 4px;
-  }
-
-}
-
 #hic-modal-button-container {
 
   display: flex;
@@ -271,11 +246,6 @@ $default-font-family: 'Open Sans', sans-serif;
   color: $default-dark-color;
   width: 14px;
   height: 14px;
-}
-
-#hic-encode-modal > .modal-dialog {
-  max-width: 90% !important;
-  width: 90% !important;
 }
 
 .hic-root {
