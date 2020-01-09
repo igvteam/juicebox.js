@@ -42,7 +42,7 @@
     "hic-straw": "^0.9.8",
     "igv": "^2.3.5",
     "igv-ui": "github:igvteam/igv-ui",
-    "igv-widgets": "github:igvteam/igv-widgets#multiple_file_load_controller_bug_fix_and_updates",
+    "igv-widgets": "github:igvteam/igv-widgets",
     "node-qunit-puppeteer": "^1.0.16",
     "rollup": "^1.29.0",
     "rollup-plugin-babel": "^4.3.3",
