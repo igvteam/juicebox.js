@@ -1,11 +1,11 @@
-import { Alert, TrackUtils, StringUtils, igvxhr, SessionFileLoad } from '../../../node_modules/igv-widgets/dist/igv-widgets.js';
-import ModalTable from '../../../node_modules/data-modal/js/modalTable.js';
-import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSource.js';
-import hic from "../../../js/api.js";
+import { Alert, TrackUtils, StringUtils, igvxhr, SessionFileLoad } from '../../node_modules/igv-widgets/dist/igv-widgets.js';
+import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
+import hic from "../../js/api.js";
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
-import SessionController from "../../js/sessionController.js";
-import { toJSON } from "../../../js/init.js";
+import SessionController from "./sessionController.js";
+import { toJSON } from "../../js/init.js";
 
 let googleEnabled = false;
 
