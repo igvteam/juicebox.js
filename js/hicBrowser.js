@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { DOMUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import { EventBus, Alert, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
@@ -54,7 +54,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.showTrackLabelAndGutter = true;
 
-    this.id = `browser_${ DomUtils.guid() }`;
+    this.id = `browser_${ DOMUtils.guid() }`;
     this.trackRenderers = [];
     this.tracks2D = [];
     this.normVectorFiles = [];

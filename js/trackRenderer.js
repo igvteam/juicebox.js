@@ -3,7 +3,7 @@
  */
 
 import { IGVUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { DOMUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import  * as hic from './hicUtils.js';
 
@@ -15,7 +15,7 @@ const TrackRenderer = function (browser, size, $container, trackRenderPair, trac
 
     this.track = trackPair[axis];
 
-    this.id = `trackRender_${ DomUtils.guid() }`;
+    this.id = `trackRender_${ DOMUtils.guid() }`;
     this.axis = axis;
     this.initializationHelper($container, size, order);
 };
