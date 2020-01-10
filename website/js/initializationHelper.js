@@ -334,8 +334,13 @@ const loadAnnotationSelector = async ($container, url, type) => {
     try {
         data = await igvxhr.loadString(url);
     } catch (e) {
-        console.log('Error loading track menu: ${ url } ${ e }')
-        //Alert.presentAlert(`Error loading track menu: ${ url } ${ e }`);
+        if(e.message.includes("404")) {
+            //  This is an expected condition, not all assemblies have track menus
+            console.log(`No track menu found ${url}`);
+        } else {
+            console.log(`Error loading track menu: ${url} ${e}`)
+            Alert.presentAlert(`Error loading track menu: ${url} ${e}`);
+        }
     }
 
     let lines = data ? StringUtils.splitLines(data) : [];
