@@ -1,7 +1,7 @@
 /**
  * Created by dat on 5/7/17.
  */
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-3.3.1.slim.js"
 
 const igvReplacements = function (igv) {
 

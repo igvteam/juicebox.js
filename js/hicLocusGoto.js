@@ -26,7 +26,7 @@
  */
 
 import { StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import $ from "../vendor/jquery-1.12.4.js";
+import $ from "../vendor/jquery-3.3.1.slim.js";
 
 const LocusGoto = function (browser, $container) {
     var $label;

@@ -21,9 +21,9 @@
  *
  */
 
-import { EventBus, StringUtils, FileUtils, TrackUtils, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { EventBus, StringUtils, FileUtils, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import igv from "../node_modules/igv/dist/igv.esm.js";
-import $ from "../vendor/jquery-1.12.4.js"
+import $ from "../vendor/jquery-3.3.1.slim.js"
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
@@ -65,7 +65,7 @@ async function createBrowser(hic_container, config, callback) {
 
     const apiKey = config.apiKey;
     if (apiKey) {
-        google.setApiKey(apiKey);
+        GoogleUtils.setApiKey(apiKey);
     }
 
     let queryString = config.queryString || config.href;   // href for backward compatibility
