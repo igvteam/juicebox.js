@@ -32,7 +32,7 @@ import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
-import igv from '../node_modules/igv/dist/igv.esm.js';
+import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
@@ -929,7 +929,7 @@ function addMouseHandlers($viewport) {
 
             // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
             var direction = e.deltaY < 0 ? 1 : -1,
-                coords = igv.translateMouseCoordinates(e, $viewport),
+                coords = DomUtils.translateMouseCoordinates(e, $viewport),
                 x = coords.x,
                 y = coords.y;
             self.browser.wheelClickZoom(direction, x, y);

@@ -24,8 +24,9 @@
 /**
  * Created by dat on 3/3/17.
  */
+
+import { IGVColor, StringUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import $ from "../vendor/jquery-1.12.4.js";
-import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const ColorScaleWidget = function (browser, $container) {
 
@@ -76,7 +77,7 @@ const ColorScaleWidget = function (browser, $container) {
     this.$container.append(this.$high_colorscale_input);
     this.$high_colorscale_input.on('change', function (e) {
         var numeric;
-        numeric = igv.numberUnFormatter($(this).val());
+        numeric = StringUtils.numberUnFormatter($(this).val());
         if (isNaN(numeric)) {
             // do nothing
         } else {
@@ -108,7 +109,7 @@ const ColorScaleWidget = function (browser, $container) {
         colorScale = browser.getColorScale();
         threshold = colorScale.getThreshold() * scaleFactor;
         browser.setColorScaleThreshold(threshold);
-        self.$high_colorscale_input.val(igv.numberFormatter(colorScale.getThreshold()));
+        self.$high_colorscale_input.val(StringUtils.numberFormatter(colorScale.getThreshold()));
     }
 
 };
@@ -117,7 +118,7 @@ ColorScaleWidget.prototype.receiveEvent = function (event) {
 
     if ('ColorScale' === event.type) {
         this.$high_colorscale_input.val(event.data.threshold);
-        this.$plusButton.find('.fa-square').css({color: igv.Color.rgbColor(event.data.r, event.data.g, event.data.b)})
+        this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(event.data.r, event.data.g, event.data.b)})
     } else if ("DisplayMode" === event.type) {
 
         if ("AOB" === event.data || "BOA" === event.data) {
@@ -147,7 +148,7 @@ function getRGBString(browser, type, defaultColor) {
     colorScale = browser.getColorScale();
     if (colorScale) {
         comps = colorScale.getColorComponents(type);
-        return igv.Color.rgbColor(comps.r, comps.g, comps.b);
+        return IGVColor.rgbColor(comps.r, comps.g, comps.b);
     }
     else {
         return defaultColor;
@@ -164,7 +165,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
             closeHandler: closeHandler
         };
 
-    let colorPicker = new igv.GenericContainer(config);
+    let colorPicker = new GenericContainer(config);
 
     function colorHandler(hexString) {
         var rgbString,
@@ -172,7 +173,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
         $presentingButton.find('.fa-square').css({color: hexString});
 
-        rgbString = igv.Color.hexToRgb(hexString);
+        rgbString = IGVColor.hexToRgb(hexString);
 
         rgb = rgbString
             .split('(')
@@ -188,9 +189,6 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
         browser.repaintMatrix();
 
     }
-
-   igv.createColorSwatchSelector(colorPicker.$container, colorHandler, undefined);
-
 
     return colorPicker;
 }

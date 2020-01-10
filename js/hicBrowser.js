@@ -25,7 +25,10 @@
  * @author Jim Robinson
  */
 
-import { DOMUtils } from '../node_modules/igv-ui/src/index.js';
+import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { Alert, TrackUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import Straw from '../node_modules/hic-straw/src/straw.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
 import $ from "../vendor/jquery-1.12.4.js"
 import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
@@ -36,8 +39,6 @@ import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import Straw from '../node_modules/hic-straw/src/straw.js';
-import igv from '../node_modules/igv/dist/igv.esm.js';
 import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
 
@@ -54,7 +55,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.showTrackLabelAndGutter = true;
 
-    this.id = `browser_${ DOMUtils.guid() }`;
+    this.id = `browser_${ DomUtils.guid() }`;
     this.trackRenderers = [];
     this.tracks2D = [];
     this.normVectorFiles = [];
@@ -366,7 +367,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     .then(function (json) {
                         // Temporarily switch URL to infer tipes
                         config.url = json.originalFilename;
-                        igv.inferTrackTypes(config);
+                        TrackUtils.inferTrackTypes(config);
                         if (config.name === undefined) {
                             config.name = json.originalFilename;
                         }
@@ -375,7 +376,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     })
                 );
             } else {
-                igv.inferTrackTypes(config);
+                TrackUtils.inferTrackTypes(config);
                 if (!config.name) {
                     config.name = hic.extractFilename(config.url);
                 }
@@ -597,7 +598,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
                 this.update();
             }
         } else {
-            igv.Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
+            Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
         }
     } finally {
         this.$user_interaction_shield.hide();
@@ -1517,7 +1518,7 @@ function presentError(prefix, error) {
     if (httpMessages.hasOwnProperty(msg)) {
         msg = httpMessages[msg];
     }
-    igv.Alert.presentAlert(prefix + ": " + msg);
+    Alert.presentAlert(prefix + ": " + msg);
 
 };
 
