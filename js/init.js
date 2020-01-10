@@ -38,7 +38,8 @@ async function initApp(container, config) {
 
     Alert.init(container);
 
-    const apiKey = config.google ? config.google.apiKey : undefined;
+    const { google } = config;
+    const apiKey = google ? google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
         GoogleUtils.setApiKey(apiKey);
     }
@@ -47,15 +48,17 @@ async function initApp(container, config) {
         await initGoogle(config.google);
     }
 
-    if (config.urlShortener) {
-        setURLShortener(config.urlShortener);
+    const { urlShortener } = config;
+    if (urlShortener) {
+        setURLShortener(urlShortener);
     }
 
     let query = {};
 
-    config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
+    let { queryParametersSupported } = config;
+    queryParametersSupported = queryParametersSupported || true;
 
-    if (false === config.queryParametersSupported) {
+    if (false === queryParametersSupported) {
         // ignore window.location.href params
     } else {
         query = extractQuery(window.location.href);
