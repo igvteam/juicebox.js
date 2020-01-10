@@ -22,7 +22,7 @@
  */
 import State from './hicState.js';
 import ColorScale from "./colorScale.js"
-import igv from "../node_modules/igv/dist/igv.esm.js";
+import { Globals } from "./globals.js";
 
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
@@ -113,7 +113,7 @@ function decodeQuery(query, config, uriDecode) {
     }
 
     if (selectedGene) {
-        igv.selectedGene = selectedGene;
+        Globals.selectedGene = selectedGene;
     }
 
     if (captionText) {
@@ -137,7 +137,7 @@ function decodeQuery(query, config, uriDecode) {
     if (controlNvi) {
         config.controlNvi = paramDecode(controlNvi, uriDecode);
     }
-    
+
     function destringifyTracksV0(tracks) {
 
         const trackStringList = tracks.split("|||");

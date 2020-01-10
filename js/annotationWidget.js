@@ -21,8 +21,7 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
-import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert, WidgetUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import { makeDraggable } from '../node_modules/igv-ui/dist/igv-ui.js';
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
@@ -240,7 +239,7 @@ function annotationPanelRow($container, track) {
 
     $colorpickerContainer.hide();
 
-    igv.createColorSwatchSelector($colorpickerContainer, function (color) {
+    WidgetUtils.createColorSwatchSelector($colorpickerContainer, function (color) {
         var $swatch;
 
         $swatch = $row.find('.fa-square');

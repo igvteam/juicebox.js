@@ -26,8 +26,7 @@
  * @author Jim Robinson
  */
 
-import { igvxhr } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import { DomUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { igvxhr, StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 const geneSearch = function (genomeId, featureName) {
 
@@ -57,7 +56,7 @@ const geneSearch = function (genomeId, featureName) {
 
 function parseSearchResults(data) {
 
-    var lines = DomUtils.splitLines(data),
+    var lines = StringUtils.splitLines(data),
         linesTrimmed = [],
         results = [];
 
