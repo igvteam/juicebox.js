@@ -24,7 +24,6 @@
 /**
  * Created by dat on 3/22/17.
  */
-import $ from "../vendor/jquery-3.3.1.slim.js"
 
 const ChromosomeSelectorWidget = function (browser, $parent) {
 

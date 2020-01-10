@@ -1,7 +1,6 @@
 /**
  * Created by dat on 4/4/17.
  */
-import $ from "../vendor/jquery-3.3.1.slim.js"
 import HICBrowser from './hicBrowser.js'
 import ContactMatrixView from './contactMatrixView.js'
 import ChromosomeSelectorWidget from './chromosomeSelectorWidget.js'
