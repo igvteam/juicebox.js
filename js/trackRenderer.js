@@ -1,8 +1,9 @@
 /**
  * Created by dat on 4/5/17.
  */
+
+import { DOMUtils } from '../node_modules/igv-ui/src/index.js';
 import $ from "../vendor/jquery-1.12.4.js";
-import _ from "../vendor/underscore.js";
 import  * as hic from './hicUtils.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
@@ -14,7 +15,7 @@ const TrackRenderer = function (browser, size, $container, trackRenderPair, trac
 
     this.track = trackPair[axis];
 
-    this.id = _.uniqueId('trackRenderer_');
+    this.id = `trackRender_${ DOMUtils.guid() }`;
     this.axis = axis;
     this.initializationHelper($container, size, order);
 };

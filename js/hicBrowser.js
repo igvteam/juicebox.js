@@ -25,8 +25,8 @@
  * @author Jim Robinson
  */
 
+import { DOMUtils } from '../node_modules/igv-ui/src/index.js';
 import $ from "../vendor/jquery-1.12.4.js"
-import _ from "../vendor/underscore.js"
 import * as hic from './hicUtils.js'
 import Track2D from './track2D.js'
 import EventBus from './eventBus.js'
@@ -54,7 +54,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.showTrackLabelAndGutter = true;
 
-    this.id = _.uniqueId('browser_');
+    this.id = `browser_${ DOMUtils.guid() }`;
     this.trackRenderers = [];
     this.tracks2D = [];
     this.normVectorFiles = [];
@@ -405,22 +405,23 @@ HICBrowser.prototype.loadNormalizationFile = function (url) {
 
             Object.assign(self.dataset.normVectorCache, normVectors);
 
-            normVectors["types"].forEach(function (type) {
+            for (let type of normVectors['types']) {
 
                 if (!self.dataset.normalizationTypes) {
                     self.dataset.normalizationTypes = [];
                 }
-                if (_.contains(self.dataset.normalizationTypes, type) === false) {
+                if (!self.dataset.normalizationTypes.includes(type)) {
                     self.dataset.normalizationTypes.push(type);
                 }
 
                 self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
-            });
+
+            }
 
             return normVectors;
         })
 
-}
+};
 
 
 HICBrowser.prototype.renderTracks = function () {
@@ -706,7 +707,7 @@ HICBrowser.prototype.parseLocusString = function (locus) {
     parts = locus.trim().split(':');
 
 
-    chromosome = this.genome.getChromosome(_.first(parts).toLowerCase());
+    chromosome = this.genome.getChromosome(parts[ 0 ].toLowerCase());
 
     if (!chromosome) {
         return undefined;

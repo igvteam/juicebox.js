@@ -28,7 +28,6 @@ import State from './hicState.js'
 import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
 import igvReplacements from "./igvReplacements.js"
-import _ from "../vendor/underscore.js"
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import igv from "../node_modules/igv/dist/igv.esm.js";
 
@@ -223,7 +222,7 @@ function deleteBrowserPanel(browser) {
         HICBrowser.setCurrentBrowser(undefined);
     }
 
-    allBrowsers.splice(_.indexOf(allBrowsers, browser), 1);
+    allBrowsers.splice(allBrowsers.indexOf(browser), 1);
     browser.$root.remove();
     browser = undefined;
 
