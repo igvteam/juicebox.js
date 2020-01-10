@@ -1,5 +1,4 @@
-import igv from "../node_modules/igv/dist/igv.esm.js";
-import { Alert, oauth } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert, oauth, google } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 
 class GoogleRemoteFile {
 
@@ -26,8 +25,8 @@ class GoogleRemoteFile {
             headers['Authorization'] = `Bearer ${token}`
         }
 
-        if (igv.google.apiKey) {
-            url = addParameter(url, "key", igv.google.apiKey)
+        if (google.apiKey) {
+            url = addParameter(url, "key", google.apiKey)
         }
 
         const response = await fetch(url, {
