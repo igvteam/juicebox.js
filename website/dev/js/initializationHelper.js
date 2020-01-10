@@ -70,7 +70,9 @@ const initializationHelper = async ($appContainer, config) => {
             dropboxButton: document.querySelector('#igv-app-dropdown-dropbox-session-file-button'),
             googleEnabled,
             googleDriveButton: document.querySelector('#igv-app-dropdown-google-drive-session-file-button'),
-            loadHandler: config => hic.loadSession(config)
+            loadHandler: config => {
+                hic.loadSession(config)
+            }
         };
 
     // Session Controller
