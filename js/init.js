@@ -25,9 +25,9 @@
 import { Alert, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
-import GoogleURL from "../website/dev/js/googleURL.js"
-import BitlyURL from "../website/dev/js/bitlyURL.js"
-import TinyURL from "../website/dev/js/tinyURL.js"
+import GoogleURL from "./googleURL.js"
+import BitlyURL from "./bitlyURL.js"
+import TinyURL from "./tinyURL.js"
 import Zlib from "../vendor/zlib_and_gzip.js"
 import {initGoogle} from "./google.js";
 import { Globals } from "./globals.js";

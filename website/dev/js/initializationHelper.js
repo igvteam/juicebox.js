@@ -4,7 +4,7 @@ import EncodeDataSource from '../../../node_modules/data-modal/js/encodeDataSour
 import hic from "../../../js/api.js";
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
-import SessionController from "../../../js/sessionController.js";
+import SessionController from "../../js/sessionController.js";
 import { toJSON } from "../../../js/init.js";
 
 let googleEnabled = false;
