@@ -1646,23 +1646,3 @@ div[id$="content-container"] {
   -ms-user-select: none;
   user-select: none;
 }
-
-// remove modal backdrop scrim
-.modal-backdrop {
-  background-color: transparent;
-}
-
-.hidden-text {
-  color: transparent;
-}
-
-.site-widget {
-  float: left;
-  margin-left: 4px;
-  margin-right: 32px;
-
-  ul {
-    z-index: 2048;
-  }
-
-}
