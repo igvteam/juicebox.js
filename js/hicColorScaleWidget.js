@@ -27,6 +27,7 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
 import { GenericContainer } from '../node_modules/igv-ui/src/index.js'
+import {UIUtils} from "../node_modules/igv-ui/src/index";
 
 const ColorScaleWidget = function (browser, $container) {
 
@@ -164,7 +165,7 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
             closeHandler: closeHandler
         };
 
-    let colorPicker = new GenericContainer(config);
+    let genericContainer = new GenericContainer(config);
 
     function colorHandler(hexString) {
         var rgbString,
@@ -189,7 +190,9 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
     }
 
-    return colorPicker;
+    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler);
+
+    return genericContainer;
 }
 
 function colorSwatch(rgbString, doPlusOrMinusOrUndefined) {
