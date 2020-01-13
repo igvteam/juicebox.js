@@ -238,7 +238,7 @@ function annotationPanelRow($container, track) {
 
     $colorpickerContainer.hide();
 
-    UIUtils.createColorSwatchSelector($colorpickerContainer, function (color) {
+    UIUtils.createColorSwatchSelector($colorpickerContainer.get(0), function (color) {
         var $swatch;
 
         $swatch = $row.find('.fa-square');
