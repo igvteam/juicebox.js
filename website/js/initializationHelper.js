@@ -1,4 +1,6 @@
-import { Alert, TrackUtils, StringUtils, igvxhr, SessionFileLoad } from '../../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert, } from '../../node_modules/igv-ui/src/index.js'
+import { TrackUtils, StringUtils, } from '../../node_modules/igv-utils/src/index.js'
+import { SessionFileLoad } from '../../node_modules/igv-widgets/dist/igv-widgets.js';
 import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
 import hic from "../../js/api.js";
@@ -6,6 +8,7 @@ import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
 import SessionController from "./sessionController.js";
 import { toJSON } from "../../js/init.js";
+import igv from '../../node_modules/igv/dist/igv.esm.js';
 
 let googleEnabled = false;
 
@@ -72,7 +75,9 @@ const initializationHelper = async ($appContainer, config) => {
             googleDriveButton: document.querySelector('#igv-app-dropdown-google-drive-session-file-button'),
             loadHandler: config => {
                 hic.loadSession(config)
-            }
+            },
+            igvxhr: igv.xhr,
+            oauth: igv.oauth
         };
 
     // Session Controller
@@ -332,7 +337,7 @@ const loadAnnotationSelector = async ($container, url, type) => {
     let data = undefined;
 
     try {
-        data = await igvxhr.loadString(url);
+        data = await igv.xhr.loadString(url);
     } catch (e) {
         if(e.message.includes("404")) {
             //  This is an expected condition, not all assemblies have track menus
@@ -469,7 +474,7 @@ const populatePulldown = async menu => {
 
     let data = undefined;
     try {
-        data = await igvxhr.loadString(items)
+        data = await igv.xhr.loadString(items)
     } catch (e) {
         console.error(e);
     }

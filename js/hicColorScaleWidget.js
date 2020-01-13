@@ -25,7 +25,8 @@
  * Created by dat on 3/3/17.
  */
 
-import { IGVColor, StringUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
+import { GenericContainer } from '../node_modules/igv-ui/src/index.js'
 
 const ColorScaleWidget = function (browser, $container) {
 
@@ -46,10 +47,10 @@ const ColorScaleWidget = function (browser, $container) {
     this.$minusButton.hide();
 
     this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
-        self.minusColorPicker.$container.hide()
+        self.minusColorPicker.hide()
     });
 
-    this.minusColorPicker.$container.hide();
+    this.minusColorPicker.hide();
 
     // '+' color swatch
     rgbString = getRGBString(browser, '+', "red");                     // TODO -- get the default from browser
@@ -57,17 +58,17 @@ const ColorScaleWidget = function (browser, $container) {
     this.$container.append(this.$plusButton);
 
     this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', function () {
-        self.plusColorPicker.$container.hide()
+        self.plusColorPicker.hide()
     });
 
-    this.plusColorPicker.$container.hide();
+    this.plusColorPicker.hide();
 
     this.$minusButton.on('click', function (e) {
-        self.presentColorPicker($(this), self.minusColorPicker.$container);
+        self.presentColorPicker($(this), self.minusColorPicker);
     });
 
     this.$plusButton.on('click', function (e) {
-        self.presentColorPicker($(this), self.plusColorPicker.$container);
+        self.presentColorPicker($(this), self.plusColorPicker);
     });
 
 
@@ -130,7 +131,7 @@ ColorScaleWidget.prototype.receiveEvent = function (event) {
 
 };
 
-ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $colorpicker) {
+ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, colorpicker) {
 
     this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
     this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
@@ -138,7 +139,7 @@ ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, $co
     this.$presentingButton = $presentingButton;
     this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
 
-    $colorpicker.show();
+    colorpicker.show();
 };
 
 function getRGBString(browser, type, defaultColor) {
@@ -158,9 +159,8 @@ function createColorPicker(browser, $presentingButton, type, closeHandler) {
 
     const config =
         {
-            $parent: $presentingButton,
+            parent: $presentingButton[0],
             width: 456,
-            height: undefined,
             closeHandler: closeHandler
         };
 

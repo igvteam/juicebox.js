@@ -21,8 +21,7 @@
  *
  */
 
-import { Alert, WidgetUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import { makeDraggable } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { Alert, UIUtils } from '../node_modules/igv-ui/src/index.js';
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import {Track2DDisplaceModes} from './globals.js'
@@ -138,7 +137,7 @@ function annotationPanel($parent, title) {
     // $div.text('Blah');
 
     //this.$annotationPanel.draggable();
-    makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
+    UIUtils.makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
     this.$annotationPanel.hide();
 }
 
@@ -238,7 +237,7 @@ function annotationPanelRow($container, track) {
 
     $colorpickerContainer.hide();
 
-    WidgetUtils.createColorSwatchSelector($colorpickerContainer, function (color) {
+    UIUtils.createColorSwatchSelector($colorpickerContainer, function (color) {
         var $swatch;
 
         $swatch = $row.find('.fa-square');

@@ -1,5 +1,9 @@
-import { igvxhr, GoogleUtils, StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {Track2DDisplaceModes} from './globals.js';
+import igv from '../node_modules/igv/dist/igv.esm.js'
+
+const google = igv.google;
+const oauth = igv.oauth;
 
 const Track2D = function (config, features) {
 
@@ -37,7 +41,7 @@ const Track2D = function (config, features) {
 Track2D.loadTrack2D = async function (config) {
 
     if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
-        const json = await GoogleUtils.getDriveFileInfo(config.url)
+        const json = await google.getDriveFileInfo(config.url)
         config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
         if (!config.filename) {
             config.filename = json.originalFileName || json.name;

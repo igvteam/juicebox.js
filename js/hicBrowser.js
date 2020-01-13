@@ -25,8 +25,9 @@
  * @author Jim Robinson
  */
 
-import { DOMUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { EventBus, Alert, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
+import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import EventBus from "./eventBus.js";
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import * as hic from './hicUtils.js'
@@ -1489,13 +1490,13 @@ async function loadDataset(config) {
         delete config.url
     } else {
         // If this is a google url, add api KEY
-        if (GoogleUtils.isGoogleURL(config.url)) {
-            if(GoogleUtils.isGoogleDrive(config.url)) {
-                config.url = GoogleUtils.driveDownloadURL(config.url)
+        if (igv.google.isGoogleURL(config.url)) {
+            if(igv.google.isGoogleDrive(config.url)) {
+                config.url = igv.google.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
             config.file = new GoogleRemoteFile(copy);
-            config.apiKey = GoogleUtils.apiKey
+            config.apiKey = igv.google.apiKey
         }
     }
 

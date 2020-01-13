@@ -25,7 +25,7 @@
  * Created by dat on 3/3/17.
  */
 
-import { StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { StringUtils } from '../node_modules/igv-utils/src/index.js'
 
 const LocusGoto = function (browser, $container) {
     var $label;

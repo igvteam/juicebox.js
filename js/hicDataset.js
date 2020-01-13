@@ -26,7 +26,7 @@
  * @author Jim Robinson
  */
 
-import { Alert } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert } from '../node_modules/igv-ui/src/index.js'
 import  * as hic from './hicUtils.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'

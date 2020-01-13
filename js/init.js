@@ -21,8 +21,7 @@
  *
  */
 
-
-import { Alert, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { Alert } from '../node_modules/igv-ui/src/index.js'
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
@@ -37,31 +36,28 @@ let appContainer;
 
 async function initApp(container, config) {
 
-    Alert.init(container);
-
     appContainer = container;
 
-    const { google } = config;
-    const apiKey = google ? google.apiKey : undefined;
+    Alert.init(container);
+
+    const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
-        GoogleUtils.setApiKey(apiKey);
+        setApiKey(apiKey);
     }
 
     if(typeof gapi !== "undefined" && config.google) {
         await initGoogle(config.google);
     }
 
-    const { urlShortener } = config;
-    if (urlShortener) {
-        setURLShortener(urlShortener);
+    if (config.urlShortener) {
+        setURLShortener(config.urlShortener);
     }
 
     let query = {};
 
-    let { queryParametersSupported } = config;
-    queryParametersSupported = queryParametersSupported || true;
+    config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
 
-    if (false === queryParametersSupported) {
+    if (false === config.queryParametersSupported) {
         // ignore window.location.href params
     } else {
         query = extractQuery(window.location.href);
@@ -81,7 +77,6 @@ async function initApp(container, config) {
         await createBrowsers(container, query);
     }
     syncBrowsers(allBrowsers);
-
 }
 
 async function loadSession(json) {
@@ -334,7 +329,7 @@ function expandURL(url) {
         }
     }
 
-    igv.Alert.presentAlert("No expanders for URL: " + url);
+    Alert.presentAlert("No expanders for URL: " + url);
 
     return Promise.resolve(url);
 }

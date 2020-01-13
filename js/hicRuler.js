@@ -26,7 +26,7 @@
  * @author Jim Robinson
  */
 
-import { IGVColor } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { IGVColor } from '../node_modules/igv-utils/src/index.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const Ruler = function (browser, axis, $parent) {

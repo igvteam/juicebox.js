@@ -25,7 +25,7 @@
  * Created by dat on 3/4/17.
  */
 
-import { StringUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import { StringUtils } from '../node_modules/igv-utils/src/index.js'
 
 const ResolutionSelector = function (browser, $parent) {
     var self = this;

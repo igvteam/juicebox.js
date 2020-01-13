@@ -2,8 +2,8 @@
  * Created by dat on 4/5/17.
  */
 
-import { IGVUtils, GenericContainer } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import { DOMUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
+import { IGVUtils } from '../node_modules/igv-utils/src/index.js'
+import { DOMUtils, GenericContainer, ColorPicker  } from '../node_modules/igv-ui/src/index.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import  * as hic from './hicUtils.js';
 
@@ -338,17 +338,13 @@ function createColorPicker_ColorScaleWidget_version($parent, closeHandler, color
 
     const config =
         {
-            $parent: $parent,
+            parent: $parent[0],
             width: 456,
             height: undefined,
-            closeHandler: closeHandler
+            colorHandler: colorHandler
         };
 
-    let genericContainer = new GenericContainer(config);
-
-    igv.createColorSwatchSelector(genericContainer.$container, colorHandler);
-
-    return genericContainer;
+    return new ColorPicker(config);
 }
 
 

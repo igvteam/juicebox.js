@@ -22,11 +22,12 @@
  */
 
 import igv from '../../node_modules/igv/dist/igv.esm.js';
-import { Utils, FileUtils, FileLoadManager, FileLoadWidget } from '../../node_modules/igv-widgets/dist/igv-widgets.js';
+import {FileLoadManager, FileLoadWidget, Utils} from '../../node_modules/igv-widgets/dist/igv-widgets.js';
+import {FileUtils} from '../../node_modules/igv-utils/src/index.js';
 
 class SessionController {
 
-    constructor ({ sessionLoadModal, sessionSaveModal, sessionFileLoad, JSONProvider }) {
+    constructor({sessionLoadModal, sessionSaveModal, sessionFileLoad, JSONProvider}) {
 
         let config =
             {
@@ -56,7 +57,7 @@ class SessionController {
 
 const input_default_value = 'juiceboxjs-session.json';
 
-function configureSaveSessionModal(JSONProvider, sessionSaveModal){
+function configureSaveSessionModal(JSONProvider, sessionSaveModal) {
 
     let input = sessionSaveModal.querySelector('input');
 
@@ -68,13 +69,13 @@ function configureSaveSessionModal(JSONProvider, sessionSaveModal){
 
         if (undefined === filename || '' === filename) {
             filename = input.getAttribute('placeholder');
-        } else if (false === extensions.has( FileUtils.getExtension( filename ) )) {
+        } else if (false === extensions.has(FileUtils.getExtension(filename))) {
             filename = filename + '.json';
         }
 
         const json = JSONProvider();
         const jsonString = JSON.stringify(json, null, '\t');
-        const data = URL.createObjectURL(new Blob([ jsonString ], { type: "application/octet-stream" }));
+        const data = URL.createObjectURL(new Blob([jsonString], {type: "application/octet-stream"}));
 
         igv.download(filename, data);
 

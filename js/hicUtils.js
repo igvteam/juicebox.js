@@ -21,7 +21,8 @@
  *
  */
 
-import { EventBus, StringUtils, FileUtils, TrackUtils, GoogleUtils } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import EventBus from './eventBus.js'
+import {FileUtils, StringUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import igv from "../node_modules/igv/dist/igv.esm.js";
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -71,7 +72,7 @@ async function createBrowser(hic_container, config, callback) {
 
     const apiKey = config.apiKey;
     if (apiKey) {
-        GoogleUtils.setApiKey(apiKey);
+        igv.google.setApiKey(apiKey);
     }
 
     let queryString = config.queryString || config.href;   // href for backward compatibility
@@ -85,10 +86,10 @@ async function createBrowser(hic_container, config, callback) {
         decodeQuery(query, config, uriDecode);
     }
 
-    if(StringUtils.isString(config.state)) {
+    if (StringUtils.isString(config.state)) {
         config.state = State.parse(config.state);
     }
-    if(StringUtils.isString(config.colorScale)) {
+    if (StringUtils.isString(config.colorScale)) {
         config.colorScale = ColorScale.parse(config.colorScale);
     }
 
@@ -309,7 +310,6 @@ function identityTransformWithContext(context) {
 }
 
 
-
 // Set default values for config properties
 function setDefaults(config) {
 
@@ -338,10 +338,9 @@ function setDefaults(config) {
 
     if (config.state) {
 
-        if(StringUtils.isString(config.state)) {
+        if (StringUtils.isString(config.state)) {
             config.state = State.parse(config.state);
-        }
-        else {
+        } else {
             // copy
             config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
                 config.state.y, config.state.pixelSize, config.state.normalization)
@@ -365,6 +364,7 @@ function createIGV($hic_container, hicBrowser) {
     igv.alertDialog = new igv.AlertDialog(hicBrowser.$root, hicBrowser);
 
 }
+
 export {
     defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteAllBrowsers, deleteBrowserPanel,
     areCompatible, isMobile, extractFilename, igvSupports,
