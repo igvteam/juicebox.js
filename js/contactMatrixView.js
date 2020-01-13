@@ -929,7 +929,7 @@ function addMouseHandlers($viewport) {
 
             // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
             var direction = e.deltaY < 0 ? 1 : -1,
-                coords = DOMUtils.translateMouseCoordinates(e, $viewport),
+                coords = DOMUtils.translateMouseCoordinates(e, $viewport[0]),
                 x = coords.x,
                 y = coords.y;
             self.browser.wheelClickZoom(direction, x, y);
