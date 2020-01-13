@@ -494,7 +494,7 @@ const populatePulldown = async menu => {
 
         }
 
-        // parent.selectpicker("refresh");
+        parent.selectpicker("refresh");
 
     }
 
