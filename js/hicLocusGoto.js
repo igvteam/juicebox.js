@@ -24,7 +24,7 @@
 /**
  * Created by dat on 3/3/17.
  */
-
+import $ from '../vendor/jquery-3.3.1.slim.js'
 import { StringUtils } from '../node_modules/igv-utils/src/index.js'
 
 const LocusGoto = function (browser, $container) {

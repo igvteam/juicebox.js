@@ -13,6 +13,7 @@ import Ruler from './hicRuler.js'
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
 import  * as hic from './hicUtils.js'
+import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const LayoutController = function (browser, $root) {
 

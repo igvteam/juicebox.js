@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  *
  */
-
+import $ from '../vendor/jquery-3.3.1.slim.js'
 import EventBus from './eventBus.js'
 import {FileUtils, StringUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import igv from "../node_modules/igv/dist/igv.esm.js";

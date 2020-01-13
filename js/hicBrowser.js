@@ -24,7 +24,7 @@
 /**
  * @author Jim Robinson
  */
-
+import $ from '../vendor/jquery-3.3.1.slim.js'
 import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
 import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import EventBus from "./eventBus.js";

@@ -33,6 +33,7 @@ import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
 import { DOMUtils } from '../node_modules/igv-ui/src/index.js'
+import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
