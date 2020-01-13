@@ -47,11 +47,9 @@
     "terser": "^4.6.2"
   },
   "dependencies": {
-    "data-modal": "github:igvteam/data-modal",
     "hic-straw": "^0.9.8",
     "igv": "^2.3.5",
     "igv-ui": "github:igvteam/igv-ui",
-    "igv-utils": "github:igvteam/igv-utils",
-    "igv-widgets": "github:igvteam/igv-widgets"
+    "igv-utils": "github:igvteam/igv-utils"
   }
 }

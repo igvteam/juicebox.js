@@ -1,8 +1,8 @@
 import { Alert, } from '../../node_modules/igv-ui/src/index.js'
 import { TrackUtils, StringUtils, } from '../../node_modules/igv-utils/src/index.js'
-import { SessionFileLoad } from '../../node_modules/igv-widgets/dist/igv-widgets.js';
-import ModalTable from '../../node_modules/data-modal/js/modalTable.js';
-import EncodeDataSource from '../../node_modules/data-modal/js/encodeDataSource.js';
+import { SessionFileLoad } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import ModalTable from '../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js';
 import hic from "../../js/api.js";
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
