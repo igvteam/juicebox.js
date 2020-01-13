@@ -29,7 +29,7 @@ function colorPickerMenuItem(trackRender) {
     $e.text('Set track color');
 
     clickHandler = function () {
-        trackRender.colorPicker.$container.show();
+        trackRender.colorPicker.show();
     };
 
     return {object: $e, click: clickHandler};

@@ -66,11 +66,11 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
     // color picker
     if ('x' === this.axis) {
         this.colorPicker = createColorPicker_ColorScaleWidget_version(this.$viewport, () => {
-            this.colorPicker.$container.hide();
+            this.colorPicker.hide();
         }, (color) => {
             this.setColor(color);
         });
-        this.colorPicker.$container.hide();
+        this.colorPicker.hide();
     }
 
     if ('x' === this.axis) {
