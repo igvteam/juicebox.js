@@ -21,6 +21,7 @@
  *
  */
 
+import igv from "../node_modules/igv/dist/igv.esm.js";
 import { Alert } from '../node_modules/igv-ui/src/index.js'
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
@@ -42,7 +43,7 @@ async function initApp(container, config) {
 
     const apiKey = config.google ? config.google.apiKey : undefined;
     if (apiKey && "ABCD" !== apiKey) {
-        setApiKey(apiKey);
+        igv.google.setApiKey(apiKey);
     }
 
     if(typeof gapi !== "undefined" && config.google) {

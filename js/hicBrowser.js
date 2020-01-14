@@ -362,7 +362,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
             if (url && typeof url === "string" && url.includes("drive.google.com")) {
 
-                promises.push(GoogleUtils.getDriveFileInfo(config.url)
+                promises.push(igv.google.getDriveFileInfo(config.url)
 
                     .then(function (json) {
                         // Temporarily switch URL to infer tipes
@@ -616,7 +616,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
 async function extractName(config) {
 
     if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-        const json = await GoogleUtils.getDriveFileInfo(config.url)
+        const json = await igv.google.getDriveFileInfo(config.url)
         return json.name;
     } else {
         if (config.name === undefined) {

@@ -23,6 +23,7 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import EventBus from './eventBus.js'
 import {FileUtils, StringUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import { Popover, AlertDialog, InputDialog } from '../node_modules/igv-ui/src/index.js'
 import igv from "../node_modules/igv/dist/igv.esm.js";
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -111,7 +112,7 @@ async function createBrowser(hic_container, config, callback) {
         createIGV($hic_container, browser);
     }
 
-    browser.inputDialog = new igv.InputDialog($hic_container, browser);
+    browser.inputDialog = new InputDialog($hic_container.get(0), browser);
 
     browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
 
@@ -359,9 +360,9 @@ function createIGV($hic_container, hicBrowser) {
             trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
         };
 
-    igv.popover = new igv.Popover($hic_container, igv.browser);
+    igv.popover = new Popover($hic_container.get(0), igv.browser);
 
-    igv.alertDialog = new igv.AlertDialog(hicBrowser.$root, hicBrowser);
+    igv.alertDialog = new AlertDialog(hicBrowser.$root.get(0), hicBrowser);
 
 }
 
