@@ -37,13 +37,10 @@ const LayoutController = function (browser, $root) {
 // Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
 LayoutController.nav_bar_label_height = 36;
 LayoutController.nav_bar_widget_container_height = 36;
+LayoutController.nav_bar_widget_container_margin = 4;
 LayoutController.nav_bar_shim_height = 4;
 
-LayoutController.navbarHeight = function () {
-    var height;
-    height = (2 * LayoutController.nav_bar_label_height) + (2 * LayoutController.nav_bar_widget_container_height) + LayoutController.nav_bar_shim_height;
-    return height;
-};
+LayoutController.navbarHeight = () => (2 * LayoutController.nav_bar_label_height) + (2 * LayoutController.nav_bar_widget_container_height) + (2 * LayoutController.nav_bar_widget_container_margin) + LayoutController.nav_bar_shim_height;
 
 function createNavBar(browser, $root) {
 
@@ -140,6 +137,8 @@ function createNavBar(browser, $root) {
     // normalization
     browser.normalizationSelector = new NormalizationWidget(browser, $lower_widget_container);
 
+    const { height } = $navbar_container.get(0).getBoundingClientRect();
+    console.log(`navbar ${ height - 1 }`);
 
 }
 
@@ -165,6 +164,12 @@ function createAllContainers(browser, $root) {
     id = browser.id + '_' + 'x-tracks';
     this.$x_tracks = $("<div>", {id: id});
     this.$x_track_container.append(this.$x_tracks);
+
+    const { height } = this.$x_track_container.get(0).getBoundingClientRect();
+    console.log(`x-track-container ${ height }`);
+
+
+
 
     // crosshairs guide
     id = browser.id + '_' + 'y-track-guide';
@@ -220,6 +225,11 @@ function createAllContainers(browser, $root) {
 
     // x-scrollbar
     $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+
+    const { height:h } = this.$content_container.get(0).getBoundingClientRect();
+    console.log(`content-container ${ h }`);
+
 
 }
 

@@ -50,7 +50,7 @@
   left: 0;
   right: 0;
   width: 860px;
-  height: 1008px;
+  height: 1016px;
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -705,7 +705,7 @@ div[id$="content-container"] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (148px + 0px));
+  height: calc(100% - (156px + 0px));
   background-color: white; }
   div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;
