@@ -51,7 +51,7 @@ Track2D.loadTrack2D = async function (config) {
         }
     }
 
-    const data = await igvxhr.loadString(config.url, buildOptions(config));
+    const data = await igv.xhr.loadString(config.url, buildOptions(config));
     const features = parseData(data, isBedPE(config));
     return new Track2D(config, features);
 }
