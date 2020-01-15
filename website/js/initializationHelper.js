@@ -21,7 +21,7 @@ let $hic_share_url_modal;
 
 const encodeModal = new ModalTable({ id: 'hic-encode-modal', title: 'ENCODE', selectHandler: selected => loadTracks(selected) });
 
-const initializationHelper = async ($appContainer, config) => {
+const initializationHelper = async (container, config) => {
 
     const genomeChangeListener = {
 
@@ -34,7 +34,7 @@ const initializationHelper = async ($appContainer, config) => {
 
                 if (config.trackMenu) {
                     let tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
-                    await loadAnnotationSelector($('#' + config.trackMenu.id), tracksURL, "1D");
+                    await loadAnnotationSelector($(`#${ config.trackMenu.id}`), tracksURL, "1D");
                 }
 
                 if (config.trackMenu2D) {
@@ -109,7 +109,7 @@ const initializationHelper = async ($appContainer, config) => {
 
         const jbUrl = await hic.shortJuiceboxURL(href);
 
-        const embedSnippet = await getEmbeddableSnippet($appContainer, config);
+        const embedSnippet = await getEmbeddableSnippet($(container), config);
         const $hic_embed_url = $('#hic-embed');
         $hic_embed_url.val(embedSnippet);
         $hic_embed_url.get(0).select();
@@ -280,7 +280,7 @@ const initializationHelper = async ($appContainer, config) => {
 
         let browser = undefined;
         try {
-            browser = hic.createBrowser(container, { initFromUrl: false, updateHref: false });
+            browser = await hic.createBrowser(container, { initFromUrl: false, updateHref: false });
         } catch (e) {
             console.error(e);
         }
@@ -445,10 +445,10 @@ function loadHicFile(url, name) {
     }
 }
 
-async function getEmbeddableSnippet($appContainer, config) {
+async function getEmbeddableSnippet($container, config) {
     const base = (config.embedTarget || getEmbedTarget())
     const embedUrl =  await hic.shortJuiceboxURL(base);
-    const height = $appContainer.height();
+    const height = $container.height();
     return '<iframe src="' + embedUrl + '" width="100%" height="' + height + '" frameborder="0" style="border:0" allowfullscreen></iframe>';
 }
 
