@@ -1,15 +1,17 @@
 //
 $hic-color-swatch-size: 24px;
 
-//
+// Keep in sync with layoutController.js
+// LayoutController.nav_bar_label_height
+// LayoutController.nav_bar_widget_container_height
+// LayoutController.nav_bar_widget_container_margin
 $nav-bar-label-height: 36px;
 $nav-bar-widget-container-height: 36px;
 $nav-bar-widget-container-margin: 4px;
-$nav-bar-shim-height: 4px;
-$nav-bar-height: (2 * $nav-bar-label-height) + (2 * $nav-bar-widget-container-height) + (2 * $nav-bar-widget-container-margin) + $nav-bar-shim-height;
+
+$nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
 
 $nav-bar-widget-height: 24px;
-//$chromosome-selector-widget-container-width: 160px;
 
 //
 $hic-colorscale-widget-plus-minus-margin: 8px;
@@ -18,6 +20,8 @@ $hic-colorscale-widget-plus-minus-margin: 8px;
 $hic-whole-genome-chromosome-highlight-color: rgba(0, 0, 0, 0.1);
 
 // Keep in sync with layoutController.js
+// this.scrollbar_height
+// this.axis_height
 $hic-scrollbar-height: 20px;
 $hic-axis-height: 40px;
 
@@ -25,6 +29,10 @@ $hic-axis-height: 40px;
 $track-count: 0;
 $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
+
+// Keep in sync with layoutController.js
+// this.track_margin
+$track-margin: 2px;
 
 //
 $hic-viewport-width: 800px;
@@ -625,8 +633,6 @@ $default-font-family: 'Open Sans', sans-serif;
     border-bottom-width: thin;
     border-bottom-color: #dddddd;
 
-    //background-color: rgba(173, 255, 47, 0.51);
-
     font-size: 14px;
     font-weight: 400;
 
@@ -634,19 +640,6 @@ $default-font-family: 'Open Sans', sans-serif;
       margin-left: 8px;
       background-color: rgba(94, 219, 255, 0.51);
     }
-
-    //div:first-child {
-    //  margin-left: 2px;
-    //  margin-right: 2px;
-    //  background-color: rgba(173, 255, 47, 0.51);
-    //}
-    //
-    //div:last-child {
-    //  margin-left: 2px;
-    //  margin-right: 2px;
-    //  background-color: rgba(255, 0, 0, 0.51);
-    //}
-
 
   }
 
@@ -814,9 +807,9 @@ $default-font-family: 'Open Sans', sans-serif;
 
   background-color: $default-light-color;
 
-  border-bottom-style: solid;
-  border-bottom-width: thin;
-  border-bottom-color: transparent;
+  //border-bottom-style: solid;
+  //border-bottom-width: thin;
+  //border-bottom-color: transparent;
 
   // container: contact map label | menu button | browser delete button
   div[id$="hic-nav-bar-map-container"] {
@@ -841,9 +834,9 @@ $default-font-family: 'Open Sans', sans-serif;
       vertical-align: middle;
       line-height: $nav-bar-label-height;
 
-      border-bottom-style: solid;
-      border-bottom-width: thin;
-      border-bottom-color: transparent;
+      //border-bottom-style: solid;
+      //border-bottom-width: thin;
+      //border-bottom-color: transparent;
 
       background-color: transparent;
 
@@ -899,12 +892,6 @@ $default-font-family: 'Open Sans', sans-serif;
 
     margin-top: $nav-bar-widget-container-margin;
     margin-bottom: $nav-bar-widget-container-margin;
-  }
-
-  .hic-nav-bar-shim {
-    width: 100%;
-    height: $nav-bar-shim-height;
-    background-color: transparent;
   }
 
 }
@@ -1134,8 +1121,7 @@ div[id$="x-track-container"] {
       width: 100%;
       margin-right: 0;
 
-      // Keep in sync with LayoutController.track_margin
-      margin-bottom: 2px;
+      margin-bottom: $track-margin;
 
       // canvas inserted here
 
@@ -1327,8 +1313,7 @@ div[id$="content-container"] {
         position: relative;
         height: 100%;
 
-        // Keep in sync with LayoutController.track_margin
-        margin-right: 2px;
+        margin-right: $track-margin;
 
         background-color: white;
 

@@ -50,7 +50,7 @@
   left: 0;
   right: 0;
   width: 860px;
-  height: 1016px;
+  height: 1020px;
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -429,10 +429,7 @@
   font-family: "Open Sans", sans-serif;
   font-size: 14px;
   font-weight: 400;
-  background-color: #f7f7f7;
-  border-bottom-style: solid;
-  border-bottom-width: thin;
-  border-bottom-color: transparent; }
+  background-color: #f7f7f7; }
   .hic-navbar-container div[id$="hic-nav-bar-map-container"] {
     display: flex;
     flex-flow: row;
@@ -448,9 +445,6 @@
       overflow: hidden;
       vertical-align: middle;
       line-height: 36px;
-      border-bottom-style: solid;
-      border-bottom-width: thin;
-      border-bottom-color: transparent;
       background-color: transparent; }
     .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container {
       height: 100%;
@@ -480,10 +474,6 @@
     height: 36px;
     margin-top: 4px;
     margin-bottom: 4px; }
-  .hic-navbar-container .hic-nav-bar-shim {
-    width: 100%;
-    height: 4px;
-    background-color: transparent; }
 
 .hic-chromosome-goto-container {
   width: 75%; }
@@ -705,7 +695,7 @@ div[id$="content-container"] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (156px + 0px));
+  height: calc(100% - (160px + 0px));
   background-color: white; }
   div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;
