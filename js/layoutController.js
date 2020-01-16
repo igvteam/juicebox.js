@@ -45,131 +45,79 @@ LayoutController.navbarHeight = () => 2 * (LayoutController.nav_bar_label_height
 
 function createNavBar(browser, $root) {
 
-    var id,
-        $navbar_container,
-        $map_container,
-        $upper_widget_container,
-        $lower_widget_container,
-        $e,
-        $browser_panel_delete_button,
-        $fa;
-
-    $navbar_container = $('<div class="hic-navbar-container">');
+    const $navbar_container = $('<div>', { class: 'hic-navbar-container' });
     $root.append($navbar_container);
 
-
-    $navbar_container.on('click', function (e) {
+    $navbar_container.on('click', e => {
         e.stopPropagation();
         e.preventDefault();
         HICBrowser.setCurrentBrowser(browser);
     });
 
-    // container: contact map label | menu button | browser delete button
-    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-container';
-    $map_container = $("<div>", {id: id});
-    $navbar_container.append($map_container);
+    const html_contact_map_hic_nav_bar_map_container =
+        `<div id="${ browser.id }-contact-map-hic-nav-bar-map-container">
+            <div id="${ browser.id }-contact-map-hic-nav-bar-map-label">
+            </div>
+             <div class="hic-nav-bar-button-container">
+                <i class="fa fa-bars fa-lg" title="Present menu"></i>
+                <i class="fa fa-minus-circle fa-lg" title="Delete browser panel" style="display: none;"></i>
+             </div>
+        </div>`;
 
-    // contact map label
-    id = browser.id + '_contact-map-' + 'hic-nav-bar-map-label';
-    browser.$contactMaplabel = $("<div>", {id: id});
-    $map_container.append(browser.$contactMaplabel);
+    $navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
 
-    // navbar button container
-    $e = $("<div>", {class: 'hic-nav-bar-button-container'});
-    $map_container.append($e);
+    browser.$contactMaplabel = $navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
 
-    // menu present/dismiss button
-    browser.$menuPresentDismiss = $("<i>", {class: 'fa fa-bars fa-lg', 'title': 'Present menu'});
-    $e.append(browser.$menuPresentDismiss);
-    browser.$menuPresentDismiss.on('click', function (e) {
-        browser.toggleMenu();
-    });
+    browser.$menuPresentDismiss = $navbar_container.find('.fa-bars');
+    browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
 
-    // browser delete button
-    browser.$browser_panel_delete_button = $("<i>", {
-        class: 'fa fa-minus-circle fa-lg',
-        'title': 'Delete browser panel'
-    });
-    $e.append(browser.$browser_panel_delete_button);
+    browser.$browser_panel_delete_button = $navbar_container.find('.fa-minus-circle');
+    browser.$browser_panel_delete_button.on('click', e => hic.deleteBrowserPanel(browser) );
 
-    browser.$browser_panel_delete_button.on('click', function (e) {
-        hic.deleteBrowserPanel(browser);
-    });
-
-    // hide delete buttons for now. Delete button is only
-    // if there is more then one browser instance.
+    // Delete button is only vidible if there is more then one browser
     browser.$browser_panel_delete_button.hide();
 
 
-    // container: control map label
-    id = browser.id + '_control-map-' + 'hic-nav-bar-map-container';
-    $map_container = $("<div>", {id: id});
-    $navbar_container.append($map_container);
+    const html_control_map_hic_nav_bar_map_container =
+        `<div id="${ browser.id }-control-map-hic-nav-bar-map-container">
+            <div id="${ browser.id }-control-map-hic-nav-bar-map-label"></div>
+        </div>`;
 
-    // control map label
-    id = browser.id + '_control-map-' + 'hic-nav-bar-map-label';
-    browser.$controlMaplabel = $("<div>", {id: id});
-    $map_container.append(browser.$controlMaplabel);
+    $navbar_container.append($(html_control_map_hic_nav_bar_map_container));
 
-    // upper widget container
-    id = browser.id + '_upper_' + 'hic-nav-bar-widget-container';
-    $upper_widget_container = $("<div>", {id: id});
-    $navbar_container.append($upper_widget_container);
+    browser.$controlMaplabel = $navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
 
-    // location box / goto
-    browser.locusGoto = new LocusGoto(browser, $upper_widget_container);
+    const html_upper_hic_nav_bar_widget_container = `<div id="${ browser.id }-upper-hic-nav-bar-widget-container"></div>`;
+    $navbar_container.append($(html_upper_hic_nav_bar_widget_container));
 
-    // resolution widget
-    browser.resolutionSelector = new ResolutionSelector(browser, $upper_widget_container);
+    const $html_upper_hic_nav_bar_widget_container = $navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
+    browser.locusGoto = new LocusGoto(browser, $html_upper_hic_nav_bar_widget_container);
+    browser.resolutionSelector = new ResolutionSelector(browser, $html_upper_hic_nav_bar_widget_container);
     browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
+    const html_lower_hic_nav_bar_widget_container = `<div id="${ browser.id }-lower-hic-nav-bar-widget-container"></div>`;
+    $navbar_container.append($(html_lower_hic_nav_bar_widget_container));
 
-    // lower widget container
-    id = browser.id + '_lower_' + 'hic-nav-bar-widget-container';
-    $lower_widget_container = $("<div>", {id: id});
-    $navbar_container.append($lower_widget_container);
-
-    // colorscale
-    browser.colorscaleWidget = new ColorScaleWidget(browser, $lower_widget_container);
-
-    // control map
-    browser.controlMapWidget = new ControlMapWidget(browser, $lower_widget_container);
-
-    // normalization
-    browser.normalizationSelector = new NormalizationWidget(browser, $lower_widget_container);
+    const $html_lower_hic_nav_bar_widget_container = $navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
+    browser.colorscaleWidget = new ColorScaleWidget(browser, $html_lower_hic_nav_bar_widget_container);
+    browser.controlMapWidget = new ControlMapWidget(browser, $html_lower_hic_nav_bar_widget_container);
+    browser.normalizationSelector = new NormalizationWidget(browser, $html_lower_hic_nav_bar_widget_container);
 
 }
 
 function createAllContainers(browser, $root) {
 
-    var id,
-        tokens,
-        height_calc,
-        $container,
-        $e;
+    const html_x_track_container =
+        `<div id="${ browser.id }-x-track-container"><div id="${ browser.id }-track-shim"></div><div id="${ browser.id }-x-tracks"><div id="${ browser.id }-y-track-guide" style="display: none;"></div></div></div>`;
+    $root.append($(html_x_track_container));
 
-    // .hic-x-track-container
-    id = browser.id + '_' + 'x-track-container';
-    this.$x_track_container = $("<div>", {id: id});
-    $root.append(this.$x_track_container);
-
-    // track labels
-    id = browser.id + '_' + 'track-shim';
-    this.$track_shim = $("<div>", {id: id});
-    this.$x_track_container.append(this.$track_shim);
-
-    // x-tracks
-    id = browser.id + '_' + 'x-tracks';
-    this.$x_tracks = $("<div>", {id: id});
-    this.$x_track_container.append(this.$x_tracks);
-
-    // crosshairs guide
-    id = browser.id + '_' + 'y-track-guide';
-    this.$y_track_guide = $("<div>", {id: id});
-    this.$x_tracks.append(this.$y_track_guide);
+    this.$x_track_container = $root.find("div[id$='x-track-container']");
+    this.$track_shim = this.$x_track_container.find("div[id$='track-shim']");
+    this.$x_tracks = this.$x_track_container.find("div[id$='x-tracks']");
+    this.$y_track_guide = this.$x_track_container.find("div[id$='y-track-guide']");
 
     // content container
-    id = browser.id + '_' + 'content-container';
+    let id = browser.id + '_' + 'content-container';
     this.$content_container = $("<div>", {id: id});
     $root.append(this.$content_container);
 
@@ -178,7 +126,7 @@ function createAllContainers(browser, $root) {
 
     // container: x-axis
     id = browser.id + '_' + 'x-axis-container';
-    $container = $("<div>", {id: id});
+    let $container = $("<div>", {id: id});
     this.$content_container.append($container);
     this.xAxisRuler = new Ruler(browser, 'x', $container);
 
