@@ -23,27 +23,25 @@ const LayoutController = function (browser, $root) {
 
     createAllContainers.call(this, browser, $root);
 
+    // Keep in sync with juicebox.scss
     this.scrollbar_height = 20;
     this.axis_height = 40;
+
+
     this.annotationTrackHeight = 40;
     this.wigTrackHeight = 40;
 
-    // Keep in sync with .x-track-canvas-container (margin-bottom) and .y-track-canvas-container (margin-right)
+    // Keep in sync with $track-margin in juicebox.scss
     this.track_margin = 2;
 
 };
 
-// Dupes of corresponding juicebox.scss variables
-// Invariant during app running. If edited in juicebox.scss they MUST be kept in sync
+// Keep in sync with juicebox.scss variables
 LayoutController.nav_bar_label_height = 36;
 LayoutController.nav_bar_widget_container_height = 36;
-LayoutController.nav_bar_shim_height = 4;
+LayoutController.nav_bar_widget_container_margin = 4;
 
-LayoutController.navbarHeight = function () {
-    var height;
-    height = (2 * LayoutController.nav_bar_label_height) + (2 * LayoutController.nav_bar_widget_container_height) + LayoutController.nav_bar_shim_height;
-    return height;
-};
+LayoutController.navbarHeight = () => 2 * (LayoutController.nav_bar_label_height + LayoutController.nav_bar_widget_container_height + (2 * LayoutController.nav_bar_widget_container_margin));
 
 function createNavBar(browser, $root) {
 
@@ -139,7 +137,6 @@ function createNavBar(browser, $root) {
 
     // normalization
     browser.normalizationSelector = new NormalizationWidget(browser, $lower_widget_container);
-
 
 }
 

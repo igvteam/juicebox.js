@@ -42,11 +42,9 @@ async function init(container, config) {
 
     config = config || {};
 
-    const $appContainer = $(container);
-
     await hic.initApp(container, config);
 
-    await initializationHelper($appContainer, config);
+    await initializationHelper(container, config);
 
 }
 
