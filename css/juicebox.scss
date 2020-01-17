@@ -1,13 +1,27 @@
 //
 $hic-color-swatch-size: 24px;
 
-// Keep in sync with layoutController.js
-// LayoutController.nav_bar_label_height
-// LayoutController.nav_bar_widget_container_height
-// LayoutController.nav_bar_widget_container_margin
+// ::::::::::::::: Keep in sync with layoutController.js :::::::::::::::
+
+// nav_bar_label_height
 $nav-bar-label-height: 36px;
+
+// nav_bar_widget_container_height
 $nav-bar-widget-container-height: 36px;
+
+// nav_bar_widget_container_margin
 $nav-bar-widget-container-margin: 4px;
+
+// scrollbar_height
+$hic-scrollbar-height: 20px;
+
+// axis_height
+$hic-axis-height: 40px;
+
+// track_margin
+$track-margin: 2px;
+
+
 
 $nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
 
@@ -19,20 +33,10 @@ $hic-colorscale-widget-plus-minus-margin: 8px;
 //
 $hic-whole-genome-chromosome-highlight-color: rgba(0, 0, 0, 0.1);
 
-// Keep in sync with layoutController.js
-// this.scrollbar_height
-// this.axis_height
-$hic-scrollbar-height: 20px;
-$hic-axis-height: 40px;
-
 //
 $track-count: 0;
 $track-height: 32px;
 $track-aggregate-height: $track-count * $track-height;
-
-// Keep in sync with layoutController.js
-// this.track_margin
-$track-margin: 2px;
 
 //
 $hic-viewport-width: 800px;

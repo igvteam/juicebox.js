@@ -15,40 +15,53 @@ import AnnotationWidget from './annotationWidget.js'
 import  * as hic from './hicUtils.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
+// TODO: Ensure support for figure mode
+// if (config.figureMode === true) {
+//     config.showLocusGoto = false;
+//     config.showHicContactMapLabel = false;
+//     config.showChromosomeSelector = false;
+// }
+
+// Keep in sync with juicebox.scss variables
+
+// $nav-bar-label-height: 36px;
+const nav_bar_label_height = 36;
+
+// $nav-bar-widget-container-height: 36px;
+const nav_bar_widget_container_height = 36;
+
+// $nav-bar-widget-container-margin: 4px;
+const nav_bar_widget_container_margin = 4;
+
+// $hic-scrollbar-height: 20px;
+const scrollbar_height = 20;
+
+// $hic-axis-height: 40px;
+const axis_height = 40;
+
+// $track-margin: 2px;
+const track_margin = 2;
+
+export const annotationTrackHeight = 40;
+export const wigTrackHeight = 40;
+
 const LayoutController = function (browser, $root) {
 
     this.browser = browser;
 
-    createNavBar.call(this, browser, $root);
+    createNavBar(browser, $root);
 
     createAllContainers.call(this, browser, $root);
-
-    // Keep in sync with juicebox.scss
-    this.scrollbar_height = 20;
-    this.axis_height = 40;
-
-
-    this.annotationTrackHeight = 40;
-    this.wigTrackHeight = 40;
-
-    // Keep in sync with $track-margin in juicebox.scss
-    this.track_margin = 2;
-
 };
 
-// Keep in sync with juicebox.scss variables
-LayoutController.nav_bar_label_height = 36;
-LayoutController.nav_bar_widget_container_height = 36;
-LayoutController.nav_bar_widget_container_margin = 4;
-
-LayoutController.navbarHeight = () => 2 * (LayoutController.nav_bar_label_height + LayoutController.nav_bar_widget_container_height + (2 * LayoutController.nav_bar_widget_container_margin));
+LayoutController.navbarHeight = () => 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
 
 function createNavBar(browser, $root) {
 
-    const $navbar_container = $('<div>', { class: 'hic-navbar-container' });
-    $root.append($navbar_container);
+    const $hic_navbar_container = $('<div>', { class: 'hic-navbar-container' });
+    $root.append($hic_navbar_container);
 
-    $navbar_container.on('click', e => {
+    $hic_navbar_container.on('click', e => {
         e.stopPropagation();
         e.preventDefault();
         HICBrowser.setCurrentBrowser(browser);
@@ -64,14 +77,14 @@ function createNavBar(browser, $root) {
              </div>
         </div>`;
 
-    $navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
+    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
 
-    browser.$contactMaplabel = $navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
+    browser.$contactMaplabel = $hic_navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
 
-    browser.$menuPresentDismiss = $navbar_container.find('.fa-bars');
+    browser.$menuPresentDismiss = $hic_navbar_container.find('.fa-bars');
     browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
 
-    browser.$browser_panel_delete_button = $navbar_container.find('.fa-minus-circle');
+    browser.$browser_panel_delete_button = $hic_navbar_container.find('.fa-minus-circle');
     browser.$browser_panel_delete_button.on('click', e => hic.deleteBrowserPanel(browser) );
 
     // Delete button is only vidible if there is more then one browser
@@ -83,22 +96,22 @@ function createNavBar(browser, $root) {
             <div id="${ browser.id }-control-map-hic-nav-bar-map-label"></div>
         </div>`;
 
-    $navbar_container.append($(html_control_map_hic_nav_bar_map_container));
+    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
 
-    browser.$controlMaplabel = $navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
+    browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
 
     const html_upper_hic_nav_bar_widget_container = `<div id="${ browser.id }-upper-hic-nav-bar-widget-container"></div>`;
-    $navbar_container.append($(html_upper_hic_nav_bar_widget_container));
+    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
 
-    const $html_upper_hic_nav_bar_widget_container = $navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
+    const $html_upper_hic_nav_bar_widget_container = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
     browser.locusGoto = new LocusGoto(browser, $html_upper_hic_nav_bar_widget_container);
     browser.resolutionSelector = new ResolutionSelector(browser, $html_upper_hic_nav_bar_widget_container);
     browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
 
     const html_lower_hic_nav_bar_widget_container = `<div id="${ browser.id }-lower-hic-nav-bar-widget-container"></div>`;
-    $navbar_container.append($(html_lower_hic_nav_bar_widget_container));
+    $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
 
-    const $html_lower_hic_nav_bar_widget_container = $navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
+    const $html_lower_hic_nav_bar_widget_container = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
     browser.colorscaleWidget = new ColorScaleWidget(browser, $html_lower_hic_nav_bar_widget_container);
     browser.controlMapWidget = new ControlMapWidget(browser, $html_lower_hic_nav_bar_widget_container);
     browser.normalizationSelector = new NormalizationWidget(browser, $html_lower_hic_nav_bar_widget_container);
@@ -121,8 +134,22 @@ function createAllContainers(browser, $root) {
     this.$content_container = $("<div>", {id: id});
     $root.append(this.$content_container);
 
-    // menu
-    createMenu(browser, $root);
+
+    // side menu
+    browser.$menu = createMenu(browser, $root);
+
+    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, browser.$menu.find('.hic-chromosome-selector-widget-container'));
+
+    const config =
+        {
+            title: '2D Annotations',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
+
+    browser.annotation2DWidget = new AnnotationWidget(browser, browser.$menu.find(".hic-annotation-presentation-button-container"), config, () => browser.tracks2D);
+
+    browser.$menu.hide();
+
 
     // container: x-axis
     id = browser.id + '_' + 'x-axis-container';
@@ -170,55 +197,32 @@ function createAllContainers(browser, $root) {
 
 function createMenu(browser, $root) {
 
-    var $menu,
-        $div,
-        $fa,
-        config;
+    const html =
+        `<div class="hic-menu" style="display: none;">
+            <div class="hic-menu-close-button">
+                <i class="fa fa-times"></i>
+            </div>
+	        <div class="hic-chromosome-selector-widget-container">
+		        <div>Chromosomes</div>
+                <div>
+                    <select name="x-axis-selector"></select>
+                    <select name="y-axis-selector"></select>
+                    <div></div>
+                </div>
+	        </div>
+	        <div class="hic-annotation-presentation-button-container">
+		        <button type="button">2D Annotations</button>
+	        </div>
+        </div>`;
 
-    // menu
-    $menu = $('<div>', {class: 'hic-menu'});
-    $root.append($menu);
+    $root.append($(html));
 
-    // menu close button
-    $div = $('<div>', {class: 'hic-menu-close-button'});
-    $menu.append($div);
+    const $menu = $root.find(".hic-menu");
 
-    // $fa = $("<i>", { class:'fa fa-minus-circle fa-lg' });
-    $fa = $("<i>", {class: 'fa fa-times'});
-    $div.append($fa);
+    const $fa = $root.find(".fa-times");
+    $fa.on('click', () => browser.toggleMenu() );
 
-    $fa.on('click', function (e) {
-        browser.toggleMenu();
-    });
-
-
-    // chromosome select widget
-    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, $menu);
-
-    config =
-        {
-            title: '2D Annotations',
-            loadTitle: 'Load:',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-    browser.annotation2DWidget = new AnnotationWidget(browser, $menu, config, function () {
-        return browser.tracks2D;
-    });
-
-    // config =
-    //     {
-    //         title: 'Tracks',
-    //         loadTitle: 'Load Tracks:',
-    //         alertMessage: 'No tracks currently loaded for this map'
-    //     };
-    //
-    // browser.annotation1DDWidget = new hic.AnnotationWidget(browser, $menu, config, function () {
-    //     return browser.trackRenderers;
-    // });
-
-    browser.$menu = $menu;
-
-    browser.$menu.hide();
+    return $menu;
 
 }
 
@@ -233,7 +237,7 @@ LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
         var w, h;
 
         trackRendererPair = {};
-        w = h = self.wigTrackHeight;
+        w = h = wigTrackHeight;
         trackRendererPair.x = new TrackRenderer(self.browser, {
             width: undefined,
             height: h
@@ -341,12 +345,12 @@ LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount
         height_calc;
 
 
-    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (this.wigTrackHeight + this.track_margin);
+    track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (wigTrackHeight + track_margin);
 
     tokens = [ LayoutController.navbarHeight(), track_aggregate_height ].map(number => `${ number }px`);
     height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
-    tokens = [ track_aggregate_height, this.axis_height, this.scrollbar_height ].map(number => `${ number }px`);
+    tokens = [ track_aggregate_height, axis_height, scrollbar_height ].map(number => `${ number }px`);
     width_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
     // x-track container

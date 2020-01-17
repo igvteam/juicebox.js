@@ -41,6 +41,7 @@ import geneSearch from './geneSearch.js'
 import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
 import { Globals } from "./globals.js";
+import { annotationTrackHeight, wigTrackHeight } from "./layoutController.js";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -75,7 +76,7 @@ const HICBrowser = function ($app_container, config) {
 
     $app_container.append(this.$root);
 
-    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
+    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatrixView created here, nasty side-effect!
 
     // prevent user interaction during lengthy data loads
     this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
@@ -307,7 +308,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                 if(config.max === undefined) {
                     config.autoscale = true;
                 }
-                config.height = ("annotation" === config.type) ? this.layoutController.annotationTrackHeight : this.layoutController.wigTrackHeight;
+                config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
 
                 if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                     promisesNV.push(this.loadNormalizationFile(config.url))

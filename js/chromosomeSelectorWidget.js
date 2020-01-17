@@ -25,86 +25,64 @@
  * Created by dat on 3/22/17.
  */
 
-import $ from '../vendor/jquery-3.3.1.slim.js'
-
-const ChromosomeSelectorWidget = function (browser, $parent) {
-
-    var self = this,
-        $label,
-        $selector_container,
-        $doit;
+const ChromosomeSelectorWidget = function (browser, $container) {
 
     this.browser = browser;
 
-    this.$container = $('<div class="hic-chromosome-selector-widget-container">');
-    $parent.append(this.$container);
+    this.$x_axis_selector = $container.find("select[name='x-axis-selector']");
+    this.$y_axis_selector = $container.find("select[name='y-axis-selector']");
 
-    $label = $('<div>');
-    this.$container.append($label);
-    $label.text('Chromosomes');
+    this.$x_axis_selector.on('change', () => {
 
-    $selector_container = $('<div>');
-    this.$container.append($selector_container);
+        const str = this.$x_axis_selector.val();
 
-    this.$x_axis_selector = $('<select name="x-axis-selector">');
-    $selector_container.append(this.$x_axis_selector);
-
-    this.$y_axis_selector = $('<select name="y-axis-selector">');
-    $selector_container.append(this.$y_axis_selector);
-
-    this.$x_axis_selector.on('change', function (e) {
-
-        if (0 === parseInt($(this).val(), 10)) {
-            self.$y_axis_selector.val($(this).val());
-        } else if (0 === parseInt(self.$y_axis_selector.val(), 10)) {
-            self.$y_axis_selector.val($(this).val());
+        if (0 === parseInt(str, 10)) {
+            this.$y_axis_selector.val(str);
+        } else if (0 === parseInt(this.$y_axis_selector.val(), 10)) {
+            this.$y_axis_selector.val(str);
         }
 
     });
 
-    this.$y_axis_selector.on('change', function (e) {
+    this.$y_axis_selector.on('change', () => {
 
-        if (0 === parseInt($(this).val(), 10)) {
-            self.$x_axis_selector.val($(this).val());
-        } else if (0 === parseInt(self.$x_axis_selector.val(), 10)) {
-            self.$x_axis_selector.val($(this).val());
+        const str = this.$y_axis_selector.val();
+
+        if (0 === parseInt(str, 10)) {
+            this.$x_axis_selector.val(str);
+        } else if (0 === parseInt(this.$x_axis_selector.val(), 10)) {
+            this.$x_axis_selector.val(str);
         }
 
     });
 
-
-    $doit = $('<div>');
-    $selector_container.append($doit);
-
-    $doit.on('click', function (e) {
-        var chr1Index,
-            chr2Index;
-
-        chr1Index = parseInt(self.$x_axis_selector.find('option:selected').val(), 10);
-        chr2Index = parseInt(self.$y_axis_selector.find('option:selected').val(), 10);
-
-        self.browser.setChromosomes(chr1Index, chr2Index);
-
+    this.$y_axis_selector.next('div').on('click', async () => {
+        const chr1Index = parseInt(this.$x_axis_selector.find('option:selected').val(), 10);
+        const chr2Index = parseInt(this.$y_axis_selector.find('option:selected').val(), 10);
+        await browser.setChromosomes(chr1Index, chr2Index);
     });
 
-    this.dataLoadConfig = {
-        receiveEvent: function (event) {
+    this.dataLoadConfig =
+        {
+        receiveEvent: event => {
             if (event.type === "MapLoad") {
-                self.respondToDataLoadWithDataset(event.data);
+                this.respondToDataLoadWithDataset(event.data);
             }
         }
     };
 
-    this.browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
+    browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
 
-    this.locusChangeConfig = {
-        receiveEvent: function (event) {
-            if (event.type === "LocusChange") {
-                self.respondToLocusChangeWithState(event.data.state);
+    this.locusChangeConfig =
+        {
+            receiveEvent: event => {
+                if (event.type === "LocusChange") {
+                    this.respondToLocusChangeWithState(event.data.state);
+                }
             }
-        }
-    };
-    this.browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
+        };
+
+    browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
 
 };
 
