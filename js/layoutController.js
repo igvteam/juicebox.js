@@ -129,30 +129,19 @@ function createAllContainers(browser, $root) {
     this.$x_tracks = this.$x_track_container.find("div[id$='x-tracks']");
     this.$y_track_guide = this.$x_track_container.find("div[id$='y-track-guide']");
 
-    // content container
-    let id = browser.id + '_' + 'content-container';
-    this.$content_container = $("<div>", {id: id});
+
+    // :::::::::::::::::::::::: content container :::::::::::::::::::::::::
+    const html_content_container = `<div id="${ browser.id }-content-container"></div>`;
+
+    this.$content_container = $(html_content_container);
     $root.append(this.$content_container);
 
 
-    // side menu
-    browser.$menu = createMenu(browser, $root);
 
-    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, browser.$menu.find('.hic-chromosome-selector-widget-container'));
-
-    const config =
-        {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-
-    browser.annotation2DWidget = new AnnotationWidget(browser, browser.$menu.find(".hic-annotation-presentation-button-container"), config, () => browser.tracks2D);
-
-    browser.$menu.hide();
 
 
     // container: x-axis
-    id = browser.id + '_' + 'x-axis-container';
+    let id = browser.id + '_' + 'x-axis-container';
     let $container = $("<div>", {id: id});
     this.$content_container.append($container);
     this.xAxisRuler = new Ruler(browser, 'x', $container);
@@ -192,6 +181,26 @@ function createAllContainers(browser, $root) {
 
     // x-scrollbar
     $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+
+
+
+
+
+
+    // side menu
+    browser.$menu = createMenu(browser, $root);
+
+    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, browser.$menu.find('.hic-chromosome-selector-widget-container'));
+
+    const config =
+        {
+            title: '2D Annotations',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
+
+    browser.annotation2DWidget = new AnnotationWidget(browser, browser.$menu.find(".hic-annotation-presentation-button-container"), config, () => browser.tracks2D);
+
+    browser.$menu.hide();
 
 }
 
