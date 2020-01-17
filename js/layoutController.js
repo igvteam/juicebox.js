@@ -9,7 +9,8 @@ import LocusGoto from './hicLocusGoto.js'
 import ResolutionSelector from './hicResolutionSelector.js'
 import ColorScaleWidget from './hicColorScaleWidget.js'
 import NormalizationWidget from './normalizationWidget.js'
-import Ruler from './hicRuler.js'
+import YRuler from './yRuler.js'
+import XRuler from "./xRuler.js";
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
 import  * as hic from './hicUtils.js'
@@ -129,27 +130,39 @@ function createAllContainers(browser, $root) {
     this.$x_tracks = this.$x_track_container.find("div[id$='x-tracks']");
     this.$y_track_guide = this.$x_track_container.find("div[id$='y-track-guide']");
 
-
     // :::::::::::::::::::::::: content container :::::::::::::::::::::::::
     const html_content_container = `<div id="${ browser.id }-content-container"></div>`;
 
     this.$content_container = $(html_content_container);
+
     $root.append(this.$content_container);
 
+    // :::::::::::::::::::::::: x-axis container :::::::::::::::::::::::::
+    const html_x_axis_container =
+        `<div id="${ browser.id }-x-axis-container">
+            <div id="${ browser.id }-x-axis">
+                <canvas></canvas>
+                <div id="${ browser.id }-x-axis-whole-genome-container"></div>
+            </div>
+	    </div>`;
+
+    this.$content_container.append($(html_x_axis_container));
+
+    const $x_axis_container = this.$content_container.find("div[id$='x-axis-container']");
+
+    this.xAxisRuler = new XRuler(browser, $x_axis_container);
 
 
 
 
-    // container: x-axis
-    let id = browser.id + '_' + 'x-axis-container';
-    let $container = $("<div>", {id: id});
-    this.$content_container.append($container);
-    this.xAxisRuler = new Ruler(browser, 'x', $container);
+
+
+
 
 
     // container: y-tracks | y-axis | viewport | y-scrollbar
-    id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
-    $container = $("<div>", {id: id});
+    let id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
+    let $container = $("<div>", {id: id});
     this.$content_container.append($container);
 
     // y-tracks
@@ -163,7 +176,7 @@ function createAllContainers(browser, $root) {
     this.$y_tracks.append(this.$x_track_guide);
 
     // y-axis
-    this.yAxisRuler = new Ruler(browser, 'y', $container);
+    this.yAxisRuler = new YRuler(browser, $container);
 
     this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
     this.xAxisRuler.otherRuler = this.yAxisRuler;
@@ -262,7 +275,6 @@ LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
 
 
 }
-
 
 LayoutController.prototype.removeAllTrackXYPairs = function () {
 
