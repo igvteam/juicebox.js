@@ -153,30 +153,20 @@ function createAllContainers(browser, $root) {
     this.xAxisRuler = new XRuler(browser, $x_axis_container);
 
 
+    const html_y_tracks_y_axis_viewport_y_scrollbar =
+        `<div id="${ browser.id }-y-tracks-y-axis-viewport-y-scrollbar">
+            <div id="${ browser.id }-y-tracks">
+                <div id="${ browser.id }-x-track-guide" style="display: none;"></div>
+            </div>
+        </div>`;
 
-
-
-
-
-
-
-    // container: y-tracks | y-axis | viewport | y-scrollbar
-    let id = browser.id + '_' + 'y-tracks-y-axis-viewport-y-scrollbar';
-    let $container = $("<div>", {id: id});
-    this.$content_container.append($container);
-
-    // y-tracks
-    id = browser.id + '_' + 'y-tracks';
-    this.$y_tracks = $("<div>", {id: id});
-    $container.append(this.$y_tracks);
-
-    // crosshairs guide
-    id = browser.id + '_' + 'x-track-guide';
-    this.$x_track_guide = $("<div>", {id: id});
-    this.$y_tracks.append(this.$x_track_guide);
+    this.$content_container.append($(html_y_tracks_y_axis_viewport_y_scrollbar));
+    const $y_tracks_y_axis_viewport_y_scrollbar = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
+    this.$y_tracks = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-tracks']");
+    this.$x_track_guide = this.$y_tracks.find("div[id$='-x-track-guide']");
 
     // y-axis
-    this.yAxisRuler = new YRuler(browser, $container);
+    this.yAxisRuler = new YRuler(browser, $y_tracks_y_axis_viewport_y_scrollbar);
 
     this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
     this.xAxisRuler.otherRuler = this.yAxisRuler;
@@ -185,11 +175,11 @@ function createAllContainers(browser, $root) {
     this.yAxisRuler.otherRuler = this.xAxisRuler;
 
     // viewport | y-scrollbar
-    browser.contactMatrixView = new ContactMatrixView(browser, $container);
+    browser.contactMatrixView = new ContactMatrixView(browser, $y_tracks_y_axis_viewport_y_scrollbar);
 
     // container: x-scrollbar
-    id = browser.id + '_' + 'x-scrollbar-container';
-    $container = $("<div>", {id: id});
+    let id = browser.id + '_' + 'x-scrollbar-container';
+    let $container = $("<div>", {id: id});
     this.$content_container.append($container);
 
     // x-scrollbar
