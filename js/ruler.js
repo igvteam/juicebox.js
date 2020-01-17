@@ -32,14 +32,20 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class Ruler {
 
-    constructor(browser, axis) {
+    constructor(browser, $parent, axis) {
 
-        this.browser = undefined;
-        this.axis = undefined;
-        this.$axis = undefined;
-        this.$canvas = undefined;
-        this.ctx = undefined;
-        this.$wholeGenomeContainer = undefined;
+        this.browser = browser;
+        this.axis = axis;
+
+        this.$axis = $parent.find(`div[id$='-axis']`);
+
+        this.$canvas = $parent.find("canvas");
+
+        this.ctx = this.$canvas.get(0).getContext("2d");
+        this.ctx.canvas.width = this.$axis.width();
+        this.ctx.canvas.height = this.$axis.height();
+
+        this.$wholeGenomeContainer = $parent.find("div[id$='-axis-whole-genome-container']");
 
         this.yAxisTransformWithContext = ctx => {
             ctx.scale(-1, 1);

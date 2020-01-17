@@ -1,6 +1,8 @@
 /**
  * Created by dat on 4/4/17.
  */
+import $ from '../vendor/jquery-3.3.1.slim.js'
+import  * as hic from './hicUtils.js'
 import HICBrowser from './hicBrowser.js'
 import ContactMatrixView from './contactMatrixView.js'
 import ChromosomeSelectorWidget from './chromosomeSelectorWidget.js'
@@ -9,12 +11,9 @@ import LocusGoto from './hicLocusGoto.js'
 import ResolutionSelector from './hicResolutionSelector.js'
 import ColorScaleWidget from './hicColorScaleWidget.js'
 import NormalizationWidget from './normalizationWidget.js'
-import YRuler from './yRuler.js'
-import XRuler from "./xRuler.js";
+import Ruler from './ruler.js'
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
-import  * as hic from './hicUtils.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
 
 // TODO: Ensure support for figure mode
 // if (config.figureMode === true) {
@@ -148,7 +147,7 @@ function createAllContainers(browser, $root) {
 
     const $x_axis_container = this.$content_container.find("div[id$='x-axis-container']");
 
-    this.xAxisRuler = new XRuler(browser, $x_axis_container);
+    this.xAxisRuler = new Ruler(browser, $x_axis_container, 'x');
 
     const html_y_tracks_y_axis_viewport_y_scrollbar =
         `<div id="${ browser.id }-y-tracks-y-axis-viewport-y-scrollbar">
@@ -169,7 +168,7 @@ function createAllContainers(browser, $root) {
     this.$y_tracks = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-tracks']");
     this.$x_track_guide = this.$y_tracks.find("div[id$='-x-track-guide']");
 
-    this.yAxisRuler = new YRuler(browser, $y_tracks_y_axis_viewport_y_scrollbar);
+    this.yAxisRuler = new Ruler(browser, $y_tracks_y_axis_viewport_y_scrollbar, 'y');
 
     this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;
     this.xAxisRuler.otherRuler = this.yAxisRuler;
