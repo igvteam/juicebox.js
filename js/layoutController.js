@@ -130,14 +130,12 @@ function createAllContainers(browser, $root) {
     this.$x_tracks = this.$x_track_container.find("div[id$='x-tracks']");
     this.$y_track_guide = this.$x_track_container.find("div[id$='y-track-guide']");
 
-    // :::::::::::::::::::::::: content container :::::::::::::::::::::::::
     const html_content_container = `<div id="${ browser.id }-content-container"></div>`;
 
     this.$content_container = $(html_content_container);
 
     $root.append(this.$content_container);
 
-    // :::::::::::::::::::::::: x-axis container :::::::::::::::::::::::::
     const html_x_axis_container =
         `<div id="${ browser.id }-x-axis-container">
             <div id="${ browser.id }-x-axis">
@@ -152,12 +150,18 @@ function createAllContainers(browser, $root) {
 
     this.xAxisRuler = new XRuler(browser, $x_axis_container);
 
-
     const html_y_tracks_y_axis_viewport_y_scrollbar =
         `<div id="${ browser.id }-y-tracks-y-axis-viewport-y-scrollbar">
+
             <div id="${ browser.id }-y-tracks">
                 <div id="${ browser.id }-x-track-guide" style="display: none;"></div>
             </div>
+            
+            <div id="${ browser.id }-y-axis">
+    			<canvas></canvas>
+			    <div id="${ browser.id }-y-axis-whole-genome-container"></div>
+		    </div>
+		    
         </div>`;
 
     this.$content_container.append($(html_y_tracks_y_axis_viewport_y_scrollbar));
@@ -165,7 +169,6 @@ function createAllContainers(browser, $root) {
     this.$y_tracks = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-tracks']");
     this.$x_track_guide = this.$y_tracks.find("div[id$='-x-track-guide']");
 
-    // y-axis
     this.yAxisRuler = new YRuler(browser, $y_tracks_y_axis_viewport_y_scrollbar);
 
     this.xAxisRuler.$otherRulerCanvas = this.yAxisRuler.$canvas;

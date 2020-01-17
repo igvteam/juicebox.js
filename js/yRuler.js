@@ -21,7 +21,6 @@
  *
  */
 
-import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from "./ruler.js";
 
 class YRuler extends Ruler {
@@ -33,20 +32,15 @@ class YRuler extends Ruler {
         this.browser = browser;
         this.axis = 'y';
 
-        let id = browser.id + '_' + this.axis + '-axis';
-        this.$axis = $("<div>", {id: id});
-        $parent.append(this.$axis);
+        this.$axis = $parent.find("div[id$='-y-axis']");
 
-        this.$canvas = $('<canvas>');
-        this.$axis.append(this.$canvas);
+        this.$canvas = $parent.find("canvas");
 
         this.ctx = this.$canvas.get(0).getContext("2d");
         this.ctx.canvas.width = this.$axis.width();
         this.ctx.canvas.height = this.$axis.height();
 
-        id = browser.id + '_' + this.axis + '-axis-whole-genome-container';
-        this.$wholeGenomeContainer = $("<div>", {id: id});
-        this.$axis.append(this.$wholeGenomeContainer);
+        this.$wholeGenomeContainer = $parent.find("div[id$='-axis-whole-genome-container']");
 
     }
 
