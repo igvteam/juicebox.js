@@ -21,12 +21,7 @@
  *
  */
 
-/**
- * Created by dat on 3/7/17.
- */
-import $ from '../vendor/jquery-3.3.1.slim.js'
-
-const ScrollbarWidget = function (browser) {
+const ScrollbarWidget = function (browser, $x_axis_scrollbar_container, $y_axis_scrollbar_container) {
 
     let id;
 
@@ -34,28 +29,16 @@ const ScrollbarWidget = function (browser) {
     this.isDragging = false;
 
     // x-axis
-    id = browser.id + '_' + 'x-axis-scrollbar-container';
-    this.$x_axis_scrollbar_container = $("<div>", {id: id});
-
-    id = browser.id + '_' + 'x-axis-scrollbar';
-    this.$x_axis_scrollbar = $("<div>", {id: id});
-    this.$x_axis_scrollbar_container.append(this.$x_axis_scrollbar);
-
-    this.$x_label = $('<div>');
+    this.$x_axis_scrollbar_container = $x_axis_scrollbar_container;
+    this.$x_axis_scrollbar = this.$x_axis_scrollbar_container.find("div[id$='-x-axis-scrollbar']");
+    this.$x_label = this.$x_axis_scrollbar.find('div');
     this.$x_label.text('');
-    this.$x_axis_scrollbar.append(this.$x_label);
 
     // y-axis
-    id = browser.id + '_' + 'y-axis-scrollbar-container';
-    this.$y_axis_scrollbar_container = $("<div>", {id: id});
-
-    id = browser.id + '_' + 'y-axis-scrollbar';
-    this.$y_axis_scrollbar = $("<div>", {id: id});
-    this.$y_axis_scrollbar_container.append(this.$y_axis_scrollbar);
-
-    this.$y_label = $('<div class="scrollbar-label-rotation-in-place">');
+    this.$y_axis_scrollbar_container = $y_axis_scrollbar_container;
+    this.$y_axis_scrollbar = this.$y_axis_scrollbar_container.find("div[id$='-y-axis-scrollbar']");
+    this.$y_label = this.$y_axis_scrollbar.find('.scrollbar-label-rotation-in-place');
     this.$y_label.text('');
-    this.$y_axis_scrollbar.append(this.$y_label);
 
     this.browser.eventBus.subscribe("LocusChange", this);
 

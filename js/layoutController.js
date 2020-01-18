@@ -14,6 +14,7 @@ import NormalizationWidget from './normalizationWidget.js'
 import Ruler from './ruler.js'
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
+import ScrollbarWidget from "./scrollbarWidget.js";
 
 // TODO: Ensure support for figure mode
 // if (config.figureMode === true) {
@@ -165,6 +166,7 @@ function createAllContainers(browser, $root) {
 
     this.$content_container.append($(html_y_tracks_y_axis_viewport_y_scrollbar));
     const $y_tracks_y_axis_viewport_y_scrollbar = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
+
     this.$y_tracks = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-tracks']");
     this.$x_track_guide = this.$y_tracks.find("div[id$='-x-track-guide']");
 
@@ -176,20 +178,43 @@ function createAllContainers(browser, $root) {
     this.yAxisRuler.$otherRulerCanvas = this.xAxisRuler.$canvas;
     this.yAxisRuler.otherRuler = this.xAxisRuler;
 
-    // viewport | y-scrollbar
-    browser.contactMatrixView = new ContactMatrixView(browser, $y_tracks_y_axis_viewport_y_scrollbar);
+    const html_viewport =
+        `<div id="${ browser.id }-viewport">
+			<canvas></canvas>
+			<i class="fa fa-spinner fa-spin" style="font-size: 48px; position: absolute; left: 40%; top: 40%; display: none;"></i>
+			<div id="${ browser.id }-sweep-zoom-container" style="display: none;"></div>
+			<div id="${ browser.id }-x-guide" style="display: none;"></div>
+			<div id="${ browser.id }-y-guide" style="display: none;"></div>
+		</div>`;
 
-    // container: x-scrollbar
-    let id = browser.id + '_' + 'x-scrollbar-container';
-    let $container = $("<div>", {id: id});
-    this.$content_container.append($container);
+    $y_tracks_y_axis_viewport_y_scrollbar.append($(html_viewport));
+    const $viewport = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-viewport']");
 
-    // x-scrollbar
-    $container.append(browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container);
+    const html_y_axis_scrollbar_container =
+        `<div id="${ browser.id }-y-axis-scrollbar-container">
+			<div id="${ browser.id }-y-axis-scrollbar">
+				<div class="scrollbar-label-rotation-in-place"></div>
+			</div>
+		</div>`;
 
+    $y_tracks_y_axis_viewport_y_scrollbar.append($(html_y_axis_scrollbar_container));
+    const $y_axis_scrollbar_container = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-axis-scrollbar-container']");
 
+    const html_x_axis_scrollbar_container =
+        `<div id="${ browser.id }-x-scrollbar-container">
+            <div id="${ browser.id }-x-axis-scrollbar-container">
+                <div id="${ browser.id }-x-axis-scrollbar">
+                    <div></div>
+                </div>
+            </div>
+	    </div>`;
 
+    this.$content_container.append($(html_x_axis_scrollbar_container));
+    const $x_axis_scrollbar_container = this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
 
+    browser.contactMatrixView = new ContactMatrixView(browser, $viewport);
+
+    browser.contactMatrixView.scrollbarWidget = new ScrollbarWidget(browser, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
 
 
     // side menu
