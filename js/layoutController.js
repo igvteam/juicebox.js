@@ -15,6 +15,7 @@ import Ruler from './ruler.js'
 import TrackRenderer from './trackRenderer.js'
 import AnnotationWidget from './annotationWidget.js'
 import ScrollbarWidget from "./scrollbarWidget.js";
+import SweepZoom from "./sweepZoom.js";
 
 // TODO: Ensure support for figure mode
 // if (config.figureMode === true) {
@@ -212,10 +213,11 @@ function createAllContainers(browser, $root) {
     this.$content_container.append($(html_x_axis_scrollbar_container));
     const $x_axis_scrollbar_container = this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
 
-    browser.contactMatrixView = new ContactMatrixView(browser, $viewport);
+    const sweepZoom = new SweepZoom(browser, $viewport, $viewport.find("div[id$='-sweep-zoom-container']"));
 
-    browser.contactMatrixView.scrollbarWidget = new ScrollbarWidget(browser, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
+    const scrollbarWidget = new ScrollbarWidget(browser, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
 
+    browser.contactMatrixView = new ContactMatrixView(browser, sweepZoom, scrollbarWidget, $viewport);
 
     // side menu
     browser.$menu = createMenu(browser, $root);

@@ -27,8 +27,6 @@
 
 import ColorScale from './colorScale.js'
 import RatioColorScale from './ratioColorScale.js'
-import ScrollbarWidget from './scrollbarWidget.js'
-import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
@@ -39,9 +37,11 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const ContactMatrixView = function (browser, $viewport) {
+const ContactMatrixView = function (browser, sweepZoom, scrollbarWidget, $viewport) {
 
     this.browser = browser;
+    this.sweepZoom = sweepZoom;
+    this.scrollbarWidget = scrollbarWidget;
     this.$viewport = $viewport;
 
     this.$canvas = $viewport.find('canvas');
@@ -49,8 +49,6 @@ const ContactMatrixView = function (browser, $viewport) {
 
     this.$fa_spinner = $viewport.find('.fa-spinner');
     this.spinnerCount = 0;
-    
-    this.sweepZoom = new SweepZoom(browser, $viewport, $viewport.find("div[id$='-sweep-zoom-container']"));
 
     this.$x_guide = $viewport.find("div[id$='-x-guide']");
     this.$y_guide = $viewport.find("div[id$='-y-guide']");
