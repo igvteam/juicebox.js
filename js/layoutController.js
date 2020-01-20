@@ -178,7 +178,6 @@ function createAllContainers(browser, $root) {
 		</div>`;
 
     $y_tracks_y_axis_viewport_y_scrollbar.append($(html_viewport));
-    const $viewport = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-viewport']");
 
     const html_y_axis_scrollbar_container =
         `<div id="${ browser.id }-y-axis-scrollbar-container">
@@ -188,7 +187,6 @@ function createAllContainers(browser, $root) {
 		</div>`;
 
     $y_tracks_y_axis_viewport_y_scrollbar.append($(html_y_axis_scrollbar_container));
-    const $y_axis_scrollbar_container = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-axis-scrollbar-container']");
 
     const html_x_axis_scrollbar_container =
         `<div id="${ browser.id }-x-scrollbar-container">
@@ -200,89 +198,33 @@ function createAllContainers(browser, $root) {
 	    </div>`;
 
     this.$content_container.append($(html_x_axis_scrollbar_container));
-    const $x_axis_scrollbar_container = this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
-
-    const sweepZoom = new SweepZoom(browser, $viewport, $viewport.find("div[id$='-sweep-zoom-container']"));
-
-    const scrollbarWidget = new ScrollbarWidget(browser, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
-
-    browser.contactMatrixView = new ContactMatrixView(browser, sweepZoom, scrollbarWidget, $viewport);
-
-    // side menu
-    browser.$menu = createMenu(browser, $root);
-
-    browser.chromosomeSelector = new ChromosomeSelectorWidget(browser, browser.$menu.find('.hic-chromosome-selector-widget-container'));
-
-    const config =
-        {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-
-    browser.annotation2DWidget = new AnnotationWidget(browser, browser.$menu.find(".hic-annotation-presentation-button-container"), config, () => browser.tracks2D);
-
-    browser.$menu.hide();
-
-}
-
-function createMenu(browser, $root) {
-
-    const html =
-        `<div class="hic-menu" style="display: none;">
-            <div class="hic-menu-close-button">
-                <i class="fa fa-times"></i>
-            </div>
-	        <div class="hic-chromosome-selector-widget-container">
-		        <div>Chromosomes</div>
-                <div>
-                    <select name="x-axis-selector"></select>
-                    <select name="y-axis-selector"></select>
-                    <div></div>
-                </div>
-	        </div>
-	        <div class="hic-annotation-presentation-button-container">
-		        <button type="button">2D Annotations</button>
-	        </div>
-        </div>`;
-
-    $root.append($(html));
-
-    const $menu = $root.find(".hic-menu");
-
-    const $fa = $root.find(".fa-times");
-    $fa.on('click', () => browser.toggleMenu() );
-
-    return $menu;
 
 }
 
 LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
-    var self = this,
-        trackRendererPair;
 
-    self.doLayoutTrackXYPairCount(trackXYPairs.length + self.browser.trackRenderers.length);
+    this.doLayoutTrackXYPairCount(trackXYPairs.length + this.browser.trackRenderers.length);
 
-    trackXYPairs.forEach(function (trackPair, index) {
+    trackXYPairs.forEach((trackPair, index) => {
 
-        var w, h;
+        let trackRendererPair = {};
 
-        trackRendererPair = {};
-        w = h = wigTrackHeight;
-        trackRendererPair.x = new TrackRenderer(self.browser, {
+        trackRendererPair.x = new TrackRenderer(this.browser, {
             width: undefined,
-            height: h
-        }, self.$x_tracks, trackRendererPair, trackPair, 'x', index);
-        trackRendererPair.y = new TrackRenderer(self.browser, {
-            width: w,
-            height: undefined
-        }, self.$y_tracks, trackRendererPair, trackPair, 'y', index);
+            height: wigTrackHeight
+        }, this.$x_tracks, trackRendererPair, trackPair, 'x', index);
 
-        self.browser.trackRenderers.push(trackRendererPair);
+        trackRendererPair.y = new TrackRenderer(this.browser, {
+            width: wigTrackHeight,
+            height: undefined
+        }, this.$y_tracks, trackRendererPair, trackPair, 'y', index);
+
+        this.browser.trackRenderers.push(trackRendererPair);
 
     });
 
 
-}
+};
 
 LayoutController.prototype.removeAllTrackXYPairs = function () {
 

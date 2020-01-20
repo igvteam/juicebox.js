@@ -47,6 +47,11 @@ import ResolutionSelector from "./hicResolutionSelector";
 import ColorScaleWidget from "./hicColorScaleWidget";
 import ControlMapWidget from "./controlMapWidget";
 import NormalizationWidget from "./normalizationWidget";
+import ChromosomeSelectorWidget from "./chromosomeSelectorWidget";
+import AnnotationWidget from "./annotationWidget";
+import SweepZoom from "./sweepZoom";
+import ScrollbarWidget from "./scrollbarWidget";
+import ContactMatrixView from "./contactMatrixView";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -81,21 +86,41 @@ const HICBrowser = function ($app_container, config) {
 
     $app_container.append(this.$root);
 
-    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatrixView created here, nasty side-effect!
+    this.layoutController = new LayoutController(this, this.$root);
 
-    const $hic_navbar_container = this.$root.find('.hic-navbar-container');
-    this.locusGoto = new LocusGoto(this, $hic_navbar_container);
-    this.resolutionSelector = new ResolutionSelector(this, $hic_navbar_container);
+    const $navbar_container = this.$root.find('.hic-navbar-container');
+    this.locusGoto = new LocusGoto(this, $navbar_container);
+    this.resolutionSelector = new ResolutionSelector(this, $navbar_container);
     this.resolutionSelector.setResolutionLock(this.resolutionLocked);
-    this.colorscaleWidget = new ColorScaleWidget(this, $hic_navbar_container);
-    this.controlMapWidget = new ControlMapWidget(this, $hic_navbar_container);
-    this.normalizationSelector = new NormalizationWidget(this, $hic_navbar_container);
+    this.colorscaleWidget = new ColorScaleWidget(this, $navbar_container);
+    this.controlMapWidget = new ControlMapWidget(this, $navbar_container);
+    this.normalizationSelector = new NormalizationWidget(this, $navbar_container);
 
 
+    const $x_axis_scrollbar_container = this.layoutController.$content_container.find("div[id$='-x-axis-scrollbar-container']");
 
+    const $y_tracks_y_axis_viewport_y_scrollbar = this.layoutController.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
+    const $viewport = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-viewport']");
+    const $y_axis_scrollbar_container = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-axis-scrollbar-container']");
 
+    const sweepZoom = new SweepZoom(this, $viewport, $viewport.find("div[id$='-sweep-zoom-container']"));
 
+    const scrollbarWidget = new ScrollbarWidget(this, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
 
+    this.contactMatrixView = new ContactMatrixView(this, sweepZoom, scrollbarWidget, $viewport);
+
+    this.$menu = this.createMenu(this.$root);
+    this.$menu.hide();
+
+    this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'));
+
+    const annotation2DWidgetConfig =
+        {
+            title: '2D Annotations',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
+
+    this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
 
     // prevent user interaction during lengthy data loads
     this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
@@ -109,7 +134,6 @@ const HICBrowser = function ($app_container, config) {
     this.eventBus.subscribe("LocusChange", this);
 
 };
-
 
 HICBrowser.getCurrentBrowser = function () {
 
@@ -146,6 +170,37 @@ HICBrowser.setCurrentBrowser = function (browser) {
 
         hic.eventBus.post(HICEvent("BrowserSelect", browser));
     }
+
+};
+
+HICBrowser.prototype.createMenu = function ($root) {
+
+    const html =
+        `<div class="hic-menu" style="display: none;">
+            <div class="hic-menu-close-button">
+                <i class="fa fa-times"></i>
+            </div>
+	        <div class="hic-chromosome-selector-widget-container">
+		        <div>Chromosomes</div>
+                <div>
+                    <select name="x-axis-selector"></select>
+                    <select name="y-axis-selector"></select>
+                    <div></div>
+                </div>
+	        </div>
+	        <div class="hic-annotation-presentation-button-container">
+		        <button type="button">2D Annotations</button>
+	        </div>
+        </div>`;
+
+    $root.append($(html));
+
+    const $menu = $root.find(".hic-menu");
+
+    const $fa = $root.find(".fa-times");
+    $fa.on('click', () => this.toggleMenu() );
+
+    return $menu;
 
 };
 

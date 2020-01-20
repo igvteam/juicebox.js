@@ -22,6 +22,8 @@
  */
 
 
+import RatioColorScale from "./ratioColorScale.js";
+
 const ColorScale = function (scale) {
     this.threshold = scale.threshold;
     this.r = scale.r;
