@@ -40,31 +40,27 @@ var labels =
         GW_KR: 'Genome-wide Balanced'
     };
 
-const NormalizationWidget = function (browser, $parent) {
-    var self = this,
-        $label;
+const NormalizationWidget = function (browser, $hic_navbar_container) {
 
     this.browser = browser;
 
-    // container
+    const $parent = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
+
     this.$container = $("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
     $parent.append(this.$container);
 
-    // label
-    $label = $('<div>');
+    let $label = $('<div>');
     $label.text('Norm');
     this.$container.append($label);
     // $label.hide();
 
-    // select
     this.$normalization_selector = $('<select name="select">');
     this.$normalization_selector.attr('name', 'normalization_selector');
-    this.$normalization_selector.on('change', function (e) {
-        self.browser.setNormalization($(this).val());
+    this.$normalization_selector.on('change', () => {
+        this.browser.setNormalization(this.$normalization_selector.val());
     });
     this.$container.append(this.$normalization_selector);
 
-    // spinner
     this.$spinner = $('<div>');
     this.$spinner.text('Loading ...');
     this.$container.append(this.$spinner);

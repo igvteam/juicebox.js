@@ -27,10 +27,11 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { StringUtils } from '../node_modules/igv-utils/src/index.js'
 
-const ResolutionSelector = function (browser, $parent) {
-    var self = this;
+const ResolutionSelector = function (browser, $hic_navbar_container) {
 
     this.browser = browser;
+
+    const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
 
     this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
     $parent.append(this.$container);
@@ -48,9 +49,9 @@ const ResolutionSelector = function (browser, $parent) {
     // lock/unlock
     this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
     this.$label_container.append(this.$resolution_lock);
-    this.$label_container.on('click', function (e) {
-        self.browser.resolutionLocked = !(self.browser.resolutionLocked);
-        self.setResolutionLock(self.browser.resolutionLocked);
+    this.$label_container.on('click', () => {
+        this.browser.resolutionLocked = !(this.browser.resolutionLocked);
+        this.setResolutionLock(this.browser.resolutionLocked);
     });
 
     this.$resolution_selector = $('<select name="select">');
@@ -58,9 +59,9 @@ const ResolutionSelector = function (browser, $parent) {
 
     this.$resolution_selector.attr('name', 'resolution_selector');
 
-    this.$resolution_selector.on('change', function (e) {
-        var zoomIndex = parseInt($(this).val());
-        self.browser.setZoom(zoomIndex);
+    this.$resolution_selector.on('change', () => {
+        const zoomIndex = parseInt(this.$resolution_selector.val());
+        this.browser.setZoom(zoomIndex);
     });
 
 

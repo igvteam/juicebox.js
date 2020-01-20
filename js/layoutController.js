@@ -92,7 +92,6 @@ function createNavBar(browser, $root) {
     // Delete button is only vidible if there is more then one browser
     browser.$browser_panel_delete_button.hide();
 
-
     const html_control_map_hic_nav_bar_map_container =
         `<div id="${ browser.id }-control-map-hic-nav-bar-map-container">
             <div id="${ browser.id }-control-map-hic-nav-bar-map-label"></div>
@@ -105,18 +104,8 @@ function createNavBar(browser, $root) {
     const html_upper_hic_nav_bar_widget_container = `<div id="${ browser.id }-upper-hic-nav-bar-widget-container"></div>`;
     $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
 
-    const $html_upper_hic_nav_bar_widget_container = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
-    browser.locusGoto = new LocusGoto(browser, $html_upper_hic_nav_bar_widget_container);
-    browser.resolutionSelector = new ResolutionSelector(browser, $html_upper_hic_nav_bar_widget_container);
-    browser.resolutionSelector.setResolutionLock(browser.resolutionLocked);
-
     const html_lower_hic_nav_bar_widget_container = `<div id="${ browser.id }-lower-hic-nav-bar-widget-container"></div>`;
     $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
-
-    const $html_lower_hic_nav_bar_widget_container = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
-    browser.colorscaleWidget = new ColorScaleWidget(browser, $html_lower_hic_nav_bar_widget_container);
-    browser.controlMapWidget = new ControlMapWidget(browser, $html_lower_hic_nav_bar_widget_container);
-    browser.normalizationSelector = new NormalizationWidget(browser, $html_lower_hic_nav_bar_widget_container);
 
 }
 

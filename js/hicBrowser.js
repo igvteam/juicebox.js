@@ -42,6 +42,11 @@ import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
 import { Globals } from "./globals.js";
 import { annotationTrackHeight, wigTrackHeight } from "./layoutController.js";
+import LocusGoto from "./hicLocusGoto";
+import ResolutionSelector from "./hicResolutionSelector";
+import ColorScaleWidget from "./hicColorScaleWidget";
+import ControlMapWidget from "./controlMapWidget";
+import NormalizationWidget from "./normalizationWidget";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -77,6 +82,20 @@ const HICBrowser = function ($app_container, config) {
     $app_container.append(this.$root);
 
     this.layoutController = new LayoutController(this, this.$root);  // <- contactMatrixView created here, nasty side-effect!
+
+    const $hic_navbar_container = this.$root.find('.hic-navbar-container');
+    this.locusGoto = new LocusGoto(this, $hic_navbar_container);
+    this.resolutionSelector = new ResolutionSelector(this, $hic_navbar_container);
+    this.resolutionSelector.setResolutionLock(this.resolutionLocked);
+    this.colorscaleWidget = new ColorScaleWidget(this, $hic_navbar_container);
+    this.controlMapWidget = new ControlMapWidget(this, $hic_navbar_container);
+    this.normalizationSelector = new NormalizationWidget(this, $hic_navbar_container);
+
+
+
+
+
+
 
     // prevent user interaction during lengthy data loads
     this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});

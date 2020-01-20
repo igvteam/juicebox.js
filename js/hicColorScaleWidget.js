@@ -28,23 +28,22 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
 import { GenericContainer, UIUtils } from '../node_modules/igv-ui/src/index.js'
 
-const ColorScaleWidget = function (browser, $container) {
-
-    var self = this,
-        $fa,
-        rgbString;
+const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
     this.browser = browser;
+
+    const $container = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
 
     this.$container = $('<div class="hic-colorscale-widget-container">');
     $container.append(this.$container);
 
-
     // '-' color swatch
-    rgbString = getRGBString(browser, '-', "blue");                    // TODO -- get the default from browser.
+    let rgbString = getRGBString(browser, '-', "blue");  // TODO -- get the default from browser.
     this.$minusButton = colorSwatch(rgbString);
     this.$container.append(this.$minusButton);
     this.$minusButton.hide();
+
+    let self = this;
 
     this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
         self.minusColorPicker.hide()
@@ -53,7 +52,7 @@ const ColorScaleWidget = function (browser, $container) {
     this.minusColorPicker.hide();
 
     // '+' color swatch
-    rgbString = getRGBString(browser, '+', "red");                     // TODO -- get the default from browser
+    rgbString = getRGBString(browser, '+', "red"); // TODO -- get the default from browser
     this.$plusButton = colorSwatch(rgbString);
     this.$container.append(this.$plusButton);
 
@@ -86,7 +85,7 @@ const ColorScaleWidget = function (browser, $container) {
     });
 
     // threshold -
-    $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
+    let $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
     $fa.on('click', function (e) {
         updateThreshold(1.0 / 2.0);
     });
