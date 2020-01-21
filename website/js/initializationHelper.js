@@ -6,12 +6,14 @@ import { TrackUtils, StringUtils, } from '../node_modules/igv-utils/src/index.js
 import { SessionFileLoad } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import ModalTable from '../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js';
-import igv from '../node_modules/igv/dist/igv.esm.js';
 
 // The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
 // Note -- for convenient debugging get hic from ../../js/index.js
 import hic from "../../dist/juicebox.esm.js";
 //import * as hic from "../../js/index.js";
+
+// The igv object. TODO eliminate this dependency
+const igv = hic.igv;
 
 let googleEnabled = false;
 
