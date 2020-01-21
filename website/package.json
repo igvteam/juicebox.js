@@ -11,6 +11,7 @@
   ],
   "dependencies": {
     "igv-widgets": "github:igvteam/igv-widgets",
-    "data-modal": "github:igvteam/data-modal"
+    "data-modal": "github:igvteam/data-modal",
+    "igv": "^2.3.5"
   }
 }

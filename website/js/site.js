@@ -31,8 +31,13 @@
 
 // This file depends on bootstrap modifications to jQuery => jquery & bootstrap are required.  Do not import jquery here, need the jquery from the page.
 
-import hic from '../../js/api.js';
-import { initializationHelper } from "./initializationHelper.js";
+import initializationHelper from "./initializationHelper.js";
+
+// The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
+// Note -- for convenient debugging get hic from ../../js/index.js
+import hic from "../../dist/juicebox.esm.js";
+//import * as hic from "../../js/index.js";
+
 
 let allBrowsers;
 

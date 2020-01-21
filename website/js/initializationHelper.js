@@ -1,14 +1,17 @@
-import { Alert, } from '../../node_modules/igv-ui/src/index.js'
-import { TrackUtils, StringUtils, } from '../../node_modules/igv-utils/src/index.js'
-import { SessionFileLoad } from '../node_modules/igv-widgets/dist/igv-widgets.js';
-import ModalTable from '../node_modules/data-modal/js/modalTable.js';
-import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js';
-import hic from "../../js/api.js";
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
 import SessionController from "./sessionController.js";
-import { toJSON } from "../../js/init.js";
-import igv from '../../node_modules/igv/dist/igv.esm.js';
+import { Alert, } from '../node_modules/igv-ui/src/index.js'
+import { TrackUtils, StringUtils, } from '../node_modules/igv-utils/src/index.js'
+import { SessionFileLoad } from '../node_modules/igv-widgets/dist/igv-widgets.js';
+import ModalTable from '../node_modules/data-modal/js/modalTable.js';
+import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js';
+import igv from '../node_modules/igv/dist/igv.esm.js';
+
+// The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
+// Note -- for convenient debugging get hic from ../../js/index.js
+import hic from "../../dist/juicebox.esm.js";
+//import * as hic from "../../js/index.js";
 
 let googleEnabled = false;
 
@@ -86,7 +89,7 @@ const initializationHelper = async (container, config) => {
             sessionLoadModal: document.querySelector('#igv-app-session-from-url-modal'),
             sessionSaveModal: document.querySelector('#igv-app-session-save-modal'),
             sessionFileLoad: new SessionFileLoad(sessionFileLoadConfig),
-            JSONProvider: () => toJSON()
+            JSONProvider: () => hic.toJSON()
         };
     sessionController = new SessionController(sessionControllerConfig);
 
@@ -514,4 +517,4 @@ function updateBDropdown(browser) {
     }
 }
 
-export { initializationHelper, loadTracks }
+export default initializationHelper
