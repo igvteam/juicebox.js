@@ -26,13 +26,13 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-const SweepZoom = function (browser, $target, $sweep_zoom_container) {
+const SweepZoom = function (browser, $target) {
 
     this.browser = browser;
 
     this.$target = $target;
 
-    this.$rulerSweeper = $sweep_zoom_container;
+    this.$rulerSweeper = $target.find("div[id$='-sweep-zoom-container']");
     this.$rulerSweeper.hide();
 
     this.sweepRect = {};

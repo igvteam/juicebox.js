@@ -37,12 +37,18 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const ContactMatrixView = function (browser, sweepZoom, scrollbarWidget, $viewport) {
+const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale) {
 
     this.browser = browser;
+    this.$viewport = $viewport;
     this.sweepZoom = sweepZoom;
     this.scrollbarWidget = scrollbarWidget;
-    this.$viewport = $viewport;
+
+    // Set initial color scales.  These might be overriden / adjusted via parameters
+    this.colorScale = colorScale;
+
+    this.ratioColorScale = ratioColorScale;
+    // this.diffColorScale = new RatioColorScale(100, false);
 
     this.$canvas = $viewport.find('canvas');
     this.ctx = this.$canvas.get(0).getContext('2d');
@@ -59,10 +65,6 @@ const ContactMatrixView = function (browser, sweepZoom, scrollbarWidget, $viewpo
     this.imageTileCacheLimit = 8; //8 is the minimum number required to support A/B cycling
     this.colorScaleThresholdCache = {};
 
-    // Set initial color scales.  These might be overriden / adjusted via parameters
-    this.colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
-    this.ratioColorScale = new RatioColorScale(5);
-    // this.diffColorScale = new RatioColorScale(100, false);
 
     this.browser.eventBus.subscribe("NormalizationChange", this);
     this.browser.eventBus.subscribe("TrackLoad2D", this);

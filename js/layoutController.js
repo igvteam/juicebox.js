@@ -53,63 +53,10 @@ const LayoutController = function (browser, $root) {
 
     createNavBar(browser, $root);
 
-    createAllContainers.call(this, browser, $root);
+    this.createAllContainers(browser, $root);
 };
 
-LayoutController.navbarHeight = () => 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
-
-function createNavBar(browser, $root) {
-
-    const $hic_navbar_container = $('<div>', { class: 'hic-navbar-container' });
-    $root.append($hic_navbar_container);
-
-    $hic_navbar_container.on('click', e => {
-        e.stopPropagation();
-        e.preventDefault();
-        HICBrowser.setCurrentBrowser(browser);
-    });
-
-    const html_contact_map_hic_nav_bar_map_container =
-        `<div id="${ browser.id }-contact-map-hic-nav-bar-map-container">
-            <div id="${ browser.id }-contact-map-hic-nav-bar-map-label">
-            </div>
-             <div class="hic-nav-bar-button-container">
-                <i class="fa fa-bars fa-lg" title="Present menu"></i>
-                <i class="fa fa-minus-circle fa-lg" title="Delete browser panel" style="display: none;"></i>
-             </div>
-        </div>`;
-
-    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
-
-    browser.$contactMaplabel = $hic_navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
-
-    browser.$menuPresentDismiss = $hic_navbar_container.find('.fa-bars');
-    browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
-
-    browser.$browser_panel_delete_button = $hic_navbar_container.find('.fa-minus-circle');
-    browser.$browser_panel_delete_button.on('click', e => hic.deleteBrowserPanel(browser) );
-
-    // Delete button is only vidible if there is more then one browser
-    browser.$browser_panel_delete_button.hide();
-
-    const html_control_map_hic_nav_bar_map_container =
-        `<div id="${ browser.id }-control-map-hic-nav-bar-map-container">
-            <div id="${ browser.id }-control-map-hic-nav-bar-map-label"></div>
-        </div>`;
-
-    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
-
-    browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
-
-    const html_upper_hic_nav_bar_widget_container = `<div id="${ browser.id }-upper-hic-nav-bar-widget-container"></div>`;
-    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
-
-    const html_lower_hic_nav_bar_widget_container = `<div id="${ browser.id }-lower-hic-nav-bar-widget-container"></div>`;
-    $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
-
-}
-
-function createAllContainers(browser, $root) {
+LayoutController.prototype.createAllContainers = function(browser, $root){
 
     const html_x_track_container =
         `<div id="${ browser.id }-x-track-container"><div id="${ browser.id }-track-shim"></div><div id="${ browser.id }-x-tracks"><div id="${ browser.id }-y-track-guide" style="display: none;"></div></div></div>`;
@@ -199,7 +146,21 @@ function createAllContainers(browser, $root) {
 
     this.$content_container.append($(html_x_axis_scrollbar_container));
 
-}
+};
+
+LayoutController.prototype.getContactMatrixViewport = function () {
+    const $parent = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
+    return $parent.find("div[id$='-viewport']");
+};
+
+LayoutController.prototype.getYAxisScrollbarContainer = function () {
+    const $parent = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
+    return $parent.find("div[id$='-y-axis-scrollbar-container']");
+};
+
+LayoutController.prototype.getXAxisScrollbarContainer = function () {
+    return this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
+};
 
 LayoutController.prototype.tracksLoaded = function (trackXYPairs) {
 
@@ -318,7 +279,7 @@ LayoutController.prototype.doLayoutTrackXYPairCount = function (trackXYPairCount
 
     track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (wigTrackHeight + track_margin);
 
-    tokens = [ LayoutController.navbarHeight(), track_aggregate_height ].map(number => `${ number }px`);
+    tokens = [ getNavbarHeight(), track_aggregate_height ].map(number => `${ number }px`);
     height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
 
     tokens = [ track_aggregate_height, axis_height, scrollbar_height ].map(number => `${ number }px`);
@@ -359,7 +320,7 @@ LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
     var count;
 
     this.browser.$root.width(size.width);
-    this.browser.$root.height(size.height + LayoutController.navbarHeight());
+    this.browser.$root.height(size.height + getNavbarHeight());
 
     count = this.browser.trackRenderers.length > 0 ? this.browser.trackRenderers.length : 0;
     this.doLayoutTrackXYPairCount(count);
@@ -367,4 +328,61 @@ LayoutController.prototype.doLayoutWithRootContainerSize = function (size) {
     this.browser.updateLayout();
 };
 
-export default LayoutController
+const getNavbarHeight = () => 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
+
+const getNavbarContainer = browser => browser.$root.find('.hic-navbar-container');
+
+const createNavBar = (browser, $root) => {
+
+    const $hic_navbar_container = $('<div>', { class: 'hic-navbar-container' });
+    $root.append($hic_navbar_container);
+
+    $hic_navbar_container.on('click', e => {
+        e.stopPropagation();
+        e.preventDefault();
+        HICBrowser.setCurrentBrowser(browser);
+    });
+
+    const html_contact_map_hic_nav_bar_map_container =
+        `<div id="${ browser.id }-contact-map-hic-nav-bar-map-container">
+            <div id="${ browser.id }-contact-map-hic-nav-bar-map-label">
+            </div>
+             <div class="hic-nav-bar-button-container">
+                <i class="fa fa-bars fa-lg" title="Present menu"></i>
+                <i class="fa fa-minus-circle fa-lg" title="Delete browser panel" style="display: none;"></i>
+             </div>
+        </div>`;
+
+    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
+
+    browser.$contactMaplabel = $hic_navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
+
+    browser.$menuPresentDismiss = $hic_navbar_container.find('.fa-bars');
+    browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
+
+    browser.$browser_panel_delete_button = $hic_navbar_container.find('.fa-minus-circle');
+    browser.$browser_panel_delete_button.on('click', e => hic.deleteBrowserPanel(browser) );
+
+    // Delete button is only vidible if there is more then one browser
+    browser.$browser_panel_delete_button.hide();
+
+    const html_control_map_hic_nav_bar_map_container =
+        `<div id="${ browser.id }-control-map-hic-nav-bar-map-container">
+            <div id="${ browser.id }-control-map-hic-nav-bar-map-label"></div>
+        </div>`;
+
+    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
+
+    browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
+
+    const html_upper_hic_nav_bar_widget_container = `<div id="${ browser.id }-upper-hic-nav-bar-widget-container"></div>`;
+    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
+
+    const html_lower_hic_nav_bar_widget_container = `<div id="${ browser.id }-lower-hic-nav-bar-widget-container"></div>`;
+    $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
+
+};
+
+export { getNavbarHeight, getNavbarContainer };
+
+export default LayoutController;

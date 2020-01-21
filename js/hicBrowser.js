@@ -24,38 +24,39 @@
 /**
  * @author Jim Robinson
  */
-import $ from '../vendor/jquery-3.3.1.slim.js'
-import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
-import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
-import EventBus from "./eventBus.js";
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
+import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hic from './hicUtils.js'
+import { Globals } from "./globals.js";
+import {paramDecode, paramEncode} from "./urlUtils.js"
+import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController from './layoutController.js'
+import LayoutController, { annotationTrackHeight, wigTrackHeight, getNavbarHeight, getNavbarContainer } from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
-import { Globals } from "./globals.js";
-import { annotationTrackHeight, wigTrackHeight } from "./layoutController.js";
-import LocusGoto from "./hicLocusGoto";
-import ResolutionSelector from "./hicResolutionSelector";
-import ColorScaleWidget from "./hicColorScaleWidget";
-import ControlMapWidget from "./controlMapWidget";
-import NormalizationWidget from "./normalizationWidget";
-import ChromosomeSelectorWidget from "./chromosomeSelectorWidget";
-import AnnotationWidget from "./annotationWidget";
-import SweepZoom from "./sweepZoom";
-import ScrollbarWidget from "./scrollbarWidget";
-import ContactMatrixView from "./contactMatrixView";
+import LocusGoto from "./hicLocusGoto.js";
+import ResolutionSelector from "./hicResolutionSelector.js";
+import ColorScaleWidget from "./hicColorScaleWidget.js";
+import ControlMapWidget from "./controlMapWidget.js";
+import NormalizationWidget from "./normalizationWidget.js";
+import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js";
+import AnnotationWidget from "./annotationWidget.js";
+import SweepZoom from "./sweepZoom.js";
+import ScrollbarWidget from "./scrollbarWidget.js";
+import ContactMatrixView from "./contactMatrixView.js";
+import ColorScale from "./colorScale";
+import RatioColorScale from "./ratioColorScale";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE")
+const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
 
 const HICBrowser = function ($app_container, config) {
 
@@ -81,33 +82,27 @@ const HICBrowser = function ($app_container, config) {
         this.$root.css("width", String(config.width));
     }
     if (config.height) {
-        this.$root.css("height", String(config.height + LayoutController.navbarHeight(this.config.figureMode)));
+        this.$root.css("height", String(config.height + getNavbarHeight()));
     }
 
     $app_container.append(this.$root);
 
     this.layoutController = new LayoutController(this, this.$root);
 
-    const $navbar_container = this.$root.find('.hic-navbar-container');
-    this.locusGoto = new LocusGoto(this, $navbar_container);
-    this.resolutionSelector = new ResolutionSelector(this, $navbar_container);
+    // nav bar related objects
+    this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
+    this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
     this.resolutionSelector.setResolutionLock(this.resolutionLocked);
-    this.colorscaleWidget = new ColorScaleWidget(this, $navbar_container);
-    this.controlMapWidget = new ControlMapWidget(this, $navbar_container);
-    this.normalizationSelector = new NormalizationWidget(this, $navbar_container);
+    this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
+    this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
+    this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
 
-
-    const $x_axis_scrollbar_container = this.layoutController.$content_container.find("div[id$='-x-axis-scrollbar-container']");
-
-    const $y_tracks_y_axis_viewport_y_scrollbar = this.layoutController.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
-    const $viewport = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-viewport']");
-    const $y_axis_scrollbar_container = $y_tracks_y_axis_viewport_y_scrollbar.find("div[id$='-y-axis-scrollbar-container']");
-
-    const sweepZoom = new SweepZoom(this, $viewport, $viewport.find("div[id$='-sweep-zoom-container']"));
-
-    const scrollbarWidget = new ScrollbarWidget(this, $x_axis_scrollbar_container, $y_axis_scrollbar_container);
-
-    this.contactMatrixView = new ContactMatrixView(this, sweepZoom, scrollbarWidget, $viewport);
+    // contact map container related objects
+    const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
+    const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
+    const colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
+    const ratioColorScale = new RatioColorScale(5);
+    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale);
 
     this.$menu = this.createMenu(this.$root);
     this.$menu.hide();
