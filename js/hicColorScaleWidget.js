@@ -26,8 +26,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
-import { GenericContainer } from '../node_modules/igv-ui/src/index.js'
-import {UIUtils} from "../node_modules/igv-ui/src/index";
+import { GenericContainer, UIUtils } from '../node_modules/igv-ui/src/index.js'
 
 const ColorScaleWidget = function (browser, $container) {
 
