@@ -27,13 +27,14 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { StringUtils } from '../node_modules/igv-utils/src/index.js'
 
-const LocusGoto = function (browser, $container) {
-    var $label;
+const LocusGoto = function (browser, $hic_navbar_container) {
 
     this.browser = browser;
 
+    const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
+
     this.$container = $("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
-    $container.append(this.$container);
+    $parent.append(this.$container);
 
     this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
     this.$container.append(this.$resolution_selector);

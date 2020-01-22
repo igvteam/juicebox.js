@@ -27,8 +27,6 @@
 
 import ColorScale from './colorScale.js'
 import RatioColorScale from './ratioColorScale.js'
-import ScrollbarWidget from './scrollbarWidget.js'
-import SweepZoom from './sweepZoom.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
@@ -39,50 +37,27 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const ContactMatrixView = function (browser, $container) {
-    var id;
+const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale) {
 
     this.browser = browser;
+    this.$viewport = $viewport;
+    this.sweepZoom = sweepZoom;
+    this.scrollbarWidget = scrollbarWidget;
 
-    this.scrollbarWidget = new ScrollbarWidget(browser);
+    // Set initial color scales.  These might be overriden / adjusted via parameters
+    this.colorScale = colorScale;
 
-    id = browser.id + '_' + 'viewport';
-    this.$viewport = $("<div>", {id: id});
-    $container.append(this.$viewport);
+    this.ratioColorScale = ratioColorScale;
+    // this.diffColorScale = new RatioColorScale(100, false);
 
-    // content canvas
-    this.$canvas = $('<canvas>');
-    this.$viewport.append(this.$canvas);
-
+    this.$canvas = $viewport.find('canvas');
     this.ctx = this.$canvas.get(0).getContext('2d');
 
-    // spinner
-    this.$fa_spinner = $('<i class="fa fa-spinner fa-spin">');
-    this.$fa_spinner.css("font-size", "48px");
-    this.$fa_spinner.css("position", "absolute");
-    this.$fa_spinner.css("left", "40%");
-    this.$fa_spinner.css("top", "40%");
-    this.$fa_spinner.css("display", "none");
-    this.$viewport.append(this.$fa_spinner);
-    this.spinnerCount = 0
+    this.$fa_spinner = $viewport.find('.fa-spinner');
+    this.spinnerCount = 0;
 
-    // ruler sweeper widget surface
-    this.sweepZoom = new SweepZoom(browser, this.$viewport);
-    this.$viewport.append(this.sweepZoom.$rulerSweeper);
-
-
-    // x - guide
-    id = browser.id + '_' + 'x-guide';
-    this.$x_guide = $("<div>", {id: id});
-    this.$viewport.append(this.$x_guide);
-
-    // y - guide
-    id = browser.id + '_' + 'y-guide';
-    this.$y_guide = $("<div>", {id: id});
-    this.$viewport.append(this.$y_guide);
-
-
-    $container.append(this.scrollbarWidget.$y_axis_scrollbar_container);
+    this.$x_guide = $viewport.find("div[id$='-x-guide']");
+    this.$y_guide = $viewport.find("div[id$='-y-guide']");
 
     this.displayMode = 'A';
     this.imageTileCache = {};
@@ -90,10 +65,6 @@ const ContactMatrixView = function (browser, $container) {
     this.imageTileCacheLimit = 8; //8 is the minimum number required to support A/B cycling
     this.colorScaleThresholdCache = {};
 
-    // Set initial color scales.  These might be overriden / adjusted via parameters
-    this.colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
-    this.ratioColorScale = new RatioColorScale(5);
-    // this.diffColorScale = new RatioColorScale(100, false);
 
     this.browser.eventBus.subscribe("NormalizationChange", this);
     this.browser.eventBus.subscribe("TrackLoad2D", this);

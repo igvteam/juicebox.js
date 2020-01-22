@@ -27,19 +27,14 @@ import HICEvent from './hicEvent.js'
 import {Track2DDisplaceModes} from './globals.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-const AnnotationWidget = function (browser, $parent, config, trackListRetrievalCallback) {
-
-    var $container;
+const AnnotationWidget = function (browser, $container, { title, alertMessage }, trackListRetrievalCallback) {
 
     this.browser = browser;
     this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-    $container = $("<div>", {class: 'hic-annotation-presentation-button-container'});
-    $parent.append($container);
+    annotationPresentationButton.call(this, $container, alertMessage);
 
-    annotationPresentationButton.call(this, $container, config.title, config.alertMessage);
-
-    annotationPanel.call(this, this.browser.$root, config.title);
+    annotationPanel.call(this, this.browser.$root, title);
 
 };
 
@@ -47,6 +42,7 @@ AnnotationWidget.prototype.updateBody = function (tracks) {
 
     var self = this,
         trackRenderers,
+
         isTrack2D,
         zi;
 
@@ -68,26 +64,22 @@ AnnotationWidget.prototype.updateBody = function (tracks) {
 
 };
 
-function annotationPresentationButton($parent, title, alertMessage) {
-    var self = this,
-        $button;
+function annotationPresentationButton($parent, alertMessage) {
 
-    $button = $('<button>', {type: 'button'});
-    $button.text(title);
-    $parent.append($button);
+    const $button = $parent.find("button");
 
-    $button.on('click', function () {
-        var list;
+    $button.on('click', () => {
 
-        list = self.trackListRetrievalCallback();
+        const list = this.trackListRetrievalCallback();
+
         if (list.length > 0) {
-            self.updateBody(self.trackListRetrievalCallback());
-            self.$annotationPanel.toggle();
+            this.updateBody(this.trackListRetrievalCallback());
+            this.$annotationPanel.toggle();
         } else {
             Alert.presentAlert(alertMessage);
         }
 
-        self.browser.hideMenu();
+        this.browser.hideMenu();
     });
 }
 

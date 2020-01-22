@@ -24,27 +24,39 @@
 /**
  * @author Jim Robinson
  */
-import $ from '../vendor/jquery-3.3.1.slim.js'
-import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
-import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
-import EventBus from "./eventBus.js";
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
+import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
+import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hic from './hicUtils.js'
+import { Globals } from "./globals.js";
+import {paramDecode, paramEncode} from "./urlUtils.js"
+import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController from './layoutController.js'
+import LayoutController, { annotationTrackHeight, wigTrackHeight, getNavbarHeight, getNavbarContainer } from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import {paramDecode, paramEncode} from "./urlUtils.js"
 import GoogleRemoteFile from "./googleRemoteFile.js"
-import { Globals } from "./globals.js";
+import LocusGoto from "./hicLocusGoto.js";
+import ResolutionSelector from "./hicResolutionSelector.js";
+import ColorScaleWidget from "./hicColorScaleWidget.js";
+import ControlMapWidget from "./controlMapWidget.js";
+import NormalizationWidget from "./normalizationWidget.js";
+import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js";
+import AnnotationWidget from "./annotationWidget.js";
+import SweepZoom from "./sweepZoom.js";
+import ScrollbarWidget from "./scrollbarWidget.js";
+import ContactMatrixView from "./contactMatrixView.js";
+import ColorScale from "./colorScale";
+import RatioColorScale from "./ratioColorScale";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE")
+const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
 
 const HICBrowser = function ($app_container, config) {
 
@@ -70,12 +82,40 @@ const HICBrowser = function ($app_container, config) {
         this.$root.css("width", String(config.width));
     }
     if (config.height) {
-        this.$root.css("height", String(config.height + LayoutController.navbarHeight(this.config.figureMode)));
+        this.$root.css("height", String(config.height + getNavbarHeight()));
     }
 
     $app_container.append(this.$root);
 
-    this.layoutController = new LayoutController(this, this.$root);  // <- contactMatixView created here, nasty side-effect!
+    this.layoutController = new LayoutController(this, this.$root);
+
+    // nav bar related objects
+    this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
+    this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
+    this.resolutionSelector.setResolutionLock(this.resolutionLocked);
+    this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
+    this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
+    this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
+
+    // contact map container related objects
+    const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
+    const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
+    const colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
+    const ratioColorScale = new RatioColorScale(5);
+    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale);
+
+    this.$menu = this.createMenu(this.$root);
+    this.$menu.hide();
+
+    this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'));
+
+    const annotation2DWidgetConfig =
+        {
+            title: '2D Annotations',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
+
+    this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
 
     // prevent user interaction during lengthy data loads
     this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
@@ -89,7 +129,6 @@ const HICBrowser = function ($app_container, config) {
     this.eventBus.subscribe("LocusChange", this);
 
 };
-
 
 HICBrowser.getCurrentBrowser = function () {
 
@@ -126,6 +165,37 @@ HICBrowser.setCurrentBrowser = function (browser) {
 
         hic.eventBus.post(HICEvent("BrowserSelect", browser));
     }
+
+};
+
+HICBrowser.prototype.createMenu = function ($root) {
+
+    const html =
+        `<div class="hic-menu" style="display: none;">
+            <div class="hic-menu-close-button">
+                <i class="fa fa-times"></i>
+            </div>
+	        <div class="hic-chromosome-selector-widget-container">
+		        <div>Chromosomes</div>
+                <div>
+                    <select name="x-axis-selector"></select>
+                    <select name="y-axis-selector"></select>
+                    <div></div>
+                </div>
+	        </div>
+	        <div class="hic-annotation-presentation-button-container">
+		        <button type="button">2D Annotations</button>
+	        </div>
+        </div>`;
+
+    $root.append($(html));
+
+    const $menu = $root.find(".hic-menu");
+
+    const $fa = $root.find(".fa-times");
+    $fa.on('click', () => this.toggleMenu() );
+
+    return $menu;
 
 };
 
@@ -307,7 +377,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                 if(config.max === undefined) {
                     config.autoscale = true;
                 }
-                config.height = ("annotation" === config.type) ? this.layoutController.annotationTrackHeight : this.layoutController.wigTrackHeight;
+                config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
 
                 if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
                     promisesNV.push(this.loadNormalizationFile(config.url))

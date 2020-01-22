@@ -26,13 +26,12 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-const ControlMapWidget = function (browser, $parent) {
-
-    const self = this
+const ControlMapWidget = function (browser, $hic_navbar_container) {
 
     this.browser = browser;
 
-    // container
+    const $parent = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
+
     this.$container = $('<div class="hic-control-map-selector-container">');
     this.$container.hide();
     $parent.append(this.$container);
@@ -51,6 +50,8 @@ const ControlMapWidget = function (browser, $parent) {
     this.$container.append($cycle_container);
 
     this.controlMapHash = new ControlMapHash(browser, this.$select, $toggle_container, $cycle_container, toggle_arrows_up(), toggle_arrows_down());
+
+    const self = this;
 
     browser.eventBus.subscribe("ControlMapLoad", function (event) {
         self.controlMapHash.updateOptions(browser.getDisplayMode());
