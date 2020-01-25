@@ -8,8 +8,8 @@ import ModalTable from '../node_modules/data-modal/js/modalTable.js';
 import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js';
 
 // The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
-import hic from "../../dist/juicebox.esm.js";
-//import * as hic from "../../js/index.js";
+//import hic from "../../dist/juicebox.esm.js";
+import hic from "../../js/index.js";
 
 // The igv object. TODO eliminate this dependency
 const igv = hic.igv;

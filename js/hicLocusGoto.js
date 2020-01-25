@@ -66,9 +66,9 @@ LocusGoto.prototype.receiveEvent = function (event) {
     if (event.type === "LocusChange") {
 
         state = event.data.state || self.browser.state;
-        if (0 === state.chr1) {
+       // if (0 === state.chr1) {
             xy = 'All';
-        } else {
+      //  } else {
             chr1 = self.browser.dataset.chromosomes[state.chr1];
             chr2 = self.browser.dataset.chromosomes[state.chr2];
 
@@ -85,7 +85,7 @@ LocusGoto.prototype.receiveEvent = function (event) {
             xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
                 chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
 
-        }
+       // }
 
         this.$resolution_selector.val(xy);
     }

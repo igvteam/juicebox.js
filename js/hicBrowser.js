@@ -51,8 +51,8 @@ import AnnotationWidget from "./annotationWidget.js";
 import SweepZoom from "./sweepZoom.js";
 import ScrollbarWidget from "./scrollbarWidget.js";
 import ContactMatrixView from "./contactMatrixView.js";
-import ColorScale from "./colorScale";
-import RatioColorScale from "./ratioColorScale";
+import ColorScale from "./colorScale.js";
+import RatioColorScale from "./ratioColorScale.js";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";

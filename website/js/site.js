@@ -34,8 +34,8 @@
 import initializationHelper from "./initializationHelper.js";
 
 // The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
-import hic from "../../dist/juicebox.esm.js";
-//import * as hic from "../../js/index.js";
+//import hic from "../../dist/juicebox.esm.js";
+import hic from "../../js/index.js";
 
 
 let allBrowsers;
