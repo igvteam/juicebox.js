@@ -31,7 +31,7 @@ import strip from 'rollup-plugin-strip';
 export default [
 
     {
-        input: 'js/api.js',
+        input: 'js/index.js',
         output: [
             {file: 'dist/juicebox.esm.js', format: 'es'}
         ],
@@ -51,7 +51,7 @@ export default [
         ]
     },
     {
-        input: 'js/api.js',
+        input: 'js/index.js',
         output: [
             {file: 'tmp/juicebox.js', format: 'umd', name: "hic"},
         ],
