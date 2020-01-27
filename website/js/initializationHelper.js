@@ -93,6 +93,34 @@ const initializationHelper = async (container, config) => {
 
     createSelectModals(document.querySelector('#hic-main'));
 
+    appendAndConfigureLoadURLModal(document.querySelector('#hic-main'), 'hic-load-url-modal', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+            const url = $(this).val();
+            loadHicFile( url, 'unnamed' );
+        }
+
+        $(this).val("");
+        $('#hic-load-url-modal').modal('hide');
+
+    });
+
+    appendAndConfigureLoadURLModal(document.querySelector('#hic-main'), 'track-load-url-modal', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+            const url = $(this).val();
+            loadTracks([ { url } ]);
+        }
+
+        $(this).val("");
+        $('#track-load-url-modal').modal('hide');
+
+    });
+
     if (config.mapMenu) {
         await populatePulldown(config.mapMenu);
     }
@@ -194,33 +222,6 @@ const initializationHelper = async (container, config) => {
 
     });
 
-    $('#hic-load-url').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-            const url = $(this).val();
-            loadHicFile( url, 'unnamed' );
-        }
-
-        $(this).val("");
-        $('#hic-load-url-modal').modal('hide');
-
-    });
-
-    $('#track-load-url').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-            loadTracks([{ url: $(this).val() }]);
-        }
-
-        $(this).val("");
-        $('#track-load-url-modal').modal('hide');
-
-    });
-
     $('.juicebox-app-clone-button').on('click', async () => {
 
         let browser = undefined;
@@ -271,6 +272,42 @@ const initializationHelper = async (container, config) => {
     hic.eventBus.subscribe("BrowserSelect", function (event) {
         updateBDropdown(event.data);
     });
+};
+
+const appendAndConfigureLoadURLModal = (root, id, input_handler) => {
+
+    const html =
+        `<div id="${ id }" class="modal fade">
+            <div class="modal-dialog  modal-lg">
+                <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title">Load URL</div>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Enter URL">
+                    </div>
+
+                </div>
+
+                </div>
+            </div>
+        </div>`;
+
+    $(root).append(html);
+
+    const $modal = $(root).find(`#${ id }`);
+    $modal.find('input').on('change', input_handler);
+
+    return html;
 };
 
 const createSelectModals = root => {
