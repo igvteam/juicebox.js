@@ -281,7 +281,7 @@ class Ruler {
             config = {},
             browser = this.browser;
 
-        if (isBrowserInWholeGenomeView(browser.state)) {
+        if (browser.dataset.isWholeGenome(browser.state.chr1)) {
             this.showWholeGenome();
             return;
         }
@@ -478,7 +478,6 @@ class Ruler {
             return retval;
         }
     };
-
 }
 
 function bbox(axis, $child, $firstChild) {
@@ -523,9 +522,6 @@ function hitTest(bboxes, value) {
     return $result;
 }
 
-function isBrowserInWholeGenomeView(state) {
-    return 0 === state.chr1 && state.chr1 === state.chr1;
-}
 
 function TickSpacing(majorTick, majorUnit, unitMultiplier) {
     this.majorTick = majorTick;

@@ -80,18 +80,16 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
     var self = this,
         htmlString,
         selectedIndex,
-        isWholeGenome,
         divisor,
         list;
 
     if (event.type === "LocusChange") {
-
         if (true === event.data.resolutionChanged) {
             this.browser.resolutionLocked = false;
             self.setResolutionLock(this.browser.resolutionLocked);
         }
 
-        isWholeGenome = (0 === event.data.state.chr1);
+        const isWholeGenome = this.browser.dataset.isWholeGenome(event.data.state.chr1);
 
         this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
 

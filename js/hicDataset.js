@@ -233,6 +233,10 @@ Dataset.prototype.getNormalizationOptions = async function () {
     return this.hicFile.getNormalizationOptions()
 }
 
+Dataset.prototype.isWholeGenome = function (chrIndex) {
+    return (this.wholeGenomeChromosome != null && this.wholeGenomeChromosome.index === chrIndex);
+}
+
 const Block = function (blockNumber, zoomData, records) {
     this.blockNumber = blockNumber;
     this.zoomData = zoomData;

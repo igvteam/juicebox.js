@@ -907,8 +907,8 @@ HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, cente
 HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
     if (!this.dataset) return;
-
-    if (this.state.chr1 === 0 && direction > 0) {
+    
+    if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
         // jump from whole genome to chromosome
         var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
             genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize,
