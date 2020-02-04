@@ -1,7 +1,7 @@
 import QRCode from "./qrcode.js";
 import { allBrowsers } from './site.js';
 import SessionController from "./sessionController.js";
-import { Alert, } from '../node_modules/igv-ui/src/index.js'
+import { Alert, createGenericSelectModal } from '../node_modules/igv-ui/src/index.js'
 import { TrackUtils, StringUtils, } from '../node_modules/igv-utils/src/index.js'
 import { SessionFileLoad } from '../node_modules/igv-widgets/dist/igv-widgets.js';
 import ModalTable from '../node_modules/data-modal/js/modalTable.js';
@@ -43,7 +43,7 @@ const initializationHelper = async (container, config) => {
 
                 if (config.trackMenu2D) {
                     let annotations2dURL = config.trackMenu2D.items.replace("$GENOME_ID", genomeId);
-                    await loadAnnotationSelector($('#' + config.trackMenu2D.id), annotations2dURL, "2D");
+                    await loadAnnotationSelector($(`#${ config.trackMenu2D.id}`), annotations2dURL, "2D");
                 }
 
                 if (EncodeDataSource.supportsGenome(genomeId)) {
@@ -62,13 +62,10 @@ const initializationHelper = async (container, config) => {
         updateBDropdown(browser);
     }
 
-
     // Must manually trigger the genome change event on initial load
     if (hic.HICBrowser.currentBrowser && hic.HICBrowser.currentBrowser.genome) {
         await genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
     }
-
-
 
     // session file load config
     const sessionFileLoadConfig =
@@ -94,7 +91,35 @@ const initializationHelper = async (container, config) => {
         };
     sessionController = new SessionController(sessionControllerConfig);
 
+    createSelectModals(document.querySelector('#hic-main'));
 
+    appendAndConfigureLoadURLModal(document.querySelector('#hic-main'), 'hic-load-url-modal', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+            const url = $(this).val();
+            loadHicFile( url, 'unnamed' );
+        }
+
+        $(this).val("");
+        $('#hic-load-url-modal').modal('hide');
+
+    });
+
+    appendAndConfigureLoadURLModal(document.querySelector('#hic-main'), 'track-load-url-modal', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+            const url = $(this).val();
+            loadTracks([ { url } ]);
+        }
+
+        $(this).val("");
+        $('#track-load-url-modal').modal('hide');
+
+    });
 
     if (config.mapMenu) {
         await populatePulldown(config.mapMenu);
@@ -174,25 +199,6 @@ const initializationHelper = async (container, config) => {
         $('#hic-qr-code-image').toggle();
     });
 
-    const $contact_map_select_modal = $('#hic-contact-map-select-modal');
-    $('#dataset_selector').on('change', function (e) {
-
-        const url = $(this).val();
-        const $selected = $(this).find('option:selected');
-
-        const browser = hic.HICBrowser.getCurrentBrowser();
-        if (undefined === browser) {
-            Alert.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
-        } else {
-            loadHicFile(url, $selected.text());
-        }
-
-        $contact_map_select_modal.modal('hide');
-
-        $(this).find('option').removeAttr("selected");
-
-    });
-
     $('#hic-load-local-file').on('change', function (e) {
 
         if (undefined === hic.HICBrowser.getCurrentBrowser()) {
@@ -214,70 +220,6 @@ const initializationHelper = async (container, config) => {
         $(this).val("");
         $('#hic-load-local-file-modal').modal('hide');
 
-    });
-
-    $('#hic-load-url').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-            const url = $(this).val();
-            loadHicFile( url, 'unnamed' );
-        }
-
-        $(this).val("");
-        $('#hic-load-url-modal').modal('hide');
-
-    });
-
-    $('#track-load-url').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-            loadTracks([{ url: $(this).val() }]);
-        }
-
-        $(this).val("");
-        $('#track-load-url-modal').modal('hide');
-
-    });
-
-    $('#annotation-selector').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-
-            const path = $(this).val();
-            const name = $(this).find('option:selected').text();
-
-            let config = {url: path, name };
-            if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
-                config.indexed = false   //UCSC files are never indexed
-            }
-            loadTracks([config]);
-        }
-
-        $('#hic-annotation-select-modal').modal('hide');
-        $(this).find('option').removeAttr("selected");
-
-    });
-
-    $('#annotation-2D-selector').on('change', function (e) {
-
-        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
-            Alert.presentAlert('ERROR: you must select a map panel.');
-        } else {
-
-            const path = $(this).val();
-            const name = $(this).find('option:selected').text();
-
-            loadTracks([{url: path, name}]);
-        }
-
-        $('#hic-annotation-2D-select-modal').modal('hide');
-        $(this).find('option').removeAttr("selected");
     });
 
     $('.juicebox-app-clone-button').on('click', async () => {
@@ -330,6 +272,121 @@ const initializationHelper = async (container, config) => {
     hic.eventBus.subscribe("BrowserSelect", function (event) {
         updateBDropdown(event.data);
     });
+};
+
+const appendAndConfigureLoadURLModal = (root, id, input_handler) => {
+
+    const html =
+        `<div id="${ id }" class="modal fade">
+            <div class="modal-dialog  modal-lg">
+                <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title">Load URL</div>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Enter URL">
+                    </div>
+
+                </div>
+
+                </div>
+            </div>
+        </div>`;
+
+    $(root).append(html);
+
+    const $modal = $(root).find(`#${ id }`);
+    $modal.find('input').on('change', input_handler);
+
+    return html;
+};
+
+const createSelectModals = root => {
+
+    $(root).append(createGenericSelectModal('hic-annotation-select-modal', 'annotation-selector'));
+    $(root).append(createGenericSelectModal('hic-annotation-2D-select-modal', 'annotation-2D-selector'));
+    $(root).append(createGenericSelectModal('hic-contact-map-select-modal', 'contact-map-selector'));
+
+    let modal;
+    modal = root.querySelector('#hic-annotation-select-modal');
+    modal.querySelector('.modal-title').textContent = 'Annotations';
+
+    modal = root.querySelector('#hic-annotation-2D-select-modal');
+    modal.querySelector('.modal-title').textContent = '2D Annotations';
+
+    modal = root.querySelector('#hic-contact-map-select-modal');
+    modal.querySelector('.modal-title').textContent = 'Select Contact Map';
+
+    // Annotation Select Modal
+    const $annotation_selector = $('#annotation-selector');
+    $annotation_selector.on('change', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+
+            const path = $annotation_selector.val();
+            const name = $annotation_selector.find('option:selected').text();
+
+            let config = {url: path, name };
+            if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
+                config.indexed = false   //UCSC files are never indexed
+            }
+            loadTracks([config]);
+        }
+
+        $('#hic-annotation-select-modal').modal('hide');
+        $annotation_selector.find('option').removeAttr("selected");
+
+    });
+
+    // 2D Annotation Select Modal
+    const $annotation_2D_selector = $('#annotation-2D-selector');
+    $annotation_2D_selector.on('change', function (e) {
+
+        if (undefined === hic.HICBrowser.getCurrentBrowser()) {
+            Alert.presentAlert('ERROR: you must select a map panel.');
+        } else {
+
+            const path = $annotation_2D_selector.val();
+            const name = $annotation_2D_selector.find('option:selected').text();
+
+            loadTracks([{url: path, name}]);
+        }
+
+        $('#hic-annotation-2D-select-modal').modal('hide');
+        $annotation_2D_selector.find('option').removeAttr("selected");
+    });
+
+    // Contact Map Select Modal
+    const $contact_map_selector = $('#contact-map-selector');
+    $contact_map_selector.on('change', function (e) {
+
+        const url = $contact_map_selector.val();
+        const $selected = $contact_map_selector.find('option:selected');
+
+        const browser = hic.HICBrowser.getCurrentBrowser();
+        if (undefined === browser) {
+            Alert.presentAlert('ERROR: you must select a map panel by clicking the panel header.');
+        } else {
+            loadHicFile(url, $selected.text());
+        }
+
+        $('#hic-contact-map-select-modal').modal('hide');
+
+        $contact_map_selector.find('option').removeAttr("selected");
+
+    });
+
 };
 
 const createEncodeTable = genomeId => encodeModal.setDatasource(new EncodeDataSource(genomeId));

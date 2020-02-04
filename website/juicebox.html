@@ -47,7 +47,7 @@
     <!-- Google API -- remove if not supporting Google resources -->
     <script src="https://apis.google.com/js/platform.js"></script>
 
-<!--    <script src="../dist/juicebox.js"></script>-->
+    <!--    <script src="../dist/juicebox.js"></script>-->
     <!--    <script src="https://cdn.jsdelivr.net/npm/igv@2.3.4/dist/igv.js"></script>-->
 
 </head>
@@ -72,141 +72,141 @@
 
 </nav>
 
-<div id="hic-modal-button-container">
+<main id="hic-main" role="main" class="container-fluid">
 
-    <!-- Contact Map: Select | Local File | URL -->
-    <div class="dropdown">
+    <div id="hic-modal-button-container">
 
-        <button id="hic-contact-map-dropdown" class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-            Load Map
-        </button>
+        <!-- Contact Map: Select | Local File | URL -->
+        <div class="dropdown">
 
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
+            <button id="hic-contact-map-dropdown" class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                Load Map
+            </button>
+
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
+                    File</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
+                    File</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
+            </div>
+
         </div>
 
-    </div>
+        <!-- Control Map: Select | Local File | URL -->
+        <div class="dropdown">
 
-    <!-- Control Map: Select | Local File | URL -->
-    <div class="dropdown">
+            <button id="hic-control-map-dropdown" class="btn btn-outline-dark btn-sm dropdown-toggle disabled" type="button" data-toggle="dropdown">
+                Load "B" Map
+            </button>
 
-        <button id="hic-control-map-dropdown" class="btn btn-outline-dark btn-sm dropdown-toggle disabled" type="button" data-toggle="dropdown">
-            Load "B" Map
-        </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
+                    File</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
+                    File</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
+            </div>
 
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-contact-map-select-modal">Select Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Map
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-url-modal">Map URL</a>
         </div>
 
-    </div>
+        <!-- Track File: ENCODE | Annotations | Local File | URL -->
+        <div class="dropdown">
 
-    <!-- Track File: ENCODE | Annotations | Local File | URL -->
-    <div class="dropdown">
+            <button id="hic-track-dropdown-button" class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                Load Tracks
+            </button>
 
-        <button id="hic-track-dropdown-button" class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-            Load Tracks
-        </button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-encode-modal"
+                   id="hic-encode-modal-button">ENCODE</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">Genome
+                    Annotations</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">2D
+                    Annotations</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Track
+                    File</a>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#track-load-url-modal">Track URL</a>
+            </div>
 
-        <div class="dropdown-menu">
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-encode-modal"
-               id="hic-encode-modal-button">ENCODE</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-select-modal">Genome
-                Annotations</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-annotation-2D-select-modal">2D
-                Annotations</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#hic-load-local-file-modal">Local Track
-                File</a>
-            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#track-load-url-modal">Track URL</a>
         </div>
 
-    </div>
+        <!-- Session -->
+        <div class="dropdown">
 
-    <!-- Session -->
-    <div class="dropdown">
+            <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                Session
+            </button>
 
-        <button class="btn btn-outline-dark btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
-            Session
-        </button>
+            <div class="dropdown-menu">
 
-        <div class="dropdown-menu">
-
-            <!-- Load local session file -->
-            <label class="dropdown-item btn btn-default btn-file">
-                <div class="igv-app-dropdown-item-cloud-storage">
-                    <div>
-                        Local File ...
+                <!-- Load local session file -->
+                <label class="dropdown-item btn btn-default btn-file">
+                    <div class="igv-app-dropdown-item-cloud-storage">
+                        <div>
+                            Local File ...
+                        </div>
+                        <div>
+                            <input id="igv-app-dropdown-local-session-file-input" type="file" name="file" style="display: none;">
+                        </div>
                     </div>
-                    <div>
-                        <input id="igv-app-dropdown-local-session-file-input" type="file" name="file" style="display: none;">
+                </label>
+
+                <!-- Load Dropbox hosted session file -->
+                <div class="dropdown-item">
+
+                    <div id="igv-app-dropdown-dropbox-session-file-button"
+                         class="igv-app-dropdown-item-cloud-storage">
+
+                        <div>Dropbox</div>
+                        <div>
+                            <img src="./img/dropbox-dropdown-menu-item.png" width="18" height="18">
+                        </div>
+                        <div>...</div>
+
+                    </div>
+
+                </div>
+
+                <!-- Load Google Drive hosted session file -->
+                <div class="dropdown-item">
+                    <div id="igv-app-dropdown-google-drive-session-file-button"
+                         class="igv-app-dropdown-item-cloud-storage">
+                        <div>Google Drive</div>
+                        <div><img src="./img/googledrive-dropdown-menu-item.png" width="18" height="18"></div>
+                        <div>...</div>
                     </div>
                 </div>
-            </label>
 
-            <!-- Load Dropbox hosted session file -->
-            <div class="dropdown-item">
+                <!-- Load session URL -->
+                <button class="dropdown-item" type="button" data-toggle="modal" data-target="#igv-app-session-from-url-modal">
+                    Load URL ...
+                </button>
 
-                <div id="igv-app-dropdown-dropbox-session-file-button"
-                     class="igv-app-dropdown-item-cloud-storage">
+                <div class="dropdown-divider"></div>
 
-                    <div>Dropbox</div>
-                    <div>
-                        <img src="./img/dropbox-dropdown-menu-item.png" width="18" height="18">
-                    </div>
-                    <div>...</div>
-
-                </div>
+                <!-- Save local session file -->
+                <button id="igv-app-save-session-button" type="button" class="dropdown-item" data-toggle="modal" data-target="#igv-app-session-save-modal">
+                    Save ...
+                </button>
 
             </div>
 
-            <!-- Load Google Drive hosted session file -->
-            <div class="dropdown-item">
-                <div id="igv-app-dropdown-google-drive-session-file-button"
-                     class="igv-app-dropdown-item-cloud-storage">
-                    <div>Google Drive</div>
-                    <div><img src="./img/googledrive-dropdown-menu-item.png" width="18" height="18"></div>
-                    <div>...</div>
-                </div>
-            </div>
+        </div>
 
-            <!-- Load session URL -->
-            <button class="dropdown-item" type="button" data-toggle="modal" data-target="#igv-app-session-from-url-modal">
-                Load URL ...
+        <!-- Share (generate URL) -->
+        <div title="Share">
+            <button id="hic-share-button" class="btn btn-outline-dark btn-sm" type="button" data-toggle="modal" data-target="#hic-share-url-modal">
+                Share
             </button>
+        </div>
 
-            <div class="dropdown-divider"></div>
-
-            <!-- Save local session file -->
-            <button id="igv-app-save-session-button" type="button" class="dropdown-item" data-toggle="modal" data-target="#igv-app-session-save-modal">
-                Save ...
-            </button>
-
+        <!-- App clone button -->
+        <div class="juicebox-app-clone-button" title="Add Map Panel">
+            <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
         </div>
 
     </div>
-
-    <!-- Share (generate URL) -->
-    <div title="Share">
-        <button id="hic-share-button" class="btn btn-outline-dark btn-sm" type="button" data-toggle="modal" data-target="#hic-share-url-modal">
-            Share
-        </button>
-    </div>
-
-    <!-- App clone button -->
-    <div class="juicebox-app-clone-button" title="Add Map Panel">
-        <i class="fa fa-plus-circle fa-lg" aria-hidden="true"></i>
-    </div>
-
-</div>
-
-<div class="container-fluid">
 
     <!-- App container -->
     <div class="row">
@@ -267,7 +267,182 @@
         </div>
     </div>
 
-</div>
+    <!-- Save Session -->
+    <div id="igv-app-session-save-modal" class="modal fade igv-app-file-save-modal">
+
+        <div class="modal-dialog modal-lg" role="document">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <div id="igv-app-session-save-modal-label" class="modal-title">
+                        <div>
+                            Save Session File
+                        </div>
+                    </div>
+
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <input class="form-control" type="text" placeholder="igv-app-session.json">
+
+                    <div>
+                        Enter session filename with .json suffix
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-secondary">OK</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Load Session from URL -->
+    <div id="igv-app-session-from-url-modal" class="modal fade">
+
+        <div class="modal-dialog modal-lg" role="document">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title">Session URL</div>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-secondary">OK</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Share URL Modal -->
+    <div id="hic-share-url-modal" class="modal fade">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title">Share</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="container-fluid">
+
+                        <!-- copy url -->
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="form-group">
+                                    <input id="hic-share-url" type="text" class="form-control" placeholder="">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="hic-copy-link" type="button" class="btn btn-default">
+                                    COPY
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- social buttons -->
+                        <div class="hic-social-button-container">
+
+                            <div id="tweetButtonContainer">
+                                <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
+                                   data-show-count="false">TWEET</a>
+                            </div>
+
+                            <div id="emailButtonContainer">
+                                <a id="emailButton" href="mailto:?body=https://aidenlab.org/juicebox">
+                                    EMAIL
+                                </a>
+                            </div>
+
+                            <div id="hic-embed-button">
+                                EMBED
+                            </div>
+
+                            <div id="hic-qr-code-button">
+                                QR CODE
+                            </div>
+
+                        </div>
+
+                        <!-- qr code image -->
+                        <div class="row">
+                            <div id="hic-qr-code-image" class="col-md-offset-4 col-md-4">
+                            </div>
+                        </div>
+
+                        <!-- embed widget -->
+                        <div id="hic-embed-container" class="row">
+                            <div class="col-md-9 form-group">
+                            <textarea id="hic-embed" class="form-control" rows="4">
+                            </textarea>
+                            </div>
+                            <div class="col-md-3">
+                                <button id="hic-embed-copy-link" type="button" class="btn btn-default">
+                                    COPY
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Local File Modal -->
+    <div id="hic-load-local-file-modal" class="modal fade">
+        <div class="modal-dialog  modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title">Load Local File</div>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <input id="hic-load-local-file" type="file" title="Load Local File"/>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
 
 <div id="footer-white" style="background:#414B5B;">
     <div class="container">
@@ -292,333 +467,6 @@
     </div>
 </div>
 
-<!-- Save Session -->
-<div id="igv-app-session-save-modal" class="modal fade igv-app-file-save-modal">
-
-    <div class="modal-dialog modal-lg" role="document">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <div id="igv-app-session-save-modal-label" class="modal-title">
-                    <div>
-                        Save Session File
-                    </div>
-                </div>
-
-                <button type="button" class="close" data-dismiss="modal">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            <div class="modal-body">
-                <input class="form-control" type="text" placeholder="igv-app-session.json">
-
-                <div>
-                    Enter session filename with .json suffix
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-secondary">OK</button>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- Load Session from URL -->
-<div id="igv-app-session-from-url-modal" class="modal fade">
-
-    <div class="modal-dialog modal-lg" role="document">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Session URL</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-outline-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-secondary">OK</button>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- Multiple File Load Modal -->
-<div id="igv-app-multiple-file-load-modal" class="modal fade">
-
-    <div class="modal-dialog modal-lg" role="document">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">
-                </div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div id="igv-app-multiple-file-load-modal-body" class="modal-body">
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- Share URL Modal -->
-<div id="hic-share-url-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Share</div>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-
-            <div class="modal-body">
-                <div class="container-fluid">
-
-                    <!-- copy url -->
-                    <div class="row">
-                        <div class="col-md-9">
-                            <div class="form-group">
-                                <input id="hic-share-url" type="text" class="form-control" placeholder="">
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <button id="hic-copy-link" type="button" class="btn btn-default">
-                                COPY
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- social buttons -->
-                    <div class="hic-social-button-container">
-
-                        <div id="tweetButtonContainer">
-                            <a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button"
-                               data-show-count="false">TWEET</a>
-                        </div>
-
-                        <div id="emailButtonContainer">
-                            <a id="emailButton" href="mailto:?body=https://aidenlab.org/juicebox">
-                                EMAIL
-                            </a>
-                        </div>
-
-                        <div id="hic-embed-button">
-                            EMBED
-                        </div>
-
-                        <div id="hic-qr-code-button">
-                            QR CODE
-                        </div>
-
-                    </div>
-
-                    <!-- qr code image -->
-                    <div class="row">
-                        <div id="hic-qr-code-image" class="col-md-offset-4 col-md-4">
-                        </div>
-                    </div>
-
-                    <!-- embed widget -->
-                    <div id="hic-embed-container" class="row">
-                        <div class="col-md-9 form-group">
-                            <textarea id="hic-embed" class="form-control" rows="4">
-                            </textarea>
-                        </div>
-                        <div class="col-md-3">
-                            <button id="hic-embed-copy-link" type="button" class="btn btn-default">
-                                COPY
-                            </button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Annotation Select Modal -->
-<div id="hic-annotation-select-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Annotations</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-group">
-                    <select id="annotation-selector" name="annotation-selector" class="form-control" title="Select Annotation">
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 2DAnnotation Select Modal -->
-<div id="hic-annotation-2D-select-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">2D Annotations</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-group">
-                    <select id="annotation-2D-selector" name="annotation-2D-selector" class="form-control" title="Select 2D Annotation">
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Contact Map Select Modal -->
-<div id="hic-contact-map-select-modal" class="modal fade">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Select Contact Map</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-                <div class="form-group">
-                    <select id="dataset_selector" name="dataset_selector" class="form-control selectpicker" data-size="25" data-width="100%" data-live-search="true" title="Select contact map">
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Load Local File Modal -->
-<div id="hic-load-local-file-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Load Local File</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-group">
-                    <input id="hic-load-local-file" type="file" title="Load Local File"/>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Load URL Modal -->
-<div id="hic-load-url-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Load URL</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-group">
-                    <input id="hic-load-url" type="text" class="form-control" placeholder="Enter URL">
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Track URL Modal  -- exact copy of hic load url modal, but need to distinguish -->
-<div id="track-load-url-modal" class="modal fade">
-    <div class="modal-dialog  modal-lg">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <div class="modal-title">Load URL</div>
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="form-group">
-                    <input id="track-load-url" type="text" class="form-control" placeholder="Enter URL">
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <script type="module">
 
     import { init } from './js/site.js';
@@ -629,6 +477,7 @@
     })();
 
 </script>
+
 </body>
 
 </html>

@@ -28,7 +28,7 @@ import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
 import BitlyURL from "./bitlyURL.js"
 import TinyURL from "./tinyURL.js"
-import Zlib from "../vendor/zlib_and_gzip.js"
+import { Zlib } from "../node_modules/igv-utils/src/index.js"
 import {initGoogle} from "./google.js";
 import { Globals } from "./globals.js";
 
