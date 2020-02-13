@@ -55,8 +55,7 @@
   background-color: white;
   border-style: solid;
   border-width: 2px;
-  border-color: #bfbfbf;
-  outline: none; }
+  border-color: #bfbfbf; }
 
 .hic-root-prevent-interaction {
   position: absolute;
