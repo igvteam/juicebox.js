@@ -67829,12 +67829,14 @@ function addMouseHandlers$2($viewport) {
         $$1(document).on('keydown.contact_matrix_view', function (e) {
             if (undefined === self.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
                 self.willShowCrosshairs = true;
+                self.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
             }
         });
 
         $$1(document).on('keyup.contact_matrix_view', function (e) {
             self.browser.hideCrosshairs();
             self.willShowCrosshairs = undefined;
+            self.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
         });
 
         // for sweep-zoom allow user to sweep beyond viewport extent
