@@ -17,7 +17,7 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "node scripts/generateEmbedCss.js && npx rollup --config && npm run build-umd && npm run build-es6",
+    "build": "npx rollup --config && npm run build-umd && npm run build-es6",
     "build-umd": "node scripts/injectRuntime.js; npx terser --compress --mangle --source-map \"url='juicebox.min.js.map'\" --output  dist/juicebox.min.js -- dist/juicebox.js",
     "build-es6": "npx terser --module --compress --mangle --source-map \"url='juicebox.esm.min.js.map'\" --output  dist/juicebox.esm.min.js -- dist/juicebox.esm.js",
     "prepack": "npm run build"

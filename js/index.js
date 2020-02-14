@@ -27,9 +27,6 @@ import HICBrowser from './hicBrowser.js';
 import {allBrowsers, createBrowser, eventBus} from './hicUtils.js';
 import {decompressQueryParameter, getCompressedDataString, initApp, shortJuiceboxURL, syncBrowsers, toJSON, loadSession} from "./init.js";
 import * as utils from './utils.js';
-import embedCSS from "./embedCss.js";
-
-embedCSS();
 
 export default {
     loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, eventBus,
