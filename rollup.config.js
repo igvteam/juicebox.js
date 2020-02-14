@@ -24,7 +24,7 @@
 //import resolve from 'rollup-plugin-node-resolve';
 //import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
-import resolve from 'rollup-plugin-node-resolve';
+//import resolve from 'rollup-plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
 import strip from 'rollup-plugin-strip';
 
@@ -56,7 +56,7 @@ export default [
             {file: 'tmp/juicebox.js', format: 'umd', name: "hic"},
         ],
         plugins: [
-            resolve(),
+            //resolve(),
             strip({
                 // set this to `false` if you don't want to
                 // remove debugger statements
