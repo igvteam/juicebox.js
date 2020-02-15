@@ -189,7 +189,7 @@ async function createBrowser(hic_container, config, callback) {
             browser.dataset = config.dataset;
             browser.genome = new Genome(browser.dataset.genomeId, browser.dataset.chromosomes);
             igv.browser.genome = browser.genome;
-            browser.eventBus.post(HICEvent("GenomeChange", browser.genome.id));
+            EventBus.globalBus.post(HICEvent("GenomeChange", browser.genome.id));
             browser.eventBus.post(HICEvent("MapLoad", browser.dataset));
             return config.dataset;
         } else {

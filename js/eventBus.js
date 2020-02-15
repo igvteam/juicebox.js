@@ -55,7 +55,7 @@ EventBus.prototype.post = function (event) {
 
     const eventType = event.type
 
-    if (this.hold) {
+    if (this._hold) {
         this.stack.push(event)
     }
     else {
@@ -75,16 +75,20 @@ EventBus.prototype.post = function (event) {
 }
 
 EventBus.prototype.hold = function () {
-    this.hold = true;
+    this._hold = true;
 
 }
 
 EventBus.prototype.release = function () {
-    this.hold = false;
+    this._hold = false;
     for (let event of this.stack) {
         this.post(event)
     }
     this.stack = []
 }
+
+// The global event bus
+
+EventBus.globalBus = new EventBus();
 
 export default EventBus

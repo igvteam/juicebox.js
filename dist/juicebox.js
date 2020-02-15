@@ -65966,7 +65966,7 @@ Context.prototype = {
   EventBus.prototype.post = function (event) {
     var eventType = event.type;
 
-    if (this.hold) {
+    if (this._hold) {
       this.stack.push(event);
     } else {
       var subscriberList = this.subscribers[eventType];
@@ -66005,11 +66005,11 @@ Context.prototype = {
   };
 
   EventBus.prototype.hold = function () {
-    this.hold = true;
+    this._hold = true;
   };
 
   EventBus.prototype.release = function () {
-    this.hold = false;
+    this._hold = false;
     var _iteratorNormalCompletion2 = true;
     var _didIteratorError2 = false;
     var _iteratorError2 = undefined;
@@ -66035,7 +66035,10 @@ Context.prototype = {
     }
 
     this.stack = [];
-  };
+  }; // The global event bus
+
+
+  EventBus.globalBus = new EventBus();
 
   /*
    *  The MIT License (MIT)
@@ -72472,7 +72475,7 @@ Context.prototype = {
               api.browser.genome = this.genome;
 
               if (this.genome.id !== previousGenomeId) {
-                this.eventBus.post(HICEvent("GenomeChange", this.genome.id));
+                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
               }
 
               this.eventBus.post(HICEvent("MapLoad", this.dataset));

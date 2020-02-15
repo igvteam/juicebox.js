@@ -23,10 +23,10 @@
 
 //import resolve from 'rollup-plugin-node-resolve';
 //import commonjs from 'rollup-plugin-commonjs';
-import pkg from './package.json';
 //import resolve from 'rollup-plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
 import strip from 'rollup-plugin-strip';
+import copy from 'rollup-plugin-copy'
 
 export default [
 
@@ -72,6 +72,23 @@ export default [
             babel({
                 exclude: 'node_modules/**'
             }),
+            copy({
+                targets:
+                    [
+                        {
+                            src:
+                                [
+                                    'css/app.css',
+                                    'css/juicebox.css',
+                                    'css/spectrum.css'
+                                ],
+                            dest: 'dist/css/'
+                        },
+                        {
+                            src: 'css/img', dest: 'dist/css/'
+                        }
+                    ]
+            })
         ]
     }
 ];

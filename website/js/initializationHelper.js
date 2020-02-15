@@ -10,6 +10,7 @@ import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js'
 // The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
 //import hic from "../../dist/juicebox.esm.js";
 import hic from "../../js/index.js";
+import EventBus from "../../js/eventBus.js"
 
 // The igv object. TODO eliminate this dependency
 const igv = hic.igv;
@@ -30,12 +31,10 @@ const initializationHelper = async (container, config) => {
     const genomeChangeListener = {
 
         receiveEvent: async event => {
-
             const { data: genomeId } = event;
+
             if (lastGenomeId !== genomeId) {
-
                 lastGenomeId = genomeId;
-
                 if (config.trackMenu) {
                     let tracksURL = config.trackMenu.items.replace("$GENOME_ID", genomeId);
                     await loadAnnotationSelector($(`#${ config.trackMenu.id}`), tracksURL, "1D");
@@ -56,16 +55,13 @@ const initializationHelper = async (container, config) => {
         }
     };
 
+    EventBus.globalBus.subscribe("GenomeChange", genomeChangeListener);
+
     for (let browser of allBrowsers) {
-        browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
         browser.eventBus.subscribe("MapLoad", checkBDropdown);
         updateBDropdown(browser);
     }
 
-    // Must manually trigger the genome change event on initial load
-    if (hic.HICBrowser.currentBrowser && hic.HICBrowser.currentBrowser.genome) {
-        await genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
-    }
 
     // session file load config
     const sessionFileLoadConfig =
@@ -232,7 +228,6 @@ const initializationHelper = async (container, config) => {
         }
 
         if (browser) {
-            browser.eventBus.subscribe("GenomeChange", genomeChangeListener);
             hic.HICBrowser.setCurrentBrowser(browser);
         }
 
@@ -272,6 +267,12 @@ const initializationHelper = async (container, config) => {
     hic.eventBus.subscribe("BrowserSelect", function (event) {
         updateBDropdown(event.data);
     });
+
+
+    // Must manually trigger the genome change event on initial load
+    if (hic.HICBrowser.currentBrowser && hic.HICBrowser.currentBrowser.genome) {
+        await genomeChangeListener.receiveEvent({data: hic.HICBrowser.currentBrowser.genome.id})
+    }
 };
 
 const appendAndConfigureLoadURLModal = (root, id, input_handler) => {

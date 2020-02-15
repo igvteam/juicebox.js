@@ -583,7 +583,7 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
         igv.browser.genome = this.genome;
 
         if (this.genome.id !== previousGenomeId) {
-            this.eventBus.post(HICEvent("GenomeChange", this.genome.id));
+            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
         }
         this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
