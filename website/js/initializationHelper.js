@@ -95,7 +95,7 @@ const initializationHelper = async (container, config) => {
             Alert.presentAlert('ERROR: you must select a map panel.');
         } else {
             const url = $(this).val();
-            loadHicFile( url, 'unnamed' );
+            loadHicFile( url, undefined );
         }
 
         $(this).val("");
