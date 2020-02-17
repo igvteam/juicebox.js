@@ -545,18 +545,20 @@ const populatePulldown = async menu => {
 
         const lines = StringUtils.splitLines(data);
 
-        const parent = $("#" + id);
+        const nadda = '-';
+
+        const parent = $(`#${ id }`);
+        parent.append($(`<option value=${ nadda }>${ nadda }</option>`));
 
         for (let line of lines) {
 
             const tokens = line.split('\t');
             if (tokens.length > 1) {
-                parent.append($('<option value="' + tokens[0] + '">' + tokens[1] + '</option>'))
+                const [ value, label ] = tokens;
+                parent.append($(`<option value=${ value }>${ label }</option>`));
             }
 
         }
-
-        parent.selectpicker("refresh");
 
     }
 
