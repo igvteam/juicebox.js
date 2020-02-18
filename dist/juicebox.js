@@ -44475,6 +44475,8 @@ Context.prototype = {
   }
 
   function _typeof(obj) {
+    "@babel/helpers - typeof";
+
     if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
       _typeof = function (obj) {
         return typeof obj;
@@ -67103,19 +67105,35 @@ Context.prototype = {
   _asyncToGenerator(
   /*#__PURE__*/
   regeneratorRuntime.mark(function _callee5() {
-    var viewportWidth, viewportHeight, canvasWidth, canvasHeight, state, ds, dsControl, matrix, zd, zdControl, matrixControl, blockBinCount, pixelSizeInt, widthInBins, heightInBins, blockCol1, blockCol2, blockRow1, blockRow2, r, c, tile;
+    var viewportWidth, viewportHeight, canvasWidth, canvasHeight, browser, state, ds, dsControl, zdControl, zoom, controlZoom, matrix, zd, matrixControl, blockBinCount, pixelSizeInt, widthInBins, heightInBins, blockCol1, blockCol2, blockRow1, blockRow2, r, c, tile, getBZoomIndex;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
           case 0:
+            getBZoomIndex = function _ref6(zoom) {
+              var binSize = browser.dataset.getBinSizeForZoomIndex(zoom);
+
+              if (!binSize) {
+                throw Error("Invalid zoom (resolution) index: " + zoom);
+              }
+
+              var bZoom = browser.controlDataset.getZoomIndexForBinSize(binSize);
+
+              if (bZoom < 0) {
+                throw Error("Invalid binSize for \"B\" map: ".concat(binSize));
+              }
+
+              return bZoom;
+            };
+
             if (this.browser.dataset) {
-              _context5.next = 2;
+              _context5.next = 3;
               break;
             }
 
             return _context5.abrupt("return");
 
-          case 2:
+          case 3:
             viewportWidth = this.$viewport.width();
             viewportHeight = this.$viewport.height();
             canvasWidth = this.$canvas.width();
@@ -67128,49 +67146,56 @@ Context.prototype = {
               this.$canvas.attr('height', this.$viewport.height());
             }
 
-            state = this.browser.state;
+            browser = this.browser;
+            state = browser.state;
             _context5.t0 = this.displayMode;
-            _context5.next = _context5.t0 === 'A' ? 11 : _context5.t0 === 'B' ? 13 : _context5.t0 === 'AOB' ? 15 : _context5.t0 === 'AMB' ? 15 : _context5.t0 === 'BOA' ? 18 : 20;
+            _context5.next = _context5.t0 === 'A' ? 13 : _context5.t0 === 'B' ? 16 : _context5.t0 === 'AOB' ? 19 : _context5.t0 === 'AMB' ? 19 : _context5.t0 === 'BOA' ? 24 : 28;
             break;
 
-          case 11:
-            ds = this.browser.dataset;
-            return _context5.abrupt("break", 20);
-
           case 13:
-            ds = this.browser.controlDataset;
-            return _context5.abrupt("break", 20);
+            zoom = state.zoom;
+            ds = this.browser.dataset;
+            return _context5.abrupt("break", 28);
 
-          case 15:
+          case 16:
+            zoom = getBZoomIndex(state.zoom);
+            ds = this.browser.controlDataset;
+            return _context5.abrupt("break", 28);
+
+          case 19:
+            zoom = state.zoom;
+            controlZoom = getBZoomIndex(state.zoom);
             ds = this.browser.dataset;
             dsControl = this.browser.controlDataset;
-            return _context5.abrupt("break", 20);
+            return _context5.abrupt("break", 28);
 
-          case 18:
+          case 24:
+            zoom = getBZoomIndex(state.zoom);
+            controlZoom = state.zoom;
             ds = this.browser.controlDataset;
             dsControl = this.browser.dataset;
 
-          case 20:
-            _context5.next = 22;
+          case 28:
+            _context5.next = 30;
             return ds.getMatrix(state.chr1, state.chr2);
 
-          case 22:
+          case 30:
             matrix = _context5.sent;
-            zd = matrix.bpZoomData[state.zoom];
+            zd = matrix.bpZoomData[zoom];
 
             if (!dsControl) {
-              _context5.next = 29;
+              _context5.next = 37;
               break;
             }
 
-            _context5.next = 27;
+            _context5.next = 35;
             return dsControl.getMatrix(state.chr1, state.chr2);
 
-          case 27:
+          case 35:
             matrixControl = _context5.sent;
-            zdControl = matrixControl.bpZoomData[state.zoom];
+            zdControl = matrixControl.bpZoomData[controlZoom];
 
-          case 29:
+          case 37:
             blockBinCount = zd.blockBinCount; // Dimension in bins of a block (width = height = blockBinCount)
 
             pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
@@ -67180,44 +67205,44 @@ Context.prototype = {
             blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount);
             blockRow1 = Math.floor(state.y / blockBinCount);
             blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount);
-            _context5.next = 39;
+            _context5.next = 47;
             return checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization);
 
-          case 39:
+          case 47:
             r = blockRow1;
 
-          case 40:
+          case 48:
             if (!(r <= blockRow2)) {
-              _context5.next = 53;
+              _context5.next = 61;
               break;
             }
 
             c = blockCol1;
 
-          case 42:
+          case 50:
             if (!(c <= blockCol2)) {
-              _context5.next = 50;
+              _context5.next = 58;
               break;
             }
 
-            _context5.next = 45;
+            _context5.next = 53;
             return this.getImageTile(ds, dsControl, zd, zdControl, r, c, state);
 
-          case 45:
+          case 53:
             tile = _context5.sent;
             this.paintTile(tile);
 
-          case 47:
+          case 55:
             c++;
-            _context5.next = 42;
+            _context5.next = 50;
             break;
 
-          case 50:
+          case 58:
             r++;
-            _context5.next = 40;
+            _context5.next = 48;
             break;
 
-          case 53:
+          case 61:
             // Record genomic extent of current canvas
             this.genomicExtent = {
               chr1: state.chr1,
@@ -67228,7 +67253,7 @@ Context.prototype = {
               h: viewportHeight * zd.zoom.binSize / state.pixelSize
             };
 
-          case 54:
+          case 62:
           case "end":
             return _context5.stop();
         }
@@ -67275,7 +67300,7 @@ Context.prototype = {
   ContactMatrixView.prototype.getImageTile =
   /*#__PURE__*/
   function () {
-    var _ref6 = _asyncToGenerator(
+    var _ref7 = _asyncToGenerator(
     /*#__PURE__*/
     regeneratorRuntime.mark(function _callee7(ds, dsControl, zd, zdControl, row, column, state) {
       var _this = this;
@@ -67287,7 +67312,7 @@ Context.prototype = {
           switch (_context7.prev = _context7.next) {
             case 0:
 
-              setPixel = function _ref7(imageData, x, y, r, g, b, a) {
+              setPixel = function _ref8(imageData, x, y, r, g, b, a) {
                 var index = (x + y * imageData.width) * 4;
                 imageData.data[index + 0] = r;
                 imageData.data[index + 1] = g;
@@ -67612,7 +67637,7 @@ Context.prototype = {
     }));
 
     return function (_x4, _x5, _x6, _x7, _x8, _x9, _x10) {
-      return _ref6.apply(this, arguments);
+      return _ref7.apply(this, arguments);
     };
   }();
 
@@ -71195,6 +71220,21 @@ Context.prototype = {
     }
 
     return -1;
+  };
+
+  Dataset.prototype.getBinSizeForZoomIndex = function (zoomIndex, unit) {
+    var resolutionArray;
+    unit = unit || "BP";
+
+    if (unit === "BP") {
+      resolutionArray = this.bpResolutions;
+    } else if (unit === "FRAG") {
+      resolutionArray = this.fragResolutions;
+    } else {
+      throw new Error("Invalid unit: " + unit);
+    }
+
+    return resolutionArray[zoomIndex];
   };
 
   Dataset.prototype.getChrIndexFromName = function (chrName) {

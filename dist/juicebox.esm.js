@@ -67176,34 +67176,44 @@ ContactMatrixView.prototype.repaint = async function () {
         this.$canvas.attr('width', this.$viewport.width());
         this.$canvas.attr('height', this.$viewport.height());
     }
-    const state = this.browser.state;
+
+    const browser = this.browser;
+    const state = browser.state;
 
     let ds;
     let dsControl;
+    let zdControl;
+    let zoom;
+    let controlZoom;
     switch (this.displayMode) {
         case 'A':
+            zoom = state.zoom;
             ds = this.browser.dataset;
             break;
         case 'B':
+            zoom = getBZoomIndex(state.zoom);
             ds = this.browser.controlDataset;
             break;
         case 'AOB':
         case 'AMB':
+            zoom = state.zoom;
+            controlZoom = getBZoomIndex(state.zoom);
             ds = this.browser.dataset;
             dsControl = this.browser.controlDataset;
             break;
         case 'BOA':
+            zoom = getBZoomIndex(state.zoom);
+            controlZoom = state.zoom;
             ds = this.browser.controlDataset;
             dsControl = this.browser.dataset;
     }
 
     const matrix = await ds.getMatrix(state.chr1, state.chr2);
-    const zd = matrix.bpZoomData[state.zoom];
+    const zd = matrix.bpZoomData[zoom];
 
-    let zdControl;
     if (dsControl) {
         const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2);
-        zdControl = matrixControl.bpZoomData[state.zoom];
+        zdControl = matrixControl.bpZoomData[controlZoom];
     }
 
 
@@ -67234,6 +67244,18 @@ ContactMatrixView.prototype.repaint = async function () {
         w: viewportWidth * zd.zoom.binSize / state.pixelSize,
         h: viewportHeight * zd.zoom.binSize / state.pixelSize
     };
+
+    function getBZoomIndex(zoom) {
+        const binSize = browser.dataset.getBinSizeForZoomIndex(zoom);
+        if(!binSize) {
+            throw Error("Invalid zoom (resolution) index: " + zoom);
+        }
+        const bZoom = browser.controlDataset.getZoomIndexForBinSize(binSize);
+        if(bZoom < 0) {
+            throw Error(`Invalid binSize for "B" map: ${binSize}`);
+        }
+        return bZoom;
+    }
 };
 
 /**
@@ -71352,6 +71374,22 @@ Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
     }
 
     return -1;
+};
+Dataset.prototype.getBinSizeForZoomIndex = function (zoomIndex, unit) {
+    var resolutionArray;
+
+    unit = unit || "BP";
+
+    if (unit === "BP") {
+        resolutionArray = this.bpResolutions;
+    }
+    else if (unit === "FRAG") {
+        resolutionArray = this.fragResolutions;
+    } else {
+        throw new Error("Invalid unit: " + unit);
+    }
+
+    return resolutionArray[zoomIndex];
 };
 
 Dataset.prototype.getChrIndexFromName = function (chrName) {
