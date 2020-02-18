@@ -201,6 +201,23 @@ Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
 
     return -1;
 }
+Dataset.prototype.getBinSizeForZoomIndex = function (zoomIndex, unit) {
+    var i,
+        resolutionArray;
+
+    unit = unit || "BP";
+
+    if (unit === "BP") {
+        resolutionArray = this.bpResolutions;
+    }
+    else if (unit === "FRAG") {
+        resolutionArray = this.fragResolutions;
+    } else {
+        throw new Error("Invalid unit: " + unit);
+    }
+
+    return resolutionArray[zoomIndex];
+}
 
 Dataset.prototype.getChrIndexFromName = function (chrName) {
     var i;
