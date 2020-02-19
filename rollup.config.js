@@ -22,73 +22,62 @@
  */
 
 //import resolve from 'rollup-plugin-node-resolve';
-//import commonjs from 'rollup-plugin-commonjs';
-//import resolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import resolve from 'rollup-plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
 import strip from 'rollup-plugin-strip';
 import copy from 'rollup-plugin-copy'
+import {terser} from "rollup-plugin-terser"
 
 export default [
-
     {
+        //input: 'test/testBabel.js',
         input: 'js/index.js',
         output: [
-            {file: 'dist/juicebox.esm.js', format: 'es'}
+            {file: 'dist/juicebox.esm.js', format: 'es'},
+            {file: 'dist/juicebox.esm.min.js', format: 'es', sourcemap: true},
         ],
         plugins: [
             strip({
-                // set this to `false` if you don't want to
-                // remove debugger statements
                 debugger: true,
-
-                // defaults to `[ 'console.*', 'assert.*' ]`
-                functions: ['console.log', 'assert.*', 'debug'],
-
-                // set this to `false` if you're not using sourcemaps –
-                // defaults to `true`
-                sourceMap: false
-            })
+                functions: ['console.log', 'assert.*', 'debug']
+            }),
+            terser({
+                include: [/^.+\.min\.js$/],
+                sourcemap: {
+                    filename: "juicebox.esm.min.js",
+                    url: "juicebox.esm.min.js.map"
+            }})
         ]
     },
     {
         input: 'js/index.js',
         output: [
-            {file: 'tmp/juicebox.js', format: 'umd', name: "hic"},
+            {file: 'dist/juicebox.js', format: 'umd', name: "hic"},
+            {file: 'dist/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true}
         ],
         plugins: [
-            //resolve(),
             strip({
-                // set this to `false` if you don't want to
-                // remove debugger statements
                 debugger: true,
-
-                // defaults to `[ 'console.*', 'assert.*' ]`
-                functions: ['console.log', 'assert.*', 'debug'],
-
-                // set this to `false` if you're not using sourcemaps –
-                // defaults to `true`
-                sourceMap: false
+                functions: ['console.log', 'assert.*', 'debug']
             }),
-            babel({
-                exclude: 'node_modules/**'
-            }),
+            commonjs(),
+            resolve(),
+            babel(),
+            terser({
+                include: [/^.+\.min\.js$/],
+                sourcemap: {
+                    filename: "juicebox.min.js",
+                    url: "juicebox.min.js.map"
+                }}),
             copy({
                 targets:
                     [
-                        {
-                            src:
-                                [
-                                    'css/app.css',
-                                    'css/juicebox.css',
-                                    'css/spectrum.css'
-                                ],
-                            dest: 'dist/css/'
-                        },
-                        {
-                            src: 'css/img', dest: 'dist/css/'
-                        }
+                        {src: 'css/juicebox.css', dest: 'dist/css/'},
+                        {src: 'css/img', dest: 'dist/css/'}
                     ]
             })
         ]
     }
-];
+]
+

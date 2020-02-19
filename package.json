@@ -17,9 +17,7 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "npx rollup --config && npm run build-umd && npm run build-es6",
-    "build-umd": "node scripts/injectRuntime.js; npx terser --compress --mangle --source-map \"url='juicebox.min.js.map'\" --output  dist/juicebox.min.js -- dist/juicebox.js",
-    "build-es6": "npx terser --module --compress --mangle --source-map \"url='juicebox.esm.min.js.map'\" --output  dist/juicebox.esm.min.js -- dist/juicebox.esm.js",
+    "build": "npx rollup --config",
     "prepack": "npm run build"
   },
   "keywords": [
@@ -33,19 +31,23 @@
     "url": "git+https://github.com/igvteam/juicebox.js.git"
   },
   "devDependencies": {
+    "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.4",
     "@babel/plugin-transform-regenerator": "^7.8.3",
     "@babel/plugin-transform-runtime": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
+    "core-js": "^3.6.4",
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
+    "regenerator-runtime": "^0.13.3",
     "rollup": "^1.31.1",
     "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-copy": "^3.3.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-strip": "^1.2.2",
-    "serve-static": "^1.14.1",
-    "terser": "^4.6.3"
+    "rollup-plugin-terser": "^5.2.0",
+    "serve-static": "^1.14.1"
   },
   "dependencies": {
     "hic-straw": "^0.9.8",
