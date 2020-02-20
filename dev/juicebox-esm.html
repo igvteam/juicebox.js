@@ -36,7 +36,6 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
-    <script type="text/javascript" src="../dist/juicebox.min.js"/>
 
 </head>
 
@@ -46,22 +45,21 @@
 <div id="app-container" class="juicebox-app-clone-container"></div>
 
 
-<script type="text/javascript">
+<script type="module">
 
-    document.addEventListener("DOMContentLoaded", function () {
+    import hic from "../dist/juicebox.esm.js";
 
-        const config = {
-            url: "https://www.dropbox.com/s/lnlssur34vb3npq/HCT-116_Untreated.hic?dl=0",
-            name: "HCT-116 untreated"
-        }
+    const config = {
+        url: "https://www.dropbox.com/s/lnlssur34vb3npq/HCT-116_Untreated.hic?dl=0",
+        name: "HCT-116 untreated"
+    }
 
-        const container = document.getElementById("app-container");
+    const container = document.getElementById("app-container");
 
-        hic.createBrowser(container, config)
-            .then(function (ignore) {
-                //hic.updateAllBrowsers()
-            })
-    });
+    hic.createBrowser(container, config)
+        .then(function (ignore) {
+            //hic.updateAllBrowsers()
+        })
 
 
 </script>
