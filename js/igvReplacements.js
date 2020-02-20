@@ -40,30 +40,21 @@ function colorPickerMenuItem(trackRender) {
 
 function trackRenameMenuItem(trackRenderer) {
 
-    var $e, menuClickHandler;
+    const click = e => {
 
-    $e = $('<div>');
-    $e.text('Set track name');
-
-    menuClickHandler = function menuClickHandler() {
-
-        var dialogClickHandler;
-
-        dialogClickHandler = function dialogClickHandler() {
-            var value = trackRenderer.browser.inputDialog.$input.val().trim();
+        const callback = (value) => {
+            value = value.trim();
             value = ('' === value || undefined === value) ? 'untitled' : value;
             trackRenderer.setTrackName(value);
         };
 
-        trackRenderer.browser.inputDialog.configure({
-            label: 'Track Name',
-            input: trackRenderer.track.name,
-            click: dialogClickHandler
-        });
-        trackRenderer.browser.inputDialog.present($(trackRenderer.trackDiv));
+        trackRenderer.browser.inputDialog.present({ label: 'Track Name', value: trackRenderer.track.name, callback }, e);
     };
 
-    return {object: $e, click: menuClickHandler};
+    const object = $('<div>');
+    object.text('Set track name');
+
+    return { object, click };
 };
 
 function trackRemovalMenuItem(trackRenderer) {
