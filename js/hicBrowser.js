@@ -26,15 +26,20 @@
  */
 import Straw from '../node_modules/hic-straw/src/straw.js';
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import { DOMUtils, Alert } from '../node_modules/igv-ui/src/index.js'
-import {  TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import {Alert, DOMUtils} from '../node_modules/igv-ui/src/index.js'
+import {TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hic from './hicUtils.js'
-import { Globals } from "./globals.js";
-import {paramDecode, paramEncode} from "./urlUtils.js"
+import {Globals} from "./globals.js";
+import {paramEncode} from "./urlUtils.js"
 import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController, { annotationTrackHeight, wigTrackHeight, getNavbarHeight, getNavbarContainer } from './layoutController.js'
+import LayoutController, {
+    annotationTrackHeight,
+    getNavbarContainer,
+    getNavbarHeight,
+    wigTrackHeight
+} from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
@@ -67,7 +72,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.showTrackLabelAndGutter = true;
 
-    this.id = `browser_${ DOMUtils.guid() }`;
+    this.id = `browser_${DOMUtils.guid()}`;
     this.trackRenderers = [];
     this.tracks2D = [];
     this.normVectorFiles = [];
@@ -193,7 +198,7 @@ HICBrowser.prototype.createMenu = function ($root) {
     const $menu = $root.find(".hic-menu");
 
     const $fa = $root.find(".fa-times");
-    $fa.on('click', () => this.toggleMenu() );
+    $fa.on('click', () => this.toggleMenu());
 
     return $menu;
 
@@ -241,6 +246,25 @@ HICBrowser.prototype.getDisplayMode = function () {
 HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
 };
+
+/**
+ * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
+ * @returns {{index: *, binSize: *}[]|Array}
+ */
+HICBrowser.prototype.getResolutions = function () {
+    if(!this.dataset) return [];
+
+    const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+        return {index: index, binSize: resolution}
+    });
+
+    if (this.controlDataset) {
+        let controlResolutions = new Set(this.controlDataset.bpResolutions);
+        return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+    } else {
+        return baseResolutions;
+    }
+}
 
 HICBrowser.prototype.getColorScale = function () {
 
@@ -374,7 +398,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     config.color = DEFAULT_ANNOTATION_COLOR;
                     config.displayMode = "COLLAPSED"
                 }
-                if(config.max === undefined) {
+                if (config.max === undefined) {
                     config.autoscale = true;
                 }
                 config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
@@ -778,7 +802,7 @@ HICBrowser.prototype.parseLocusString = function (locus) {
     parts = locus.trim().split(':');
 
 
-    chromosome = this.genome.getChromosome(parts[ 0 ].toLowerCase());
+    chromosome = this.genome.getChromosome(parts[0].toLowerCase());
 
     if (!chromosome) {
         return undefined;
@@ -907,7 +931,7 @@ HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, cente
 HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
     if (!this.dataset) return;
-    
+
     if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
         // jump from whole genome to chromosome
         var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
@@ -1003,7 +1027,7 @@ HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
 
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
         this.state.pixelSize = Math.min(100, Math.max(hic.defaultPixelSize, minPS));
-        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
+        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
     } finally {
         this.stopSpinner()
     }
@@ -1561,7 +1585,7 @@ async function loadDataset(config) {
     } else {
         // If this is a google url, add api KEY
         if (igv.google.isGoogleURL(config.url)) {
-            if(igv.google.isGoogleDrive(config.url)) {
+            if (igv.google.isGoogleDrive(config.url)) {
                 config.url = igv.google.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
