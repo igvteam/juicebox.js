@@ -9910,10 +9910,29 @@
     }
   });
 
+  var $filter = arrayIteration.filter;
+  var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('filter'); // Edge 14- issue
+
+  var USES_TO_LENGTH$3 = arrayMethodUsesToLength('filter'); // `Array.prototype.filter` method
+  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
+  // with adding support of @@species
+
+  _export({
+    target: 'Array',
+    proto: true,
+    forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGTH$3
+  }, {
+    filter: function filter(callbackfn
+    /* , thisArg */
+    ) {
+      return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    }
+  });
+
   var $find = arrayIteration.find;
   var FIND = 'find';
   var SKIPS_HOLES = true;
-  var USES_TO_LENGTH$3 = arrayMethodUsesToLength(FIND); // Shouldn't skip holes
+  var USES_TO_LENGTH$4 = arrayMethodUsesToLength(FIND); // Shouldn't skip holes
 
   if (FIND in []) Array(1)[FIND](function () {
     SKIPS_HOLES = false;
@@ -9923,7 +9942,7 @@
   _export({
     target: 'Array',
     proto: true,
-    forced: SKIPS_HOLES || !USES_TO_LENGTH$3
+    forced: SKIPS_HOLES || !USES_TO_LENGTH$4
   }, {
     find: function find(callbackfn
     /* , that = undefined */
@@ -9935,7 +9954,7 @@
   addToUnscopables(FIND);
 
   var $includes = arrayIncludes.includes;
-  var USES_TO_LENGTH$4 = arrayMethodUsesToLength('indexOf', {
+  var USES_TO_LENGTH$5 = arrayMethodUsesToLength('indexOf', {
     ACCESSORS: true,
     1: 0
   }); // `Array.prototype.includes` method
@@ -9944,7 +9963,7 @@
   _export({
     target: 'Array',
     proto: true,
-    forced: !USES_TO_LENGTH$4
+    forced: !USES_TO_LENGTH$5
   }, {
     includes: function includes(el
     /* , fromIndex = 0 */
@@ -9954,6 +9973,25 @@
   }); // https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
 
   addToUnscopables('includes');
+
+  var $map = arrayIteration.map;
+  var HAS_SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport('map'); // FF49- issue
+
+  var USES_TO_LENGTH$6 = arrayMethodUsesToLength('map'); // `Array.prototype.map` method
+  // https://tc39.github.io/ecma262/#sec-array.prototype.map
+  // with adding support of @@species
+
+  _export({
+    target: 'Array',
+    proto: true,
+    forced: !HAS_SPECIES_SUPPORT$1 || !USES_TO_LENGTH$6
+  }, {
+    map: function map(callbackfn
+    /* , thisArg */
+    ) {
+      return $map(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
+    }
+  });
 
   var nativePromiseConstructor = global_1.Promise;
 
@@ -10732,6 +10770,368 @@
     }
   });
 
+  var freezing = !fails(function () {
+    return Object.isExtensible(Object.preventExtensions({}));
+  });
+
+  var internalMetadata = createCommonjsModule(function (module) {
+    var defineProperty = objectDefineProperty.f;
+    var METADATA = uid('meta');
+    var id = 0;
+
+    var isExtensible = Object.isExtensible || function () {
+      return true;
+    };
+
+    var setMetadata = function (it) {
+      defineProperty(it, METADATA, {
+        value: {
+          objectID: 'O' + ++id,
+          // object ID
+          weakData: {} // weak collections IDs
+
+        }
+      });
+    };
+
+    var fastKey = function (it, create) {
+      // return a primitive with prefix
+      if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
+
+      if (!has(it, METADATA)) {
+        // can't set metadata to uncaught frozen object
+        if (!isExtensible(it)) return 'F'; // not necessary to add metadata
+
+        if (!create) return 'E'; // add missing metadata
+
+        setMetadata(it); // return object ID
+      }
+
+      return it[METADATA].objectID;
+    };
+
+    var getWeakData = function (it, create) {
+      if (!has(it, METADATA)) {
+        // can't set metadata to uncaught frozen object
+        if (!isExtensible(it)) return true; // not necessary to add metadata
+
+        if (!create) return false; // add missing metadata
+
+        setMetadata(it); // return the store of weak collections IDs
+      }
+
+      return it[METADATA].weakData;
+    }; // add metadata on freeze-family methods calling
+
+
+    var onFreeze = function (it) {
+      if (freezing && meta.REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
+      return it;
+    };
+
+    var meta = module.exports = {
+      REQUIRED: false,
+      fastKey: fastKey,
+      getWeakData: getWeakData,
+      onFreeze: onFreeze
+    };
+    hiddenKeys[METADATA] = true;
+  });
+  var internalMetadata_1 = internalMetadata.REQUIRED;
+  var internalMetadata_2 = internalMetadata.fastKey;
+  var internalMetadata_3 = internalMetadata.getWeakData;
+  var internalMetadata_4 = internalMetadata.onFreeze;
+
+  var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
+    var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
+    var IS_WEAK = CONSTRUCTOR_NAME.indexOf('Weak') !== -1;
+    var ADDER = IS_MAP ? 'set' : 'add';
+    var NativeConstructor = global_1[CONSTRUCTOR_NAME];
+    var NativePrototype = NativeConstructor && NativeConstructor.prototype;
+    var Constructor = NativeConstructor;
+    var exported = {};
+
+    var fixMethod = function (KEY) {
+      var nativeMethod = NativePrototype[KEY];
+      redefine(NativePrototype, KEY, KEY == 'add' ? function add(value) {
+        nativeMethod.call(this, value === 0 ? 0 : value);
+        return this;
+      } : KEY == 'delete' ? function (key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'get' ? function get(key) {
+        return IS_WEAK && !isObject(key) ? undefined : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'has' ? function has(key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : function set(key, value) {
+        nativeMethod.call(this, key === 0 ? 0 : key, value);
+        return this;
+      });
+    }; // eslint-disable-next-line max-len
+
+
+    if (isForced_1(CONSTRUCTOR_NAME, typeof NativeConstructor != 'function' || !(IS_WEAK || NativePrototype.forEach && !fails(function () {
+      new NativeConstructor().entries().next();
+    })))) {
+      // create collection constructor
+      Constructor = common.getConstructor(wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER);
+      internalMetadata.REQUIRED = true;
+    } else if (isForced_1(CONSTRUCTOR_NAME, true)) {
+      var instance = new Constructor(); // early implementations not supports chaining
+
+      var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance; // V8 ~ Chromium 40- weak-collections throws on primitives, but should return false
+
+      var THROWS_ON_PRIMITIVES = fails(function () {
+        instance.has(1);
+      }); // most early implementations doesn't supports iterables, most modern - not close it correctly
+      // eslint-disable-next-line no-new
+
+      var ACCEPT_ITERABLES = checkCorrectnessOfIteration(function (iterable) {
+        new NativeConstructor(iterable);
+      }); // for early implementations -0 and +0 not the same
+
+      var BUGGY_ZERO = !IS_WEAK && fails(function () {
+        // V8 ~ Chromium 42- fails only with 5+ elements
+        var $instance = new NativeConstructor();
+        var index = 5;
+
+        while (index--) $instance[ADDER](index, index);
+
+        return !$instance.has(-0);
+      });
+
+      if (!ACCEPT_ITERABLES) {
+        Constructor = wrapper(function (dummy, iterable) {
+          anInstance(dummy, Constructor, CONSTRUCTOR_NAME);
+          var that = inheritIfRequired(new NativeConstructor(), dummy, Constructor);
+          if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
+          return that;
+        });
+        Constructor.prototype = NativePrototype;
+        NativePrototype.constructor = Constructor;
+      }
+
+      if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
+        fixMethod('delete');
+        fixMethod('has');
+        IS_MAP && fixMethod('get');
+      }
+
+      if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER); // weak collections should not contains .clear method
+
+      if (IS_WEAK && NativePrototype.clear) delete NativePrototype.clear;
+    }
+
+    exported[CONSTRUCTOR_NAME] = Constructor;
+    _export({
+      global: true,
+      forced: Constructor != NativeConstructor
+    }, exported);
+    setToStringTag(Constructor, CONSTRUCTOR_NAME);
+    if (!IS_WEAK) common.setStrong(Constructor, CONSTRUCTOR_NAME, IS_MAP);
+    return Constructor;
+  };
+
+  var defineProperty$7 = objectDefineProperty.f;
+  var fastKey = internalMetadata.fastKey;
+  var setInternalState$4 = internalState.set;
+  var internalStateGetterFor = internalState.getterFor;
+  var collectionStrong = {
+    getConstructor: function (wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER) {
+      var C = wrapper(function (that, iterable) {
+        anInstance(that, C, CONSTRUCTOR_NAME);
+        setInternalState$4(that, {
+          type: CONSTRUCTOR_NAME,
+          index: objectCreate(null),
+          first: undefined,
+          last: undefined,
+          size: 0
+        });
+        if (!descriptors) that.size = 0;
+        if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
+      });
+      var getInternalState = internalStateGetterFor(CONSTRUCTOR_NAME);
+
+      var define = function (that, key, value) {
+        var state = getInternalState(that);
+        var entry = getEntry(that, key);
+        var previous, index; // change existing entry
+
+        if (entry) {
+          entry.value = value; // create new entry
+        } else {
+          state.last = entry = {
+            index: index = fastKey(key, true),
+            key: key,
+            value: value,
+            previous: previous = state.last,
+            next: undefined,
+            removed: false
+          };
+          if (!state.first) state.first = entry;
+          if (previous) previous.next = entry;
+          if (descriptors) state.size++;else that.size++; // add to index
+
+          if (index !== 'F') state.index[index] = entry;
+        }
+
+        return that;
+      };
+
+      var getEntry = function (that, key) {
+        var state = getInternalState(that); // fast case
+
+        var index = fastKey(key);
+        var entry;
+        if (index !== 'F') return state.index[index]; // frozen object case
+
+        for (entry = state.first; entry; entry = entry.next) {
+          if (entry.key == key) return entry;
+        }
+      };
+
+      redefineAll(C.prototype, {
+        // 23.1.3.1 Map.prototype.clear()
+        // 23.2.3.2 Set.prototype.clear()
+        clear: function clear() {
+          var that = this;
+          var state = getInternalState(that);
+          var data = state.index;
+          var entry = state.first;
+
+          while (entry) {
+            entry.removed = true;
+            if (entry.previous) entry.previous = entry.previous.next = undefined;
+            delete data[entry.index];
+            entry = entry.next;
+          }
+
+          state.first = state.last = undefined;
+          if (descriptors) state.size = 0;else that.size = 0;
+        },
+        // 23.1.3.3 Map.prototype.delete(key)
+        // 23.2.3.4 Set.prototype.delete(value)
+        'delete': function (key) {
+          var that = this;
+          var state = getInternalState(that);
+          var entry = getEntry(that, key);
+
+          if (entry) {
+            var next = entry.next;
+            var prev = entry.previous;
+            delete state.index[entry.index];
+            entry.removed = true;
+            if (prev) prev.next = next;
+            if (next) next.previous = prev;
+            if (state.first == entry) state.first = next;
+            if (state.last == entry) state.last = prev;
+            if (descriptors) state.size--;else that.size--;
+          }
+
+          return !!entry;
+        },
+        // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
+        // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
+        forEach: function forEach(callbackfn
+        /* , that = undefined */
+        ) {
+          var state = getInternalState(this);
+          var boundFunction = functionBindContext(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
+          var entry;
+
+          while (entry = entry ? entry.next : state.first) {
+            boundFunction(entry.value, entry.key, this); // revert to the last existing entry
+
+            while (entry && entry.removed) entry = entry.previous;
+          }
+        },
+        // 23.1.3.7 Map.prototype.has(key)
+        // 23.2.3.7 Set.prototype.has(value)
+        has: function has(key) {
+          return !!getEntry(this, key);
+        }
+      });
+      redefineAll(C.prototype, IS_MAP ? {
+        // 23.1.3.6 Map.prototype.get(key)
+        get: function get(key) {
+          var entry = getEntry(this, key);
+          return entry && entry.value;
+        },
+        // 23.1.3.9 Map.prototype.set(key, value)
+        set: function set(key, value) {
+          return define(this, key === 0 ? 0 : key, value);
+        }
+      } : {
+        // 23.2.3.1 Set.prototype.add(value)
+        add: function add(value) {
+          return define(this, value = value === 0 ? 0 : value, value);
+        }
+      });
+      if (descriptors) defineProperty$7(C.prototype, 'size', {
+        get: function () {
+          return getInternalState(this).size;
+        }
+      });
+      return C;
+    },
+    setStrong: function (C, CONSTRUCTOR_NAME, IS_MAP) {
+      var ITERATOR_NAME = CONSTRUCTOR_NAME + ' Iterator';
+      var getInternalCollectionState = internalStateGetterFor(CONSTRUCTOR_NAME);
+      var getInternalIteratorState = internalStateGetterFor(ITERATOR_NAME); // add .keys, .values, .entries, [@@iterator]
+      // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
+
+      defineIterator(C, CONSTRUCTOR_NAME, function (iterated, kind) {
+        setInternalState$4(this, {
+          type: ITERATOR_NAME,
+          target: iterated,
+          state: getInternalCollectionState(iterated),
+          kind: kind,
+          last: undefined
+        });
+      }, function () {
+        var state = getInternalIteratorState(this);
+        var kind = state.kind;
+        var entry = state.last; // revert to the last existing entry
+
+        while (entry && entry.removed) entry = entry.previous; // get next entry
+
+
+        if (!state.target || !(state.last = entry = entry ? entry.next : state.state.first)) {
+          // or finish the iteration
+          state.target = undefined;
+          return {
+            value: undefined,
+            done: true
+          };
+        } // return step by kind
+
+
+        if (kind == 'keys') return {
+          value: entry.key,
+          done: false
+        };
+        if (kind == 'values') return {
+          value: entry.value,
+          done: false
+        };
+        return {
+          value: [entry.key, entry.value],
+          done: false
+        };
+      }, IS_MAP ? 'entries' : 'values', !IS_MAP, true); // add [@@species], 23.1.2.2, 23.2.2.2
+
+      setSpecies(CONSTRUCTOR_NAME);
+    }
+  };
+
+  // https://tc39.github.io/ecma262/#sec-set-objects
+
+
+  var es_set = collection('Set', function (init) {
+    return function Set() {
+      return init(this, arguments.length ? arguments[0] : undefined);
+    };
+  }, collectionStrong);
+
   var getOwnPropertyDescriptor$5 = objectGetOwnPropertyDescriptor.f;
   var nativeEndsWith = ''.endsWith;
   var min$6 = Math.min;
@@ -11039,7 +11439,7 @@
   var ITERATOR$7 = wellKnownSymbol('iterator');
   var URL_SEARCH_PARAMS = 'URLSearchParams';
   var URL_SEARCH_PARAMS_ITERATOR = URL_SEARCH_PARAMS + 'Iterator';
-  var setInternalState$4 = internalState.set;
+  var setInternalState$5 = internalState.set;
   var getInternalParamsState = internalState.getterFor(URL_SEARCH_PARAMS);
   var getInternalIteratorState = internalState.getterFor(URL_SEARCH_PARAMS_ITERATOR);
   var plus = /\+/g;
@@ -11120,7 +11520,7 @@
   };
 
   var URLSearchParamsIterator = createIteratorConstructor(function Iterator(params, kind) {
-    setInternalState$4(this, {
+    setInternalState$5(this, {
       type: URL_SEARCH_PARAMS_ITERATOR,
       iterator: getIterator(getInternalParamsState(params).entries),
       kind: kind
@@ -11147,7 +11547,7 @@
     var that = this;
     var entries = [];
     var iteratorMethod, iterator, next, step, entryIterator, entryNext, first, second, key;
-    setInternalState$4(that, {
+    setInternalState$5(that, {
       type: URL_SEARCH_PARAMS,
       entries: entries,
       updateURL: function () {
@@ -11414,7 +11814,7 @@
   var NativeURL = global_1.URL;
   var URLSearchParams$1 = web_urlSearchParams.URLSearchParams;
   var getInternalSearchParamsState = web_urlSearchParams.getState;
-  var setInternalState$5 = internalState.set;
+  var setInternalState$6 = internalState.set;
   var getInternalURLState = internalState.getterFor('URL');
   var floor$3 = Math.floor;
   var pow = Math.pow;
@@ -12200,7 +12600,7 @@
     var that = anInstance(this, URLConstructor, 'URL');
     var base = arguments.length > 1 ? arguments[1] : undefined;
     var urlString = String(url);
-    var state = setInternalState$5(that, {
+    var state = setInternalState$6(that, {
       type: 'URL'
     });
     var baseState, failure;
@@ -28226,44 +28626,6 @@
     };
   }
 
-  var $filter = arrayIteration.filter;
-  var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('filter'); // Edge 14- issue
-
-  var USES_TO_LENGTH$5 = arrayMethodUsesToLength('filter'); // `Array.prototype.filter` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.filter
-  // with adding support of @@species
-
-  _export({
-    target: 'Array',
-    proto: true,
-    forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGTH$5
-  }, {
-    filter: function filter(callbackfn
-    /* , thisArg */
-    ) {
-      return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    }
-  });
-
-  var $map = arrayIteration.map;
-  var HAS_SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport('map'); // FF49- issue
-
-  var USES_TO_LENGTH$6 = arrayMethodUsesToLength('map'); // `Array.prototype.map` method
-  // https://tc39.github.io/ecma262/#sec-array.prototype.map
-  // with adding support of @@species
-
-  _export({
-    target: 'Array',
-    proto: true,
-    forced: !HAS_SPECIES_SUPPORT$1 || !USES_TO_LENGTH$6
-  }, {
-    map: function map(callbackfn
-    /* , thisArg */
-    ) {
-      return $map(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
-    }
-  });
-
   var HAS_SPECIES_SUPPORT$2 = arrayMethodHasSpeciesSupport('slice');
   var USES_TO_LENGTH$7 = arrayMethodUsesToLength('slice', {
     ACCESSORS: true,
@@ -28404,9 +28766,9 @@
     }
   });
 
-  var defineProperty$7 = objectDefineProperty.f;
+  var defineProperty$8 = objectDefineProperty.f;
   var getOwnPropertyNames$1 = objectGetOwnPropertyNames.f;
-  var setInternalState$6 = internalState.set;
+  var setInternalState$7 = internalState.set;
   var MATCH$2 = wellKnownSymbol('match');
   var NativeRegExp = global_1.RegExp;
   var RegExpPrototype = NativeRegExp.prototype;
@@ -28446,14 +28808,14 @@
       }
 
       var result = inheritIfRequired(CORRECT_NEW ? new NativeRegExp(pattern, flags) : NativeRegExp(pattern, flags), thisIsRegExp ? this : RegExpPrototype, RegExpWrapper);
-      if (UNSUPPORTED_Y$2 && sticky) setInternalState$6(result, {
+      if (UNSUPPORTED_Y$2 && sticky) setInternalState$7(result, {
         sticky: sticky
       });
       return result;
     };
 
     var proxy = function (key) {
-      key in RegExpWrapper || defineProperty$7(RegExpWrapper, key, {
+      key in RegExpWrapper || defineProperty$8(RegExpWrapper, key, {
         configurable: true,
         get: function () {
           return NativeRegExp[key];
@@ -36480,368 +36842,6 @@
     return Object.assign(defaultOptions, options);
   }
 
-  var freezing = !fails(function () {
-    return Object.isExtensible(Object.preventExtensions({}));
-  });
-
-  var internalMetadata = createCommonjsModule(function (module) {
-    var defineProperty = objectDefineProperty.f;
-    var METADATA = uid('meta');
-    var id = 0;
-
-    var isExtensible = Object.isExtensible || function () {
-      return true;
-    };
-
-    var setMetadata = function (it) {
-      defineProperty(it, METADATA, {
-        value: {
-          objectID: 'O' + ++id,
-          // object ID
-          weakData: {} // weak collections IDs
-
-        }
-      });
-    };
-
-    var fastKey = function (it, create) {
-      // return a primitive with prefix
-      if (!isObject(it)) return typeof it == 'symbol' ? it : (typeof it == 'string' ? 'S' : 'P') + it;
-
-      if (!has(it, METADATA)) {
-        // can't set metadata to uncaught frozen object
-        if (!isExtensible(it)) return 'F'; // not necessary to add metadata
-
-        if (!create) return 'E'; // add missing metadata
-
-        setMetadata(it); // return object ID
-      }
-
-      return it[METADATA].objectID;
-    };
-
-    var getWeakData = function (it, create) {
-      if (!has(it, METADATA)) {
-        // can't set metadata to uncaught frozen object
-        if (!isExtensible(it)) return true; // not necessary to add metadata
-
-        if (!create) return false; // add missing metadata
-
-        setMetadata(it); // return the store of weak collections IDs
-      }
-
-      return it[METADATA].weakData;
-    }; // add metadata on freeze-family methods calling
-
-
-    var onFreeze = function (it) {
-      if (freezing && meta.REQUIRED && isExtensible(it) && !has(it, METADATA)) setMetadata(it);
-      return it;
-    };
-
-    var meta = module.exports = {
-      REQUIRED: false,
-      fastKey: fastKey,
-      getWeakData: getWeakData,
-      onFreeze: onFreeze
-    };
-    hiddenKeys[METADATA] = true;
-  });
-  var internalMetadata_1 = internalMetadata.REQUIRED;
-  var internalMetadata_2 = internalMetadata.fastKey;
-  var internalMetadata_3 = internalMetadata.getWeakData;
-  var internalMetadata_4 = internalMetadata.onFreeze;
-
-  var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
-    var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
-    var IS_WEAK = CONSTRUCTOR_NAME.indexOf('Weak') !== -1;
-    var ADDER = IS_MAP ? 'set' : 'add';
-    var NativeConstructor = global_1[CONSTRUCTOR_NAME];
-    var NativePrototype = NativeConstructor && NativeConstructor.prototype;
-    var Constructor = NativeConstructor;
-    var exported = {};
-
-    var fixMethod = function (KEY) {
-      var nativeMethod = NativePrototype[KEY];
-      redefine(NativePrototype, KEY, KEY == 'add' ? function add(value) {
-        nativeMethod.call(this, value === 0 ? 0 : value);
-        return this;
-      } : KEY == 'delete' ? function (key) {
-        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
-      } : KEY == 'get' ? function get(key) {
-        return IS_WEAK && !isObject(key) ? undefined : nativeMethod.call(this, key === 0 ? 0 : key);
-      } : KEY == 'has' ? function has(key) {
-        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
-      } : function set(key, value) {
-        nativeMethod.call(this, key === 0 ? 0 : key, value);
-        return this;
-      });
-    }; // eslint-disable-next-line max-len
-
-
-    if (isForced_1(CONSTRUCTOR_NAME, typeof NativeConstructor != 'function' || !(IS_WEAK || NativePrototype.forEach && !fails(function () {
-      new NativeConstructor().entries().next();
-    })))) {
-      // create collection constructor
-      Constructor = common.getConstructor(wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER);
-      internalMetadata.REQUIRED = true;
-    } else if (isForced_1(CONSTRUCTOR_NAME, true)) {
-      var instance = new Constructor(); // early implementations not supports chaining
-
-      var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance; // V8 ~ Chromium 40- weak-collections throws on primitives, but should return false
-
-      var THROWS_ON_PRIMITIVES = fails(function () {
-        instance.has(1);
-      }); // most early implementations doesn't supports iterables, most modern - not close it correctly
-      // eslint-disable-next-line no-new
-
-      var ACCEPT_ITERABLES = checkCorrectnessOfIteration(function (iterable) {
-        new NativeConstructor(iterable);
-      }); // for early implementations -0 and +0 not the same
-
-      var BUGGY_ZERO = !IS_WEAK && fails(function () {
-        // V8 ~ Chromium 42- fails only with 5+ elements
-        var $instance = new NativeConstructor();
-        var index = 5;
-
-        while (index--) $instance[ADDER](index, index);
-
-        return !$instance.has(-0);
-      });
-
-      if (!ACCEPT_ITERABLES) {
-        Constructor = wrapper(function (dummy, iterable) {
-          anInstance(dummy, Constructor, CONSTRUCTOR_NAME);
-          var that = inheritIfRequired(new NativeConstructor(), dummy, Constructor);
-          if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
-          return that;
-        });
-        Constructor.prototype = NativePrototype;
-        NativePrototype.constructor = Constructor;
-      }
-
-      if (THROWS_ON_PRIMITIVES || BUGGY_ZERO) {
-        fixMethod('delete');
-        fixMethod('has');
-        IS_MAP && fixMethod('get');
-      }
-
-      if (BUGGY_ZERO || HASNT_CHAINING) fixMethod(ADDER); // weak collections should not contains .clear method
-
-      if (IS_WEAK && NativePrototype.clear) delete NativePrototype.clear;
-    }
-
-    exported[CONSTRUCTOR_NAME] = Constructor;
-    _export({
-      global: true,
-      forced: Constructor != NativeConstructor
-    }, exported);
-    setToStringTag(Constructor, CONSTRUCTOR_NAME);
-    if (!IS_WEAK) common.setStrong(Constructor, CONSTRUCTOR_NAME, IS_MAP);
-    return Constructor;
-  };
-
-  var defineProperty$8 = objectDefineProperty.f;
-  var fastKey = internalMetadata.fastKey;
-  var setInternalState$7 = internalState.set;
-  var internalStateGetterFor = internalState.getterFor;
-  var collectionStrong = {
-    getConstructor: function (wrapper, CONSTRUCTOR_NAME, IS_MAP, ADDER) {
-      var C = wrapper(function (that, iterable) {
-        anInstance(that, C, CONSTRUCTOR_NAME);
-        setInternalState$7(that, {
-          type: CONSTRUCTOR_NAME,
-          index: objectCreate(null),
-          first: undefined,
-          last: undefined,
-          size: 0
-        });
-        if (!descriptors) that.size = 0;
-        if (iterable != undefined) iterate_1(iterable, that[ADDER], that, IS_MAP);
-      });
-      var getInternalState = internalStateGetterFor(CONSTRUCTOR_NAME);
-
-      var define = function (that, key, value) {
-        var state = getInternalState(that);
-        var entry = getEntry(that, key);
-        var previous, index; // change existing entry
-
-        if (entry) {
-          entry.value = value; // create new entry
-        } else {
-          state.last = entry = {
-            index: index = fastKey(key, true),
-            key: key,
-            value: value,
-            previous: previous = state.last,
-            next: undefined,
-            removed: false
-          };
-          if (!state.first) state.first = entry;
-          if (previous) previous.next = entry;
-          if (descriptors) state.size++;else that.size++; // add to index
-
-          if (index !== 'F') state.index[index] = entry;
-        }
-
-        return that;
-      };
-
-      var getEntry = function (that, key) {
-        var state = getInternalState(that); // fast case
-
-        var index = fastKey(key);
-        var entry;
-        if (index !== 'F') return state.index[index]; // frozen object case
-
-        for (entry = state.first; entry; entry = entry.next) {
-          if (entry.key == key) return entry;
-        }
-      };
-
-      redefineAll(C.prototype, {
-        // 23.1.3.1 Map.prototype.clear()
-        // 23.2.3.2 Set.prototype.clear()
-        clear: function clear() {
-          var that = this;
-          var state = getInternalState(that);
-          var data = state.index;
-          var entry = state.first;
-
-          while (entry) {
-            entry.removed = true;
-            if (entry.previous) entry.previous = entry.previous.next = undefined;
-            delete data[entry.index];
-            entry = entry.next;
-          }
-
-          state.first = state.last = undefined;
-          if (descriptors) state.size = 0;else that.size = 0;
-        },
-        // 23.1.3.3 Map.prototype.delete(key)
-        // 23.2.3.4 Set.prototype.delete(value)
-        'delete': function (key) {
-          var that = this;
-          var state = getInternalState(that);
-          var entry = getEntry(that, key);
-
-          if (entry) {
-            var next = entry.next;
-            var prev = entry.previous;
-            delete state.index[entry.index];
-            entry.removed = true;
-            if (prev) prev.next = next;
-            if (next) next.previous = prev;
-            if (state.first == entry) state.first = next;
-            if (state.last == entry) state.last = prev;
-            if (descriptors) state.size--;else that.size--;
-          }
-
-          return !!entry;
-        },
-        // 23.2.3.6 Set.prototype.forEach(callbackfn, thisArg = undefined)
-        // 23.1.3.5 Map.prototype.forEach(callbackfn, thisArg = undefined)
-        forEach: function forEach(callbackfn
-        /* , that = undefined */
-        ) {
-          var state = getInternalState(this);
-          var boundFunction = functionBindContext(callbackfn, arguments.length > 1 ? arguments[1] : undefined, 3);
-          var entry;
-
-          while (entry = entry ? entry.next : state.first) {
-            boundFunction(entry.value, entry.key, this); // revert to the last existing entry
-
-            while (entry && entry.removed) entry = entry.previous;
-          }
-        },
-        // 23.1.3.7 Map.prototype.has(key)
-        // 23.2.3.7 Set.prototype.has(value)
-        has: function has(key) {
-          return !!getEntry(this, key);
-        }
-      });
-      redefineAll(C.prototype, IS_MAP ? {
-        // 23.1.3.6 Map.prototype.get(key)
-        get: function get(key) {
-          var entry = getEntry(this, key);
-          return entry && entry.value;
-        },
-        // 23.1.3.9 Map.prototype.set(key, value)
-        set: function set(key, value) {
-          return define(this, key === 0 ? 0 : key, value);
-        }
-      } : {
-        // 23.2.3.1 Set.prototype.add(value)
-        add: function add(value) {
-          return define(this, value = value === 0 ? 0 : value, value);
-        }
-      });
-      if (descriptors) defineProperty$8(C.prototype, 'size', {
-        get: function () {
-          return getInternalState(this).size;
-        }
-      });
-      return C;
-    },
-    setStrong: function (C, CONSTRUCTOR_NAME, IS_MAP) {
-      var ITERATOR_NAME = CONSTRUCTOR_NAME + ' Iterator';
-      var getInternalCollectionState = internalStateGetterFor(CONSTRUCTOR_NAME);
-      var getInternalIteratorState = internalStateGetterFor(ITERATOR_NAME); // add .keys, .values, .entries, [@@iterator]
-      // 23.1.3.4, 23.1.3.8, 23.1.3.11, 23.1.3.12, 23.2.3.5, 23.2.3.8, 23.2.3.10, 23.2.3.11
-
-      defineIterator(C, CONSTRUCTOR_NAME, function (iterated, kind) {
-        setInternalState$7(this, {
-          type: ITERATOR_NAME,
-          target: iterated,
-          state: getInternalCollectionState(iterated),
-          kind: kind,
-          last: undefined
-        });
-      }, function () {
-        var state = getInternalIteratorState(this);
-        var kind = state.kind;
-        var entry = state.last; // revert to the last existing entry
-
-        while (entry && entry.removed) entry = entry.previous; // get next entry
-
-
-        if (!state.target || !(state.last = entry = entry ? entry.next : state.state.first)) {
-          // or finish the iteration
-          state.target = undefined;
-          return {
-            value: undefined,
-            done: true
-          };
-        } // return step by kind
-
-
-        if (kind == 'keys') return {
-          value: entry.key,
-          done: false
-        };
-        if (kind == 'values') return {
-          value: entry.value,
-          done: false
-        };
-        return {
-          value: [entry.key, entry.value],
-          done: false
-        };
-      }, IS_MAP ? 'entries' : 'values', !IS_MAP, true); // add [@@species], 23.1.2.2, 23.2.2.2
-
-      setSpecies(CONSTRUCTOR_NAME);
-    }
-  };
-
-  // https://tc39.github.io/ecma262/#sec-set-objects
-
-
-  var es_set = collection('Set', function (init) {
-    return function Set() {
-      return init(this, arguments.length ? arguments[0] : undefined);
-    };
-  }, collectionStrong);
-
   /*
    *  The MIT License (MIT)
    *
@@ -38869,59 +38869,108 @@
   };
 
   ResolutionSelector.prototype.receiveEvent = function (event) {
-    var self = this,
-        htmlString,
-        selectedIndex,
-        divisor,
-        list;
+    var browser = this.browser;
 
     if (event.type === "LocusChange") {
       if (true === event.data.resolutionChanged) {
-        this.browser.resolutionLocked = false;
-        self.setResolutionLock(this.browser.resolutionLocked);
+        browser.resolutionLocked = false;
+        this.setResolutionLock(browser.resolutionLocked);
       }
 
-      var isWholeGenome = this.browser.dataset.isWholeGenome(event.data.state.chr1);
-      this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-      selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
-      divisor = isWholeGenome ? 1e6 : 1e3;
-      list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
-      htmlString = optionListHTML(list, selectedIndex, divisor);
-      this.$resolution_selector.empty();
-      this.$resolution_selector.append(htmlString);
-      this.$resolution_selector.find('option').filter(function (index) {
-        return index === selectedIndex;
-      }).prop('selected', true);
+      if (event.data.chrChanged) {
+        var isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
+        this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
+        updateResolutions.call(this, browser.state.zoom);
+      } else {
+        var selectedIndex = browser.state.zoom;
+        this.$resolution_selector.find('option').filter(function (index) {
+          return index === selectedIndex;
+        }).prop('selected', true);
+      }
     } else if (event.type === "MapLoad") {
-      this.browser.resolutionLocked = false;
-      this.setResolutionLock(this.browser.resolutionLocked);
-      htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
+      browser.resolutionLocked = false;
+      this.setResolutionLock(false);
+      updateResolutions.call(this, browser.state.zoom);
+    } else if (event.type === "ControlMapLoad") {
+      updateResolutions.call(this, browser.state.zoom);
+    }
+
+    function updateResolutions(zoomIndex) {
+      var resolutions = browser.getResolutions();
+      var htmlString = '';
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = resolutions[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var resolution = _step.value;
+          var binSize = resolution.binSize;
+          var index = resolution.index;
+          var divisor = void 0;
+          var unit = void 0;
+
+          if (binSize >= 1e6) {
+            divisor = 1e6;
+            unit = 'mb';
+          } else if (binSize >= 1e3) {
+            divisor = 1e3;
+            unit = 'kb';
+          } else {
+            divisor = 1;
+            unit = 'bp';
+          }
+
+          var pretty = numberFormatter$1(Math.round(binSize / divisor)) + ' ' + unit;
+          var selected = zoomIndex === resolution.index;
+          htmlString += '<option' + ' data-resolution=' + binSize.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return != null) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
       this.$resolution_selector.empty();
       this.$resolution_selector.append(htmlString);
-    } else if (event.type === "ControlMapLoad") ;
+    } // function optionListHTML(resolutions, selectedIndex, divisor) {
+    //     var list;
+    //
+    //     list = resolutions.map(function (resolution, index) {
+    //         var selected, unit, pretty;
+    //
+    //         if (resolution >= 1e6) {
+    //             divisor = 1e6
+    //             unit = 'mb'
+    //         } else if (resolution >= 1e3) {
+    //             divisor = 1e3
+    //             unit = 'kb'
+    //         } else {
+    //             divisor = 1
+    //             unit = 'bp'
+    //         }
+    //
+    //         pretty = StringUtils.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
+    //         selected = selectedIndex === index;
+    //
+    //         if (resolution)
+    //             return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+    //         else
+    //             return ''
+    //     });
+    //
+    //     return list.join('');
+    // }
 
-    function optionListHTML(resolutions, selectedIndex, divisor) {
-      var list;
-      list = resolutions.map(function (resolution, index) {
-        var selected, unit, pretty;
-
-        if (resolution >= 1e6) {
-          divisor = 1e6;
-          unit = 'mb';
-        } else if (resolution >= 1e3) {
-          divisor = 1e3;
-          unit = 'kb';
-        } else {
-          divisor = 1;
-          unit = 'bp';
-        }
-
-        pretty = numberFormatter$1(Math.round(resolution / divisor)) + ' ' + unit;
-        selected = selectedIndex === index;
-        if (resolution) return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';else return '';
-      });
-      return list.join('');
-    }
   };
 
   var ColorScaleWidget = function ColorScaleWidget(browser, $hic_navbar_container) {
@@ -42069,6 +42118,30 @@
   HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
   };
+  /**
+   * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
+   * @returns {{index: *, binSize: *}[]|Array}
+   */
+
+
+  HICBrowser.prototype.getResolutions = function () {
+    if (!this.dataset) return [];
+    var baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+      return {
+        index: index,
+        binSize: resolution
+      };
+    });
+
+    if (this.controlDataset) {
+      var controlResolutions = new Set(this.controlDataset.bpResolutions);
+      return baseResolutions.filter(function (base) {
+        return controlResolutions.has(base.binSize);
+      });
+    } else {
+      return baseResolutions;
+    }
+  };
 
   HICBrowser.prototype.getColorScale = function () {
     if (!this.contactMatrixView) return undefined;
@@ -43232,7 +43305,8 @@
               this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
               this.eventBus.post(HICEvent("LocusChange", {
                 state: this.state,
-                resolutionChanged: true
+                resolutionChanged: true,
+                chrChanged: true
               }));
 
             case 15:

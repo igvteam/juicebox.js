@@ -68764,76 +68764,93 @@ ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
 
 ResolutionSelector.prototype.receiveEvent = function (event) {
 
-    var self = this,
-        htmlString,
-        selectedIndex,
-        divisor,
-        list;
+    const browser = this.browser;
 
     if (event.type === "LocusChange") {
         if (true === event.data.resolutionChanged) {
-            this.browser.resolutionLocked = false;
-            self.setResolutionLock(this.browser.resolutionLocked);
+            browser.resolutionLocked = false;
+            this.setResolutionLock(browser.resolutionLocked);
         }
 
-        const isWholeGenome = this.browser.dataset.isWholeGenome(event.data.state.chr1);
-
-        this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-
-        selectedIndex = isWholeGenome ? 0 : this.browser.state.zoom;
-        divisor = isWholeGenome ? 1e6 : 1e3;
-        list = isWholeGenome ? [this.browser.dataset.wholeGenomeResolution] : this.browser.dataset.bpResolutions;
-
-        htmlString = optionListHTML(list, selectedIndex, divisor);
-        this.$resolution_selector.empty();
-        this.$resolution_selector.append(htmlString);
-
-        this.$resolution_selector
-            .find('option')
-            .filter(function (index) {
-                return index === selectedIndex;
-            })
-            .prop('selected', true);
-
+        if (event.data.chrChanged) {
+            const isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
+            this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
+            updateResolutions.call(this, browser.state.zoom);
+        } else {
+            const selectedIndex = browser.state.zoom;
+            this.$resolution_selector
+                .find('option')
+                .filter(function (index) {
+                    return index === selectedIndex;
+                })
+                .prop('selected', true);
+        }
 
     } else if (event.type === "MapLoad") {
+        browser.resolutionLocked = false;
+        this.setResolutionLock(false);
+        updateResolutions.call(this, browser.state.zoom);
+    } else if (event.type === "ControlMapLoad") {
+        updateResolutions.call(this, browser.state.zoom);
+    }
 
-        this.browser.resolutionLocked = false;
-        this.setResolutionLock(this.browser.resolutionLocked);
+    function updateResolutions(zoomIndex) {
 
-        htmlString = optionListHTML(event.data.bpResolutions, this.browser.state.zoom, 1e3);
-        this.$resolution_selector.empty();
-        this.$resolution_selector.append(htmlString);
-    } else if (event.type === "ControlMapLoad") ;
+        const resolutions = browser.getResolutions();
 
-    function optionListHTML(resolutions, selectedIndex, divisor) {
-        var list;
-
-        list = resolutions.map(function (resolution, index) {
-            var selected, unit, pretty;
-
-            if (resolution >= 1e6) {
+        let htmlString = '';
+        for(let resolution of resolutions) {
+            const binSize = resolution.binSize;
+            const index = resolution.index;
+            let divisor;
+            let unit;
+            if (binSize >= 1e6) {
                 divisor = 1e6;
                 unit = 'mb';
-            } else if (resolution >= 1e3) {
+            } else if (binSize >= 1e3) {
                 divisor = 1e3;
                 unit = 'kb';
             } else {
                 divisor = 1;
                 unit = 'bp';
             }
+            const pretty = numberFormatter$1(Math.round(binSize / divisor)) + ' ' + unit;
+            const selected = zoomIndex === resolution.index;
+            htmlString += '<option' + ' data-resolution=' + binSize.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
 
-            pretty = numberFormatter$1(Math.round(resolution / divisor)) + ' ' + unit;
-            selected = selectedIndex === index;
-
-            if (resolution)
-                return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
-            else
-                return ''
-        });
-
-        return list.join('');
+        }
+        this.$resolution_selector.empty();
+        this.$resolution_selector.append(htmlString);
     }
+
+    // function optionListHTML(resolutions, selectedIndex, divisor) {
+    //     var list;
+    //
+    //     list = resolutions.map(function (resolution, index) {
+    //         var selected, unit, pretty;
+    //
+    //         if (resolution >= 1e6) {
+    //             divisor = 1e6
+    //             unit = 'mb'
+    //         } else if (resolution >= 1e3) {
+    //             divisor = 1e3
+    //             unit = 'kb'
+    //         } else {
+    //             divisor = 1
+    //             unit = 'bp'
+    //         }
+    //
+    //         pretty = StringUtils.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
+    //         selected = selectedIndex === index;
+    //
+    //         if (resolution)
+    //             return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+    //         else
+    //             return ''
+    //     });
+    //
+    //     return list.join('');
+    // }
 
 };
 
@@ -71860,7 +71877,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.showTrackLabelAndGutter = true;
 
-    this.id = `browser_${ guid$1() }`;
+    this.id = `browser_${guid$1()}`;
     this.trackRenderers = [];
     this.tracks2D = [];
     this.normVectorFiles = [];
@@ -71986,7 +72003,7 @@ HICBrowser.prototype.createMenu = function ($root) {
     const $menu = $root.find(".hic-menu");
 
     const $fa = $root.find(".fa-times");
-    $fa.on('click', () => this.toggleMenu() );
+    $fa.on('click', () => this.toggleMenu());
 
     return $menu;
 
@@ -72033,6 +72050,25 @@ HICBrowser.prototype.getDisplayMode = function () {
 
 HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
+};
+
+/**
+ * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
+ * @returns {{index: *, binSize: *}[]|Array}
+ */
+HICBrowser.prototype.getResolutions = function () {
+    if(!this.dataset) return [];
+
+    const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+        return {index: index, binSize: resolution}
+    });
+
+    if (this.controlDataset) {
+        let controlResolutions = new Set(this.controlDataset.bpResolutions);
+        return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+    } else {
+        return baseResolutions;
+    }
 };
 
 HICBrowser.prototype.getColorScale = function () {
@@ -72167,7 +72203,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
                     config.color = DEFAULT_ANNOTATION_COLOR;
                     config.displayMode = "COLLAPSED";
                 }
-                if(config.max === undefined) {
+                if (config.max === undefined) {
                     config.autoscale = true;
                 }
                 config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
@@ -72552,7 +72588,7 @@ HICBrowser.prototype.parseLocusString = function (locus) {
     parts = locus.trim().split(':');
 
 
-    chromosome = this.genome.getChromosome(parts[ 0 ].toLowerCase());
+    chromosome = this.genome.getChromosome(parts[0].toLowerCase());
 
     if (!chromosome) {
         return undefined;
@@ -72681,7 +72717,7 @@ HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, cente
 HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
     if (!this.dataset) return;
-    
+
     if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
         // jump from whole genome to chromosome
         var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
@@ -72777,7 +72813,7 @@ HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
 
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom);
         this.state.pixelSize = Math.min(100, Math.max(defaultPixelSize, minPS));
-        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
+        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
     } finally {
         this.stopSpinner();
     }
@@ -73287,7 +73323,7 @@ async function loadDataset(config) {
     } else {
         // If this is a google url, add api KEY
         if (api.google.isGoogleURL(config.url)) {
-            if(api.google.isGoogleDrive(config.url)) {
+            if (api.google.isGoogleDrive(config.url)) {
                 config.url = api.google.driveDownloadURL(config.url);
             }
             const copy = Object.assign({}, config);
