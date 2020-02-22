@@ -107,10 +107,9 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
         updateResolutions.call(this, browser.state.zoom)
     }
 
-    function updateResolutions(zoomIndex) {
+    async function updateResolutions(zoomIndex) {
 
         const resolutions = browser.getResolutions();
-
         let htmlString = '';
         for(let resolution of resolutions) {
             const binSize = resolution.binSize;
@@ -136,34 +135,6 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
         this.$resolution_selector.append(htmlString);
     }
 
-    // function optionListHTML(resolutions, selectedIndex, divisor) {
-    //     var list;
-    //
-    //     list = resolutions.map(function (resolution, index) {
-    //         var selected, unit, pretty;
-    //
-    //         if (resolution >= 1e6) {
-    //             divisor = 1e6
-    //             unit = 'mb'
-    //         } else if (resolution >= 1e3) {
-    //             divisor = 1e3
-    //             unit = 'kb'
-    //         } else {
-    //             divisor = 1
-    //             unit = 'bp'
-    //         }
-    //
-    //         pretty = StringUtils.numberFormatter(Math.round(resolution / divisor)) + ' ' + unit;
-    //         selected = selectedIndex === index;
-    //
-    //         if (resolution)
-    //             return '<option' + ' data-resolution=' + resolution.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
-    //         else
-    //             return ''
-    //     });
-    //
-    //     return list.join('');
-    // }
 
 };
 

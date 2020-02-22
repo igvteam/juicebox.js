@@ -252,17 +252,21 @@ HICBrowser.prototype.toggleDisplayMode = function () {
  * @returns {{index: *, binSize: *}[]|Array}
  */
 HICBrowser.prototype.getResolutions = function () {
-    if(!this.dataset) return [];
 
-    const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
-        return {index: index, binSize: resolution}
-    });
+    if (!this.dataset) return [];
 
-    if (this.controlDataset) {
-        let controlResolutions = new Set(this.controlDataset.bpResolutions);
-        return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+    if (this.dataset.isWholeGenome(this.state.chr1)) {
+        return [{index: 0, binSize: this.dataset.wholeGenomeResolution}]
     } else {
-        return baseResolutions;
+        const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+            return {index: index, binSize: resolution}
+        });
+        if (this.controlDataset) {
+            let controlResolutions = new Set(this.controlDataset.bpResolutions);
+            return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+        } else {
+            return baseResolutions;
+        }
     }
 }
 
@@ -780,11 +784,23 @@ HICBrowser.prototype.parseGotoInput = async function (string) {
 
 };
 
+/**
+ * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
+ *
+ * resolutionAraay can be either
+ *   (1) an array of bin sizes
+ *   (2) an array of objects with index and bin size
+ * @param targetResolution
+ * @param resolutionArray
+ * @returns {number}
+ */
 HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
-    var z;
-    for (z = resolutionArray.length - 1; z > 0; z--) {
-        if (resolutionArray[z] >= targetResolution) {
-            return z;
+    const isObject = resolutionArray.length > 0 && resolutionArray[0].index !== undefined;
+    for (let z = resolutionArray.length - 1; z > 0; z--) {
+        const binSize = isObject ? resolutionArray[z].binSize : resolutionArray[z];
+        const index = isObject ? resolutionArray[z].index : z;
+        if (binSize >= targetResolution) {
+            return index;
         }
     }
     return 0;
@@ -847,7 +863,7 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
         try {
             this.startSpinner()
 
-            const bpResolutions = this.dataset.bpResolutions
+            const bpResolutions = this.dataset.getResolutions();
             const currentResolution = bpResolutions[this.state.zoom];
 
             let newResolution
@@ -865,7 +881,7 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
                 zoomChanged = false;
             } else {
                 const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
-                newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+                newZoom = this.findMatchingZoomIndex(targetResolution, this.getResolutions());
                 newResolution = bpResolutions[newZoom];
                 zoomChanged = newZoom !== this.state.zoom;
                 newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
@@ -934,13 +950,13 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
 
     if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
         // jump from whole genome to chromosome
-        var genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize,
-            genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize,
-            chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX),
-            chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
+        const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
+        const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
+        const chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX);
+        const chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
         this.setChromosomes(chrX.index, chrY.index);
     } else {
-        const bpResolutions = this.dataset.bpResolutions
+        const resolutions = this.getResolutions();
         const viewDimensions = this.contactMatrixView.getViewDimensions()
         const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
         const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
@@ -949,8 +965,8 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
         this.state.y += (dy / this.state.pixelSize);
 
         if (this.resolutionLocked ||
-            (direction > 0 && this.state.zoom === bpResolutions.length - 1) ||
-            (direction < 0 && this.state.zoom === 0)) {
+            (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
+            (direction < 0 && this.state.zoom === resolutions[0].index)) {
 
             const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
             const state = this.state;
@@ -965,47 +981,53 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
             this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false}));
 
         } else {
-            this.setZoom(this.state.zoom + direction, centerPY, centerPY);
+            let i;
+            for (i = 0; i < resolutions.length; i++) {
+                if (this.state.zoom === resolutions[i].index) break;
+            }
+            if (i !== undefined) {
+                const newZoom = resolutions[i + direction].index;
+                this.setZoom(newZoom, centerPY, centerPY);
+            }
         }
     }
+}
 
-};
-
+/**
+ * Set the current zoom state and opctionally center over supplied coordinates.
+ * @param zoom - index to the datasets resolution array (dataset.bpResolutions)
+ * @param cpx - center X position in bins at current resolution (i.e. not "zoom")
+ * @param cpy - center Y position in bins at current resolution
+ * @returns {Promise<void>}
+ */
 HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
 
     try {
-        // this.startSpinner()
-        var bpResolutions, currentResolution, viewDimensions, xCenter, yCenter, newResolution, newXCenter,
-            newYCenter,
-            newPixelSize, zoomChanged,
-            self = this;
-
 
         // Shift x,y to maintain center, if possible
-        bpResolutions = this.dataset.bpResolutions;
-        currentResolution = bpResolutions[this.state.zoom];
-        viewDimensions = this.contactMatrixView.getViewDimensions();
-        xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-        yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
-        newResolution = bpResolutions[zoom];
-        newXCenter = xCenter * (currentResolution / newResolution);
-        newYCenter = yCenter * (currentResolution / newResolution);
+        const bpResolutions = this.dataset.bpResolutions;
+        const currentResolution = bpResolutions[this.state.zoom];
+        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const xCenter = cpx || this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
+        const yCenter = cpy || this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
 
+        const newResolution = bpResolutions[zoom];
+        const newXCenter = xCenter * (currentResolution / newResolution);
+        const newYCenter = yCenter * (currentResolution / newResolution);
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
-
-        var state = self.state;
-        newPixelSize = Math.max(hic.defaultPixelSize, minPS);
-        zoomChanged = (state.zoom !== zoom);
+        const state = this.state;
+        const newPixelSize = Math.max(hic.defaultPixelSize, minPS);
+        const zoomChanged = (state.zoom !== zoom);
 
         state.zoom = zoom;
         state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
         state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
         state.pixelSize = newPixelSize;
-        self.clamp();
+        this.clamp();
 
-        await self.contactMatrixView.zoomIn()
+        await this.contactMatrixView.zoomIn()
 
-        self.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+        this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged}));
     } finally {
         // this.stopSpinner()
     }
@@ -1203,28 +1225,23 @@ HICBrowser.prototype.shiftPixels = function (dx, dy) {
 HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
 
 
-    var xCenter,
-        yCenter,
-        targetResolution,
-        newResolution,
-        viewDimensions = this.contactMatrixView.getViewDimensions(),
-        bpResolutions = this.dataset.bpResolutions,
-        viewWidth = viewDimensions.width,
-        maxExtent, newZoom, newPixelSize, newXBin, newYBin,
-        zoomChanged;
+    const viewDimensions = this.contactMatrixView.getViewDimensions();
+    const bpResolutions = this.getResolutions();
+    const viewWidth = viewDimensions.width;
 
-    targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+    let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
 
     if (minResolution && targetResolution < minResolution) {
-        maxExtent = viewWidth * minResolution;
-        xCenter = (bpX + bpXMax) / 2;
-        yCenter = (bpY + bpYMax) / 2;
+        const maxExtent = viewWidth * minResolution;
+        const xCenter = (bpX + bpXMax) / 2;
+        const yCenter = (bpY + bpYMax) / 2;
         bpX = Math.max(xCenter - maxExtent / 2);
         bpY = Math.max(0, yCenter - maxExtent / 2);
         targetResolution = minResolution;
     }
 
-
+    let zoomChanged;
+    let newZoom;
     if (true === this.resolutionLocked && minResolution === undefined) {
         zoomChanged = false;
         newZoom = this.state.zoom;
@@ -1233,10 +1250,10 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
         zoomChanged = (newZoom !== this.state.zoom);
     }
 
-    newResolution = bpResolutions[newZoom];
-    newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
-    newXBin = bpX / newResolution;
-    newYBin = bpY / newResolution;
+    const newResolution = bpResolutions[newZoom].binSize;
+    const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
+    const newXBin = bpX / newResolution;
+    const newYBin = bpY / newResolution;
 
     this.state.chr1 = chr1;
     this.state.chr2 = chr2;

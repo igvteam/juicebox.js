@@ -24,7 +24,6 @@
 /**
  * Created by dat on 3/14/17.
  */
-import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const SweepZoom = function (browser, $target) {
 
@@ -86,43 +85,33 @@ SweepZoom.prototype.update = function (pageCoords) {
 };
 
 SweepZoom.prototype.commit = function () {
-    var state,
-        resolution,
-        posX,
-        posY,
-        x,
-        y,
-        width,
-        height,
-        xMax,
-        yMax,
-        minimumResolution;
+
 
     this.$rulerSweeper.hide();
 
-    state = this.browser.state;
+    const state = this.browser.state;
 
     // bp-per-bin
-    resolution = this.browser.resolution();
+    const resolution = this.browser.resolution();
 
     // Convert page -> offset coordinates
-    posX = this.sweepRect.x - this.$target.offset().left;
-    posY = this.sweepRect.y - this.$target.offset().top;
+    const posX = this.sweepRect.x - this.$target.offset().left;
+    const posY = this.sweepRect.y - this.$target.offset().top;
 
 
     // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    x = (state.x + (posX / state.pixelSize)) * resolution;
-    y = (state.y + (posY / state.pixelSize)) * resolution;
+    const x = (state.x + (posX / state.pixelSize)) * resolution;
+    const y = (state.y + (posY / state.pixelSize)) * resolution;
 
     // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    width = (this.sweepRect.width / state.pixelSize) * resolution;
-    height = (this.sweepRect.height / state.pixelSize) * resolution;
+    const width = (this.sweepRect.width / state.pixelSize) * resolution;
+    const height = (this.sweepRect.height / state.pixelSize) * resolution;
 
     // bp = bp + bp
-    xMax = x + width;
-    yMax = y + height;
+    const xMax = x + width;
+    const yMax = y + height;
 
-    minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
+    const minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
     this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
 
 };
