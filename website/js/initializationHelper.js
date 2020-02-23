@@ -10,7 +10,6 @@ import EncodeDataSource from '../node_modules/data-modal/js/encodeDataSource.js'
 // The "hic" object.  By default get from the juicebox bundle, but for efficient debugging get from the source (index.js)
 //import hic from "../../dist/juicebox.esm.js";
 import hic from "../../js/index.js";
-import EventBus from "../../js/eventBus.js"
 
 // The igv object. TODO eliminate this dependency
 const igv = hic.igv;
@@ -55,7 +54,7 @@ const initializationHelper = async (container, config) => {
         }
     };
 
-    EventBus.globalBus.subscribe("GenomeChange", genomeChangeListener);
+    hic.EventBus.globalBus.subscribe("GenomeChange", genomeChangeListener);
 
     for (let browser of allBrowsers) {
         browser.eventBus.subscribe("MapLoad", checkBDropdown);
@@ -264,7 +263,7 @@ const initializationHelper = async (container, config) => {
         console.log("hide contact/control map");
     });
 
-    hic.eventBus.subscribe("BrowserSelect", function (event) {
+    hic.EventBus.globalBus.subscribe("BrowserSelect", function (event) {
         updateBDropdown(event.data);
     });
 

@@ -29,7 +29,7 @@ import igv from '../node_modules/igv/dist/igv.esm.js';
 import {Alert, DOMUtils} from '../node_modules/igv-ui/src/index.js'
 import {TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import * as hic from './hicUtils.js'
+import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
 import {paramEncode} from "./urlUtils.js"
 import EventBus from "./eventBus.js";
@@ -79,7 +79,7 @@ const HICBrowser = function ($app_container, config) {
 
     this.synchedBrowsers = [];
 
-    this.isMobile = hic.isMobile();
+    this.isMobile = hicUtils.isMobile();
 
     this.$root = $('<div class="hic-root unselect">');
 
@@ -137,8 +137,8 @@ const HICBrowser = function ($app_container, config) {
 
 HICBrowser.getCurrentBrowser = function () {
 
-    if (hic.allBrowsers.length === 1) {
-        return hic.allBrowsers[0];
+    if (hicUtils.allBrowsers.length === 1) {
+        return hicUtils.allBrowsers[0];
     } else {
         return HICBrowser.currentBrowser;
     }
@@ -168,7 +168,7 @@ HICBrowser.setCurrentBrowser = function (browser) {
         browser.$root.addClass('hic-root-selected');
         HICBrowser.currentBrowser = browser;
 
-        hic.eventBus.post(HICEvent("BrowserSelect", browser));
+        EventBus.globalBus.post(HICEvent("BrowserSelect", browser));
     }
 
 };
@@ -490,7 +490,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
             } else {
                 TrackUtils.inferTrackTypes(config);
                 if (!config.name) {
-                    config.name = hic.extractFilename(config.url);
+                    config.name = hicUtils.extractFilename(config.url);
                 }
                 promises.push(Promise.resolve(config));
             }
@@ -694,7 +694,7 @@ HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
         const controlDataset = await loadDataset(config)
         controlDataset.name = name
 
-        if (!this.dataset || hic.areCompatible(this.dataset, controlDataset)) {
+        if (!this.dataset || hicUtils.areCompatible(this.dataset, controlDataset)) {
             this.controlDataset = controlDataset;
             if (this.dataset) {
                 this.$contactMaplabel.text("A: " + this.dataset.name);
@@ -732,7 +732,7 @@ async function extractName(config) {
         return json.name;
     } else {
         if (config.name === undefined) {
-            return hic.extractFilename(config.url);
+            return hicUtils.extractFilename(config.url);
         } else {
             return config.name;
         }
@@ -1030,7 +1030,7 @@ HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
         const newYCenter = yCenter * (currentResolution / newResolution);
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
         const state = this.state;
-        const newPixelSize = Math.max(hic.defaultPixelSize, minPS);
+        const newPixelSize = Math.max(hicUtils.defaultPixelSize, minPS);
         const zoomChanged = (state.zoom !== zoom);
 
         state.zoom = zoom;
@@ -1062,7 +1062,7 @@ HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
         this.state.zoom = z;
 
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-        this.state.pixelSize = Math.min(100, Math.max(hic.defaultPixelSize, minPS));
+        this.state.pixelSize = Math.min(100, Math.max(hicUtils.defaultPixelSize, minPS));
         this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
     } finally {
         this.stopSpinner()
