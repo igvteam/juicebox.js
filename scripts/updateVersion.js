@@ -6,19 +6,19 @@ const version = JSON.parse(jsonText).version;
 
 
 // Try to get git commit hash
-let githash = "";
-try {
-    const headPath = require.resolve('../.git/HEAD');
-    const rev = fs.readFileSync(headPath).toString().trim().split(/.*[: ]/).slice(-1)[0];
-    if (rev.indexOf('/') === -1) {
-        githash = rev;
-    } else {
-        const revpath = require.resolve('../.git/' + rev);
-        githash = fs.readFileSync(revpath).toString().trim();
-    }
-} catch (e) {
-    console.error("Error determining git hash")
-}
+// let githash = "";
+// try {
+//     const headPath = require.resolve('../.git/HEAD');
+//     const rev = fs.readFileSync(headPath).toString().trim().split(/.*[: ]/).slice(-1)[0];
+//     if (rev.indexOf('/') === -1) {
+//         githash = rev;
+//     } else {
+//         const revpath = require.resolve('../.git/' + rev);
+//         githash = fs.readFileSync(revpath).toString().trim();
+//     }
+// } catch (e) {
+//     console.error("Error determining git hash")
+// }
 
 
 const versionJS = require.resolve('../js/version.js')
