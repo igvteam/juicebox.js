@@ -247,6 +247,20 @@ HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
 };
 
+HICBrowser.prototype.getNormalizationOptions = async function() {
+
+    if(!this.dataset) return [];
+
+    const baseOptions = await this.dataset.getNormalizationOptions();
+    if(this.controlDataset) {
+        let controlOptions = await this.controlDataset.getNormalizationOptions();
+        controlOptions = new Set(controlOptions);
+        return baseOptions.filter(base => controlOptions.has(base));
+    } else {
+        return baseOptions;
+    }
+}
+
 /**
  * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
  * @returns {{index: *, binSize: *}[]|Array}

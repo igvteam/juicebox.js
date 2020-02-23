@@ -85,14 +85,7 @@ NormalizationWidget.prototype.stopNotReady = function () {
 
 NormalizationWidget.prototype.receiveEvent = function (event) {
 
-    // TODO -- this is quite fragile.  If the NormVectorIndexLoad event is received before MapLoad you'll never see the pulldown widget
-    // if ("MapLoad" === event.type) {
-    //     // TODO -- start norm widget "not ready" state
-    //     this.startNotReady();
-    //
-    //     updateOptions.call(this);
-    //
-    // } else
+
     if ("NormVectorIndexLoad" === event.type) {
 
         updateOptions.call(this);
@@ -119,26 +112,15 @@ NormalizationWidget.prototype.receiveEvent = function (event) {
     }
 
     async function updateOptions() {
-        var dataset = event.data,
-            normalizationTypes,
-            elements,
-            norm = this.browser.state.normalization;
-
-        normalizationTypes = await dataset.getNormalizationOptions();
+        const norm = this.browser.state.normalization;
+        const normalizationTypes = await this.browser.getNormalizationOptions();
         if (normalizationTypes) {
-            elements = normalizationTypes.map(function (normalization) {
-                var label,
-                    labelPresentation,
-                    isSelected,
-                    titleString,
-                    valueString;
-
-                label = labels[normalization] || normalization;
-                isSelected = (norm === normalization);
-                titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-
-                labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+            const elements = normalizationTypes.map(function (normalization) {
+                const label = labels[normalization] || normalization;
+                const isSelected = (norm === normalization);
+                const titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                const valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+                const labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
                 return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
             });
 
