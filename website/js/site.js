@@ -42,6 +42,11 @@ let allBrowsers;
 
 async function init(container, config) {
 
+    const versionElem = document.getElementById("hic-version-number");
+    if(versionElem) {
+        versionElem.innerText = `version ${hic.version}`;
+    }
+
     allBrowsers = hic.allBrowsers;
 
     config = config || {};
@@ -49,6 +54,7 @@ async function init(container, config) {
     await hic.initApp(container, config);
 
     await initializationHelper(container, config);
+
 
 }
 
