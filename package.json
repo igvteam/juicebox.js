@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "1.4.2",
+  "version": "1.5.0-rc.2",
   "main": "dist/juicebox.min.js",
   "files": [
     "dist/**"
@@ -17,7 +17,7 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "npx rollup --config",
+    "build": "node scripts/updateVersion && npx rollup --config",
     "prepack": "npm run build"
   },
   "keywords": [
@@ -50,7 +50,7 @@
     "serve-static": "^1.14.1"
   },
   "dependencies": {
-    "hic-straw": "^0.9.8",
+    "hic-straw": "^1.0.0",
     "igv": "^2.3.5",
     "igv-ui": "github:igvteam/igv-ui",
     "igv-utils": "github:igvteam/igv-utils"
