@@ -25,7 +25,7 @@
  * Created by dat on 3/3/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import { StringUtils } from '../node_modules/igv-utils/src/index.js'
+import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
 const LocusGoto = function (browser, $hic_navbar_container) {
 
@@ -66,9 +66,10 @@ LocusGoto.prototype.receiveEvent = function (event) {
     if (event.type === "LocusChange") {
 
         state = event.data.state || self.browser.state;
-       // if (0 === state.chr1) {
+        const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
+        if (isWholeGenome) {
             xy = 'All';
-      //  } else {
+        } else {
             chr1 = self.browser.dataset.chromosomes[state.chr1];
             chr2 = self.browser.dataset.chromosomes[state.chr2];
 
@@ -85,12 +86,10 @@ LocusGoto.prototype.receiveEvent = function (event) {
             xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
                 chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
 
-       // }
-
+        }
         this.$resolution_selector.val(xy);
     }
+}
 
-
-};
 
 export default LocusGoto

@@ -247,12 +247,12 @@ HICBrowser.prototype.toggleDisplayMode = function () {
     this.controlMapWidget.toggleDisplayMode();
 };
 
-HICBrowser.prototype.getNormalizationOptions = async function() {
+HICBrowser.prototype.getNormalizationOptions = async function () {
 
-    if(!this.dataset) return [];
+    if (!this.dataset) return [];
 
     const baseOptions = await this.dataset.getNormalizationOptions();
-    if(this.controlDataset) {
+    if (this.controlDataset) {
         let controlOptions = await this.controlDataset.getNormalizationOptions();
         controlOptions = new Set(controlOptions);
         return baseOptions.filter(base => controlOptions.has(base));
@@ -636,41 +636,49 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
         } else {
             this.setState(defaultState.clone());
         }
+
+
+        // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
+        // Let it load in the background
+        const eventBus = this.eventBus
+
+        // If nvi is not supplied, try reading it from remote lambda service
+        if (!config.nvi && typeof config.url === "string") {
+            const url = new URL(config.url)
+            const key = encodeURIComponent(url.hostname + url.pathname)
+            const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
+            if (nviResponse.status === 200) {
+                const nvi = await nviResponse.text()
+                if (nvi) {
+                    config.nvi = nvi
+                }
+            }
+        }
+
+        if (config.nvi) {
+            await this.dataset.getNormVectorIndex(config)
+            eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+        } else {
+            const dataset = this.dataset
+            dataset.getNormVectorIndex(config)
+                .then(function (normVectorIndex) {
+                    if (!config.isControl) {
+                        eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
+                    }
+                })
+        }
+
+    } catch (error) {
+        alert(`Error loading hic file ${config.url} (${error})`);
+        this.$contactMaplabel.text('');
+        this.$contactMaplabel.attr('');
+        config.name = name;
+        throw error;
     } finally {
         if (!noUpdates) {
             this.$user_interaction_shield.hide();
             this.stopSpinner();
         }
-    }
-
-    // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
-    // Let it load in the background
-    const eventBus = this.eventBus
-
-    // If nvi is not supplied, try reading it from remote lambda service
-    if (!config.nvi && typeof config.url === "string") {
-        const url = new URL(config.url)
-        const key = encodeURIComponent(url.hostname + url.pathname)
-        const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
-        if (nviResponse.status === 200) {
-            const nvi = await nviResponse.text()
-            if (nvi) {
-                config.nvi = nvi
-            }
-        }
-    }
-
-    if (config.nvi) {
-        await this.dataset.getNormVectorIndex(config)
-        eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
-    } else {
-        const dataset = this.dataset
-        dataset.getNormVectorIndex(config)
-            .then(function (normVectorIndex) {
-                if (!config.isControl) {
-                    eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
-                }
-            })
     }
 }
 
@@ -958,6 +966,13 @@ HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, cente
 }
 
 // Zoom in response to a double-click
+/**
+ * Zoom and center on bins at given screen coordinates.  Supports double-click zoom, pinch zoom.
+ * @param direction
+ * @param centerPX  screen coordinate to center on
+ * @param centerPY  screen coordinate to center on
+ * @returns {Promise<void>}
+ */
 HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
 
     if (!this.dataset) return;
@@ -1001,7 +1016,7 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
             }
             if (i !== undefined) {
                 const newZoom = resolutions[i + direction].index;
-                this.setZoom(newZoom, centerPY, centerPY);
+                this.setZoom(newZoom);
             }
         }
     }
@@ -1010,11 +1025,9 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
 /**
  * Set the current zoom state and opctionally center over supplied coordinates.
  * @param zoom - index to the datasets resolution array (dataset.bpResolutions)
- * @param cpx - center X position in bins at current resolution (i.e. not "zoom")
- * @param cpy - center Y position in bins at current resolution
  * @returns {Promise<void>}
  */
-HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
+HICBrowser.prototype.setZoom = async function (zoom) {
 
     try {
 
@@ -1022,8 +1035,8 @@ HICBrowser.prototype.setZoom = async function (zoom, cpx, cpy) {
         const bpResolutions = this.dataset.bpResolutions;
         const currentResolution = bpResolutions[this.state.zoom];
         const viewDimensions = this.contactMatrixView.getViewDimensions();
-        const xCenter = cpx || this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-        const yCenter = cpy || this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+        const xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
+        const yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
 
         const newResolution = bpResolutions[zoom];
         const newXCenter = xCenter * (currentResolution / newResolution);

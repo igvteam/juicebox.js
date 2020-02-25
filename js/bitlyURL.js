@@ -1,5 +1,3 @@
-
-
 /*
  *  The MIT License (MIT)
  *
@@ -22,6 +20,7 @@
  * THE SOFTWARE.
  *
  */
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 var BitlyURL = function (config) {
     this.api = "https://api-ssl.bitly.com";
@@ -32,62 +31,29 @@ var BitlyURL = function (config) {
 
 
 BitlyURL.prototype.shortenURL = async function (url) {
-
-    var self = this;
-
-    if(url.length > 2048) {
-        return url;
-    }
-
-    if (url.startsWith("http://localhost")) url = url.replace("localhost", this.devIP);  // Dev hack
-
-    try {
-        const key = await getApiKey.call(this)
-
-        var endpoint = self.api + "/v3/shorten?access_token=" + key + "&longUrl=" + encodeURIComponent(url);
-
-        const json = await igv.xhr.loadJson(endpoint, {})
-
-        // TODO check status code
-        if (500 === json.status_code) {
-            alert("Error shortening URL: " + json.status_txt)
-            //igv.Alert.presentAlert("Error shortening URL: " + json.status_txt)
-            return url
-        } else {
-            return json.data.url;
-        }
-    } catch (e) {
-        alert("Error shortening URL: " + e)
-        //igv.Alert.presentAlert("Error shortening URL: " + e)
-        return url
-    }
-
+    throw Error("BitLy shortenURL not implemented");
 };
 
 
-BitlyURL.prototype.expandURL = function (url) {
+BitlyURL.prototype.expandURL = async function (url) {
 
-    var self = this;
+    const key = await getApiKey.call(this)
+    const endpoint = this.api + "/v4/expand";
+    const id = url.startsWith("http://") ? url.substring(7) : url.substring(8);
+    const message = {
+        "bitlink_id": id
+    }
+    const json = await igv.xhr.loadJson(endpoint, {
+        sendData: JSON.stringify(message),
+        oauthToken: key
+    });
+    let longUrl = json.long_url;
 
-    return getApiKey.call(this)
+    // Fix some Bitly "normalization"
+    longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
 
-        .then(function (key) {
+    return longUrl;
 
-            var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
-
-            return igv.xhr.loadJson(endpoint, {})
-        })
-
-        .then(function (json) {
-
-            var longUrl = json.data.expand[0].long_url;
-
-            // Fix some Bitly "normalization"
-            longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
-
-            return longUrl;
-
-        })
 }
 
 async function getApiKey() {
@@ -96,11 +62,9 @@ async function getApiKey() {
 
     if (typeof self.apiKey === "string") {
         return self.apiKey
-    }
-    else if (typeof self.apiKey === "function") {
+    } else if (typeof self.apiKey === "function") {
         return await self.apiKey();
-    }
-    else {
+    } else {
         throw new Error("Unknown apiKey type: " + this.apiKey);
     }
 }

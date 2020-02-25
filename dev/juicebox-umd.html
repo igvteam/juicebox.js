@@ -36,20 +36,19 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
-    <script type="text/javascript" src="../dist/juicebox.min.js"/>
+    <script type="text/javascript" src="../dist/juicebox.js"></script>
 
 </head>
 
 <body>
 
 
-<div id="app-container" class="juicebox-app-clone-container"></div>
+<div id="app-container"></div>
 
 
 <script type="text/javascript">
 
     document.addEventListener("DOMContentLoaded", function () {
-
         const config = {
             url: "https://www.dropbox.com/s/lnlssur34vb3npq/HCT-116_Untreated.hic?dl=0",
             name: "HCT-116 untreated"
@@ -61,7 +60,7 @@
             .then(function (ignore) {
                 //hic.updateAllBrowsers()
             })
-    });
+   });
 
 
 </script>
