@@ -885,10 +885,10 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
         try {
             this.startSpinner()
 
-            const bpResolutions = this.dataset.getResolutions();
+            const bpResolutions = this.getResolutions();
             const currentResolution = bpResolutions[this.state.zoom];
 
-            let newResolution
+            let newBinSize
             let newZoom
             let newPixelSize
             let zoomChanged
@@ -897,16 +897,16 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
                 (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
                 (this.state.zoom === 0 && scaleFactor < 1)) {
                 // Can't change resolution level, must adjust pixel size
-                newResolution = currentResolution;
+                newBinSize = currentResolution.binSize;
                 newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
                 newZoom = this.state.zoom;
                 zoomChanged = false;
             } else {
-                const targetResolution = (currentResolution / this.state.pixelSize) / scaleFactor;
-                newZoom = this.findMatchingZoomIndex(targetResolution, this.getResolutions());
-                newResolution = bpResolutions[newZoom];
+                const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
+                newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
+                newBinSize = bpResolutions[newZoom].binSize;
                 zoomChanged = newZoom !== this.state.zoom;
-                newPixelSize = Math.min(MAX_PIXEL_SIZE, newResolution / targetResolution);
+                newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
             }
             const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
 
@@ -923,11 +923,11 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
                 newPixelSize = Math.max(newPixelSize, minPS);
 
                 // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                const gx = (state.x + anchorPx / state.pixelSize) * currentResolution;
-                const gy = (state.y + anchorPy / state.pixelSize) * currentResolution;
+                const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
+                const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
 
-                state.x = gx / newResolution - anchorPx / newPixelSize;
-                state.y = gy / newResolution - anchorPy / newPixelSize;
+                state.x = gx / newBinSize - anchorPx / newPixelSize;
+                state.y = gy / newBinSize - anchorPy / newPixelSize;
 
                 state.zoom = newZoom;
                 state.pixelSize = newPixelSize;
