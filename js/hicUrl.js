@@ -191,31 +191,28 @@ var hic = (function (hic) {
             })
     };
 
+    BitlyURL.prototype.expandURL = async function (url) {
 
-    BitlyURL.prototype.expandURL = function (url) {
+        const key = await getApiKey.call(this)
+        const endpoint = this.api + "/v4/expand";
+        const id = url.startsWith("http://") ? url.substring(7) : url.substring(8);
+        const message = {
+            "bitlink_id": id
+        }
+        const json = await igv.xhr.loadJson(endpoint, {
+            sendData: JSON.stringify(message),
+            oauthToken: key
+        });
+        let longUrl = json.long_url;
 
-        var self = this;
+        // Fix some Bitly "normalization"
+        longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
 
-        return getApiKey.call(this)
+        return longUrl;
 
-            .then(function (key) {
-
-                var endpoint = self.api + "/v3/expand?access_token=" + key + "&shortUrl=" + encodeURIComponent(url);
-
-                return igv.xhr.loadJson(endpoint, {})
-            })
-
-            .then(function (json) {
-
-                var longUrl = json.data.expand[0].long_url;
-
-                // Fix some Bitly "normalization"
-                longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
-
-                return longUrl;
-
-            })
     }
+
+
 
 
     var GoogleURL = function (config) {
