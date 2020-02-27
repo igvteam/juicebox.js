@@ -118,11 +118,7 @@ var juicebox = (function (site) {
             $hic_share_url_modal = $('#hic-share-url-modal');
 
             function maybeShortenURL(url) {
-                if (url.length < 2048) {
-                    return hic.shortenURL(url)
-                } else {
-                    return igv.xhr.loadString("https://2et6uxfezb.execute-api.us-east-1.amazonaws.com/dev/tinyurl/" + encodeURIComponent(url));
-                }
+                return igv.xhr.loadString("https://2et6uxfezb.execute-api.us-east-1.amazonaws.com/dev/tinyurl/" + encodeURIComponent(url));
             }
 
 
@@ -324,7 +320,7 @@ var juicebox = (function (site) {
                     name = $(this).find('option:selected').text();
 
                     const config = {url: path, name: name}
-                    if(path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
+                    if (path.indexOf("hgdownload.cse.ucsc.edu") > 0) {
                         config.indexed = false   //UCSC files are never indexed
                     }
                     hic.Browser.getCurrentBrowser().loadTracks([config]);
@@ -710,7 +706,7 @@ var juicebox = (function (site) {
     function igvSupports(path) {
 
         // For now we will pretend that igv does not support bedpe, we want these loaded as 2D tracks
-        if(path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
+        if (path.endsWith(".bedpe") || path.endsWith(".bedpe.gz")) {
             return false;
         }
 
