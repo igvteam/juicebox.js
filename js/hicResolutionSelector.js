@@ -109,7 +109,9 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
 
     async function updateResolutions(zoomIndex) {
 
-        const resolutions = browser.getResolutions();
+        const resolutions = browser.isWholeGenome() ?
+            [{index: 0, binSize: browser.dataset.wholeGenomeResolution}] :
+            browser.getResolutions();
         let htmlString = '';
         for(let resolution of resolutions) {
             const binSize = resolution.binSize;

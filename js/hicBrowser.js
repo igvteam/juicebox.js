@@ -266,22 +266,21 @@ HICBrowser.prototype.getNormalizationOptions = async function () {
  * @returns {{index: *, binSize: *}[]|Array}
  */
 HICBrowser.prototype.getResolutions = function () {
-
     if (!this.dataset) return [];
 
-    if (this.dataset.isWholeGenome(this.state.chr1)) {
-        return [{index: 0, binSize: this.dataset.wholeGenomeResolution}]
+    const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+        return {index: index, binSize: resolution}
+    });
+    if (this.controlDataset) {
+        let controlResolutions = new Set(this.controlDataset.bpResolutions);
+        return baseResolutions.filter(base => controlResolutions.has(base.binSize));
     } else {
-        const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
-            return {index: index, binSize: resolution}
-        });
-        if (this.controlDataset) {
-            let controlResolutions = new Set(this.controlDataset.bpResolutions);
-            return baseResolutions.filter(base => controlResolutions.has(base.binSize));
-        } else {
-            return baseResolutions;
-        }
+        return baseResolutions;
     }
+}
+
+HICBrowser.prototype.isWholeGenome = function () {
+    return this.dataset && this.state && this.dataset.isWholeGenome(this.state.chr1)
 }
 
 HICBrowser.prototype.getColorScale = function () {
@@ -766,18 +765,15 @@ function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
 HICBrowser.prototype.parseGotoInput = async function (string) {
 
-    var self = this,
-        loci = string.split(' '),
-        xLocus,
-        yLocus;
-
-
+    let xLocus;
+    let yLocus;
+    const loci = string.split(' ');
     if (loci.length === 1) {
-        xLocus = self.parseLocusString(loci[0]);
+        xLocus = this.parseLocusString(loci[0]);
         yLocus = xLocus;
     } else {
-        xLocus = self.parseLocusString(loci[0]);
-        yLocus = self.parseLocusString(loci[1]);
+        xLocus = this.parseLocusString(loci[0]);
+        yLocus = this.parseLocusString(loci[1]);
         if (yLocus === undefined) yLocus = xLocus;
     }
 
@@ -787,10 +783,10 @@ HICBrowser.prototype.parseGotoInput = async function (string) {
 
         if (result) {
             Globals.selectedGene = loci[0].trim();
-            xLocus = self.parseLocusString(result);
+            xLocus = this.parseLocusString(result);
             yLocus = xLocus;
-            self.state.selectedGene = Globals.selectedGene;
-            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+            this.state.selectedGene = Globals.selectedGene;
+            this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
         } else {
             alert('No feature found with name "' + loci[0] + '"');
         }
@@ -798,9 +794,9 @@ HICBrowser.prototype.parseGotoInput = async function (string) {
     } else {
 
         if (xLocus.wholeChr && yLocus.wholeChr) {
-            await self.setChromosomes(xLocus.chr, yLocus.chr);
+            await this.setChromosomes(xLocus.chr, yLocus.chr);
         } else {
-            self.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
+            this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
         }
     }
 
@@ -830,17 +826,9 @@ HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolut
 
 HICBrowser.prototype.parseLocusString = function (locus) {
 
-    var self = this,
-        parts,
-        chromosome,
-        extent,
-        locusObject = {},
-        numeric;
-
-    parts = locus.trim().split(':');
-
-
-    chromosome = this.genome.getChromosome(parts[0].toLowerCase());
+    const locusObject = {};
+    const parts = locus.trim().split(':');
+    const chromosome = this.genome.getChromosome(parts[0].toLowerCase());
 
     if (!chromosome) {
         return undefined;
@@ -848,18 +836,17 @@ HICBrowser.prototype.parseLocusString = function (locus) {
         locusObject.chr = chromosome.index;
     }
 
-
     if (parts.length === 1) {
         // Chromosome name only
         locusObject.start = 0;
         locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
         locusObject.wholeChr = true;
     } else {
-        extent = parts[1].split("-");
+        const extent = parts[1].split("-");
         if (extent.length !== 2) {
             return undefined;
         } else {
-            numeric = extent[0].replace(/\,/g, '');
+            let numeric = extent[0].replace(/\,/g, '');
             locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
 
             numeric = extent[1].replace(/\,/g, '');
