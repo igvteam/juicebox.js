@@ -22,15 +22,15 @@
  */
 
 import igv from "../node_modules/igv/dist/igv.esm.js";
-import { Alert } from '../node_modules/igv-ui/src/index.js'
+import {Alert} from '../node_modules/igv-ui/src/index.js'
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
 import BitlyURL from "./bitlyURL.js"
 import TinyURL from "./tinyURL.js"
-import { Zlib } from "../node_modules/igv-utils/src/index.js"
+import {Zlib} from "../node_modules/igv-utils/src/index.js"
 import {initGoogle} from "./google.js";
-import { Globals } from "./globals.js";
+import {Globals} from "./globals.js";
 
 const urlShorteners = [];
 let appContainer;
@@ -46,7 +46,9 @@ async function initApp(container, config) {
         igv.google.setApiKey(apiKey);
     }
 
-    if(typeof gapi !== "undefined" && config.google) {
+    if (typeof gapi !== "undefined" && config.google &&
+        config.google.apiKey && config.google.apiKey !== 'ABCD' &&
+        config.google.clientId && config.google.clientId !== 'GOOGLE_CLIENT_ID') {
         await initGoogle(config.google);
     }
 
@@ -227,9 +229,9 @@ function setURLShortener(shortenerConfigs) {
             if (shortener.provider === "tinyURL") {
                 return new TinyURL(shortener);
             }
-            if (shortener.provider === "google") {
+            if (shortener.provider === "google" && shortener.clientId && shortener.clientId !== 'GOOGLE_CLIENT_ID') {
                 return new GoogleURL(shortener);
-            } else if (shortener.provider === "bitly") {
+            } else if (shortener.provider === "bitly" && shortener.clientId && shortener.clientId !== 'BITLY_KEY') {
                 return new BitlyURL(shortener);
             } else {
                 Alert.presentAlert("Unknown url shortener provider: " + shortener.provider);
@@ -353,7 +355,6 @@ function decompressQueryParameter(enc) {
 
     return str;
 }
-
 
 
 export {

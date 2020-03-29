@@ -50,14 +50,9 @@
     //import hic from "../dist/juicebox.esm.js";
     import hic from "../js/index.js";
 
-    const config = {
-        url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC041.hic",
-        name: "HC041"
-    }
-
     const container = document.getElementById("app-container");
 
-    hic.createBrowser(container, config)
+    hic.initApp(container, {})
         .then(function (ignore) {
             //hic.updateAllBrowsers()
         })
