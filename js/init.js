@@ -29,7 +29,6 @@ import GoogleURL from "./googleURL.js"
 import BitlyURL from "./bitlyURL.js"
 import TinyURL from "./tinyURL.js"
 import {Zlib} from "../node_modules/igv-utils/src/index.js"
-import {initGoogle} from "./google.js";
 import {Globals} from "./globals.js";
 
 const urlShorteners = [];
@@ -40,17 +39,6 @@ async function initApp(container, config) {
     appContainer = container;
 
     Alert.init(container);
-
-    const apiKey = config.google ? config.google.apiKey : undefined;
-    if (apiKey && "ABCD" !== apiKey) {
-        igv.google.setApiKey(apiKey);
-    }
-
-    if (typeof gapi !== "undefined" && config.google &&
-        config.google.apiKey && config.google.apiKey !== 'ABCD' &&
-        config.google.clientId && config.google.clientId !== 'GOOGLE_CLIENT_ID') {
-        await initGoogle(config.google);
-    }
 
     if (config.urlShortener) {
         setURLShortener(config.urlShortener);
