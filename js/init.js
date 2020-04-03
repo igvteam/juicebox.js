@@ -217,9 +217,9 @@ function setURLShortener(shortenerConfigs) {
             if (shortener.provider === "tinyURL") {
                 return new TinyURL(shortener);
             }
-            if (shortener.provider === "google" && shortener.clientId && shortener.clientId !== 'GOOGLE_CLIENT_ID') {
+            if (shortener.provider === "google" && shortener.apiKey) {
                 return new GoogleURL(shortener);
-            } else if (shortener.provider === "bitly" && shortener.clientId && shortener.clientId !== 'BITLY_KEY') {
+            } else if (shortener.provider === "bitly" && shortener.apiKey) {
                 return new BitlyURL(shortener);
             } else {
                 Alert.presentAlert("Unknown url shortener provider: " + shortener.provider);
