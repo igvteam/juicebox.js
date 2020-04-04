@@ -668,7 +668,6 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
         }
 
     } catch (error) {
-        alert(`Error loading hic file ${config.url} (${error})`);
         this.$contactMaplabel.text('');
         this.$contactMaplabel.attr('');
         config.name = name;

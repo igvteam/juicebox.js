@@ -33,7 +33,7 @@ for (let line of lines) {
         fs.writeSync(fd, `const commit = "${githash}"\n`, null, 'utf-8')
     }
     else {
-        fs.writeSync(fd, line + '\n', null, 'utf-8')
+        fs.writeSync(fd, line, null, 'utf-8')
     }
 }
 
