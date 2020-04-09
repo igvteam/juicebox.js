@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "hic-straw": "^1.1.0",
-    "igv": "^2.4.1",
+    "igv": "^2.5.2",
     "igv-ui": "github:igvteam/igv-ui",
     "igv-utils": "github:igvteam/igv-utils"
   }
