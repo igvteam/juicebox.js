@@ -469,20 +469,24 @@ HICBrowser.prototype.loadTracks = async function (configs) {
         var promises = [];
         trackConfigurations.forEach(function (config) {
 
-            var url = config.url;
+            let { url } = config;
 
-            if (url && typeof url === "string" && url.includes("drive.google.com")) {
+            if (igv.google.isGoogleURL(url)) {
 
-                promises.push(igv.google.getDriveFileInfo(config.url)
+                promises.push(igv.google.getDriveFileInfo(url)
 
                     .then(function (json) {
+
                         // Temporarily switch URL to infer tipes
                         config.url = json.originalFilename;
                         TrackUtils.inferTrackTypes(config);
+
                         if (config.name === undefined) {
                             config.name = json.originalFilename;
                         }
+
                         config.url = url;
+
                         return config;
                     })
                 );
@@ -498,7 +502,6 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
         return promises;
     }
-
 
 }
 
