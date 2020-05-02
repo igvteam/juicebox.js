@@ -166,7 +166,7 @@ async function createBrowser(hic_container, config, callback) {
         if (config.cycle) {
             browser.controlMapWidget.toggleDisplayModeCycle();
         } else {
-            browser.update()
+            await browser.update()
         }
 
         if (typeof callback === "function") callback();

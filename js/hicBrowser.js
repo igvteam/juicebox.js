@@ -603,8 +603,8 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
 
     try {
 
+        this.contactMatrixView.startSpinner();
         if (!noUpdates) {
-            this.contactMatrixView.startSpinner();
             this.$user_interaction_shield.show();
         }
 
@@ -629,11 +629,11 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
         this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
         if (config.state) {
-            this.setState(config.state);
+            await this.setState(config.state);
         } else if (config.synchState && this.canBeSynched(config.synchState)) {
             this.syncState(config.synchState);
         } else {
-            this.setState(defaultState.clone());
+            await this.setState(defaultState.clone());
         }
 
 
@@ -673,9 +673,9 @@ HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
         config.name = name;
         throw error;
     } finally {
+        this.stopSpinner();
         if (!noUpdates) {
             this.$user_interaction_shield.hide();
-            this.stopSpinner();
         }
     }
 }
