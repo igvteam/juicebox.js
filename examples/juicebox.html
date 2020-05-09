@@ -33,7 +33,7 @@
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
-    <script src="../dist/juicebox.js" type="text/javascript"></script>
+    <script src="../dist/juicebox.esm.js" type="text/javascript"></script>
 
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
@@ -46,23 +46,41 @@
 
 <div id="app-container" class="juicebox-app-clone-container"></div>
 
+<script type="module" src="./app.js"></script>
 
-<script type="module">
+<!--<script type="module">-->
 
-    const config = {
-        url: "https://www.dropbox.com/s/lnlssur34vb3npq/HCT-116_Untreated.hic?dl=0",
-        name: "HCT-116 untreated"
-    }
+<!--    import hic from '../dist/juicebox.esm.js'-->
 
-    const container = document.getElementById("app-container");
+<!--    const config =-->
+<!--        {-->
+<!--            url: "https://www.dropbox.com/s/lnlssur34vb3npq/HCT-116_Untreated.hic?dl=0",-->
+<!--            name: "HCT-116 untreated"-->
+<!--        };-->
 
-    hic.createBrowser(container, config)
-        .then(function (ignore) {
-            //hic.updateAllBrowsers()
-        })
+<!--    const sesh =-->
+<!--        {-->
+<!--            "browsers":-->
+<!--                [-->
+<!--                    {-->
+<!--                        "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/HIC034.hic",-->
+<!--                        "name": "HIC034",-->
+<!--                        "state": "8,8,8,25462.2875,25462.2875,1,NONE",-->
+<!--                        "colorScale": "11,255,0,0",-->
+<!--                        "selectedGene": "myc",-->
+<!--                        "nvi": "13555514595,36479"-->
+<!--                    }-->
+<!--                ],-->
+<!--            "selectedGene": "myc"-->
+<!--        };-->
+
+<!--    hic.createBrowser(document.getElementById("app-container"), sesh)-->
+<!--        .then(function (ignore) {-->
+<!--            //hic.updateAllBrowsers()-->
+<!--        })-->
 
 
-</script>
+<!--</script>-->
 
 </body>
 

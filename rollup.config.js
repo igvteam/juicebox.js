@@ -37,18 +37,18 @@ export default [
             {file: 'dist/juicebox.esm.js', format: 'es'},
             {file: 'dist/juicebox.esm.min.js', format: 'es', sourcemap: true},
         ],
-        plugins: [
-            strip({
-                debugger: true,
-                functions: ['console.log', 'assert.*', 'debug']
-            }),
-            terser({
-                include: [/^.+\.min\.js$/],
-                sourcemap: {
-                    filename: "juicebox.esm.min.js",
-                    url: "juicebox.esm.min.js.map"
-            }})
-        ]
+        // plugins: [
+        //     strip({
+        //         debugger: true,
+        //         functions: ['console.log', 'assert.*', 'debug']
+        //     }),
+        //     terser({
+        //         include: [/^.+\.min\.js$/],
+        //         sourcemap: {
+        //             filename: "juicebox.esm.min.js",
+        //             url: "juicebox.esm.min.js.map"
+        //     }})
+        // ]
     },
     {
         input: 'js/index.js',
