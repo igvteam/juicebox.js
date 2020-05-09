@@ -391,47 +391,53 @@ HICBrowser.prototype.genomicState = function (axis) {
  */
 HICBrowser.prototype.loadTracks = async function (configs) {
 
-    var self = this, errorPrefix;
-
     // If loading a single track remember its name, for error message
-    errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
+    const errorPrefix = 1 === configs.length ? `Error loading track ${ configs[0].name }` : 'Error loading tracks';
 
     try {
+
         this.contactMatrixView.startSpinner();
-        const ps = inferTypes(configs)
-        const trackConfigurations = await Promise.all(ps)
 
-        var trackXYPairs, promises2D;
+        const promises = trackConfigurator(configs)
 
-        trackXYPairs = [];
-        promises2D = [];
+        const trackConfigurations = await Promise.all(promises)
+
+        const trackXYPairs = [];
+        const promises2D = [];
         const promisesNV = []
 
         for (let config of trackConfigurations) {
-            if (config) {
-                var isLocal = config.url instanceof File,
-                    fn = isLocal ? config.url.name : config.url;
-                if ("annotation" === config.type && config.color === undefined) {
-                    config.color = DEFAULT_ANNOTATION_COLOR;
-                    config.displayMode = "COLLAPSED"
-                }
-                if (config.max === undefined) {
-                    config.autoscale = true;
-                }
-                config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
 
-                if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
-                    promisesNV.push(this.loadNormalizationFile(config.url))
-                }
+            let isLocal = config.url instanceof File;
+            let fn = isLocal ? config.url.name : config.url;
 
-                if (config.type === undefined || "interaction" === config.type) {
-                    // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config));
-                } else {
-                    var track = igv.createTrack(config, this);
-                    trackXYPairs.push({x: track, y: track});
-                }
+            if ("annotation" === config.type && config.color === undefined) {
+                config.color = DEFAULT_ANNOTATION_COLOR;
+                config.displayMode = "COLLAPSED"
             }
+
+            if (config.max === undefined) {
+                config.autoscale = true;
+            }
+
+            config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
+
+            if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
+                promisesNV.push(this.loadNormalizationFile(config.url))
+            }
+
+            if ((undefined === config.type && undefined === config.format) || "interaction" === config.type) {
+                // Assume this is a 2D track
+                promises2D.push(Track2D.loadTrack2D(config));
+            } else {
+
+                igv.inferTrackTypes(config);
+
+                const track = igv.createTrack(config, this);
+
+                trackXYPairs.push({ x: track, y: track });
+            }
+
         }
 
         if (trackXYPairs.length > 0) {
@@ -449,8 +455,9 @@ HICBrowser.prototype.loadTracks = async function (configs) {
         }
 
         const tracks2D = await Promise.all(promises2D)
+
         if (tracks2D && tracks2D.length > 0) {
-            this.tracks2D = self.tracks2D.concat(tracks2D);
+            this.tracks2D = this.tracks2D.concat(tracks2D);
             this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
         }
 
@@ -464,47 +471,57 @@ HICBrowser.prototype.loadTracks = async function (configs) {
         this.contactMatrixView.stopSpinner();
     }
 
-    function inferTypes(trackConfigurations) {
+}
 
-        var promises = [];
-        trackConfigurations.forEach(function (config) {
+const trackConfigurator = trackConfigurations => {
 
-            let { url } = config;
+    const promises = [];
 
-            if (igv.google.isGoogleURL(url)) {
+    for (let trackConfiguration of trackConfigurations) {
 
-                promises.push(igv.google.getDriveFileInfo(url)
+        let { url } = trackConfiguration;
 
-                    .then(function (json) {
+        if (igv.google.isGoogleURL(url)) {
 
-                        // Temporarily switch URL to infer tipes
-                        config.url = json.originalFilename;
-                        TrackUtils.inferTrackTypes(config);
+            promises.push(googleTrackConfigurator(url, trackConfiguration))
 
-                        if (config.name === undefined) {
-                            config.name = json.originalFilename;
-                        }
+        } else {
 
-                        config.url = url;
+            TrackUtils.inferTrackTypes(trackConfiguration);
 
-                        return config;
-                    })
-                );
-            } else {
-                TrackUtils.inferTrackTypes(config);
-                if (!config.name) {
-                    config.name = hicUtils.extractFilename(config.url);
-                }
-                promises.push(Promise.resolve(config));
+            if (undefined === trackConfiguration.name) {
+                trackConfiguration.name = hicUtils.extractFilename(trackConfiguration.url);
             }
 
-        });
+            promises.push(trackConfiguration);
+        }
 
-        return promises;
     }
+
+    return promises;
 
 }
 
+const googleTrackConfigurator = async (url, trackConfiguration) => {
+
+    return trackConfiguration;
+
+    return
+
+    const json = await igv.google.getDriveFileInfo(url)
+
+    trackConfiguration.url = json.originalFilename;
+    TrackUtils.inferTrackTypes(trackConfiguration);
+
+    if (trackConfiguration.name === undefined) {
+        trackConfiguration.name = json.originalFilename;
+    }
+
+    trackConfiguration.url = url;
+
+    return trackConfiguration;
+
+}
 
 HICBrowser.prototype.loadNormalizationFile = function (url) {
 
