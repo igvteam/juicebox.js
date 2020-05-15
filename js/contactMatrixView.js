@@ -872,8 +872,7 @@ function addMouseHandlers($viewport) {
 
         // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
         // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
-
-        $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+        // $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
 
         // document level events
         $(document).on('keydown.contact_matrix_view', function (e) {
@@ -914,25 +913,21 @@ function addMouseHandlers($viewport) {
         mouseDown = mouseLast = undefined;
     }
 
-    function mouseWheelHandler(e) {
-
-        e.preventDefault();
-        e.stopPropagation();
-
-        var t = Date.now();
-
-        if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-
-            // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-            var direction = e.deltaY < 0 ? 1 : -1,
-                coords = DOMUtils.translateMouseCoordinates(e, $viewport[0]),
-                x = coords.x,
-                y = coords.y;
-            self.browser.wheelClickZoom(direction, x, y);
-            lastWheelTime = t;
-        }
-
-    }
+    // function mouseWheelHandler(e) {
+    //     e.preventDefault();
+    //     e.stopPropagation();
+    //
+    //     const t = Date.now();
+    //     if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
+    //         // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
+    //         var direction = e.deltaY < 0 ? 1 : -1,
+    //             coords = DOMUtils.translateMouseCoordinates(e, $viewport[0]),
+    //             x = coords.x,
+    //             y = coords.y;
+    //         self.browser.wheelClickZoom(direction, x, y);
+    //         lastWheelTime = t;
+    //     }
+    // }
 
 
     function shiftCurrentImage(self, dx, dy) {
