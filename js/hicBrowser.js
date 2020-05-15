@@ -924,7 +924,8 @@ HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor
 
                 this.eventBus.post(HICEvent("LocusChange", {
                     state: state,
-                    resolutionChanged: zoomChanged
+                    resolutionChanged: zoomChanged,
+                    chrChanged: false
                 }));
             }
         } finally {
@@ -993,7 +994,7 @@ HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, center
             state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
             this.clamp();
-            this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false}));
+            this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false, chrChanged: false}));
 
         } else {
             let i;
@@ -1040,7 +1041,7 @@ HICBrowser.prototype.setZoom = async function (zoom) {
 
         await this.contactMatrixView.zoomIn()
 
-        this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged}));
+        this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged, chrChanged: false}));
     } finally {
         // this.stopSpinner()
     }
@@ -1122,11 +1123,12 @@ async function minPixelSize(chr1, chr2, z) {
  */
 HICBrowser.prototype.setState = async function (state) {
 
+    const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
     this.state = state;
     // Possibly adjust pixel size
     const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
     this.state.pixelSize = Math.max(state.pixelSize, minPS);
-    this.eventBus.post(new HICEvent("LocusChange", {state: this.state, resolutionChanged: true}));
+    this.eventBus.post(new HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: chrChanged}));
 };
 
 
@@ -1194,7 +1196,8 @@ HICBrowser.prototype.syncState = function (syncState) {
     }
 
 
-    var zoomChanged = (this.state.zoom !== zoom);
+    const zoomChanged = (this.state.zoom !== zoom);
+    const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index);
     this.state.chr1 = chr1.index;
     this.state.chr2 = chr2.index;
     this.state.zoom = zoom;
@@ -1202,7 +1205,7 @@ HICBrowser.prototype.syncState = function (syncState) {
     this.state.y = y;
     this.state.pixelSize = pixelSize;
 
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}, false));
+    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged, chrChanged: chrChanged}, false));
 
 };
 
@@ -1223,10 +1226,11 @@ HICBrowser.prototype.shiftPixels = function (dx, dy) {
     this.state.y += (dy / this.state.pixelSize);
     this.clamp();
 
-    var locusChangeEvent = HICEvent("LocusChange", {
+    const locusChangeEvent = HICEvent("LocusChange", {
         state: this.state,
         resolutionChanged: false,
-        dragging: true
+        dragging: true,
+        chrChanged: false
     });
     locusChangeEvent.dragging = true;
     this.eventBus.post(locusChangeEvent);
@@ -1236,7 +1240,6 @@ HICBrowser.prototype.shiftPixels = function (dx, dy) {
 
 
 HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
-
 
     const viewDimensions = this.contactMatrixView.getViewDimensions();
     const bpResolutions = this.getResolutions();
@@ -1268,6 +1271,7 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
     const newXBin = bpX / newResolution;
     const newYBin = bpY / newResolution;
 
+    const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2;
     this.state.chr1 = chr1;
     this.state.chr2 = chr2;
     this.state.zoom = newZoom;
@@ -1276,7 +1280,7 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
     this.state.pixelSize = newPixelSize;
 
     this.contactMatrixView.clearImageCaches();
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged}));
+    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged, chrChanged: chrChanged}));
 
 };
 

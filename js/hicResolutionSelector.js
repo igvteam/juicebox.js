@@ -85,7 +85,7 @@ ResolutionSelector.prototype.receiveEvent = function (event) {
             this.setResolutionLock(browser.resolutionLocked);
         }
 
-        if (event.data.chrChanged) {
+        if (event.data.chrChanged !== false) {  // Default true
             const isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
             this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
             updateResolutions.call(this, browser.state.zoom);
