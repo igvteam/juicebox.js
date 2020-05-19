@@ -34,8 +34,8 @@ export default [
         //input: 'test/testBabel.js',
         input: 'js/index.js',
         output: [
-            {file: 'dist/juicebox.esm.js', format: 'es'},
-            {file: 'dist/juicebox.esm.min.js', format: 'es', sourcemap: true},
+            {file: 'dist/js/juicebox.esm.js', format: 'es'},
+            {file: 'dist/js/juicebox.esm.min.js', format: 'es', sourcemap: true},
         ],
         plugins: [
             strip({
@@ -53,8 +53,8 @@ export default [
     {
         input: 'js/index.js',
         output: [
-            {file: 'dist/juicebox.js', format: 'umd', name: "hic"},
-            {file: 'dist/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true}
+            {file: 'dist/js/juicebox.js', format: 'umd', name: "hic"},
+            {file: 'dist/js/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true}
         ],
         plugins: [
             strip({
@@ -74,7 +74,8 @@ export default [
                 targets:
                     [
                         {src: 'css/juicebox.css', dest: 'dist/css/'},
-                        {src: 'css/img', dest: 'dist/css/'}
+                        {src: 'css/img', dest: 'dist/css/'},
+                        {src: 'embed/embed.html', dest: 'dist/'}
                     ]
             })
         ]
