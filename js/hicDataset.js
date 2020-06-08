@@ -103,7 +103,7 @@ Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normaliz
     else {
         // Get the norm vectors serially, its very likely they are the same and the second will be cached
         const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
-        const nv2 = zd.chr1 === zd.chr2 ?
+        const nv2 = zd.chr1.index === zd.chr2.index ?
             nv1 :
             await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
