@@ -26,11 +26,9 @@
  */
 
 import ColorScale from './colorScale.js'
-import RatioColorScale from './ratioColorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
-import  * as hicUtils from './hicUtils.js'
-import { DOMUtils } from '../node_modules/igv-ui/src/index.js'
+import * as hicUtils from './hicUtils.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const DRAG_THRESHOLD = 2;
@@ -148,9 +146,7 @@ ContactMatrixView.prototype.receiveEvent = async function (event) {
         }
         this.clearImageCaches();
         this.colorScaleThresholdCache = {};
-    }
-
-    else {
+    } else {
         if (!("LocusChange" === event.type || "DragStopped" === event.type)) {
             this.clearImageCaches();
         }
@@ -257,11 +253,11 @@ ContactMatrixView.prototype.repaint = async function () {
 
     function getBZoomIndex(zoom) {
         const binSize = browser.dataset.getBinSizeForZoomIndex(zoom);
-        if(!binSize) {
+        if (!binSize) {
             throw Error("Invalid zoom (resolution) index: " + zoom);
         }
         const bZoom = browser.controlDataset.getZoomIndexForBinSize(binSize);
-        if(bZoom < 0) {
+        if (bZoom < 0) {
             throw Error(`Invalid binSize for "B" map: ${binSize}`);
         }
         return bZoom;
@@ -338,8 +334,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
             let blockNumber
             if (sameChr && row < column) {
                 blockNumber = column * blockColumnCount + row;
-            }
-            else {
+            } else {
                 blockNumber = row * blockColumnCount + column;
             }
 
@@ -356,20 +351,22 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
 
             let image;
+
+            const imageSize = Math.ceil(widthInBins * pixelSizeInt)
+            image = document.createElement('canvas');
+            image.width = imageSize;
+            image.height = imageSize;
+            const ctx = image.getContext('2d');
+            //ctx.clearRect(0, 0, image.width, image.height);
+
             if (block && block.records.length > 0) {
 
-                const imageSize = Math.ceil(widthInBins * pixelSizeInt)
                 const blockNumber = block.blockNumber;
                 const row = Math.floor(blockNumber / blockColumnCount);
                 const col = blockNumber - row * blockColumnCount;
                 const x0 = blockBinCount * col;
                 const y0 = blockBinCount * row;
 
-                image = document.createElement('canvas');
-                image.width = imageSize;
-                image.height = imageSize;
-                const ctx = image.getContext('2d');
-                //ctx.clearRect(0, 0, image.width, image.height);
 
                 const controlRecords = {};
                 if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
@@ -434,8 +431,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         if (sameChr && row === col) {
                             setPixel(id, y, x, color.red, color.green, color.blue, 255);
                         }
-                    }
-                    else {
+                    } else {
                         ctx.fillStyle = color.rgb;
                         ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
                         if (sameChr && row === col) {
@@ -498,8 +494,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                 // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
-            }
-            else {
+            } else {
                 //console.log("No block for " + blockNumber);
             }
             var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
@@ -608,8 +603,19 @@ ContactMatrixView.prototype.paintTile = function (imageTile) {
             this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
             if (scale === 1) {
                 this.ctx.drawImage(image, offsetX, offsetY);
-            }
-            else {
+            } else {
+                // const data = image.data;
+                // const contrast = 255;
+                // const factor = (255 + contrast) / (255.01 - contrast);  //add .1 to avoid /0 error
+                //
+                // for(var i=0;i<data.length;i+=4)  //pixel values in 4-byte blocks (r,g,b,a)
+                // {
+                //     data[i] = factor * (data[i] - 128) + 128;     //r value
+                //     data[i+1] = factor * (data[i+1] - 128) + 128; //g value
+                //     data[i+2] = factor * (data[i+2] - 128) + 128; //b value
+                // }
+
+
                 this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
             }
         }
@@ -621,9 +627,7 @@ function getMatrices(chr1, chr2) {
     var promises = [];
     if ('B' === this.displayMode && this.browser.controlDataset) {
         promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
-    }
-
-    else {
+    } else {
         promises.push(this.browser.dataset.getMatrix(chr1, chr2));
         if (this.displayMode && 'A' !== this.displayMode && this.browser.controlDataset) {
             promises.push(this.browser.controlDataset.getMatrix(chr1, chr2));
@@ -658,9 +662,7 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
             this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
         }
         return this.colorScale;
-    }
-
-    else {
+    } else {
         const promises = [];
         const sameChr = zd.chr1.index === zd.chr2.index;
         let blockNumber
@@ -668,8 +670,7 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
             for (let column = col1; column <= col2; column++) {
                 if (sameChr && row < column) {
                     blockNumber = column * zd.blockColumnCount + row;
-                }
-                else {
+                } else {
                     blockNumber = row * zd.blockColumnCount + column;
                 }
 
@@ -819,7 +820,7 @@ function addMouseHandlers($viewport) {
                     y: eFixed.pageY - $viewport.offset().top
                 };
 
-            const { width, height } = $viewport.get(0).getBoundingClientRect();
+            const {width, height} = $viewport.get(0).getBoundingClientRect();
             xy.xNormalized = xy.x / width;
             xy.yNormalized = xy.y / height;
 
@@ -1039,9 +1040,7 @@ function addTouchHandlers($viewport) {
             } else {
                 pinch = {start: t};
             }
-        }
-
-        else {
+        } else {
             // Assuming 1 finger movement is a drag
 
             var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
