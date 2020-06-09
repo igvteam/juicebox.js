@@ -230,7 +230,8 @@ function annotationPanelRow($container, track) {
 
     $colorpickerContainer.hide();
 
-    UIUtils.createColorSwatchSelector($colorpickerContainer.get(0), function (color) {
+    const colorHandler = color => {
+
         var $swatch;
 
         $swatch = $row.find('.fa-square');
@@ -243,7 +244,9 @@ function annotationPanelRow($container, track) {
             trackRenderer.setColor(color);
         }
 
-    });
+    }
+
+    UIUtils.createColorSwatchSelector($colorpickerContainer.get(0), colorHandler);
 
 
     // track up/down

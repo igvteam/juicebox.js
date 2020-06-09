@@ -23,6 +23,8 @@
 
 import ColorScale from './colorScale.js'
 
+const defaultRatioColorScaleConfig = { threshold: 5, positive: { r: 255, g: 0, b: 0 }, negative: { r: 0, g: 0, b: 255 }  }
+
 const RatioColorScale = function (threshold) {
 
     this.threshold = threshold;
@@ -86,5 +88,7 @@ RatioColorScale.prototype.getColor = function (score) {
 RatioColorScale.prototype.stringify = function () {
     return "R:" + this.threshold + ":" + this.positiveScale.stringify() + ":" + this.negativeScale.stringify();
 }
+
+export { defaultRatioColorScaleConfig }
 
 export default RatioColorScale
