@@ -26,7 +26,8 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
-import { GenericContainer, UIUtils } from '../node_modules/igv-ui/src/index.js'
+import { UIUtils, GenericContainer } from '../node_modules/igv-ui/src/index.js'
+import { defaultRatioColorScaleConfig } from './ratioColorScale.js'
 
 const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
@@ -38,38 +39,26 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     $container.append(this.$container);
 
     // '-' color swatch
-    let rgbString = getRGBString(browser, '-', "blue");  // TODO -- get the default from browser.
-    this.$minusButton = colorSwatch(rgbString);
+    const { r:nr, g:ng, b:nb } = defaultRatioColorScaleConfig.negative
+    this.$minusButton = colorSwatch(IGVColor.rgbColor(nr, ng, nb));
     this.$container.append(this.$minusButton);
+
+    this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', () => this.minusColorPicker.hide());
+
     this.$minusButton.hide();
-
-    let self = this;
-
-    this.minusColorPicker = createColorPicker(browser, this.$minusButton, '-', function () {
-        self.minusColorPicker.hide()
-    });
-
     this.minusColorPicker.hide();
 
     // '+' color swatch
-    rgbString = getRGBString(browser, '+', "red"); // TODO -- get the default from browser
-    this.$plusButton = colorSwatch(rgbString);
+    const { r, g, b } = defaultRatioColorScaleConfig.positive
+    this.$plusButton = colorSwatch(IGVColor.rgbColor(r, g, b));
     this.$container.append(this.$plusButton);
 
-    this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', function () {
-        self.plusColorPicker.hide()
-    });
+    this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+', () => this.plusColorPicker.hide());
 
     this.plusColorPicker.hide();
 
-    this.$minusButton.on('click', function (e) {
-        self.presentColorPicker($(this), self.minusColorPicker);
-    });
-
-    this.$plusButton.on('click', function (e) {
-        self.presentColorPicker($(this), self.plusColorPicker);
-    });
-
+    this.$minusButton.on('click', () => presentColorPicker(this.$minusButton, this.$plusButton, this.minusColorPicker, this.plusColorPicker));
+    this.$plusButton.on('click', () => presentColorPicker(this.$plusButton, this.$minusButton, this.plusColorPicker, this.minusColorPicker));
 
     // threshold
     this.$high_colorscale_input = $('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});
@@ -86,151 +75,85 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
     // threshold -
     let $fa = $("<i>", {class: 'fa fa-minus', 'aria-hidden': 'true', 'title': 'negative threshold'});
-    $fa.on('click', function (e) {
-        updateThreshold(1.0 / 2.0);
-    });
+    $fa.on('click', () => this.$high_colorscale_input.val(updateThreshold(browser, 0.5)));
     this.$container.append($fa);
 
     // threshold +
     $fa = $("<i>", {class: 'fa fa-plus', 'aria-hidden': 'true', 'title': 'positive threshold'});
-    $fa.on('click', function (e) {
-        updateThreshold(2.0);
-    });
+    $fa.on('click', () => this.$high_colorscale_input.val(updateThreshold(browser, 2.0)));
     this.$container.append($fa);
 
-
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("ColorScale", this);
-    this.browser.eventBus.subscribe("DisplayMode", this);
-
-    function updateThreshold(scaleFactor) {
-        var threshold, colorScale;
-        colorScale = browser.getColorScale();
-        threshold = colorScale.getThreshold() * scaleFactor;
-        browser.setColorScaleThreshold(threshold);
-        self.$high_colorscale_input.val(StringUtils.numberFormatter(colorScale.getThreshold()));
-    }
-
-};
-
-ColorScaleWidget.prototype.receiveEvent = function (event) {
-
-    if ('ColorScale' === event.type) {
+    const handleColorScaleEvent = event => {
         this.$high_colorscale_input.val(event.data.threshold);
         this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(event.data.r, event.data.g, event.data.b)})
-    } else if ("DisplayMode" === event.type) {
+    }
 
-        if ("AOB" === event.data || "BOA" === event.data) {
+    this.browser.eventBus.subscribe("ColorScale", handleColorScaleEvent);
+
+    const handleDisplayModeEvent = event => {
+        if ('AOB' === event.data || 'BOA' === event.data) {
             this.$minusButton.show();
         } else {
             this.$minusButton.hide();
         }
     }
 
+    this.browser.eventBus.subscribe("DisplayMode", handleDisplayModeEvent);
 
 };
 
-ColorScaleWidget.prototype.presentColorPicker = function ($presentingButton, colorpicker) {
-
-    this.$plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-    this.$minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-
-    this.$presentingButton = $presentingButton;
-    this.$presentingButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
-
-    colorpicker.show();
-};
-
-function getRGBString(browser, type, defaultColor) {
-    var colorScale, comps;
-
-    colorScale = browser.getColorScale();
-    if (colorScale) {
-        comps = colorScale.getColorComponents(type);
-        return IGVColor.rgbColor(comps.r, comps.g, comps.b);
-    }
-    else {
-        return defaultColor;
-    }
+const updateThreshold = (browser, scaleFactor) => {
+    const colorScale = browser.getColorScale();
+    browser.setColorScaleThreshold(colorScale.getThreshold() * scaleFactor);
+    return StringUtils.numberFormatter(colorScale.getThreshold());
 }
 
-function createColorPicker(browser, $presentingButton, type, closeHandler) {
+const presentColorPicker = ($presentButton, $otherButton, presentColorpicker, otherColorpicker) => {
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+    $otherButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+    otherColorpicker.hide();
+    presentColorpicker.show();
+}
+
+function createColorPicker(browser, $parent, type, closeHandler) {
 
     const config =
         {
-            parent: $presentingButton[0],
+            parent: $parent.get(0),
             width: 456,
-            closeHandler: closeHandler
-        };
+            closeHandler
+        }
+    const genericContainer = new GenericContainer(config)
 
-    let genericContainer = new GenericContainer(config);
+    const defaultColors = [ defaultRatioColorScaleConfig.negative, defaultRatioColorScaleConfig.positive ].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
 
     function colorHandler(hexString) {
-        var rgbString,
-            rgb;
-
-        $presentingButton.find('.fa-square').css({color: hexString});
-
-        rgbString = IGVColor.hexToRgb(hexString);
-
-        rgb = rgbString
-            .split('(')
-            .pop()
-            .split(')')
-            .shift()
-            .split(',')
-            .map(function (str) {
-                return parseInt(str, 10);
-            });
-
-        browser.getColorScale().setColorComponents({r: rgb[0], g: rgb[1], b: rgb[2]}, type);
+        $parent.find('.fa-square').css({color: hexString});
+        const [ r, g, b ] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10));
+        browser.getColorScale().setColorComponents({ r, g, b }, type);
         browser.repaintMatrix();
-
     }
 
-    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler);
+    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
+
+    const bbox = $parent.get(0).getBoundingClientRect()
+    const { x: left, y: top } = $parent.get(0).getBoundingClientRect()
+    $(genericContainer.container).offset({ left, top })
 
     return genericContainer;
 }
 
-function colorSwatch(rgbString, doPlusOrMinusOrUndefined) {
-    var $swatch,
-        $span,
-        $fa_square,
-        $fa_plus_minus,
-        $fa,
-        str;
+function colorSwatch(rgbString) {
 
-    $swatch = $('<div>', {class: 'igv-color-swatch'});
+    const $swatch = $('<div>', {class: 'igv-color-swatch'});
+    const $fa = $('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
 
-    $fa = $('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
     $swatch.append($fa);
     $fa.css({color: rgbString});
-
-    // if (undefined === doPlusOrMinusOrUndefined) {
-    //     $fa = $('<i>', { class: 'fa fa-square fa-lg' });
-    //     $swatch.append($fa);
-    //     $fa.css({color: rgbString});
-    //
-    // } else {
-    //
-    //     $span = $('<span>', { class: 'fa-stack' });
-    //     $swatch.append($span);
-    //
-    //     // background square
-    //     $fa_square = $('<i>', { class: 'fa fa-square fa-stack-2x' });
-    //     $span.append($fa_square);
-    //     $fa_square.css({ color: rgbString, '-webkit-text-stroke-width':'2px', '-webkit-text-stroke-color':'transparent' });
-    //
-    //     // foreground +/-
-    //     // str = '+' === doPlusOrMinusOrUndefined ? 'fa fa-plus fa-stack-1x' : 'fa fa-minus fa-stack-1x';
-    //     str = '';
-    //     $fa_plus_minus = $('<i>', { class: str });
-    //     $span.append($fa_plus_minus);
-    //     $fa_plus_minus.css({ color: 'white' });
-    //
-    // }
-
 
     return $swatch;
 }

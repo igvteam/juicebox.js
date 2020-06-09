@@ -56,8 +56,8 @@ import AnnotationWidget from "./annotationWidget.js";
 import SweepZoom from "./sweepZoom.js";
 import ScrollbarWidget from "./scrollbarWidget.js";
 import ContactMatrixView from "./contactMatrixView.js";
-import ColorScale from "./colorScale.js";
-import RatioColorScale from "./ratioColorScale.js";
+import ColorScale, { defaultColorScaleConfig } from "./colorScale.js";
+import RatioColorScale, { defaultRatioColorScaleConfig } from "./ratioColorScale.js";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -105,8 +105,12 @@ const HICBrowser = function ($app_container, config) {
     // contact map container related objects
     const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
     const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
-    const colorScale = new ColorScale({threshold: 2000, r: 255, g: 0, b: 0});
-    const ratioColorScale = new RatioColorScale(5);
+
+    const colorScale = new ColorScale(defaultColorScaleConfig);
+
+    const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
+    ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
+    ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
     this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale);
 
     this.$menu = this.createMenu(this.$root);

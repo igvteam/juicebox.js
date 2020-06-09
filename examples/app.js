@@ -7,12 +7,16 @@ const main = async container => {
 
     const config =
         {
-            "url": "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/HIC052.hic",
-            "name": "HIC052",
-            "state": "3,3,2,0,0,1.454380698186564,NONE",
-            "colorScale": "28,0,140,255",
-            "selectedGene": "myc",
-            "nvi": "929756278,36479",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/nhek/dilution/HIC068.hic",
+            "name": "HIC068",
+            "state": "2,2,3,272.4469827809971,405.6313616363572,1.1037330448463756,NONE",
+            // "colorScale": "R:5:1.6094379124341003,137,49,255:1.6094379124341003,255,206,110",
+            "selectedGene": "egfr",
+            "nvi": "2713318801,36479",
+            "controlUrl": "https://www.encodeproject.org/files/ENCFF929RPW/@@download/ENCFF929RPW.hic",
+            "controlName": "K562 in situ Hi-C experiment",
+            "displayMode": "AOB",
+            "controlNvi": "1974260276,36479",
             // "tracks": [
             //     {
             //         "url": "https://www.encodeproject.org/files/ENCFF652IWX/@@download/ENCFF652IWX.bigWig",

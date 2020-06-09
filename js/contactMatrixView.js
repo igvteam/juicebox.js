@@ -26,11 +26,9 @@
  */
 
 import ColorScale from './colorScale.js'
-import RatioColorScale from './ratioColorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import  * as hicUtils from './hicUtils.js'
-import { DOMUtils } from '../node_modules/igv-ui/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const DRAG_THRESHOLD = 2;

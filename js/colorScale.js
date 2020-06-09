@@ -24,6 +24,8 @@
 
 import RatioColorScale from "./ratioColorScale.js";
 
+const defaultColorScaleConfig = { threshold: 2000, r: 255, g: 0, b: 0 }
+
 const ColorScale = function (scale) {
     this.threshold = scale.threshold;
     this.r = scale.r;
@@ -128,5 +130,7 @@ ColorScale.parse = function (string) {
         return new ColorScale(cs);
     }
 }
+
+export { defaultColorScaleConfig }
 
 export default ColorScale
