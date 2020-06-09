@@ -842,12 +842,9 @@ HICBrowser.prototype.parseLocusString = function (locus) {
         locusObject.wholeChr = true;
     } else {
         const extent = parts[1].split("-");
-        if (extent.length !== 2) {
-            return undefined;
-        } else {
-            let numeric = extent[0].replace(/\,/g, '');
-            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
-
+        let numeric = extent[0].replace(/\,/g, '');
+        locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
+        if (extent.length == 2) {
             numeric = extent[1].replace(/\,/g, '');
             locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
         }
@@ -1128,7 +1125,11 @@ HICBrowser.prototype.setState = async function (state) {
     // Possibly adjust pixel size
     const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
     this.state.pixelSize = Math.max(state.pixelSize, minPS);
-    this.eventBus.post(new HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: chrChanged}));
+    this.eventBus.post(new HICEvent("LocusChange", {
+        state: this.state,
+        resolutionChanged: true,
+        chrChanged: chrChanged
+    }));
 };
 
 
@@ -1205,7 +1206,11 @@ HICBrowser.prototype.syncState = function (syncState) {
     this.state.y = y;
     this.state.pixelSize = pixelSize;
 
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged, chrChanged: chrChanged}, false));
+    this.eventBus.post(HICEvent("LocusChange", {
+        state: this.state,
+        resolutionChanged: zoomChanged,
+        chrChanged: chrChanged
+    }, false));
 
 };
 
@@ -1243,7 +1248,15 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
 
     const viewDimensions = this.contactMatrixView.getViewDimensions();
     const bpResolutions = this.getResolutions();
+    const currentResolution = bpResolutions[this.state.zoom].binSize;
     const viewWidth = viewDimensions.width;
+
+    if (!bpXMax) {
+        bpXMax = bpX + viewWidth * currentResolution;
+    }
+    if (!bpYMax) {
+        bpYMax = bpY + viewDimensions.height * currentResolution;
+    }
 
     let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
 
@@ -1280,7 +1293,11 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
     this.state.pixelSize = newPixelSize;
 
     this.contactMatrixView.clearImageCaches();
-    this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: zoomChanged, chrChanged: chrChanged}));
+    this.eventBus.post(HICEvent("LocusChange", {
+        state: this.state,
+        resolutionChanged: zoomChanged,
+        chrChanged: chrChanged
+    }));
 
 };
 
