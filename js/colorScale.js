@@ -21,7 +21,7 @@
  *
  */
 
-
+import { IGVMath } from "../node_modules/igv-utils/src/index.js"
 import RatioColorScale from "./ratioColorScale.js";
 
 const defaultColorScaleConfig = { threshold: 2000, r: 255, g: 0, b: 0 }
@@ -67,36 +67,15 @@ ColorScale.prototype.equals = function (cs) {
     return JSON.stringify(this) === JSON.stringify(cs);
 };
 
+const low = 0;
 ColorScale.prototype.getColor = function (value) {
 
     const bin = Math.floor(Math.min(this.threshold, value) / this.binsize)
-    let color = this.cache[bin]
-    if (undefined === color) {
-        const low = 0;
-        const lowR = 255;
-        const lowB = 255;
-        const lowG = 255;
-
-        if (value <= low) value = low;
-        else if (value >= this.threshold) value = this.threshold;
-
-        const diff = this.threshold - low;
-
-        const frac = (value - low) / diff;
-
-        // const red = Math.floor(lowR + frac * (this.r - lowR));
-        // const green = Math.floor(lowG + frac * (this.g - lowG));
-        // const blue = Math.floor(lowB + frac * (this.b - lowB));
-
-        const red = this.r;
-        const green = this.g;
-        const blue = this.b;
-        const alpha = Math.floor(255 * frac)
-
-        color = { red, green, blue, alpha, rgbaString: `rgba(${ red },${ green },${ blue }, ${ alpha })` }
-        this.cache[bin] = color
+    if (undefined === this.cache[bin]) {
+        const alpha = Math.floor(255 * (IGVMath.clamp(value, low, this.threshold) - low) / (this.threshold - low))
+        this.cache[bin] = { red: this.r, green: this.g, blue: this.b, alpha, rgbaString: `rgba(${ this.r },${ this.g },${ this.b }, ${ alpha })` }
     }
-    return color
+    return this.cache[bin]
 }
 
 ColorScale.prototype.stringify = function () {
