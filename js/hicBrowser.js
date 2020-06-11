@@ -1252,9 +1252,11 @@ HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minR
     const viewWidth = viewDimensions.width;
 
     if (!bpXMax) {
+        bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2));
         bpXMax = bpX + viewWidth * currentResolution;
     }
     if (!bpYMax) {
+        bpY = Math.max(0, bpY - Math.floor(viewDimensions.height * currentResolution / 2));
         bpYMax = bpY + viewDimensions.height * currentResolution;
     }
 
