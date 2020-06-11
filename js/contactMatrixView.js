@@ -25,15 +25,21 @@
  * @author Jim Robinson
  */
 
+import $ from '../vendor/jquery-3.3.1.slim.js'
+import { IGVColor } from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import * as hicUtils from './hicUtils.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
+
+const luminance = (r255, g255, b255) => {
+    const lum = 0.2126 * r255 + 0.7152 * g255 + 0.0722 * b255
+    return Math.floor(lum)
+}
 
 const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale) {
 
@@ -237,7 +243,9 @@ ContactMatrixView.prototype.repaint = async function () {
     for (let r = blockRow1; r <= blockRow2; r++) {
         for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
-            this.paintTile(tile)
+            if (tile.image) {
+                this.paintTile(tile)
+            }
         }
     }
 
@@ -380,6 +388,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     id = ctx.getImageData(0, 0, image.width, image.height);
                 }
 
+                console.log(`paint ${ block.records.length } pixels.`)
                 for (let i = 0; i < block.records.length; i++) {
 
                     const rec = block.records[i];
@@ -392,7 +401,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         x = t;
                     }
 
-                    let color
+                    let rgba
                     switch (this.displayMode) {
 
                         case 'AOB':
@@ -404,7 +413,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                             }
                             let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
 
-                            color = this.ratioColorScale.getColor(score);
+                            rgba = this.ratioColorScale.getColor(score);
 
                             break;
 
@@ -416,23 +425,29 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                             }
                             score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
 
-                            color = this.diffColorScale.getColor(score);
+                            rgba = this.diffColorScale.getColor(score);
 
                             break;
 
                         default:    // Either 'A' or 'B'
-                            color = this.colorScale.getColor(rec.counts);
+                            rgba = this.colorScale.getColor(rec.counts);
                     }
 
 
                     if (useImageData) {
                         // TODO -- verify that this bitblting is faster than fillRect
-                        setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                        setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         if (sameChr && row === col) {
-                            setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                            setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         }
+<<<<<<< HEAD
                     } else {
                         ctx.fillStyle = color.rgb;
+=======
+                    }
+                    else {
+                        ctx.fillStyle = rgba.rgbaString;
+>>>>>>> ContactMatrixView. Support map background color picker.
                         ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
                         if (sameChr && row === col) {
                             ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
@@ -579,12 +594,24 @@ ContactMatrixView.prototype.zoomIn = async function () {
     }
 }
 
-ContactMatrixView.prototype.paintTile = function (imageTile) {
+ContactMatrixView.prototype.paintTile = function ({ image, row, column, blockBinCount }) {
 
-    const state = this.browser.state
+    const x0 = blockBinCount * column
+    const y0 = blockBinCount * row
+
+    const { x, y, pixelSize } = this.browser.state
+    const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
+    const offsetX = (x0 - x) * pixelSize
+    const offsetY = (y0 - y) * pixelSize
+
+    const scale = pixelSize / pixelSizeInt
+    const scaledWidth = image.width * scale
+    const scaledHeight = image.height * scale
+
     const viewportWidth = this.$viewport.width()
     const viewportHeight = this.$viewport.height()
 
+<<<<<<< HEAD
     var image = imageTile.image,
         pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
 
@@ -618,6 +645,18 @@ ContactMatrixView.prototype.paintTile = function (imageTile) {
 
                 this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
             }
+=======
+    if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 && offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+
+        this.ctx.fillStyle = IGVColor.hexToRgb(IGVColor.colorNameToHex('darkslategrey'));
+        this.ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
+        // this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
+
+        if (scale === 1) {
+            this.ctx.drawImage(image, offsetX, offsetY);
+        } else {
+            this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
+>>>>>>> ContactMatrixView. Support map background color picker.
         }
     }
 }

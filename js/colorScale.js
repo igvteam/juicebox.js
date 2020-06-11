@@ -71,7 +71,7 @@ ColorScale.prototype.getColor = function (value) {
 
     const bin = Math.floor(Math.min(this.threshold, value) / this.binsize)
     let color = this.cache[bin]
-    if (!color) {
+    if (undefined === color) {
         const low = 0;
         const lowR = 255;
         const lowB = 255;
@@ -83,16 +83,17 @@ ColorScale.prototype.getColor = function (value) {
         const diff = this.threshold - low;
 
         const frac = (value - low) / diff;
-        const r = Math.floor(lowR + frac * (this.r - lowR));
-        const g = Math.floor(lowG + frac * (this.g - lowG));
-        const b = Math.floor(lowB + frac * (this.b - lowB));
 
-        color = {
-            red: r,
-            green: g,
-            blue: b,
-            rgb: "rgb(" + r + "," + g + "," + b + ")"
-        }
+        // const red = Math.floor(lowR + frac * (this.r - lowR));
+        // const green = Math.floor(lowG + frac * (this.g - lowG));
+        // const blue = Math.floor(lowB + frac * (this.b - lowB));
+
+        const red = this.r;
+        const green = this.g;
+        const blue = this.b;
+        const alpha = Math.floor(255 * frac)
+
+        color = { red, green, blue, alpha, rgbaString: `rgba(${ red },${ green },${ blue }, ${ alpha })` }
         this.cache[bin] = color
     }
     return color
