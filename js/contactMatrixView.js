@@ -36,12 +36,9 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const luminance = (r255, g255, b255) => {
-    const lum = 0.2126 * r255 + 0.7152 * g255 + 0.0722 * b255
-    return Math.floor(lum)
-}
+const defaultBackgroundColor = { r: 0, g: 255, b: 0 }
 
-const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale) {
+const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
     this.browser = browser;
     this.$viewport = $viewport;
@@ -53,6 +50,9 @@ const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidg
 
     this.ratioColorScale = ratioColorScale;
     // this.diffColorScale = new RatioColorScale(100, false);
+
+    this.backgroundColor = backgroundColor;
+    this.backgroundRGBString = IGVColor.rgbColor(backgroundColor.r, backgroundColor.g, backgroundColor.b)
 
     this.$canvas = $viewport.find('canvas');
     this.ctx = this.$canvas.get(0).getContext('2d');
@@ -81,6 +81,12 @@ const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidg
 
     this.drawsInProgress = new Set()
 };
+
+ContactMatrixView.prototype.setBackgroundColor = function (rgb) {
+    this.backgroundColor = rgb
+    this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
+    this.repaint()
+}
 
 ContactMatrixView.prototype.setColorScale = function (colorScale) {
 
@@ -388,7 +394,6 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     id = ctx.getImageData(0, 0, image.width, image.height);
                 }
 
-                console.log(`paint ${ block.records.length } pixels.`)
                 for (let i = 0; i < block.records.length; i++) {
 
                     const rec = block.records[i];
@@ -648,9 +653,9 @@ ContactMatrixView.prototype.paintTile = function ({ image, row, column, blockBin
 =======
     if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 && offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
 
-        this.ctx.fillStyle = IGVColor.hexToRgb(IGVColor.colorNameToHex('darkslategrey'));
+        // this.ctx.fillStyle = IGVColor.hexToRgb(IGVColor.colorNameToHex('darkslategrey'));
+        this.ctx.fillStyle = this.backgroundRGBString;
         this.ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
-        // this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
 
         if (scale === 1) {
             this.ctx.drawImage(image, offsetX, offsetY);
@@ -1154,5 +1159,6 @@ function addTouchHandlers($viewport) {
 
 }
 
+export { defaultBackgroundColor }
 
 export default ContactMatrixView

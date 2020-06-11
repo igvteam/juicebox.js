@@ -83,6 +83,22 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     $fa.on('click', () => this.$high_colorscale_input.val(updateThreshold(browser, 2.0)));
     this.$container.append($fa);
 
+    // contact map background color picker
+    // '+' color swatch
+    const { r:_r, g:_g, b:_b } = defaultRatioColorScaleConfig.positive
+    this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b));
+    this.$container.append(this.$mapBackgroundColorpickerButton);
+
+    this.backgroundColorpicker = createBackgroundColorPicker(browser, this.$mapBackgroundColorpickerButton, () => this.backgroundColorpicker.hide());
+
+    this.$mapBackgroundColorpickerButton.on('click', () => presentBackgroundColorPicker(this.$mapBackgroundColorpickerButton, this.$minusButton, this.$plusButton, this.backgroundColorpicker, this.minusColorPicker, this.plusColorPicker));
+
+
+
+
+
+
+
     const handleColorScaleEvent = event => {
         this.$high_colorscale_input.val(event.data.threshold);
         this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(event.data.r, event.data.g, event.data.b)})
@@ -106,17 +122,6 @@ const updateThreshold = (browser, scaleFactor) => {
     const colorScale = browser.getColorScale();
     browser.setColorScaleThreshold(colorScale.getThreshold() * scaleFactor);
     return StringUtils.numberFormatter(colorScale.getThreshold());
-}
-
-const presentColorPicker = ($presentButton, $otherButton, presentColorpicker, otherColorpicker) => {
-
-    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-    $otherButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
-
-    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
-
-    otherColorpicker.hide();
-    presentColorpicker.show();
 }
 
 function createColorPicker(browser, $parent, type, closeHandler) {
@@ -145,6 +150,58 @@ function createColorPicker(browser, $parent, type, closeHandler) {
     $(genericContainer.container).offset({ left, top })
 
     return genericContainer;
+}
+
+const createBackgroundColorPicker = (browser, $parent, closeHandler) => {
+
+    const config =
+        {
+            parent: $parent.get(0),
+            width: 456,
+            closeHandler
+        }
+    const genericContainer = new GenericContainer(config)
+
+    const defaultColors = [ defaultRatioColorScaleConfig.negative, defaultRatioColorScaleConfig.positive ].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
+
+    function colorHandler(hexString) {
+        $parent.find('.fa-square').css({ color: hexString })
+        const [ r, g, b ] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
+        browser.contactMatrixView.setBackgroundColor({ r, g, b })
+    }
+
+    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
+
+    const { x: left, y: top } = $parent.get(0).getBoundingClientRect()
+    $(genericContainer.container).offset({ left, top })
+
+    return genericContainer;
+
+}
+
+const presentColorPicker = ($presentButton, $otherButton, presentColorpicker, otherColorpicker) => {
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+    $otherButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+    otherColorpicker.hide();
+    presentColorpicker.show();
+}
+
+const presentBackgroundColorPicker = ($presentButton, $minusButton, $plusButton, presentColorpicker, minusColorpicker, plusColorpicker) => {
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+    $minusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+    $plusButton.find('.fa-square').css({'-webkit-text-stroke-color': 'transparent'});
+
+    $presentButton.find('.fa-square').css({'-webkit-text-stroke-color': 'black'});
+
+    minusColorpicker.hide();
+    plusColorpicker.hide();
+    presentColorpicker.show();
+
 }
 
 function colorSwatch(rgbString) {

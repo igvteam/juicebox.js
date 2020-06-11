@@ -25,6 +25,6 @@ const main = async container => {
             "nvi": "172168077518,1372"
         };
 
-    await hic.createBrowser(container, config_sparse_data)
+    await hic.createBrowser(container, config)
 
 }

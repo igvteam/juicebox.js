@@ -55,7 +55,7 @@ import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js";
 import AnnotationWidget from "./annotationWidget.js";
 import SweepZoom from "./sweepZoom.js";
 import ScrollbarWidget from "./scrollbarWidget.js";
-import ContactMatrixView from "./contactMatrixView.js";
+import ContactMatrixView, { defaultBackgroundColor } from "./contactMatrixView.js";
 import ColorScale, { defaultColorScaleConfig } from "./colorScale.js";
 import RatioColorScale, { defaultRatioColorScaleConfig } from "./ratioColorScale.js";
 
@@ -111,7 +111,7 @@ const HICBrowser = function ($app_container, config) {
     const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
     ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
     ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
-    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale);
+    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, defaultBackgroundColor);
 
     this.$menu = this.createMenu(this.$root);
     this.$menu.hide();
