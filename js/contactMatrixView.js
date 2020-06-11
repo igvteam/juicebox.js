@@ -445,14 +445,9 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         if (sameChr && row === col) {
                             setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         }
-<<<<<<< HEAD
-                    } else {
-                        ctx.fillStyle = color.rgb;
-=======
                     }
                     else {
                         ctx.fillStyle = rgba.rgbaString;
->>>>>>> ContactMatrixView. Support map background color picker.
                         ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
                         if (sameChr && row === col) {
                             ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
@@ -616,52 +611,13 @@ ContactMatrixView.prototype.paintTile = function ({ image, row, column, blockBin
     const viewportWidth = this.$viewport.width()
     const viewportHeight = this.$viewport.height()
 
-<<<<<<< HEAD
-    var image = imageTile.image,
-        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-
-    if (image != null) {
-        const row = imageTile.row
-        const col = imageTile.column
-        const x0 = imageTile.blockBinCount * col
-        const y0 = imageTile.blockBinCount * row
-        const offsetX = (x0 - state.x) * state.pixelSize
-        const offsetY = (y0 - state.y) * state.pixelSize
-        const scale = state.pixelSize / pixelSizeInt
-        const scaledWidth = image.width * scale
-        const scaledHeight = image.height * scale
-        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-            this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
-            if (scale === 1) {
-                this.ctx.drawImage(image, offsetX, offsetY);
-            } else {
-                // const data = image.data;
-                // const contrast = 255;
-                // const factor = (255 + contrast) / (255.01 - contrast);  //add .1 to avoid /0 error
-                //
-                // for(var i=0;i<data.length;i+=4)  //pixel values in 4-byte blocks (r,g,b,a)
-                // {
-                //     data[i] = factor * (data[i] - 128) + 128;     //r value
-                //     data[i+1] = factor * (data[i+1] - 128) + 128; //g value
-                //     data[i+2] = factor * (data[i+2] - 128) + 128; //b value
-                // }
-
-
-                this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-            }
-=======
     if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 && offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-
-        // this.ctx.fillStyle = IGVColor.hexToRgb(IGVColor.colorNameToHex('darkslategrey'));
         this.ctx.fillStyle = this.backgroundRGBString;
         this.ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
-
         if (scale === 1) {
             this.ctx.drawImage(image, offsetX, offsetY);
         } else {
             this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
->>>>>>> ContactMatrixView. Support map background color picker.
         }
     }
 }
