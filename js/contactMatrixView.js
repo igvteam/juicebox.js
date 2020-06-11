@@ -36,7 +36,7 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const defaultBackgroundColor = { r: 0, g: 255, b: 0 }
+const defaultBackgroundColor = { r: 255, g: 255, b: 255 }
 
 const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 

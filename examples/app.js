@@ -16,15 +16,6 @@ const main = async container => {
             // "controlNvi": "1974260276,36479"
         };
 
-    const config_sparse_data =
-        {
-            "url": "https://adam.3dg.io/suhas_juicebox/libs/combined_maps/GM12878/GM12878_intact_16B_5.11.20_1bpRes.hic",
-            "name": "GM12878_intact_16B_5.11.20_1bpRes.hic",
-            "state": "0,0,0,0,0,1.1519281789247189,NONE",
-            "colorScale": "217312,255,0,0",
-            "nvi": "172168077518,1372"
-        };
-
     await hic.createBrowser(container, config)
 
 }
