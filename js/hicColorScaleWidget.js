@@ -85,8 +85,8 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     this.backgroundColorpicker.hide();
 
 
-    this.$minusButton.on('click', () => presentColorPicker(this.$minusButton, this.$plusButton, this.$mapBackgroundColorpickerButton, this.minusColorPicker, this.plusColorPicker, this.minusColorPicker));
-    this.$plusButton.on('click', () => presentColorPicker(this.$plusButton, this.$minusButton, this.$mapBackgroundColorpickerButton, this.plusColorPicker, this.minusColorPicker, this.minusColorPicker));
+    this.$minusButton.on('click', () => presentColorPicker(this.$minusButton, this.$plusButton, this.$mapBackgroundColorpickerButton, this.minusColorPicker, this.plusColorPicker, this.backgroundColorpicker));
+    this.$plusButton.on('click', () => presentColorPicker(this.$plusButton, this.$minusButton, this.$mapBackgroundColorpickerButton, this.plusColorPicker, this.minusColorPicker, this.backgroundColorpicker));
     this.$mapBackgroundColorpickerButton.on('click', () => presentColorPicker(this.$mapBackgroundColorpickerButton, this.$minusButton, this.$plusButton, this.backgroundColorpicker, this.minusColorPicker, this.plusColorPicker));
 
 
