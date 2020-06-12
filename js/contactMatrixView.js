@@ -25,17 +25,20 @@
  * @author Jim Robinson
  */
 
+import $ from '../vendor/jquery-3.3.1.slim.js'
+import { IGVColor } from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import * as hicUtils from './hicUtils.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale) {
+const defaultBackgroundColor = { r: 255, g: 255, b: 255 }
+
+const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
     this.browser = browser;
     this.$viewport = $viewport;
@@ -47,6 +50,9 @@ const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidg
 
     this.ratioColorScale = ratioColorScale;
     // this.diffColorScale = new RatioColorScale(100, false);
+
+    this.backgroundColor = backgroundColor;
+    this.backgroundRGBString = IGVColor.rgbColor(backgroundColor.r, backgroundColor.g, backgroundColor.b)
 
     this.$canvas = $viewport.find('canvas');
     this.ctx = this.$canvas.get(0).getContext('2d');
@@ -75,6 +81,12 @@ const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidg
 
     this.drawsInProgress = new Set()
 };
+
+ContactMatrixView.prototype.setBackgroundColor = function (rgb) {
+    this.backgroundColor = rgb
+    this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
+    this.repaint()
+}
 
 ContactMatrixView.prototype.setColorScale = function (colorScale) {
 
@@ -237,7 +249,9 @@ ContactMatrixView.prototype.repaint = async function () {
     for (let r = blockRow1; r <= blockRow2; r++) {
         for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
-            this.paintTile(tile)
+            if (tile.image) {
+                this.paintTile(tile)
+            }
         }
     }
 
@@ -392,7 +406,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         x = t;
                     }
 
-                    let color
+                    let rgba
                     switch (this.displayMode) {
 
                         case 'AOB':
@@ -404,7 +418,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                             }
                             let score = (rec.counts / averageCount) / (controlRec.counts / ctrlAverageCount);
 
-                            color = this.ratioColorScale.getColor(score);
+                            rgba = this.ratioColorScale.getColor(score);
 
                             break;
 
@@ -416,23 +430,24 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                             }
                             score = averageAcrossMapAndControl * ((rec.counts / averageCount) - (controlRec.counts / ctrlAverageCount));
 
-                            color = this.diffColorScale.getColor(score);
+                            rgba = this.diffColorScale.getColor(score);
 
                             break;
 
                         default:    // Either 'A' or 'B'
-                            color = this.colorScale.getColor(rec.counts);
+                            rgba = this.colorScale.getColor(rec.counts);
                     }
 
 
                     if (useImageData) {
                         // TODO -- verify that this bitblting is faster than fillRect
-                        setPixel(id, x, y, color.red, color.green, color.blue, 255);
+                        setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         if (sameChr && row === col) {
-                            setPixel(id, y, x, color.red, color.green, color.blue, 255);
+                            setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         }
-                    } else {
-                        ctx.fillStyle = color.rgb;
+                    }
+                    else {
+                        ctx.fillStyle = rgba.rgbaString;
                         ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
                         if (sameChr && row === col) {
                             ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
@@ -579,45 +594,30 @@ ContactMatrixView.prototype.zoomIn = async function () {
     }
 }
 
-ContactMatrixView.prototype.paintTile = function (imageTile) {
+ContactMatrixView.prototype.paintTile = function ({ image, row, column, blockBinCount }) {
 
-    const state = this.browser.state
+    const x0 = blockBinCount * column
+    const y0 = blockBinCount * row
+
+    const { x, y, pixelSize } = this.browser.state
+    const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
+    const offsetX = (x0 - x) * pixelSize
+    const offsetY = (y0 - y) * pixelSize
+
+    const scale = pixelSize / pixelSizeInt
+    const scaledWidth = image.width * scale
+    const scaledHeight = image.height * scale
+
     const viewportWidth = this.$viewport.width()
     const viewportHeight = this.$viewport.height()
 
-    var image = imageTile.image,
-        pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-
-    if (image != null) {
-        const row = imageTile.row
-        const col = imageTile.column
-        const x0 = imageTile.blockBinCount * col
-        const y0 = imageTile.blockBinCount * row
-        const offsetX = (x0 - state.x) * state.pixelSize
-        const offsetY = (y0 - state.y) * state.pixelSize
-        const scale = state.pixelSize / pixelSizeInt
-        const scaledWidth = image.width * scale
-        const scaledHeight = image.height * scale
-        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 &&
-            offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
-            this.ctx.clearRect(offsetX, offsetY, scaledWidth, scaledHeight)
-            if (scale === 1) {
-                this.ctx.drawImage(image, offsetX, offsetY);
-            } else {
-                // const data = image.data;
-                // const contrast = 255;
-                // const factor = (255 + contrast) / (255.01 - contrast);  //add .1 to avoid /0 error
-                //
-                // for(var i=0;i<data.length;i+=4)  //pixel values in 4-byte blocks (r,g,b,a)
-                // {
-                //     data[i] = factor * (data[i] - 128) + 128;     //r value
-                //     data[i+1] = factor * (data[i+1] - 128) + 128; //g value
-                //     data[i+2] = factor * (data[i+2] - 128) + 128; //b value
-                // }
-
-
-                this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
-            }
+    if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 && offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+        this.ctx.fillStyle = this.backgroundRGBString;
+        this.ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight);
+        if (scale === 1) {
+            this.ctx.drawImage(image, offsetX, offsetY);
+        } else {
+            this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
         }
     }
 }
@@ -1115,5 +1115,6 @@ function addTouchHandlers($viewport) {
 
 }
 
+export { defaultBackgroundColor }
 
 export default ContactMatrixView
