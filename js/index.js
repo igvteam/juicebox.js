@@ -21,6 +21,7 @@
  *
  */
 
+import { Alert } from '../node_modules/igv-ui/src/index.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
@@ -33,5 +34,5 @@ import EventBus from "./eventBus.js";
 export default {
     version, loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, EventBus,
     initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON,
-    utils, igv
+    utils, igv, Alert
 }
