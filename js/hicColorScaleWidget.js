@@ -28,7 +28,9 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
 import { UIUtils, GenericContainer } from '../node_modules/igv-ui/src/index.js'
 import { defaultRatioColorScaleConfig } from './ratioColorScale.js'
-import {defaultBackgroundColor} from "./contactMatrixView";
+import {defaultBackgroundColor} from "./contactMatrixView.js";
+import ColorScale from "./colorScale.js";
+import RatioColorScale from "./ratioColorScale.js";
 
 const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
@@ -91,17 +93,53 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
 
     const handleColorScaleEvent = event => {
-        this.$high_colorscale_input.val(event.data.threshold);
-        this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(event.data.r, event.data.g, event.data.b)})
+
+        if (event.data instanceof ColorScale) {
+
+            const { threshold, r, g, b } = event.data
+
+            this.$high_colorscale_input.val(threshold);
+            this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(r, g, b)})
+
+        } else if (event.data instanceof RatioColorScale) {
+
+            const { threshold, negativeScale, positiveScale } = event.data
+
+            this.$high_colorscale_input.val(threshold)
+
+            const { r:nr, g:ng, b:nb } = negativeScale
+            const { r, g, b } = positiveScale
+
+            this.$minusButton.find('.fa-square').css({color: IGVColor.rgbColor(nr, ng, nb)})
+            this.$plusButton.find( '.fa-square').css({color: IGVColor.rgbColor( r,  g,  b)})
+
+        }
+
     }
 
     this.browser.eventBus.subscribe("ColorScale", handleColorScaleEvent);
 
     const handleDisplayModeEvent = event => {
-        if ('AOB' === event.data || 'BOA' === event.data) {
+
+        if ("AOB" === event.data || "BOA" === event.data) {
+
             this.$minusButton.show();
+
+            const { negativeScale, positiveScale } = this.browser.contactMatrixView.ratioColorScale
+
+            const { r:nr, g:ng, b:nb } = negativeScale
+            const { r, g, b } = positiveScale
+
+            this.$minusButton.find('.fa-square').css({ color: IGVColor.rgbColor(nr, ng, nb) })
+            this.$plusButton.find( '.fa-square').css({ color: IGVColor.rgbColor( r,  g,  b) })
+
         } else {
+
             this.$minusButton.hide();
+
+            const { r, g, b } = this.browser.contactMatrixView.colorScale
+            this.$plusButton.find('.fa-square').css({ color: IGVColor.rgbColor(r, g, b) })
+
         }
     }
 
