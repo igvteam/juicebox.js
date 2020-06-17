@@ -5,6 +5,7 @@ const main = async container => {
 
     const config =
         {
+            "backgroundColor": "137,17,0",
             "url": "https://hicfiles.s3.amazonaws.com/hiseq/nhek/dilution/HIC068.hic",
             "name": "HIC068",
             "state": "2,2,3,272.4469827809971,405.6313616363572,1.1037330448463756,NONE",
