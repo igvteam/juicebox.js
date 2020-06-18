@@ -31,6 +31,7 @@ import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
 import * as hicUtils from './hicUtils.js'
+import RatioColorScale from "./ratioColorScale";
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
@@ -86,6 +87,15 @@ ContactMatrixView.prototype.setBackgroundColor = function (rgb) {
     this.backgroundColor = rgb
     this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
     this.repaint()
+}
+
+ContactMatrixView.prototype.stringifyBackgroundColor = function () {
+    return `${ this.backgroundColor.r },${ this.backgroundColor.g },${ this.backgroundColor.b }`;
+}
+
+ContactMatrixView.parseBackgroundColor = function (rgbString) {
+    const [ r, g, b ] = rgbString.split(",").map(str => parseInt(str))
+    return { r, g, b }
 }
 
 ContactMatrixView.prototype.setColorScale = function (colorScale) {

@@ -31,6 +31,7 @@ import State from './hicState.js'
 import HICEvent from './hicEvent.js'
 import igvReplacements from "./igvReplacements.js"
 import {decodeQuery, extractQuery} from "./urlUtils.js";
+import ContactMatrixView from "./contactMatrixView";
 
 let apiKey
 
@@ -92,6 +93,9 @@ async function createBrowser(hic_container, config, callback) {
     }
     if (StringUtils.isString(config.colorScale)) {
         config.colorScale = ColorScale.parse(config.colorScale);
+    }
+    if (StringUtils.isString(config.backgroundColor)) {
+        config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
     }
 
     const browser = new HICBrowser($hic_container, config);

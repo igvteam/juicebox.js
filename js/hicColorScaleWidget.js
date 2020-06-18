@@ -96,10 +96,10 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
         if (event.data instanceof ColorScale) {
 
-            const { threshold, r, g, b } = event.data
+            const { threshold } = event.data
+            this.$high_colorscale_input.val(threshold)
 
-            this.$high_colorscale_input.val(threshold);
-            this.$plusButton.find('.fa-square').css({color: IGVColor.rgbColor(r, g, b)})
+            paintSwatch(this.$plusButton, event.data)
 
         } else if (event.data instanceof RatioColorScale) {
 
@@ -107,12 +107,8 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
 
             this.$high_colorscale_input.val(threshold)
 
-            const { r:nr, g:ng, b:nb } = negativeScale
-            const { r, g, b } = positiveScale
-
-            this.$minusButton.find('.fa-square').css({color: IGVColor.rgbColor(nr, ng, nb)})
-            this.$plusButton.find( '.fa-square').css({color: IGVColor.rgbColor( r,  g,  b)})
-
+            paintSwatch(this.$minusButton, negativeScale)
+            paintSwatch(this.$plusButton, positiveScale)
         }
 
     }
@@ -126,26 +122,24 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
             this.$minusButton.show();
 
             const { negativeScale, positiveScale } = this.browser.contactMatrixView.ratioColorScale
-
-            const { r:nr, g:ng, b:nb } = negativeScale
-            const { r, g, b } = positiveScale
-
-            this.$minusButton.find('.fa-square').css({ color: IGVColor.rgbColor(nr, ng, nb) })
-            this.$plusButton.find( '.fa-square').css({ color: IGVColor.rgbColor( r,  g,  b) })
+            paintSwatch(this.$minusButton, negativeScale)
+            paintSwatch(this.$plusButton, positiveScale)
 
         } else {
-
             this.$minusButton.hide();
-
-            const { r, g, b } = this.browser.contactMatrixView.colorScale
-            this.$plusButton.find('.fa-square').css({ color: IGVColor.rgbColor(r, g, b) })
-
+            paintSwatch(this.$plusButton, this.browser.contactMatrixView.colorScale)
         }
     }
 
     this.browser.eventBus.subscribe("DisplayMode", handleDisplayModeEvent);
 
+    this.browser.eventBus.subscribe("MapLoad", (ignore) => {
+        paintSwatch(this.$mapBackgroundColorpickerButton, this.browser.contactMatrixView.backgroundColor)
+    });
+
 };
+
+const paintSwatch = ($swatchContainer, { r, g, b }) => $swatchContainer.find('.fa-square').css({ color: IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)) })
 
 const updateThreshold = (browser, scaleFactor) => {
     const colorScale = browser.getColorScale();

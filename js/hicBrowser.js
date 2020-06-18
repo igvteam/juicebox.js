@@ -111,7 +111,8 @@ const HICBrowser = function ($app_container, config) {
     const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
     ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
     ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
-    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, defaultBackgroundColor);
+    const backgroundColor = config.backgroundColor || defaultBackgroundColor
+    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
 
     this.$menu = this.createMenu(this.$root);
     this.$menu.hide();
@@ -1439,6 +1440,7 @@ HICBrowser.prototype.toJSON = function () {
 
     const jsonOBJ = {};
 
+    jsonOBJ.backgroundColor = this.contactMatrixView.stringifyBackgroundColor()
     jsonOBJ.url = this.dataset.url;
     if (this.dataset.name) {
         jsonOBJ.name = this.dataset.name;
