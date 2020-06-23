@@ -41,6 +41,14 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     this.$container = $('<div class="hic-colorscale-widget-container">');
     $container.append(this.$container);
 
+    // contact map background color picker
+    const { r:_r, g:_g, b:_b } = defaultBackgroundColor
+    this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b));
+    this.$container.append(this.$mapBackgroundColorpickerButton);
+    this.backgroundColorpicker = createBackgroundColorPicker(browser, this.$mapBackgroundColorpickerButton, () => this.backgroundColorpicker.hide());
+    this.backgroundColorpicker.hide();
+
+
     // '-' color swatch
     const { r:nr, g:ng, b:nb } = defaultRatioColorScaleConfig.negative
     this.$minusButton = colorSwatch(IGVColor.rgbColor(nr, ng, nb));
@@ -79,12 +87,6 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     $fa.on('click', () => this.$high_colorscale_input.val(updateThreshold(browser, 2.0)));
     this.$container.append($fa);
 
-    // contact map background color picker
-    const { r:_r, g:_g, b:_b } = defaultBackgroundColor
-    this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b));
-    this.$container.append(this.$mapBackgroundColorpickerButton);
-    this.backgroundColorpicker = createBackgroundColorPicker(browser, this.$mapBackgroundColorpickerButton, () => this.backgroundColorpicker.hide());
-    this.backgroundColorpicker.hide();
 
 
     this.$minusButton.on('click', () => presentColorPicker(this.$minusButton, this.$plusButton, this.$mapBackgroundColorpickerButton, this.minusColorPicker, this.plusColorPicker, this.backgroundColorpicker));
@@ -218,6 +220,8 @@ const presentColorPicker = ($presentButton, $aButton, $bButton, presentColorpick
 function colorSwatch(rgbString) {
 
     const $swatch = $('<div>', {class: 'igv-color-swatch'});
+    $swatch.css("border-color", "lightgray");
+    $swatch.css("background",  "lightgray");
     const $fa = $('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
 
     $swatch.append($fa);
