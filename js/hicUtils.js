@@ -31,7 +31,7 @@ import State from './hicState.js'
 import HICEvent from './hicEvent.js'
 import igvReplacements from "./igvReplacements.js"
 import {decodeQuery, extractQuery} from "./urlUtils.js";
-import ContactMatrixView from "./contactMatrixView";
+import ContactMatrixView from "./contactMatrixView.js";
 
 let apiKey
 
