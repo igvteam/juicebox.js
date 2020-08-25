@@ -1,7 +1,7 @@
 /*
  *  The MIT License (MIT)
  *
- * Copyright (c) 2016-2017 The Regents of the University of California
+ * Copyright (c) 2016-2020 The Regents of the University of California
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the "Software"), to deal in the Software without restriction, including
@@ -26,10 +26,11 @@
  * @author Jim Robinson
  */
 
-import { Alert } from '../node_modules/igv-ui/src/index.js'
-import  * as hic from './hicUtils.js'
+import {Alert} from '../node_modules/igv-ui/src/index.js'
+import * as hic from './hicUtils.js'
 import NormalizationVector from './normalizationVector.js'
 import HICEvent from './hicEvent.js'
+import Straw from '../node_modules/hic-straw/src/straw.js'
 
 const knownGenomes = {
 
@@ -41,217 +42,223 @@ const knownGenomes = {
 
 }
 
-const Dataset = function (hicFile) {
+class Dataset {
 
-    this.hicFile = hicFile;
-    this.matrixCache = {};
-    this.blockCache = {};
-    this.blockCacheKeys = [];
-    this.normVectorCache = {};
-    this.normalizationTypes = ['NONE'];
-
-    // Cache at most 10 blocks
-    this.blockCacheLimit = hic.isMobile() ? 4 : 10;
-
-    this.genomeId = hicFile.genomeId
-    this.chromosomes = hicFile.chromosomes
-    this.bpResolutions = hicFile.bpResolutions
-    this.wholeGenomeChromosome = hicFile.wholeGenomeChromosome
-    this.wholeGenomeResolution = hicFile.wholeGenomeResolution
-
-    // Attempt to determine genomeId if not recognized
-    if (!Object.keys(knownGenomes).includes(this.genomeId)) {
-        const tmp = matchGenome(this.chromosomes);
-        if (tmp) this.genomeId = tmp;
+    constructor(config) {
+        this.straw = new Straw(config)
     }
 
-}
+    async init() {
 
-Dataset.prototype.clearCaches = function () {
-    this.matrixCache = {};
-    this.blockCache = {};
-    this.normVectorCache = {};
-    this.colorScaleCache = {};
-};
+        this.hicFile = this.straw.hicFile;
+        await this.hicFile.init();
+        this.matrixCache = {};
+        this.blockCache = {};
+        this.blockCacheKeys = [];
+        this.normVectorCache = {};
+        this.normalizationTypes = ['NONE'];
 
-Dataset.prototype.getMatrix = async function (chr1, chr2) {
-    if (chr1 > chr2) {
-        const tmp = chr1
-        chr1 = chr2
-        chr2 = tmp
+        // Cache at most 10 blocks
+        this.blockCacheLimit = hic.isMobile() ? 4 : 10;
+
+        this.genomeId = this.hicFile.genomeId
+        this.chromosomes = this.hicFile.chromosomes
+        this.bpResolutions = this.hicFile.bpResolutions
+        this.wholeGenomeChromosome = this.hicFile.wholeGenomeChromosome
+        this.wholeGenomeResolution = this.hicFile.wholeGenomeResolution
+
+        // Attempt to determine genomeId if not recognized
+        if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+            const tmp = matchGenome(this.chromosomes);
+            if (tmp) this.genomeId = tmp;
+        }
     }
-    const key = `${chr1}_${chr2}`
 
-    if (this.matrixCache.hasOwnProperty(key)) {
-        return this.matrixCache[key];
-
-    } else {
-        const matrix = await this.hicFile.readMatrix(chr1, chr2)
-        this.matrixCache[key] = matrix;
-        return matrix;
-
+    async getContactRecords(normalization, region1, region2, units, binsize) {
+        return this.straw.getContactRecords(normalization, region1, region2, units, binsize)
     }
-}
 
-Dataset.prototype.getNormalizedBlock = async function (zd, blockNumber, normalization, eventBus) {
-
-    const block = await this.getBlock(zd, blockNumber)
-
-    if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-        return block;
+    clearCaches() {
+        this.matrixCache = {};
+        this.blockCache = {};
+        this.normVectorCache = {};
+        this.colorScaleCache = {};
     }
-    else {
-        // Get the norm vectors serially, its very likely they are the same and the second will be cached
-        const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
-        const nv2 = zd.chr1.index === zd.chr2.index ?
-            nv1 :
-            await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
 
-        var normRecords = [],
-            normBlock;
+    async getMatrix(chr1, chr2) {
+        if (chr1 > chr2) {
+            const tmp = chr1
+            chr1 = chr2
+            chr2 = tmp
+        }
+        const key = `${chr1}_${chr2}`
 
-        if (nv1 === undefined || nv2 === undefined) {
-            Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
-            if (eventBus) {
-                eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
-            }
-            return block;
+        if (this.matrixCache.hasOwnProperty(key)) {
+            return this.matrixCache[key];
+
+        } else {
+            const matrix = await this.hicFile.readMatrix(chr1, chr2)
+            this.matrixCache[key] = matrix;
+            return matrix;
+
+        }
+    }
+
+    getZoomIndexForBinSize(binSize, unit) {
+        var i,
+            resolutionArray;
+
+        unit = unit || "BP";
+
+        if (unit === "BP") {
+            resolutionArray = this.bpResolutions;
+        } else if (unit === "FRAG") {
+            resolutionArray = this.fragResolutions;
+        } else {
+            throw new Error("Invalid unit: " + unit);
         }
 
-        else {
-            for (let record of block.records) {
-
-                const x = record.bin1
-                const y = record.bin2
-                const nvnv = nv1.data[x] * nv2.data[y];
-
-                if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                    const counts = record.counts / nvnv;
-                    normRecords.push(new ContactRecord(x, y, counts));
-                }
-            }
-
-            normBlock = new Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-            //normBlock.percentile95 = block.percentile95;
-
-            return normBlock;
+        for (i = 0; i < resolutionArray.length; i++) {
+            if (resolutionArray[i] === binSize) return i;
         }
 
+        return -1;
     }
 
-}
+    getBinSizeForZoomIndex(zoomIndex, unit) {
+        var i,
+            resolutionArray;
 
-Dataset.prototype.getBlock = async function (zd, blockNumber) {
+        unit = unit || "BP";
 
-    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
-    if (this.blockCache.hasOwnProperty(key)) {
-        return this.blockCache[key];
-
-    } else {
-
-        const block = await this.hicFile.readBlock(blockNumber, zd)
-        if (this.blockCacheKeys.length > this.blockCacheLimit) {
-            delete this.blockCache[this.blockCacheKeys[0]];
-            this.blockCacheKeys.shift();
+        if (unit === "BP") {
+            resolutionArray = this.bpResolutions;
+        } else if (unit === "FRAG") {
+            resolutionArray = this.fragResolutions;
+        } else {
+            throw new Error("Invalid unit: " + unit);
         }
-        this.blockCacheKeys.push(key);
-        this.blockCache[key] = block;
 
-        return block;
-
-    }
-};
-
-Dataset.prototype.getNormalizationVector = async function (type, chrIdx, unit, binSize) {
-
-    const key = NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-    if (this.normVectorCache.hasOwnProperty(key)) {
-        return this.normVectorCache[key];
-    } else {
-
-        const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize)
-        this.normVectorCache[key] = nv;
-        return nv;
-
-
-    }
-};
-
-Dataset.prototype.getZoomIndexForBinSize = function (binSize, unit) {
-    var i,
-        resolutionArray;
-
-    unit = unit || "BP";
-
-    if (unit === "BP") {
-        resolutionArray = this.bpResolutions;
-    }
-    else if (unit === "FRAG") {
-        resolutionArray = this.fragResolutions;
-    } else {
-        throw new Error("Invalid unit: " + unit);
+        return resolutionArray[zoomIndex];
     }
 
-    for (i = 0; i < resolutionArray.length; i++) {
-        if (resolutionArray[i] === binSize) return i;
+    getChrIndexFromName(chrName) {
+        var i;
+        for (i = 0; i < this.chromosomes.length; i++) {
+            if (chrName === this.chromosomes[i].name) return i;
+        }
+        return undefined;
     }
 
-    return -1;
-}
-Dataset.prototype.getBinSizeForZoomIndex = function (zoomIndex, unit) {
-    var i,
-        resolutionArray;
-
-    unit = unit || "BP";
-
-    if (unit === "BP") {
-        resolutionArray = this.bpResolutions;
-    }
-    else if (unit === "FRAG") {
-        resolutionArray = this.fragResolutions;
-    } else {
-        throw new Error("Invalid unit: " + unit);
-    }
-
-    return resolutionArray[zoomIndex];
-}
-
-Dataset.prototype.getChrIndexFromName = function (chrName) {
-    var i;
-    for (i = 0; i < this.chromosomes.length; i++) {
-        if (chrName === this.chromosomes[i].name) return i;
-    }
-    return undefined;
-}
-
-Dataset.prototype.compareChromosomes = function (otherDataset) {
-    const chrs = this.chromosomes;
-    const otherChrs = otherDataset.chromosomes;
-    if (chrs.length !== otherChrs.length) {
-        return false;
-    }
-    for (let i = 0; i < chrs.length; i++) {
-        if (chrs[i].size !== otherChrs[i].size) {
+    compareChromosomes(otherDataset) {
+        const chrs = this.chromosomes;
+        const otherChrs = otherDataset.chromosomes;
+        if (chrs.length !== otherChrs.length) {
             return false;
         }
+        for (let i = 0; i < chrs.length; i++) {
+            if (chrs[i].size !== otherChrs[i].size) {
+                return false;
+            }
+        }
+        return true;
     }
-    return true;
-}
 
-Dataset.prototype.getNormVectorIndex = async function () {
-    return this.hicFile.getNormVectorIndex()
+    isWholeGenome(chrIndex) {
+        return (this.wholeGenomeChromosome != null && this.wholeGenomeChromosome.index === chrIndex);
+    }
 
-}
+    async getNormalizedBlock(zd, blockNumber, normalization, eventBus) {
 
-Dataset.prototype.getNormalizationOptions = async function () {
-    return this.hicFile.getNormalizationOptions()
-}
+        const block = await this.getBlock(zd, blockNumber)
 
-Dataset.prototype.isWholeGenome = function (chrIndex) {
-    return (this.wholeGenomeChromosome != null && this.wholeGenomeChromosome.index === chrIndex);
+        if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
+            return block;
+        } else {
+            // Get the norm vectors serially, its very likely they are the same and the second will be cached
+            const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
+            const nv2 = zd.chr1.index === zd.chr2.index ?
+                nv1 :
+                await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
+
+            var normRecords = [],
+                normBlock;
+
+            if (nv1 === undefined || nv2 === undefined) {
+                Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+                if (eventBus) {
+                    eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
+                }
+                return block;
+            } else {
+                for (let record of block.records) {
+
+                    const x = record.bin1
+                    const y = record.bin2
+                    const nvnv = nv1.data[x] * nv2.data[y];
+
+                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
+                        const counts = record.counts / nvnv;
+                        normRecords.push(new ContactRecord(x, y, counts));
+                    }
+                }
+
+                normBlock = new Block(blockNumber, zd, normRecords);   // TODO - cache this?
+
+                //normBlock.percentile95 = block.percentile95;
+
+                return normBlock;
+            }
+
+        }
+
+    }
+
+    async getBlock(zd, blockNumber) {
+
+        const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
+
+        if (this.blockCache.hasOwnProperty(key)) {
+            return this.blockCache[key];
+
+        } else {
+
+            const block = await this.hicFile.readBlock(blockNumber, zd)
+            if (this.blockCacheKeys.length > this.blockCacheLimit) {
+                delete this.blockCache[this.blockCacheKeys[0]];
+                this.blockCacheKeys.shift();
+            }
+            this.blockCacheKeys.push(key);
+            this.blockCache[key] = block;
+
+            return block;
+
+        }
+    };
+
+    async getNormalizationVector(type, chrIdx, unit, binSize) {
+
+        const key = NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
+
+        if (this.normVectorCache.hasOwnProperty(key)) {
+            return this.normVectorCache[key];
+        } else {
+
+            const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize)
+            this.normVectorCache[key] = nv;
+            return nv;
+
+
+        }
+    };
+
+    async getNormVectorIndex() {
+        return this.hicFile.getNormVectorIndex()
+    }
+
+    async getNormalizationOptions() {
+        return this.hicFile.getNormalizationOptions()
+    }
 }
 
 const Block = function (blockNumber, zoomData, records) {
@@ -260,14 +267,16 @@ const Block = function (blockNumber, zoomData, records) {
     this.records = records;
 };
 
-const ContactRecord = function (bin1, bin2, counts) {
-    this.bin1 = bin1;
-    this.bin2 = bin2;
-    this.counts = counts;
-};
+class ContactRecord {
+    constructor(bin1, bin2, counts) {
+        this.bin1 = bin1;
+        this.bin2 = bin2;
+        this.counts = counts;
+    }
 
-ContactRecord.prototype.getKey = function () {
-    return "" + this.bin1 + "_" + this.bin2;
+    getKey() {
+        return "" + this.bin1 + "_" + this.bin2;
+    }
 }
 
 

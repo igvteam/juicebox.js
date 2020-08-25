@@ -24,7 +24,7 @@
 /**
  * @author Jim Robinson
  */
-import Straw from '../node_modules/hic-straw/src/straw.js';
+
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {Alert, DOMUtils} from '../node_modules/igv-ui/src/index.js'
 import {TrackUtils} from '../node_modules/igv-utils/src/index.js'
@@ -1653,10 +1653,8 @@ async function loadDataset(config) {
         }
     }
 
-    const straw = new Straw(config)
-    const hicFile = straw.hicFile
-    await hicFile.init()
-    const dataset = new Dataset(hicFile)
+    const dataset = new Dataset(config)
+    await dataset.init();
     dataset.url = config.url
     return dataset
 }
