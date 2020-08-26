@@ -36,7 +36,7 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const blockBinCount = 500;
+const blockBinCount = 685;
 
 const defaultBackgroundColor = { r: 255, g: 255, b: 255 }
 
@@ -253,10 +253,12 @@ ContactMatrixView.prototype.repaint = async function () {
     const blockRow1 = Math.floor(state.y / blockBinCount)
     const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-    await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+    //await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-    for (let r = blockRow1; r <= blockRow2; r++) {
-        for (let c = blockCol1; c <= blockCol2; c++) {
+//let r = blockRow1;
+//let c = blockCol1;
+   for (let r = blockRow1; r <= blockRow2; r++) {
+       for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
             if (tile.image) {
                 this.paintTile(tile)
@@ -376,10 +378,10 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
             // Get blocks
             const widthInBP = blockBinCount * zd.zoom.binSize;
-            const x0 = column * widthInBP;
-            const region1 = {chr: zd.chr1.name, start: x0, end: x0 + widthInBP};
-            const y0 = row * widthInBP;
-            const region2 = {chr: zd.chr2.name, start: y0, end: y0 + widthInBP};
+            const x0bp = column * widthInBP;
+            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + widthInBP};
+            const y0bp = row * widthInBP;
+            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + widthInBP};
             const records = await ds.getContactRecords(state.normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
             let cRecords;
             if (zdControl) {
@@ -400,6 +402,8 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     id = ctx.getImageData(0, 0, image.width, image.height);
                 }
 
+                const x0 = transpose ? row * blockBinCount : column * blockBinCount;
+                const y0 = transpose ? column * blockBinCount : row * blockBinCount;
                 for (let i = 0; i < records.length; i++) {
 
                     const rec = records[i];
@@ -476,10 +480,10 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         if (features) {
                             features.forEach(function (f) {
 
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0bp) * pixelSizeInt);
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0bp) * pixelSizeInt);
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0bp) * pixelSizeInt);
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0bp) * pixelSizeInt);
                                 var w = x2 - x1;
                                 var h = y2 - y1;
 
