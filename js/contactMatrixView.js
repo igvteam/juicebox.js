@@ -254,10 +254,8 @@ ContactMatrixView.prototype.repaint = async function () {
     const blockRow1 = Math.floor(state.y / blockBinCount)
     const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-    //await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+    await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-//let r = blockRow1;
-//let c = blockCol1;
    for (let r = blockRow1; r <= blockRow2; r++) {
        for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
@@ -514,8 +512,8 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                 ctx.restore();
 
                 // Uncomment to reveal tile boundaries for debugging.
-                 ctx.fillStyle = "rgb(255,255,255)";
-                 ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                //  ctx.fillStyle = "rgb(255,255,255)";
+                //  ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
             } else {
@@ -673,27 +671,16 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
         }
         return this.colorScale;
     } else {
-        const promises = [];
-        const sameChr = zd.chr1.index === zd.chr2.index;
-        let blockNumber
-        for (let row = row1; row <= row2; row++) {
-            for (let column = col1; column <= col2; column++) {
-                if (sameChr && row < column) {
-                    blockNumber = column * zd.blockColumnCount + row;
-                } else {
-                    blockNumber = row * zd.blockColumnCount + column;
-                }
-
-                promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
-            }
-        }
-
         try {
-            this.startSpinner()
-            const blocks = await Promise.all(promises)
-            this.stopSpinner()
-
-            let s = computePercentile(blocks, 95);
+            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const x0bp = col1 * widthInBP;
+            const xWidthInBP = (col2 - col1 + 1) * widthInBP;
+            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + xWidthInBP};
+            const y0bp = row1 * widthInBP;
+            const yWidthInBp = (row2 - row1 + 1) * widthInBP;
+            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
+            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
+            let s = computePercentile(records, 95);
 
             if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
@@ -717,16 +704,8 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
 
 }
 
-function computePercentile(blockArray, p) {
-
-    var array = [];
-    blockArray.forEach(function (block) {
-        if (block) {
-            for (let i = 0; i < block.records.length; i++) {
-                array.push(block.records[i].counts);
-            }
-        }
-    });
+function computePercentile(records, p) {
+    const array = records.map(r => r.counts)
     return HICMath.percentile(array, p);
 }
 
