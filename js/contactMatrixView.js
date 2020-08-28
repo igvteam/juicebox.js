@@ -36,6 +36,8 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
+const blockBinCount = 685;
+
 const defaultBackgroundColor = { r: 255, g: 255, b: 255 }
 
 const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
@@ -236,15 +238,14 @@ ContactMatrixView.prototype.repaint = async function () {
     }
 
     const matrix = await ds.getMatrix(state.chr1, state.chr2)
-    const zd = matrix.bpZoomData[zoom]
+    const unit = "BP";   // FRAG is not supported
+    const zd = matrix.getZoomDataByIndex(zoom, unit);
 
     if (dsControl) {
         const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2)
-        zdControl = matrixControl.bpZoomData[controlZoom]
+        zdControl = matrixControl.getZoomDataByIndex(controlZoom, unit);
     }
 
-
-    const blockBinCount = zd.blockBinCount  // Dimension in bins of a block (width = height = blockBinCount)
     const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
     const widthInBins = this.$viewport.width() / pixelSizeInt
     const heightInBins = this.$viewport.height() / pixelSizeInt
@@ -255,8 +256,8 @@ ContactMatrixView.prototype.repaint = async function () {
 
     await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-    for (let r = blockRow1; r <= blockRow2; r++) {
-        for (let c = blockCol1; c <= blockCol2; c++) {
+   for (let r = blockRow1; r <= blockRow2; r++) {
+       for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
             if (tile.image) {
                 this.paintTile(tile)
@@ -321,11 +322,23 @@ function inProgressTile(imageSize) {
     return image;
 }
 
+/**
+ * This is where the image tile is actually drawn, if not in the cache
+ *
+ * @param ds
+ * @param dsControl
+ * @param zd
+ * @param zdControl
+ * @param row
+ * @param column
+ * @param state
+ * @returns {Promise<{image: HTMLCanvasElement, column: *, row: *, blockBinCount}|{image, inProgress: boolean, column: *, row: *, blockBinCount}|*>}
+ */
 ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zdControl, row, column, state) {
 
     const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
     const useImageData = pixelSizeInt === 1
-    const blockBinCount = zd.blockBinCount
+
     const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
         "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
     if (this.imageTileCache.hasOwnProperty(key)) {
@@ -350,50 +363,35 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
         try {
             this.startSpinner()
             const sameChr = zd.chr1.index === zd.chr2.index
-            const blockColumnCount = zd.blockColumnCount
-            const widthInBins = zd.blockBinCount
             const transpose = sameChr && row < column
-
-            let blockNumber
-            if (sameChr && row < column) {
-                blockNumber = column * blockColumnCount + row;
-            } else {
-                blockNumber = row * blockColumnCount + column;
-            }
-
-            // Get blocks
-            const block = await ds.getNormalizedBlock(zd, blockNumber, state.normalization, this.browser.eventBus)
-            let controlBlock
-            if (zdControl) {
-                controlBlock = await dsControl.getNormalizedBlock(zdControl, blockNumber, state.normalization, this.browser.eventBus)
-            }
-
             const averageCount = zd.averageCount
             const ctrlAverageCount = zdControl ? zdControl.averageCount : 1
             const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
 
-
-            let image;
-
-            const imageSize = Math.ceil(widthInBins * pixelSizeInt)
-            image = document.createElement('canvas');
+            const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
+            const image = document.createElement('canvas');
             image.width = imageSize;
             image.height = imageSize;
             const ctx = image.getContext('2d');
             //ctx.clearRect(0, 0, image.width, image.height);
 
-            if (block && block.records.length > 0) {
+            // Get blocks
+            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const x0bp = column * widthInBP;
+            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + widthInBP};
+            const y0bp = row * widthInBP;
+            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + widthInBP};
+            const records = await ds.getContactRecords(state.normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
+            let cRecords;
+            if (zdControl) {
+                cRecords = await dsControl.getContactRecords(state.normalization, region1, region2, zdControl.zoom.unit, zdControl.zoom.binSize);
+            }
 
-                const blockNumber = block.blockNumber;
-                const row = Math.floor(blockNumber / blockColumnCount);
-                const col = blockNumber - row * blockColumnCount;
-                const x0 = blockBinCount * col;
-                const y0 = blockBinCount * row;
-
+            if (records.length > 0) {
 
                 const controlRecords = {};
                 if ('AOB' === this.displayMode || 'BOA' === this.displayMode || 'AMB' === this.displayMode) {
-                    for (let record of controlBlock.records) {
+                    for (let record of cRecords) {
                         controlRecords[record.getKey()] = record
                     }
                 }
@@ -403,9 +401,11 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     id = ctx.getImageData(0, 0, image.width, image.height);
                 }
 
-                for (let i = 0; i < block.records.length; i++) {
+                const x0 = transpose ? row * blockBinCount : column * blockBinCount;
+                const y0 = transpose ? column * blockBinCount : row * blockBinCount;
+                for (let i = 0; i < records.length; i++) {
 
-                    const rec = block.records[i];
+                    const rec = records[i];
                     let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
                     let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
 
@@ -451,14 +451,14 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     if (useImageData) {
                         // TODO -- verify that this bitblting is faster than fillRect
                         setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
-                        if (sameChr && row === col) {
+                        if (sameChr && row === column) {
                             setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         }
                     }
                     else {
                         ctx.fillStyle = rgba.rgbaString;
                         ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
-                        if (sameChr && row === col) {
+                        if (sameChr && row === column) {
                             ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
                         }
                     }
@@ -479,10 +479,10 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         if (features) {
                             features.forEach(function (f) {
 
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0) * pixelSizeInt);
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0) * pixelSizeInt);
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0) * pixelSizeInt);
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0bp) * pixelSizeInt);
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0bp) * pixelSizeInt);
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0bp) * pixelSizeInt);
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0bp) * pixelSizeInt);
                                 var w = x2 - x1;
                                 var h = y2 - y1;
 
@@ -491,15 +491,13 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                                     t = y1;
                                     y1 = x1;
                                     x1 = t;
-
                                     t = h;
                                     h = w;
                                     w = t;
                                 }
 
-                                var dim = Math.max(image.width, image.height);
+                                const dim = Math.max(image.width, image.height);
                                 if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-
                                     ctx.strokeStyle = track2D.color ? track2D.color : f.color;
                                     ctx.strokeRect(x1, y1, w, h);
                                     if (sameChr && row === col) {
@@ -514,8 +512,8 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                 ctx.restore();
 
                 // Uncomment to reveal tile boundaries for debugging.
-                // ctx.fillStyle = "rgb(255,255,255)";
-                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                //  ctx.fillStyle = "rgb(255,255,255)";
+                //  ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
             } else {
@@ -533,11 +531,11 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
             }
 
-            this.drawsInProgress.delete(key)
             return imageTile;
 
         } finally {
             //console.log("Finish load for " + key)
+            this.drawsInProgress.delete(key)
             this.stopSpinner()
         }
     }
@@ -575,7 +573,8 @@ ContactMatrixView.prototype.zoomIn = async function () {
     var matrix = matrices[0];
 
     if (matrix) {
-        const zd = await matrix.bpZoomData[state.zoom]
+        const unit = "BP";
+        const zd = await matrix.getZoomDataByIndex(state.zoom, unit);
         const newGenomicExtent = {
             x: state.x * zd.zoom.binSize,
             y: state.y * zd.zoom.binSize,
@@ -672,27 +671,16 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
         }
         return this.colorScale;
     } else {
-        const promises = [];
-        const sameChr = zd.chr1.index === zd.chr2.index;
-        let blockNumber
-        for (let row = row1; row <= row2; row++) {
-            for (let column = col1; column <= col2; column++) {
-                if (sameChr && row < column) {
-                    blockNumber = column * zd.blockColumnCount + row;
-                } else {
-                    blockNumber = row * zd.blockColumnCount + column;
-                }
-
-                promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus))
-            }
-        }
-
         try {
-            this.startSpinner()
-            const blocks = await Promise.all(promises)
-            this.stopSpinner()
-
-            let s = computePercentile(blocks, 95);
+            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const x0bp = col1 * widthInBP;
+            const xWidthInBP = (col2 - col1 + 1) * widthInBP;
+            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + xWidthInBP};
+            const y0bp = row1 * widthInBP;
+            const yWidthInBp = (row2 - row1 + 1) * widthInBP;
+            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
+            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
+            let s = computePercentile(records, 95);
 
             if (!isNaN(s)) {  // Can return NaN if all blocks are empty
 
@@ -716,16 +704,8 @@ async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
 
 }
 
-function computePercentile(blockArray, p) {
-
-    var array = [];
-    blockArray.forEach(function (block) {
-        if (block) {
-            for (let i = 0; i < block.records.length; i++) {
-                array.push(block.records[i].counts);
-            }
-        }
-    });
+function computePercentile(records, p) {
+    const array = records.map(r => r.counts)
     return HICMath.percentile(array, p);
 }
 
