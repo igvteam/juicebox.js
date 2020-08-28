@@ -238,11 +238,12 @@ ContactMatrixView.prototype.repaint = async function () {
     }
 
     const matrix = await ds.getMatrix(state.chr1, state.chr2)
-    const zd = matrix.bpZoomData[zoom]
+    const unit = "BP";   // FRAG is not supported
+    const zd = matrix.getZoomDataByIndex(zoom, unit);
 
     if (dsControl) {
         const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2)
-        zdControl = matrixControl.bpZoomData[controlZoom]
+        zdControl = matrixControl.getZoomDataByIndex(controlZoom, unit);
     }
 
     const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
@@ -574,7 +575,8 @@ ContactMatrixView.prototype.zoomIn = async function () {
     var matrix = matrices[0];
 
     if (matrix) {
-        const zd = await matrix.bpZoomData[state.zoom]
+        const unit = "BP";
+        const zd = await matrix.getZoomDataByIndex(state.zoom, unit);
         const newGenomicExtent = {
             x: state.x * zd.zoom.binSize,
             y: state.y * zd.zoom.binSize,
