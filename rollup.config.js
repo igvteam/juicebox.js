@@ -35,27 +35,21 @@ export default [
         input: 'js/index.js',
         output: [
             {file: 'dist/js/juicebox.esm.js', format: 'es'},
-            {file: 'dist/js/juicebox.esm.min.js', format: 'es', sourcemap: true},
+            {file: 'dist/js/juicebox.esm.min.js', format: 'es', sourcemap: true, plugins:[terser()]},
         ],
         plugins: [
             strip({
                 debugger: true,
                 // functions: ['console.log', 'assert.*', 'debug']
                 functions: ['assert.*', 'debug']
-            }),
-            terser({
-                include: [/^.+\.min\.js$/],
-                sourcemap: {
-                    filename: "juicebox.esm.min.js",
-                    url: "juicebox.esm.min.js.map"
-            }})
+            })
         ]
     },
     {
         input: 'js/index.js',
         output: [
             {file: 'dist/js/juicebox.js', format: 'umd', name: "hic"},
-            {file: 'dist/js/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true}
+            {file: 'dist/js/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true, plugins:[terser()]}
         ],
         plugins: [
             strip({
@@ -65,12 +59,6 @@ export default [
             commonjs(),
             resolve(),
             babel(),
-            terser({
-                include: [/^.+\.min\.js$/],
-                sourcemap: {
-                    filename: "juicebox.min.js",
-                    url: "juicebox.min.js.map"
-                }}),
             copy({
                 targets:
                     [
