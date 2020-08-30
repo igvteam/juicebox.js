@@ -26,7 +26,7 @@
  */
 
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import { IGVColor } from '../node_modules/igv-utils/src/index.js'
+import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import HICMath from './hicMath.js'
@@ -37,8 +37,6 @@ const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
 const blockBinCount = 685;
-
-const defaultBackgroundColor = { r: 255, g: 255, b: 255 }
 
 const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
@@ -84,6 +82,8 @@ const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidg
     this.drawsInProgress = new Set()
 };
 
+ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
+
 ContactMatrixView.prototype.setBackgroundColor = function (rgb) {
     this.backgroundColor = rgb
     this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
@@ -91,12 +91,12 @@ ContactMatrixView.prototype.setBackgroundColor = function (rgb) {
 }
 
 ContactMatrixView.prototype.stringifyBackgroundColor = function () {
-    return `${ this.backgroundColor.r },${ this.backgroundColor.g },${ this.backgroundColor.b }`;
+    return `${this.backgroundColor.r},${this.backgroundColor.g},${this.backgroundColor.b}`;
 }
 
 ContactMatrixView.parseBackgroundColor = function (rgbString) {
-    const [ r, g, b ] = rgbString.split(",").map(str => parseInt(str))
-    return { r, g, b }
+    const [r, g, b] = rgbString.split(",").map(str => parseInt(str))
+    return {r, g, b}
 }
 
 ContactMatrixView.prototype.setColorScale = function (colorScale) {
@@ -254,10 +254,10 @@ ContactMatrixView.prototype.repaint = async function () {
     const blockRow1 = Math.floor(state.y / blockBinCount)
     const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-    await checkColorScale.call(this, ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+    await this.checkColorScale(ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
-   for (let r = blockRow1; r <= blockRow2; r++) {
-       for (let c = blockCol1; c <= blockCol2; c++) {
+    for (let r = blockRow1; r <= blockRow2; r++) {
+        for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
             if (tile.image) {
                 this.paintTile(tile)
@@ -287,6 +287,73 @@ ContactMatrixView.prototype.repaint = async function () {
         return bZoom;
     }
 }
+
+/**
+ * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
+ * data to computer scale.
+ *
+ * @param zd
+ * @param row1
+ * @param row2
+ * @param col1
+ * @param col2
+ * @param normalization
+ * @returns {*}
+ */
+ContactMatrixView.prototype.checkColorScale = async function (ds, zd, row1, row2, col1, col2, normalization) {
+
+    const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
+    if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
+        return this.ratioColorScale;     // Don't adjust color scale for A/B.
+    }
+
+    if (this.colorScaleThresholdCache[colorKey]) {
+        const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
+        this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
+        if (changed) {
+            this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+        }
+        return this.colorScale;
+    } else {
+        try {
+            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const x0bp = col1 * widthInBP;
+            const xWidthInBP = (col2 - col1 + 1) * widthInBP;
+            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + xWidthInBP};
+            const y0bp = row1 * widthInBP;
+            const yWidthInBp = (row2 - row1 + 1) * widthInBP;
+            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
+            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
+            let s = computePercentile(records, 95);
+
+            records.sort(function (a, b) {
+                return a.counts - b.counts;
+            })
+            const idx = Math.floor(0.95 * records.length);
+            const s2 = records[idx];
+
+            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
+
+                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
+
+                this.colorScale = new ColorScale(this.colorScale);
+                this.colorScale.setThreshold(s);
+                this.computeColorScale = false;
+                this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+            }
+
+            this.colorScaleThresholdCache[colorKey] = s;
+
+            return this.colorScale;
+        } finally {
+            this.stopSpinner()
+        }
+
+
+    }
+
+}
+
 
 /**
  * Returns a promise for an image tile
@@ -336,18 +403,16 @@ function inProgressTile(imageSize) {
  */
 ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zdControl, row, column, state) {
 
-    const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-    const useImageData = pixelSizeInt === 1
+    const key = `${zd.chr1.name}_${zd.chr2.name}_${zd.zoom.binSize}_${zd.zoom.unit}_
+    ${row}_${column}_${state.normalization}_${this.displayMode}`
 
-    const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit +
-        "_" + row + "_" + column + "_" + pixelSizeInt + "_" + state.normalization + "_" + this.displayMode
     if (this.imageTileCache.hasOwnProperty(key)) {
         return this.imageTileCache[key]
 
     } else {
         if (this.drawsInProgress.has(key)) {
             //console.log("In progress")
-            const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
+            const imageSize = blockBinCount
             const image = inProgressTile(imageSize)
             return {
                 row: row,
@@ -368,7 +433,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
             const ctrlAverageCount = zdControl ? zdControl.averageCount : 1
             const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
 
-            const imageSize = Math.ceil(blockBinCount * pixelSizeInt)
+            const imageSize = blockBinCount
             const image = document.createElement('canvas');
             image.width = imageSize;
             image.height = imageSize;
@@ -396,18 +461,16 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                     }
                 }
 
-                let id
-                if (useImageData) {
-                    id = ctx.getImageData(0, 0, image.width, image.height);
-                }
+                let id = ctx.getImageData(0, 0, image.width, image.height);
+
 
                 const x0 = transpose ? row * blockBinCount : column * blockBinCount;
                 const y0 = transpose ? column * blockBinCount : row * blockBinCount;
                 for (let i = 0; i < records.length; i++) {
 
                     const rec = records[i];
-                    let x = Math.floor((rec.bin1 - x0) * pixelSizeInt);
-                    let y = Math.floor((rec.bin2 - y0) * pixelSizeInt);
+                    let x = Math.floor((rec.bin1 - x0));
+                    let y = Math.floor((rec.bin2 - y0));
 
                     if (transpose) {
                         const t = y;
@@ -447,25 +510,16 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                             rgba = this.colorScale.getColor(rec.counts);
                     }
 
+                    // TODO -- verify that this bitblting is faster than fillRect
+                    setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
+                    if (sameChr && row === column) {
+                        setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
+                    }
 
-                    if (useImageData) {
-                        // TODO -- verify that this bitblting is faster than fillRect
-                        setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
-                        if (sameChr && row === column) {
-                            setPixel(id, y, x, rgba.red, rgba.green, rgba.blue, rgba.alpha);
-                        }
-                    }
-                    else {
-                        ctx.fillStyle = rgba.rgbaString;
-                        ctx.fillRect(x, y, pixelSizeInt, pixelSizeInt);
-                        if (sameChr && row === column) {
-                            ctx.fillRect(y, x, pixelSizeInt, pixelSizeInt);
-                        }
-                    }
                 }
-                if (useImageData) {
-                    ctx.putImageData(id, 0, 0);
-                }
+
+                ctx.putImageData(id, 0, 0);
+
 
                 //Draw 2D tracks
                 ctx.save();
@@ -479,10 +533,10 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                         if (features) {
                             features.forEach(function (f) {
 
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0bp) * pixelSizeInt);
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0bp) * pixelSizeInt);
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0bp) * pixelSizeInt);
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0bp) * pixelSizeInt);
+                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0bp));
+                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0bp));
+                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0bp));
+                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0bp));
                                 var w = x2 - x1;
                                 var h = y2 - y1;
 
@@ -602,17 +656,17 @@ ContactMatrixView.prototype.zoomIn = async function () {
     }
 }
 
-ContactMatrixView.prototype.paintTile = function ({ image, row, column, blockBinCount }) {
+ContactMatrixView.prototype.paintTile = function ({image, row, column, blockBinCount}) {
 
     const x0 = blockBinCount * column
     const y0 = blockBinCount * row
 
-    const { x, y, pixelSize } = this.browser.state
-    const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
+    const {x, y, pixelSize} = this.browser.state
+    //const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
     const offsetX = (x0 - x) * pixelSize
     const offsetY = (y0 - y) * pixelSize
 
-    const scale = pixelSize / pixelSizeInt
+    const scale = pixelSize; // / pixelSizeInt
     const scaledWidth = image.width * scale
     const scaledHeight = image.height * scale
 
@@ -644,68 +698,9 @@ function getMatrices(chr1, chr2) {
     return Promise.all(promises);
 }
 
-/**
- * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
- * data to computer scale.
- *
- * @param zd
- * @param row1
- * @param row2
- * @param col1
- * @param col2
- * @param normalization
- * @returns {*}
- */
-async function checkColorScale(ds, zd, row1, row2, col1, col2, normalization) {
-
-    const colorKey = colorScaleKey(this.browser.state, this.displayMode);   // This doesn't feel right, state should be an argument
-    if ('AOB' === this.displayMode || 'BOA' === this.displayMode) {
-        return this.ratioColorScale;     // Don't adjust color scale for A/B.
-    }
-
-    if (this.colorScaleThresholdCache[colorKey]) {
-        const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
-        this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
-        if (changed) {
-            this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
-        }
-        return this.colorScale;
-    } else {
-        try {
-            const widthInBP = blockBinCount * zd.zoom.binSize;
-            const x0bp = col1 * widthInBP;
-            const xWidthInBP = (col2 - col1 + 1) * widthInBP;
-            const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + xWidthInBP};
-            const y0bp = row1 * widthInBP;
-            const yWidthInBp = (row2 - row1 + 1) * widthInBP;
-            const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
-            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
-            let s = computePercentile(records, 95);
-
-            if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-
-                if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
-
-                this.colorScale = new ColorScale(this.colorScale);
-                this.colorScale.setThreshold(s);
-                this.computeColorScale = false;
-                this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
-            }
-
-            this.colorScaleThresholdCache[colorKey] = s;
-
-            return this.colorScale;
-        } finally {
-            this.stopSpinner()
-        }
-
-
-    }
-
-}
 
 function computePercentile(records, p) {
-    const array = records.map(r => r.counts)
+    const array = records.filter(r => !isNaN(r.counts)).map(r => r.counts)
     return HICMath.percentile(array, p);
 }
 
@@ -1103,7 +1098,5 @@ function addTouchHandlers($viewport) {
     }
 
 }
-
-export { defaultBackgroundColor }
 
 export default ContactMatrixView
