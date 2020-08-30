@@ -28,7 +28,7 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
 import { UIUtils, GenericContainer } from '../node_modules/igv-ui/src/index.js'
 import { defaultRatioColorScaleConfig } from './ratioColorScale.js'
-import {defaultBackgroundColor} from "./contactMatrixView.js";
+import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
 import RatioColorScale from "./ratioColorScale.js";
 
@@ -42,7 +42,7 @@ const ColorScaleWidget = function (browser, $hic_navbar_container) {
     $container.append(this.$container);
 
     // contact map background color picker
-    const { r:_r, g:_g, b:_b } = defaultBackgroundColor
+    const { r:_r, g:_g, b:_b } = ContactMatrixView.defaultBackgroundColor
     this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b));
     this.$container.append(this.$mapBackgroundColorpickerButton);
     this.backgroundColorpicker = createBackgroundColorPicker(browser, this.$mapBackgroundColorpickerButton, () => this.backgroundColorpicker.hide());
@@ -186,7 +186,7 @@ const createBackgroundColorPicker = (browser, $parent, closeHandler) => {
         }
     const genericContainer = new GenericContainer(config)
 
-    const defaultColors = [ defaultBackgroundColor ].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
+    const defaultColors = [ ContactMatrixView.defaultBackgroundColor ].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
 
     function colorHandler(hexString) {
         $parent.find('.fa-square').css({ color: hexString })
