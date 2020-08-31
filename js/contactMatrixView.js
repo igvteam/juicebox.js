@@ -323,26 +323,17 @@ ContactMatrixView.prototype.checkColorScale = async function (ds, zd, row1, row2
             const y0bp = row1 * widthInBP;
             const yWidthInBp = (row2 - row1 + 1) * widthInBP;
             const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
-            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize);
-            let s = computePercentile(records, 95);
+            const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize, true);
 
-            records.sort(function (a, b) {
-                return a.counts - b.counts;
-            })
-            const idx = Math.floor(0.95 * records.length);
-            const s2 = records[idx];
-
+            const s = computePercentile(records, 95);
             if (!isNaN(s)) {  // Can return NaN if all blocks are empty
-
                 if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
-
                 this.colorScale = new ColorScale(this.colorScale);
                 this.colorScale.setThreshold(s);
                 this.computeColorScale = false;
                 this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
+                this.colorScaleThresholdCache[colorKey] = s;
             }
-
-            this.colorScaleThresholdCache[colorKey] = s;
 
             return this.colorScale;
         } finally {
@@ -700,8 +691,14 @@ function getMatrices(chr1, chr2) {
 
 
 function computePercentile(records, p) {
-    const array = records.filter(r => !isNaN(r.counts)).map(r => r.counts)
-    return HICMath.percentile(array, p);
+    const counts = records.map(r => r.counts)
+    counts.sort(function (a, b) {
+        return a - b;
+    })
+    const idx = Math.floor((p/100) * records.length);
+    return counts[idx];
+
+    // return HICMath.percentile(array, p);
 }
 
 ContactMatrixView.prototype.startSpinner = function () {
