@@ -254,8 +254,17 @@ ContactMatrixView.prototype.repaint = async function () {
     const blockRow1 = Math.floor(state.y / blockBinCount)
     const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
+    if("NONE" !== state.normalization) {
+        if(!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
+            Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
+            this.browser.eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
+            state.normalization = "NONE";
+        }
+    }
+
     await this.checkColorScale(ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
 
+    this.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
     for (let r = blockRow1; r <= blockRow2; r++) {
         for (let c = blockCol1; c <= blockCol2; c++) {
             const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
@@ -325,7 +334,7 @@ ContactMatrixView.prototype.checkColorScale = async function (ds, zd, row1, row2
             const region2 = {chr: zd.chr2.name, start: y0bp, end: y0bp + yWidthInBp};
             const records = await ds.getContactRecords(normalization, region1, region2, zd.zoom.unit, zd.zoom.binSize, true);
 
-            const s = computePercentile(records, 95);
+            let s = computePercentile(records, 95);
             if (!isNaN(s)) {  // Can return NaN if all blocks are empty
                 if (0 === zd.chr1.index) s *= 4;   // Heuristic for whole genome view
                 this.colorScale = new ColorScale(this.colorScale);
@@ -594,18 +603,6 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
         imageData.data[index + 3] = a;
     }
 
-    function getNormalizedBlocks(ds, dsControl, zd, zdControl, blockNumber, normalization) {
-        var promises = [];
-
-        promises.push(ds.getNormalizedBlock(zd, blockNumber, normalization, this.browser.eventBus));
-
-        if (zdControl) {
-            promises.push(dsControl.getNormalizedBlock(zdControl, blockNumber, normalization, this.browser.eventBus));
-        }
-
-        return Promise.all(promises);
-
-    }
 };
 
 

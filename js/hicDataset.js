@@ -78,6 +78,10 @@ class Dataset {
         return this.straw.getContactRecords(normalization, region1, region2, units, binsize)
     }
 
+    async hasNormalizationVector(type, chr, unit, binSize) {
+        return this.straw.hasNormalizationVector(type, chr, unit, binSize);
+    }
+
     clearCaches() {
         this.matrixCache = {};
         this.blockCache = {};
@@ -168,89 +172,6 @@ class Dataset {
         return (this.wholeGenomeChromosome != null && this.wholeGenomeChromosome.index === chrIndex);
     }
 
-    async getNormalizedBlock(zd, blockNumber, normalization, eventBus) {
-
-        const block = await this.getBlock(zd, blockNumber)
-
-        if (normalization === undefined || "NONE" === normalization || block === null || block === undefined) {
-            return block;
-        } else {
-            // Get the norm vectors serially, its very likely they are the same and the second will be cached
-            const nv1 = await this.getNormalizationVector(normalization, zd.chr1.index, zd.zoom.unit, zd.zoom.binSize)
-            const nv2 = zd.chr1.index === zd.chr2.index ?
-                nv1 :
-                await this.getNormalizationVector(normalization, zd.chr2.index, zd.zoom.unit, zd.zoom.binSize)
-
-            var normRecords = [],
-                normBlock;
-
-            if (nv1 === undefined || nv2 === undefined) {
-                Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
-                if (eventBus) {
-                    eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
-                }
-                return block;
-            } else {
-                for (let record of block.records) {
-
-                    const x = record.bin1
-                    const y = record.bin2
-                    const nvnv = nv1.data[x] * nv2.data[y];
-
-                    if (nvnv[x] !== 0 && !isNaN(nvnv)) {
-                        const counts = record.counts / nvnv;
-                        normRecords.push(new ContactRecord(x, y, counts));
-                    }
-                }
-
-                normBlock = new Block(blockNumber, zd, normRecords);   // TODO - cache this?
-
-                //normBlock.percentile95 = block.percentile95;
-
-                return normBlock;
-            }
-
-        }
-
-    }
-
-    async getBlock(zd, blockNumber) {
-
-        const key = "" + zd.chr1.name + "_" + zd.chr2.name + "_" + zd.zoom.binSize + "_" + zd.zoom.unit + "_" + blockNumber;
-
-        if (this.blockCache.hasOwnProperty(key)) {
-            return this.blockCache[key];
-
-        } else {
-
-            const block = await this.hicFile.readBlock(blockNumber, zd)
-            if (this.blockCacheKeys.length > this.blockCacheLimit) {
-                delete this.blockCache[this.blockCacheKeys[0]];
-                this.blockCacheKeys.shift();
-            }
-            this.blockCacheKeys.push(key);
-            this.blockCache[key] = block;
-
-            return block;
-
-        }
-    };
-
-    async getNormalizationVector(type, chrIdx, unit, binSize) {
-
-        const key = NormalizationVector.getNormalizationVectorKey(type, chrIdx, unit, binSize);
-
-        if (this.normVectorCache.hasOwnProperty(key)) {
-            return this.normVectorCache[key];
-        } else {
-
-            const nv = await this.hicFile.getNormalizationVector(type, chrIdx, unit, binSize)
-            this.normVectorCache[key] = nv;
-            return nv;
-
-
-        }
-    };
 
     async getNormVectorIndex() {
         return this.hicFile.getNormVectorIndex()
