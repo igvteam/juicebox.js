@@ -33,8 +33,6 @@
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
 
-    <script src="../dist/js/juicebox.esm.js" type="text/javascript"></script>
-
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
@@ -44,9 +42,30 @@
 <body>
 
 
-<div id="app-container" class="juicebox-app-clone-container"></div>
+<div id="app-container"></div>
 
-<script type="module" src="./app.js"></script>
+<script type="module">
+
+    import hic from '../dist/js/juicebox.esm.js'
+
+    const container = document.getElementById('app-container');
+    const config =
+        {
+            "backgroundColor": "255,206,110",
+            "url": "https://s3.amazonaws.com/hicfiles/hiseq/degron/time_course/untreated/Rao-2017-HIC060.hic",
+            "name": "Time Course, Untreated, HIC060",
+            "state": "2,2,3,56.34306461670519,43.54741859321953,1.0792832622073734,NONE",
+            "colorScale": "R:5:1.6094379124341003,5,248,2:1.6094379124341003,0,74,136",
+            "nvi": "326681741,36479",
+            "controlUrl": "https://s3.amazonaws.com/hicfiles/hiseq/degron/time_course/Auxin_treated_360min/Rao-2017-HIC062.hic",
+            "controlName": "Auxin treated (360 min), HIC062",
+            "displayMode": "AOB",
+            "controlNvi": "320261375,36479"
+        };
+
+    hic.createBrowser(container, config)
+
+</script>
 
 </body>
 
