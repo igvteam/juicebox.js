@@ -79,7 +79,7 @@ class Dataset {
     }
 
     async hasNormalizationVector(type, chr, unit, binSize) {
-        return this.straw.hasNormalizationVector(type, chr, unit, binSize);
+        return this.straw.hicFile.hasNormalizationVector(type, chr, unit, binSize);
     }
 
     clearCaches() {
