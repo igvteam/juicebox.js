@@ -1,4 +1,4 @@
-import { Alert } from '../node_modules/igv-ui/src/index.js'
+import { Alert } from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from '../node_modules/igv/dist/igv.esm.js'
 
 const google = igv.google;

@@ -26,10 +26,7 @@
  * @author Jim Robinson
  */
 
-import {Alert} from '../node_modules/igv-ui/src/index.js'
 import * as hic from './hicUtils.js'
-import NormalizationVector from './normalizationVector.js'
-import HICEvent from './hicEvent.js'
 import Straw from '../node_modules/hic-straw/src/straw.js'
 
 const knownGenomes = {
