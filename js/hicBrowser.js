@@ -26,8 +26,8 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js';
-import {Alert, DOMUtils} from '../node_modules/igv-ui/src/index.js'
-import {TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {TrackUtils, DOMUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";

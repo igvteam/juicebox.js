@@ -26,7 +26,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import { IGVColor, StringUtils } from '../node_modules/igv-utils/src/index.js'
-import { UIUtils, GenericContainer } from '../node_modules/igv-ui/src/index.js'
+import { createColorSwatchSelector, GenericContainer } from '../node_modules/igv-ui/dist/igv-ui.js'
 import { defaultRatioColorScaleConfig } from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
@@ -168,7 +168,7 @@ function createColorPicker(browser, $parent, type, closeHandler) {
         browser.repaintMatrix();
     }
 
-    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
+    createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
 
     const { x: left, y: top } = $parent.get(0).getBoundingClientRect()
     $(genericContainer.container).offset({ left, top })
@@ -194,7 +194,7 @@ const createBackgroundColorPicker = (browser, $parent, closeHandler) => {
         browser.contactMatrixView.setBackgroundColor({ r, g, b })
     }
 
-    UIUtils.createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
+    createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
 
     const { x: left, y: top } = $parent.get(0).getBoundingClientRect()
     $(genericContainer.container).offset({ left, top })

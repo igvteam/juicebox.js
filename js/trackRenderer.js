@@ -2,8 +2,8 @@
  * Created by dat on 4/5/17.
  */
 
-import { IGVUtils } from '../node_modules/igv-utils/src/index.js'
-import { DOMUtils, GenericContainer, ColorPicker  } from '../node_modules/igv-ui/src/index.js'
+import { DOMUtils } from '../node_modules/igv-utils/src/index.js'
+import { ColorPicker  } from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import  * as hic from './hicUtils.js';
 import $ from '../vendor/jquery-3.3.1.slim.js'
@@ -220,8 +220,7 @@ TrackRenderer.prototype.readyToPaint = async function () {
                 if (typeof self.track.doAutoscale === 'function') {
                     this.track.doAutoscale(features);
                 } else {
-                    // this.track.dataRange = igv.doAutoscale(features);
-                    this.track.dataRange = IGVUtils.doAutoscale(features);
+                    this.track.dataRange = igv.doAutoscale(features);
                 }
             }
 

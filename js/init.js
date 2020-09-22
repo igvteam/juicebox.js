@@ -21,8 +21,7 @@
  *
  */
 
-import igv from "../node_modules/igv/dist/igv.esm.js";
-import {Alert} from '../node_modules/igv-ui/src/index.js'
+import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
