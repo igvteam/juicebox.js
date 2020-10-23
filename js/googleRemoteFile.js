@@ -101,34 +101,39 @@ async function getGoogleAccessToken() {
         return oauthPromise;
     }
 
-    const authInstance = gapi.auth2.getAuthInstance();
-    if (!authInstance) {
-        Alert.presentAlert("Authorization is required, but Google oAuth has not been initalized.  Contact your site administrator for assistance.")
-        return undefined;
-    }
+    if(gapi && gapi.auth2) {
 
-    // TODO -- get scope from config
-    const scope = "https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.readonly";
-    const options = new gapi.auth2.SigninOptionsBuilder();
-    options.setPrompt('select_account');
-    options.setScope(scope);
-    oauthPromise = new Promise(function (resolve, reject) {
-        Alert.presentAlert("Google Login required", function () {
-            gapi.auth2.getAuthInstance().signIn(options)
-                .then(function (user) {
-                    const authResponse = user.getAuthResponse();
-                    oauth.google.setToken(authResponse["access_token"]);
-                    resolve(authResponse["access_token"]);
-                    oauthPromise = undefined;
-                })
-                .catch(function (err) {
-                    oauthPromise = undefined;
-                    reject(err);
-                });
+        const authInstance = gapi.auth2.getAuthInstance();
+        if (!authInstance) {
+            Alert.presentAlert("Authorization is required, but Google oAuth has not been initalized.  Contact your site administrator for assistance.")
+            return undefined;
+        }
+
+        // TODO -- get scope from config
+        const scope = "https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.readonly";
+        const options = new gapi.auth2.SigninOptionsBuilder();
+        options.setPrompt('select_account');
+        options.setScope(scope);
+        oauthPromise = new Promise(function (resolve, reject) {
+            Alert.presentAlert("Google Login required", function () {
+                gapi.auth2.getAuthInstance().signIn(options)
+                    .then(function (user) {
+                        const authResponse = user.getAuthResponse();
+                        oauth.google.setToken(authResponse["access_token"]);
+                        resolve(authResponse["access_token"]);
+                        oauthPromise = undefined;
+                    })
+                    .catch(function (err) {
+                        oauthPromise = undefined;
+                        reject(err);
+                    });
+            });
         });
-    });
 
-    return oauthPromise;
+        return oauthPromise;
+    } else {
+        throw Error("Google authentication is required, but Google auth api has not been initialized");
+    }
 }
 
 
