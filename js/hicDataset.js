@@ -65,10 +65,10 @@ class Dataset {
         this.wholeGenomeResolution = this.hicFile.wholeGenomeResolution
 
         // Attempt to determine genomeId if not recognized
-        if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+       // if (!Object.keys(knownGenomes).includes(this.genomeId)) {
             const tmp = matchGenome(this.chromosomes);
             if (tmp) this.genomeId = tmp;
-        }
+      //  }
     }
 
     async getContactRecords(normalization, region1, region2, units, binsize) {
@@ -200,20 +200,33 @@ class ContactRecord {
 
 function matchGenome(chromosomes) {
 
-
-    var keys = Object.keys(knownGenomes),
-        i, l;
-
     if (chromosomes.length < 4) return undefined;
 
-    for (i = 0; i < keys.length; i++) {
-        l = knownGenomes[keys[i]];
-        if (chromosomes[1].size === l[0] && chromosomes[2].size === l[1] && chromosomes[3].size === l[2]) {
-            return keys[i];
+    const keys = Object.keys(knownGenomes);
+
+    // Find a candidate
+    let candidate;
+    for (let chr of chromosomes) {
+        for (let key of keys) {
+            if (knownGenomes[key].includes(chr.size)) {
+                candidate = key;
+                break;
+            }
         }
     }
 
-    return undefined;
+    // Confirm candidate
+    if (candidate) {
+        const chrSizes = new Set(chromosomes.map((chr) => chr.size));
+        for (let sz of knownGenomes[candidate]) {
+            if (!chrSizes.has(sz)) {
+                return undefined;
+            }
+        }
+        return candidate;
+    } else {
+        return undefined;
+    }
 
 
 }
