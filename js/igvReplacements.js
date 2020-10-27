@@ -3,6 +3,7 @@
  */
 
 import $ from "../vendor/jquery-3.3.1.slim.js";
+import igv from '../node_modules/igv/dist/igv.esm.js';
 
 const igvReplacements = function (igv) {
 

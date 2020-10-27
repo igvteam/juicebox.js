@@ -36,6 +36,8 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
+    <!-- Google API -- remove if not supporting Google resources -->
+    <script src="https://apis.google.com/js/platform.js"></script>
 
 </head>
 
@@ -47,8 +49,55 @@
 <script type="module">
 
     import hic from '../dist/js/juicebox.esm.js'
+    import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 
-    const container = document.getElementById('app-container');
+    const container = document.getElementById('app-container')
+
+    const session_config =
+        {
+            "backgroundColor": "255,251,109",
+            "url": "https://hicfiles.s3.amazonaws.com/miseq/rh2014/HIC154.hic",
+            "name": "HIC154",
+            "state": "3,3,3,14.611029991319443,21.91654498697917,1.6425946708930603,NONE",
+            "colorScale": "R:5:1.6094379124341003,73,26,136:1.6094379124341003,255,114,110",
+            "selectedGene": "myc",
+            "nvi": "188065488,36479",
+            "controlUrl": "https://www.encodeproject.org/files/ENCFF482LGO/@@download/ENCFF482LGO.hic",
+            "controlName": "DpnII in situ GM12878 experiment",
+            "displayMode": "BOA",
+            "controlNvi": "1208778887,36479",
+            "tracks": [
+                {
+                    "url": "https://www.googleapis.com/drive/v3/files/12B7viT0BfdE1-oLTklIo8y8z8_0Dnavl?alt=media&supportsTeamDrives=true",
+                    "name": "ENCFF421AQV.bigWig",
+                    "min": 0,
+                    "max": 7.670524434840425,
+                    "color": "#008cff"
+                },
+                {
+                    "url": "https://www.googleapis.com/drive/v3/files/1rM76O3OHnM7WhRNDfTQOYVyx86D1hhmD?alt=media&supportsTeamDrives=true",
+                    "name": "ENCFF001EQU.bigWig",
+                    "min": 0,
+                    "max": 6.097813439221907,
+                    "color": "#891648"
+                },
+                {
+                    "url": "https://www.encodeproject.org/files/ENCFF690ZEO/@@download/ENCFF690ZEO.bigWig",
+                    "name": "bronchial epithelial cell female adult (40 years) and male adult (68 years) RNA-seq",
+                    "min": 0,
+                    "max": 4.605335766355831,
+                    "color": "#ff2987"
+                },
+                {
+                    "url": "https://www.encodeproject.org/files/ENCFF797CWN/@@download/ENCFF797CWN.bigBed",
+                    "name": "HepG2 H3K27ac ",
+                    "min": 0,
+                    "max": 1,
+                    "color": "#cefa6e"
+                }
+            ]
+        };
+
     const config =
         {
             "backgroundColor": "255,206,110",
@@ -63,7 +112,22 @@
             "controlNvi": "320261375,36479"
         };
 
-    hic.createBrowser(container, config)
+        (async () => {
+
+            const client_id = '661332306814-fmasnut050v7qds33tsa2rtvd5tc06sl.apps.googleusercontent.com'
+            const apiKey = 'AIzaSyCEmqU2lrAgKxJCbnJX87a5F3c9GejCCLA'
+            const scope = 'https://www.googleapis.com/auth/userinfo.profile'
+
+            try {
+                await GoogleAuth.init({ client_id, apiKey, scope })
+            } catch (e) {
+                console.error(e)
+            }
+
+            await hic.createBrowser(container, session_config)
+
+        })()
+
 
 </script>
 

@@ -80,7 +80,7 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         this.track.trackView = this;
         this.track.trackView.trackDiv = this.$viewport.get(0);
 
-        igv.appendRightHandGutter.call(this, this.$viewport);
+        igv.appendRightHandGutter(this, this.$viewport);
 
         this.$viewport.on('click', function (e) {
             e.preventDefault();

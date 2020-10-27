@@ -37,8 +37,6 @@ let apiKey
 
 const defaultPixelSize = 1
 
-const urlShorteners = [];
-
 const defaultSize = {width: 640, height: 640}
 
 /**
@@ -118,7 +116,7 @@ async function createBrowser(hic_container, config, callback) {
 
     browser.inputDialog = new InputDialog($hic_container.get(0), browser);
 
-    browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
+    // browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
 
     browser.dataRangeDialog = new igv.DataRangeDialog($hic_container, browser);
 
@@ -263,12 +261,6 @@ function extractFilename(urlOrFile) {
     }
 }
 
-function igvSupports(path) {
-    var config = {url: path};
-    TrackUtils.inferTrackTypes(config);
-    return config.type !== undefined;
-}
-
 function throttle(fn, threshhold, scope) {
     var last,
         deferTimer;
@@ -372,7 +364,7 @@ function createIGV($hic_container, hicBrowser) {
 
 export {
     defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteAllBrowsers, deleteBrowserPanel,
-    areCompatible, isMobile, extractFilename, igvSupports,
+    areCompatible, isMobile, extractFilename,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     updateAllBrowsers, HICBrowser
 }

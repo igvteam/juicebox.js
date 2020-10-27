@@ -27,7 +27,7 @@
 
 import igv from '../node_modules/igv/dist/igv.esm.js';
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {TrackUtils, DOMUtils} from '../node_modules/igv-utils/src/index.js'
+import {TrackUtils, DOMUtils, GoogleUtils, FileUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
@@ -396,47 +396,41 @@ HICBrowser.prototype.genomicState = function (axis) {
  */
 HICBrowser.prototype.loadTracks = async function (configs) {
 
-    var self = this, errorPrefix;
-
     // If loading a single track remember its name, for error message
-    errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
+    const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
 
     try {
         this.contactMatrixView.startSpinner();
-        const ps = inferTypes(configs)
-        const trackConfigurations = await Promise.all(ps)
+        // const ps = inferTypes(configs)
+        // const trackConfigurations = await Promise.all(ps)
 
-        var trackXYPairs, promises2D;
-
-        trackXYPairs = [];
-        promises2D = [];
+        const trackXYPairs = [];
+        const promises2D = [];
         const promisesNV = []
 
-        for (let config of trackConfigurations) {
-            if (config) {
-                var isLocal = config.url instanceof File,
-                    fn = isLocal ? config.url.name : config.url;
-                if ("annotation" === config.type && config.color === undefined) {
-                    config.color = DEFAULT_ANNOTATION_COLOR;
-                    config.displayMode = "COLLAPSED"
-                }
-                if (config.max === undefined) {
-                    config.autoscale = true;
-                }
-                config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
+        for (let config of /*trackConfigurations*/configs) {
 
-                if (fn.endsWith(".juicerformat") || fn.endsWith("nv") || fn.endsWith(".juicerformat.gz") || fn.endsWith("nv.gz")) {
-                    promisesNV.push(this.loadNormalizationFile(config.url))
-                }
+            // const isLocal = config.url instanceof File
+            // const fileName = isLocal ? config.url.name : config.url
 
-                if (config.type === undefined || "interaction" === config.type) {
-                    // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config));
-                } else {
-                    var track = igv.createTrack(config, this);
-                    trackXYPairs.push({x: track, y: track});
-                }
+            const fileName = await FileUtils.getFilenameExtended(config.url);
+
+            config.format = TrackUtils.inferFileFormat(fileName)
+
+            // if ("annotation" === config.type && config.color === undefined) {
+                config.color = DEFAULT_ANNOTATION_COLOR;
+                config.displayMode = "COLLAPSED"
+            // }
+
+            if (config.max === undefined) {
+                config.autoscale = true;
             }
+
+            // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
+            config.height = wigTrackHeight;
+
+            const track = await igv.createTrack(config, this)
+            trackXYPairs.push({x: track, y: track})
         }
 
         if (trackXYPairs.length > 0) {
@@ -453,13 +447,15 @@ HICBrowser.prototype.loadTracks = async function (configs) {
             await this.updateLayout();
         }
 
-        const tracks2D = await Promise.all(promises2D)
-        if (tracks2D && tracks2D.length > 0) {
-            this.tracks2D = self.tracks2D.concat(tracks2D);
-            this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
-        }
-
-        const normVectors = await Promise.all(promisesNV)
+        // if (promises2D.length > 0) {
+        //
+        //     const tracks2D = await Promise.all(promises2D)
+        //     if (tracks2D && tracks2D.length > 0) {
+        //         this.tracks2D = this.tracks2D.concat(tracks2D);
+        //         this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+        //     }
+        //
+        // }
 
     } catch (error) {
         presentError(errorPrefix, error);
@@ -1643,9 +1639,9 @@ async function loadDataset(config) {
         delete config.url
     } else {
         // If this is a google url, add api KEY
-        if (igv.google.isGoogleURL(config.url)) {
-            if (igv.google.isGoogleDrive(config.url)) {
-                config.url = igv.google.driveDownloadURL(config.url)
+        if (GoogleUtils.isGoogleURL(config.url)) {
+            if (GoogleUtils.isGoogleDriveURL(config.url)) {
+                config.url = GoogleUtils.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
             config.file = new GoogleRemoteFile(copy);
