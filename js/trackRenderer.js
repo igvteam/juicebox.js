@@ -236,7 +236,8 @@ TrackRenderer.prototype.readyToPaint = async function () {
                     viewportContainerX: (genomicState.startBP - bpStart) / bpPerPixel,
                     viewportContainerWidth: width,
                     viewportWidth: width,
-                    labelTransform: this.labelReflectionTransform
+                    labelTransform: this.labelReflectionTransform,
+                    referenceFrame: {}
                 };
 
             this.track.draw(this.drawConfiguration);
