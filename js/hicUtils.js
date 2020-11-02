@@ -22,8 +22,8 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import EventBus from './eventBus.js'
-import {FileUtils, StringUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
-import { Popover, AlertDialog, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
+import {FileUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import { Popover, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from "../node_modules/igv/dist/igv.esm.js";
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -357,8 +357,6 @@ function createIGV($hic_container, hicBrowser) {
         };
 
     igv.popover = new Popover($hic_container.get(0), igv.browser);
-
-    igv.alertDialog = new AlertDialog(hicBrowser.$root.get(0), hicBrowser);
 
 }
 
