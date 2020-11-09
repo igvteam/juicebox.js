@@ -429,8 +429,14 @@ HICBrowser.prototype.loadTracks = async function (configs) {
             // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
             config.height = wigTrackHeight;
 
-            const track = await igv.createTrack(config, this)
-            trackXYPairs.push({x: track, y: track})
+            if (undefined === config.format) {
+                // Assume this is a 2D track
+                promises2D.push(Track2D.loadTrack2D(config));
+            } else {
+                const track = await igv.createTrack(config, this)
+                trackXYPairs.push({x: track, y: track})
+
+            }
         }
 
         if (trackXYPairs.length > 0) {
@@ -447,15 +453,15 @@ HICBrowser.prototype.loadTracks = async function (configs) {
             await this.updateLayout();
         }
 
-        // if (promises2D.length > 0) {
-        //
-        //     const tracks2D = await Promise.all(promises2D)
-        //     if (tracks2D && tracks2D.length > 0) {
-        //         this.tracks2D = this.tracks2D.concat(tracks2D);
-        //         this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
-        //     }
-        //
-        // }
+        if (promises2D.length > 0) {
+
+            const tracks2D = await Promise.all(promises2D)
+            if (tracks2D && tracks2D.length > 0) {
+                this.tracks2D = this.tracks2D.concat(tracks2D);
+                this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+            }
+
+        }
 
     } catch (error) {
         presentError(errorPrefix, error);

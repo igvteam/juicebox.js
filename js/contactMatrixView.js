@@ -554,7 +554,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                                 if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
                                     ctx.strokeStyle = track2D.color ? track2D.color : f.color;
                                     ctx.strokeRect(x1, y1, w, h);
-                                    if (sameChr && row === col) {
+                                    if (sameChr && row === column) {
                                         ctx.strokeRect(y1, x1, h, w);
                                     }
                                 }
