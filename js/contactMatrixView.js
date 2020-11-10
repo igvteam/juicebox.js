@@ -528,21 +528,22 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
                     if (track2D.isVisible) {
 
-                        var features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+                        const features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
 
                         if (features) {
-                            features.forEach(function (f) {
 
-                                var x1 = Math.round((f.x1 / zd.zoom.binSize - x0bp));
-                                var x2 = Math.round((f.x2 / zd.zoom.binSize - x0bp));
-                                var y1 = Math.round((f.y1 / zd.zoom.binSize - y0bp));
-                                var y2 = Math.round((f.y2 / zd.zoom.binSize - y0bp));
-                                var w = x2 - x1;
-                                var h = y2 - y1;
+                            for (let { color, x1, x2, y1, y2 } of features) {
 
-                                let t
+                                x1 = Math.round((x1 / zd.zoom.binSize - x0bp));
+                                x2 = Math.round((x2 / zd.zoom.binSize - x0bp));
+                                y1 = Math.round((y1 / zd.zoom.binSize - y0bp));
+                                y2 = Math.round((y2 / zd.zoom.binSize - y0bp));
+
+                                let w = x2 - x1;
+                                let h = y2 - y1;
+
                                 if (transpose) {
-                                    t = y1;
+                                    let t = y1;
                                     y1 = x1;
                                     x1 = t;
                                     t = h;
@@ -552,14 +553,17 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
                                 const dim = Math.max(image.width, image.height);
                                 if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-                                    ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                    ctx.strokeStyle = track2D.color ? track2D.color : color;
                                     ctx.strokeRect(x1, y1, w, h);
                                     if (sameChr && row === column) {
                                         ctx.strokeRect(y1, x1, h, w);
                                     }
                                 }
-                            })
-                        }
+
+
+                            }
+
+                         }
                     }
                 }
 
@@ -604,7 +608,6 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
     }
 
 };
-
 
 ContactMatrixView.prototype.zoomIn = async function () {
     const state = this.browser.state
