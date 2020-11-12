@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  *
  */
-import $ from '../vendor/jquery-3.3.1.slim.js'
-import EventBus from './eventBus.js'
 import {FileUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import { Popover, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from "../node_modules/igv/dist/igv.esm.js";
+import $ from '../vendor/jquery-3.3.1.slim.js'
+import EventBus from './eventBus.js'
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
@@ -69,11 +69,6 @@ async function createBrowser(hic_container, config, callback) {
     const $hic_container = $(hic_container);
 
     setDefaults(config);
-
-    const apiKey = config.apiKey;
-    if (apiKey) {
-        igv.google.setApiKey(apiKey);
-    }
 
     let queryString = config.queryString || config.href;   // href for backward compatibility
     if (queryString === undefined && config.initFromUrl !== false) {

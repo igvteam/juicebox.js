@@ -21,13 +21,15 @@
  *
  */
 
+import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js";
+import {Zlib} from "../node_modules/igv-utils/src/index.js"
+import igv from "../node_modules/igv/dist/igv.esm.js"
+import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js"
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"
 import BitlyURL from "./bitlyURL.js"
 import TinyURL from "./tinyURL.js"
-import {Zlib} from "../node_modules/igv-utils/src/index.js"
 import {Globals} from "./globals.js";
 
 const urlShorteners = [];
@@ -41,6 +43,22 @@ async function initApp(container, config) {
 
     if (config.urlShortener) {
         setURLShortener(config.urlShortener);
+    }
+
+    if (config.apiKey) {
+        igv.xhr.setApiKey(config.apiKey);
+    }
+
+    if (config.oauthToken) {
+        igv.oauth.setToken(config.oauthToken);
+    }
+
+    if (config.clientId && (!GoogleAuth.isInitialized())) {
+        await GoogleAuth.init({
+            clientId: config.clientId,
+            apiKey: config.apiKey,
+            scope: 'https://www.googleapis.com/auth/userinfo.profile'
+        })
     }
 
     let query = {};

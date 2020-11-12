@@ -410,9 +410,6 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
         for (let config of /*trackConfigurations*/configs) {
 
-            // const isLocal = config.url instanceof File
-            // const fileName = isLocal ? config.url.name : config.url
-
             const fileName = await FileUtils.getFilenameExtended(config.url);
 
             config.format = TrackUtils.inferFileFormat(fileName)
