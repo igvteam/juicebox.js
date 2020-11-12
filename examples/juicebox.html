@@ -94,11 +94,11 @@
         const apiKey = 'AIzaSyCEmqU2lrAgKxJCbnJX87a5F3c9GejCCLA'
         const scope = 'https://www.googleapis.com/auth/userinfo.profile'
 
-        // try {
-        //     await GoogleAuth.init({ client_id, apiKey, scope })
-        // } catch (e) {
-        //     console.error(e)
-        // }
+        try {
+            await GoogleAuth.init({ client_id, apiKey, scope })
+        } catch (e) {
+            console.error(e)
+        }
 
         await hic.createBrowser(container, session_config)
 
