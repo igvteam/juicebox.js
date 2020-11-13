@@ -440,7 +440,7 @@ HICBrowser.prototype.loadTracks = async function (configs) {
 
             this.layoutController.tracksLoaded(trackXYPairs);
 
-            const $gear_container = $('.igv-right-hand-gutter');
+            const $gear_container = $('.hic-igv-right-hand-gutter');
             if (true === this.showTrackLabelAndGutter) {
                 $gear_container.show();
             } else {

@@ -80,7 +80,7 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         this.track.trackView = this;
         this.track.trackView.trackDiv = this.$viewport.get(0);
 
-        igv.appendRightHandGutter(this, this.$viewport);
+        appendRightHandGutter(this, this.$viewport);
 
         this.$viewport.on('click', function (e) {
             e.preventDefault();
@@ -89,10 +89,10 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
             self.browser.toggleTrackLabelAndGutterState();
             if (true === self.browser.showTrackLabelAndGutter) {
                 $('.x-track-label').show();
-                $('.igv-right-hand-gutter').show();
+                $('.hic-igv-right-hand-gutter').show();
             } else {
                 $('.x-track-label').hide();
-                $('.igv-right-hand-gutter').hide();
+                $('.hic-igv-right-hand-gutter').hide();
             }
         });
 
@@ -329,6 +329,13 @@ TrackRenderer.prototype.checkContentHeight = function () {
  */
 TrackRenderer.prototype.repaintViews = function () {
     this.browser.renderTrackXY(this.trackRenderPair, true);
+}
+
+function appendRightHandGutter(trackView, $parent) {
+    const $div = $('<div class="hic-igv-right-hand-gutter">');
+    $parent.append($div);
+    igv.createTrackGearPopover(trackView, $div);
+
 }
 
 // ColorScaleWidget version of color picker

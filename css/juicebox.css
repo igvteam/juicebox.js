@@ -1,3 +1,11 @@
+.hic-igv-right-hand-gutter {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 4px;
+  background-color: transparent;
+  width: unset; }
+
 .igv-app-dropdown-item-cloud-storage {
   display: flex;
   flex-direction: row;
