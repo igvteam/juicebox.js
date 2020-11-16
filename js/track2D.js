@@ -1,6 +1,6 @@
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {Track2DDisplaceModes} from './globals.js';
-import igv from '../node_modules/igv/dist/igv.esm.js'
+import igv from './igv.esm.js'
 
 const google = igv.google;
 const oauth = igv.oauth;

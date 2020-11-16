@@ -27,7 +27,7 @@
  */
 
 import { IGVColor } from '../node_modules/igv-utils/src/index.js'
-import igv from '../node_modules/igv/dist/igv.esm.js';
+import igv from './igv.esm.js';
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class Ruler {
