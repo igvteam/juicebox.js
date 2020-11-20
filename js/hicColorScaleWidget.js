@@ -219,7 +219,7 @@ const presentColorPicker = ($presentButton, $aButton, $bButton, presentColorpick
 
 function colorSwatch(rgbString) {
 
-    const $swatch = $('<div>', {class: 'igv-color-swatch'});
+    const $swatch = $('<div>', {class: 'igv-ui-color-swatch'});
     $swatch.css("border-color", "lightgray");
     $swatch.css("background",  "lightgray");
     const $fa = $('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
