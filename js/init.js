@@ -24,7 +24,7 @@
 import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {Zlib} from "../node_modules/igv-utils/src/index.js"
-import igv from "./igv.esm.js"
+import igv from "../node_modules/igv/dist/igv.esm.js"
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js"
 import {extractQuery} from "./urlUtils.js"
 import GoogleURL from "./googleURL.js"

@@ -26,7 +26,7 @@
  * @author Jim Robinson
  */
 
-import igv from './igv.esm.js'
+import igv from '../node_modules/igv/dist/igv.esm.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
 const geneSearch = function (genomeId, featureName) {

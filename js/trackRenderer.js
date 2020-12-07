@@ -4,8 +4,8 @@
 
 import { DOMUtils } from '../node_modules/igv-utils/src/index.js'
 import { ColorPicker  } from '../node_modules/igv-ui/dist/igv-ui.js'
-import igv from './igv.esm.js';
-import  * as hic from './hicUtils.js';
+import igv from '../node_modules/igv/dist/igv.esm.js'
+import  * as hic from './hicUtils.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
