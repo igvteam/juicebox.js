@@ -27,25 +27,20 @@
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {TrackUtils, DOMUtils, GoogleUtils, FileUtils} from '../node_modules/igv-utils/src/index.js'
+import {DOMUtils, FileUtils, GoogleUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
 import {paramEncode} from "./urlUtils.js"
 import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController, {
-    annotationTrackHeight,
-    getNavbarContainer,
-    getNavbarHeight,
-    wigTrackHeight
-} from './layoutController.js'
+import LayoutController, {getNavbarContainer, getNavbarHeight, wigTrackHeight} from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import GoogleRemoteFile from "./googleRemoteFile.js"
+import IGVRemoteFile from "./igvRemoteFile.js"
 import LocusGoto from "./hicLocusGoto.js";
 import ResolutionSelector from "./hicResolutionSelector.js";
 import ColorScaleWidget from "./hicColorScaleWidget.js";
@@ -56,132 +51,131 @@ import AnnotationWidget from "./annotationWidget.js";
 import SweepZoom from "./sweepZoom.js";
 import ScrollbarWidget from "./scrollbarWidget.js";
 import ContactMatrixView from "./contactMatrixView.js";
-import ColorScale, { defaultColorScaleConfig } from "./colorScale.js";
-import RatioColorScale, { defaultRatioColorScaleConfig } from "./ratioColorScale.js";
+import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
+import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
 
-const HICBrowser = function ($app_container, config) {
+class HICBrowser {
 
-    this.config = config;
-    this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
-    this.resolutionLocked = false;
-    this.eventBus = new EventBus();
+    constructor($app_container, config) {
 
-    this.showTrackLabelAndGutter = true;
+        this.config = config;
+        this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
+        this.resolutionLocked = false;
+        this.eventBus = new EventBus();
 
-    this.id = `browser_${DOMUtils.guid()}`;
-    this.trackRenderers = [];
-    this.tracks2D = [];
-    this.normVectorFiles = [];
+        this.showTrackLabelAndGutter = true;
 
-    this.synchedBrowsers = [];
+        this.id = `browser_${DOMUtils.guid()}`;
+        this.trackRenderers = [];
+        this.tracks2D = [];
+        this.normVectorFiles = [];
 
-    this.isMobile = hicUtils.isMobile();
+        this.synchedBrowsers = [];
 
-    this.$root = $('<div class="hic-root unselect">');
+        this.isMobile = hicUtils.isMobile();
 
-    if (config.width) {
-        this.$root.css("width", String(config.width));
-    }
-    if (config.height) {
-        this.$root.css("height", String(config.height + getNavbarHeight()));
-    }
+        this.$root = $('<div class="hic-root unselect">');
 
-    $app_container.append(this.$root);
-
-    this.layoutController = new LayoutController(this, this.$root);
-
-    // nav bar related objects
-    this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
-    this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
-    this.resolutionSelector.setResolutionLock(this.resolutionLocked);
-    this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
-    this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
-    this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
-
-    // contact map container related objects
-    const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
-    const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
-
-    const colorScale = new ColorScale(defaultColorScaleConfig);
-
-    const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
-    ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
-    ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
-    const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor
-    this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
-
-    this.$menu = this.createMenu(this.$root);
-    this.$menu.hide();
-
-    this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'));
-
-    const annotation2DWidgetConfig =
-        {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-
-    this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
-
-    // prevent user interaction during lengthy data loads
-    this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
-    this.$root.append(this.$user_interaction_shield);
-    this.$user_interaction_shield.hide();
-
-    this.hideCrosshairs();
-
-    this.state = config.state ? config.state : defaultState.clone();
-
-    this.eventBus.subscribe("LocusChange", this);
-
-};
-
-HICBrowser.getCurrentBrowser = function () {
-
-    if (hicUtils.allBrowsers.length === 1) {
-        return hicUtils.allBrowsers[0];
-    } else {
-        return HICBrowser.currentBrowser;
-    }
-
-};
-
-HICBrowser.setCurrentBrowser = function (browser) {
-
-    // unselect current browser
-    if (undefined === browser) {
-
-        if (HICBrowser.currentBrowser) {
-            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+        if (config.width) {
+            this.$root.css("width", String(config.width));
+        }
+        if (config.height) {
+            this.$root.css("height", String(config.height + getNavbarHeight()));
         }
 
-        HICBrowser.currentBrowser = browser;
-        return;
+        $app_container.append(this.$root);
+
+        this.layoutController = new LayoutController(this, this.$root);
+
+        // nav bar related objects
+        this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
+        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
+        this.resolutionSelector.setResolutionLock(this.resolutionLocked);
+        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
+        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
+        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
+
+        // contact map container related objects
+        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
+        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
+
+        const colorScale = new ColorScale(defaultColorScaleConfig);
+
+        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
+        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
+        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
+        const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor
+        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
+
+        this.$menu = this.createMenu(this.$root);
+        this.$menu.hide();
+
+        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'));
+
+        const annotation2DWidgetConfig =
+            {
+                title: '2D Annotations',
+                alertMessage: 'No 2D annotations currently loaded for this map'
+            };
+
+        this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
+
+        // prevent user interaction during lengthy data loads
+        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
+        this.$root.append(this.$user_interaction_shield);
+        this.$user_interaction_shield.hide();
+
+        this.hideCrosshairs();
+
+        this.state = config.state ? config.state : defaultState.clone();
+
+        this.eventBus.subscribe("LocusChange", this);
+
     }
 
+    static getCurrentBrowser() {
+        if (hicUtils.allBrowsers.length === 1) {
+            return hicUtils.allBrowsers[0];
+        } else {
+            return HICBrowser.currentBrowser;
+        }
+    }
 
-    if (browser !== HICBrowser.currentBrowser) {
+    static setCurrentBrowser(browser) {
 
-        if (HICBrowser.currentBrowser) {
-            HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+        // unselect current browser
+        if (undefined === browser) {
+            if (HICBrowser.currentBrowser) {
+                HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+            }
+
+            HICBrowser.currentBrowser = browser;
+            return;
         }
 
-        browser.$root.addClass('hic-root-selected');
-        HICBrowser.currentBrowser = browser;
 
-        EventBus.globalBus.post(HICEvent("BrowserSelect", browser));
+        if (browser !== HICBrowser.currentBrowser) {
+
+            if (HICBrowser.currentBrowser) {
+                HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
+            }
+
+            browser.$root.addClass('hic-root-selected');
+            HICBrowser.currentBrowser = browser;
+
+            EventBus.globalBus.post(HICEvent("BrowserSelect", browser));
+        }
+
     }
 
-};
+    createMenu($root) {
 
-HICBrowser.prototype.createMenu = function ($root) {
-
-    const html =
-        `<div class="hic-menu" style="display: none;">
+        const html =
+            `<div class="hic-menu" style="display: none;">
             <div class="hic-menu-close-button">
                 <i class="fa fa-times"></i>
             </div>
@@ -198,499 +192,821 @@ HICBrowser.prototype.createMenu = function ($root) {
 	        </div>
         </div>`;
 
-    $root.append($(html));
+        $root.append($(html));
 
-    const $menu = $root.find(".hic-menu");
+        const $menu = $root.find(".hic-menu");
 
-    const $fa = $root.find(".fa-times");
-    $fa.on('click', () => this.toggleMenu());
+        const $fa = $root.find(".fa-times");
+        $fa.on('click', () => this.toggleMenu());
 
-    return $menu;
+        return $menu;
 
-};
-
-HICBrowser.prototype.toggleTrackLabelAndGutterState = function () {
-    this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
-};
-
-HICBrowser.prototype.toggleMenu = function () {
-
-    if (this.$menu.is(':visible')) {
-        this.hideMenu();
-    } else {
-        this.showMenu();
     }
 
-};
-
-HICBrowser.prototype.showMenu = function () {
-    this.$menu.show();
-};
-
-HICBrowser.prototype.hideMenu = function () {
-    this.$menu.hide();
-};
-
-HICBrowser.prototype.startSpinner = function () {
-    this.contactMatrixView.startSpinner();
-};
-
-HICBrowser.prototype.stopSpinner = function () {
-    this.contactMatrixView.stopSpinner();
-};
-
-HICBrowser.prototype.setDisplayMode = async function (mode) {
-    await this.contactMatrixView.setDisplayMode(mode);
-    this.eventBus.post(HICEvent("DisplayMode", mode));
-};
-
-HICBrowser.prototype.getDisplayMode = function () {
-    return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
-};
-
-HICBrowser.prototype.toggleDisplayMode = function () {
-    this.controlMapWidget.toggleDisplayMode();
-};
-
-HICBrowser.prototype.getNormalizationOptions = async function () {
-
-    if (!this.dataset) return [];
-
-    const baseOptions = await this.dataset.getNormalizationOptions();
-    if (this.controlDataset) {
-        let controlOptions = await this.controlDataset.getNormalizationOptions();
-        controlOptions = new Set(controlOptions);
-        return baseOptions.filter(base => controlOptions.has(base));
-    } else {
-        return baseOptions;
-    }
-}
-
-/**
- * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
- * @returns {{index: *, binSize: *}[]|Array}
- */
-HICBrowser.prototype.getResolutions = function () {
-    if (!this.dataset) return [];
-
-    const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
-        return {index: index, binSize: resolution}
-    });
-    if (this.controlDataset) {
-        let controlResolutions = new Set(this.controlDataset.bpResolutions);
-        return baseResolutions.filter(base => controlResolutions.has(base.binSize));
-    } else {
-        return baseResolutions;
-    }
-}
-
-HICBrowser.prototype.isWholeGenome = function () {
-    return this.dataset && this.state && this.dataset.isWholeGenome(this.state.chr1)
-}
-
-HICBrowser.prototype.getColorScale = function () {
-
-    if (!this.contactMatrixView) return undefined;
-
-    switch (this.getDisplayMode()) {
-        case 'AOB':
-        case 'BOA':
-            return this.contactMatrixView.ratioColorScale;
-        case 'AMB':
-            return this.contactMatrixView.diffColorScale;
-        default:
-            return this.contactMatrixView.colorScale;
-    }
-};
-
-HICBrowser.prototype.setColorScaleThreshold = function (threshold) {
-    this.contactMatrixView.setColorScaleThreshold(threshold);
-};
-
-HICBrowser.prototype.updateCrosshairs = function ({x, y, xNormalized, yNormalized}) {
-
-    const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
-    this.contactMatrixView.$x_guide.css(xGuide);
-    this.layoutController.$x_track_guide.css(xGuide);
-
-    const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
-    this.contactMatrixView.$y_guide.css(yGuide);
-    this.layoutController.$y_track_guide.css(yGuide);
-
-    if (this.customCrosshairsHandler) {
-
-        const {x: stateX, y: stateY, pixelSize} = this.state;
-        const resolution = this.resolution();
-
-        const xBP = (stateX + (x / pixelSize)) * resolution;
-        const yBP = (stateY + (y / pixelSize)) * resolution;
-
-        let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
-        let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
-
-        this.customCrosshairsHandler({
-            xBP,
-            yBP,
-            startXBP,
-            startYBP,
-            endXBP,
-            endYBP,
-            interpolantX: xNormalized,
-            interpolantY: yNormalized
-        });
+    toggleTrackLabelAndGutterState() {
+        this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
     }
 
-};
+    toggleMenu() {
+        if (this.$menu.is(':visible')) {
+            this.hideMenu();
+        } else {
+            this.showMenu();
+        }
+    }
 
-HICBrowser.prototype.setCustomCrosshairsHandler = function (crosshairsHandler) {
-    this.customCrosshairsHandler = crosshairsHandler;
-};
+    showMenu() {
+        this.$menu.show();
+    }
 
-HICBrowser.prototype.hideCrosshairs = function () {
-
-    this.contactMatrixView.$x_guide.hide();
-    this.layoutController.$x_track_guide.hide();
-
-    this.contactMatrixView.$y_guide.hide();
-    this.layoutController.$y_track_guide.hide();
-
-};
-
-HICBrowser.prototype.showCrosshairs = function () {
-
-    this.contactMatrixView.$x_guide.show();
-    this.layoutController.$x_track_guide.show();
-
-    this.contactMatrixView.$y_guide.show();
-    this.layoutController.$y_track_guide.show();
-};
-
-HICBrowser.prototype.genomicState = function (axis) {
-    var gs,
-        bpResolution;
-
-    bpResolution = this.dataset.bpResolutions[this.state.zoom];
-    gs = {
-        bpp: bpResolution / this.state.pixelSize
+    hideMenu() {
+        this.$menu.hide();
     };
 
-    if (axis === "x") {
-        gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-        gs.startBP = this.state.x * bpResolution;
-        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
-    } else {
-        gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-        gs.startBP = this.state.y * bpResolution;
-        gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
-    }
-    return gs;
-};
-
-
-/**
- * Load a list of 1D genome tracks (wig, etc).
- *
- * NOTE: public API function
- *
- * @param configs
- */
-HICBrowser.prototype.loadTracks = async function (configs) {
-
-    // If loading a single track remember its name, for error message
-    const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
-
-    try {
+    startSpinner() {
         this.contactMatrixView.startSpinner();
-        // const ps = inferTypes(configs)
-        // const trackConfigurations = await Promise.all(ps)
+    }
 
-        const trackXYPairs = [];
-        const promises2D = [];
-        const promisesNV = []
-
-        for (let config of /*trackConfigurations*/configs) {
-
-            const fileName = await FileUtils.getFilenameExtended(config.url);
-
-            config.format = TrackUtils.inferFileFormat(fileName)
-
-            // if ("annotation" === config.type && config.color === undefined) {
-                config.color = DEFAULT_ANNOTATION_COLOR;
-                config.displayMode = "COLLAPSED"
-            // }
-
-            if (config.max === undefined) {
-                config.autoscale = true;
-            }
-
-            // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
-            config.height = wigTrackHeight;
-
-            if (undefined === config.format) {
-                // Assume this is a 2D track
-                promises2D.push(Track2D.loadTrack2D(config));
-            } else {
-                const track = await igv.createTrack(config, this)
-                trackXYPairs.push({x: track, y: track})
-
-            }
-        }
-
-        if (trackXYPairs.length > 0) {
-
-            this.layoutController.tracksLoaded(trackXYPairs);
-
-            const $gear_container = $('.hic-igv-right-hand-gutter');
-            if (true === this.showTrackLabelAndGutter) {
-                $gear_container.show();
-            } else {
-                $gear_container.hide();
-            }
-
-            await this.updateLayout();
-        }
-
-        if (promises2D.length > 0) {
-
-            const tracks2D = await Promise.all(promises2D)
-            if (tracks2D && tracks2D.length > 0) {
-                this.tracks2D = this.tracks2D.concat(tracks2D);
-                this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
-            }
-
-        }
-
-    } catch (error) {
-        presentError(errorPrefix, error);
-        console.error(error)
-
-    } finally {
+    stopSpinner() {
         this.contactMatrixView.stopSpinner();
     }
-}
+
+    async setDisplayMode(mode) {
+        await this.contactMatrixView.setDisplayMode(mode);
+        this.eventBus.post(HICEvent("DisplayMode", mode));
+    }
+
+    getDisplayMode() {
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+    }
+
+    toggleDisplayMode() {
+        this.controlMapWidget.toggleDisplayMode();
+    }
+
+    async getNormalizationOptions() {
+
+        if (!this.dataset) return [];
+
+        const baseOptions = await this.dataset.getNormalizationOptions();
+        if (this.controlDataset) {
+            let controlOptions = await this.controlDataset.getNormalizationOptions();
+            controlOptions = new Set(controlOptions);
+            return baseOptions.filter(base => controlOptions.has(base));
+        } else {
+            return baseOptions;
+        }
+    }
+
+    /**
+     * Return usable resolutions, that is the union of resolutions between dataset and controlDataset.
+     * @returns {{index: *, binSize: *}[]|Array}
+     */
+    getResolutions() {
+        if (!this.dataset) return [];
+
+        const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
+            return {index: index, binSize: resolution}
+        });
+        if (this.controlDataset) {
+            let controlResolutions = new Set(this.controlDataset.bpResolutions);
+            return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+        } else {
+            return baseResolutions;
+        }
+    }
+
+    isWholeGenome() {
+        return this.dataset && this.state && this.dataset.isWholeGenome(this.state.chr1)
+    }
+
+    getColorScale() {
+
+        if (!this.contactMatrixView) return undefined;
+
+        switch (this.getDisplayMode()) {
+            case 'AOB':
+            case 'BOA':
+                return this.contactMatrixView.ratioColorScale;
+            case 'AMB':
+                return this.contactMatrixView.diffColorScale;
+            default:
+                return this.contactMatrixView.colorScale;
+        }
+    }
+
+    setColorScaleThreshold(threshold) {
+        this.contactMatrixView.setColorScaleThreshold(threshold);
+    }
+
+    updateCrosshairs({x, y, xNormalized, yNormalized}) {
+
+        const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
+        this.contactMatrixView.$x_guide.css(xGuide);
+        this.layoutController.$x_track_guide.css(xGuide);
+
+        const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
+        this.contactMatrixView.$y_guide.css(yGuide);
+        this.layoutController.$y_track_guide.css(yGuide);
+
+        if (this.customCrosshairsHandler) {
+
+            const {x: stateX, y: stateY, pixelSize} = this.state;
+            const resolution = this.resolution();
+
+            const xBP = (stateX + (x / pixelSize)) * resolution;
+            const yBP = (stateY + (y / pixelSize)) * resolution;
+
+            let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
+            let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
+
+            this.customCrosshairsHandler({
+                xBP,
+                yBP,
+                startXBP,
+                startYBP,
+                endXBP,
+                endYBP,
+                interpolantX: xNormalized,
+                interpolantY: yNormalized
+            });
+        }
+
+    }
+
+    setCustomCrosshairsHandler(crosshairsHandler) {
+        this.customCrosshairsHandler = crosshairsHandler;
+    }
+
+    hideCrosshairs() {
+
+        this.contactMatrixView.$x_guide.hide();
+        this.layoutController.$x_track_guide.hide();
+
+        this.contactMatrixView.$y_guide.hide();
+        this.layoutController.$y_track_guide.hide();
+
+    }
+
+    showCrosshairs() {
+
+        this.contactMatrixView.$x_guide.show();
+        this.layoutController.$x_track_guide.show();
+
+        this.contactMatrixView.$y_guide.show();
+        this.layoutController.$y_track_guide.show();
+    }
+
+    genomicState(axis) {
+        var gs,
+            bpResolution;
+
+        bpResolution = this.dataset.bpResolutions[this.state.zoom];
+        gs = {
+            bpp: bpResolution / this.state.pixelSize
+        };
+
+        if (axis === "x") {
+            gs.chromosome = this.dataset.chromosomes[this.state.chr1];
+            gs.startBP = this.state.x * bpResolution;
+            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
+        } else {
+            gs.chromosome = this.dataset.chromosomes[this.state.chr2];
+            gs.startBP = this.state.y * bpResolution;
+            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
+        }
+        return gs;
+    }
 
 
-HICBrowser.prototype.loadNormalizationFile = function (url) {
+    /**
+     * Load a list of 1D genome tracks (wig, etc).
+     *
+     * NOTE: public API function
+     *
+     * @param configs
+     */
+    async loadTracks(configs) {
 
-    var self = this;
+        // If loading a single track remember its name, for error message
+        const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
 
-    if (!this.dataset) return;
+        try {
+            this.contactMatrixView.startSpinner();
 
-    self.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
+            const trackXYPairs = [];
+            const promises2D = [];
 
-    return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
+            for (let config of /*trackConfigurations*/configs) {
 
-        .then(function (normVectors) {
+                const fileName = await FileUtils.getFilenameExtended(config.url);
 
-            Object.assign(self.dataset.normVectorCache, normVectors);
+                config.format = TrackUtils.inferFileFormat(fileName)
 
-            for (let type of normVectors['types']) {
+                // if ("annotation" === config.type && config.color === undefined) {
+                config.color = DEFAULT_ANNOTATION_COLOR;
+                config.displayMode = "COLLAPSED"
+                // }
 
-                if (!self.dataset.normalizationTypes) {
-                    self.dataset.normalizationTypes = [];
+                if (config.max === undefined) {
+                    config.autoscale = true;
                 }
-                if (!self.dataset.normalizationTypes.includes(type)) {
-                    self.dataset.normalizationTypes.push(type);
+
+                // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
+                config.height = wigTrackHeight;
+
+                if (undefined === config.format) {
+                    // Assume this is a 2D track
+                    promises2D.push(Track2D.loadTrack2D(config));
+                } else {
+                    const track = await igv.createTrack(config, this)
+                    trackXYPairs.push({x: track, y: track})
+                }
+            }
+
+            if (trackXYPairs.length > 0) {
+
+                this.layoutController.tracksLoaded(trackXYPairs);
+
+                const $gear_container = $('.hic-igv-right-hand-gutter');
+                if (true === this.showTrackLabelAndGutter) {
+                    $gear_container.show();
+                } else {
+                    $gear_container.hide();
                 }
 
-                self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
+                await this.updateLayout();
+            }
+
+            if (promises2D.length > 0) {
+
+                const tracks2D = await Promise.all(promises2D)
+                if (tracks2D && tracks2D.length > 0) {
+                    this.tracks2D = this.tracks2D.concat(tracks2D);
+                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+                }
 
             }
 
-            return normVectors;
-        })
+        } catch (error) {
+            presentError(errorPrefix, error);
+            console.error(error)
 
-};
-
-
-HICBrowser.prototype.renderTracks = function () {
-    var self = this;
-    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-        self.renderTrackXY(xyTrackRenderPair);
-    });
-
-};
-
-/**
- * Render the XY pair of tracks.
- *
- * @param xy
- */
-HICBrowser.prototype.renderTrackXY = async function (xy, force) {
-
-    try {
-        this.startSpinner()
-        await xy.x.repaint(force);
-        await xy.y.repaint(force);
-    } finally {
-        this.stopSpinner()
+        } finally {
+            this.contactMatrixView.stopSpinner();
+        }
     }
 
-}
+    loadNormalizationFile(url) {
 
+        var self = this;
 
-HICBrowser.prototype.reset = function () {
-    this.layoutController.removeAllTrackXYPairs();
-    this.contactMatrixView.clearImageCaches();
-    this.tracks2D = [];
-    this.tracks = [];
-    this.$contactMaplabel.text("");
-    this.$contactMaplabel.attr('title', "");
-    this.$controlMaplabel.text("");
-    this.$controlMaplabel.attr('title', "");
-    this.dataset = undefined;
-    this.controlDataset = undefined;
-}
+        if (!this.dataset) return;
 
+        self.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
 
-HICBrowser.prototype.clearSession = function () {
-    // Clear current datasets.
-    this.dataset = undefined;
-    this.controlDataset = undefined;
-    this.setDisplayMode('A');
-}
+        return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
 
-/**
- * Load a .hic file
- *
- * NOTE: public API function
- *
- * @return a promise for a dataset
- * @param config
- * @param noUpdates
- */
-HICBrowser.prototype.loadHicFile = async function (config, noUpdates) {
+            .then(function (normVectors) {
 
-    if (!config.url) {
-        console.log("No .hic url specified");
-        return undefined;
-    }
+                Object.assign(self.dataset.normVectorCache, normVectors);
 
-    this.clearSession();
+                for (let type of normVectors['types']) {
 
-    try {
-
-        this.contactMatrixView.startSpinner();
-        if (!noUpdates) {
-            this.$user_interaction_shield.show();
-        }
-
-        const name = await extractName(config)
-        const prefix = this.controlDataset ? "A: " : "";
-        this.$contactMaplabel.text(prefix + name);
-        this.$contactMaplabel.attr('title', name);
-        config.name = name;
-
-        this.dataset = await loadDataset(config)
-        this.dataset.name = name
-
-        const previousGenomeId = this.genome ? this.genome.id : undefined;
-        this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes);
-
-        // TODO -- this is not going to work with browsers on different assemblies on the same page.
-        igv.browser.genome = this.genome;
-
-        if (this.genome.id !== previousGenomeId) {
-            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
-        }
-        this.eventBus.post(HICEvent("MapLoad", this.dataset));
-
-        if (config.state) {
-            await this.setState(config.state);
-        } else if (config.synchState && this.canBeSynched(config.synchState)) {
-            this.syncState(config.synchState);
-        } else {
-            await this.setState(defaultState.clone());
-        }
-
-
-        // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
-        // Let it load in the background
-        const eventBus = this.eventBus
-
-        // If nvi is not supplied, try reading it from remote lambda service
-        if (!config.nvi && typeof config.url === "string") {
-            const url = new URL(config.url)
-            const key = encodeURIComponent(url.hostname + url.pathname)
-            const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
-            if (nviResponse.status === 200) {
-                const nvi = await nviResponse.text()
-                if (nvi) {
-                    config.nvi = nvi
-                }
-            }
-        }
-
-        if (config.nvi) {
-            await this.dataset.getNormVectorIndex(config)
-            eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
-        } else {
-            const dataset = this.dataset
-            dataset.getNormVectorIndex(config)
-                .then(function (normVectorIndex) {
-                    if (!config.isControl) {
-                        eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
+                    if (!self.dataset.normalizationTypes) {
+                        self.dataset.normalizationTypes = [];
                     }
-                })
-        }
+                    if (!self.dataset.normalizationTypes.includes(type)) {
+                        self.dataset.normalizationTypes.push(type);
+                    }
 
-    } catch (error) {
-        this.$contactMaplabel.text('');
-        this.$contactMaplabel.attr('');
-        config.name = name;
-        throw error;
-    } finally {
-        this.stopSpinner();
-        if (!noUpdates) {
-            this.$user_interaction_shield.hide();
+                    self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
+
+                }
+
+                return normVectors;
+            })
+
+    };
+
+    renderTracks() {
+        var self = this;
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+            this.renderTrackXY(xyTrackRenderPair);
+        })
+    }
+
+    /**
+     * Render the XY pair of tracks.
+     *
+     * @param xy
+     */
+    async renderTrackXY(xy, force) {
+
+        try {
+            this.startSpinner()
+            await xy.x.repaint(force);
+            await xy.y.repaint(force);
+        } finally {
+            this.stopSpinner()
         }
     }
-}
 
-/**
- * Load a .hic file for a control map
- *
- * NOTE: public API function
- *
- * @return a promise for a dataset
- * @param config
- */
-HICBrowser.prototype.loadHicControlFile = async function (config, noUpdates) {
+    reset() {
+        this.layoutController.removeAllTrackXYPairs();
+        this.contactMatrixView.clearImageCaches();
+        this.tracks2D = [];
+        this.tracks = [];
+        this.$contactMaplabel.text("");
+        this.$contactMaplabel.attr('title', "");
+        this.$controlMaplabel.text("");
+        this.$controlMaplabel.attr('title', "");
+        this.dataset = undefined;
+        this.controlDataset = undefined;
+    }
 
-    try {
-        this.$user_interaction_shield.show()
-        this.contactMatrixView.startSpinner()
-        this.controlUrl = config.url
-        const name = await extractName(config)
-        config.name = name
+    clearSession() {
+        // Clear current datasets.
+        this.dataset = undefined;
+        this.controlDataset = undefined;
+        this.setDisplayMode('A');
+    }
 
-        const controlDataset = await loadDataset(config)
-        controlDataset.name = name
+    /**
+     * Load a .hic file
+     *
+     * NOTE: public API function
+     *
+     * @return a promise for a dataset
+     * @param config
+     * @param noUpdates
+     */
+    async loadHicFile(config, noUpdates) {
 
-        if (!this.dataset || hicUtils.areCompatible(this.dataset, controlDataset)) {
-            this.controlDataset = controlDataset;
-            if (this.dataset) {
-                this.$contactMaplabel.text("A: " + this.dataset.name);
-            }
-            this.$controlMaplabel.text("B: " + controlDataset.name);
-            this.$controlMaplabel.attr('title', controlDataset.name);
+        if (!config.url) {
+            console.log("No .hic url specified");
+            return undefined;
+        }
 
-            //For the control dataset, block until the norm vector index is loaded
-            await controlDataset.getNormVectorIndex(config)
-            this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
+        this.clearSession();
 
+        try {
+
+            this.contactMatrixView.startSpinner();
             if (!noUpdates) {
-                this.update();
+                this.$user_interaction_shield.show();
             }
-        } else {
-            Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
-        }
-    } finally {
-        this.$user_interaction_shield.hide();
-        this.stopSpinner();
-    }
-}
 
+            const name = await extractName(config)
+            const prefix = this.controlDataset ? "A: " : "";
+            this.$contactMaplabel.text(prefix + name);
+            this.$contactMaplabel.attr('title', name);
+            config.name = name;
+
+            this.dataset = await loadDataset(config)
+            this.dataset.name = name
+
+            const previousGenomeId = this.genome ? this.genome.id : undefined;
+            this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes);
+
+            // TODO -- this is not going to work with browsers on different assemblies on the same page.
+            igv.browser.genome = this.genome;
+
+            if (this.genome.id !== previousGenomeId) {
+                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
+            }
+            this.eventBus.post(HICEvent("MapLoad", this.dataset));
+
+            if (config.state) {
+                await this.setState(config.state);
+            } else if (config.synchState && this.canBeSynched(config.synchState)) {
+                this.syncState(config.synchState);
+            } else {
+                await this.setState(defaultState.clone());
+            }
+
+
+            // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
+            // Let it load in the background
+            const eventBus = this.eventBus
+
+            // If nvi is not supplied, try reading it from remote lambda service
+            if (!config.nvi && typeof config.url === "string") {
+                const url = new URL(config.url)
+                const key = encodeURIComponent(url.hostname + url.pathname)
+                const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
+                if (nviResponse.status === 200) {
+                    const nvi = await nviResponse.text()
+                    if (nvi) {
+                        config.nvi = nvi
+                    }
+                }
+            }
+
+            if (config.nvi) {
+                await this.dataset.getNormVectorIndex(config)
+                eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+            } else {
+                const dataset = this.dataset
+                dataset.getNormVectorIndex(config)
+                    .then(function (normVectorIndex) {
+                        if (!config.isControl) {
+                            eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
+                        }
+                    })
+            }
+
+        } catch (error) {
+            this.$contactMaplabel.text('');
+            this.$contactMaplabel.attr('');
+            config.name = name;
+            throw error;
+        } finally {
+            this.stopSpinner();
+            if (!noUpdates) {
+                this.$user_interaction_shield.hide();
+            }
+        }
+    }
+
+    /**
+     * Load a .hic file for a control map
+     *
+     * NOTE: public API function
+     *
+     * @return a promise for a dataset
+     * @param config
+     */
+    async loadHicControlFile(config, noUpdates) {
+
+        try {
+            this.$user_interaction_shield.show()
+            this.contactMatrixView.startSpinner()
+            this.controlUrl = config.url
+            const name = await extractName(config)
+            config.name = name
+
+            const controlDataset = await loadDataset(config)
+            controlDataset.name = name
+
+            if (!this.dataset || hicUtils.areCompatible(this.dataset, controlDataset)) {
+                this.controlDataset = controlDataset;
+                if (this.dataset) {
+                    this.$contactMaplabel.text("A: " + this.dataset.name);
+                }
+                this.$controlMaplabel.text("B: " + controlDataset.name);
+                this.$controlMaplabel.attr('title', controlDataset.name);
+
+                //For the control dataset, block until the norm vector index is loaded
+                await controlDataset.getNormVectorIndex(config)
+                this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
+
+                if (!noUpdates) {
+                    this.update();
+                }
+            } else {
+                Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
+            }
+        } finally {
+            this.$user_interaction_shield.hide();
+            this.stopSpinner();
+        }
+    }
+
+    async parseGotoInput(string) {
+
+        let xLocus;
+        let yLocus;
+        const loci = string.split(' ');
+        if (loci.length === 1) {
+            xLocus = this.parseLocusString(loci[0]);
+            yLocus = xLocus;
+        } else {
+            xLocus = this.parseLocusString(loci[0]);
+            yLocus = this.parseLocusString(loci[1]);
+            if (yLocus === undefined) yLocus = xLocus;
+        }
+
+        if (xLocus === undefined) {
+            // Try a gene name search.
+            const result = await geneSearch(this.genome.id, loci[0].trim())
+
+            if (result) {
+                Globals.selectedGene = loci[0].trim();
+                xLocus = this.parseLocusString(result);
+                yLocus = xLocus;
+                this.state.selectedGene = Globals.selectedGene;
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+            } else {
+                alert('No feature found with name "' + loci[0] + '"');
+            }
+
+        } else {
+
+            if (xLocus.wholeChr && yLocus.wholeChr) {
+                await this.setChromosomes(xLocus.chr, yLocus.chr);
+            } else {
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
+            }
+        }
+
+    };
+
+    /**
+     * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
+     *
+     * resolutionAraay can be either
+     *   (1) an array of bin sizes
+     *   (2) an array of objects with index and bin size
+     * @param targetResolution
+     * @param resolutionArray
+     * @returns {number}
+     */
+    findMatchingZoomIndex(targetResolution, resolutionArray) {
+        const isObject = resolutionArray.length > 0 && resolutionArray[0].index !== undefined;
+        for (let z = resolutionArray.length - 1; z > 0; z--) {
+            const binSize = isObject ? resolutionArray[z].binSize : resolutionArray[z];
+            const index = isObject ? resolutionArray[z].index : z;
+            if (binSize >= targetResolution) {
+                return index;
+            }
+        }
+        return 0;
+    };
+
+    parseLocusString(locus) {
+
+        const locusObject = {};
+        const parts = locus.trim().split(':');
+        const chromosome = this.genome.getChromosome(parts[0].toLowerCase());
+
+        if (!chromosome) {
+            return undefined;
+        } else {
+            locusObject.chr = chromosome.index;
+        }
+
+        if (parts.length === 1) {
+            // Chromosome name only
+            locusObject.start = 0;
+            locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
+            locusObject.wholeChr = true;
+        } else {
+            const extent = parts[1].split("-");
+            let numeric = extent[0].replace(/\,/g, '');
+            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
+            if (extent.length == 2) {
+                numeric = extent[1].replace(/\,/g, '');
+                locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
+            }
+        }
+        return locusObject;
+    };
+
+
+    /**
+     * @param scaleFactor Values range from greater then 1 to decimal values less then one
+     *                    Value > 1 are magnification (zoom in)
+     *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
+     * @param anchorPx -- anchor position in pixels (should not move after transformation)
+     * @param anchorPy
+     */
+    async pinchZoom(anchorPx, anchorPy, scaleFactor) {
+
+        if (this.state.chr1 === 0) {
+            await this.zoomAndCenter(1, anchorPx, anchorPy);
+        } else {
+            try {
+                this.startSpinner()
+
+                const bpResolutions = this.getResolutions();
+                const currentResolution = bpResolutions[this.state.zoom];
+
+                let newBinSize
+                let newZoom
+                let newPixelSize
+                let zoomChanged
+
+                if (this.resolutionLocked ||
+                    (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
+                    (this.state.zoom === 0 && scaleFactor < 1)) {
+                    // Can't change resolution level, must adjust pixel size
+                    newBinSize = currentResolution.binSize;
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
+                    newZoom = this.state.zoom;
+                    zoomChanged = false;
+                } else {
+                    const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
+                    newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
+                    newBinSize = bpResolutions[newZoom].binSize;
+                    zoomChanged = newZoom !== this.state.zoom;
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
+                }
+                const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+
+
+                if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
+                    // Zoom out to whole genome
+                    this.setChromosomes(0, 0);
+                } else {
+
+                    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
+
+                    const state = this.state;
+
+                    newPixelSize = Math.max(newPixelSize, minPS);
+
+                    // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
+                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
+
+                    state.x = gx / newBinSize - anchorPx / newPixelSize;
+                    state.y = gy / newBinSize - anchorPy / newPixelSize;
+
+                    state.zoom = newZoom;
+                    state.pixelSize = newPixelSize;
+
+                    this.clamp();
+
+                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
+
+                    this.eventBus.post(HICEvent("LocusChange", {
+                        state: state,
+                        resolutionChanged: zoomChanged,
+                        chrChanged: false
+                    }));
+                }
+            } finally {
+                this.stopSpinner()
+            }
+        }
+
+    }
+
+    async wheelClickZoom(direction, centerPX, centerPY) {
+
+        if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
+            this.zoomAndCenter(direction, centerPX, centerPY);
+        } else {
+            const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+            var newZoom = this.state.zoom + direction;
+            if (direction < 0 && newZoom < z) {
+                this.setChromosomes(0, 0);
+            } else {
+                this.zoomAndCenter(direction, centerPX, centerPY);
+            }
+
+        }
+
+    }
+
+     // Zoom in response to a double-click
+    /**
+     * Zoom and center on bins at given screen coordinates.  Supports double-click zoom, pinch zoom.
+     * @param direction
+     * @param centerPX  screen coordinate to center on
+     * @param centerPY  screen coordinate to center on
+     * @returns {Promise<void>}
+     */
+    async zoomAndCenter(direction, centerPX, centerPY) {
+
+        if (!this.dataset) return;
+
+        if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
+            // jump from whole genome to chromosome
+            const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
+            const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
+            const chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX);
+            const chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
+            this.setChromosomes(chrX.index, chrY.index);
+        } else {
+            const resolutions = this.getResolutions();
+            const viewDimensions = this.contactMatrixView.getViewDimensions()
+            const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
+            const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
+
+            this.state.x += (dx / this.state.pixelSize);
+            this.state.y += (dy / this.state.pixelSize);
+
+            if (this.resolutionLocked ||
+                (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
+                (direction < 0 && this.state.zoom === resolutions[0].index)) {
+
+                const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+                const state = this.state;
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
+
+                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+                state.pixelSize = newPixelSize;
+                state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
+                state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
+
+                this.clamp();
+                this.eventBus.post(HICEvent("LocusChange", {
+                    state: state,
+                    resolutionChanged: false,
+                    chrChanged: false
+                }));
+
+            } else {
+                let i;
+                for (i = 0; i < resolutions.length; i++) {
+                    if (this.state.zoom === resolutions[i].index) break;
+                }
+                if (i !== undefined) {
+                    const newZoom = resolutions[i + direction].index;
+                    this.setZoom(newZoom);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set the current zoom state and opctionally center over supplied coordinates.
+     * @param zoom - index to the datasets resolution array (dataset.bpResolutions)
+     * @returns {Promise<void>}
+     */
+    async setZoom(zoom) {
+
+        try {
+
+            // Shift x,y to maintain center, if possible
+            const bpResolutions = this.dataset.bpResolutions;
+            const currentResolution = bpResolutions[this.state.zoom];
+            const viewDimensions = this.contactMatrixView.getViewDimensions();
+            const xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
+            const yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+
+            const newResolution = bpResolutions[zoom];
+            const newXCenter = xCenter * (currentResolution / newResolution);
+            const newYCenter = yCenter * (currentResolution / newResolution);
+            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
+            const state = this.state;
+            const newPixelSize = Math.max(hicUtils.defaultPixelSize, minPS);
+            const zoomChanged = (state.zoom !== zoom);
+
+            state.zoom = zoom;
+            state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
+            state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
+            state.pixelSize = newPixelSize;
+            this.clamp();
+
+            await this.contactMatrixView.zoomIn()
+
+            this.eventBus.post(HICEvent("LocusChange", {
+                state: state,
+                resolutionChanged: zoomChanged,
+                chrChanged: false
+            }));
+        } finally {
+            // this.stopSpinner()
+        }
+
+    };
+
+    async setChromosomes(chr1, chr2) {
+
+        try {
+            this.startSpinner()
+
+            this.state.chr1 = Math.min(chr1, chr2);
+            this.state.chr2 = Math.max(chr1, chr2);
+            this.state.x = 0;
+            this.state.y = 0;
+
+            const z = await minZoom.call(this, chr1, chr2)
+            this.state.zoom = z;
+
+            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+            this.state.pixelSize = Math.min(100, Math.max(hicUtils.defaultPixelSize, minPS));
+            this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
+        } finally {
+            this.stopSpinner()
+        }
+    }
+
+    async updateLayout() {
+
+        var self = this;
+        this.clamp();
+
+        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+            sync(xyTrackRenderPair.x, index);
+            sync(xyTrackRenderPair.y, index);
+        });
+
+        function sync(trackRenderer, index) {
+            trackRenderer.$viewport.css({order: index});
+            trackRenderer.syncCanvas();
+        }
+
+        this.layoutController.xAxisRuler.update();
+        this.layoutController.yAxisRuler.update();
+
+        await this.update();
+
+    };
+}
 
 /**
  * Return a promise to extract the name of the dataset.  The promise is neccessacary because
@@ -729,331 +1045,6 @@ function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
 
 }
 
-HICBrowser.prototype.parseGotoInput = async function (string) {
-
-    let xLocus;
-    let yLocus;
-    const loci = string.split(' ');
-    if (loci.length === 1) {
-        xLocus = this.parseLocusString(loci[0]);
-        yLocus = xLocus;
-    } else {
-        xLocus = this.parseLocusString(loci[0]);
-        yLocus = this.parseLocusString(loci[1]);
-        if (yLocus === undefined) yLocus = xLocus;
-    }
-
-    if (xLocus === undefined) {
-        // Try a gene name search.
-        const result = await geneSearch(this.genome.id, loci[0].trim())
-
-        if (result) {
-            Globals.selectedGene = loci[0].trim();
-            xLocus = this.parseLocusString(result);
-            yLocus = xLocus;
-            this.state.selectedGene = Globals.selectedGene;
-            this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
-        } else {
-            alert('No feature found with name "' + loci[0] + '"');
-        }
-
-    } else {
-
-        if (xLocus.wholeChr && yLocus.wholeChr) {
-            await this.setChromosomes(xLocus.chr, yLocus.chr);
-        } else {
-            this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
-        }
-    }
-
-};
-
-/**
- * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
- *
- * resolutionAraay can be either
- *   (1) an array of bin sizes
- *   (2) an array of objects with index and bin size
- * @param targetResolution
- * @param resolutionArray
- * @returns {number}
- */
-HICBrowser.prototype.findMatchingZoomIndex = function (targetResolution, resolutionArray) {
-    const isObject = resolutionArray.length > 0 && resolutionArray[0].index !== undefined;
-    for (let z = resolutionArray.length - 1; z > 0; z--) {
-        const binSize = isObject ? resolutionArray[z].binSize : resolutionArray[z];
-        const index = isObject ? resolutionArray[z].index : z;
-        if (binSize >= targetResolution) {
-            return index;
-        }
-    }
-    return 0;
-};
-
-HICBrowser.prototype.parseLocusString = function (locus) {
-
-    const locusObject = {};
-    const parts = locus.trim().split(':');
-    const chromosome = this.genome.getChromosome(parts[0].toLowerCase());
-
-    if (!chromosome) {
-        return undefined;
-    } else {
-        locusObject.chr = chromosome.index;
-    }
-
-    if (parts.length === 1) {
-        // Chromosome name only
-        locusObject.start = 0;
-        locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
-        locusObject.wholeChr = true;
-    } else {
-        const extent = parts[1].split("-");
-        let numeric = extent[0].replace(/\,/g, '');
-        locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
-        if (extent.length == 2) {
-            numeric = extent[1].replace(/\,/g, '');
-            locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
-        }
-    }
-    return locusObject;
-};
-
-
-/**
- * @param scaleFactor Values range from greater then 1 to decimal values less then one
- *                    Value > 1 are magnification (zoom in)
- *                    Decimal values (.9, .75, .25, etc.) are minification (zoom out)
- * @param anchorPx -- anchor position in pixels (should not move after transformation)
- * @param anchorPy
- */
-HICBrowser.prototype.pinchZoom = async function (anchorPx, anchorPy, scaleFactor) {
-
-    if (this.state.chr1 === 0) {
-        await this.zoomAndCenter(1, anchorPx, anchorPy);
-    } else {
-        try {
-            this.startSpinner()
-
-            const bpResolutions = this.getResolutions();
-            const currentResolution = bpResolutions[this.state.zoom];
-
-            let newBinSize
-            let newZoom
-            let newPixelSize
-            let zoomChanged
-
-            if (this.resolutionLocked ||
-                (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
-                (this.state.zoom === 0 && scaleFactor < 1)) {
-                // Can't change resolution level, must adjust pixel size
-                newBinSize = currentResolution.binSize;
-                newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
-                newZoom = this.state.zoom;
-                zoomChanged = false;
-            } else {
-                const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
-                newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
-                newBinSize = bpResolutions[newZoom].binSize;
-                zoomChanged = newZoom !== this.state.zoom;
-                newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
-            }
-            const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
-
-
-            if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
-                // Zoom out to whole genome
-                this.setChromosomes(0, 0);
-            } else {
-
-                const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
-
-                const state = this.state;
-
-                newPixelSize = Math.max(newPixelSize, minPS);
-
-                // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
-                const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
-
-                state.x = gx / newBinSize - anchorPx / newPixelSize;
-                state.y = gy / newBinSize - anchorPy / newPixelSize;
-
-                state.zoom = newZoom;
-                state.pixelSize = newPixelSize;
-
-                this.clamp();
-
-                this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
-
-                this.eventBus.post(HICEvent("LocusChange", {
-                    state: state,
-                    resolutionChanged: zoomChanged,
-                    chrChanged: false
-                }));
-            }
-        } finally {
-            this.stopSpinner()
-        }
-    }
-
-}
-
-HICBrowser.prototype.wheelClickZoom = async function (direction, centerPX, centerPY) {
-
-    if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
-        this.zoomAndCenter(direction, centerPX, centerPY);
-    } else {
-        const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
-        var newZoom = this.state.zoom + direction;
-        if (direction < 0 && newZoom < z) {
-            this.setChromosomes(0, 0);
-        } else {
-            this.zoomAndCenter(direction, centerPX, centerPY);
-        }
-
-    }
-
-}
-
-// Zoom in response to a double-click
-/**
- * Zoom and center on bins at given screen coordinates.  Supports double-click zoom, pinch zoom.
- * @param direction
- * @param centerPX  screen coordinate to center on
- * @param centerPY  screen coordinate to center on
- * @returns {Promise<void>}
- */
-HICBrowser.prototype.zoomAndCenter = async function (direction, centerPX, centerPY) {
-
-    if (!this.dataset) return;
-
-    if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
-        // jump from whole genome to chromosome
-        const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-        const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-        const chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX);
-        const chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
-        this.setChromosomes(chrX.index, chrY.index);
-    } else {
-        const resolutions = this.getResolutions();
-        const viewDimensions = this.contactMatrixView.getViewDimensions()
-        const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
-        const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
-
-        this.state.x += (dx / this.state.pixelSize);
-        this.state.y += (dy / this.state.pixelSize);
-
-        if (this.resolutionLocked ||
-            (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
-            (direction < 0 && this.state.zoom === resolutions[0].index)) {
-
-            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-            const state = this.state;
-            const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
-
-            const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
-            state.pixelSize = newPixelSize;
-            state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
-            state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
-
-            this.clamp();
-            this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: false, chrChanged: false}));
-
-        } else {
-            let i;
-            for (i = 0; i < resolutions.length; i++) {
-                if (this.state.zoom === resolutions[i].index) break;
-            }
-            if (i !== undefined) {
-                const newZoom = resolutions[i + direction].index;
-                this.setZoom(newZoom);
-            }
-        }
-    }
-}
-
-/**
- * Set the current zoom state and opctionally center over supplied coordinates.
- * @param zoom - index to the datasets resolution array (dataset.bpResolutions)
- * @returns {Promise<void>}
- */
-HICBrowser.prototype.setZoom = async function (zoom) {
-
-    try {
-
-        // Shift x,y to maintain center, if possible
-        const bpResolutions = this.dataset.bpResolutions;
-        const currentResolution = bpResolutions[this.state.zoom];
-        const viewDimensions = this.contactMatrixView.getViewDimensions();
-        const xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-        const yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
-
-        const newResolution = bpResolutions[zoom];
-        const newXCenter = xCenter * (currentResolution / newResolution);
-        const newYCenter = yCenter * (currentResolution / newResolution);
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
-        const state = this.state;
-        const newPixelSize = Math.max(hicUtils.defaultPixelSize, minPS);
-        const zoomChanged = (state.zoom !== zoom);
-
-        state.zoom = zoom;
-        state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
-        state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
-        state.pixelSize = newPixelSize;
-        this.clamp();
-
-        await this.contactMatrixView.zoomIn()
-
-        this.eventBus.post(HICEvent("LocusChange", {state: state, resolutionChanged: zoomChanged, chrChanged: false}));
-    } finally {
-        // this.stopSpinner()
-    }
-
-};
-
-HICBrowser.prototype.setChromosomes = async function (chr1, chr2) {
-
-    try {
-        this.startSpinner()
-
-        this.state.chr1 = Math.min(chr1, chr2);
-        this.state.chr2 = Math.max(chr1, chr2);
-        this.state.x = 0;
-        this.state.y = 0;
-
-        const z = await minZoom.call(this, chr1, chr2)
-        this.state.zoom = z;
-
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-        this.state.pixelSize = Math.min(100, Math.max(hicUtils.defaultPixelSize, minPS));
-        this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
-    } finally {
-        this.stopSpinner()
-    }
-}
-
-HICBrowser.prototype.updateLayout = async function () {
-
-    var self = this;
-    this.clamp();
-
-    this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
-        sync(xyTrackRenderPair.x, index);
-        sync(xyTrackRenderPair.y, index);
-    });
-
-    function sync(trackRenderer, index) {
-        trackRenderer.$viewport.css({order: index});
-        trackRenderer.syncCanvas();
-    }
-
-    this.layoutController.xAxisRuler.update();
-    this.layoutController.yAxisRuler.update();
-
-    await this.update();
-
-};
 
 async function minZoom(chr1, chr2) {
 
@@ -1610,8 +1601,7 @@ async function loadDataset(config) {
                 config.url = GoogleUtils.driveDownloadURL(config.url)
             }
             const copy = Object.assign({}, config);
-            config.file = new GoogleRemoteFile(copy);
-            config.apiKey = igv.google.apiKey
+            config.file = new IGVRemoteFile(copy);
         }
     }
 
