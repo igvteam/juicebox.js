@@ -4,6 +4,9 @@ import igv from '../node_modules/igv/dist/igv.esm.js'
 const google = igv.google;
 const oauth = igv.oauth;
 
+/**
+ * @deprecated -- use IGVRemoteFile
+ */
 class GoogleRemoteFile {
 
     constructor(args) {
@@ -110,7 +113,7 @@ async function getGoogleAccessToken() {
         }
 
         // TODO -- get scope from config
-        const scope = "https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/drive.readonly";
+        const scope = "https://www.googleapis.com/auth/userinfo.profile";
         const options = new gapi.auth2.SigninOptionsBuilder();
         options.setPrompt('select_account');
         options.setScope(scope);
