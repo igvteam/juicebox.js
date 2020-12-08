@@ -4,8 +4,8 @@
 
 import { DOMUtils } from '../node_modules/igv-utils/src/index.js'
 import { ColorPicker  } from '../node_modules/igv-ui/dist/igv-ui.js'
-import igv from '../node_modules/igv/dist/igv.esm.js';
-import  * as hic from './hicUtils.js';
+import igv from '../node_modules/igv/dist/igv.esm.js'
+import  * as hic from './hicUtils.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 const TrackRenderer = function (browser, size, $container, trackRenderPair, trackPair, axis, order) {
@@ -80,7 +80,7 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
         this.track.trackView = this;
         this.track.trackView.trackDiv = this.$viewport.get(0);
 
-        igv.appendRightHandGutter.call(this, this.$viewport);
+        appendRightHandGutter(this, this.$viewport);
 
         this.$viewport.on('click', function (e) {
             e.preventDefault();
@@ -89,10 +89,10 @@ TrackRenderer.prototype.initializationHelper = function ($container, size, order
             self.browser.toggleTrackLabelAndGutterState();
             if (true === self.browser.showTrackLabelAndGutter) {
                 $('.x-track-label').show();
-                $('.igv-right-hand-gutter').show();
+                $('.hic-igv-right-hand-gutter').show();
             } else {
                 $('.x-track-label').hide();
-                $('.igv-right-hand-gutter').hide();
+                $('.hic-igv-right-hand-gutter').hide();
             }
         });
 
@@ -184,73 +184,71 @@ TrackRenderer.prototype.setDataRange = function (min, max, autoscale) {
  */
 TrackRenderer.prototype.readyToPaint = async function () {
 
-    var self = this,
-        lengthPixel, lengthBP, startBP, endBP;
-
-    const genomicState = self.browser.genomicState(self.axis);
+    const genomicState = this.browser.genomicState(this.axis);
     const chrName = genomicState.chromosome.name;
 
-    const bpp = "all" === chrName.toLowerCase() ?
-        this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) :
-        genomicState.bpp
+    const bpPerPixel = "all" === chrName.toLowerCase() ? this.browser.genome.getGenomeLength() / Math.max(this.$canvas.height(), this.$canvas.width()) : genomicState.bpp
 
-    if (self.tile && self.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpp)) {
-        return;
-    } else if (bpp * Math.max(self.$canvas.width(), self.$canvas.height()) > self.track.visibilityWindow) {
-        return;
+    if (this.tile && this.tile.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpPerPixel)) {
+
+    } else if (bpPerPixel * Math.max(this.$canvas.width(), this.$canvas.height()) > this.track.visibilityWindow) {
+
     } else {
 
         // Expand the requested range so we can pan a bit without reloading
-        lengthPixel = 3 * Math.max(self.$canvas.width(), self.$canvas.height());
-        lengthBP = Math.round(bpp * lengthPixel);
-        startBP = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
-        endBP = startBP + lengthBP;
+        const pixelWidth = 3 * Math.max(this.$canvas.width(), this.$canvas.height());
+        const lengthBP = Math.round(bpPerPixel * pixelWidth);
+        const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
+        const bpEnd = bpStart + lengthBP;
 
-        const features = await self.track.getFeatures(genomicState.chromosome.name, startBP, endBP, bpp)
+        const features = await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, bpPerPixel)
 
+        const buffer = document.createElement('canvas');
+        buffer.width = 'x' === this.axis ? pixelWidth : this.$canvas.width();
+        buffer.height = 'x' === this.axis ? this.$canvas.height() : pixelWidth;
 
-        var buffer, ctx;
-        buffer = document.createElement('canvas');
-        buffer.width = 'x' === self.axis ? lengthPixel : self.$canvas.width();
-        buffer.height = 'x' === self.axis ? self.$canvas.height() : lengthPixel;
-        ctx = buffer.getContext("2d");
+        const context = buffer.getContext("2d");
+
         if (features) {
 
             if(this.track.autoscale || !this.track.dataRange) {
-                if (typeof self.track.doAutoscale === 'function') {
+                if (typeof this.track.doAutoscale === 'function') {
                     this.track.doAutoscale(features);
                 } else {
                     this.track.dataRange = igv.doAutoscale(features);
                 }
             }
 
-            self.canvasTransform(ctx);
+            this.canvasTransform(context);
 
-            self.drawConfiguration =
+            const width = Math.max(this.$canvas.width(), this.$canvas.height())
+
+            this.drawConfiguration =
                 {
-                    features: features,
-                    context: ctx,
-                    pixelWidth: lengthPixel,
+                    features,
+                    context,
+                    pixelWidth,
+                    bpStart,
+                    bpEnd,
+                    bpPerPixel,
+                    genomicState,
                     pixelHeight: Math.min(buffer.width, buffer.height),
-                    bpStart: startBP,
-                    bpEnd: endBP,
-                    bpPerPixel: bpp,
-                    genomicState: genomicState,
-                    viewportContainerX: (genomicState.startBP - startBP) / bpp,
-                    viewportContainerWidth: Math.max(self.$canvas.width(), self.$canvas.height()),
-                    labelTransform: self.labelReflectionTransform
+                    viewportContainerX: (genomicState.startBP - bpStart) / bpPerPixel,
+                    viewportContainerWidth: width,
+                    viewportWidth: width,
+                    labelTransform: this.labelReflectionTransform,
+                    referenceFrame: {}
                 };
 
-            self.track.draw(self.drawConfiguration);
+            this.track.draw(this.drawConfiguration);
 
 
         } else {
-            ctx.clearRect(0, 0, self.$canvas.width(), self.$canvas.height());
+            context.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
         }
 
-        self.tile = new Tile(chrName, startBP, endBP, bpp, buffer);
-
-        return self.tile
+        this.tile = new Tile(chrName, bpStart, bpEnd, bpPerPixel, buffer);
+        return this.tile
     }
 }
 
@@ -331,6 +329,13 @@ TrackRenderer.prototype.checkContentHeight = function () {
  */
 TrackRenderer.prototype.repaintViews = function () {
     this.browser.renderTrackXY(this.trackRenderPair, true);
+}
+
+function appendRightHandGutter(trackView, $parent) {
+    const $div = $('<div class="hic-igv-right-hand-gutter">');
+    $parent.append($div);
+    igv.createTrackGearPopover(trackView, $div);
+
 }
 
 // ColorScaleWidget version of color picker

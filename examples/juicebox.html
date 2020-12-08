@@ -36,6 +36,8 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
+    <!-- Google API -- remove if not supporting Google resources -->
+    <script src="https://apis.google.com/js/platform.js"></script>
 
 </head>
 
@@ -47,8 +49,72 @@
 <script type="module">
 
     import hic from '../dist/js/juicebox.esm.js'
+    import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 
-    const container = document.getElementById('app-container');
+    const container = document.getElementById('app-container')
+
+    const google_drive_session =
+        {
+            "backgroundColor": "160,159,160",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC013.hic",
+            "name": "HIC013",
+            "state": "2,2,3,389.50681473019574,389.6697086860908,2.068383825955371,NONE",
+            "colorScale": "16,84,84,83",
+            "nvi": "2309654671,36479",
+            "tracks": [
+                {
+                    "url": "https://drive.google.com/file/d/1rM76O3OHnM7WhRNDfTQOYVyx86D1hhmD/view?usp=drive_web",
+                    "name": "ENCFF001EQU.bigWig",
+                    "min": 0,
+                    "max": 23.162939297124602,
+                    "color": "rgb(22, 129, 198)"
+                },
+                {
+                    "url": "https://drive.google.com/file/d/12B7viT0BfdE1-oLTklIo8y8z8_0Dnavl/view?usp=drive_web",
+                    "name": "ENCFF421AQV.bigWig",
+                    "min": 0,
+                    "max": 6.363716287815825,
+                    "color": "rgb(22, 129, 198)"
+                },
+                {
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_domains.txt",
+                    "name": "Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 domains",
+                    "color": "#83f902"
+                }
+            ]
+        };
+
+    const session_config =
+        {
+            "backgroundColor": "160,159,160",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC013.hic",
+            "name": "HIC013",
+            "state": "2,2,3,389.50681473019574,389.6697086860908,2.068383825955371,NONE",
+            "colorScale": "16,84,84,83",
+            "nvi": "2309654671,36479",
+            "tracks": [
+                {
+                    "url": "https://www.dropbox.com/s/ta01pnc9h39bphc/ENCFF421AQV.bigWig?dl=0",
+                    "name": "ENCFF421AQV.bigWig",
+                    "min": 0,
+                    "max": 6.363716287815825,
+                    "color": "#6e76ff"
+                },
+                {
+                    "url": "https://www.dropbox.com/s/s3yuap5lvyv6qfc/ENCFF001EQU.bigWig?dl=0",
+                    "name": "ENCFF001EQU.bigWig",
+                    "min": 0,
+                    "max": 23.162939297124602,
+                    "color": "#ff8802"
+                },
+                {
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_domains.txt",
+                    "name": "Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 domains",
+                    "color": "#83f902"
+                }
+            ]
+        };
+
     const config =
         {
             "backgroundColor": "255,206,110",
@@ -63,7 +129,22 @@
             "controlNvi": "320261375,36479"
         };
 
-    hic.createBrowser(container, config)
+    (async () => {
+
+        const client_id = '661332306814-fmasnut050v7qds33tsa2rtvd5tc06sl.apps.googleusercontent.com'
+        const apiKey = 'AIzaSyCEmqU2lrAgKxJCbnJX87a5F3c9GejCCLA'
+        const scope = 'https://www.googleapis.com/auth/userinfo.profile'
+
+        try {
+            await GoogleAuth.init({ client_id, apiKey, scope })
+        } catch (e) {
+            console.error(e)
+        }
+
+        await hic.createBrowser(container, session_config)
+
+    })()
+
 
 </script>
 

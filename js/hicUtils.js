@@ -20,11 +20,11 @@
  * THE SOFTWARE.
  *
  */
+import {FileUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import { Popover, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
+import igv from "../node_modules/igv/dist/igv.esm.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import EventBus from './eventBus.js'
-import {FileUtils, StringUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
-import { Popover, AlertDialog, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
-import igv from "../node_modules/igv/dist/igv.esm.js";
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
 import State from './hicState.js'
@@ -36,8 +36,6 @@ import ContactMatrixView from "./contactMatrixView.js";
 let apiKey
 
 const defaultPixelSize = 1
-
-const urlShorteners = [];
 
 const defaultSize = {width: 640, height: 640}
 
@@ -71,11 +69,6 @@ async function createBrowser(hic_container, config, callback) {
     const $hic_container = $(hic_container);
 
     setDefaults(config);
-
-    const apiKey = config.apiKey;
-    if (apiKey) {
-        igv.google.setApiKey(apiKey);
-    }
 
     let queryString = config.queryString || config.href;   // href for backward compatibility
     if (queryString === undefined && config.initFromUrl !== false) {
@@ -118,7 +111,7 @@ async function createBrowser(hic_container, config, callback) {
 
     browser.inputDialog = new InputDialog($hic_container.get(0), browser);
 
-    browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
+    // browser.trackRemovalDialog = new igv.TrackRemovalDialog($hic_container, browser);
 
     browser.dataRangeDialog = new igv.DataRangeDialog($hic_container, browser);
 
@@ -263,12 +256,6 @@ function extractFilename(urlOrFile) {
     }
 }
 
-function igvSupports(path) {
-    var config = {url: path};
-    TrackUtils.inferTrackTypes(config);
-    return config.type !== undefined;
-}
-
 function throttle(fn, threshhold, scope) {
     var last,
         deferTimer;
@@ -366,13 +353,11 @@ function createIGV($hic_container, hicBrowser) {
 
     igv.popover = new Popover($hic_container.get(0), igv.browser);
 
-    igv.alertDialog = new AlertDialog(hicBrowser.$root.get(0), hicBrowser);
-
 }
 
 export {
     defaultPixelSize, eventBus, allBrowsers, apiKey, createBrowser, deleteAllBrowsers, deleteBrowserPanel,
-    areCompatible, isMobile, extractFilename, igvSupports,
+    areCompatible, isMobile, extractFilename,
     throttle, reflectionRotationWithContext, reflectionAboutYAxisAtOffsetWithContext, identityTransformWithContext,
     updateAllBrowsers, HICBrowser
 }
