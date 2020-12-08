@@ -467,43 +467,6 @@ HICBrowser.prototype.loadTracks = async function (configs) {
     } finally {
         this.contactMatrixView.stopSpinner();
     }
-
-    function inferTypes(trackConfigurations) {
-
-        var promises = [];
-        trackConfigurations.forEach(function (config) {
-
-            var url = config.url;
-
-            if (url && typeof url === "string" && url.includes("drive.google.com")) {
-
-                promises.push(igv.google.getDriveFileInfo(config.url)
-
-                    .then(function (json) {
-                        // Temporarily switch URL to infer tipes
-                        config.url = json.originalFilename;
-                        TrackUtils.inferTrackTypes(config);
-                        if (config.name === undefined) {
-                            config.name = json.originalFilename;
-                        }
-                        config.url = url;
-                        return config;
-                    })
-                );
-            } else {
-                TrackUtils.inferTrackTypes(config);
-                if (!config.name) {
-                    config.name = hicUtils.extractFilename(config.url);
-                }
-                promises.push(Promise.resolve(config));
-            }
-
-        });
-
-        return promises;
-    }
-
-
 }
 
 
