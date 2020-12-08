@@ -50,8 +50,8 @@
     "serve-static": "^1.14.1"
   },
   "dependencies": {
-    "hic-straw": "^2.0.0",
-    "igv": "^2.6.8",
+    "hic-straw": "^2.0.1",
+    "igv": "github:igvteam/igv.js#4bd4f351",
     "igv-ui": "github:igvteam/igv-ui#403dbab6",
     "igv-utils": "github:igvteam/igv-utils#36c425bb"
   }
