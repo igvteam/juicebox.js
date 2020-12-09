@@ -63,7 +63,7 @@ async function initApp(container, config) {
 
     let query = {};
 
-    config.queryParametersSupported = undefined === config.queryParametersSupported ? true : config.queryParametersSupported;
+    config.queryParametersSupported =  config.queryParametersSupported !== false;
 
     if (false === config.queryParametersSupported) {
         // ignore window.location.href params
@@ -76,6 +76,7 @@ async function initApp(container, config) {
         if (query.session.startsWith("blob:")) {
             const json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
             json.initFromUrl = false;
+            console.log(JSON.stringify(json));
             await restoreSession(container, json);
         } else {
             // TODO - handle session url

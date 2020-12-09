@@ -48,6 +48,9 @@
 <script type="module">
 
     import hic from "../js/index.js";
+    import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
+
+
 
     const config = {
         "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
@@ -61,8 +64,10 @@
     const container = document.getElementById("app-container");
 
     hic.createBrowser(container, config)
-        .then(function (ignore) {
-            //hic.updateAllBrowsers()
+        .then(function (hicBrowser) {
+             hicBrowser.loadTracks ([{
+                 url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt"
+             }])
         })
 
 
