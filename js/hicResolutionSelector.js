@@ -27,117 +27,120 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
-const ResolutionSelector = function (browser, $hic_navbar_container) {
+class ResolutionSelector {
 
-    this.browser = browser;
+    constructor(browser, $hic_navbar_container) {
 
-    const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
+        this.browser = browser;
 
-    this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
-    $parent.append(this.$container);
+        const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
 
-    // label container
-    this.$label_container = $('<div id="hic-resolution-label-container">');
-    this.$container.append(this.$label_container);
+        this.$container = $("<div>", {class: 'hic-resolution-selector-container', title: 'Resolution'});
+        $parent.append(this.$container);
 
-    // Resolution (kb)
-    this.$label = $("<div>");
-    this.$label_container.append(this.$label);
-    this.$label.text('Resolution (kb)');
-    this.$label.hide();
+        // label container
+        this.$label_container = $('<div id="hic-resolution-label-container">');
+        this.$container.append(this.$label_container);
 
-    // lock/unlock
-    this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
-    this.$label_container.append(this.$resolution_lock);
-    this.$label_container.on('click', () => {
-        this.browser.resolutionLocked = !(this.browser.resolutionLocked);
-        this.setResolutionLock(this.browser.resolutionLocked);
-    });
+        // Resolution (kb)
+        this.$label = $("<div>");
+        this.$label_container.append(this.$label);
+        this.$label.text('Resolution (kb)');
+        this.$label.hide();
 
-    this.$resolution_selector = $('<select name="select">');
-    this.$container.append(this.$resolution_selector);
+        // lock/unlock
+        this.$resolution_lock = $('<i id="hic-resolution-lock" class="fa fa-unlock" aria-hidden="true">');
+        this.$label_container.append(this.$resolution_lock);
+        this.$label_container.on('click', () => {
+            this.browser.resolutionLocked = !(this.browser.resolutionLocked);
+            this.setResolutionLock(this.browser.resolutionLocked);
+        });
 
-    this.$resolution_selector.attr('name', 'resolution_selector');
+        this.$resolution_selector = $('<select name="select">');
+        this.$container.append(this.$resolution_selector);
 
-    this.$resolution_selector.on('change', () => {
-        const zoomIndex = parseInt(this.$resolution_selector.val());
-        this.browser.setZoom(zoomIndex);
-    });
+        this.$resolution_selector.attr('name', 'resolution_selector');
+
+        this.$resolution_selector.on('change', () => {
+            const zoomIndex = parseInt(this.$resolution_selector.val());
+            this.browser.setZoom(zoomIndex);
+        });
 
 
-    this.browser.eventBus.subscribe("LocusChange", this);
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("ControlMapLoad", this);
-};
-
-ResolutionSelector.prototype.setResolutionLock = function (resolutionLocked) {
-    this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
-    this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
-};
-
-ResolutionSelector.prototype.receiveEvent = function (event) {
-
-    const browser = this.browser;
-
-    if (event.type === "LocusChange") {
-        if (true === event.data.resolutionChanged) {
-            browser.resolutionLocked = false;
-            this.setResolutionLock(browser.resolutionLocked);
-        }
-
-        if (event.data.chrChanged !== false) {  // Default true
-            const isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
-            this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-            updateResolutions.call(this, browser.state.zoom);
-        } else {
-            const selectedIndex = browser.state.zoom;
-            this.$resolution_selector
-                .find('option')
-                .filter(function (index) {
-                    return index === selectedIndex;
-                })
-                .prop('selected', true);
-        }
-
-    } else if (event.type === "MapLoad") {
-        browser.resolutionLocked = false;
-        this.setResolutionLock(false);
-        updateResolutions.call(this, browser.state.zoom);
-    } else if (event.type === "ControlMapLoad") {
-        updateResolutions.call(this, browser.state.zoom)
+        this.browser.eventBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
     }
 
-    async function updateResolutions(zoomIndex) {
+    setResolutionLock(resolutionLocked) {
+        this.$resolution_lock.removeClass((true === resolutionLocked) ? 'fa-unlock' : 'fa-lock');
+        this.$resolution_lock.addClass((true === resolutionLocked) ? 'fa-lock' : 'fa-unlock');
+    }
 
-        const resolutions = browser.isWholeGenome() ?
-            [{index: 0, binSize: browser.dataset.wholeGenomeResolution}] :
-            browser.getResolutions();
-        let htmlString = '';
-        for(let resolution of resolutions) {
-            const binSize = resolution.binSize;
-            const index = resolution.index;
-            let divisor;
-            let unit;
-            if (binSize >= 1e6) {
-                divisor = 1e6
-                unit = 'mb'
-            } else if (binSize >= 1e3) {
-                divisor = 1e3
-                unit = 'kb'
-            } else {
-                divisor = 1
-                unit = 'bp'
+    receiveEvent(event) {
+
+        const browser = this.browser;
+
+        if (event.type === "LocusChange") {
+            if (true === event.data.resolutionChanged) {
+                browser.resolutionLocked = false;
+                this.setResolutionLock(browser.resolutionLocked);
             }
-            const pretty = StringUtils.numberFormatter(Math.round(binSize / divisor)) + ' ' + unit;
-            const selected = zoomIndex === resolution.index;
-            htmlString += '<option' + ' data-resolution=' + binSize.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
 
+            if (event.data.chrChanged !== false) {  // Default true
+                const isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
+                this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
+                updateResolutions.call(this, browser.state.zoom);
+            } else {
+                const selectedIndex = browser.state.zoom;
+                this.$resolution_selector
+                    .find('option')
+                    .filter(function (index) {
+                        return index === selectedIndex;
+                    })
+                    .prop('selected', true);
+            }
+
+        } else if (event.type === "MapLoad") {
+            browser.resolutionLocked = false;
+            this.setResolutionLock(false);
+            updateResolutions.call(this, browser.state.zoom);
+        } else if (event.type === "ControlMapLoad") {
+            updateResolutions.call(this, browser.state.zoom)
         }
-        this.$resolution_selector.empty();
-        this.$resolution_selector.append(htmlString);
+
+        async function updateResolutions(zoomIndex) {
+
+            const resolutions = browser.isWholeGenome() ?
+                [{index: 0, binSize: browser.dataset.wholeGenomeResolution}] :
+                browser.getResolutions();
+            let htmlString = '';
+            for (let resolution of resolutions) {
+                const binSize = resolution.binSize;
+                const index = resolution.index;
+                let divisor;
+                let unit;
+                if (binSize >= 1e6) {
+                    divisor = 1e6
+                    unit = 'mb'
+                } else if (binSize >= 1e3) {
+                    divisor = 1e3
+                    unit = 'kb'
+                } else {
+                    divisor = 1
+                    unit = 'bp'
+                }
+                const pretty = StringUtils.numberFormatter(Math.round(binSize / divisor)) + ' ' + unit;
+                const selected = zoomIndex === resolution.index;
+                htmlString += '<option' + ' data-resolution=' + binSize.toString() + ' value=' + index + (selected ? ' selected' : '') + '>' + pretty + '</option>';
+
+            }
+            this.$resolution_selector.empty();
+            this.$resolution_selector.append(htmlString);
+        }
+
+
     }
-
-
-};
+}
 
 export default ResolutionSelector

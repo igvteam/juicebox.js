@@ -21,7 +21,7 @@
  *
  */
 import {FileUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
-import { Popover, InputDialog } from '../node_modules/igv-ui/dist/igv-ui.js'
+import {InputDialog, Popover} from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from "../node_modules/igv/dist/igv.esm.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import EventBus from './eventBus.js'

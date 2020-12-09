@@ -22,7 +22,7 @@
  */
 import State from './hicState.js';
 import ColorScale from "./colorScale.js"
-import { Globals } from "./globals.js";
+import {Globals} from "./globals.js";
 
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",

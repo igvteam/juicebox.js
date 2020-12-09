@@ -29,59 +29,46 @@
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
-const geneSearch = function (genomeId, featureName) {
+async function geneSearch(genomeId, featureName) {
 
-    return new Promise(function (fulfill, reject) {
+    // Hardcode this for now
+    const searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
+    const data = await igv.xhr.loadString(searchServiceURL);
+    var results = parseSearchResults(data);
 
-        // Hardcode this for now
-        var searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
-
-        igv.xhr.loadString(searchServiceURL)
-            .then(function (data) {
-
-                var results = parseSearchResults(data);
-
-                if (results.length === 0) {
-                    //alert('No feature found with name "' + feature + '"');
-                    fulfill(undefined);
-                } else {
-                    // Just take first result for now
-                    fulfill(results[0])
-
-                }
-            })
-            .catch(reject);
-    });
+    if (results.length === 0) {
+        //alert('No feature found with name "' + feature + '"');
+        return undefined;
+    } else {
+        // Just take first result for now
+        return results[0]
+    }
 }
+
 
 function parseSearchResults(data) {
 
-    var lines = StringUtils.splitLines(data),
-        linesTrimmed = [],
-        results = [];
+    const lines = StringUtils.splitLines(data);
+    const linesTrimmed = [];
+    const results = [];
 
-    lines.forEach(function (item) {
+    for (let item of lines) {
         if ("" === item) {
             // do nothing
         } else {
             linesTrimmed.push(item);
         }
-    });
+    }
 
-    linesTrimmed.forEach(function (line) {
+    for (let line of linesTrimmed) {
         // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
-
-        var tokens = line.split("\t");
-
+        const tokens = line.split("\t");
         if (tokens.length >= 3) {
             results.push(tokens[1]);
-
         }
-
-    });
+    }
 
     return results;
-
 }
 
 export default geneSearch

@@ -22,7 +22,6 @@
  */
 
 
-
 const HICEvent = function (type, data, propogate) {
     return {
         type: type,

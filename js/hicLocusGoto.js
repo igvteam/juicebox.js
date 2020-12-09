@@ -27,52 +27,54 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
-const LocusGoto = function (browser, $hic_navbar_container) {
+class LocusGoto {
 
-    this.browser = browser;
+    constructor(browser, $hic_navbar_container) {
 
-    const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
+        this.browser = browser;
 
-    this.$container = $("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
-    $parent.append(this.$container);
+        const $parent = $hic_navbar_container.find("div[id$='upper-hic-nav-bar-widget-container']");
 
-    this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
-    this.$container.append(this.$resolution_selector);
+        this.$container = $("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
+        $parent.append(this.$container);
 
-    this.$resolution_selector.on('change', function (e) {
-        browser.parseGotoInput($(this).val());
-        $(this).blur();
-    });
+        this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$container.append(this.$resolution_selector);
 
-    this.browser.eventBus.subscribe("LocusChange", this);
-};
+        this.$resolution_selector.on('change', function (e) {
+            browser.parseGotoInput($(this).val());
+            $(this).blur();
+        });
 
-LocusGoto.prototype.receiveEvent = function (event) {
+        this.browser.eventBus.subscribe("LocusChange", this);
+    }
 
+    receiveEvent(event) {
 
-    if (event.type === "LocusChange") {
+        if (event.type === "LocusChange") {
 
-        let xy;
-        const state = event.data.state || this.browser.state;
-        const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
-        if (isWholeGenome) {
-            xy = 'All';
-        } else {
-            const chr1 = this.browser.dataset.chromosomes[state.chr1];
-            const chr2 = this.browser.dataset.chromosomes[state.chr2];
-            const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-            const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-            const pixelsPerBin = state.pixelSize;
-            const startBP1 = 1 + Math.round(state.x * bpPerBin);
-            const startBP2 = 1 + Math.round(state.y * bpPerBin);
-            const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-            const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
+            let xy;
+            const state = event.data.state || this.browser.state;
+            const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
+            if (isWholeGenome) {
+                xy = 'All';
+            } else {
+                const chr1 = this.browser.dataset.chromosomes[state.chr1];
+                const chr2 = this.browser.dataset.chromosomes[state.chr2];
+                const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
+                const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+                const pixelsPerBin = state.pixelSize;
+                const startBP1 = 1 + Math.round(state.x * bpPerBin);
+                const startBP2 = 1 + Math.round(state.y * bpPerBin);
+                const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
+                const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-            xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
-                chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
+                xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
+                    chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
 
+            }
+            this.$resolution_selector.val(xy);
         }
-        this.$resolution_selector.val(xy);
     }
 }
 

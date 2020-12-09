@@ -21,18 +21,17 @@
  *
  */
 
-import { Alert } from '../node_modules/igv-ui/dist/igv-ui.js'
+import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
 import {allBrowsers, createBrowser} from './hicUtils.js';
-import {decompressQueryParameter, getCompressedDataString, syncBrowsers, toJSON, loadSession} from "./init.js";
-import * as utils from './utils.js';
+import {decompressQueryParameter, getCompressedDataString, loadSession, syncBrowsers, toJSON} from "./init.js";
 import {version} from "./version.js";
 import EventBus from "./eventBus.js";
 
 export default {
     version, loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, EventBus,
     syncBrowsers, getCompressedDataString, decompressQueryParameter, toJSON,
-    utils, igv, Alert
+    igv, Alert
 }

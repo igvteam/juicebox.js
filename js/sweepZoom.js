@@ -25,96 +25,98 @@
  * Created by dat on 3/14/17.
  */
 
-const SweepZoom = function (browser, $target) {
+class SweepZoom {
 
-    this.browser = browser;
+    constructor(browser, $target) {
 
-    this.$target = $target;
+        this.browser = browser;
 
-    this.$rulerSweeper = $target.find("div[id$='-sweep-zoom-container']");
-    this.$rulerSweeper.hide();
+        this.$target = $target;
 
-    this.sweepRect = {};
-};
+        this.$rulerSweeper = $target.find("div[id$='-sweep-zoom-container']");
+        this.$rulerSweeper.hide();
 
-SweepZoom.prototype.initialize = function (pageCoords) {
-
-    this.anchor = pageCoords;
-    this.coordinateFrame = this.$rulerSweeper.parent().offset();
-    this.aspectRatio = this.$target.width() / this.$target.height();
-    this.sweepRect.x = {
-        x: pageCoords.x,
-        y: pageCoords.y,
-        width: 1,
-        height: 1
-    };
-    this.clipped = {value: false};
-};
-
-SweepZoom.prototype.update = function (pageCoords) {
-
-    var anchor = this.anchor,
-        dx = Math.abs(pageCoords.x - anchor.x),
-        dy = Math.abs(pageCoords.y - anchor.y);
-
-    // Adjust deltas to conform to aspect ratio
-    if (dx / dy > this.aspectRatio) {
-        dy = dx / this.aspectRatio;
-    } else {
-        dx = dy * this.aspectRatio;
+        this.sweepRect = {};
     }
 
-    this.sweepRect.width = dx;
-    this.sweepRect.height = dy;
-    this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
-    this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
+    initialize(pageCoords) {
 
+        this.anchor = pageCoords;
+        this.coordinateFrame = this.$rulerSweeper.parent().offset();
+        this.aspectRatio = this.$target.width() / this.$target.height();
+        this.sweepRect.x = {
+            x: pageCoords.x,
+            y: pageCoords.y,
+            width: 1,
+            height: 1
+        };
+        this.clipped = {value: false};
+    }
 
-    this.$rulerSweeper.width(this.sweepRect.width);
-    this.$rulerSweeper.height(this.sweepRect.height);
+    update(pageCoords) {
 
+        var anchor = this.anchor,
+            dx = Math.abs(pageCoords.x - anchor.x),
+            dy = Math.abs(pageCoords.y - anchor.y);
 
-    this.$rulerSweeper.offset(
-        {
-            left: this.sweepRect.x,
-            top: this.sweepRect.y
+        // Adjust deltas to conform to aspect ratio
+        if (dx / dy > this.aspectRatio) {
+            dy = dx / this.aspectRatio;
+        } else {
+            dx = dy * this.aspectRatio;
         }
-    );
-    this.$rulerSweeper.show();
 
-};
-
-SweepZoom.prototype.commit = function () {
-
-
-    this.$rulerSweeper.hide();
-
-    const state = this.browser.state;
-
-    // bp-per-bin
-    const resolution = this.browser.resolution();
-
-    // Convert page -> offset coordinates
-    const posX = this.sweepRect.x - this.$target.offset().left;
-    const posY = this.sweepRect.y - this.$target.offset().top;
+        this.sweepRect.width = dx;
+        this.sweepRect.height = dy;
+        this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
+        this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
 
 
-    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    const x = (state.x + (posX / state.pixelSize)) * resolution;
-    const y = (state.y + (posY / state.pixelSize)) * resolution;
+        this.$rulerSweeper.width(this.sweepRect.width);
+        this.$rulerSweeper.height(this.sweepRect.height);
 
-    // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-    const width = (this.sweepRect.width / state.pixelSize) * resolution;
-    const height = (this.sweepRect.height / state.pixelSize) * resolution;
 
-    // bp = bp + bp
-    const xMax = x + width;
-    const yMax = y + height;
+        this.$rulerSweeper.offset(
+            {
+                left: this.sweepRect.x,
+                top: this.sweepRect.y
+            }
+        );
+        this.$rulerSweeper.show();
 
-    const minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
-    this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
+    }
 
-};
+    commit() {
 
+
+        this.$rulerSweeper.hide();
+
+        const state = this.browser.state;
+
+        // bp-per-bin
+        const resolution = this.browser.resolution();
+
+        // Convert page -> offset coordinates
+        const posX = this.sweepRect.x - this.$target.offset().left;
+        const posY = this.sweepRect.y - this.$target.offset().top;
+
+
+        // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+        const x = (state.x + (posX / state.pixelSize)) * resolution;
+        const y = (state.y + (posY / state.pixelSize)) * resolution;
+
+        // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
+        const width = (this.sweepRect.width / state.pixelSize) * resolution;
+        const height = (this.sweepRect.height / state.pixelSize) * resolution;
+
+        // bp = bp + bp
+        const xMax = x + width;
+        const yMax = y + height;
+
+        const minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
+        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
+
+    }
+}
 
 export default SweepZoom

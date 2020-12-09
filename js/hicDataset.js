@@ -65,10 +65,10 @@ class Dataset {
         this.wholeGenomeResolution = this.hicFile.wholeGenomeResolution
 
         // Attempt to determine genomeId if not recognized
-       // if (!Object.keys(knownGenomes).includes(this.genomeId)) {
-            const tmp = matchGenome(this.chromosomes);
-            if (tmp) this.genomeId = tmp;
-      //  }
+        // if (!Object.keys(knownGenomes).includes(this.genomeId)) {
+        const tmp = matchGenome(this.chromosomes);
+        if (tmp) this.genomeId = tmp;
+        //  }
     }
 
     async getContactRecords(normalization, region1, region2, units, binsize) {
@@ -178,25 +178,6 @@ class Dataset {
         return this.hicFile.getNormalizationOptions()
     }
 }
-
-const Block = function (blockNumber, zoomData, records) {
-    this.blockNumber = blockNumber;
-    this.zoomData = zoomData;
-    this.records = records;
-};
-
-class ContactRecord {
-    constructor(bin1, bin2, counts) {
-        this.bin1 = bin1;
-        this.bin2 = bin2;
-        this.counts = counts;
-    }
-
-    getKey() {
-        return "" + this.bin1 + "_" + this.bin2;
-    }
-}
-
 
 function matchGenome(chromosomes) {
 

@@ -196,4 +196,12 @@ let indexLookup = (dataSuffix) => {
 
 };
 
-export { validIndexExtensionSet, isValidIndexExtension, getIndexObjectWithDataName, isKnownFileExtension, getFilename, getExtension, configureModal };
+export {
+    validIndexExtensionSet,
+    isValidIndexExtension,
+    getIndexObjectWithDataName,
+    isKnownFileExtension,
+    getFilename,
+    getExtension,
+    configureModal
+};

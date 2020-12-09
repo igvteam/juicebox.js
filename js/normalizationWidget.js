@@ -40,94 +40,97 @@ var labels =
         GW_KR: 'Genome-wide Balanced'
     };
 
-const NormalizationWidget = function (browser, $hic_navbar_container) {
+class NormalizationWidget {
 
-    this.browser = browser;
+    constructor(browser, $hic_navbar_container) {
 
-    const $parent = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
+        this.browser = browser;
 
-    this.$container = $("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
-    $parent.append(this.$container);
+        const $parent = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
 
-    let $label = $('<div>');
-    $label.text('Norm');
-    this.$container.append($label);
-    // $label.hide();
+        this.$container = $("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
+        $parent.append(this.$container);
 
-    this.$normalization_selector = $('<select name="select">');
-    this.$normalization_selector.attr('name', 'normalization_selector');
-    this.$normalization_selector.on('change', () => {
-        this.browser.setNormalization(this.$normalization_selector.val());
-    });
-    this.$container.append(this.$normalization_selector);
+        let $label = $('<div>');
+        $label.text('Norm');
+        this.$container.append($label);
+        // $label.hide();
 
-    this.$spinner = $('<div>');
-    this.$spinner.text('Loading ...');
-    this.$container.append(this.$spinner);
-    this.$spinner.hide();
+        this.$normalization_selector = $('<select name="select">');
+        this.$normalization_selector.attr('name', 'normalization_selector');
+        this.$normalization_selector.on('change', () => {
+            this.browser.setNormalization(this.$normalization_selector.val());
+        });
+        this.$container.append(this.$normalization_selector);
 
-    this.browser.eventBus.subscribe("MapLoad", this);
-    this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
-    this.browser.eventBus.subscribe("NormalizationFileLoad", this);
-    this.browser.eventBus.subscribe("NormalizationExternalChange", this);
+        this.$spinner = $('<div>');
+        this.$spinner.text('Loading ...');
+        this.$container.append(this.$spinner);
+        this.$spinner.hide();
 
-};
+        this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
+        this.browser.eventBus.subscribe("NormalizationFileLoad", this);
+        this.browser.eventBus.subscribe("NormalizationExternalChange", this);
 
-NormalizationWidget.prototype.startNotReady = function () {
-    this.$normalization_selector.hide();
-    this.$spinner.show();
-};
+    }
 
-NormalizationWidget.prototype.stopNotReady = function () {
-    this.$spinner.hide();
-    this.$normalization_selector.show();
-};
+    startNotReady() {
+        this.$normalization_selector.hide();
+        this.$spinner.show();
+    }
 
-NormalizationWidget.prototype.receiveEvent = function (event) {
+    stopNotReady() {
+        this.$spinner.hide();
+        this.$normalization_selector.show();
+    }
+
+    receiveEvent(event) {
 
 
-    if ("NormVectorIndexLoad" === event.type) {
+        if ("NormVectorIndexLoad" === event.type) {
 
-        updateOptions.call(this);
+            updateOptions.call(this);
 
-        // TODO -- end norm widget "not ready" state
-        this.stopNotReady();
-
-    } else if ("NormalizationFileLoad" === event.type) {
-        if (event.data === "start") {
-            this.startNotReady();
-        } else {
+            // TODO -- end norm widget "not ready" state
             this.stopNotReady();
+
+        } else if ("NormalizationFileLoad" === event.type) {
+            if (event.data === "start") {
+                this.startNotReady();
+            } else {
+                this.stopNotReady();
+            }
+        } else if ("NormalizationExternalChange" === event.type) {
+
+            var filter = this.$normalization_selector
+                .find('option')
+                .filter(function (index) {
+                    var s1 = this.value;
+                    var s2 = event.data;
+                    return s1 === s2;
+                })
+                .prop('selected', true);
         }
-    } else if ("NormalizationExternalChange" === event.type) {
 
-        var filter = this.$normalization_selector
-            .find('option')
-            .filter(function (index) {
-                var s1 = this.value;
-                var s2 = event.data;
-                return s1 === s2;
-            })
-            .prop('selected', true);
-    }
+        async function updateOptions() {
+            const norm = this.browser.state.normalization;
+            const normalizationTypes = await this.browser.getNormalizationOptions();
+            if (normalizationTypes) {
+                const elements = normalizationTypes.map(function (normalization) {
+                    const label = labels[normalization] || normalization;
+                    const isSelected = (norm === normalization);
+                    const titleString = (label === undefined ? '' : ' title = "' + label + '" ');
+                    const valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
+                    const labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
+                    return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
+                });
 
-    async function updateOptions() {
-        const norm = this.browser.state.normalization;
-        const normalizationTypes = await this.browser.getNormalizationOptions();
-        if (normalizationTypes) {
-            const elements = normalizationTypes.map(function (normalization) {
-                const label = labels[normalization] || normalization;
-                const isSelected = (norm === normalization);
-                const titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                const valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-                const labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
-                return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
-            });
-
-            this.$normalization_selector.empty();
-            this.$normalization_selector.append(elements.join(''));
+                this.$normalization_selector.empty();
+                this.$normalization_selector.append(elements.join(''));
+            }
         }
     }
-};
+}
 
 export default NormalizationWidget

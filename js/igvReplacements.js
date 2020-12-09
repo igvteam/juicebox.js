@@ -12,7 +12,7 @@ const igvReplacements = function (igv) {
 
         menuItems.push(colorPickerMenuItem(trackRenderer));
         menuItems.push(trackRenameMenuItem(trackRenderer));
-        if("annotation" !== trackRenderer.track.type) {
+        if ("annotation" !== trackRenderer.track.type) {
             if (trackRenderer.track.menuItemList) {
                 menuItems = menuItems.concat(trackRenderer.track.menuItemList());
             }
@@ -48,13 +48,13 @@ function trackRenameMenuItem(trackRenderer) {
             trackRenderer.setTrackName(value);
         };
 
-        trackRenderer.browser.inputDialog.present({ label: 'Track Name', value: trackRenderer.track.name, callback }, e);
+        trackRenderer.browser.inputDialog.present({label: 'Track Name', value: trackRenderer.track.name, callback}, e);
     };
 
     const object = $('<div>');
     object.text('Set track name');
 
-    return { object, click };
+    return {object, click};
 };
 
 function trackRemovalMenuItem(trackRenderer) {

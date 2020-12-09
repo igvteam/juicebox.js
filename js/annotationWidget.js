@@ -21,49 +21,51 @@
  *
  */
 
-import { Alert, createColorSwatchSelector } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { makeDraggable } from '../node_modules/igv-utils/src/index.js';
+import {Alert, createColorSwatchSelector} from '../node_modules/igv-ui/dist/igv-ui.js';
+import {makeDraggable} from '../node_modules/igv-utils/src/index.js';
 import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import {Track2DDisplaceModes} from './globals.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-const AnnotationWidget = function (browser, $container, { title, alertMessage }, trackListRetrievalCallback) {
+class AnnotationWidget {
 
-    this.browser = browser;
-    this.trackListRetrievalCallback = trackListRetrievalCallback;
+    constructor(browser, $container, {title, alertMessage}, trackListRetrievalCallback) {
 
-    annotationPresentationButton.call(this, $container, alertMessage);
+        this.browser = browser;
+        this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-    annotationPanel.call(this, this.browser.$root, title);
+        annotationPresentationButton.call(this, $container, alertMessage);
 
-};
+        annotationPanel.call(this, this.browser.$root, title);
 
-AnnotationWidget.prototype.updateBody = function (tracks) {
-
-    var self = this,
-        trackRenderers,
-
-        isTrack2D,
-        zi;
-
-    self.$annotationPanel.find('.hic-annotation-row-container').remove();
-
-    isTrack2D = (tracks[0] instanceof Track2D);
-
-    if (isTrack2D) {
-        // Reverse list to present layers in "z" order.
-        for (zi = tracks.length - 1; zi >= 0; zi--) {
-            annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
-        }
-    } else {
-        trackRenderers = tracks;
-        for (let trackRenderer of trackRenderers) {
-            annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
-        }
     }
 
-};
+    updateBody(tracks) {
+
+        var self = this,
+            trackRenderers,
+
+            isTrack2D,
+            zi;
+
+        self.$annotationPanel.find('.hic-annotation-row-container').remove();
+
+        isTrack2D = (tracks[0] instanceof Track2D);
+
+        if (isTrack2D) {
+            // Reverse list to present layers in "z" order.
+            for (zi = tracks.length - 1; zi >= 0; zi--) {
+                annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
+            }
+        } else {
+            trackRenderers = tracks;
+            for (let trackRenderer of trackRenderers) {
+                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
+            }
+        }
+    }
+}
 
 function annotationPresentationButton($parent, alertMessage) {
 
@@ -263,10 +265,10 @@ function annotationPanelRow($container, track) {
     if (1 === trackList.length) {
         $upTrack.css('color', hidden_color);
         $downTrack.css('color', hidden_color);
-    } else if (track === trackList[ 0 ]) {
+    } else if (track === trackList[0]) {
         $o = isTrack2D ? $downTrack : $upTrack;
         $o.css('color', hidden_color);
-    } else if (track === trackList[ trackList.length - 1 ]) {
+    } else if (track === trackList[trackList.length - 1]) {
         $o = isTrack2D ? $upTrack : $downTrack;
         $o.css('color', hidden_color);
     }

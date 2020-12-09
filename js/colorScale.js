@@ -21,96 +21,102 @@
  *
  */
 
-import { IGVMath } from "../node_modules/igv-utils/src/index.js"
+import {IGVMath} from "../node_modules/igv-utils/src/index.js"
 import RatioColorScale from "./ratioColorScale.js";
 
-const defaultColorScaleConfig = { threshold: 2000, r: 255, g: 0, b: 0 }
+const defaultColorScaleConfig = {threshold: 2000, r: 255, g: 0, b: 0}
 
-const ColorScale = function (scale) {
-    this.threshold = scale.threshold;
-    this.r = scale.r;
-    this.g = scale.g;
-    this.b = scale.b;
-    this.cache = []
-    this.nbins = 2000
-    this.binsize = this.threshold / this.nbins
-};
+class ColorScale {
 
+    constructor(scale) {
+        this.threshold = scale.threshold;
+        this.r = scale.r;
+        this.g = scale.g;
+        this.b = scale.b;
+        this.cache = []
+        this.nbins = 2000
+        this.binsize = this.threshold / this.nbins
+    }
 
-ColorScale.prototype.setThreshold = function (threshold) {
-    this.threshold = threshold;
-    this.cache = []
-    this.binsize = this.threshold / this.nbins
-}
+    setThreshold(threshold) {
+        this.threshold = threshold;
+        this.cache = []
+        this.binsize = this.threshold / this.nbins
+    }
 
-ColorScale.prototype.getThreshold = function () {
-    return this.threshold;
-}
+    getThreshold() {
+        return this.threshold;
+    }
 
-ColorScale.prototype.setColorComponents = function (components) {
-    this.r = components.r;
-    this.g = components.g;
-    this.b = components.b;
-    this.cache = []
-}
+    setColorComponents(components) {
+        this.r = components.r;
+        this.g = components.g;
+        this.b = components.b;
+        this.cache = []
+    }
 
-ColorScale.prototype.getColorComponents = function () {
-    return {
-        r: this.r,
-        g: this.g,
-        b: this.b
+    getColorComponents() {
+        return {
+            r: this.r,
+            g: this.g,
+            b: this.b
+        }
+    }
+
+    equals(cs) {
+        return JSON.stringify(this) === JSON.stringify(cs);
+    }
+
+    getColor(value) {
+        const low = 0;
+        const bin = Math.floor(Math.min(this.threshold, value) / this.binsize)
+        if (undefined === this.cache[bin]) {
+            const alpha = Math.floor(255 * (IGVMath.clamp(value, low, this.threshold) - low) / (this.threshold - low))
+            this.cache[bin] = {
+                red: this.r,
+                green: this.g,
+                blue: this.b,
+                alpha,
+                rgbaString: `rgba(${this.r},${this.g},${this.b}, ${alpha})`
+            }
+        }
+        return this.cache[bin]
+    }
+
+    stringify() {
+        return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
+    }
+
+    static parse(string) {
+
+        var pnstr, ratioCS;
+
+        if (string.startsWith("R:")) {
+            pnstr = string.substring(2).split(":");
+            ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
+            ratioCS.positiveScale = foo(pnstr[1]);
+            ratioCS.negativeScale = foo(pnstr[2]);
+            return ratioCS;
+        } else {
+            return foo(string);
+        }
+
+        function foo(str) {
+            var cs, tokens;
+
+            tokens = str.split(",");
+
+            cs = {
+                threshold: tokens[0],
+                r: tokens[1],
+                g: tokens[2],
+                b: tokens[3]
+            };
+            return new ColorScale(cs);
+        }
     }
 }
 
-
-ColorScale.prototype.equals = function (cs) {
-    return JSON.stringify(this) === JSON.stringify(cs);
-};
-
-const low = 0;
-ColorScale.prototype.getColor = function (value) {
-
-    const bin = Math.floor(Math.min(this.threshold, value) / this.binsize)
-    if (undefined === this.cache[bin]) {
-        const alpha = Math.floor(255 * (IGVMath.clamp(value, low, this.threshold) - low) / (this.threshold - low))
-        this.cache[bin] = { red: this.r, green: this.g, blue: this.b, alpha, rgbaString: `rgba(${ this.r },${ this.g },${ this.b }, ${ alpha })` }
-    }
-    return this.cache[bin]
-}
-
-ColorScale.prototype.stringify = function () {
-    return "" + this.threshold + ',' + this.r + ',' + this.g + ',' + this.b;
-};
-
-ColorScale.parse = function (string) {
-
-    var pnstr, ratioCS;
-
-    if (string.startsWith("R:")) {
-        pnstr = string.substring(2).split(":");
-        ratioCS = new RatioColorScale(Number.parseFloat(pnstr[0]));
-        ratioCS.positiveScale = foo(pnstr[1]);
-        ratioCS.negativeScale = foo(pnstr[2]);
-        return ratioCS;
-    } else {
-        return foo(string);
-    }
-
-    function foo(str) {
-        var cs, tokens;
-
-        tokens = str.split(",");
-
-        cs = {
-            threshold: tokens[0],
-            r: tokens[1],
-            g: tokens[2],
-            b: tokens[3]
-        };
-        return new ColorScale(cs);
-    }
-}
-
-export { defaultColorScaleConfig }
+export {defaultColorScaleConfig}
 
 export default ColorScale

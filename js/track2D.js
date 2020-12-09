@@ -32,15 +32,6 @@ class Track2D {
         }
     }
 
-    getColor() {
-        return this.color || this.repColor;
-    }
-
-    getFeatures(chr1, chr2) {
-        const key = getKey(chr1, chr2);
-        return this.featureMap[key];
-    }
-
     static async loadTrack2D(config, genome) {
 
         // if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
@@ -57,6 +48,15 @@ class Track2D {
         const data = await igv.xhr.loadString(config.url, buildOptions(config));
         const features = parseData(data, isBedPE(config), genome);
         return new Track2D(config, features);
+    }
+
+    getColor() {
+        return this.color || this.repColor;
+    }
+
+    getFeatures(chr1, chr2) {
+        const key = getKey(chr1, chr2);
+        return this.featureMap[key];
     }
 
 }
