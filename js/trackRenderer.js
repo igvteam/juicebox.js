@@ -104,7 +104,7 @@ class TrackRenderer {
 
     };
 
-    configTrackTransforms = function () {
+    configTrackTransforms() {
 
         this.canvasTransform = ('y' === this.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
 
@@ -113,7 +113,7 @@ class TrackRenderer {
 
     }
 
-    syncCanvas = function () {
+    syncCanvas() {
 
         this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());
@@ -123,14 +123,14 @@ class TrackRenderer {
 
     }
 
-    presentColorPicker = function () {
+    presentColorPicker() {
         const bbox = this.trackDiv.getBoundingClientRect();
         this.colorPicker.origin = {x: bbox.x, y: 0};
         this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
         this.colorPicker.$container.show();
     }
 
-    setTrackName = function (name) {
+    setTrackName(name) {
 
         if ('x' === this.axis) {
             this.track.name = name;
@@ -138,7 +138,7 @@ class TrackRenderer {
         }
     }
 
-    setColor = function (color) {
+    setColor(color) {
 
         setColor(this.trackRenderPair.x);
         setColor(this.trackRenderPair.y);
@@ -151,16 +151,16 @@ class TrackRenderer {
         this.browser.renderTrackXY(this.trackRenderPair);
     }
 
-    setTrackHeight = function (height) {
+    setTrackHeight(height) {
         // TODO fix me -- height should apply to both axes.  This method called by gear menu list item
         console.error("setTrackHeight not implemented")
     }
 
-    dataRange = function () {
+    dataRange() {
         return this.track.dataRange ? this.track.dataRange : undefined;
     }
 
-    setDataRange = function (min, max, autoscale) {
+    setDataRange(min, max, autoscale) {
         if (min !== undefined) {
             this.track.dataRange.min = min;
             this.track.config.min = min;
@@ -363,7 +363,7 @@ class Tile {
         this.buffer = buffer;
     }
 
-    containsRange = function (chr, startBP, endBP, bpp) {
+    containsRange(chr, startBP, endBP, bpp) {
         return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
     }
 }

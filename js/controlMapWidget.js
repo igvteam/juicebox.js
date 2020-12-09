@@ -149,7 +149,7 @@ class ControlMapHash {
 
     }
 
-    disableDisplayModeCycle = function () {
+    disableDisplayModeCycle  () {
 
         if (this.cycleID) {
 
@@ -162,7 +162,7 @@ class ControlMapHash {
 
     }
 
-    toggleDisplayModeCycle = function () {
+    toggleDisplayModeCycle  () {
         let self = this;
 
         if (this.cycleID) {
@@ -185,7 +185,7 @@ class ControlMapHash {
 
     }
 
-    toggleDisplayMode = async function () {
+    async toggleDisplayMode  () {
 
         let displayModeOld,
             displayModeNew,
@@ -208,14 +208,14 @@ class ControlMapHash {
 
     }
 
-    setDisplayMode = function (displayMode) {
+    setDisplayMode (displayMode) {
 
         setDisplayModeHelper.call(this, displayMode);
 
         this.browser.setDisplayMode(displayMode);
     }
 
-    updateOptions = function (displayMode) {
+    updateOptions  (displayMode) {
         let self = this;
 
         this.$img_a.hide();
@@ -240,9 +240,7 @@ class ControlMapHash {
             }
 
             self.$select.append(option);
-
         });
-
     }
 }
 

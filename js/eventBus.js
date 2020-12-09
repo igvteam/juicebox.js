@@ -41,7 +41,7 @@ class EventBus {
         this.stack = []
     }
 
-    subscribe = function (eventType, object) {
+    subscribe(eventType, object) {
 
         var subscriberList = this.subscribers[eventType];
         if (subscriberList == undefined) {
@@ -52,7 +52,7 @@ class EventBus {
 
     }
 
-    post = function (event) {
+    post(event) {
 
         const eventType = event.type
 
@@ -74,21 +74,21 @@ class EventBus {
         }
     }
 
-    hold = function () {
+    hold() {
         this._hold = true;
     }
 
-    release = function () {
+    release() {
         this._hold = false;
         for (let event of this.stack) {
             this.post(event)
         }
         this.stack = []
     }
+}
 
 // The global event bus
 
-    static globalBus = new EventBus()
-}
+EventBus.globalBus = new EventBus()
 
 export default EventBus

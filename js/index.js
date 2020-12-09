@@ -30,8 +30,10 @@ import {decompressQueryParameter, getCompressedDataString, loadSession, syncBrow
 import {version} from "./version.js";
 import EventBus from "./eventBus.js";
 
+const igvxhr = igv.xhr;
+
 export default {
     version, loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, EventBus,
     syncBrowsers, getCompressedDataString, decompressQueryParameter, toJSON,
-    igv, Alert
+    igvxhr, Alert
 }
