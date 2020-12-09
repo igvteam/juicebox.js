@@ -61,45 +61,6 @@ async function restoreSession(container, session) {
 
 }
 
-async function createBrowsers(container, query) {
-    let q;
-    if (query) {
-        if (query.hasOwnProperty("juicebox")) {
-            q = query["juicebox"];
-            if (q.startsWith("%7B")) {
-                q = decodeURIComponent(q);
-            }
-        } else if (query.hasOwnProperty("juiceboxData")) {
-            q = decompressQueryParameter(query["juiceboxData"])
-        }
-    }
-
-    const browsers = [];
-    if (q) {
-        q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
-        const parts = q.split("},{");
-        const decoded = decodeURIComponent(parts[0]);
-        const browser = await createBrowser(container, {queryString: decoded})
-        browsers.push(browser);
-        if (parts && parts.length > 1) {
-            const promises = []
-            for (let i = 1; i < parts.length; i++) {
-                promises.push(createBrowser(container, {queryString: decodeURIComponent(parts[i])}))
-                //const b = await createBrowser($container.get(0), {queryString: decodeURIComponent(parts[i])})
-                // b.eventBus.subscribe("GenomeChange", genomeChangeListener);
-                // b.eventBus.subscribe("MapLoad", checkBDropdown);
-            }
-
-            const tmp = await Promise.all(promises)
-            for (let b of tmp) browsers.push(b);
-        }
-    } else {
-        const browser = await createBrowser(container, {})
-        browsers.push(browser);
-    }
-    return browsers;
-}
-
 function syncBrowsers(browsers) {
 
     var browsersWithMaps, genome, incompatibleDatasets, gid;

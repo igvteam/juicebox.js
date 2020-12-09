@@ -490,10 +490,9 @@ class HICBrowser {
     };
 
     renderTracks() {
-        var self = this;
-        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+        for(let xyTrackRenderPair of this.trackRenderers) {
             this.renderTrackXY(xyTrackRenderPair);
-        })
+        }
     }
 
     /**
@@ -987,7 +986,6 @@ class HICBrowser {
 
     async updateLayout() {
 
-        var self = this;
         this.clamp();
 
         this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
@@ -1005,7 +1003,264 @@ class HICBrowser {
 
         await this.update();
 
+    }
+
+
+    /**
+     * Set the matrix state.  Used to restore state from a bookmark
+     * @param state  browser state
+     */
+    async setState(state) {
+
+        const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
+        this.state = state;
+        // Possibly adjust pixel size
+        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+        this.state.pixelSize = Math.max(state.pixelSize, minPS);
+        this.eventBus.post(new HICEvent("LocusChange", {
+            state: this.state,
+            resolutionChanged: true,
+            chrChanged: chrChanged
+        }));
+    }
+
+
+    /**
+     * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
+     * and resolution arrays
+     */
+    getSyncState() {
+        return {
+            chr1Name: this.dataset.chromosomes[this.state.chr1].name,
+            chr2Name: this.dataset.chromosomes[this.state.chr2].name,
+            binSize: this.dataset.bpResolutions[this.state.zoom],
+            binX: this.state.x,            // TODO -- tranlsate to lower right corner
+            binY: this.state.y,
+            pixelSize: this.state.pixelSize
+        };
+    }
+
+    /**
+     * Return true if this browser can be synched to the given state
+     * @param syncState
+     */
+    canBeSynched(syncState) {
+
+        return this.dataset &&
+            (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
+            (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
+
+    }
+
+    /**
+     * Used to synch state with other browsers
+     * @param state  browser state
+     */
+    syncState(syncState) {
+
+        if (!this.dataset) return;
+
+        var chr1 = this.genome.getChromosome(syncState.chr1Name),
+            chr2 = this.genome.getChromosome(syncState.chr2Name),
+            zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
+            x = syncState.binX,
+            y = syncState.binY,
+            pixelSize = syncState.pixelSize;
+
+        if (!(chr1 && chr2)) {
+            return;   // Can't be synched.
+        }
+
+        if (zoom === undefined) {
+            // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
+            zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
+
+            // Compute equivalent in basepairs / pixel
+            pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
+
+            // Translate bins so that origin is unchanged in basepairs
+            x = (syncState.binX / syncState.pixelSize) * pixelSize;
+            y = (syncState.binY / syncState.pixelSize) * pixelSize;
+
+            if (pixelSize > MAX_PIXEL_SIZE) {
+                console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)");
+                return;
+            }
+        }
+
+
+        const zoomChanged = (this.state.zoom !== zoom);
+        const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index);
+        this.state.chr1 = chr1.index;
+        this.state.chr2 = chr2.index;
+        this.state.zoom = zoom;
+        this.state.x = x;
+        this.state.y = y;
+        this.state.pixelSize = pixelSize;
+
+        this.eventBus.post(HICEvent("LocusChange", {
+            state: this.state,
+            resolutionChanged: zoomChanged,
+            chrChanged: chrChanged
+        }, false));
+
+    }
+
+    setNormalization(normalization) {
+
+        this.state.normalization = normalization;
+        this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization))
+    }
+
+    shiftPixels(dx, dy) {
+
+        var self = this;
+
+        if (!this.dataset) return;
+
+        this.state.x += (dx / this.state.pixelSize);
+        this.state.y += (dy / this.state.pixelSize);
+        this.clamp();
+
+        const locusChangeEvent = HICEvent("LocusChange", {
+            state: this.state,
+            resolutionChanged: false,
+            dragging: true,
+            chrChanged: false
+        });
+        locusChangeEvent.dragging = true;
+        this.eventBus.post(locusChangeEvent);
+
+
+    }
+
+    goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
+
+        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const bpResolutions = this.getResolutions();
+        const currentResolution = bpResolutions[this.state.zoom].binSize;
+        const viewWidth = viewDimensions.width;
+
+        if (!bpXMax) {
+            bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2));
+            bpXMax = bpX + viewWidth * currentResolution;
+        }
+        if (!bpYMax) {
+            bpY = Math.max(0, bpY - Math.floor(viewDimensions.height * currentResolution / 2));
+            bpYMax = bpY + viewDimensions.height * currentResolution;
+        }
+
+        let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+
+        if (minResolution && targetResolution < minResolution) {
+            const maxExtent = viewWidth * minResolution;
+            const xCenter = (bpX + bpXMax) / 2;
+            const yCenter = (bpY + bpYMax) / 2;
+            bpX = Math.max(xCenter - maxExtent / 2);
+            bpY = Math.max(0, yCenter - maxExtent / 2);
+            targetResolution = minResolution;
+        }
+
+        let zoomChanged;
+        let newZoom;
+        if (true === this.resolutionLocked && minResolution === undefined) {
+            zoomChanged = false;
+            newZoom = this.state.zoom;
+        } else {
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
+            zoomChanged = (newZoom !== this.state.zoom);
+        }
+
+        const newResolution = bpResolutions[newZoom].binSize;
+        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
+        const newXBin = bpX / newResolution;
+        const newYBin = bpY / newResolution;
+
+        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2;
+        this.state.chr1 = chr1;
+        this.state.chr2 = chr2;
+        this.state.zoom = newZoom;
+        this.state.x = newXBin;
+        this.state.y = newYBin;
+        this.state.pixelSize = newPixelSize;
+
+        this.contactMatrixView.clearImageCaches();
+        this.eventBus.post(HICEvent("LocusChange", {
+            state: this.state,
+            resolutionChanged: zoomChanged,
+            chrChanged: chrChanged
+        }));
+
+    }
+
+    clamp() {
+        var viewDimensions = this.contactMatrixView.getViewDimensions(),
+            chr1Length = this.dataset.chromosomes[this.state.chr1].size,
+            chr2Length = this.dataset.chromosomes[this.state.chr2].size,
+            binSize = this.dataset.bpResolutions[this.state.zoom],
+            maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
+            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
+
+        // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
+        maxX = Math.max(0, maxX);
+        maxY = Math.max(0, maxY);
+
+
+        this.state.x = Math.min(Math.max(0, this.state.x), maxX);
+        this.state.y = Math.min(Math.max(0, this.state.y), maxY);
+    }
+
+    receiveEvent(event) {
+        var self = this;
+
+        if ("LocusChange" === event.type) {
+
+            if (event.propogate) {
+
+                self.synchedBrowsers.forEach(function (browser) {
+                    browser.syncState(self.getSyncState());
+                })
+
+            }
+
+            this.update(event);
+        }
+
+    }
+
+    /**
+     * Update the maps and tracks.
+     *
+     * @param event
+     */
+    async update(event) {
+
+        try {
+            this.startSpinner();
+
+            if (event !== undefined && "LocusChange" === event.type) {
+                this.layoutController.xAxisRuler.locusChange(event);
+                this.layoutController.yAxisRuler.locusChange(event);
+            }
+
+            this.renderTracks();
+            //this.contactMatrixView.update();
+
+        } finally {
+            this.stopSpinner();
+        }
+    }
+
+    repaintMatrix() {
+        this.contactMatrixView.imageTileCache = {};
+        this.contactMatrixView.initialImage = undefined;
+        this.contactMatrixView.update();
+    }
+
+    resolution() {
+        return this.dataset.bpResolutions[this.state.zoom];
     };
+
 }
 
 
@@ -1062,266 +1317,6 @@ async function minPixelSize(chr1, chr2, z) {
     return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
 
 }
-
-/**
- * Set the matrix state.  Used to restore state from a bookmark
- * @param state  browser state
- */
-HICBrowser.prototype.setState = async function (state) {
-
-    const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
-    this.state = state;
-    // Possibly adjust pixel size
-    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-    this.state.pixelSize = Math.max(state.pixelSize, minPS);
-    this.eventBus.post(new HICEvent("LocusChange", {
-        state: this.state,
-        resolutionChanged: true,
-        chrChanged: chrChanged
-    }));
-};
-
-
-/**
- * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
- * and resolution arrays
- */
-HICBrowser.prototype.getSyncState = function () {
-    return {
-        chr1Name: this.dataset.chromosomes[this.state.chr1].name,
-        chr2Name: this.dataset.chromosomes[this.state.chr2].name,
-        binSize: this.dataset.bpResolutions[this.state.zoom],
-        binX: this.state.x,            // TODO -- tranlsate to lower right corner
-        binY: this.state.y,
-        pixelSize: this.state.pixelSize
-    };
-}
-
-/**
- * Return true if this browser can be synched to the given state
- * @param syncState
- */
-HICBrowser.prototype.canBeSynched = function (syncState) {
-
-    return this.dataset &&
-        (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
-        (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
-
-}
-
-/**
- * Used to synch state with other browsers
- * @param state  browser state
- */
-HICBrowser.prototype.syncState = function (syncState) {
-
-    if (!this.dataset) return;
-
-    var chr1 = this.genome.getChromosome(syncState.chr1Name),
-        chr2 = this.genome.getChromosome(syncState.chr2Name),
-        zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
-        x = syncState.binX,
-        y = syncState.binY,
-        pixelSize = syncState.pixelSize;
-
-    if (!(chr1 && chr2)) {
-        return;   // Can't be synched.
-    }
-
-    if (zoom === undefined) {
-        // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
-        zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
-
-        // Compute equivalent in basepairs / pixel
-        pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
-
-        // Translate bins so that origin is unchanged in basepairs
-        x = (syncState.binX / syncState.pixelSize) * pixelSize;
-        y = (syncState.binY / syncState.pixelSize) * pixelSize;
-
-        if (pixelSize > MAX_PIXEL_SIZE) {
-            console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)");
-            return;
-        }
-    }
-
-
-    const zoomChanged = (this.state.zoom !== zoom);
-    const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index);
-    this.state.chr1 = chr1.index;
-    this.state.chr2 = chr2.index;
-    this.state.zoom = zoom;
-    this.state.x = x;
-    this.state.y = y;
-    this.state.pixelSize = pixelSize;
-
-    this.eventBus.post(HICEvent("LocusChange", {
-        state: this.state,
-        resolutionChanged: zoomChanged,
-        chrChanged: chrChanged
-    }, false));
-
-};
-
-HICBrowser.prototype.setNormalization = function (normalization) {
-
-    this.state.normalization = normalization;
-    this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization))
-};
-
-
-HICBrowser.prototype.shiftPixels = function (dx, dy) {
-
-    var self = this;
-
-    if (!this.dataset) return;
-
-    this.state.x += (dx / this.state.pixelSize);
-    this.state.y += (dy / this.state.pixelSize);
-    this.clamp();
-
-    const locusChangeEvent = HICEvent("LocusChange", {
-        state: this.state,
-        resolutionChanged: false,
-        dragging: true,
-        chrChanged: false
-    });
-    locusChangeEvent.dragging = true;
-    this.eventBus.post(locusChangeEvent);
-
-
-};
-
-
-HICBrowser.prototype.goto = function (chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
-
-    const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const bpResolutions = this.getResolutions();
-    const currentResolution = bpResolutions[this.state.zoom].binSize;
-    const viewWidth = viewDimensions.width;
-
-    if (!bpXMax) {
-        bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2));
-        bpXMax = bpX + viewWidth * currentResolution;
-    }
-    if (!bpYMax) {
-        bpY = Math.max(0, bpY - Math.floor(viewDimensions.height * currentResolution / 2));
-        bpYMax = bpY + viewDimensions.height * currentResolution;
-    }
-
-    let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
-
-    if (minResolution && targetResolution < minResolution) {
-        const maxExtent = viewWidth * minResolution;
-        const xCenter = (bpX + bpXMax) / 2;
-        const yCenter = (bpY + bpYMax) / 2;
-        bpX = Math.max(xCenter - maxExtent / 2);
-        bpY = Math.max(0, yCenter - maxExtent / 2);
-        targetResolution = minResolution;
-    }
-
-    let zoomChanged;
-    let newZoom;
-    if (true === this.resolutionLocked && minResolution === undefined) {
-        zoomChanged = false;
-        newZoom = this.state.zoom;
-    } else {
-        newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-        zoomChanged = (newZoom !== this.state.zoom);
-    }
-
-    const newResolution = bpResolutions[newZoom].binSize;
-    const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
-    const newXBin = bpX / newResolution;
-    const newYBin = bpY / newResolution;
-
-    const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2;
-    this.state.chr1 = chr1;
-    this.state.chr2 = chr2;
-    this.state.zoom = newZoom;
-    this.state.x = newXBin;
-    this.state.y = newYBin;
-    this.state.pixelSize = newPixelSize;
-
-    this.contactMatrixView.clearImageCaches();
-    this.eventBus.post(HICEvent("LocusChange", {
-        state: this.state,
-        resolutionChanged: zoomChanged,
-        chrChanged: chrChanged
-    }));
-
-};
-
-HICBrowser.prototype.clamp = function () {
-    var viewDimensions = this.contactMatrixView.getViewDimensions(),
-        chr1Length = this.dataset.chromosomes[this.state.chr1].size,
-        chr2Length = this.dataset.chromosomes[this.state.chr2].size,
-        binSize = this.dataset.bpResolutions[this.state.zoom],
-        maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
-        maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
-
-    // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
-    maxX = Math.max(0, maxX);
-    maxY = Math.max(0, maxY);
-
-
-    this.state.x = Math.min(Math.max(0, this.state.x), maxX);
-    this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-};
-
-HICBrowser.prototype.receiveEvent = function (event) {
-    var self = this;
-
-    if ("LocusChange" === event.type) {
-
-        if (event.propogate) {
-
-            self.synchedBrowsers.forEach(function (browser) {
-                browser.syncState(self.getSyncState());
-            })
-
-        }
-
-        this.update(event);
-    }
-
-};
-
-/**
- * Update the maps and tracks.
- *
- * @param event
- */
-HICBrowser.prototype.update = async function (event) {
-
-    try {
-        this.startSpinner();
-
-        if (event !== undefined && "LocusChange" === event.type) {
-            this.layoutController.xAxisRuler.locusChange(event);
-            this.layoutController.yAxisRuler.locusChange(event);
-        }
-
-        this.renderTracks();
-        //this.contactMatrixView.update();
-
-    } finally {
-        this.stopSpinner();
-    }
-}
-
-
-HICBrowser.prototype.repaintMatrix = function () {
-    this.contactMatrixView.imageTileCache = {};
-    this.contactMatrixView.initialImage = undefined;
-    this.contactMatrixView.update();
-}
-
-
-HICBrowser.prototype.resolution = function () {
-    return this.dataset.bpResolutions[this.state.zoom];
-};
-
 
 function getNviString(dataset) {
 
