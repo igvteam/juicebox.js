@@ -21,72 +21,14 @@
  *
  */
 
-import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {Zlib} from "../node_modules/igv-utils/src/index.js"
-import igv from "../node_modules/igv/dist/igv.esm.js"
 import {allBrowsers, areCompatible, createBrowser, deleteAllBrowsers} from "./hicUtils.js"
-import {extractQuery} from "./urlUtils.js"
-import GoogleURL from "./googleURL.js"
-import BitlyURL from "./bitlyURL.js"
-import TinyURL from "./tinyURL.js"
+
 import {Globals} from "./globals.js";
 
 const urlShorteners = [];
 let appContainer;
-
-async function initApp(container, config) {
-
-    appContainer = container;
-
-    Alert.init(container);
-
-    if (config.urlShortener) {
-        setURLShortener(config.urlShortener);
-    }
-
-    if (config.apiKey) {
-        igv.xhr.setApiKey(config.apiKey);
-    }
-
-    if (config.oauthToken) {
-        igv.oauth.setToken(config.oauthToken);
-    }
-
-    if (config.clientId && (!GoogleAuth.isInitialized())) {
-        await GoogleAuth.init({
-            clientId: config.clientId,
-            apiKey: config.apiKey,
-            scope: 'https://www.googleapis.com/auth/userinfo.profile'
-        })
-    }
-
-    let query = {};
-
-    config.queryParametersSupported =  config.queryParametersSupported !== false;
-
-    if (false === config.queryParametersSupported) {
-        // ignore window.location.href params
-    } else {
-        query = extractQuery(window.location.href);
-        query = await expandJuiceboxUrl(query)
-    }
-
-    if (query.hasOwnProperty("session")) {
-        if (query.session.startsWith("blob:")) {
-            const json = JSON.parse(decompressQueryParameter(query.session.substr(5)));
-            json.initFromUrl = false;
-            console.log(JSON.stringify(json));
-            await restoreSession(container, json);
-        } else {
-            // TODO - handle session url
-            await createBrowsers(container, query)
-        }
-    } else {
-        await createBrowsers(container, query);
-    }
-    syncBrowsers(allBrowsers);
-}
 
 async function loadSession(json) {
     return restoreSession(appContainer, json);
@@ -214,55 +156,6 @@ function syncBrowsers(browsers) {
 
 }
 
-async function expandJuiceboxUrl(query) {
-    if (query && query.hasOwnProperty("juiceboxURL")) {
-        const jbURL = await expandURL(query["juiceboxURL"])   // Legacy bitly urls
-        return extractQuery(jbURL);
-    } else {
-        return query
-    }
-}
-
-function setURLShortener(shortenerConfigs) {
-    if (!shortenerConfigs || shortenerConfigs === "none") ; else {
-        shortenerConfigs.forEach(function (config) {
-            urlShorteners.push(getShortener(config));
-        });
-    }
-
-    function getShortener(shortener) {
-        if (shortener.provider) {
-            if (shortener.provider === "tinyURL") {
-                return new TinyURL(shortener);
-            }
-            if (shortener.provider === "google" && shortener.apiKey) {
-                return new GoogleURL(shortener);
-            } else if (shortener.provider === "bitly" && shortener.apiKey) {
-                return new BitlyURL(shortener);
-            } else {
-                Alert.presentAlert("Unknown url shortener provider: " + shortener.provider);
-            }
-        } else {
-            // Custom
-            if (typeof shortener.shortenURL === "function") {
-                return shortener;
-            } else {
-                Alert.presentAlert("URL shortener object must define functions 'shortenURL'");
-            }
-        }
-    }
-}
-
-async function shortJuiceboxURL(base) {
-
-    const url = `${base}?${getCompressedDataString()}`;
-    if (urlShorteners && urlShorteners.length > 0) {
-        return urlShorteners[0].shortenURL(url);
-    } else {
-        return Promise.resolve(url);
-    }
-}
-
 function getCompressedDataString() {
     //return `juiceboxData=${ compressQueryParameter( getQueryString() ) }`;
     const jsonString = JSON.stringify(toJSON());
@@ -366,9 +259,7 @@ function decompressQueryParameter(enc) {
 export {
     decompressQueryParameter,
     getCompressedDataString,
-    initApp,
     syncBrowsers,
-    shortJuiceboxURL,
     toJSON,
     getQueryString,
     loadSession

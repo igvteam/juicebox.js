@@ -26,13 +26,13 @@ import igv from '../node_modules/igv/dist/igv.esm.js'
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
 import {allBrowsers, createBrowser} from './hicUtils.js';
-import {decompressQueryParameter, getCompressedDataString, initApp, shortJuiceboxURL, syncBrowsers, toJSON, loadSession} from "./init.js";
+import {decompressQueryParameter, getCompressedDataString, syncBrowsers, toJSON, loadSession} from "./init.js";
 import * as utils from './utils.js';
 import {version} from "./version.js";
 import EventBus from "./eventBus.js";
 
 export default {
     version, loadSession, createBrowser, decodeQuery, extractQuery, HICBrowser, allBrowsers, EventBus,
-    initApp, syncBrowsers, shortJuiceboxURL, getCompressedDataString, decompressQueryParameter, toJSON,
+    syncBrowsers, getCompressedDataString, decompressQueryParameter, toJSON,
     utils, igv, Alert
 }
