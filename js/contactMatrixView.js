@@ -35,7 +35,7 @@ const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
 const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
-const blockBinCount = 685;
+const imageTileDimension = 685;
 
 const ContactMatrixView = function (browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
@@ -248,10 +248,10 @@ ContactMatrixView.prototype.repaint = async function () {
     const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
     const widthInBins = this.$viewport.width() / pixelSizeInt
     const heightInBins = this.$viewport.height() / pixelSizeInt
-    const blockCol1 = Math.floor(state.x / blockBinCount)
-    const blockCol2 = Math.floor((state.x + widthInBins) / blockBinCount)
-    const blockRow1 = Math.floor(state.y / blockBinCount)
-    const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
+    const blockCol1 = Math.floor(state.x / imageTileDimension)
+    const blockCol2 = Math.floor((state.x + widthInBins) / imageTileDimension)
+    const blockRow1 = Math.floor(state.y / imageTileDimension)
+    const blockRow2 = Math.floor((state.y + heightInBins) / imageTileDimension)
 
     if ("NONE" !== state.normalization) {
         if (!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
@@ -324,7 +324,7 @@ ContactMatrixView.prototype.checkColorScale = async function (ds, zd, row1, row2
         return this.colorScale;
     } else {
         try {
-            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const widthInBP = imageTileDimension * zd.zoom.binSize;
             const x0bp = col1 * widthInBP;
             const xWidthInBP = (col2 - col1 + 1) * widthInBP;
             const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + xWidthInBP};
@@ -411,12 +411,12 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
     } else {
         if (this.drawsInProgress.has(key)) {
             //console.log("In progress")
-            const imageSize = blockBinCount
+            const imageSize = imageTileDimension
             const image = inProgressTile(imageSize)
             return {
                 row: row,
                 column: column,
-                blockBinCount: blockBinCount,
+                blockBinCount: imageTileDimension,
                 image: image,
                 inProgress: true
             }  // TODO return an image at a coarser resolution if avaliable
@@ -432,7 +432,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
             const ctrlAverageCount = zdControl ? zdControl.averageCount : 1
             const averageAcrossMapAndControl = (averageCount + ctrlAverageCount) / 2
 
-            const imageSize = blockBinCount
+            const imageSize = imageTileDimension
             const image = document.createElement('canvas');
             image.width = imageSize;
             image.height = imageSize;
@@ -440,7 +440,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
             //ctx.clearRect(0, 0, image.width, image.height);
 
             // Get blocks
-            const widthInBP = blockBinCount * zd.zoom.binSize;
+            const widthInBP = imageTileDimension * zd.zoom.binSize;
             const x0bp = column * widthInBP;
             const region1 = {chr: zd.chr1.name, start: x0bp, end: x0bp + widthInBP};
             const y0bp = row * widthInBP;
@@ -463,8 +463,8 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                 let id = ctx.getImageData(0, 0, image.width, image.height);
 
 
-                const x0 = transpose ? row * blockBinCount : column * blockBinCount;
-                const y0 = transpose ? column * blockBinCount : row * blockBinCount;
+                const x0 = transpose ? row * imageTileDimension : column * imageTileDimension;
+                const y0 = transpose ? column * imageTileDimension : row * imageTileDimension;
                 for (let i = 0; i < records.length; i++) {
 
                     const rec = records[i];
@@ -570,10 +570,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
                                         ctx.strokeRect(py1, px1, h, w);
                                     }
                                 }
-
-
                             }
-
                         }
                     }
                 }
@@ -588,7 +585,7 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
             } else {
                 //console.log("No block for " + blockNumber);
             }
-            var imageTile = {row: row, column: column, blockBinCount: blockBinCount, image: image}
+            var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}
 
 
             if (this.imageTileCacheLimit > 0) {
