@@ -557,7 +557,7 @@ class HICBrowser {
                 this.$user_interaction_shield.show();
             }
 
-            const name = await extractName(config)
+            const name = extractName(config)
             const prefix = this.controlDataset ? "A: " : "";
             this.$contactMaplabel.text(prefix + name);
             this.$contactMaplabel.attr('title', name);
@@ -643,7 +643,7 @@ class HICBrowser {
             this.$user_interaction_shield.show()
             this.contactMatrixView.startSpinner()
             this.controlUrl = config.url
-            const name = await extractName(config)
+            const name = extractName(config)
             config.name = name
 
             const controlDataset = await loadDataset(config)
@@ -860,7 +860,7 @@ class HICBrowser {
 
     }
 
-     // Zoom in response to a double-click
+    // Zoom in response to a double-click
     /**
      * Zoom and center on bins at given screen coordinates.  Supports double-click zoom, pinch zoom.
      * @param direction
@@ -1008,24 +1008,15 @@ class HICBrowser {
     };
 }
 
-/**
- * Return a promise to extract the name of the dataset.  The promise is neccessacary because
- * google drive urls require a call to the API
- *
- * @returns Promise for the name
- */
-async function extractName(config) {
 
-    if (config.name === undefined && typeof config.url === "string" && config.url.includes("drive.google.com")) {
-        const json = await igv.google.getDriveFileInfo(config.url)
-        return json.name;
+function extractName(config) {
+
+    if (config.name === undefined) {
+        return hicUtils.extractFilename(config.url);
     } else {
-        if (config.name === undefined) {
-            return hicUtils.extractFilename(config.url);
-        } else {
-            return config.name;
-        }
+        return config.name;
     }
+
 }
 
 

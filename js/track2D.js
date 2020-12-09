@@ -2,9 +2,6 @@ import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {Track2DDisplaceModes} from './globals.js';
 import igv from '../node_modules/igv/dist/igv.esm.js'
 
-const google = igv.google;
-const oauth = igv.oauth;
-
 class Track2D {
 
     constructor(config, features) {
@@ -46,16 +43,16 @@ class Track2D {
 
     static async loadTrack2D(config, genome) {
 
-        if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
-            const json = await google.getDriveFileInfo(config.url)
-            config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
-            if (!config.filename) {
-                config.filename = json.originalFileName || json.name;
-            }
-            if (!config.name) {
-                config.name = json.name || json.originalFileName;
-            }
-        }
+        // if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
+        //     const json = await google.getDriveFileInfo(config.url)
+        //     config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
+        //     if (!config.filename) {
+        //         config.filename = json.originalFileName || json.name;
+        //     }
+        //     if (!config.name) {
+        //         config.name = json.name || json.originalFileName;
+        //     }
+        // }
 
         const data = await igv.xhr.loadString(config.url, buildOptions(config));
         const features = parseData(data, isBedPE(config), genome);
