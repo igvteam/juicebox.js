@@ -417,7 +417,7 @@ class HICBrowser {
 
                 if (undefined === config.format) {
                     // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config));
+                    promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
                     const track = await igv.createTrack(config, this)
                     trackXYPairs.push({x: track, y: track})

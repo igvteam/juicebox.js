@@ -5,67 +5,64 @@ import igv from '../node_modules/igv/dist/igv.esm.js'
 const google = igv.google;
 const oauth = igv.oauth;
 
-const Track2D = function (config, features) {
+class Track2D {
 
-    var self = this;
+    constructor(config, features) {
 
-    this.config = config;
-    this.name = config.name;
-    this.featureMap = {};
-    this.featureCount = 0;
-    this.isVisible = true;
+        this.config = config;
+        this.name = config.name;
+        this.featureMap = {};
+        this.featureCount = 0;
+        this.isVisible = true;
 
-    this.displayMode = Track2DDisplaceModes.displayAllMatrix;
+        this.displayMode = Track2DDisplaceModes.displayAllMatrix;
 
-    if (config.color && validateColor(config.color)) {
-        this.color = this.color = config.color;    // If specified, this will override colors of individual records.
-    }
-    this.repColor = features.length > 0 ? features[0].color : "black";
-
-    features.forEach(function (f) {
-
-        self.featureCount++;
-
-        var key = getKey(f.chr1, f.chr2),
-            list = self.featureMap[key];
-
-        if (!list) {
-            list = [];
-            self.featureMap[key] = list;
+        if (config.color && validateColor(config.color)) {
+            this.color = this.color = config.color;    // If specified, this will override colors of individual records.
         }
-        list.push(f);
-    });
 
-};
+        this.repColor = features.length > 0 ? features[0].color : "black";
 
-Track2D.loadTrack2D = async function (config) {
-
-    if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
-        const json = await google.getDriveFileInfo(config.url)
-        config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
-        if (!config.filename) {
-            config.filename = json.originalFileName || json.name;
-        }
-        if (!config.name) {
-            config.name = json.name || json.originalFileName;
+        for (let f of features) {
+            this.featureCount++;
+            const key = getKey(f.chr1, f.chr2);
+            let list = this.featureMap[key];
+            if (!list) {
+                list = [];
+                this.featureMap[key] = list;
+            }
+            list.push(f);
         }
     }
 
-    const data = await igv.xhr.loadString(config.url, buildOptions(config));
-    const features = parseData(data, isBedPE(config));
-    return new Track2D(config, features);
+    getColor() {
+        return this.color || this.repColor;
+    }
+
+    getFeatures(chr1, chr2) {
+        const key = getKey(chr1, chr2);
+        return this.featureMap[key];
+    }
+
+    static async loadTrack2D(config, genome) {
+
+        if (isString(config.url) && config.url.startsWith("https://drive.google.com")) {
+            const json = await google.getDriveFileInfo(config.url)
+            config.url = "https://www.googleapis.com/drive/v3/files/" + json.id + "?alt=media";
+            if (!config.filename) {
+                config.filename = json.originalFileName || json.name;
+            }
+            if (!config.name) {
+                config.name = json.name || json.originalFileName;
+            }
+        }
+
+        const data = await igv.xhr.loadString(config.url, buildOptions(config));
+        const features = parseData(data, isBedPE(config), genome);
+        return new Track2D(config, features);
+    }
+
 }
-
-Track2D.prototype.getColor = function () {
-    return this.color || this.repColor;
-}
-
-Track2D.prototype.getFeatures = function (chr1, chr2) {
-    var key = getKey(chr1, chr2),
-        features = this.featureMap[key];
-
-    return features || this.featureMap[getAltKey(chr1, chr2)];
-};
 
 
 function isBedPE(config) {
@@ -79,31 +76,23 @@ function isBedPE(config) {
     }
 }
 
-function parseData(data, isBedPE) {
+function parseData(data, isBedPE, genome) {
 
     if (!data) return null;
 
-    var feature,
-        lines = StringUtils.splitLines(data),
-        len = lines.length,
-        tokens,
-        allFeatures = [],
-        line,
-        i,
-        delimiter = "\t",
-        start,
-        colorColumn;
-
-    start = isBedPE ? 0 : 1;
-    colorColumn = isBedPE ? 10 : 6;
+    const lines = StringUtils.splitLines(data)
+    const allFeatures = []
+    const delimiter = "\t";
+    const start = isBedPE ? 0 : 1;
+    const colorColumn = isBedPE ? 10 : 6;
 
     let errorCount = 0;
-    for (i = start; i < len; i++) {
-        line = lines[i].trim();
+    for (let line of lines) {
+        line = line.trim();
         if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser") || line.length === 0) {
             continue;
         }
-        tokens = lines[i].split(delimiter);
+        const tokens = line.split(delimiter);
         if (tokens.length < 6 && errorCount <= 5) {
             if (errorCount === 5) {
                 console.error("...");
@@ -114,11 +103,11 @@ function parseData(data, isBedPE) {
             continue;
         }
 
-        feature = {
-            chr1: tokens[0],
+        const feature = {
+            chr1: genome.getChromosomeName(tokens[0]),
             x1: parseInt(tokens[1]),
             x2: parseInt(tokens[2]),
-            chr2: tokens[3],
+            chr2: genome.getChromosomeName(tokens[3]),
             y1: parseInt(tokens[4]),
             y2: parseInt(tokens[5])
         }
@@ -138,13 +127,6 @@ function parseData(data, isBedPE) {
 function getKey(chr1, chr2) {
     return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
 }
-
-function getAltKey(chr1, chr2) {
-    var chr1Alt = chr1.startsWith("chr") ? chr1.substr(3) : "chr" + chr1,
-        chr2Alt = chr2.startsWith("chr") ? chr2.substr(3) : "chr" + chr2;
-    return chr1 > chr2 ? chr2Alt + "_" + chr1Alt : chr1Alt + "_" + chr2Alt;
-}
-
 
 function validateColor(str) {
     var div = document.createElement("div");

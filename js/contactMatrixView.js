@@ -29,7 +29,6 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
-import HICMath from './hicMath.js'
 import * as hicUtils from './hicUtils.js'
 
 const DRAG_THRESHOLD = 2;
@@ -254,8 +253,8 @@ ContactMatrixView.prototype.repaint = async function () {
     const blockRow1 = Math.floor(state.y / blockBinCount)
     const blockRow2 = Math.floor((state.y + heightInBins) / blockBinCount)
 
-    if("NONE" !== state.normalization) {
-        if(!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
+    if ("NONE" !== state.normalization) {
+        if (!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
             Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
             this.browser.eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
             state.normalization = "NONE";
@@ -528,42 +527,54 @@ ContactMatrixView.prototype.getImageTile = async function (ds, dsControl, zd, zd
 
                     if (track2D.isVisible) {
 
-                        const features = track2D.getFeatures(zd.chr1.name, zd.chr2.name);
+                        const chr1Name = zd.chr1.name;
+                        const chr2Name = zd.chr2.name;
+                        const features = track2D.getFeatures(chr1Name, chr2Name);
 
                         if (features) {
 
-                            for (let { color, x1, x2, y1, y2 } of features) {
+                            for (let f of features) {
 
-                                x1 = Math.round((x1 / zd.zoom.binSize - x0bp));
-                                x2 = Math.round((x2 / zd.zoom.binSize - x0bp));
-                                y1 = Math.round((y1 / zd.zoom.binSize - y0bp));
-                                y2 = Math.round((y2 / zd.zoom.binSize - y0bp));
+                                const flip = chr1Name !== f.chr1;
+                                const fx1 = flip ? f.x2 : f.x1;
+                                const fx2 = flip ? f.x1 : f.x2
+                                const fy1 = flip ? f.y2 : f.y1;
+                                const fy2 = flip ? f.y1 : f.y2
 
-                                let w = x2 - x1;
-                                let h = y2 - y1;
 
-                                if (transpose) {
-                                    let t = y1;
-                                    y1 = x1;
-                                    x1 = t;
+                                let px1 = (fx1 - x0bp) / zd.zoom.binSize;
+                                let px2 = (fx2 - x0bp) / zd.zoom.binSize;
+                                let py1 = (fy1 - y0bp) / zd.zoom.binSize;
+                                let py2 = (fy2 - y0bp) / zd.zoom.binSize;
+                                let w = px2 - px1;
+                                let h = py2 - py1;
+
+                                if (transpose || flip) {
+                                    let t;
+                                    t = py1;
+                                    py1 = px1;
+                                    px1 = t;
+                                    t = py2;
+                                    py2 = px2;
+                                    px2 = t;
                                     t = h;
                                     h = w;
                                     w = t;
                                 }
 
                                 const dim = Math.max(image.width, image.height);
-                                if (x2 > 0 && x1 < dim && y2 > 0 && y1 < dim) {
-                                    ctx.strokeStyle = track2D.color ? track2D.color : color;
-                                    ctx.strokeRect(x1, y1, w, h);
+                                if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
+                                    ctx.strokeStyle = track2D.color ? track2D.color : f.color;
+                                    ctx.strokeRect(px1, py1, w, h);
                                     if (sameChr && row === column) {
-                                        ctx.strokeRect(y1, x1, h, w);
+                                        ctx.strokeRect(py1, px1, h, w);
                                     }
                                 }
 
 
                             }
 
-                         }
+                        }
                     }
                 }
 
@@ -695,7 +706,7 @@ function computePercentile(records, p) {
     counts.sort(function (a, b) {
         return a - b;
     })
-    const idx = Math.floor((p/100) * records.length);
+    const idx = Math.floor((p / 100) * records.length);
     return counts[idx];
 
     // return HICMath.percentile(array, p);
