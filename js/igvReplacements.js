@@ -2,25 +2,23 @@
  * Created by dat on 5/7/17.
  */
 
+import igv from "../node_modules/igv/dist/igv.esm.js"
 import $ from "../vendor/jquery-3.3.1.slim.js";
 
-const igvReplacements = function (igv) {
+igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
 
-    igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
+    var menuItems = [];
 
-        var menuItems = [];
-
-        menuItems.push(colorPickerMenuItem(trackRenderer));
-        menuItems.push(trackRenameMenuItem(trackRenderer));
-        if ("annotation" !== trackRenderer.track.type) {
-            if (trackRenderer.track.menuItemList) {
-                menuItems = menuItems.concat(trackRenderer.track.menuItemList());
-            }
+    menuItems.push(colorPickerMenuItem(trackRenderer));
+    menuItems.push(trackRenameMenuItem(trackRenderer));
+    if ("annotation" !== trackRenderer.track.type) {
+        if (trackRenderer.track.menuItemList) {
+            menuItems = menuItems.concat(trackRenderer.track.menuItemList());
         }
-        menuItems.push('<hr/>');
-        menuItems.push(trackRemovalMenuItem(trackRenderer));
-        return menuItems;
-    };
+    }
+    menuItems.push('<hr/>');
+    menuItems.push(trackRemovalMenuItem(trackRenderer));
+    return menuItems;
 };
 
 function colorPickerMenuItem(trackRender) {
@@ -73,4 +71,5 @@ function trackRemovalMenuItem(trackRenderer) {
 };
 
 
-export default igvReplacements
+
+

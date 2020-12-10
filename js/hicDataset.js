@@ -28,6 +28,8 @@
 
 import * as hic from './hicUtils.js'
 import Straw from '../node_modules/hic-straw/src/straw.js'
+import {GoogleUtils} from '../node_modules/igv-utils/src/index.js'
+import IGVRemoteFile from "./igvRemoteFile.js"
 
 const knownGenomes = {
 
@@ -169,13 +171,45 @@ class Dataset {
         return (this.wholeGenomeChromosome != null && this.wholeGenomeChromosome.index === chrIndex);
     }
 
-
     async getNormVectorIndex() {
         return this.hicFile.getNormVectorIndex()
     }
 
     async getNormalizationOptions() {
         return this.hicFile.getNormalizationOptions()
+    }
+
+    /**
+     * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
+     * different IDs are used (e.g. GRCh38 vs hg38)
+     * @param d1
+     * @param d2
+     */
+    isCompatible(d2) {
+        return (this.genomeId === d2.genomeId) || this.compareChromosomes(d2)
+    }
+
+    static async loadDataset(config) {
+
+        // If this is a local file, use the "blob" field for straw
+        if (config.url instanceof File) {
+            config.blob = config.url
+            delete config.url
+        } else {
+            // If this is a google url, add api KEY
+            if (GoogleUtils.isGoogleURL(config.url)) {
+                if (GoogleUtils.isGoogleDriveURL(config.url)) {
+                    config.url = GoogleUtils.driveDownloadURL(config.url)
+                }
+                const copy = Object.assign({}, config);
+                config.file = new IGVRemoteFile(copy);
+            }
+        }
+
+        const dataset = new Dataset(config)
+        await dataset.init();
+        dataset.url = config.url
+        return dataset
     }
 }
 

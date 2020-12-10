@@ -108,7 +108,6 @@ class Genome {
             offset += l;
         }
         return this.chromosomes[this.chromosomes.length - 1];
-
     }
 
 
@@ -136,8 +135,8 @@ function computeCumulativeOffsets() {
     const cumulativeOffsets = {};
     let offset = 0;
     // Skip first chromosome (its chr all).
-    for (let i = 1; i < self.chromosomes.length; i++) {
-        const chromosome = this.chromosomes[i];
+    for (let chromosome of this.chromosomes) {
+        if(chromosome.name === 'all') continue;
         cumulativeOffsets[chromosome.name] = Math.floor(offset);
         offset += (chromosome.size);
     }

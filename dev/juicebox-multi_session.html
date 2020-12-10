@@ -36,32 +36,49 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
-    <script type="text/javascript" src="../dist/js/juicebox.js"></script>
+    <!-- App (container) css -->
+    <link rel="stylesheet" type="text/css" href="./css/app.css">
+
 
 </head>
 
 <body>
 
 
-<div id="app-container"></div>
+<div id="app-container" class="juicebox-app-clone-container"></div>
 
 
-<script type="text/javascript">
+<script type="module">
 
-    document.addEventListener("DOMContentLoaded", function () {
-        const config = {
-            url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC041.hic",
-            name: "HC041"
+    import hic from "../js/index.js";
+
+    const session_json =
+        {
+            "browsers": [
+                {
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/maternal.hic",
+                    "name": "Maternal",
+                    "state": "10,10,4,297.9054167187501,302.6114843229168,1,VC",
+                    "colorScale": "17.51672310409178,255,0,0",
+                    "nvi": "1380542661,17185"
+                },
+                {
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/paternal.hic",
+                    "name": "Paternal",
+                    "state": "10,10,4,297.9054167187501,302.6114843229168,1,VC",
+                    "colorScale": "17.82655022106232,0,24,136",
+                    "nvi": "1389001777,17185"
+                }
+            ]
         }
 
-        const container = document.getElementById("app-container");
 
-        hic.createBrowser(container, config)
-            .then(function (ignore) {
-                //hic.updateAllBrowsers()
-            })
-   });
+    const container = document.getElementById("app-container");
 
+    (async function () {
+        await hic.initApp(container, session_json);
+        //await restoreSession(container, session_json.browsers[0]);
+    })()
 
 </script>
 

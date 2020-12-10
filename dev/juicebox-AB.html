@@ -36,6 +36,9 @@
     <!-- Juicebox CSS-->
     <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
+    <!-- App (container) css -->
+    <link rel="stylesheet" type="text/css" href="./css/app.css">
+
 
 </head>
 
@@ -47,33 +50,52 @@
 
 <script type="module">
 
-    //import hic from "../dist/js/juicebox.esm.js";
     import hic from "../js/index.js";
-
-    // const config = {
-    //     url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC041.hic",
-    //     name: "HC041"
+    // https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/maternal.hic: {
+    //     NVI: "",
+    //         name: "Maternal",
+    //     author: "Rao and Huntley et al.",
+    //     journal: "Cell",
+    //     year: "2014",
+    //     organism: "human",
+    //     reference genome: "hg19",
+    //     cell type: "GM12878",
+    //     experiment type: "Hi-C",
+    //     protocol: "in situ"
+    // },
+    // https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/paternal.hic: {
+    //     NVI: "",
+    //         name: "Paternal",
+    //     author: "Rao and Huntley et al.",
+    //     journal: "Cell",
+    //     year: "2014",
+    //     organism: "human",
+    //     reference genome: "hg19",
+    //     cell type: "GM12878",
+    //     experiment type: "Hi-C",
+    //     protocol: "in situ"
     // }
 
-    const config = {
-        "url": "https://adam.3dg.io/suhas_juicebox/libs/combined_maps/GM12878/GM12878_quadRE_SDSallconc_4.16.20.hic",
-        "name": "GM12878_quadRE_SDSallconc_4.16.20.hic",
-        "state": "1,1,0,0,0,5.777317601948923,SCALE",
-        "colorScale": "12442.332053134069,255,0,0",
-        "nvi": "15139506221,38624",
-        "controlUrl": "https://adam.3dg.io/suhas_juicebox/libs/combined_maps/GM12878/GM12878_quadRE_noSDS_4.16.20.hic",
-        "controlName": "GM12878_quadRE_noSDS_4.16.20.hic",
-        "displayMode": "A",
-        "controlNvi": "12503795017,38073"
-    }
+    const session_config =
+        {
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/paternal.hic",
+            "name": "Paternal",
+            "state": "0,0,0,0,0,1.1518925619007943,NONE",
+            "colorScale": "9336,255,0,0",
+            "selectedGene": "myc",
+            "nvi": "1389001777,17185",
+            "controlUrl": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/maternal.hic",
+            "controlName": "Maternal",
+            "displayMode": "A",
+            "controlNvi": "1380542661,17185"
+        }
+
 
     const container = document.getElementById("app-container");
 
-    hic.createBrowser(container, config)
-        .then(function (ignore) {
-            //hic.updateAllBrowsers()
-        })
-
+    (async function () {
+        const browser = await hic.initApp(container, session_config);
+    })()
 
 </script>
 

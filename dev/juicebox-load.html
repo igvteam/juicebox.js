@@ -42,7 +42,7 @@
 <body>
 
 
-<div id="app-container"></div>
+<div id="app-container" class="juicebox-app-clone-container"></div>
 
 
 <script type="module">
@@ -50,13 +50,6 @@
     import hic from "../js/index.js";
     //import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 
-    const config = {
-        "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
-        "name": "Primary",
-        "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
-        "colorScale": "34,255,0,0",
-        "nvi": "33860030033,37504"
-    }
 
     const google_drive_session =
         {
@@ -123,11 +116,36 @@
 
     const container = document.getElementById("app-container");
 
-    hic.initApp(container, session_config)
-        .then(function (hicBrowser) {
-             // hicBrowser.loadTracks ([{
-             //     url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt"
-             // }])
+    hic.initApp(container, {})
+        .then(async function (hicBrowser) {
+
+            //const hicBrowser = hic.getCurrentBrowser();
+
+            await hicBrowser.loadHicFile({
+                url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/HIC013.hic",
+                name: "HIC013",
+                nvi: "2309654671,36479"
+            })
+
+            await hicBrowser.loadTracks([{
+                "url": "https://www.dropbox.com/s/ta01pnc9h39bphc/ENCFF421AQV.bigWig?dl=0",
+                "name": "ENCFF421AQV.bigWig",
+                "min": 0,
+                "max": 6.363716287815825,
+                "color": "#6e76ff"
+            },
+                {
+                    "url": "https://www.dropbox.com/s/s3yuap5lvyv6qfc/ENCFF001EQU.bigWig?dl=0",
+                    "name": "ENCFF001EQU.bigWig",
+                    "min": 0,
+                    "max": 23.162939297124602,
+                    "color": "#ff8802"
+                },
+                {
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/rpe1/DarrowHuntley-2015/del-Xa-combined_domains.txt",
+                    "name": "Darrow & Huntley et al. | PNAS 2016 | RPE1 delXa HIC001 domains",
+                    "color": "#83f902"
+                }])
         })
 
 

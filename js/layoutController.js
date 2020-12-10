@@ -2,17 +2,9 @@
  * Created by dat on 4/4/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import * as hic from './hicUtils.js'
-import HICBrowser from './hicBrowser.js'
 import Ruler from './ruler.js'
 import TrackRenderer from './trackRenderer.js'
-
-// TODO: Ensure support for figure mode
-// if (config.figureMode === true) {
-//     config.showLocusGoto = false;
-//     config.showHicContactMapLabel = false;
-//     config.showChromosomeSelector = false;
-// }
+import {setCurrentBrowser, deleteBrowser} from "./createBrowser.js"
 
 // Keep in sync with juicebox.scss variables
 
@@ -34,8 +26,7 @@ const axis_height = 40;
 // $track-margin: 2px;
 const track_margin = 2;
 
-export const annotationTrackHeight = 40;
-export const wigTrackHeight = 40;
+export const trackHeight = 40;
 
 class LayoutController {
 
@@ -165,11 +156,11 @@ class LayoutController {
 
             trackRendererPair.x = new TrackRenderer(this.browser, {
                 width: undefined,
-                height: wigTrackHeight
+                height: trackHeight
             }, this.$x_tracks, trackRendererPair, trackPair, 'x', index);
 
             trackRendererPair.y = new TrackRenderer(this.browser, {
-                width: wigTrackHeight,
+                width: trackHeight,
                 height: undefined
             }, this.$y_tracks, trackRendererPair, trackPair, 'y', index);
 
@@ -270,7 +261,7 @@ class LayoutController {
             height_calc;
 
 
-        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (wigTrackHeight + track_margin);
+        track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (trackHeight + track_margin);
 
         tokens = [getNavbarHeight(), track_aggregate_height].map(number => `${number}px`);
         height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -334,7 +325,7 @@ function createNavBar(browser, $root) {
     $hic_navbar_container.on('click', e => {
         e.stopPropagation();
         e.preventDefault();
-        HICBrowser.setCurrentBrowser(browser);
+        setCurrentBrowser(browser);
     });
 
     const html_contact_map_hic_nav_bar_map_container =
@@ -355,7 +346,7 @@ function createNavBar(browser, $root) {
     browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
 
     browser.$browser_panel_delete_button = $hic_navbar_container.find('.fa-minus-circle');
-    browser.$browser_panel_delete_button.on('click', e => hic.deleteBrowserPanel(browser));
+    browser.$browser_panel_delete_button.on('click', e => deleteBrowser(browser));
 
     // Delete button is only vidible if there is more then one browser
     browser.$browser_panel_delete_button.hide();
@@ -375,7 +366,7 @@ function createNavBar(browser, $root) {
     const html_lower_hic_nav_bar_widget_container = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
     $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
 
-};
+}
 
 export {getNavbarHeight, getNavbarContainer};
 

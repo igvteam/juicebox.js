@@ -27,14 +27,14 @@
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {DOMUtils, FileUtils, GoogleUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
 import {paramEncode} from "./urlUtils.js"
 import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController, {getNavbarContainer, getNavbarHeight, wigTrackHeight} from './layoutController.js'
+import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
@@ -54,6 +54,9 @@ import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 
+import "./igvReplacements.js"; // Imported for side effects only
+
+const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
@@ -134,41 +137,6 @@ class HICBrowser {
         this.state = config.state ? config.state : defaultState.clone();
 
         this.eventBus.subscribe("LocusChange", this);
-
-    }
-
-    static getCurrentBrowser() {
-        if (hicUtils.allBrowsers.length === 1) {
-            return hicUtils.allBrowsers[0];
-        } else {
-            return HICBrowser.currentBrowser;
-        }
-    }
-
-    static setCurrentBrowser(browser) {
-
-        // unselect current browser
-        if (undefined === browser) {
-            if (HICBrowser.currentBrowser) {
-                HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
-            }
-
-            HICBrowser.currentBrowser = browser;
-            return;
-        }
-
-
-        if (browser !== HICBrowser.currentBrowser) {
-
-            if (HICBrowser.currentBrowser) {
-                HICBrowser.currentBrowser.$root.removeClass('hic-root-selected');
-            }
-
-            browser.$root.addClass('hic-root-selected');
-            HICBrowser.currentBrowser = browser;
-
-            EventBus.globalBus.post(HICEvent("BrowserSelect", browser));
-        }
 
     }
 
@@ -413,7 +381,7 @@ class HICBrowser {
                 }
 
                 // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
-                config.height = wigTrackHeight;
+                config.height = trackHeight;
 
                 if (undefined === config.format) {
                     // Assume this is a 2D track
@@ -562,7 +530,7 @@ class HICBrowser {
             this.$contactMaplabel.attr('title', name);
             config.name = name;
 
-            this.dataset = await loadDataset(config)
+            this.dataset = await Dataset.loadDataset(config)
             this.dataset.name = name
 
             const previousGenomeId = this.genome ? this.genome.id : undefined;
@@ -645,10 +613,10 @@ class HICBrowser {
             const name = extractName(config)
             config.name = name
 
-            const controlDataset = await loadDataset(config)
+            const controlDataset = await Dataset.loadDataset(config)
             controlDataset.name = name
 
-            if (!this.dataset || hicUtils.areCompatible(this.dataset, controlDataset)) {
+            if (!this.dataset || this.dataset.isCompatible(controlDataset)) {
                 this.controlDataset = controlDataset;
                 if (this.dataset) {
                     this.$contactMaplabel.text("A: " + this.dataset.name);
@@ -941,7 +909,7 @@ class HICBrowser {
             const newYCenter = yCenter * (currentResolution / newResolution);
             const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
             const state = this.state;
-            const newPixelSize = Math.max(hicUtils.defaultPixelSize, minPS);
+            const newPixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPS);
             const zoomChanged = (state.zoom !== zoom);
 
             state.zoom = zoom;
@@ -977,7 +945,7 @@ class HICBrowser {
             this.state.zoom = z;
 
             const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
-            this.state.pixelSize = Math.min(100, Math.max(hicUtils.defaultPixelSize, minPS));
+            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS));
             this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
         } finally {
             this.stopSpinner()
@@ -1211,21 +1179,14 @@ class HICBrowser {
     }
 
     receiveEvent(event) {
-        var self = this;
-
         if ("LocusChange" === event.type) {
-
             if (event.propogate) {
-
-                self.synchedBrowsers.forEach(function (browser) {
-                    browser.syncState(self.getSyncState());
-                })
-
+                for(let browser of this.synchedBrowsers) {
+                    browser.syncState(this.getSyncState());
+                }
             }
-
             this.update(event);
         }
-
     }
 
     /**
@@ -1261,36 +1222,123 @@ class HICBrowser {
         return this.dataset.bpResolutions[this.state.zoom];
     };
 
+
+    toJSON  () {
+
+        if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
+
+        const jsonOBJ = {};
+
+        jsonOBJ.backgroundColor = this.contactMatrixView.stringifyBackgroundColor()
+        jsonOBJ.url = this.dataset.url;
+        if (this.dataset.name) {
+            jsonOBJ.name = this.dataset.name;
+        }
+        jsonOBJ.state = this.state.stringify();
+        jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
+        if (Globals.selectedGene) {
+            jsonOBJ.selectedGene = Globals.selectedGene;
+        }
+        let nviString = getNviString(this.dataset);
+        if (nviString) {
+            jsonOBJ.nvi = nviString;
+        }
+        if (this.controlDataset) {
+            jsonOBJ.controlUrl = this.controlUrl;
+            if (this.controlDataset.name) {
+                jsonOBJ.controlName = this.controlDataset.name;
+            }
+            const displayMode = this.getDisplayMode();
+            if (displayMode) {
+                jsonOBJ.displayMode = this.getDisplayMode();
+            }
+            nviString = getNviString(this.controlDataset);
+            if (nviString) {
+                jsonOBJ.controlNvi = nviString;
+            }
+            if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+                jsonOBJ.cycle = true;
+            }
+        }
+
+        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+            let tracks = [];
+            jsonOBJ.tracks = tracks;
+            for (let trackRenderer of this.trackRenderers) {
+                const track = trackRenderer.x.track;
+                const config = track.config;
+                if (typeof config.url === "string") {
+                    const t = {
+                        url: config.url
+                    }
+                    if (track.name) {
+                        t.name = track.name;
+                    }
+                    if (track.dataRange) {
+                        t.min = track.dataRange.min;
+                        t.max = track.dataRange.max;
+                    }
+                    if (track.color) {
+                        t.color = track.color;
+                    }
+                    tracks.push(t);
+                }
+
+            }
+            for (let track of this.tracks2D) {
+                var config = track.config;
+                if (typeof config.url === "string") {
+                    const t = {
+                        url: config.url
+                    }
+                    if (track.name) {
+                        t.name = track.name;
+                    }
+                    if (track.color) {
+                        t.color = track.color;
+                    }
+                    tracks.push(t);
+                }
+            }
+        }
+
+
+        // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
+        //
+        //     var normVectorString = "";
+        //     this.config.normVectorFiles.forEach(function (url) {
+        //
+        //         if (normVectorString.length > 0) normVectorString += "|||";
+        //         normVectorString += url;
+        //
+        //     });
+        //     queryString.push(paramString("normVectorFiles", normVectorString));
+        // }
+
+        return jsonOBJ;
+
+
+        function paramString(key, value) {
+            return key + "=" + paramEncode(value)
+        }
+    }
 }
 
 
 function extractName(config) {
-
     if (config.name === undefined) {
-        return hicUtils.extractFilename(config.url);
+        const urlOrFile = config.url;
+        if (FileUtils.isFilePath(urlOrFile)) {
+            return urlOrFile.name;
+        } else {
+            const str = urlOrFile.split('?').shift();
+            const idx = urlOrFile.lastIndexOf("/");
+            return idx > 0 ? str.substring(idx + 1) : str;
+        }
     } else {
         return config.name;
     }
-
 }
-
-
-function findDefaultZoom(bpResolutions, defaultPixelSize, chrLength) {
-
-    var viewDimensions = this.contactMatrixView.getViewDimensions(),
-        d = Math.max(viewDimensions.width, viewDimensions.height),
-        nBins = d / defaultPixelSize,
-        z;
-
-    for (z = bpResolutions.length - 1; z >= 0; z--) {
-        if (chrLength / bpResolutions[z] <= nBins) {
-            return z;
-        }
-    }
-    return 0;
-
-}
-
 
 async function minZoom(chr1, chr2) {
 
@@ -1330,11 +1378,6 @@ function getNviString(dataset) {
     // }
 }
 
-function getBlockString(dataset) {
-
-
-}
-
 // parseUri 1.2.2
 // (c) Steven Levithan <stevenlevithan.com>
 // MIT License
@@ -1372,231 +1415,6 @@ function replaceAll(str, target, replacement) {
     return str.split(target).join(replacement);
 }
 
-
-HICBrowser.prototype.toJSON = function () {
-
-    if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
-
-    const jsonOBJ = {};
-
-    jsonOBJ.backgroundColor = this.contactMatrixView.stringifyBackgroundColor()
-    jsonOBJ.url = this.dataset.url;
-    if (this.dataset.name) {
-        jsonOBJ.name = this.dataset.name;
-    }
-    jsonOBJ.state = this.state.stringify();
-    jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
-    if (Globals.selectedGene) {
-        jsonOBJ.selectedGene = Globals.selectedGene;
-    }
-    let nviString = getNviString(this.dataset);
-    if (nviString) {
-        jsonOBJ.nvi = nviString;
-    }
-    if (this.controlDataset) {
-        jsonOBJ.controlUrl = this.controlUrl;
-        if (this.controlDataset.name) {
-            jsonOBJ.controlName = this.controlDataset.name;
-        }
-        const displayMode = this.getDisplayMode();
-        if (displayMode) {
-            jsonOBJ.displayMode = this.getDisplayMode();
-        }
-        nviString = getNviString(this.controlDataset);
-        if (nviString) {
-            jsonOBJ.controlNvi = nviString;
-        }
-        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
-            jsonOBJ.cycle = true;
-        }
-    }
-
-    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-        let tracks = [];
-        jsonOBJ.tracks = tracks;
-        for (let trackRenderer of this.trackRenderers) {
-            const track = trackRenderer.x.track;
-            const config = track.config;
-            if (typeof config.url === "string") {
-                const t = {
-                    url: config.url
-                }
-                if (track.name) {
-                    t.name = track.name;
-                }
-                if (track.dataRange) {
-                    t.min = track.dataRange.min;
-                    t.max = track.dataRange.max;
-                }
-                if (track.color) {
-                    t.color = track.color;
-                }
-                tracks.push(t);
-            }
-
-        }
-        for (let track of this.tracks2D) {
-            var config = track.config;
-            if (typeof config.url === "string") {
-                const t = {
-                    url: config.url
-                }
-                if (track.name) {
-                    t.name = track.name;
-                }
-                if (track.color) {
-                    t.color = track.color;
-                }
-                tracks.push(t);
-            }
-        }
-    }
-
-
-    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
-    //
-    //     var normVectorString = "";
-    //     this.config.normVectorFiles.forEach(function (url) {
-    //
-    //         if (normVectorString.length > 0) normVectorString += "|||";
-    //         normVectorString += url;
-    //
-    //     });
-    //     queryString.push(paramString("normVectorFiles", normVectorString));
-    // }
-
-    return jsonOBJ;
-
-
-    function paramString(key, value) {
-        return key + "=" + paramEncode(value)
-    }
-
-};
-
-HICBrowser.prototype.getQueryString = function () {
-
-    if (!(this.dataset && this.dataset.url)) return "";   // URL is required
-    const queryString = [];
-    queryString.push(paramString("hicUrl", this.dataset.url));
-    if (this.dataset.name) {
-        queryString.push(paramString("name", this.dataset.name));
-    }
-    queryString.push(paramString("state", this.state.stringify()));
-    queryString.push(paramString("colorScale", this.contactMatrixView.getColorScale().stringify()));
-    if (Globals.selectedGene) {
-        queryString.push(paramString("selectedGene", Globals.selectedGene));
-    }
-    let nviString = getNviString(this.dataset);
-    if (nviString) {
-        queryString.push(paramString("nvi", nviString));
-    }
-    if (this.controlDataset) {
-        queryString.push(paramString("controlUrl", this.controlUrl));
-        if (this.controlDataset.name) {
-            queryString.push(paramString("controlName", this.controlDataset.name))
-        }
-        const displayMode = this.getDisplayMode();
-        if (displayMode) {
-            queryString.push(paramString("displayMode", this.getDisplayMode()));
-        }
-        nviString = getNviString(this.controlDataset);
-        if (nviString) {
-            queryString.push(paramString("controlNvi", nviString));
-        }
-        if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
-            queryString.push(paramString("cycle", "true"))
-        }
-    }
-
-    if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
-        let trackString = "";
-        this.trackRenderers.forEach(function (trackRenderer) {
-            var track = trackRenderer.x.track,
-                config = track.config,
-                url = config.url,
-                dataRange = track.dataRange;
-
-            if (typeof url === "string") {
-                if (trackString.length > 0) trackString += "|||";
-                trackString += url;
-                trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
-                trackString += "|" + (dataRange ? (dataRange.min + "-" + dataRange.max) : "");
-                trackString += "|" + track.color;
-            }
-        });
-
-        this.tracks2D.forEach(function (track) {
-            var config = track.config,
-                url = config.url;
-            if (typeof url === "string") {
-                if (trackString.length > 0) trackString += "|||";
-                trackString += url;
-                trackString += "|" + (track.name ? replaceAll(track.name, "|", "$") : '');
-                trackString += "|";   // Data range
-                trackString += "|" + track.color;
-            }
-        });
-
-        if (trackString.length > 0) {
-            queryString.push(paramString("tracks", trackString));
-        }
-    }
-
-    var captionDiv = document.getElementById('hic-caption');
-    if (captionDiv) {
-        var captionText = captionDiv.textContent;
-        if (captionText) {
-            captionText = captionText.trim();
-            if (captionText) {
-                queryString.push(paramString("caption", captionText));
-            }
-        }
-    }
-
-    // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
-    //
-    //     var normVectorString = "";
-    //     this.config.normVectorFiles.forEach(function (url) {
-    //
-    //         if (normVectorString.length > 0) normVectorString += "|||";
-    //         normVectorString += url;
-    //
-    //     });
-    //     queryString.push(paramString("normVectorFiles", normVectorString));
-    // }
-
-    return queryString.join("&");
-
-    function paramString(key, value) {
-        return key + "=" + paramEncode(value)
-    }
-
-};
-
-async function loadDataset(config) {
-
-    // If this is a local file, use the "blob" field for straw
-    if (config.url instanceof File) {
-        config.blob = config.url
-        delete config.url
-    } else {
-        // If this is a google url, add api KEY
-        if (GoogleUtils.isGoogleURL(config.url)) {
-            if (GoogleUtils.isGoogleDriveURL(config.url)) {
-                config.url = GoogleUtils.driveDownloadURL(config.url)
-            }
-            const copy = Object.assign({}, config);
-            config.file = new IGVRemoteFile(copy);
-        }
-    }
-
-    const dataset = new Dataset(config)
-    await dataset.init();
-    dataset.url = config.url
-    return dataset
-}
-
 function presentError(prefix, error) {
     const httpMessages = {
         "401": "Access unauthorized",
@@ -1609,7 +1427,7 @@ function presentError(prefix, error) {
     }
     Alert.presentAlert(prefix + ": " + msg);
 
-};
+}
 
 export default HICBrowser
 

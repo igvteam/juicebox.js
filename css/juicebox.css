@@ -949,37 +949,6 @@ div[id$="content-container"] {
   height: 120px;
   background-color: #3a8ab4; }
 
-.juicebox-app-caption-container {
-  display: flex;
-  flex-flow: column;
-  flex-wrap: wrap;
-  justify-content: flex-start; }
-  .juicebox-app-caption-container .juicebox-app-clone-container {
-    display: flex;
-    flex-flow: row;
-    flex-wrap: wrap;
-    justify-content: flex-start; }
-  .juicebox-app-caption-container .hic-caption-container {
-    height: 64px;
-    width: 100%;
-    margin-top: 16px;
-    padding-top: 4px;
-    padding-left: 8px;
-    font-size: medium;
-    background-color: #efefef; }
-
-.juicebox-app-clone-button {
-  cursor: pointer;
-  color: #5f5f5f;
-  margin-top: 10px; }
-  .juicebox-app-clone-button i.fa-plus-circle {
-    float: left; }
-
-.juicebox-app-clone-button:hover,
-.juicebox-app-clone-button:focus,
-.juicebox-app-clone-button:active {
-  color: #0f0f0f; }
-
 .hic-root-selected {
   border-color: #5f5f5f; }
 

@@ -5,7 +5,6 @@
 import {DOMUtils} from '../node_modules/igv-utils/src/index.js'
 import {ColorPicker} from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from '../node_modules/igv/dist/igv.esm.js'
-import * as hic from './hicUtils.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class TrackRenderer {
@@ -106,9 +105,9 @@ class TrackRenderer {
 
     configTrackTransforms() {
 
-        this.canvasTransform = ('y' === this.axis) ? hic.reflectionRotationWithContext : hic.identityTransformWithContext;
+        this.canvasTransform = ('y' === this.axis) ? reflectionRotationWithContext : identityTransformWithContext;
 
-        this.labelReflectionTransform = ('y' === this.axis) ? hic.reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */
+        this.labelReflectionTransform = ('y' === this.axis) ? reflectionAboutYAxisAtOffsetWithContext : function (context, exe) { /* nuthin */
         };
 
     }
@@ -367,5 +366,22 @@ class Tile {
         return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
     }
 }
+
+function reflectionRotationWithContext(context) {
+    context.scale(-1, 1);
+    context.rotate(Math.PI / 2.0);
+}
+
+function reflectionAboutYAxisAtOffsetWithContext(context, exe) {
+    context.translate(exe, 0);
+    context.scale(-1, 1);
+    context.translate(-exe, 0);
+}
+
+function identityTransformWithContext(context) {
+    // 3x2 matrix. column major. (sx 0 0 sy tx ty).
+    context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
 
 export default TrackRenderer
