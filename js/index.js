@@ -24,7 +24,7 @@
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {decodeQuery, extractQuery} from "./urlUtils.js";
 import HICBrowser from './hicBrowser.js';
-import {createBrowser, syncBrowsers, deleteAllBrowsers, getCurrentBrowser} from './createBrowser.js';
+import {createBrowser, syncBrowsers, deleteAllBrowsers, getCurrentBrowser, allBrowsers} from './createBrowser.js';
 import {version} from "./version.js";
 import EventBus from "./eventBus.js";
 import {restoreSession, toJSON} from "./session.js";
@@ -37,5 +37,6 @@ export default {
     HICBrowser, EventBus, igvxhr,
     restoreSession, toJSON,
     initApp,
-    getCurrentBrowser
+    getCurrentBrowser,
+    allBrowsers
 }
