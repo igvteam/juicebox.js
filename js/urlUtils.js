@@ -39,28 +39,24 @@ const urlShortcuts = {
  * @param query
  * @param config
  */
-function decodeQuery(query, config, uriDecode) {
-
-    var hicUrl, name, stateString, colorScale, trackString, selectedGene, nvi, normVectorString,
-        controlUrl, ratioColorScale, controlName, displayMode, controlNvi, captionText, cycle;
+function decodeQuery(query, uriDecode) {
 
 
-    hicUrl = query["hicUrl"];
-    name = query["name"];
-    stateString = query["state"];
-    colorScale = query["colorScale"];
-    trackString = query["tracks"];
-    selectedGene = query["selectedGene"];
-    nvi = query["nvi"];
-    normVectorString = query["normVectorFiles"];
+    const config = {};
 
-    controlUrl = query["controlUrl"];
-    controlName = query["controlName"];
-    ratioColorScale = query["ratioColorScale"];
-    displayMode = query["displayMode"];
-    controlNvi = query["controlNvi"];
-    captionText = query["caption"];
-    cycle = query["cycle"];
+    let hicUrl = query["hicUrl"];
+    const name = query["name"];
+    let stateString = query["state"];
+    let colorScale = query["colorScale"];
+    let trackString = query["tracks"];
+    const selectedGene = query["selectedGene"];
+    const nvi = query["nvi"];
+
+    let controlUrl = query["controlUrl"];
+    const controlName = query["controlName"];
+    const displayMode = query["displayMode"];
+    const controlNvi = query["controlNvi"];
+    const cycle = query["cycle"];
 
     if (hicUrl) {
         hicUrl = paramDecode(hicUrl, uriDecode);
@@ -116,14 +112,6 @@ function decodeQuery(query, config, uriDecode) {
         Globals.selectedGene = selectedGene;
     }
 
-    if (captionText) {
-        captionText = paramDecode(captionText, uriDecode);
-        var captionDiv = document.getElementById("hic-caption");
-        if (captionDiv) {
-            captionDiv.textContent = captionText;
-        }
-    }
-
     config.cycle = cycle;
 
     // Norm vector file loading disabled -- too slow
@@ -137,6 +125,8 @@ function decodeQuery(query, config, uriDecode) {
     if (controlNvi) {
         config.controlNvi = paramDecode(controlNvi, uriDecode);
     }
+
+    return config;
 
     function destringifyTracksV0(tracks) {
 
@@ -156,30 +146,29 @@ function decodeQuery(query, config, uriDecode) {
                         break;
                     }
                 }
-                config = {url: url};
+                const trackConfig = {url: url};
 
                 if (tokens.length > 1) {
-                    name = tokens[1];
-                    config.name = replaceAll(name, "$", "|");
+                    trackConfig.name = replaceAll(tokens[1], "$", "|");
                 }
 
                 if (tokens.length > 2) {
                     const dataRangeString = tokens[2];
                     if (dataRangeString.startsWith("-")) {
                         const r = dataRangeString.substring(1).split("-");
-                        config.min = -parseFloat(r[0]);
-                        config.max = parseFloat(r[1]);
+                        trackConfig.min = -parseFloat(r[0]);
+                        trackConfig.max = parseFloat(r[1]);
                     } else {
                         const r = dataRangeString.split("-");
-                        config.min = parseFloat(r[0]);
-                        config.max = parseFloat(r[1]);
+                        trackConfig.min = parseFloat(r[0]);
+                        trackConfig.max = parseFloat(r[1]);
                     }
                 }
 
                 if (color) {
-                    config.color = color;
+                    trackConfig.color = color;
                 }
-                configList.push(config);
+                configList.push(trackConfig);
             }
         }
         return configList;

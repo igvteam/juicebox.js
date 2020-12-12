@@ -22,7 +22,7 @@
  */
 
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
-import {extractQuery} from "./urlUtils.js"
+import {extractQuery, decodeQuery} from "./urlUtils.js"
 import {restoreSession} from "./session.js"
 import {getCurrentBrowser} from "./createBrowser.js"
 
@@ -46,7 +46,17 @@ async function initApp(container, config) {
             // TODO - handle session url
         }
     } else {
-        await restoreSession(container, config);
+
+        // Try query parameter style
+        const queryConfig = decodeQuery(query);
+        if(queryConfig.url) {
+            await restoreSession(container, queryConfig);
+        }
+
+        else {
+            // default
+            await restoreSession(container, config);
+        }
     }
 
     // Return the currently selected browser for backward compatibility with "createBrowser"

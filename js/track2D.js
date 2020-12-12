@@ -101,10 +101,10 @@ function parseData(data, isBedPE, genome) {
         }
 
         const feature = {
-            chr1: genome.getChromosomeName(tokens[0]),
+            chr1: genome ? genome.getChromosomeName(tokens[0]) : tokens[0],
             x1: parseInt(tokens[1]),
             x2: parseInt(tokens[2]),
-            chr2: genome.getChromosomeName(tokens[3]),
+            chr2: genome ? genome.getChromosomeName(tokens[3]) : tokens[3],
             y1: parseInt(tokens[4]),
             y2: parseInt(tokens[5])
         }
