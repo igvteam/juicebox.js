@@ -21,8 +21,8 @@
  *
  */
 
-import {StringUtils} from '../node_modules/igv-utils/src/index.js'
-import {extractQuery, decodeQuery} from "./urlUtils.js"
+
+import {decodeQuery, extractQuery, extractConfig} from "./urlUtils.js"
 import {restoreSession} from "./session.js"
 import {getCurrentBrowser} from "./createBrowser.js"
 
@@ -36,28 +36,13 @@ async function initApp(container, config) {
 
     if (false !== config.queryParametersSupported) {
         query = extractQuery(window.location.href);
-    }
-
-    if (query.hasOwnProperty("session")) {
-        if (query.session.startsWith("blob:") || query.session.startsWith("data:")) {
-            const json = JSON.parse(StringUtils.uncompressString(query.session.substr(5)));
-            await restoreSession(container, json);
-        } else {
-            // TODO - handle session url
-        }
-    } else {
-
-        // Try query parameter style
-        const queryConfig = decodeQuery(query);
-        if(queryConfig.url) {
-            await restoreSession(container, queryConfig);
-        }
-
-        else {
-            // default
-            await restoreSession(container, config);
+        const queryConfig = extractConfig(query);
+        if(queryConfig) {
+            config= queryConfig;
         }
     }
+
+    await restoreSession(container, config);
 
     // Return the currently selected browser for backward compatibility with "createBrowser"
     return getCurrentBrowser();
@@ -65,7 +50,7 @@ async function initApp(container, config) {
 
 
 export {
-    initApp,
+    initApp
 }
 
 // async function createBrowsers(container, query) {

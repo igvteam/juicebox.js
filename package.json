@@ -45,6 +45,7 @@
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
     "mocha": "^8.2.1",
+    "node-fetch": "^2.6.1",
     "regenerator-runtime": "^0.13.7",
     "rollup": "^1.32.1",
     "rollup-plugin-babel": "^4.4.0",

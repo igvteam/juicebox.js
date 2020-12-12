@@ -23,6 +23,7 @@
 import State from './hicState.js';
 import ColorScale from "./colorScale.js"
 import {Globals} from "./globals.js";
+import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
@@ -30,6 +31,55 @@ const urlShortcuts = {
     "*s3e_/": "http://hicfiles.s3.amazonaws.com/external/",
     "*s3_/": "http://hicfiles.s3.amazonaws.com/",
     "*enc/": "https://www.encodeproject.org/files/"
+}
+
+async function extractConfig(query) {
+
+    if (query.hasOwnProperty("session")) {
+        if (query.session.startsWith("blob:") || query.session.startsWith("data:")) {
+            return JSON.parse(StringUtils.uncompressString(query.session.substr(5)));
+        } else {
+            // TODO - handle session url
+            return
+        }
+    }
+
+    if (query.hasOwnProperty("juiceboxURL")) {
+        const jbURL = await expandURL(query["juiceboxURL"])   // Legacy bitly urls
+        query = extractQuery(jbURL);
+    }
+
+    if (query.hasOwnProperty("juicebox") || queryhasOwnProperty("juiceboxData")) {
+        let q;
+        if (queryhasOwnProperty("juiceboxData")) {
+            q = StringUtils.uncompressString(query["juiceboxData"])
+        } else {
+            q = query["juicebox"];
+            if (q.startsWith("%7B")) {
+                q = decodeURIComponent(q);
+            }
+        }
+
+        q = q.substr(1, q.length - 2);  // Strip leading and trailing bracket
+        const parts = q.split("},{");
+        const browsers = [];
+        for (let p of parts) {
+            const qObj = extractQuery(decodeURIComponent(p));
+            browsers.push(decodeQuery(qObj))
+        }
+        return {browsers};
+    }
+
+
+
+
+    // Try query parameter style
+    const queryConfig = decodeQuery(query);
+    if (queryConfig.url) {
+        return queryConfig;
+    }
+
+
 }
 
 
@@ -239,4 +289,23 @@ function extractQuery(uri) {
     return query;
 }
 
-export {decodeQuery, paramDecode, paramEncode, extractQuery}
+
+async function expandURL(url, apiKey) {
+
+    apiKey = apiKey || "63904b604850c98a6ca62ee182a47b85c24d6d16"
+
+    const endpoint = `https://api-ssl.bitly.com/v3/expand?access_token=${apiKey}&shortUrl=${encodeURIComponent(url)}`;
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+        throw new Error(`Network error (${response.status}): ${response.statusText}`)
+    }
+    const json = await response.json();
+    var longUrl = json.data.expand[0].long_url;
+
+    // Fix some Bitly "normalization"
+    longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
+    return longUrl;
+
+}
+
+export {decodeQuery, paramDecode, paramEncode, extractQuery, extractConfig}
