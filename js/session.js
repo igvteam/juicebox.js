@@ -14,6 +14,18 @@ function toJSON() {
      if (Globals.selectedGene) {
          jsonOBJ["selectedGene"] = Globals.selectedGene;
      }
+
+    const captionDiv = document.getElementById('hic-caption');
+    if (captionDiv) {
+        var captionText = captionDiv.textContent;
+        if (captionText) {
+            captionText = captionText.trim();
+            if (captionText) {
+                jsonOBJ.caption = captionText;
+            }
+        }
+    }
+
     return jsonOBJ;
 }
 
@@ -24,6 +36,15 @@ async function restoreSession(container, session) {
     if (session.hasOwnProperty("selectedGene")) {
         Globals.selectedGene = session.selectedGene;
     }
+    if (session.hasOwnProperty("caption")) {
+        const captionText = session.caption;
+        var captionDiv = document.getElementById("hic-caption");
+        if (captionDiv) {
+            captionDiv.textContent = captionText;
+        }
+    }
+
+
     // Browser config.  Session json could be multi-browser, or a single browser
     const configList =  session.browsers || [session];
 
