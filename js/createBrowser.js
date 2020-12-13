@@ -2,7 +2,6 @@
  * @author Jim Robinson Dec-2020
  */
 
-import {decodeQuery, extractQuery} from "./urlUtils.js"
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {InputDialog, Popover} from '../node_modules/igv-ui/dist/igv-ui.js'
 import igv from "../node_modules/igv/dist/igv.esm.js"
@@ -154,14 +153,9 @@ function setCurrentBrowser(browser) {// unselect current browser
 
 
 function deleteBrowser(browser) {
-
+    browser.unsyncSelf();
     browser.$root.remove();
     allBrowsers = allBrowsers.filter(b => b != browser);
-
-    for(let b of allBrowsers) {
-        b.synchedBrowsers = b.synchedBrowsers.filter(b => b != browser);
-    }
-
     if (allBrowsers.length <= 1) {
         allBrowsers.forEach(function (b) {
             b.$browser_panel_delete_button.hide();
@@ -188,6 +182,10 @@ function syncBrowsers(browsers) {
             }
         }
     }
+}
+
+function getAllBrowsers() {
+    return allBrowsers;
 }
 
 
@@ -244,4 +242,4 @@ function createIGV($hic_container, hicBrowser) {
     igv.popover = new Popover($hic_container.get(0), igv.browser);
 }
 
-export {createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, allBrowsers}
+export {createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, getAllBrowsers}

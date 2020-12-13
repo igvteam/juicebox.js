@@ -33,7 +33,9 @@ const urlShortcuts = {
     "*enc/": "https://www.encodeproject.org/files/"
 }
 
-async function extractConfig(query) {
+async function extractConfig(queryString) {
+
+    let query = extractQuery(queryString);
 
     if (query.hasOwnProperty("session")) {
         if (query.session.startsWith("blob:") || query.session.startsWith("data:")) {
@@ -49,9 +51,9 @@ async function extractConfig(query) {
         query = extractQuery(jbURL);
     }
 
-    if (query.hasOwnProperty("juicebox") || queryhasOwnProperty("juiceboxData")) {
+    if (query.hasOwnProperty("juicebox") || query.hasOwnProperty("juiceboxData")) {
         let q;
-        if (queryhasOwnProperty("juiceboxData")) {
+        if (query.hasOwnProperty("juiceboxData")) {
             q = StringUtils.uncompressString(query["juiceboxData"])
         } else {
             q = query["juicebox"];
@@ -70,9 +72,6 @@ async function extractConfig(query) {
         return {browsers};
     }
 
-
-
-
     // Try query parameter style
     const queryConfig = decodeQuery(query);
     if (queryConfig.url) {
@@ -90,7 +89,6 @@ async function extractConfig(query) {
  * @param config
  */
 function decodeQuery(query, uriDecode) {
-
 
     const config = {};
 
@@ -135,7 +133,6 @@ function decodeQuery(query, uriDecode) {
     if (stateString) {
         stateString = paramDecode(stateString, uriDecode);
         config.state = State.parse(stateString);
-
     }
     if (colorScale) {
         colorScale = paramDecode(colorScale, uriDecode);
@@ -163,11 +160,6 @@ function decodeQuery(query, uriDecode) {
     }
 
     config.cycle = cycle;
-
-    // Norm vector file loading disabled -- too slow
-    // if (normVectorString) {
-    //     config.normVectorFiles = normVectorString.split("|||");
-    // }
 
     if (nvi) {
         config.nvi = paramDecode(nvi, uriDecode);
@@ -289,18 +281,33 @@ function extractQuery(uri) {
     return query;
 }
 
+/**
+ * Expand legacy bitly URLs
+ * @param url
+ * @returns {Promise<*>}
+ */
+async function expandURL(url) {
 
-async function expandURL(url, apiKey) {
+    const endpoint = `https://api-ssl.bitly.com/v4/expand`;
+    const id = url.startsWith("http://") ? url.substring(7) : url.substring(8);
+    const message = {
+        "bitlink_id": id
+    }
 
-    apiKey = apiKey || "63904b604850c98a6ca62ee182a47b85c24d6d16"
+    const response = await fetch(endpoint, {
+        method: 'POST', // or 'PUT'
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${btoa("ëtá¾´ãÎtsßéÆºÙçµóf¸í¿9snéÝz")}`
+        },
+        body: JSON.stringify(message),
+    })
 
-    const endpoint = `https://api-ssl.bitly.com/v3/expand?access_token=${apiKey}&shortUrl=${encodeURIComponent(url)}`;
-    const response = await fetch(endpoint);
     if (!response.ok) {
         throw new Error(`Network error (${response.status}): ${response.statusText}`)
     }
     const json = await response.json();
-    var longUrl = json.data.expand[0].long_url;
+    let longUrl = json.long_url;
 
     // Fix some Bitly "normalization"
     longUrl = longUrl.replace("{", "%7B").replace("}", "%7D");
@@ -308,4 +315,4 @@ async function expandURL(url, apiKey) {
 
 }
 
-export {decodeQuery, paramDecode, paramEncode, extractQuery, extractConfig}
+export {extractConfig}

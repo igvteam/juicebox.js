@@ -21,19 +21,31 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js'
-import {getAllBrowsers, createBrowser, deleteAllBrowsers, getCurrentBrowser} from './createBrowser.js';
-import {version} from "./version.js";
-import {toJSON, restoreSession} from "./session.js";
-import {init} from "./init.js"
+import {extractConfig} from "./urlUtils.js"
+import {getCurrentBrowser} from "./createBrowser.js"
+import {restoreSession} from "./session.js"
 
-export default {
-    version,
-    init,
-    toJSON,
-    restoreSession,
-    createBrowser,
-    getCurrentBrowser,
-    getAllBrowsers,
-    igvxhr: igv.xhr
+
+async function init(container, config) {
+
+    if (false !== config.queryParametersSupported) {
+        const queryConfig = await extractConfig(window.location.href);
+        if(queryConfig) {
+            config= queryConfig;
+        }
+    }
+
+    await restoreSession(container, config);
+
+    // Return the currently selected browser for backward compatibility with "createBrowser"
+    return getCurrentBrowser();
 }
+
+
+export {
+    init
+}
+
+
+
+

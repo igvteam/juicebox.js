@@ -31,7 +31,6 @@ import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/ind
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
-import {paramEncode} from "./urlUtils.js"
 import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
 import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
@@ -40,7 +39,6 @@ import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import IGVRemoteFile from "./igvRemoteFile.js"
 import LocusGoto from "./hicLocusGoto.js";
 import ResolutionSelector from "./hicResolutionSelector.js";
 import ColorScaleWidget from "./hicColorScaleWidget.js";
@@ -53,6 +51,7 @@ import ScrollbarWidget from "./scrollbarWidget.js";
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
+import {syncBrowsers, getAllBrowsers} from "./createBrowser.js";
 
 import "./igvReplacements.js"; // Imported for side effects only
 
@@ -490,6 +489,7 @@ class HICBrowser {
         this.$controlMaplabel.attr('title', "");
         this.dataset = undefined;
         this.controlDataset = undefined;
+        this.unsyncSelf();
     }
 
     clearSession() {
@@ -497,6 +497,25 @@ class HICBrowser {
         this.dataset = undefined;
         this.controlDataset = undefined;
         this.setDisplayMode('A');
+        this.unsyncSelf();
+    }
+
+    /**
+     * Remove reference to self from all synchedBrowsers lists.
+     */
+    unsyncSelf() {
+        const allBrowsers = getAllBrowsers();
+        for(let b of allBrowsers) {
+            b.unsync(this);
+        }
+    }
+
+    /**
+     * Remove the reference browser from this collection of synched browsers
+     * @param browser
+     */
+    unsync(browser) {
+        this.synchedBrowsers = this.synchedBrowsers.filter(b => b != browser);
     }
 
     /**
@@ -545,6 +564,9 @@ class HICBrowser {
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             if (config.state) {
+                if(!config.state.hasOwnProperty("chr1")) {
+                    config.state = State.parse(config.state);
+                }
                 await this.setState(config.state);
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState);
@@ -581,6 +603,15 @@ class HICBrowser {
                             eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
                         }
                     })
+            }
+
+            syncBrowsers();
+
+            // Find a browser to sync with, if any
+            const compatibleBrowsers = getAllBrowsers().filter(b => b != this &&
+                b.dataset && b.dataset.isCompatible(this.dataset));
+            if(compatibleBrowsers.length > 0) {
+                this.syncState(compatibleBrowsers[0].getSyncState());
             }
 
         } catch (error) {
@@ -1302,25 +1333,8 @@ class HICBrowser {
             }
         }
 
-
-        // if (this.config.normVectorFiles && this.config.normVectorFiles.length > 0) {
-        //
-        //     var normVectorString = "";
-        //     this.config.normVectorFiles.forEach(function (url) {
-        //
-        //         if (normVectorString.length > 0) normVectorString += "|||";
-        //         normVectorString += url;
-        //
-        //     });
-        //     queryString.push(paramString("normVectorFiles", normVectorString));
-        // }
-
         return jsonOBJ;
 
-
-        function paramString(key, value) {
-            return key + "=" + paramEncode(value)
-        }
     }
 }
 

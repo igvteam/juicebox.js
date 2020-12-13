@@ -76,7 +76,7 @@
     const container = document.getElementById("app-container");
 
     (async function () {
-        await hic.initApp(container, session_json);
+        await hic.init(container, session_json);
         //await restoreSession(container, session_json.browsers[0]);
     })()
 

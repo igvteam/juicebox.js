@@ -31,6 +31,8 @@ global.DOMParser = DOMParser;
 
 global.atob = require('atob');
 
+global.btoa = require('btoa')
+
 global.fetch = require('node-fetch');
 
 

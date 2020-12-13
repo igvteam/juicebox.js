@@ -4,7 +4,7 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
 import TrackRenderer from './trackRenderer.js'
-import {setCurrentBrowser, deleteBrowser} from "./createBrowser.js"
+import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
 
 // Keep in sync with juicebox.scss variables
 

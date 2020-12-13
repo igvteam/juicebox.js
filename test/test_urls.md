@@ -23,7 +23,7 @@
 
 * http://www.aidenlab.org/juicebox/?juiceboxURL=http://bit.ly/2srvPJK
 
-* http://localhost/juicebox-web/index.html?juiceboxURL=http://bit.ly/2C1VSHy
+* http://localhost/juicebox.js/dev/juicebox-blank.html?juiceboxURL=http://bit.ly/2C1VSHy
 
 
 Error at aidenlab  
