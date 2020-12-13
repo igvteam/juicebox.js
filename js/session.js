@@ -1,6 +1,7 @@
 import {getAllBrowsers} from "./createBrowser.js"
 import {Globals} from "./globals.js"
 import {createBrowser, deleteAllBrowsers, syncBrowsers} from "./createBrowser.js"
+import {StringUtils} from "../node_modules/igv-utils/src/index.js";
 
 function toJSON() {
     const jsonOBJ = {};
@@ -28,6 +29,12 @@ function toJSON() {
 
     return jsonOBJ;
 }
+
+function compressedSession() {
+        const jsonString = JSON.stringify(toJSON());
+        return `session=blob:${StringUtils.compressString(jsonString)}`
+}
+
 
 async function restoreSession(container, session) {
 
@@ -58,4 +65,4 @@ async function restoreSession(container, session) {
 }
 
 
-export {toJSON, restoreSession}
+export {toJSON, restoreSession, compressedSession}
