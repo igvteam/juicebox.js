@@ -26,6 +26,7 @@ import {getAllBrowsers, createBrowser, deleteAllBrowsers, getCurrentBrowser} fro
 import {version} from "./version.js";
 import {toJSON, restoreSession} from "./session.js";
 import {init} from "./init.js"
+import EventBus from "./eventBus.js"
 
 export default {
     version,
@@ -35,5 +36,6 @@ export default {
     createBrowser,
     getCurrentBrowser,
     getAllBrowsers,
-    igvxhr: igv.xhr
+    igvxhr: igv.xhr,
+    EventBus
 }
