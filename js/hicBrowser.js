@@ -382,7 +382,7 @@ class HICBrowser {
                 // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
                 config.height = trackHeight;
 
-                if (undefined === config.format) {
+                if (undefined === config.format ||  "bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
