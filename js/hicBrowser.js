@@ -967,12 +967,11 @@ class HICBrowser {
         try {
             this.startSpinner()
 
+            const z = await minZoom.call(this, chr1, chr2)
             this.state.chr1 = Math.min(chr1, chr2);
             this.state.chr2 = Math.max(chr1, chr2);
             this.state.x = 0;
             this.state.y = 0;
-
-            const z = await minZoom.call(this, chr1, chr2)
             this.state.zoom = z;
 
             const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
@@ -1357,11 +1356,16 @@ function extractName(config) {
 async function minZoom(chr1, chr2) {
 
     const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const chr1Length = this.dataset.chromosomes[chr1].size;
-    const chr2Length = this.dataset.chromosomes[chr2].size;
+    const chromosome1 = this.dataset.chromosomes[chr1]
+    const chromosome2 = this.dataset.chromosomes[chr2];
+    const chr1Length = chromosome1.size;
+    const chr2Length = chromosome2.size;
     const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
 
     const matrix = await this.dataset.getMatrix(chr1, chr2)
+    if(!matrix) {
+        throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`);
+    }
     return matrix.findZoomForResolution(binSize);
 }
 
