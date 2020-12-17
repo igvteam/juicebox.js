@@ -73,7 +73,8 @@ async function extractConfig(queryString) {
     }
 
     // Try query parameter style
-    const queryConfig = decodeQuery(query);
+    const uriDecode = true;
+    const queryConfig = decodeQuery(query, uriDecode);
     if (queryConfig.url) {
         return queryConfig;
     }
@@ -208,7 +209,7 @@ function decodeQuery(query, uriDecode) {
                 }
 
                 if (color) {
-                    trackConfig.color = color;
+                    trackConfig.color = color.replace(/\s+/g, '');
                 }
                 configList.push(trackConfig);
             }
