@@ -51,7 +51,7 @@ import ScrollbarWidget from "./scrollbarWidget.js";
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
-import {syncBrowsers, getAllBrowsers} from "./createBrowser.js";
+import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
 
 import "./igvReplacements.js"; // Imported for side effects only
 
@@ -370,10 +370,9 @@ class HICBrowser {
 
                 config.format = TrackUtils.inferFileFormat(fileName)
 
-                // if ("annotation" === config.type && config.color === undefined) {
-                config.color = DEFAULT_ANNOTATION_COLOR;
-                config.displayMode = "COLLAPSED"
-                // }
+                if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
+                    delete config.color;
+                }
 
                 if (config.max === undefined) {
                     config.autoscale = true;
@@ -382,7 +381,7 @@ class HICBrowser {
                 // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
                 config.height = trackHeight;
 
-                if (undefined === config.format ||  "bedpe" === config.format || "interact" === config.format) {
+                if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
@@ -457,7 +456,7 @@ class HICBrowser {
     };
 
     renderTracks() {
-        for(let xyTrackRenderPair of this.trackRenderers) {
+        for (let xyTrackRenderPair of this.trackRenderers) {
             this.renderTrackXY(xyTrackRenderPair);
         }
     }
@@ -505,7 +504,7 @@ class HICBrowser {
      */
     unsyncSelf() {
         const allBrowsers = getAllBrowsers();
-        for(let b of allBrowsers) {
+        for (let b of allBrowsers) {
             b.unsync(this);
         }
     }
@@ -564,7 +563,7 @@ class HICBrowser {
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             if (config.state) {
-                if(!config.state.hasOwnProperty("chr1")) {
+                if (!config.state.hasOwnProperty("chr1")) {
                     config.state = State.parse(config.state);
                 }
                 await this.setState(config.state);
@@ -610,7 +609,7 @@ class HICBrowser {
             // Find a browser to sync with, if any
             const compatibleBrowsers = getAllBrowsers().filter(b => b != this &&
                 b.dataset && b.dataset.isCompatible(this.dataset));
-            if(compatibleBrowsers.length > 0) {
+            if (compatibleBrowsers.length > 0) {
                 this.syncState(compatibleBrowsers[0].getSyncState());
             }
 
@@ -1211,7 +1210,7 @@ class HICBrowser {
     receiveEvent(event) {
         if ("LocusChange" === event.type) {
             if (event.propogate) {
-                for(let browser of this.synchedBrowsers) {
+                for (let browser of this.synchedBrowsers) {
                     browser.syncState(this.getSyncState());
                 }
             }
@@ -1253,7 +1252,7 @@ class HICBrowser {
     };
 
 
-    toJSON  () {
+    toJSON() {
 
         if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
 
@@ -1363,7 +1362,7 @@ async function minZoom(chr1, chr2) {
     const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
 
     const matrix = await this.dataset.getMatrix(chr1, chr2)
-    if(!matrix) {
+    if (!matrix) {
         throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`);
     }
     return matrix.findZoomForResolution(binSize);

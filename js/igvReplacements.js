@@ -2,15 +2,17 @@
  * Created by dat on 5/7/17.
  */
 
-import igv from "../node_modules/igv/dist/igv.esm.js"
+import igv from '../node_modules/igv/dist/igv.esm.js'
 import $ from "../vendor/jquery-3.3.1.slim.js";
 
 igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
 
-    var menuItems = [];
+    let menuItems = [];
 
-    menuItems.push(colorPickerMenuItem(trackRenderer));
     menuItems.push(trackRenameMenuItem(trackRenderer));
+    menuItems.push(colorPickerMenuItem(trackRenderer));
+    menuItems.push(unsetColorMenuItem({trackView: trackRenderer, label: "Unset track color"}));
+
     if ("annotation" !== trackRenderer.track.type) {
         if (trackRenderer.track.menuItemList) {
             menuItems = menuItems.concat(trackRenderer.track.menuItemList());
@@ -19,7 +21,7 @@ igv.MenuUtils.trackMenuItemList = function (trackRenderer) {
     menuItems.push('<hr/>');
     menuItems.push(trackRemovalMenuItem(trackRenderer));
     return menuItems;
-};
+}
 
 function colorPickerMenuItem(trackRender) {
     var $e,
@@ -34,7 +36,21 @@ function colorPickerMenuItem(trackRender) {
 
     return {object: $e, click: clickHandler};
 
-};
+}
+
+function unsetColorMenuItem({trackView, label}) {
+
+    const $e = $('<div>');
+    $e.text(label);
+
+    return {
+        object: $e,
+        click: () => {
+            trackView.track.color = undefined;
+            trackView.repaintViews();
+        }
+    }
+}
 
 function trackRenameMenuItem(trackRenderer) {
 
@@ -53,7 +69,7 @@ function trackRenameMenuItem(trackRenderer) {
     object.text('Set track name');
 
     return {object, click};
-};
+}
 
 function trackRemovalMenuItem(trackRenderer) {
 
@@ -68,7 +84,7 @@ function trackRemovalMenuItem(trackRenderer) {
     };
 
     return {object: $e, click: menuClickHandler};
-};
+}
 
 
 
