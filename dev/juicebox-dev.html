@@ -28,7 +28,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <title>Juicebox</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="icon" type="image/png" href="http://aidenlab.org/favicon.ico">
 
     <!-- Font Awesome CSS-->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
@@ -48,6 +47,7 @@
 <script type="module">
 
     import hic from "../js/index.js";
+    import {Alert} from "../node_modules/igv-ui/dist/igv-ui.js"
     //import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 
     const config = {
@@ -122,6 +122,8 @@
 
 
     const container = document.getElementById("app-container");
+
+    Alert.init(container);
 
     hic.init(container, session_config)
         .then(function (hicBrowser) {
