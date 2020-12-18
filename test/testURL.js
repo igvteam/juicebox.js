@@ -26,6 +26,8 @@ suite("testURLs", function () {
 
         const url = "http://www.aidenlab.org/juicebox/?state=3,3,6,5537.98746,5537.749239047619,1,KR&colorScale=18.89619862813927&hicUrl=https://s3.amazonaws.com/hicfiles/external/wapl_hic/WT.hic&name=Haarhuis%20et%20al.%20|%20Cell%202017%20Hap1%20control&tracks=http://hicfiles.s3.amazonaws.com/external/GM12878_CTCF_orientation.bed|GM12878_CTCF_orientation.bed||rgb(22,%20129,%20198)|||https://s3.amazonaws.com/igv.broadinstitute.org/annotations/hg19/genes/gencode.v18.collapsed.bed.gz|gencode.v18.collapsed.bed.gz||rgb(22,%20129,%20198)"
 
+        const config = await extractConfig(url);
+
         assert.equal(config.url, "https://s3.amazonaws.com/hicfiles/external/wapl_hic/WT.hic");
         assert.equal(config.name, "Haarhuis et al. | Cell 2017 Hap1 control");
 
@@ -40,7 +42,7 @@ suite("testURLs", function () {
 
     })
 
-    test("'juicebox' parameter'", async function () {
+    test("'juicebox' parameter", async function () {
 
         const url = "http://aidenlab.org/juicebox/?juicebox={hicUrl%3Dhttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FADAC%2FADAC_30.hic%26name%3DADAC_30.hic%26state%3D2%2C2%2C6%2C1896.1562537317725%2C1916.657181523778%2C1.5423280423280423%2CKR%26colorScale%3D144.21837414880474%2C255%2C0%2C0%26nvi%3D7989194045%2C18679%26tracks%3Dhttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FADAC%2Finter_30_contact_domains%2F5000_blocks%7C5000_blocks%7C%7Crgb(255%2C255%2C0)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FADAC_loops%2Fmerged_loops.bedpe%7Cmerged_loops.bedpe%7C%7Crgb(0%2C36%2C255)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FADAC_vs_EndoC%2Fdifferential_loops1.bedpe%7Cdifferential_loops1.bedpe%7C%7Crgb(0%2C255%2C36)},{hicUrl%3Dhttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FEndoC%2FEndoC_30.hic%26name%3DEndoC_30.hic%26state%3D2%2C2%2C6%2C1896.1562537317725%2C1916.657181523778%2C1.5423280423280423%2CKR%26colorScale%3D142.77439421809834%2C255%2C0%2C0%26nvi%3D6818528104%2C18679%26tracks%3Dhttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FEndoC_loops%2Fmerged_loops.bedpe%7Cmerged_loops.bedpe%7C%7Crgb(18%2C0%2C255)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FEndoC%2Finter_30_contact_domains%2F5000_blocks%7C5000_blocks%7C%7Crgb(255%2C255%2C0)%7C%7C%7Chttps%3A%2F%2Fs3.amazonaws.com%2Fhicfiles%2Fhiseq%2FnSxhJZHdDRQ0kGDR%2F12.31.17%2FADAC_vs_EndoC%2Fdifferential_loops2.bedpe%7Cdifferential_loops2.bedpe%7C%7Crgb(18%2C255%2C0)}";
 

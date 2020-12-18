@@ -103,6 +103,12 @@ function fixDefaults(browserConfig) {
             if (t.color === DEFAULT_ANNOTATION_COLOR) {
                 delete t.color;
             }
+            if (t.min !== undefined && Number.isNaN(t.min)) {
+                delete t.min;
+            }
+            if (t.max !== undefined && Number.isNaN(t.max)) {
+                delete t.max;
+            }
             t.displayMode = "COLLAPSED";
         }
     }
@@ -234,11 +240,9 @@ function decodeQuery(query, uriDecode) {
                     }
                 }
 
-                if (color && color !== DEFAULT_ANNOTATION_COLOR) {
+                if (color) {
                     trackConfig.color = color;
                 }
-
-                track.config.displayMode = "COLLAPSED";   // All JB tracks are collapsed
 
                 configList.push(trackConfig);
             }
