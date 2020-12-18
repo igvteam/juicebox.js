@@ -21,51 +21,19 @@
  *
  */
 
-//import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
-import babel from 'rollup-plugin-babel';
 import strip from 'rollup-plugin-strip';
-import copy from 'rollup-plugin-copy'
-import {terser} from "rollup-plugin-terser"
 
 export default [
     {
         //input: 'test/testBabel.js',
         input: 'js/index.js',
         output: [
-            {file: 'dist/js/juicebox.esm.js', format: 'es'},
-            {file: 'dist/js/juicebox.esm.min.js', format: 'es', sourcemap: true, plugins:[terser()]},
+            {file: 'dist/js/juicebox.esm.js', format: 'es'}
         ],
         plugins: [
             strip({
                 debugger: true,
-                // functions: ['console.log', 'assert.*', 'debug']
-                functions: ['assert.*', 'debug']
-            })
-        ]
-    },
-    {
-        input: 'js/index.js',
-        output: [
-            {file: 'dist/js/juicebox.js', format: 'umd', name: "hic"},
-            {file: 'dist/js/juicebox.min.js', format: 'umd', name: "hic", sourcemap: true, plugins:[terser()]}
-        ],
-        plugins: [
-            strip({
-                debugger: true,
-                functions: [/*'console.log',*/ 'assert.*', 'debug']
-            }),
-            commonjs(),
-            resolve(),
-            babel(),
-            copy({
-                targets:
-                    [
-                        {src: 'css/juicebox.css', dest: 'dist/css/'},
-                        {src: 'css/img', dest: 'dist/css/'},
-                        {src: 'embed/embed.html', dest: 'dist/'}
-                    ]
+                functions: ['console.log', 'assert.*', 'debug']
             })
         ]
     }
