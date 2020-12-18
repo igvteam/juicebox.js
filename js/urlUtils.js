@@ -25,6 +25,8 @@ import ColorScale from "./colorScale.js"
 import {Globals} from "./globals.js";
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 
+const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
+
 const urlShortcuts = {
     "*s3e/": "https://hicfiles.s3.amazonaws.com/external/",
     "*s3/": "https://hicfiles.s3.amazonaws.com/",
@@ -36,13 +38,14 @@ const urlShortcuts = {
 async function extractConfig(queryString) {
 
     let query = extractQuery(queryString);
+    let sessionConfig;
 
     if (query.hasOwnProperty("session")) {
         if (query.session.startsWith("blob:") || query.session.startsWith("data:")) {
-            return JSON.parse(StringUtils.uncompressString(query.session.substr(5)));
+            sessionConfig = JSON.parse(StringUtils.uncompressString(query.session.substr(5)));
         } else {
             // TODO - handle session url
-            return
+
         }
     }
 
@@ -69,17 +72,40 @@ async function extractConfig(queryString) {
             const qObj = extractQuery(decodeURIComponent(p));
             browsers.push(decodeQuery(qObj))
         }
-        return {browsers};
+        sessionConfig = {browsers};
     }
 
     // Try query parameter style
     const uriDecode = true;
     const queryConfig = decodeQuery(query, uriDecode);
     if (queryConfig.url) {
-        return queryConfig;
+        sessionConfig = queryConfig;
     }
 
+    // Fix certain defaults
+    if (sessionConfig) {
+        if (sessionConfig.browsers) {
+            for (let b of sessionConfig.browsers) {
+                fixDefaults(b);
+            }
+        } else {
+            fixDefaults(sessionConfig);
+        }
+    }
 
+    return sessionConfig;
+
+}
+
+function fixDefaults(browserConfig) {
+    if (browserConfig.tracks) {
+        for (let t of browserConfig.tracks) {
+            if (t.color === DEFAULT_ANNOTATION_COLOR) {
+                delete t.color;
+            }
+            t.displayMode = "COLLAPSED";
+        }
+    }
 }
 
 
@@ -208,9 +234,12 @@ function decodeQuery(query, uriDecode) {
                     }
                 }
 
-                if (color) {
-                    trackConfig.color = color.replace(/\s+/g, '');
+                if (color && color !== DEFAULT_ANNOTATION_COLOR) {
+                    trackConfig.color = color;
                 }
+
+                track.config.displayMode = "COLLAPSED";   // All JB tracks are collapsed
+
                 configList.push(trackConfig);
             }
         }
@@ -219,20 +248,6 @@ function decodeQuery(query, uriDecode) {
 
 }
 
-/**
- * Minimally encode a parameter string (i.e. value in a query string).  In general its not neccessary
- * to fully % encode parameter values (see RFC3986).
- *
- * @param str
- */
-function paramEncode(str) {
-    var s = replaceAll(str, '&', '%26');
-    s = replaceAll(s, ' ', '+');
-    s = replaceAll(s, "#", "%23");
-    s = replaceAll(s, "?", "%3F");
-    s = replaceAll(s, "=", "%3D");
-    return s;
-}
 
 function paramDecode(str, uriDecode) {
 
