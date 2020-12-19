@@ -24,9 +24,11 @@
 import {extractConfig} from "./urlUtils.js"
 import {getCurrentBrowser} from "./createBrowser.js"
 import {restoreSession} from "./session.js"
-
+import {Alert} from "../node_modules/igv-ui/dist/igv-ui.js"
 
 async function init(container, config) {
+
+    Alert.init(container);
 
     if (false !== config.queryParametersSupported) {
         const queryConfig = await extractConfig(window.location.href);

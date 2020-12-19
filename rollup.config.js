@@ -22,6 +22,7 @@
  */
 
 import strip from 'rollup-plugin-strip';
+import copy from 'rollup-plugin-copy';
 
 export default [
     {
@@ -34,6 +35,13 @@ export default [
             strip({
                 debugger: true,
                 functions: ['console.log', 'assert.*', 'debug']
+            }),
+            copy({
+                targets:
+                    [
+                        {src: 'css/juicebox.css', dest: 'dist/css/'},
+                        {src: 'css/img', dest: 'dist/css/'}
+                    ]
             })
         ]
     }

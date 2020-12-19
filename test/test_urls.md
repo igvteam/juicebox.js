@@ -26,14 +26,9 @@
 * http://localhost/juicebox.js/dev/juicebox-blank.html?juiceboxURL=http://bit.ly/2C1VSHy
 
 
-Error at aidenlab  
+# Embedded googl drive track (requires google config) 
 
-* http://bit.ly/2szp9cC
-
-
-
-* http://localhost/juicebox-web/index.html?juiceboxURL=http://bit.ly/2srvPJK
-
+* http://localhost/juicebox.js/dev/juicebox-blank.html?juiceboxURL=http://bit.ly/2srvPJK
 
 
 

@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "dist/js/juicebox.min.js",
   "module": "dist/js/juicebox.esm.min.js",
   "files": [
@@ -44,13 +44,14 @@
     "node-fetch": "^2.6.1",
     "rollup": "^1.32.1",
     "rollup-plugin-strip": "^1.2.2",
+    "rollup-plugin-copy": "^3.3.0",
     "w3c-xmlhttprequest": "^3.0.0",
     "xmldom": "^0.4.0"
   },
   "dependencies": {
-    "hic-straw": "^2.0.1",
+    "hic-straw": "^2.0.2",
     "igv": "github:igvteam/igv.js#v2.7.4-jb",
     "igv-ui": "github:igvteam/igv-ui#v1.1",
-    "igv-utils": "github:igvteam/igv-utils#v1.2"
+    "igv-utils": "github:igvteam/igv-utils#v1.2.1"
   }
 }
