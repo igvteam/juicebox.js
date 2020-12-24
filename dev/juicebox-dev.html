@@ -89,17 +89,11 @@
             ]
         };
 
-    const session_config =
-        {
-            "url": "http://localhost:63342/juicebox.js/inter.30.hic"
-        };
-
-
     const container = document.getElementById("app-container");
 
     Alert.init(container);
 
-    hic.init(container, session_config)
+    hic.init(container, config)
         .then(function (hicBrowser) {
              // hicBrowser.loadTracks ([{
              //     url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt"
