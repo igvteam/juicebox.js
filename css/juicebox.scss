@@ -21,6 +21,11 @@ $hic-axis-height: 40px;
 // track_margin
 $track-margin: 2px;
 
+$igv-trackgear-grey-color: #7F7F7F;
+$igv-trackgear-popover-border-radius: 4px;
+$igv-trackgear-font-color: #4b4b4b;
+$igv-trackgear-default-font-face: 'Open Sans', sans-serif;
+@import "igv-menu-popup";
 
 
 $nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
@@ -1568,3 +1573,18 @@ div[id$="content-container"] {
   -ms-user-select: none;
   user-select: none;
 }
+
+
+.igv-trackgear-container {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  color: $igv-trackgear-grey-color;
+}
+
+.igv-trackgear-container:hover {
+  cursor: pointer;
+  color: #444;
+}
+

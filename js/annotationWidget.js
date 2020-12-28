@@ -44,7 +44,7 @@ class AnnotationWidget {
     updateBody(tracks) {
 
         var self = this,
-            trackRenderers,
+            trackPairs,
 
             isTrack2D,
             zi;
@@ -59,8 +59,8 @@ class AnnotationWidget {
                 annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
             }
         } else {
-            trackRenderers = tracks;
-            for (let trackRenderer of trackRenderers) {
+            trackPairs = tracks;
+            for (let trackRenderer of trackPairs) {
                 annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
             }
         }
@@ -325,7 +325,7 @@ function annotationPanelRow($container, track) {
 
             self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
         } else {
-            self.browser.layoutController.removeTrackRendererPair(trackRenderer.trackRenderPair);
+            self.browser.layoutController.removeTrackXYPair(trackRenderer.trackRenderPair);
         }
 
         self.updateBody(trackList);

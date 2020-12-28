@@ -26,14 +26,13 @@
  * @author Jim Robinson
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js'
-import {StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {igvxhr, StringUtils} from '../node_modules/igv-utils/src/index.js'
 
 async function geneSearch(genomeId, featureName) {
 
     // Hardcode this for now
     const searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
-    const data = await igv.xhr.loadString(searchServiceURL);
+    const data = await igvxhr.loadString(searchServiceURL);
     var results = parseSearchResults(data);
 
     if (results.length === 0) {

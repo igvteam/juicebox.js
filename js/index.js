@@ -21,10 +21,10 @@
  *
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js'
-import {getAllBrowsers, createBrowser, getCurrentBrowser} from './createBrowser.js';
+import {igvxhr} from '../node_modules/igv-utils/src/index.js'
+import {createBrowser, getAllBrowsers, getCurrentBrowser} from './createBrowser.js';
 import {version} from "./version.js";
-import {toJSON, restoreSession, compressedSession} from "./session.js";
+import {compressedSession, restoreSession, toJSON} from "./session.js";
 import {init} from "./init.js"
 import EventBus from "./eventBus.js"
 
@@ -37,6 +37,6 @@ export default {
     createBrowser,
     getCurrentBrowser,
     getAllBrowsers,
-    igvxhr: igv.xhr,
+    igvxhr,
     EventBus
 }

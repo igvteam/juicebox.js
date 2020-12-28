@@ -1,6 +1,5 @@
-import {getAllBrowsers} from "./createBrowser.js"
+import {createBrowser, deleteAllBrowsers, getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {Globals} from "./globals.js"
-import {createBrowser, deleteAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {StringUtils} from "../node_modules/igv-utils/src/index.js";
 
 function toJSON() {

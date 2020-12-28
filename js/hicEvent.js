@@ -22,7 +22,7 @@
  */
 
 
-const HICEvent = function (type, data, propogate) {
+function HICEvent (type, data, propogate) {
     return {
         type: type,
         data: data || {},

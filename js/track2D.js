@@ -1,6 +1,5 @@
-import {StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {igvxhr, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {Track2DDisplaceModes} from './globals.js';
-import igv from '../node_modules/igv/dist/igv.esm.js'
 
 class Track2D {
 
@@ -45,7 +44,7 @@ class Track2D {
         //     }
         // }
 
-        const data = await igv.xhr.loadString(config.url, buildOptions(config));
+        const data = await igvxhr.loadString(config.url, buildOptions(config));
         const features = parseData(data, isBedPE(config), genome);
         return new Track2D(config, features);
     }

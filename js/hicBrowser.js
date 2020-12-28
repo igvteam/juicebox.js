@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js'
+import igv from './igv/igv.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
@@ -53,8 +53,6 @@ import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
 
-import "./igvReplacements.js"; // Imported for side effects only
-
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
@@ -72,7 +70,7 @@ class HICBrowser {
         this.showTrackLabelAndGutter = true;
 
         this.id = `browser_${DOMUtils.guid()}`;
-        this.trackRenderers = [];
+        this.trackPairs = [];
         this.tracks2D = [];
         this.normVectorFiles = [];
 
@@ -135,7 +133,9 @@ class HICBrowser {
 
         this.state = config.state ? config.state : defaultState.clone();
 
-        this.eventBus.subscribe("LocusChange", this);
+        this.pending = new Map();
+
+        //this.eventBus.subscribe("LocusChange", this);
 
     }
 
@@ -325,22 +325,25 @@ class HICBrowser {
     }
 
     genomicState(axis) {
-        var gs,
-            bpResolution;
 
-        bpResolution = this.dataset.bpResolutions[this.state.zoom];
-        gs = {
-            bpp: bpResolution / this.state.pixelSize
+        let width = this.contactMatrixView.getViewDimensions().width
+        const bpp =
+            (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
+                this.genome.getGenomeLength() / width :
+                this.dataset.bpResolutions[this.state.zoom] / this.state.pixelSize
+
+        const gs = {
+            bpp: bpp
         };
 
         if (axis === "x") {
             gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-            gs.startBP = this.state.x * bpResolution;
-            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().width;
+            gs.startBP = this.state.x * bpp;
+            gs.endBP = gs.startBP + bpp * width;
         } else {
             gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-            gs.startBP = this.state.y * bpResolution;
-            gs.endBP = gs.startBP + gs.bpp * this.contactMatrixView.getViewDimensions().height;
+            gs.startBP = this.state.y * bpp;
+            gs.endBP = gs.startBP + bpp * this.contactMatrixView.getViewDimensions().height;
         }
         return gs;
     }
@@ -361,7 +364,7 @@ class HICBrowser {
         try {
             this.contactMatrixView.startSpinner();
 
-            const trackXYPairs = [];
+            const tracks = [];
             const promises2D = [];
 
             for (let config of /*trackConfigurations*/configs) {
@@ -386,13 +389,13 @@ class HICBrowser {
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
                     const track = await igv.createTrack(config, this);
-                    trackXYPairs.push({x: track, y: track})
+                    tracks.push(track)
                 }
             }
 
-            if (trackXYPairs.length > 0) {
+            if (tracks.length > 0) {
 
-                this.layoutController.tracksLoaded(trackXYPairs);
+                this.layoutController.tracksLoaded(tracks);
 
                 const $gear_container = $('.hic-igv-right-hand-gutter');
                 if (true === this.showTrackLabelAndGutter) {
@@ -455,23 +458,16 @@ class HICBrowser {
 
     };
 
-    renderTracks() {
-        for (let xyTrackRenderPair of this.trackRenderers) {
-            this.renderTrackXY(xyTrackRenderPair);
-        }
-    }
-
     /**
      * Render the XY pair of tracks.
      *
      * @param xy
      */
-    async renderTrackXY(xy, force) {
+    async renderTrackXY(xy) {
 
         try {
             this.startSpinner()
-            await xy.x.repaint(force);
-            await xy.y.repaint(force);
+            await xy.updateViews();
         } finally {
             this.stopSpinner()
         }
@@ -555,7 +551,7 @@ class HICBrowser {
             this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes);
 
             // TODO -- this is not going to work with browsers on different assemblies on the same page.
-            igv.browser.genome = this.genome;
+            //igv.browser.genome = this.genome;
 
             if (this.genome.id !== previousGenomeId) {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
@@ -827,11 +823,14 @@ class HICBrowser {
 
                     this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
 
-                    this.eventBus.post(HICEvent("LocusChange", {
+                    let event = HICEvent("LocusChange", {
                         state: state,
                         resolutionChanged: zoomChanged,
                         chrChanged: false
-                    }));
+                    })
+
+                    this.update(event);
+                    //this.eventBus.post(event);
                 }
             } finally {
                 this.stopSpinner()
@@ -840,22 +839,21 @@ class HICBrowser {
 
     }
 
-    async wheelClickZoom(direction, centerPX, centerPY) {
-
-        if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
-            this.zoomAndCenter(direction, centerPX, centerPY);
-        } else {
-            const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
-            var newZoom = this.state.zoom + direction;
-            if (direction < 0 && newZoom < z) {
-                this.setChromosomes(0, 0);
-            } else {
-                this.zoomAndCenter(direction, centerPX, centerPY);
-            }
-
-        }
-
-    }
+    // TODO -- apparently not used.  Where is this handled?
+    // async wheelClickZoom(direction, centerPX, centerPY) {
+    //     if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
+    //         this.zoomAndCenter(direction, centerPX, centerPY);
+    //     } else {
+    //         const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+    //         var newZoom = this.state.zoom + direction;
+    //         if (direction < 0 && newZoom < z) {
+    //             this.setChromosomes(0, 0);
+    //         } else {
+    //             this.zoomAndCenter(direction, centerPX, centerPY);
+    //         }
+    //
+    //     }
+    // }
 
     // Zoom in response to a double-click
     /**
@@ -899,11 +897,15 @@ class HICBrowser {
                 state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
                 this.clamp();
-                this.eventBus.post(HICEvent("LocusChange", {
+
+                let event = HICEvent("LocusChange", {
                     state: state,
                     resolutionChanged: false,
                     chrChanged: false
-                }));
+                })
+
+                this.update(event);
+                //this.eventBus.post(event);
 
             } else {
                 let i;
@@ -950,11 +952,15 @@ class HICBrowser {
 
             await this.contactMatrixView.zoomIn()
 
-            this.eventBus.post(HICEvent("LocusChange", {
+            let event = HICEvent("LocusChange", {
                 state: state,
                 resolutionChanged: zoomChanged,
                 chrChanged: false
-            }));
+            })
+
+            this.update(event);
+            //this.eventBus.post(event);
+
         } finally {
             // this.stopSpinner()
         }
@@ -975,17 +981,26 @@ class HICBrowser {
 
             const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
             this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS));
-            this.eventBus.post(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}));
+
+            let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true})
+
+            this.update(event);
+            //this.eventBus.post(event);
+
         } finally {
             this.stopSpinner()
         }
     }
 
+    /**
+     * Called on loading tracks
+     * @returns {Promise<void>}
+     */
     async updateLayout() {
 
         this.clamp();
 
-        this.trackRenderers.forEach(function (xyTrackRenderPair, index) {
+        this.trackPairs.forEach(function (xyTrackRenderPair, index) {
             sync(xyTrackRenderPair.x, index);
             sync(xyTrackRenderPair.y, index);
         });
@@ -1014,11 +1029,15 @@ class HICBrowser {
         // Possibly adjust pixel size
         const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
         this.state.pixelSize = Math.max(state.pixelSize, minPS);
-        this.eventBus.post(new HICEvent("LocusChange", {
+
+        let hicEvent = new HICEvent("LocusChange", {
             state: this.state,
             resolutionChanged: true,
             chrChanged: chrChanged
-        }));
+        })
+
+        this.update(hicEvent);
+        this.eventBus.post(hicEvent);
     }
 
 
@@ -1095,11 +1114,14 @@ class HICBrowser {
         this.state.y = y;
         this.state.pixelSize = pixelSize;
 
-        this.eventBus.post(HICEvent("LocusChange", {
+        let event = HICEvent("LocusChange", {
             state: this.state,
             resolutionChanged: zoomChanged,
             chrChanged: chrChanged
-        }, false));
+        }, false)
+
+        this.update(event)
+        //this.eventBus.post(event);
 
     }
 
@@ -1111,10 +1133,7 @@ class HICBrowser {
 
     shiftPixels(dx, dy) {
 
-        var self = this;
-
         if (!this.dataset) return;
-
         this.state.x += (dx / this.state.pixelSize);
         this.state.y += (dy / this.state.pixelSize);
         this.clamp();
@@ -1126,9 +1145,9 @@ class HICBrowser {
             chrChanged: false
         });
         locusChangeEvent.dragging = true;
+
+        this.update(locusChangeEvent);
         this.eventBus.post(locusChangeEvent);
-
-
     }
 
     goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
@@ -1182,11 +1201,16 @@ class HICBrowser {
         this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearImageCaches();
-        this.eventBus.post(HICEvent("LocusChange", {
+
+
+        let event = HICEvent("LocusChange", {
             state: this.state,
             resolutionChanged: zoomChanged,
             chrChanged: chrChanged
-        }));
+        })
+
+        this.update(event);
+        //this.eventBus.post(event);
 
     }
 
@@ -1208,36 +1232,72 @@ class HICBrowser {
     }
 
     receiveEvent(event) {
-        if ("LocusChange" === event.type) {
-            if (event.propogate) {
-                for (let browser of this.synchedBrowsers) {
-                    browser.syncState(this.getSyncState());
-                }
-            }
-            this.update(event);
-        }
+        // if ("LocusChange" === event.type) {
+        //     if (event.propogate) {
+        //         for (let browser of this.synchedBrowsers) {
+        //             browser.syncState(this.getSyncState());
+        //         }
+        //     }
+        //     this.update(event);
+        // }
     }
 
     /**
-     * Update the maps and tracks.
+     * Update the maps and tracks.  This method can be called from the browser event thread repeatedly, for example
+     * while mouse dragging.  If called while an update is in progress queue the event for processing later.  It
+     * is only neccessary to queue the most recent recently received event, so a simple instance variable will suffice
+     * for the queue.
      *
      * @param event
      */
     async update(event) {
 
-        try {
-            this.startSpinner();
+        if (this.updating) {
+            const type = event ? event.type : "NONE";
+            this.pending.set(type, event);
+        } else {
+            this.updating = true;
+            try {
 
-            if (event !== undefined && "LocusChange" === event.type) {
-                this.layoutController.xAxisRuler.locusChange(event);
-                this.layoutController.yAxisRuler.locusChange(event);
+                this.startSpinner();
+                if (event !== undefined && "LocusChange" === event.type) {
+                    this.layoutController.xAxisRuler.locusChange(event);
+                    this.layoutController.yAxisRuler.locusChange(event);
+                }
+
+                const promises = []
+
+                for (let xyTrackRenderPair of this.trackPairs) {
+                    promises.push(this.renderTrackXY(xyTrackRenderPair));
+                }
+                promises.push(this.contactMatrixView.update(event));
+                await Promise.all(promises);
+
+                if (event && event.propogate) {
+                    let syncState1 = this.getSyncState();
+                    for (let browser of this.synchedBrowsers) {
+                        browser.syncState(syncState1);
+                    }
+                }
+
+            } finally {
+                this.updating = false;
+                if(this.pending.size > 0) {
+                    const events = []
+                    for(let [k, v] of this.pending) {
+                        events.push(v);
+                    }
+                    this.pending.clear();
+                    for(let e of events) {
+                        this.update(e)
+                    }
+                }
+                if (event) {
+                    // possibly, unless update was called from an event post (infinite loop)
+                    this.eventBus.post(event)
+                }
+                this.stopSpinner();
             }
-
-            this.renderTracks();
-            //this.contactMatrixView.update();
-
-        } finally {
-            this.stopSpinner();
         }
     }
 
@@ -1290,10 +1350,10 @@ class HICBrowser {
             }
         }
 
-        if (this.trackRenderers.length > 0 || this.tracks2D.length > 0) {
+        if (this.trackPairs.length > 0 || this.tracks2D.length > 0) {
             let tracks = [];
             jsonOBJ.tracks = tracks;
-            for (let trackRenderer of this.trackRenderers) {
+            for (let trackRenderer of this.trackPairs) {
                 const track = trackRenderer.x.track;
                 const config = track.config;
                 if (typeof config.url === "string") {

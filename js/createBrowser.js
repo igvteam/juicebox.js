@@ -3,8 +3,8 @@
  */
 
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
-import {InputDialog, Popover} from '../node_modules/igv-ui/dist/igv-ui.js'
-import igv from '../node_modules/igv/dist/igv.esm.js'
+import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
+import DataRangeDialog from "./igv/ui/dataRangeDialog.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -37,13 +37,13 @@ async function createBrowser(hic_container, config, callback) {
     const browser = new HICBrowser($hic_container, config);
     browser.eventBus.hold()
 
-    if (undefined === igv.browser) {
-        createIGV($hic_container, browser);
-    }
+    //if (undefined === igv.browser) {
+    //    createIGV($hic_container, browser);
+    //}
 
     browser.inputDialog = new InputDialog($hic_container.get(0), browser);
 
-    browser.dataRangeDialog = new igv.DataRangeDialog($hic_container, browser);
+    browser.dataRangeDialog = new DataRangeDialog($hic_container, browser);
 
     ///////////////////////////////////
     try {
@@ -230,16 +230,16 @@ function setDefaults(config) {
 
 
 // mock igv browser objects for igv.js compatibility
-function createIGV($hic_container, hicBrowser) {
-
-    igv.browser =
-        {
-            constants: {defaultColor: "rgb(0,0,150)"},
-
-            // Compatibility wit igv menus
-            trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-        };
-    igv.popover = new Popover($hic_container.get(0), igv.browser);
-}
+// function createIGV($hic_container, hicBrowser) {
+//
+//     igv.browser =
+//         {
+//             constants: {defaultColor: "rgb(0,0,150)"},
+//
+//             // Compatibility wit igv menus
+//             trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
+//         };
+//     igv.popover = new Popover($hic_container.get(0), igv.browser);
+// }
 
 export {createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, getAllBrowsers}

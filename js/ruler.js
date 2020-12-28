@@ -27,7 +27,7 @@
  */
 
 import {IGVColor} from '../node_modules/igv-utils/src/index.js'
-import igv from '../node_modules/igv/dist/igv.esm.js'
+import IGVGraphics from "./igv/igv-canvas.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class Ruler {
@@ -230,6 +230,7 @@ class Ruler {
 
         if ('MapLoad' === event.type) {
             this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
+            this.update();
         } else if ('UpdateContactMapMousePosition' === event.type) {
 
             if (this.bboxes) {
@@ -289,14 +290,14 @@ class Ruler {
         this.hideWholeGenome();
 
         identityTransformWithContext(this.ctx);
-        igv.IGVGraphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+        IGVGraphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
         this.canvasTransform(this.ctx);
 
         w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
         h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
 
-        igv.IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+        IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
         config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
 
@@ -340,7 +341,7 @@ class Ruler {
 
         } else {
 
-            igv.IGVGraphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+            IGVGraphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
             fontStyle = {
                 textAlign: 'center',
@@ -357,7 +358,7 @@ class Ruler {
 
             pixel = pixelLast = 0;
 
-            igv.IGVGraphics.setProperties(this.ctx, fontStyle);
+            IGVGraphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
 
             yShim = 1;
@@ -393,7 +394,7 @@ class Ruler {
 
                         this.ctx.save();
                         this.labelReflectionTransform(this.ctx, pixel);
-                        igv.IGVGraphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
+                        IGVGraphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
                         this.ctx.restore();
 
                     }
@@ -403,7 +404,7 @@ class Ruler {
                 }
 
                 if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                    igv.IGVGraphics.strokeLine(this.ctx,
+                    IGVGraphics.strokeLine(this.ctx,
                         pixel, options.height - tickHeight,
                         pixel, options.height - yShim);
                 }
@@ -413,7 +414,7 @@ class Ruler {
 
             } // while (pixel < options.rulerLengthPixels)
 
-            igv.IGVGraphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
+            IGVGraphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
 
         }
 

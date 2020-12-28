@@ -53,9 +53,19 @@
     const config = {
         "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
         "name": "Primary",
-        "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
-        "colorScale": "34,255,0,0",
-        "nvi": "33860030033,37504"
+        "locus": "2:58,035,001-60,725,000 2:65,290,001-67,980,000",
+       // "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
+       // "colorScale": "34,255,0,0",
+        "nvi": "33860030033,37504",
+        tracks: [
+            {
+                "url": "https://www.dropbox.com/s/s3yuap5lvyv6qfc/ENCFF001EQU.bigWig?dl=0",
+                "name": "ENCFF001EQU.bigWig",
+                "min": 0,
+                "max": 23.162939297124602,
+                "color": "#ff8802"
+            }
+        ]
     }
 
     const google_drive_session =

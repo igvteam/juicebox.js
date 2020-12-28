@@ -7,7 +7,7 @@
  * oAuth and apiKey automatically.
  */
 
-import igv from '../node_modules/igv/dist/igv.esm.js';
+import {igvxhr} from '../node_modules/igv-utils/src/index.js'
 
 class IGVRemoteFile {
 
@@ -22,7 +22,7 @@ class IGVRemoteFile {
 
         const range = {start: position, size: length};
 
-        return igv.xhr.loadArrayBuffer(this.url, {range});
+        return igvxhr.loadArrayBuffer(this.url, {range});
 
     }
 }
