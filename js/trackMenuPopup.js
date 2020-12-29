@@ -34,14 +34,14 @@ const trackMenuItemListHelper =     (itemList, $popover) => {
     if (itemList.length > 0) {
 
         list = itemList.map(function (item, i) {
-            var $e;
+            let $e;
 
             // name and object fields checked for backward compatibility
             if (item.name) {
                 $e = $('<div>');
                 $e.text(item.name);
             } else if (item.object) {
-                $e = item.object
+                $e = $(item.object)     // This creates a JQuery object form a dom element, or clones if already a jQuery object
             } else if (typeof item.label === 'string') {
                 $e = $('<div>');
                 $e.html(item.label)

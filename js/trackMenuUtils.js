@@ -7,21 +7,17 @@ import {createCheckbox} from "./igv-icons.js"
  */
 const MenuUtils = {
 
-    trackMenuItemList: function (trackRenderer) {
+    trackMenuItemList: function (trackPair) {
 
 
         let menuItems = [];
 
-        menuItems.push(trackRenameMenuItem(trackRenderer));
+        menuItems.push(trackRenameMenuItem(trackPair));
         menuItems.push("<hr/>");
-        menuItems.push(colorPickerMenuItem({trackRenderer, label: "Set color", option: "color"}));
-        menuItems.push(colorPickerMenuItem({trackRenderer, label: "Set alt color", option: "altColor"}));
-        menuItems.push(unsetColorMenuItem({trackRenderer, label: "Unset color"}));
-        menuItems.push("<hr/>");
+        menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set color", option: "color"}));
+        menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set alt color", option: "altColor"}));
+        menuItems.push(unsetColorMenuItem({trackRenderer: trackPair, label: "Unset color"}));
 
-        if (trackRenderer.track.menuItemList) {
-            menuItems = menuItems.concat(trackRenderer.track.menuItemList());
-        }
 
         // const vizWindowTypes = new Set(['alignment', 'annotation', 'variant', 'eqtl', 'snp']);
         // const hasVizWindow = trackRenderer.track.config && trackRenderer.track.config.visibilityWindow !== undefined;
@@ -30,25 +26,27 @@ const MenuUtils = {
         //     menuItems.push(visibilityWindowMenuItem(trackRenderer));
         // }
 
-        if (trackRenderer.track.removable !== false) {
+        if (trackPair.track.removable !== false) {
             menuItems.push('<hr/>');
-            menuItems.push(trackRemovalMenuItem(trackRenderer));
+            menuItems.push(trackRemovalMenuItem(trackPair));
         }
 
         return menuItems;
     },
 
-    numericDataMenuItems: function (trackView) {
+    numericDataMenuItems: function (trackPair) {
 
         const menuItems = [];
+
+        menuItems.push("<hr/>");
 
         // Data range
         const $e = $('<div>');
 
         $e.text('Set data range');
         const clickHandler = function () {
-            const currentDataRange = trackView.track.dataRange;
-            trackView.dataRangeDialog.show({
+            const currentDataRange = trackPair.track.dataRange;
+            trackPair.dataRangeDialog.show({
                 min: currentDataRange.min || 0,
                 max: currentDataRange.max,
             })
@@ -56,22 +54,22 @@ const MenuUtils = {
 
         menuItems.push({object: $e, click: clickHandler});
 
-        if (trackView.track.logScale !== undefined) {
+        if (trackPair.track.logScale !== undefined) {
             menuItems.push({
-                    object: createCheckbox("Log scale", trackView.track.logScale),
+                    object: createCheckbox("Log scale", trackPair.track.logScale),
                     click: () => {
-                        trackView.track.logScale = !trackView.track.logScale;
-                        trackView.repaintViews();
+                        trackPair.track.logScale = !trackPair.track.logScale;
+                        trackPair.repaintViews();
                     }
                 }
             )
         }
 
         menuItems.push({
-                object: createCheckbox("Autoscale", trackView.track.autoscale),
+                object: createCheckbox("Autoscale", trackPair.track.autoscale),
                 click: () => {
-                    trackView.track.autoscale = !trackView.track.autoscale;
-                    trackView.repaintViews();
+                    trackPair.track.autoscale = !trackPair.track.autoscale;
+                    trackPair.repaintViews();
                 }
             }
         )

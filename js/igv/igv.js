@@ -4,6 +4,7 @@
 import {URIUtils, StringUtils} from '../../node_modules/igv-utils/src/index.js'
 import {inferTrackType} from "./util/igvUtils.js"
 import TrackFactory from './trackFactory.js'
+import FeatureSource from "./feature/featureSource.js"
 
 const igv = {
 
