@@ -25,7 +25,7 @@
 
 import {isSimpleType} from "./util/igvUtils.js";
 import {FeatureUtils, FileUtils, StringUtils} from "../../node_modules/igv-utils/src/index.js";
-
+import {DataRangeDialog} from "../../node_modules/igv-ui/dist/igv-ui.js";
 
 /**
  * A collection of properties and methods shared by all (or most) track types.

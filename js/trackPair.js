@@ -3,7 +3,7 @@
  */
 
 import {DOMUtils} from '../node_modules/igv-utils/src/index.js'
-import {ColorPicker} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
@@ -29,8 +29,11 @@ class TrackPair {
             height: undefined,
             colorHandler: color => this.setColor(color)
         });
-
         this.colorPicker.hide();
+
+        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0],
+            (min, max) => this.setDataRange(min, max));
+
 
         this.appendRightHandGutter(this.x.$viewport);
 
@@ -74,8 +77,10 @@ class TrackPair {
         }
         this.y.tile = undefined;
         this.x.tile = undefined;
-        this.track.autoscale = autoscale;
-        this.track.config.autoScale = autoscale
+        if(autoscale !== undefined) {
+            this.track.autoscale = autoscale;
+            this.track.config.autoScale = autoscale
+        }
         this.repaintViews();
     }
 

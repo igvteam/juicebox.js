@@ -44,11 +44,16 @@ const MenuUtils = {
 
         // Data range
         const $e = $('<div>');
+
         $e.text('Set data range');
         const clickHandler = function () {
-            trackView.browser.dataRangeDialog.configure({trackView: trackView});
-            trackView.browser.dataRangeDialog.present($(trackView.trackDiv));
-        };
+            const currentDataRange = trackView.track.dataRange;
+            trackView.dataRangeDialog.show({
+                min: currentDataRange.min || 0,
+                max: currentDataRange.max,
+            })
+        }
+
         menuItems.push({object: $e, click: clickHandler});
 
         if (trackView.track.logScale !== undefined) {
@@ -70,7 +75,6 @@ const MenuUtils = {
                 }
             }
         )
-
 
         return menuItems;
     }

@@ -606,7 +606,8 @@
     border-color: #a6a6a6;
     background-color: white; }
   .hic-colorscale-widget-container input {
-    width: 30%; }
+    width: 30%;
+    height: 24px; }
   .hic-colorscale-widget-container i.fa-minus {
     display: block;
     margin-left: 2%;

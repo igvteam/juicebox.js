@@ -4,7 +4,6 @@
 
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
-import DataRangeDialog from "./igv/ui/dataRangeDialog.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -42,8 +41,6 @@ async function createBrowser(hic_container, config, callback) {
     //}
 
     browser.inputDialog = new InputDialog($hic_container.get(0), browser);
-
-    browser.dataRangeDialog = new DataRangeDialog($hic_container, browser);
 
     ///////////////////////////////////
     try {
