@@ -15,7 +15,6 @@ const MenuUtils = {
         menuItems.push(trackRenameMenuItem(trackPair));
         menuItems.push("<hr/>");
         menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set color", option: "color"}));
-        menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set alt color", option: "altColor"}));
         menuItems.push(unsetColorMenuItem({trackRenderer: trackPair, label: "Unset color"}));
 
 

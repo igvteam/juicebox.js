@@ -93,7 +93,7 @@ class ContactMatrixView {
         return `${this.backgroundColor.r},${this.backgroundColor.g},${this.backgroundColor.b}`;
     }
 
-    parseBackgroundColor(rgbString) {
+    static parseBackgroundColor(rgbString) {
         const [r, g, b] = rgbString.split(",").map(str => parseInt(str))
         return {r, g, b}
     }
