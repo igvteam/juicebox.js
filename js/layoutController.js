@@ -165,16 +165,16 @@ class LayoutController {
 
     removeAllTrackXYPairs() {
 
-        if (this.browser.trackPairs.length = 0 ) {
+        if (this.browser.trackPairs.length === 0 ) {
             return;
         }
 
-        for(let discard of this.browser.trackPairs) {
+        for(let trackPair of this.browser.trackPairs) {
             // discard DOM element's
-            discard['x'].$viewport.remove();
-            discard['y'].$viewport.remove();
+            trackPair.dispose();
         }
         this.browser.trackPairs = []
+        this.browser.updateLayout();
         this.doLayoutTrackXYPairCount(0)
 
         // What ???

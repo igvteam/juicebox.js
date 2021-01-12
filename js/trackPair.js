@@ -153,7 +153,6 @@ class TrackPair {
         }
     }
 
-
     async getTileX(genomicState) {
         const chrName = genomicState.chromosome.name;
         const bpPerPixel = genomicState.bpp;
@@ -162,7 +161,6 @@ class TrackPair {
         }
         return this.tileX;
     }
-
 
     async getTileY(genomicState) {
         const chrName = genomicState.chromosome.name;
@@ -232,6 +230,11 @@ class TrackPair {
             this.tile = new Tile(chrName, bpStart, bpEnd, bpPerPixel, buffer, features);
             return this.tile
         }
+    }
+
+    dispose() {
+        this['x'].dispose();
+        this['y'].dispose();
     }
 }
 
@@ -305,6 +308,12 @@ class TrackRenderer {
         this.stopSpinner();
 
     }
+
+    dispose($container, size, order) {
+        this.tile = undefined;
+        this.$viewport.remove();
+    }
+
 
     syncCanvas() {
         this.$canvas.width(this.$viewport.width());

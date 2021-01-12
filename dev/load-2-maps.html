@@ -36,6 +36,8 @@ Simulates loading hic files from API (app)
         const browser1 = await hic.init(container, {});
         const browser2 = await hic.createBrowser(container, {});
 
+        await browser1.reset();
+
         await browser1.loadHicFile({
             "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/paternal.hic",
             "name": "Paternal",
