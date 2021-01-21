@@ -150,7 +150,8 @@ function createColorPicker(browser, $parent, type) {
     let colorHandler
     if (undefined === type) {
 
-        defaultColors = [ ContactMatrixView.defaultBackgroundColor ].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
+        const { r, g, b } = ContactMatrixView.defaultBackgroundColor
+        defaultColors = [ IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)) ]
 
         colorHandler = hexString => {
             $parent.find('.fa-square').css({ color: hexString })
