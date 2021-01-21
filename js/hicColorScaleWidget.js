@@ -175,10 +175,9 @@ function createColorPicker(browser, $parent, type) {
     const config =
         {
             parent: $parent.get(0),
-            top: undefined,
-            left: undefined,
+            top: 64,
+            left: 64,
             width: 432,
-            height: undefined,
             defaultColors,
             colorHandler
         }
@@ -187,64 +186,10 @@ function createColorPicker(browser, $parent, type) {
 
 }
 
-function DEPRICATED_createColorPicker(browser, $parent, type, closeHandler) {
-
-    const config =
-        {
-            parent: $parent.get(0),
-            width: 456,
-            closeHandler
-        }
-    const genericContainer = new GenericContainer(config)
-
-    const defaultColors = [defaultRatioColorScaleConfig.negative, defaultRatioColorScaleConfig.positive].map(({r, g, b}) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
-
-    function colorHandler(hexString) {
-        $parent.find('.fa-square').css({color: hexString});
-        const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10));
-        browser.getColorScale().setColorComponents({r, g, b}, type);
-        browser.repaintMatrix();
-    }
-
-    createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
-
-    const {x: left, y: top} = $parent.get(0).getBoundingClientRect()
-    $(genericContainer.container).offset({left, top})
-
-    return genericContainer;
-}
-
-const DEPRICATED_createBackgroundColorPicker = (browser, $parent, closeHandler) => {
-
-    const config =
-        {
-            parent: $parent.get(0),
-            width: 456,
-            closeHandler
-        }
-    const genericContainer = new GenericContainer(config)
-
-    const defaultColors = [ContactMatrixView.defaultBackgroundColor].map(({r, g, b}) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
-
-    function colorHandler(hexString) {
-        $parent.find('.fa-square').css({color: hexString})
-        const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
-        browser.contactMatrixView.setBackgroundColor({r, g, b})
-    }
-
-    createColorSwatchSelector(genericContainer.container, colorHandler, defaultColors)
-
-    const {x: left, y: top} = $parent.get(0).getBoundingClientRect()
-    $(genericContainer.container).offset({left, top})
-
-    return genericContainer;
-
-}
-
-const presentColorPicker = (presentColorpicker, aColorpicker, bColorpicker) => {
-    aColorpicker.hide()
-    bColorpicker.hide()
-    presentColorpicker.show()
+function presentColorPicker(presentable, hideableA, hideableB){
+    hideableA.hide()
+    hideableB.hide()
+    presentable.show()
 }
 
 function colorSwatch(rgbString) {
