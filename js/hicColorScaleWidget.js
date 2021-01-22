@@ -25,7 +25,7 @@
  * Created by dat on 3/3/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {IGVColor, DOMUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import { ColorPicker, createColorSwatchSelector, GenericContainer} from '../node_modules/igv-ui/dist/igv-ui.js'
 import RatioColorScale, {defaultRatioColorScaleConfig} from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
@@ -44,7 +44,7 @@ class ColorScaleWidget {
 
         // contact map background color picker
         const {r: _r, g: _g, b: _b} = ContactMatrixView.defaultBackgroundColor
-        this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b));
+        this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor.rgbColor(_r, _g, _b))
         this.$container.append(this.$mapBackgroundColorpickerButton);
         this.backgroundColorpicker = createColorPicker(browser, this.$mapBackgroundColorpickerButton, undefined)
 
@@ -127,7 +127,7 @@ class ColorScaleWidget {
             }
         }
 
-        this.browser.eventBus.subscribe("DisplayMode", handleDisplayModeEvent);
+        this.browser.eventBus.subscribe("DisplayMode", handleDisplayModeEvent)
 
         this.browser.eventBus.subscribe("MapLoad", (ignore) => {
             paintSwatch(this.$mapBackgroundColorpickerButton, this.browser.contactMatrixView.backgroundColor)
@@ -136,7 +136,9 @@ class ColorScaleWidget {
     }
 }
 
-const paintSwatch = ($swatchContainer, {r, g, b}) => $swatchContainer.find('.fa-square').css({color: IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b))})
+function paintSwatch($swatch, {r, g, b}) {
+    $swatch.get(0).style.backgroundColor = IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b))
+}
 
 const updateThreshold = (browser, scaleFactor) => {
     const colorScale = browser.getColorScale();
@@ -154,7 +156,7 @@ function createColorPicker(browser, $parent, type) {
         defaultColors = [ IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)) ]
 
         colorHandler = hexString => {
-            $parent.find('.fa-square').css({ color: hexString })
+            $parent.get(0).style.backgroundColor = hexString
             const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
             browser.contactMatrixView.setBackgroundColor({r, g, b})
 
@@ -165,7 +167,7 @@ function createColorPicker(browser, $parent, type) {
         defaultColors = [defaultRatioColorScaleConfig.negative, defaultRatioColorScaleConfig.positive].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)))
 
         colorHandler = hexString => {
-            $parent.find('.fa-square').css({ color: hexString })
+            $parent.get(0).style.backgroundColor = hexString
             const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
             browser.getColorScale().setColorComponents({r, g, b}, type)
             browser.repaintMatrix()
@@ -194,16 +196,9 @@ function presentColorPicker(presentable, hideableA, hideableB){
 }
 
 function colorSwatch(rgbString) {
-
-    const $swatch = $('<div>', {class: 'igv-ui-color-swatch'});
-    $swatch.css("border-color", "lightgray");
-    $swatch.css("background", "lightgray");
-    const $fa = $('<i>', {class: 'fa fa-square fa-2x', 'title': 'Present color swatches'});
-
-    $swatch.append($fa);
-    $fa.css({color: rgbString});
-
-    return $swatch;
+    const swatch = DOMUtils.div({ class: 'igv-ui-color-swatch' })
+    swatch.style.backgroundColor = IGVColor.rgbToHex(rgbString)
+    return $(swatch)
 }
 
 
