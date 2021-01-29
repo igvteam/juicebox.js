@@ -26,10 +26,11 @@
  * @author Jim Robinson
  */
 
+import { defaultSize } from './createBrowser.js'
 
 class State {
 
-    constructor(chr1, chr2, zoom, x, y, pixelSize, normalization) {
+    constructor(chr1, chr2, zoom, x, y, width, height, pixelSize, normalization) {
 
         if (Number.isNaN(pixelSize)) {
             pixelSize = 1
@@ -50,6 +51,8 @@ class State {
             }
             this.zoom = zoom;
             this.pixelSize = pixelSize;
+            this.width = width
+            this.height = height
 
             if ("undefined" === normalization) {
                 console.log("No normalization defined !!!");
@@ -61,7 +64,12 @@ class State {
     }
 
     stringify() {
-        return "" + this.chr1 + "," + this.chr2 + "," + this.zoom + "," + this.x + "," + this.y + "," + this.pixelSize + "," + this.normalization;
+        if (this.normalization) {
+            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this.width},${this.height},${this.pixelSize},${this.normalization}`
+        } else {
+            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this.width},${this.height},${this.pixelSize}`
+        }
+
     }
 
     clone() {
@@ -75,17 +83,51 @@ class State {
     }
 
     static parse(string) {
-        const tokens = string.split(",");
-        return new State(
-            parseInt(tokens[0]),    // chr1
-            parseInt(tokens[1]),    // chr2
-            parseFloat(tokens[2]), // zoom
-            parseFloat(tokens[3]), // x
-            parseFloat(tokens[4]), // y
-            parseFloat(tokens[5]), // pixelSize
-            tokens.length > 6 ? tokens[6] : "NONE"   // normalization
-        )
+
+        const tokens = string.split(",")
+
+        if (tokens.length <= 7) {
+
+            // Backwards compatibility
+            return new State(
+                parseInt(tokens[0]),    // chr1
+                parseInt(tokens[1]),    // chr2
+                parseFloat(tokens[2]), // zoom
+                parseFloat(tokens[3]), // x
+                parseFloat(tokens[4]), // y
+                defaultSize.width,      // width
+                defaultSize.height,     // height
+                parseFloat(tokens[5]), // pixelSize
+                tokens.length > 6 ? tokens[6] : "NONE"   // normalization
+            )
+        } else {
+
+            return new State(
+                parseInt(tokens[0]),    // chr1
+                parseInt(tokens[1]),    // chr2
+                parseFloat(tokens[2]), // zoom
+                parseFloat(tokens[3]), // x
+                parseFloat(tokens[4]), // y
+                parseInt(tokens[5]), // width
+                parseInt(tokens[6]), // height
+                parseFloat(tokens[7]), // pixelSize
+                tokens.length > 8 ? tokens[8] : "NONE"   // normalization
+            )
+        }
+
     }
+
+    static default(configOrUndefined) {
+
+        if (configOrUndefined) {
+            return new State(0, 0, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
+        } else {
+            return new State(0, 0, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+        }
+
+    }
+
+
 }
 
 export default State

@@ -56,7 +56,6 @@ import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
-const defaultState = new State(0, 0, 0, 0, 0, 1, "NONE");
 
 class HICBrowser {
 
@@ -131,7 +130,7 @@ class HICBrowser {
 
         this.hideCrosshairs();
 
-        this.state = config.state ? config.state : defaultState.clone();
+        this.state = config.state ? config.state : State.default()
 
         this.pending = new Map();
 
@@ -566,7 +565,7 @@ class HICBrowser {
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState);
             } else {
-                await this.setState(defaultState.clone());
+                await this.setState(State.default(this.config));
             }
 
 
