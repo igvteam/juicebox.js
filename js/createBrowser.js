@@ -189,6 +189,24 @@ function getAllBrowsers() {
 // Set default values for config properties
 function setDefaults(config) {
 
+    if (config.state) {
+
+        if (StringUtils.isString(config.state)) {
+            config.state = State.parse(config.state)
+        } else {
+            // copy
+            config.state = new State(
+                config.state.chr1,
+                config.state.chr2,
+                config.state.zoom,
+                config.state.x,
+                config.state.y,
+                config.width,
+                config.height,
+                config.state.pixelSize,
+                config.state.normalization)
+        }
+    }
 
     if (config.figureMode === true) {
         config.showLocusGoto = false;
@@ -196,10 +214,10 @@ function setDefaults(config) {
         config.showChromosomeSelector = false;
     } else {
         if (undefined === config.width) {
-            config.width = defaultSize.width;
+            config.width = config.state ? config.state.width : defaultSize.width
         }
         if (undefined === config.height) {
-            config.height = defaultSize.height;
+            config.height = config.state ? config.state.height : defaultSize.height
         }
         if (undefined === config.showLocusGoto) {
             config.showLocusGoto = true;
@@ -212,16 +230,6 @@ function setDefaults(config) {
         }
     }
 
-    if (config.state) {
-
-        if (StringUtils.isString(config.state)) {
-            config.state = State.parse(config.state);
-        } else {
-            // copy
-            config.state = new State(config.state.chr1, config.state.chr2, config.state.zoom, config.state.x,
-                config.state.y, config.state.pixelSize, config.state.normalization)
-        }
-    }
 }
 
 
@@ -239,4 +247,4 @@ function setDefaults(config) {
 //     igv.popover = new Popover($hic_container.get(0), igv.browser);
 // }
 
-export {createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, getAllBrowsers}
+export { defaultSize, createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, getAllBrowsers}
