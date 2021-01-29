@@ -1,2 +1,2 @@
-const version = "2.1.5"
+const version = "2.1.6"
 export {version} //, commit}
