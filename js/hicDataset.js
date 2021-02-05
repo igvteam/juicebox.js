@@ -51,14 +51,7 @@ class Dataset {
 
         this.hicFile = this.straw.hicFile;
         await this.hicFile.init();
-        this.matrixCache = {};
-        this.blockCache = {};
-        this.blockCacheKeys = [];
-        this.normVectorCache = {};
         this.normalizationTypes = ['NONE'];
-
-        // Cache at most 10 blocks
-        this.blockCacheLimit = hic.isMobile() ? 4 : 10;
 
         this.genomeId = this.hicFile.genomeId
         this.chromosomes = this.hicFile.chromosomes
@@ -82,29 +75,11 @@ class Dataset {
     }
 
     clearCaches() {
-        this.matrixCache = {};
-        this.blockCache = {};
-        this.normVectorCache = {};
         this.colorScaleCache = {};
     }
 
     async getMatrix(chr1, chr2) {
-        if (chr1 > chr2) {
-            const tmp = chr1
-            chr1 = chr2
-            chr2 = tmp
-        }
-        const key = `${chr1}_${chr2}`
-
-        if (this.matrixCache.hasOwnProperty(key)) {
-            return this.matrixCache[key];
-
-        } else {
-            const matrix = await this.hicFile.readMatrix(chr1, chr2)
-            this.matrixCache[key] = matrix;
-            return matrix;
-
-        }
+        return this.hicFile.getMatrix(chr1, chr2)
     }
 
     getZoomIndexForBinSize(binSize, unit) {

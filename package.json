@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "main": "dist/js/juicebox.min.js",
   "module": "dist/js/juicebox.esm.min.js",
   "files": [
@@ -49,7 +49,7 @@
     "xmldom": "^0.4.0"
   },
   "dependencies": {
-    "hic-straw": "^2.0.2",
+    "hic-straw": "^2.0.3",
     "igv-ui": "github:igvteam/igv-ui#44dd9d14",
     "igv-utils": "github:igvteam/igv-utils#v1.2.3"
   }

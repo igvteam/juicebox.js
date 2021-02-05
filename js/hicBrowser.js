@@ -425,37 +425,24 @@ class HICBrowser {
         }
     }
 
-    loadNormalizationFile(url) {
-
-        var self = this;
+    async loadNormalizationFile(url) {
 
         if (!this.dataset) return;
+        this.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
 
-        self.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
+        const normVectors = await this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
+        for (let type of normVectors['types']) {
+            if (!this.dataset.normalizationTypes) {
+                this.dataset.normalizationTypes = [];
+            }
+            if (!this.dataset.normalizationTypes.includes(type)) {
+                this.dataset.normalizationTypes.push(type);
+            }
+            this.eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+        }
 
-        return this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
-
-            .then(function (normVectors) {
-
-                Object.assign(self.dataset.normVectorCache, normVectors);
-
-                for (let type of normVectors['types']) {
-
-                    if (!self.dataset.normalizationTypes) {
-                        self.dataset.normalizationTypes = [];
-                    }
-                    if (!self.dataset.normalizationTypes.includes(type)) {
-                        self.dataset.normalizationTypes.push(type);
-                    }
-
-                    self.eventBus.post(HICEvent("NormVectorIndexLoad", self.dataset));
-
-                }
-
-                return normVectors;
-            })
-
-    };
+        return normVectors;
+    }
 
     /**
      * Render the XY pair of tracks.
@@ -794,7 +781,7 @@ class HICBrowser {
                     zoomChanged = newZoom !== this.state.zoom;
                     newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
                 }
-                const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
+                const z = await this.minZoom(this.state.chr1, this.state.chr2)
 
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
@@ -802,7 +789,7 @@ class HICBrowser {
                     this.setChromosomes(0, 0);
                 } else {
 
-                    const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, newZoom)
+                    const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom)
 
                     const state = this.state;
 
@@ -886,7 +873,7 @@ class HICBrowser {
                 (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
                 (direction < 0 && this.state.zoom === resolutions[0].index)) {
 
-                const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+                const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
                 const state = this.state;
                 const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
@@ -938,7 +925,7 @@ class HICBrowser {
             const newResolution = bpResolutions[zoom];
             const newXCenter = xCenter * (currentResolution / newResolution);
             const newYCenter = yCenter * (currentResolution / newResolution);
-            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, zoom)
+            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
             const state = this.state;
             const newPixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPS);
             const zoomChanged = (state.zoom !== zoom);
@@ -971,14 +958,14 @@ class HICBrowser {
         try {
             this.startSpinner()
 
-            const z = await minZoom.call(this, chr1, chr2)
+            const z = await this.minZoom(chr1, chr2)
             this.state.chr1 = Math.min(chr1, chr2);
             this.state.chr2 = Math.max(chr1, chr2);
             this.state.x = 0;
             this.state.y = 0;
             this.state.zoom = z;
 
-            const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
             this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS));
 
             let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true})
@@ -1026,7 +1013,7 @@ class HICBrowser {
         const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
         this.state = state;
         // Possibly adjust pixel size
-        const minPS = await minPixelSize.call(this, this.state.chr1, this.state.chr2, this.state.zoom)
+        const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
         this.state.pixelSize = Math.max(state.pixelSize, minPS);
 
         let hicEvent = new HICEvent("LocusChange", {
@@ -1281,13 +1268,13 @@ class HICBrowser {
 
             } finally {
                 this.updating = false;
-                if(this.pending.size > 0) {
+                if (this.pending.size > 0) {
                     const events = []
-                    for(let [k, v] of this.pending) {
+                    for (let [k, v] of this.pending) {
                         events.push(v);
                     }
                     this.pending.clear();
-                    for(let e of events) {
+                    for (let e of events) {
                         this.update(e)
                     }
                 }
@@ -1391,6 +1378,37 @@ class HICBrowser {
         }
 
         return jsonOBJ;
+    }
+
+
+    async minZoom(chr1, chr2) {
+
+        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const chromosome1 = this.dataset.chromosomes[chr1]
+        const chromosome2 = this.dataset.chromosomes[chr2];
+        const chr1Length = chromosome1.size;
+        const chr2Length = chromosome2.size;
+        const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
+
+        const matrix = await this.dataset.getMatrix(chr1, chr2)
+        if (!matrix) {
+            throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`);
+        }
+        return matrix.findZoomForResolution(binSize);
+    }
+
+    async minPixelSize(chr1, chr2, z) {
+
+        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const chr1Length = this.dataset.chromosomes[chr1].size;
+        const chr2Length = this.dataset.chromosomes[chr2].size;
+
+        const matrix = await this.dataset.getMatrix(chr1, chr2)
+        const zd = matrix.getZoomDataByIndex(z, "BP");
+        const binSize = zd.zoom.binSize;
+        const nBins1 = chr1Length / binSize;
+        const nBins2 = chr2Length / binSize;
+        return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
 
     }
 }
@@ -1409,37 +1427,6 @@ function extractName(config) {
     } else {
         return config.name;
     }
-}
-
-async function minZoom(chr1, chr2) {
-
-    const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const chromosome1 = this.dataset.chromosomes[chr1]
-    const chromosome2 = this.dataset.chromosomes[chr2];
-    const chr1Length = chromosome1.size;
-    const chr2Length = chromosome2.size;
-    const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
-
-    const matrix = await this.dataset.getMatrix(chr1, chr2)
-    if (!matrix) {
-        throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`);
-    }
-    return matrix.findZoomForResolution(binSize);
-}
-
-async function minPixelSize(chr1, chr2, z) {
-
-    const viewDimensions = this.contactMatrixView.getViewDimensions();
-    const chr1Length = this.dataset.chromosomes[chr1].size;
-    const chr2Length = this.dataset.chromosomes[chr2].size;
-
-    const matrix = await this.dataset.getMatrix(chr1, chr2)
-    const zd = matrix.getZoomDataByIndex(z, "BP");
-    const binSize = zd.zoom.binSize;
-    const nBins1 = chr1Length / binSize;
-    const nBins2 = chr2Length / binSize;
-    return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
-
 }
 
 function getNviString(dataset) {
