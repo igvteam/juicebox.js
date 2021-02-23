@@ -51,7 +51,7 @@ class FeatureTrack extends TrackBase {
         // Set maxRows -- protects against pathological feature packing cases (# of rows of overlapping feaures)
         this.maxRows = config.maxRows === undefined ? 1000 : config.maxRows;
 
-        this.displayMode = config.displayMode || "EXPANDED";    // COLLAPSED | EXPANDED | SQUISHED
+        this.displayMode = config.displayMode || "COLLAPSED";    // COLLAPSED | EXPANDED | SQUISHED
         this.labelDisplayMode = config.labelDisplayMode;
 
         if (config._featureSource) {
