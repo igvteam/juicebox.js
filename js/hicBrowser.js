@@ -326,10 +326,11 @@ class HICBrowser {
     genomicState(axis) {
 
         let width = this.contactMatrixView.getViewDimensions().width
+        let resolution = this.dataset.bpResolutions[this.state.zoom];
         const bpp =
             (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
                 this.genome.getGenomeLength() / width :
-                this.dataset.bpResolutions[this.state.zoom] / this.state.pixelSize
+                resolution / this.state.pixelSize
 
         const gs = {
             bpp: bpp
@@ -337,11 +338,11 @@ class HICBrowser {
 
         if (axis === "x") {
             gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-            gs.startBP = this.state.x * bpp;
+            gs.startBP = this.state.x * resolution;
             gs.endBP = gs.startBP + bpp * width;
         } else {
             gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-            gs.startBP = this.state.y * bpp;
+            gs.startBP = this.state.y * resolution;
             gs.endBP = gs.startBP + bpp * this.contactMatrixView.getViewDimensions().height;
         }
         return gs;
