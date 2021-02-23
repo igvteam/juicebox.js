@@ -88,38 +88,52 @@ class TrackBase {
 
         // Create copy of config, minus transient properties (convention is name starts with '_')
         const state = {};
-        for(let key of Object.keys(this.config)) {
-            if(!key.startsWith("_")) {
+        for (let key of Object.keys(this.config)) {
+            if (!key.startsWith("_")) {
                 state[key] = this.config[key];
             }
         }
 
         // Update original config values with any changes
-        for(let key of Object.keys(state)) {
-            if(key.startsWith("_")) continue;   // transient property
+        for (let key of Object.keys(state)) {
+            if (key.startsWith("_")) continue;   // transient property
             const value = this[key];
             if (value && (isSimpleType(value) || typeof value === "boolean")) {
                 state[key] = value;
             }
         }
 
-        if(this.color) state.color = this.color;
-        if(this.altColor) state.altColor = this.altColor;
+        if (this.color) state.color = this.color;
+        if (this.altColor) state.altColor = this.altColor;
 
         // Flatten dataRange if present
         if (!this.autoscale && this.dataRange) {
-            state.min = this.dataRange.min;
-            state.max = this.dataRange.max;
+            if (state.min !== undefined && state.min !== null) {
+                state.min = this.dataRange.min;
+            }
+            if (state.max !== undefined && state.max !== null) {
+                state.max = this.dataRange.max;
+            }
         }
 
         // Check for non-json-if-yable properties.  Perhaps we should test what can be saved.
-        for(let key of Object.keys(state)) {
-            if(typeof state[key] === 'function') {
-                throw Error(`Property '${key}' of track '${this.name} is a function. Functions cannot be saved in sessions.` );
-            } if(state[key] instanceof File) {
+        for (let key of Object.keys(state)) {
+            if (typeof state[key] === 'function') {
+                throw Error(`Property '${key}' of track '${this.name} is a function. Functions cannot be saved in sessions.`);
+            }
+            if (state[key] instanceof File) {
                 throw Error(`Property '${key}' of track '${this.name} is a local File. Local file references cannot be saved in sessions.`);
-            } if(state[key] instanceof Promise) {
-                throw Error(`Property '${key}' of track '${this.name} is a Promise. Promises cannot be saved in sessions.` );
+            }
+            if (state[key] instanceof Promise) {
+                throw Error(`Property '${key}' of track '${this.name} is a Promise. Promises cannot be saved in sessions.`);
+            }
+        }
+
+        // Remove properties with undefined values, no reason to save these
+        let keys = Object.keys(state);
+        for (let key of keys) {
+            if (state[key] === undefined) {
+                delete state[key];
             }
         }
 
@@ -187,7 +201,7 @@ class TrackBase {
                     }
                     break;
                 case "viewlimits":
-                    if(!this.config.autoscale) {   // autoscale in the config has precedence
+                    if (!this.config.autoscale) {   // autoscale in the config has precedence
                         tokens = properties[key].split(":");
                         let min = 0;
                         let max;
