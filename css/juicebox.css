@@ -797,7 +797,7 @@ div[id$="content-container"] {
         display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
-        justify-content: space-between; }
+        justify-content: flex-start; }
         div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div[id$="x-axis-whole-genome-container"] .x-axis-whole-genome-chromosome-container {
           display: flex;
           flex-direction: column;
@@ -809,17 +809,9 @@ div[id$="content-container"] {
           font-weight: 400;
           color: #444;
           height: 100%;
-          border-left-color: transparent;
-          border-left-style: solid;
-          border-left-width: thin;
-          border-right-color: #bfbfbf;
-          border-right-style: solid;
-          border-right-width: thin;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis; }
-        div[id$="content-container"] div[id$="x-axis-container"] div[id$="x-axis"] div[id$="x-axis-whole-genome-container"] .x-axis-whole-genome-chromosome-container:last-child {
-          border-right-color: transparent; }
   div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;
@@ -876,7 +868,7 @@ div[id$="content-container"] {
         display: flex;
         flex-flow: column;
         flex-wrap: nowrap;
-        justify-content: space-between; }
+        justify-content: flex-start; }
         div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div[id$="y-axis-whole-genome-container"] .y-axis-whole-genome-chromosome-container {
           display: flex;
           flex-direction: column;
@@ -888,19 +880,11 @@ div[id$="content-container"] {
           font-weight: 400;
           color: #444;
           width: 100%;
-          border-top-color: transparent;
-          border-top-style: solid;
-          border-top-width: thin;
-          border-bottom-color: #bfbfbf;
-          border-bottom-style: solid;
-          border-bottom-width: thin;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis; }
           div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div[id$="y-axis-whole-genome-container"] .y-axis-whole-genome-chromosome-container .y-axis-whole-genome-chromosome {
             transform: rotate(-90deg); }
-        div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="y-axis"] div[id$="y-axis-whole-genome-container"] .y-axis-whole-genome-chromosome-container:last-child {
-          border-bottom-color: transparent; }
     div[id$="content-container"] div[id$="y-tracks-y-axis-viewport-y-scrollbar"] div[id$="viewport"] {
       display: block;
       position: relative;
@@ -1029,8 +1013,7 @@ div[id$="content-container"] {
           white-space: nowrap; }
 
 .hic-whole-genome-chromosome-highlight {
-  cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.1); }
+  cursor: pointer; }
 
 .hic-track-menu {
   position: absolute;

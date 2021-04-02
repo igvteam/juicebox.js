@@ -26,9 +26,21 @@
  * @author Jim Robinson
  */
 
-import {IGVColor} from '../node_modules/igv-utils/src/index.js'
+import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
 import IGVGraphics from "./igv/igv-canvas.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
+
+function randomRGB(min, max) {
+
+    min = IGVMath.clamp(min, 0, 255)
+    max = IGVMath.clamp(max, 0, 255)
+
+    const r = Math.round(Math.random() * (max - min) + min).toString(10)
+    const g = Math.round(Math.random() * (max - min) + min).toString(10)
+    const b = Math.round(Math.random() * (max - min) + min).toString(10)
+    return `rgb(${r},${g},${b})`
+
+}
 
 class Ruler {
 
@@ -84,8 +96,10 @@ class Ruler {
             extent += chromosome.size;
         });
 
-
         dimen = 'x' === axisName ? $axis.width() : $axis.height();
+        console.log(`${ axisName } length ${ dimen }`)
+
+
         scraps = 0;
         this.bboxes = [];
         $firstDiv = undefined;
@@ -105,15 +119,19 @@ class Ruler {
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
+                // debug
+                $div.get(0).style.backgroundColor = randomRGB(150, 250);
+
+
                 if (!$firstDiv) {
                     $firstDiv = $div;
                 }
 
                 if ('x' === axisName) {
-                    size = Math.round(percentage * dimen) - 2;
+                    size = Math.round(percentage * dimen);
                     $div.width(size);
                 } else {
-                    size = Math.round(percentage * dimen) - 2;
+                    size = Math.round(percentage * dimen);
                     $div.height(size);
                 }
 
