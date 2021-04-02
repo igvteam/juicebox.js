@@ -97,8 +97,6 @@ class Ruler {
         });
 
         dimen = 'x' === axisName ? $axis.width() : $axis.height();
-        console.log(`${ axisName } length ${ dimen }`)
-
 
         scraps = 0;
         this.bboxes = [];
