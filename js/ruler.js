@@ -79,10 +79,7 @@ class Ruler {
             extent,
             scraps,
             $div,
-            $firstDiv,
-            $e,
-            id,
-            className;
+            $firstDiv;
 
         // discard current tiles
         $wholeGenomeContainer.empty();
@@ -112,14 +109,12 @@ class Ruler {
                 scraps += percentage;
             } else {
 
-                className = self.axis + '-axis-whole-genome-chromosome-container';
-                $div = $("<div>", {class: className});
+                $div = $("<div>", { class: `${ self.axis }-axis-whole-genome-chromosome-container` });
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
 
                 // debug
-                $div.get(0).style.backgroundColor = randomRGB(150, 250);
-
+                // $div.get(0).style.backgroundColor = randomRGB(150, 250);
 
                 if (!$firstDiv) {
                     $firstDiv = $div;
@@ -133,10 +128,16 @@ class Ruler {
                     $div.height(size);
                 }
 
-                className = self.axis + '-axis-whole-genome-chromosome';
-                $e = $("<div>", {class: className});
-                $div.append($e);
-                $e.text($div.data('label'));
+                // border
+                const $border = $('<div>');
+                $div.append($border);
+
+                // label
+                const $label = $('<div>');
+                $border.append($label);
+
+                $label.text($div.data('label'));
+                $label.get(0).title = $div.data('label');
 
                 decorate.call(self, $div);
             }
@@ -147,17 +148,18 @@ class Ruler {
         scraps = Math.floor(scraps);
         if (scraps >= 1) {
 
-            className = self.axis + '-axis-whole-genome-chromosome-container';
+            const className = self.axis + '-axis-whole-genome-chromosome-container';
             $div = $("<div>", {class: className});
             $wholeGenomeContainer.append($div);
             $div.data('label', '-');
 
             $div.width(scraps);
 
-            className = self.axis + '-axis-whole-genome-chromosome';
-            $e = $("<div>", {class: className});
-            $div.append($e);
-            $e.text($div.data('label'));
+            // className = self.axis + '-axis-whole-genome-chromosome';
+            // $e = $("<div>", {class: className});
+            // $div.append($e);
+            // $e.text($div.data('label'));
+
             decorate.call(self, $div);
         }
 
