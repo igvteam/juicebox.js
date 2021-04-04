@@ -26,9 +26,21 @@
  * @author Jim Robinson
  */
 
-import {IGVColor} from '../node_modules/igv-utils/src/index.js'
+import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
 import IGVGraphics from "./igv/igv-canvas.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
+
+function randomRGB(min, max) {
+
+    min = IGVMath.clamp(min, 0, 255)
+    max = IGVMath.clamp(max, 0, 255)
+
+    const r = Math.round(Math.random() * (max - min) + min).toString(10)
+    const g = Math.round(Math.random() * (max - min) + min).toString(10)
+    const b = Math.round(Math.random() * (max - min) + min).toString(10)
+    return `rgb(${r},${g},${b})`
+
+}
 
 class Ruler {
 
@@ -67,10 +79,7 @@ class Ruler {
             extent,
             scraps,
             $div,
-            $firstDiv,
-            $e,
-            id,
-            className;
+            $firstDiv;
 
         // discard current tiles
         $wholeGenomeContainer.empty();
@@ -84,8 +93,8 @@ class Ruler {
             extent += chromosome.size;
         });
 
-
         dimen = 'x' === axisName ? $axis.width() : $axis.height();
+
         scraps = 0;
         this.bboxes = [];
         $firstDiv = undefined;
@@ -100,27 +109,35 @@ class Ruler {
                 scraps += percentage;
             } else {
 
-                className = self.axis + '-axis-whole-genome-chromosome-container';
-                $div = $("<div>", {class: className});
+                $div = $("<div>", { class: `${ self.axis }-axis-whole-genome-chromosome-container` });
                 $wholeGenomeContainer.append($div);
                 $div.data('label', chr.name);
+
+                // debug
+                // $div.get(0).style.backgroundColor = randomRGB(150, 250);
 
                 if (!$firstDiv) {
                     $firstDiv = $div;
                 }
 
                 if ('x' === axisName) {
-                    size = Math.round(percentage * dimen) - 2;
+                    size = Math.round(percentage * dimen);
                     $div.width(size);
                 } else {
-                    size = Math.round(percentage * dimen) - 2;
+                    size = Math.round(percentage * dimen);
                     $div.height(size);
                 }
 
-                className = self.axis + '-axis-whole-genome-chromosome';
-                $e = $("<div>", {class: className});
-                $div.append($e);
-                $e.text($div.data('label'));
+                // border
+                const $border = $('<div>');
+                $div.append($border);
+
+                // label
+                const $label = $('<div>');
+                $border.append($label);
+
+                $label.text($div.data('label'));
+                $label.get(0).title = $div.data('label');
 
                 decorate.call(self, $div);
             }
@@ -131,17 +148,18 @@ class Ruler {
         scraps = Math.floor(scraps);
         if (scraps >= 1) {
 
-            className = self.axis + '-axis-whole-genome-chromosome-container';
+            const className = self.axis + '-axis-whole-genome-chromosome-container';
             $div = $("<div>", {class: className});
             $wholeGenomeContainer.append($div);
             $div.data('label', '-');
 
             $div.width(scraps);
 
-            className = self.axis + '-axis-whole-genome-chromosome';
-            $e = $("<div>", {class: className});
-            $div.append($e);
-            $e.text($div.data('label'));
+            // className = self.axis + '-axis-whole-genome-chromosome';
+            // $e = $("<div>", {class: className});
+            // $div.append($e);
+            // $e.text($div.data('label'));
+
             decorate.call(self, $div);
         }
 

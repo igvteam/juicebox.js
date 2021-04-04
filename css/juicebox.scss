@@ -1203,15 +1203,9 @@ div[id$="content-container"] {
         display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
-        justify-content: space-between;
+        justify-content: flex-start;
 
-        // whole genome divs
         .x-axis-whole-genome-chromosome-container {
-          display: flex;
-          flex-direction: column;
-          flex-wrap: nowrap;
-          justify-content: center;
-          align-items: center;
 
           font-family: $default-font-family;
           font-size: 8px;
@@ -1220,25 +1214,25 @@ div[id$="content-container"] {
 
           height: 100%;
 
-          border-left-color: transparent;
-          border-left-style: solid;
-          border-left-width: thin;
-
-          border-right-color: #bfbfbf;
-          border-right-style: solid;
-          border-right-width: thin;
-
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
 
-          .x-axis-whole-genome-chromosome {
+          >div {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+            border-left-color: #868686;
+            border-left-style: solid;
+            border-left-width: thin;
+
           }
 
-        }
-
-        .x-axis-whole-genome-chromosome-container:last-child {
-          border-right-color: transparent;
         }
 
       }
@@ -1345,15 +1339,9 @@ div[id$="content-container"] {
         display: flex;
         flex-flow: column;
         flex-wrap: nowrap;
-        justify-content: space-between;
+        justify-content: flex-start;
 
-        // whole genome divs
         .y-axis-whole-genome-chromosome-container {
-          display: flex;
-          flex-direction: column;
-          flex-wrap: nowrap;
-          justify-content: center;
-          align-items: center;
 
           font-family: $default-font-family;
           font-size: 8px;
@@ -1362,26 +1350,25 @@ div[id$="content-container"] {
 
           width: 100%;
 
-          border-top-color: transparent;
-          border-top-style: solid;
-          border-top-width: thin;
-
-          border-bottom-color: #bfbfbf;
-          border-bottom-style: solid;
-          border-bottom-width: thin;
-
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
 
-          .y-axis-whole-genome-chromosome {
-            transform: rotate(-90deg);
+          >div {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+            border-top-color: #868686;
+            border-top-style: solid;
+            border-top-width: thin;
+
           }
 
-        }
-
-        .y-axis-whole-genome-chromosome-container:last-child {
-          border-bottom-color: transparent;
         }
 
       }
@@ -1552,7 +1539,7 @@ div[id$="content-container"] {
 
 .hic-whole-genome-chromosome-highlight {
   cursor: pointer;
-  background-color: $hic-whole-genome-chromosome-highlight-color;
+  //background-color: $hic-whole-genome-chromosome-highlight-color;
 }
 
 .hic-track-menu {
