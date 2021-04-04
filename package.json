@@ -46,7 +46,7 @@
     "rollup-plugin-strip": "^1.2.2",
     "rollup-plugin-copy": "^3.3.0",
     "w3c-xmlhttprequest": "^3.0.0",
-    "xmldom": "^0.4.0"
+    "xmldom": "^0.5.0"
   },
   "dependencies": {
     "hic-straw": "^2.0.3",
