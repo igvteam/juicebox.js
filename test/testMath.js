@@ -3,7 +3,7 @@ import {assert} from 'chai';
 
 import HICMath from "../js/hicMath.js"
 
-suite("testTrack2D", function () {
+suite("math", function () {
 
     test("Percentile", function () {
 

@@ -860,6 +860,10 @@ var Sizzle =
          * @param {Function} fn Passed the created element and returns a boolean result
          */
         function assert(fn) {
+
+            // When unit testing from Node document will be undefined.  We don't care about assertions in that case.
+            if(!document) return true;
+
             var el = document.createElement("fieldset");
 
             try {
