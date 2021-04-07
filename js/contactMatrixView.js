@@ -165,7 +165,7 @@ class ContactMatrixView {
             this.colorScaleThresholdCache = {};
         } else {
             if (!("LocusChange" === event.type)) {
-               this.clearImageCaches();
+                this.clearImageCaches();
             }
             this.update();
         }
@@ -416,73 +416,62 @@ class ContactMatrixView {
                     }
 
                     ctx.putImageData(id, 0, 0);
+                } else {
+                    //console.log("No block for " + blockNumber);
+                }
 
+                //Draw 2D tracks
+                ctx.save();
+                ctx.lineWidth = 2;
+                for (let track2D of this.browser.tracks2D) {
 
-                    //Draw 2D tracks
-                    ctx.save();
-                    ctx.lineWidth = 2;
-                    for (let track2D of this.browser.tracks2D) {
+                    if (track2D.isVisible) {
 
-                        if (track2D.isVisible) {
+                        const chr1Name = zd.chr1.name;
+                        const chr2Name = zd.chr2.name;
+                        const features = track2D.getFeatures(chr1Name, chr2Name);
 
-                            const chr1Name = zd.chr1.name;
-                            const chr2Name = zd.chr2.name;
-                            const features = track2D.getFeatures(chr1Name, chr2Name);
+                        if (features) {
 
-                            if (features) {
+                            for (let {chr1, x1, x2, y1, y2, color} of features) {
 
-                                for (let f of features) {
+                                // Chr name order
+                                const flip = chr1Name !== chr1;
 
-                                    const flip = chr1Name !== f.chr1;
-                                    const fx1 = flip ? f.x2 : f.x1;
-                                    const fx2 = flip ? f.x1 : f.x2
-                                    const fy1 = flip ? f.y2 : f.y1;
-                                    const fy2 = flip ? f.y1 : f.y2
+                                const fx1 = transpose || flip ? y1 : x1;
+                                const fx2 = transpose || flip ? y2 : x2;
+                                const fy1 = transpose || flip ? x1 : y1;
+                                const fy2 = transpose || flip ? x2 : y2;
 
+                                let px1 = (fx1 - x0bp) / zd.zoom.binSize;
+                                let px2 = (fx2 - x0bp) / zd.zoom.binSize;
+                                let py1 = (fy1 - y0bp) / zd.zoom.binSize;
+                                let py2 = (fy2 - y0bp) / zd.zoom.binSize;
+                                let w = px2 - px1;
+                                let h = py2 - py1;
 
-                                    let px1 = (fx1 - x0bp) / zd.zoom.binSize;
-                                    let px2 = (fx2 - x0bp) / zd.zoom.binSize;
-                                    let py1 = (fy1 - y0bp) / zd.zoom.binSize;
-                                    let py2 = (fy2 - y0bp) / zd.zoom.binSize;
-                                    let w = px2 - px1;
-                                    let h = py2 - py1;
-
-                                    if (transpose || flip) {
-                                        let t;
-                                        t = py1;
-                                        py1 = px1;
-                                        px1 = t;
-                                        t = py2;
-                                        py2 = px2;
-                                        px2 = t;
-                                        t = h;
-                                        h = w;
-                                        w = t;
-                                    }
-
-                                    const dim = Math.max(image.width, image.height);
-                                    if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
-                                        ctx.strokeStyle = track2D.color ? track2D.color : f.color;
-                                        ctx.strokeRect(px1, py1, w, h);
-                                        if (sameChr && row === column) {
-                                            ctx.strokeRect(py1, px1, h, w);
-                                        }
+                                const dim = Math.max(image.width, image.height);
+                                if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
+                                    //console.log(`${row} ${column}    ${x1} ${x2}`)
+                                    ctx.strokeStyle = track2D.color ? track2D.color : color;
+                                    ctx.strokeRect(px1, py1, w, h);
+                                    if (sameChr && row === column) {
+                                        ctx.strokeRect(py1, px1, h, w);
                                     }
                                 }
                             }
                         }
                     }
-
-                    ctx.restore();
-
-                    // Uncomment to reveal tile boundaries for debugging.
-                    //  ctx.fillStyle = "rgb(255,255,255)";
-                    //  ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
-
-
-                } else {
-                    //console.log("No block for " + blockNumber);
                 }
+
+
+                ctx.restore();
+
+                // Uncomment to reveal tile boundaries for debugging.
+                //  ctx.fillStyle = "rgb(255,255,255)";
+                //  ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+
+
                 var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}
 
 
@@ -635,6 +624,9 @@ class ContactMatrixView {
             } else {
                 this.ctx.drawImage(image, offsetX, offsetY, scaledWidth, scaledHeight);
             }
+            // Debugging aid, uncomment to see tile boundaries
+            //this.ctx.strokeRect(offsetX, offsetY, scaledWidth, scaledHeight)
+            //this.ctx.strokeText(`${row} ${column}`, offsetX, offsetY);
         }
     }
 
