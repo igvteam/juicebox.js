@@ -24,6 +24,7 @@
 /**
  * Created by dat on 3/22/17.
  */
+import EventBus from "./eventBus.js"
 
 class ChromosomeSelectorWidget {
 
@@ -73,7 +74,7 @@ class ChromosomeSelectorWidget {
                 }
             };
 
-        browser.eventBus.subscribe("MapLoad", this.dataLoadConfig);
+        EventBus.globalBus.subscribe("MapLoad", this.dataLoadConfig);
 
         this.locusChangeConfig =
             {
@@ -84,7 +85,7 @@ class ChromosomeSelectorWidget {
                 }
             };
 
-        browser.eventBus.subscribe("LocusChange", this.locusChangeConfig);
+        EventBus.globalBus.subscribe("LocusChange", this.locusChangeConfig);
 
     }
 
