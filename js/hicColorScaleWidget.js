@@ -30,7 +30,6 @@ import { ColorPicker, createColorSwatchSelector, GenericContainer} from '../node
 import RatioColorScale, {defaultRatioColorScaleConfig} from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
-import EventBus from "./eventBus.js"
 
 class ColorScaleWidget {
 
@@ -110,7 +109,7 @@ class ColorScaleWidget {
 
         }
 
-        EventBus.globalBus.subscribe("ColorScale", handleColorScaleEvent);
+        this.browser.eventBus.subscribe("ColorScale", handleColorScaleEvent);
 
         const handleDisplayModeEvent = event => {
 
@@ -128,9 +127,9 @@ class ColorScaleWidget {
             }
         }
 
-        EventBus.globalBus.subscribe("DisplayMode", handleDisplayModeEvent)
+        this.browser.eventBus.subscribe("DisplayMode", handleDisplayModeEvent)
 
-        EventBus.globalBus.subscribe("MapLoad", (ignore) => {
+        this.browser.eventBus.subscribe("MapLoad", (ignore) => {
             paintSwatch(this.$mapBackgroundColorpickerButton, this.browser.contactMatrixView.backgroundColor)
         });
 

@@ -64,6 +64,7 @@ class HICBrowser {
         this.config = config;
         this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
         this.resolutionLocked = false;
+        this.eventBus = new EventBus();
 
         this.showTrackLabelAndGutter = true;
 
@@ -133,7 +134,7 @@ class HICBrowser {
 
         this.pending = new Map();
 
-        //EventBus.globalBus.subscribe("LocusChange", this);
+        //this.eventBus.subscribe("LocusChange", this);
 
     }
 
@@ -198,7 +199,7 @@ class HICBrowser {
 
     async setDisplayMode(mode) {
         await this.contactMatrixView.setDisplayMode(mode);
-        EventBus.globalBus.post(HICEvent("DisplayMode", mode));
+        this.eventBus.post(HICEvent("DisplayMode", mode));
     }
 
     getDisplayMode() {
@@ -411,7 +412,7 @@ class HICBrowser {
                 const tracks2D = await Promise.all(promises2D)
                 if (tracks2D && tracks2D.length > 0) {
                     this.tracks2D = this.tracks2D.concat(tracks2D);
-                    EventBus.globalBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
                 }
 
             }
@@ -428,7 +429,7 @@ class HICBrowser {
     async loadNormalizationFile(url) {
 
         if (!this.dataset) return;
-        EventBus.globalBus.post(HICEvent("NormalizationFileLoad", "start"));
+        this.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
 
         const normVectors = await this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
         for (let type of normVectors['types']) {
@@ -438,7 +439,7 @@ class HICBrowser {
             if (!this.dataset.normalizationTypes.includes(type)) {
                 this.dataset.normalizationTypes.push(type);
             }
-            EventBus.globalBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+            this.eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
         }
 
         return normVectors;
@@ -542,7 +543,7 @@ class HICBrowser {
             if (this.genome.id !== previousGenomeId) {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
             }
-            EventBus.globalBus.post(HICEvent("MapLoad", this.dataset));
+            this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             if (config.state) {
                 if (!config.state.hasOwnProperty("chr1")) {
@@ -558,7 +559,7 @@ class HICBrowser {
 
             // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
             // Let it load in the background
-            const eventBus = EventBus.globalBus
+            const eventBus = this.eventBus
 
             // If nvi is not supplied, try reading it from remote lambda service
             if (!config.nvi && typeof config.url === "string") {
@@ -638,7 +639,7 @@ class HICBrowser {
 
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
-                EventBus.globalBus.post(HICEvent("ControlMapLoad", this.controlDataset));
+                this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
 
                 if (!noUpdates) {
                     this.update();
@@ -816,7 +817,7 @@ class HICBrowser {
                     })
 
                     this.update(event);
-                    //EventBus.globalBus.post(event);
+                    //this.eventBus.post(event);
                 }
             } finally {
                 this.stopSpinner()
@@ -891,7 +892,7 @@ class HICBrowser {
                 })
 
                 this.update(event);
-                //EventBus.globalBus.post(event);
+                //this.eventBus.post(event);
 
             } else {
                 let i;
@@ -945,7 +946,7 @@ class HICBrowser {
             })
 
             this.update(event);
-            //EventBus.globalBus.post(event);
+            //this.eventBus.post(event);
 
         } finally {
             // this.stopSpinner()
@@ -971,7 +972,7 @@ class HICBrowser {
             let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true})
 
             this.update(event);
-            //EventBus.globalBus.post(event);
+            //this.eventBus.post(event);
 
         } finally {
             this.stopSpinner()
@@ -1023,7 +1024,7 @@ class HICBrowser {
         })
 
         this.update(hicEvent);
-        EventBus.globalBus.post(hicEvent);
+        this.eventBus.post(hicEvent);
     }
 
 
@@ -1107,14 +1108,14 @@ class HICBrowser {
         }, false)
 
         this.update(event)
-        //EventBus.globalBus.post(event);
+        //this.eventBus.post(event);
 
     }
 
     setNormalization(normalization) {
 
         this.state.normalization = normalization;
-        EventBus.globalBus.post(HICEvent("NormalizationChange", this.state.normalization))
+        this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization))
     }
 
     shiftPixels(dx, dy) {
@@ -1133,7 +1134,7 @@ class HICBrowser {
         locusChangeEvent.dragging = true;
 
         this.update(locusChangeEvent);
-        EventBus.globalBus.post(locusChangeEvent);
+        this.eventBus.post(locusChangeEvent);
     }
 
     goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
@@ -1196,7 +1197,7 @@ class HICBrowser {
         })
 
         this.update(event);
-        //EventBus.globalBus.post(event);
+        //this.eventBus.post(event);
 
     }
 
@@ -1280,7 +1281,7 @@ class HICBrowser {
                 }
                 if (event) {
                     // possibly, unless update was called from an event post (infinite loop)
-                    EventBus.globalBus.post(event)
+                    this.eventBus.post(event)
                 }
                 this.stopSpinner();
             }

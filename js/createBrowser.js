@@ -34,7 +34,7 @@ async function createBrowser(hic_container, config, callback) {
     }
 
     const browser = new HICBrowser($hic_container, config);
-    EventBus.globalBus.hold()
+    browser.eventBus.hold()
 
     //if (undefined === igv.browser) {
     //    createIGV($hic_container, browser);
@@ -69,12 +69,12 @@ async function createBrowser(hic_container, config, callback) {
 
         if (config.displayMode) {
             browser.contactMatrixView.displayMode = config.displayMode;
-            EventBus.globalBus.post({type: "DisplayMode", data: config.displayMode});
+            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
         }
         if (config.colorScale) {
             // This must be done after dataset load
             browser.contactMatrixView.setColorScale(config.colorScale);
-            EventBus.globalBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
+            browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
         }
 
         var promises = [];
@@ -90,7 +90,7 @@ async function createBrowser(hic_container, config, callback) {
         await Promise.all(promises);
 
         const tmp = browser.contactMatrixView.colorScaleThresholdCache;
-        EventBus.globalBus.release()
+        browser.eventBus.release()
         browser.contactMatrixView.colorScaleThresholdCache = tmp
 
         if (config.cycle) {

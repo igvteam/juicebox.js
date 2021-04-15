@@ -20,7 +20,6 @@
  * THE SOFTWARE.
  *
  */
-import EventBus from "./eventBus.js"
 
 class ScrollbarWidget {
 
@@ -43,7 +42,7 @@ class ScrollbarWidget {
         this.$y_label = this.$y_axis_scrollbar.find('.scrollbar-label-rotation-in-place');
         this.$y_label.text('');
 
-        EventBus.globalBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
 
     }
 

@@ -29,7 +29,6 @@
 import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
 import IGVGraphics from "./igv/igv-canvas.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import EventBus from "./eventBus.js"
 
 function randomRGB(min, max) {
 
@@ -67,8 +66,8 @@ class Ruler {
 
         this.setAxisTransform(axis);
 
-        EventBus.globalBus.subscribe('MapLoad', this);
-        EventBus.globalBus.subscribe("UpdateContactMapMousePosition", this);
+        browser.eventBus.subscribe('MapLoad', this);
+        browser.eventBus.subscribe("UpdateContactMapMousePosition", this);
 
     }
 
