@@ -27,6 +27,7 @@ import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
 import {Track2DDisplaceModes} from './globals.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
+import EventBus from "./eventBus.js"
 
 class AnnotationWidget {
 
@@ -242,7 +243,7 @@ function annotationPanelRow($container, track) {
 
         if (isTrack2D) {
             track.color = color;
-            self.browser.eventBus.post(HICEvent('TrackState2D', track));
+            EventBus.globalBus.post(HICEvent('TrackState2D', track));
         } else {
             trackRenderer.setColor(color);
         }
@@ -281,7 +282,7 @@ function annotationPanelRow($container, track) {
         trackList[(index + 1)] = trackList[index];
         trackList[index] = track;
         if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+            EventBus.globalBus.post(HICEvent('TrackState2D', trackList));
             self.updateBody(trackList);
         } else {
             self.browser.updateLayout();
@@ -295,7 +296,7 @@ function annotationPanelRow($container, track) {
         trackList[(index - 1)] = trackList[index];
         trackList[index] = track;
         if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+            EventBus.globalBus.post(HICEvent('TrackState2D', trackList));
             self.updateBody(trackList);
         } else {
             self.browser.updateLayout();
@@ -323,7 +324,7 @@ function annotationPanelRow($container, track) {
             self.browser.contactMatrixView.clearImageCaches();
             self.browser.contactMatrixView.update();
 
-            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+            EventBus.globalBus.post(HICEvent('TrackLoad2D', trackList));
         } else {
             self.browser.layoutController.removeTrackXYPair(trackRenderer.trackRenderPair);
         }

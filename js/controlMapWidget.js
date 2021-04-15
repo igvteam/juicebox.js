@@ -25,6 +25,7 @@
  * Created by dat on 3/21/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
+import EventBus from "./eventBus.js"
 
 class ControlMapWidget {
 
@@ -55,18 +56,18 @@ class ControlMapWidget {
 
         const self = this;
 
-        browser.eventBus.subscribe("ControlMapLoad", function (event) {
+        EventBus.globalBus.subscribe("ControlMapLoad", function (event) {
             self.controlMapHash.updateOptions(browser.getDisplayMode());
             self.$container.show();
         });
 
-        browser.eventBus.subscribe("MapLoad", function (event) {
+        EventBus.globalBus.subscribe("MapLoad", function (event) {
             if (!browser.controlDataset) {
                 self.$container.hide();
             }
         });
 
-        browser.eventBus.subscribe("DisplayMode", function (event) {
+        EventBus.globalBus.subscribe("DisplayMode", function (event) {
             self.controlMapHash.updateOptions(event.data);
         });
 

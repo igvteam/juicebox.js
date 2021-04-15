@@ -26,6 +26,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
+import EventBus from "./eventBus.js"
 
 class ResolutionSelector {
 
@@ -67,9 +68,9 @@ class ResolutionSelector {
         });
 
 
-        this.browser.eventBus.subscribe("LocusChange", this);
-        this.browser.eventBus.subscribe("MapLoad", this);
-        this.browser.eventBus.subscribe("ControlMapLoad", this);
+        EventBus.globalBus.subscribe("LocusChange", this);
+        EventBus.globalBus.subscribe("MapLoad", this);
+        EventBus.globalBus.subscribe("ControlMapLoad", this);
     }
 
     setResolutionLock(resolutionLocked) {
