@@ -26,7 +26,6 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
-import EventBus from "./eventBus.js"
 
 class LocusGoto {
 
@@ -47,7 +46,7 @@ class LocusGoto {
             $(this).blur();
         });
 
-        EventBus.globalBus.subscribe("LocusChange", this);
+        this.browser.eventBus.subscribe("LocusChange", this);
     }
 
     receiveEvent(event) {

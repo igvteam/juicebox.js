@@ -30,7 +30,6 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
-import EventBus from "./eventBus.js"
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
@@ -74,12 +73,12 @@ class ContactMatrixView {
         this.colorScaleThresholdCache = {};
 
 
-        EventBus.globalBus.subscribe("NormalizationChange", this);
-        EventBus.globalBus.subscribe("TrackLoad2D", this);
-        EventBus.globalBus.subscribe("TrackState2D", this);
-        EventBus.globalBus.subscribe("MapLoad", this)
-        EventBus.globalBus.subscribe("ControlMapLoad", this);
-        EventBus.globalBus.subscribe("ColorChange", this)
+        this.browser.eventBus.subscribe("NormalizationChange", this);
+        this.browser.eventBus.subscribe("TrackLoad2D", this);
+        this.browser.eventBus.subscribe("TrackState2D", this);
+        this.browser.eventBus.subscribe("MapLoad", this)
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
+        this.browser.eventBus.subscribe("ColorChange", this)
 
         this.drawsInProgress = new Set()
     }
@@ -248,7 +247,7 @@ class ContactMatrixView {
         if ("NONE" !== state.normalization) {
             if (!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
                 Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.");
-                EventBus.globalBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
+                this.browser.eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
                 state.normalization = "NONE";
             }
         }
@@ -528,7 +527,7 @@ class ContactMatrixView {
             const changed = this.colorScale.threshold !== this.colorScaleThresholdCache[colorKey];
             this.colorScale.setThreshold(this.colorScaleThresholdCache[colorKey]);
             if (changed) {
-                EventBus.globalBus.post(HICEvent("ColorScale", this.colorScale));
+                this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
             }
             return this.colorScale;
         } else {
@@ -548,7 +547,7 @@ class ContactMatrixView {
                     this.colorScale = new ColorScale(this.colorScale);
                     this.colorScale.setThreshold(s);
                     this.computeColorScale = false;
-                    EventBus.globalBus.post(HICEvent("ColorScale", this.colorScale));
+                    this.browser.eventBus.post(HICEvent("ColorScale", this.colorScale));
                     this.colorScaleThresholdCache[colorKey] = s;
                 }
 
@@ -660,7 +659,7 @@ class ContactMatrixView {
         const panMouseUpOrMouseOut = (e) => {
             if (true === this.isDragging) {
                 this.isDragging = false;
-                EventBus.globalBus.post(HICEvent("DragStopped"));
+                this.browser.eventBus.post(HICEvent("DragStopped"));
             }
             isMouseDown = false;
             mouseDown = mouseLast = undefined;
@@ -755,7 +754,7 @@ class ContactMatrixView {
                 xy.yNormalized = xy.y / height;
 
 
-                EventBus.globalBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
+                this.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
 
                 if (true === this.willShowCrosshairs) {
                     this.browser.updateCrosshairs(xy);
@@ -802,14 +801,14 @@ class ContactMatrixView {
             $(document).on('keydown.contact_matrix_view', (e) => {
                 if (undefined === this.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
                     this.willShowCrosshairs = true;
-                    EventBus.globalBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
+                    this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
                 }
             })
 
             $(document).on('keyup.contact_matrix_view', (e) => {
                 this.browser.hideCrosshairs();
                 this.willShowCrosshairs = undefined;
-                EventBus.globalBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
+                this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
             })
 
             // for sweep-zoom allow user to sweep beyond viewport extent
@@ -973,7 +972,7 @@ class ContactMatrixView {
                 }
             } else if (this.isDragging) {
                 this.isDragging = false;
-                EventBus.globalBus.post(HICEvent("DragStopped"));
+                this.browser.eventBus.post(HICEvent("DragStopped"));
             }
 
             // a touch end always ends a pinch

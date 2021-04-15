@@ -25,7 +25,6 @@
  * Created by dat on 3/21/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import EventBus from "./eventBus.js"
 
 var labels =
     {
@@ -69,10 +68,10 @@ class NormalizationWidget {
         this.$container.append(this.$spinner);
         this.$spinner.hide();
 
-        EventBus.globalBus.subscribe("MapLoad", this);
-        EventBus.globalBus.subscribe("NormVectorIndexLoad", this);
-        EventBus.globalBus.subscribe("NormalizationFileLoad", this);
-        EventBus.globalBus.subscribe("NormalizationExternalChange", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
+        this.browser.eventBus.subscribe("NormalizationFileLoad", this);
+        this.browser.eventBus.subscribe("NormalizationExternalChange", this);
 
     }
 
