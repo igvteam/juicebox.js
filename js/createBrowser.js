@@ -3,7 +3,6 @@
  */
 
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
-import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import HICBrowser from './hicBrowser.js'
 import ColorScale from './colorScale.js'
@@ -34,75 +33,9 @@ async function createBrowser(hic_container, config, callback) {
     }
 
     const browser = new HICBrowser($hic_container, config);
-    browser.eventBus.hold()
-
-    //if (undefined === igv.browser) {
-    //    createIGV($hic_container, browser);
-    //}
-
-    browser.inputDialog = new InputDialog($hic_container.get(0), browser);
-
-    ///////////////////////////////////
-    try {
-        browser.contactMatrixView.startSpinner();
-        browser.$user_interaction_shield.show();
-
-        // if (!config.name) config.name = await extractName(config)
-        // const prefix = hasControl ? "A: " : "";
-        // browser.$contactMaplabel.text(prefix + config.name);
-        // browser.$contactMaplabel.attr('title', config.name);
-
-        await browser.loadHicFile(config, true);
-
-        if (config.controlUrl) {
-            await browser.loadHicControlFile({
-                url: config.controlUrl,
-                name: config.controlName,
-                nvi: config.controlNvi,
-                isControl: true
-            }, true);
-        }
-
-        if (config.cycle) {
-            config.displayMode = "A"
-        }
-
-        if (config.displayMode) {
-            browser.contactMatrixView.displayMode = config.displayMode;
-            browser.eventBus.post({type: "DisplayMode", data: config.displayMode});
-        }
-        if (config.colorScale) {
-            // This must be done after dataset load
-            browser.contactMatrixView.setColorScale(config.colorScale);
-            browser.eventBus.post({type: "ColorScale", data: browser.contactMatrixView.getColorScale()});
-        }
-
-        var promises = [];
-        if (config.tracks) {
-            promises.push(browser.loadTracks(config.tracks))
-        }
-
-        if (config.normVectorFiles) {
-            config.normVectorFiles.forEach(function (nv) {
-                promises.push(browser.loadNormalizationFile(nv));
-            })
-        }
-        await Promise.all(promises);
-
-        const tmp = browser.contactMatrixView.colorScaleThresholdCache;
-        browser.eventBus.release()
-        browser.contactMatrixView.colorScaleThresholdCache = tmp
-
-        if (config.cycle) {
-            browser.controlMapWidget.toggleDisplayModeCycle();
-        } else {
-            await browser.update()
-        }
-
-        if (typeof callback === "function") callback();
-    } finally {
-        browser.contactMatrixView.stopSpinner();
-        browser.$user_interaction_shield.hide();
+    await browser.init(config);
+    if (typeof callback === "function") {
+        callback();
     }
 
     allBrowsers.push(browser);
@@ -114,7 +47,6 @@ async function createBrowser(hic_container, config, callback) {
     }
 
     return browser;
-
 }
 
 async function updateAllBrowsers() {
@@ -233,7 +165,6 @@ function setDefaults(config) {
 }
 
 
-
 // mock igv browser objects for igv.js compatibility
 // function createIGV($hic_container, hicBrowser) {
 //
@@ -247,4 +178,13 @@ function setDefaults(config) {
 //     igv.popover = new Popover($hic_container.get(0), igv.browser);
 // }
 
-export { defaultSize, createBrowser, deleteBrowser, setCurrentBrowser, getCurrentBrowser, syncBrowsers, deleteAllBrowsers, getAllBrowsers}
+export {
+    defaultSize,
+    createBrowser,
+    deleteBrowser,
+    setCurrentBrowser,
+    getCurrentBrowser,
+    syncBrowsers,
+    deleteAllBrowsers,
+    getAllBrowsers
+}

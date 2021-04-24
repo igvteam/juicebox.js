@@ -52,6 +52,7 @@ import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
+import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
@@ -97,6 +98,7 @@ class HICBrowser {
         this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
         this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
         this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
+        this.inputDialog = new InputDialog($app_container.get(0), this);
 
         // contact map container related objects
         const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
@@ -130,11 +132,79 @@ class HICBrowser {
 
         this.hideCrosshairs();
 
-        this.state = config.state ? config.state : State.default()
-
-        this.pending = new Map();
 
         //this.eventBus.subscribe("LocusChange", this);
+    }
+
+    async init(config) {
+
+        this.state = config.state ? config.state : State.default()
+        this.pending = new Map();
+        this.eventBus.hold();
+        this.contactMatrixView.disableUpdates = true;
+
+        try {
+            this.contactMatrixView.startSpinner();
+            this.$user_interaction_shield.show();
+
+            // if (!config.name) config.name = await extractName(config)
+            // const prefix = hasControl ? "A: " : "";
+            // browser.$contactMaplabel.text(prefix + config.name);
+            // browser.$contactMaplabel.attr('title', config.name);
+
+            await this.loadHicFile(config, true);
+
+            if (config.controlUrl) {
+                await this.loadHicControlFile({
+                    url: config.controlUrl,
+                    name: config.controlName,
+                    nvi: config.controlNvi,
+                    isControl: true
+                }, true);
+            }
+
+            if (config.cycle) {
+                config.displayMode = "A"
+            }
+
+            if (config.displayMode) {
+                this.contactMatrixView.displayMode = config.displayMode;
+                this.eventBus.post({type: "DisplayMode", data: config.displayMode});
+            }
+            if (config.colorScale) {
+                // This must be done after dataset load
+                this.contactMatrixView.setColorScale(config.colorScale);
+                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()});
+            }
+
+            var promises = [];
+            if (config.tracks) {
+                promises.push(this.loadTracks(config.tracks))
+            }
+
+            if (config.normVectorFiles) {
+                config.normVectorFiles.forEach(function (nv) {
+                    promises.push(this.loadNormalizationFile(nv));
+                })
+            }
+            await Promise.all(promises);
+
+            const tmp = this.contactMatrixView.colorScaleThresholdCache;
+            this.eventBus.release()
+            this.contactMatrixView.colorScaleThresholdCache = tmp
+
+            if (config.cycle) {
+                this.controlMapWidget.toggleDisplayModeCycle();
+            } else {
+                await this.update()
+            }
+
+        } finally {
+            this.contactMatrixView.stopSpinner();
+            this.$user_interaction_shield.hide();
+            this.contactMatrixView.disableUpdates = false;
+            this.contactMatrixView.update();
+        }
 
     }
 
