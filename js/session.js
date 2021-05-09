@@ -1,4 +1,4 @@
-import {createBrowser, deleteAllBrowsers, getAllBrowsers, syncBrowsers} from "./createBrowser.js"
+import {createBrowserList, deleteAllBrowsers, getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {Globals} from "./globals.js"
 import {StringUtils} from "../node_modules/igv-utils/src/index.js";
 
@@ -11,9 +11,9 @@ function toJSON() {
     }
     jsonOBJ.browsers = browserJson;
 
-     if (Globals.selectedGene) {
-         jsonOBJ["selectedGene"] = Globals.selectedGene;
-     }
+    if (Globals.selectedGene) {
+        jsonOBJ["selectedGene"] = Globals.selectedGene;
+    }
 
     const captionDiv = document.getElementById('hic-caption');
     if (captionDiv) {
@@ -30,8 +30,8 @@ function toJSON() {
 }
 
 function compressedSession() {
-        const jsonString = JSON.stringify(toJSON());
-        return `session=blob:${StringUtils.compressString(jsonString)}`
+    const jsonString = JSON.stringify(toJSON());
+    return `session=blob:${StringUtils.compressString(jsonString)}`
 }
 
 
@@ -52,13 +52,10 @@ async function restoreSession(container, session) {
 
 
     // Browser config.  Session json could be multi-browser, or a single browser
-    const configList =  session.browsers || [session];
+    const configList = session.browsers || [session];
 
-    const promises = [];
-    for (let config of configList) {
-        promises.push(createBrowser(container, config));
-    }
-    await Promise.all(promises);
+    await createBrowserList(container, configList);
+
     syncBrowsers();
 
 }

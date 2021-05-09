@@ -49,6 +49,45 @@ async function createBrowser(hic_container, config, callback) {
     return browser;
 }
 
+/**
+ * Create multiple browsers, maintaining order specified in configList.  Called from restore session
+ *
+ * @param hic_container
+ * @param configList
+ */
+async function createBrowserList(hic_container, configList) {
+
+    const $hic_container = $(hic_container);
+
+
+    allBrowsers = [];
+    const initPromises = [];
+    for (let config of configList) {
+        setDefaults(config);
+        if (StringUtils.isString(config.state)) {
+            config.state = State.parse(config.state);
+        }
+        if (StringUtils.isString(config.colorScale)) {
+            config.colorScale = ColorScale.parse(config.colorScale);
+        }
+        if (StringUtils.isString(config.backgroundColor)) {
+            config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
+        }
+        const browser = new HICBrowser($hic_container, config);
+        allBrowsers.push(browser);
+        initPromises.push(browser.init(config));
+    }
+    await Promise.all(initPromises);
+
+    setCurrentBrowser(allBrowsers[0]);
+
+    if (allBrowsers.length > 1) {
+        allBrowsers.forEach(function (b) {
+            b.$browser_panel_delete_button.show();
+        });
+    }
+}
+
 async function updateAllBrowsers() {
     for (let b of allBrowsers) {
         await b.update()
@@ -181,6 +220,7 @@ function setDefaults(config) {
 export {
     defaultSize,
     createBrowser,
+    createBrowserList,
     deleteBrowser,
     setCurrentBrowser,
     getCurrentBrowser,
