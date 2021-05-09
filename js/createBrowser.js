@@ -55,9 +55,10 @@ async function createBrowser(hic_container, config, callback) {
  * @param hic_container
  * @param configList
  */
-async function createBrowserList(hic_container, configList) {
+async function createBrowserList(hic_container, session) {
 
     const $hic_container = $(hic_container);
+    const configList = session.browsers || [session];
 
 
     allBrowsers = [];
@@ -73,7 +74,12 @@ async function createBrowserList(hic_container, configList) {
         if (StringUtils.isString(config.backgroundColor)) {
             config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
         }
+        if(false === session.syncDatasets) {
+            config.synchable = false;
+        }
+
         const browser = new HICBrowser($hic_container, config);
+
         allBrowsers.push(browser);
         initPromises.push(browser.init(config));
     }
@@ -136,17 +142,16 @@ function getCurrentBrowser() {
 }
 
 function syncBrowsers(browsers) {
-    const browsersWithMaps = (browsers || allBrowsers).filter(b => b.dataset !== undefined);
+
+    const synchableBrowsers = (browsers || allBrowsers).filter(b => (false !== b.synchable) && (b.dataset !== undefined));
+
     // Sync compatible maps only
-    const incompatibleDatasets = [];
-    for (let b1 of browsersWithMaps) {
-        for (let b2 of browsersWithMaps) {
+    for (let b1 of synchableBrowsers) {
+        for (let b2 of synchableBrowsers) {
             if (b1 === b2) continue;
             if (b1.dataset.isCompatible(b2.dataset)) {
                 b1.synchedBrowsers.push(b2);
                 b2.synchedBrowsers.push(b1);
-            } else {
-                incompatibleDatasets.push(b1.dataset.genomeId);
             }
         }
     }

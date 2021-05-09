@@ -74,6 +74,7 @@ class HICBrowser {
         this.tracks2D = [];
         this.normVectorFiles = [];
 
+        this.synchable = config.synchable !== false;
         this.synchedBrowsers = [];
 
         this.isMobile = hicUtils.isMobile();
@@ -1119,6 +1120,8 @@ class HICBrowser {
      */
     canBeSynched(syncState) {
 
+        if(false === this.synchable) return false;   // Explicitly not synchable
+
         return this.dataset &&
             (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
             (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
@@ -1130,6 +1133,8 @@ class HICBrowser {
      * @param state  browser state
      */
     syncState(syncState) {
+
+        if(!syncState || false === this.synchable) return;
 
         if (!this.dataset) return;
 

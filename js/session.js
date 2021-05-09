@@ -50,13 +50,11 @@ async function restoreSession(container, session) {
         }
     }
 
+    await createBrowserList(container, session);
 
-    // Browser config.  Session json could be multi-browser, or a single browser
-    const configList = session.browsers || [session];
-
-    await createBrowserList(container, configList);
-
-    syncBrowsers();
+    if (false !== session.syncDatasets) {
+        syncBrowsers();
+    }
 
 }
 
