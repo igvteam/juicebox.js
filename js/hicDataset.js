@@ -156,12 +156,21 @@ class Dataset {
 
     /**
      * Compare 2 datasets for compatibility.  Compatibility is defined as from the same assembly, even if
-     * different IDs are used (e.g. GRCh38 vs hg38)
+     * different IDs are used (e.g. GRCh38 vs hg38).
+     *
+     * Trust the ID for well-known assemblies (hg19, etc).  However, for others compare chromosome lengths
+     * as its been observed that uniqueness of ID is not guaranteed.
+     *
      * @param d1
      * @param d2
      */
     isCompatible(d2) {
-        return (this.genomeId === d2.genomeId) || this.compareChromosomes(d2)
+        const id1 = this.genomeId;
+        const id2 = d2.genomeId;
+        return ((id1 === "hg38" || id1 === "GRCh38") && (id2 === "hg38" || id2 === "GRCh38")) ||
+            ((id1 === "hg19" || id1 === "GRCh37") && (id2 === "hg19" || id2 === "GRCh37")) ||
+            ((id1 === "mm10" || id1 === "GRCm38") && (id2 === "mm10" || id2 === "GRCm38")) ||
+            this.compareChromosomes(d2)
     }
 
     static async loadDataset(config) {
