@@ -17,6 +17,12 @@ const MenuUtils = {
         menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set color", option: "color"}));
         menuItems.push(unsetColorMenuItem({trackRenderer: trackPair, label: "Unset color"}));
 
+        const trackMenuItems = trackPair.track.menuItemList();
+        if(trackMenuItems && trackMenuItems.length > 0) {
+            menuItems.push('<hr/>');
+            menuItems.push.apply(menuItems, trackMenuItems);
+        }
+
 
         // const vizWindowTypes = new Set(['alignment', 'annotation', 'variant', 'eqtl', 'snp']);
         // const hasVizWindow = trackRenderer.track.config && trackRenderer.track.config.visibilityWindow !== undefined;
@@ -36,8 +42,6 @@ const MenuUtils = {
     numericDataMenuItems: function (trackPair) {
 
         const menuItems = [];
-
-        menuItems.push("<hr/>");
 
         // Data range
         const $e = $('<div>');

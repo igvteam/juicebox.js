@@ -442,7 +442,9 @@ class HICBrowser {
 
                 const fileName = await FileUtils.getFilenameExtended(config.url);
 
-                config.format = TrackUtils.inferFileFormat(fileName)
+                if(!config.format) {
+                    config.format = TrackUtils.inferFileFormat(fileName)
+                }
 
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
                     delete config.color;

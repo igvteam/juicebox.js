@@ -66,7 +66,7 @@ class TrackPair {
         return this.track.dataRange ? this.track.dataRange : undefined;
     }
 
-    setDataRange(min, max, autoscale) {
+    setDataRange(min, max) {
         if (min !== undefined) {
             this.track.dataRange.min = min;
             this.track.config.min = min;
@@ -75,12 +75,10 @@ class TrackPair {
             this.track.dataRange.max = max;
             this.track.config.max = max;
         }
+        this.track.autoscale = false;
+        this.track.config.autoScale = false
         this.y.tile = undefined;
         this.x.tile = undefined;
-        if(autoscale !== undefined) {
-            this.track.autoscale = autoscale;
-            this.track.config.autoScale = autoscale
-        }
         this.repaintViews();
     }
 

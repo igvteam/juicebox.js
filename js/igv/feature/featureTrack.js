@@ -323,32 +323,8 @@ class FeatureTrack extends TrackBase {
 
         }
 
-        menuItems.push({object: $('<div class="igv-track-menu-border-top">')});
-
-        ["COLLAPSED", "SQUISHED", "EXPANDED"].forEach(function (displayMode) {
-            const lut =
-                {
-                    "COLLAPSED": "Collapse",
-                    "SQUISHED": "Squish",
-                    "EXPANDED": "Expand"
-                };
-
-            menuItems.push(
-                {
-                    object: Icon.createCheckbox(lut[displayMode], displayMode === self.displayMode),
-                    click: function () {
-                        self.displayMode = displayMode;
-                        self.config.displayMode = displayMode;
-                        self.trackView.checkContentHeight();
-                        self.trackView.repaintViews();
-                    }
-                });
-        });
-
         return menuItems;
-
-    };
-
+    }
 
     description() {
 
