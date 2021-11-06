@@ -3,18 +3,9 @@
 juicebox.js is an embeddable interactive contact map viewer for .hic files written in JavaScript and CSS. It is based 
 on the desktop Juicebox visualization application. 
 
-A public instance of [juicebox-web](https://github.com/igvteam/juicebox-web), a web application embedding a juicebox.js viewer, 
-can be found at [https://aidenlab.org/juicebox](http://aidenlab.org/juicebox).  User documentation for the web
-application can be found [here](https://igvteam.github.io/juicebox.js/).
-
-# Quickstart
-
-## Installation
+# Installation
 
 juicebox.js consists of a single javascript file with no external dependencies.  
-
-Pre-built files for ES5 (igv.min.js) and ES6 (igv.esm.min.js)
-can be downloaded from [https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/](https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/). 
 
 To import igv as an ES6 module
 
@@ -25,21 +16,21 @@ import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juiceb
 Or as a script include (defines the "juicebox" global)
 
 ```html
-<script src="hhttps://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.min.js"></script>
 ```   
  
 Alternatively you can install with npm  
  
  ```npm install juicebox```
 
-and source the appropriate file for your module system (juicebox.min.js or juicebox.esm.js)  in node_modules/igv/dist.
+and source the appropriate file for your module system (juicebox.min.js or juicebox.esm.js) in node_modules/juicebos.js/dist,
+download pre-built files from [https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist](https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist),
+or build from source as described below.
 
-## Usage
+# Usage
 
-To create an juicebox instance supply a container div  and an initial configuration  
-
-This function returns a promise for an **hicBrowser** object which can used to control the view.  For example, to open
-a juicebox instance on a ENCODE hic file with associated CTCF track
+To create an juicebox instance call ```juicebox.init``` with a container div  and an initial configuration object as 
+illustrated below.  
 
 ```
    const config = {
@@ -64,16 +55,33 @@ a juicebox instance on a ENCODE hic file with associated CTCF track
 
 ```
 
+# API
 
-## Development
+The juicebox.init function returns a promise for a HICBrowser object.  This object exposes functions for interacting
+with the viewer including
 
-### Requirements
+* loadHicFile({url: urlString, name: string})
+* loadTracks([array of track configs...])
+
+For a description of track configurations see the documentation for [igv.js](https://github.com/igvteam/igv.js/wiki). 
+Example of a basic track configuration object: 
+
+```
+{
+   url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
+   name: "CTCF
+}
+```
+
+# Development
+
+## Requirements
 
 Building juicebox.js requires Linux or MacOS, and  [node.js](https://nodejs.org/).
 
 Other Unix environments will probably work but have not been tested.  Windows users can use [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10).
 
-### Building
+## Building
 
 ```  
 git clone https://github.com/igvteam/juicebox.js.git
@@ -93,6 +101,13 @@ This creates a dist folder with the following files
 # Supported Browsers
 
 juicebox.js require a modern web browser with support for Javascript ECMAScript 2015. 
+
+
+# Juicebox-web
+
+For an out-of-the box web application for viewing and sharing contact maps from .hic files see
+[Juicebox-web](https://github.com/igvteam/juicebox-web), a web application embedding a juicebox.js viewer. 
+
 
 # License
 
