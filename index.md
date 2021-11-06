@@ -3,7 +3,7 @@ layout: default
 ---
 
 juicebox.js is an embeddable interactive contact map viewer for .hic files written in JavaScript and CSS.
-It is based on the desktop Juicebox visualization application.  For developers who wish to embed juicebox.js, see the [Developer Documentation](docs/developers)
+It is based on the desktop Juicebox visualization application.  For developers who wish to embed juicebox.js, see the [README](https://github.com/igvteam/juicebox.js#REAME.MD)
 
 A public juicebox.js instance can be found at [http://aidenlab.org/juicebox](http://aidenlab.org/juicebox).
 
@@ -57,7 +57,7 @@ View and compare two or more maps. Click on the `+` button above the map panel t
 
 ### Sharing Your Maps
 
-The visualization state can be captured and shared by using the `Share` button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the user's local file system).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
+For users of hosted instances at [aidenlab.org](https://aidenlab.org/juicebox] or [igv.org](https://igv.org/juicebox) the visualization state can be captured and shared by using the `Share` button.  The generated URLs encapsulate the current state of the application with the exception of locally loaded files (that is, files loaded from the user's local file system).  Files shared via juicebox URLs can be public or private, and can be shared with anyone who has access to the files.  The URLs do not have an expiration date.
 
 
 
