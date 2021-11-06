@@ -1,8 +1,8 @@
 {
   "name": "juicebox.js",
-  "version": "2.1.13",
-  "main": "dist/js/juicebox.min.js",
-  "module": "dist/js/juicebox.esm.min.js",
+  "version": "2.2.0",
+  "main": "dist/juicebox.min.js",
+  "module": "dist/juicebox.esm.js",
   "files": [
     "dist/**"
   ],
@@ -33,6 +33,10 @@
     "url": "git+https://github.com/igvteam/juicebox.js.git"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.16.0",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-node-resolve": "^13.0.6",
     "atob": "^2.1.2",
     "btoa": "^1.2.1",
     "chai": "^4.2.0",
@@ -40,15 +44,16 @@
     "esm": "^3.2.25",
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
-    "mocha": "^8.2.1",
-    "node-fetch": "^2.6.1",
-    "rollup": "^1.32.1",
-    "rollup-plugin-strip": "^1.2.2",
-    "rollup-plugin-copy": "^3.3.0",
-    "w3c-xmlhttprequest": "^3.0.0",
-    "xmldom": "^0.5.0",
     "hic-straw": "^2.0.3",
     "igv-ui": "github:igvteam/igv-ui#44dd9d14",
-    "igv-utils": "github:igvteam/igv-utils#v1.2.3"
+    "igv-utils": "github:igvteam/igv-utils#v1.2.3",
+    "mocha": "^8.2.1",
+    "node-fetch": "^2.6.1",
+    "rollup": "^2.59.0",
+    "rollup-plugin-copy": "^3.4.0",
+    "rollup-plugin-strip": "^1.2.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "w3c-xmlhttprequest": "^3.0.0",
+    "xmldom": "^0.5.0"
   }
 }

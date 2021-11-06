@@ -53,7 +53,7 @@
     const config = {
         "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
         "name": "Primary",
-        "locus": "2:58,035,001-60,725,000 2:65,290,001-67,980,000",
+        "locus": "2:52,557,604-66,007,603 2:52,557,604-66,007,603",
        // "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
        // "colorScale": "34,255,0,0",
         "nvi": "33860030033,37504",
@@ -105,6 +105,7 @@
 
     hic.init(container, config)
         .then(function (hicBrowser) {
+            console.log("Juicebox loaded");
              // hicBrowser.loadTracks ([{
              //     url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt"
              // }])

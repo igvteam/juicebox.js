@@ -177,6 +177,9 @@ class HICBrowser {
                 this.contactMatrixView.setColorScale(config.colorScale);
                 this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()});
             }
+            if(config.locus) {
+                await this.parseGotoInput(config.locus)
+            }
 
             var promises = [];
             if (config.tracks) {
