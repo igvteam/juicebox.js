@@ -36,8 +36,10 @@ Alternatively you can install with npm
 
 and source the appropriate file for your module system (juicebox.min.js or juicebox.esm.js) in node_modules/juicebos.js/dist.  Or build from source (see Development section below).
 
+# Usage
+
 To create an juicebox instance call ```juicebox.init``` with a container div  and an initial configuration object as 
-illustrated below.  See also examples/juicebox.html and examples/juicebox-es6.html.  
+illustrated below.  See also [examples/juicebox.html](https://github.com/igvteam/juicebox.js/blob/master/examples/juicebox.html) and [examples/juicebox-es6.html](https://github.com/igvteam/juicebox.js/blob/master/examples/juicebox-es6.html).  
 
 ```
    const config = {
@@ -62,7 +64,6 @@ illustrated below.  See also examples/juicebox.html and examples/juicebox-es6.ht
 
 ```
 
-# API
 
 The juicebox.init function returns a promise for a HICBrowser object.  This object exposes functions for interacting
 with the viewer including
@@ -70,7 +71,7 @@ with the viewer including
 * loadHicFile({url: urlString, name: string})
 * loadTracks([array of track configs...])
 
-See examples/juicebox-api.html
+See [examples/juicebox-api.html](https://github.com/igvteam/juicebox.js/blob/master/examples/juicebox-api.html) for a working example.
 
 For a description of track configurations see the documentation for [igv.js](https://github.com/igvteam/igv.js/wiki). 
 Example of a basic track configuration object: 
