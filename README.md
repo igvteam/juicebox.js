@@ -14,10 +14,6 @@ Requirements:
 * Juicebox CSS
 
     ``` <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/css/juicebox.css">```
-
-    <!-- Juicebox -- defines global "juicebox" -->
-    <!--    <script type="text/javascript" src="../dist/juicebox.min.js"></script>-->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.min.js"></script>
     
 * Juicebox javascript -- see below
 
