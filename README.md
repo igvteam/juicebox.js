@@ -5,9 +5,24 @@ on the desktop Juicebox visualization application.
 
 # Installation
 
-juicebox.js consists of a single javascript file with no external dependencies.  
+Requirements:
 
-To import igv as an ES6 module
+* [Font Awesome CSS](https://fontawesome.com/) 
+
+    ```<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">```
+
+* Juicebox CSS
+
+    ``` <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/css/juicebox.css">```
+
+    <!-- Juicebox -- defines global "juicebox" -->
+    <!--    <script type="text/javascript" src="../dist/juicebox.min.js"></script>-->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.min.js"></script>
+    
+* Juicebox javascript -- see below
+
+
+To import juicebox as an ES6 module
 
 ```javascript
 import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.esm.js";
@@ -30,7 +45,7 @@ or build from source as described below.
 # Usage
 
 To create an juicebox instance call ```juicebox.init``` with a container div  and an initial configuration object as 
-illustrated below.  
+illustrated below.  See also examples/juicebox.html and examples/juicebox-es6.html.  
 
 ```
    const config = {
@@ -62,6 +77,8 @@ with the viewer including
 
 * loadHicFile({url: urlString, name: string})
 * loadTracks([array of track configs...])
+
+See examples/juicebox-api.html
 
 For a description of track configurations see the documentation for [igv.js](https://github.com/igvteam/igv.js/wiki). 
 Example of a basic track configuration object: 
