@@ -34,11 +34,7 @@ Alternatively you can install with npm
  
  ```npm install juicebox```
 
-and source the appropriate file for your module system (juicebox.min.js or juicebox.esm.js) in node_modules/juicebos.js/dist,
-download pre-built files from [https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist](https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist),
-or build from source as described below.
-
-# Usage
+and source the appropriate file for your module system (juicebox.min.js or juicebox.esm.js) in node_modules/juicebos.js/dist.  Or build from source (see Development section below).
 
 To create an juicebox instance call ```juicebox.init``` with a container div  and an initial configuration object as 
 illustrated below.  See also examples/juicebox.html and examples/juicebox-es6.html.  
