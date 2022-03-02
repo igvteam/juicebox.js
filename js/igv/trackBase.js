@@ -24,8 +24,8 @@
  */
 
 import {isSimpleType} from "./util/igvUtils.js";
-import {FeatureUtils, FileUtils, StringUtils} from "../../node_modules/igv-utils/src/index.js";
-import {DataRangeDialog} from "../../node_modules/igv-ui/dist/igv-ui.js";
+import {FeatureUtils, StringUtils} from "../../node_modules/igv-utils/src/index.js";
+import {isFile} from "../fileUtils.js"
 
 /**
  * A collection of properties and methods shared by all (or most) track types.
@@ -52,7 +52,7 @@ class TrackBase {
         if (config.name || config.label) {
             this.name = config.name || config.label;
         } else {
-            if (FileUtils.isFilePath(config.url)) this.name = config.url.name;
+            if (isFile(config.url)) this.name = config.url.name;
             else this.name = config.url;
         }
         this.id = this.config.id === undefined ? this.name : this.config.id;

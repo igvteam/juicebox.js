@@ -53,6 +53,7 @@ import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
 import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {isFile} from "./fileUtils.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
@@ -443,7 +444,7 @@ class HICBrowser {
 
             for (let config of /*trackConfigurations*/configs) {
 
-                const fileName = await FileUtils.getFilenameExtended(config.url);
+                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
 
                 if(!config.format) {
                     config.format = TrackUtils.inferFileFormat(fileName)
@@ -1498,7 +1499,7 @@ class HICBrowser {
 function extractName(config) {
     if (config.name === undefined) {
         const urlOrFile = config.url;
-        if (FileUtils.isFilePath(urlOrFile)) {
+        if (isFile(urlOrFile)) {
             return urlOrFile.name;
         } else {
             const str = urlOrFile.split('?').shift();

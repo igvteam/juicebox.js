@@ -31,6 +31,8 @@ import {
     TrackUtils
 } from "../../../node_modules/igv-utils/src/index.js";
 
+import {isFile} from "../../fileUtils.js"
+
 const extend = function (parent, child) {
 
     child.prototype = Object.create(parent.prototype);
@@ -170,7 +172,7 @@ function inferTrackType(config) {
     let format;
     if ("file" === config.sourceType || (undefined === config.sourceType && config.url)) {
         if (undefined === config.format) {
-            const path = FileUtils.isFilePath(config.url) ? config.url.name : config.url;
+            const path = isFile(config.url) ? config.url.name : config.url;
             format = TrackUtils.inferFileFormat(path);
         } else {
             format = config.format.toLowerCase();

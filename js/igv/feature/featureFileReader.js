@@ -30,7 +30,7 @@ import {buildOptions} from "../util/igvUtils.js";
 import {loadIndex} from "../bam/indexFactory.js";
 import getDataWrapper from "./dataWrapper.js";
 import BGZipLineReader from "../util/BGZipLineReader.js";
-
+import {isFile} from "../../fileUtils.js"
 
 const isString = StringUtils.isString;
 
@@ -51,7 +51,7 @@ class FeatureFileReader {
         this.indexURL = config.indexURL;
         this.indexed = config.indexed;
 
-        if (FileUtils.isFilePath(this.config.url)) {
+        if (isFile(this.config.url)) {
             this.filename = this.config.url.name;
         } else if (isString(this.config.url) && this.config.url.startsWith('data:')) {
             this.indexed = false;  // by definition

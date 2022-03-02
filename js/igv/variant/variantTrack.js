@@ -30,6 +30,7 @@ import TrackBase from "../trackBase.js";
 import IGVGraphics from "../igv-canvas.js";
 import {createCheckbox} from "../../igv-icons.js";
 import {StringUtils} from "../../../node_modules/igv-utils/src/index.js";
+import {isFile} from "../../fileUtils.js"
 
 const isString = StringUtils.isString;
 
@@ -73,7 +74,7 @@ class VariantTrack extends TrackBase {
 
         const header = await this.getHeader();   // cricital, don't remove'
         if (undefined === this.visibilityWindow && this.config.indexed !== false) {
-            const fn = this.config.url instanceof File ? this.config.url.name : this.config.url;
+            const fn = isFile(this.config.url ) ? this.config.url.name : this.config.url;
             if (isString(fn) && fn.toLowerCase().includes("gnomad")) {
                 this.visibilityWindow = 1000;  // these are known to be very dense
             } else if (this.callSets) {
