@@ -24,31 +24,31 @@
 
     import juicebox from '../js/index.js'
 
-    const config =
-        {
-            url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
-            name: "GM12878",
-            locus: "22:33,319,567-36,009,566",
-            tracks:
-                [
-                    {
-                        url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
-                        name: "CTCF",
-                        min: 0,
-                        max: 25,
-                        color: "#ff8802"
-                    }
-                ]
-        }
+    (async () => {
 
+        const config =
+            {
+                url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
+                name: "GM12878",
+                locus: "22:33,319,567-36,009,566",
+                tracks:
+                    [
+                        {
+                            url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
+                            name: "CTCF",
+                            min: 0,
+                            max: 25,
+                            color: "#ff8802"
+                        }
+                    ]
+            }
 
-    const container = document.getElementById("app-container");
+        const browser = await juicebox.init(document.getElementById('app-container'), config)
+        const targetResolution = 175000
+        const zoomIndex = browser.findMatchingZoomIndex(targetResolution, browser.dataset.bpResolutions)
+        await browser.setZoom(zoomIndex)
 
-    juicebox.init(container, config)
-        .then(function (hicBrowser) {
-            console.log("Juicebox loaded");
-        })
-
+    })()
 
 </script>
 
