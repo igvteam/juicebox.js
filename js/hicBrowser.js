@@ -154,7 +154,7 @@ class HICBrowser {
             // browser.$contactMaplabel.text(prefix + config.name);
             // browser.$contactMaplabel.attr('title', config.name);
 
-            await this.loadHicFile(config, true);
+            await this.loadHicFile(config, true)
 
             if (config.controlUrl) {
                 await this.loadHicControlFile({
@@ -173,25 +173,40 @@ class HICBrowser {
                 this.contactMatrixView.displayMode = config.displayMode;
                 this.eventBus.post({type: "DisplayMode", data: config.displayMode});
             }
+
             if (config.colorScale) {
                 // This must be done after dataset load
                 this.contactMatrixView.setColorScale(config.colorScale);
                 this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()});
             }
+
             if(config.locus) {
-                await this.parseGotoInput(config.locus)
+                await this.parseGotoInput(config.locus, true)
             }
 
-            var promises = [];
+            if (config.resolution) {
+                const targetResolution = parseInt(config.resolution)
+                const zoom = this.findMatchingZoomIndex(targetResolution, this.dataset.bpResolutions)
+                await this.setZoom(zoom, true)
+            }
+
+            if (config.normalization) {
+                const normalizations = await this.getNormalizationOptions()
+                const validNormalizations = new Set(normalizations)
+                this.state.normalization = validNormalizations.has(config.normalization) ? config.normalization : 'NONE'
+            }
+
+            const promises = []
             if (config.tracks) {
                 promises.push(this.loadTracks(config.tracks))
             }
 
             if (config.normVectorFiles) {
-                config.normVectorFiles.forEach(function (nv) {
-                    promises.push(this.loadNormalizationFile(nv));
-                })
+                for (let nv of config.normVectorFiles) {
+                    promises.push(this.loadNormalizationFile(nv))
+                }
             }
+
             await Promise.all(promises);
 
             const tmp = this.contactMatrixView.colorScaleThresholdCache;
@@ -730,7 +745,7 @@ class HICBrowser {
         }
     }
 
-    async parseGotoInput(string) {
+    async parseGotoInput(string, doUpdateStateOnly) {
 
         let xLocus;
         let yLocus;
@@ -753,7 +768,7 @@ class HICBrowser {
                 xLocus = this.parseLocusString(result);
                 yLocus = xLocus;
                 this.state.selectedGene = Globals.selectedGene;
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000, doUpdateStateOnly);
             } else {
                 alert('No feature found with name "' + loci[0] + '"');
             }
@@ -763,7 +778,7 @@ class HICBrowser {
             if (xLocus.wholeChr && yLocus.wholeChr) {
                 await this.setChromosomes(xLocus.chr, yLocus.chr);
             } else {
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, doUpdateStateOnly);
             }
         }
 
@@ -985,11 +1000,12 @@ class HICBrowser {
     }
 
     /**
-     * Set the current zoom state and opctionally center over supplied coordinates.
+     * Set the current zoom state and optionally center over supplied coordinates.
      * @param zoom - index to the datasets resolution array (dataset.bpResolutions)
+     * @param doUpdateStateOnly - perform zoom calculations only. Do not repaint canvas
      * @returns {Promise<void>}
      */
-    async setZoom(zoom) {
+    async setZoom(zoom, doUpdateStateOnly) {
 
         try {
 
@@ -1014,6 +1030,10 @@ class HICBrowser {
             state.pixelSize = newPixelSize;
             this.clamp();
 
+            if (true === doUpdateStateOnly) {
+                return
+            }
+
             await this.contactMatrixView.zoomIn()
 
             let event = HICEvent("LocusChange", {
@@ -1023,13 +1043,15 @@ class HICBrowser {
             })
 
             this.update(event);
-            //this.eventBus.post(event);
 
-        } finally {
-            // this.stopSpinner()
+
+
+        } catch (e) {
+            console.error(e)
         }
+    }
 
-    };
+
 
     async setChromosomes(chr1, chr2) {
 
@@ -1218,7 +1240,7 @@ class HICBrowser {
         this.eventBus.post(locusChangeEvent);
     }
 
-    goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
+    goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution, doUpdateStateOnly) {
 
         const viewDimensions = this.contactMatrixView.getViewDimensions();
         const bpResolutions = this.getResolutions();
@@ -1268,6 +1290,10 @@ class HICBrowser {
         this.state.y = newYBin;
         this.state.pixelSize = newPixelSize;
 
+        if (true === doUpdateStateOnly) {
+            return
+        }
+
         this.contactMatrixView.clearImageCaches();
 
 
@@ -1278,7 +1304,6 @@ class HICBrowser {
         })
 
         this.update(event);
-        //this.eventBus.post(event);
 
     }
 

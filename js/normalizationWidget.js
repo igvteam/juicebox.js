@@ -26,7 +26,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-var labels =
+const normalizationLabels =
     {
         NONE: 'None',
         VC: 'Coverage',
@@ -118,7 +118,7 @@ class NormalizationWidget {
             const normalizationTypes = await this.browser.getNormalizationOptions();
             if (normalizationTypes) {
                 const elements = normalizationTypes.map(function (normalization) {
-                    const label = labels[normalization] || normalization;
+                    const label = normalizationLabels[normalization] || normalization;
                     const isSelected = (norm === normalization);
                     const titleString = (label === undefined ? '' : ' title = "' + label + '" ');
                     const valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
@@ -133,4 +133,5 @@ class NormalizationWidget {
     }
 }
 
+export { normalizationLabels }
 export default NormalizationWidget
