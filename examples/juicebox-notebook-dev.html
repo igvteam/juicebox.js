@@ -29,15 +29,27 @@
 
         const config =
             {
-                url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
-                name: "GM12878",
-                locus: "ace",
-                // locus: 'chr17',
-                normalization: 'VC_SQRT',
-                resolution: '25000',
-            }
+                "url": "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
+                "name": "GM12878",
+                "locus": "ace",
+                "normalization": "VC_SQRT",
+                "resolution": 25000,
+            };
 
-        const browser = await juicebox.init(document.getElementById('app-container'), config)
+        const config_idan =
+            {
+                genome: "hg38",
+                url: "https://www.encodeproject.org/files/ENCFF020DPP/@@download/ENCFF020DPP.hic",
+                name: "HepG2 HiC",
+                locus: "chr1:19,150,000-19,250,000",
+                normalization: "SCALE",
+                resolution: 1000
+            };
+
+
+
+
+        const browser = await juicebox.init(document.getElementById('app-container'), config_idan)
 
         // echo normalization labels
         // const normalizations = await browser.getNormalizationOptions()
