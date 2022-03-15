@@ -46,24 +46,35 @@
 
 <script type="module">
 
-    import hic from "../js/index.js";
+    import hic from "../js/index.js"
     import {Alert} from "../node_modules/igv-ui/dist/igv-ui.js"
     //import {GoogleAuth} from '../node_modules/igv-utils/src/index.js'
 
     const config = {
-        "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
-        "name": "Primary",
-        "locus": "2:52,557,604-66,007,603 2:52,557,604-66,007,603",
-       // "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
-       // "colorScale": "34,255,0,0",
-        "nvi": "33860030033,37504",
-        tracks: [
+        browsers: [
             {
-                "url": "https://www.dropbox.com/s/s3yuap5lvyv6qfc/ENCFF001EQU.bigWig?dl=0",
-                "name": "ENCFF001EQU.bigWig",
-                "min": 0,
-                "max": 23.162939297124602,
-                "color": "#ff8802"
+                "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
+                "name": "Primary",
+                "locus": "2:52,557,604-66,007,603 2:52,557,604-66,007,603",
+                // "state": "9,9,6,4701.370488680555,4702.338047361111,1,NONE",
+                // "colorScale": "34,255,0,0",
+                "nvi": "33860030033,37504",
+                "normalization": "VC",
+                tracks: [
+                    {
+                        "url": "https://www.dropbox.com/s/s3yuap5lvyv6qfc/ENCFF001EQU.bigWig?dl=0",
+                        "name": "ENCFF001EQU.bigWig",
+                        "min": 0,
+                        "max": 23.162939297124602,
+                        "color": "#ff8802"
+                    }
+                ]
+            },
+            {
+                "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/primary.hic",
+                "name": "Primary",
+                "locus": "2:52,557,604-66,007,603 2:52,557,604-66,007,603",
+
             }
         ]
     }
@@ -97,18 +108,15 @@
                     "color": "#83f902"
                 }
             ]
-        };
+        }
 
-    const container = document.getElementById("app-container");
+    const container = document.getElementById("app-container")
 
-    Alert.init(container);
+    Alert.init(container)
 
     hic.init(container, config)
-        .then(function (hicBrowser) {
-            console.log("Juicebox loaded");
-             // hicBrowser.loadTracks ([{
-             //     url: "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt"
-             // }])
+        .then(function (browsers) {
+            console.log("Juicebox loaded")
         })
 
 

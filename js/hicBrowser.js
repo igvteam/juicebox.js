@@ -187,12 +187,19 @@ class HICBrowser {
                 promises.push(this.loadTracks(config.tracks))
             }
 
+            // TODO -- find out if this is even being used
             if (config.normVectorFiles) {
                 config.normVectorFiles.forEach(function (nv) {
                     promises.push(this.loadNormalizationFile(nv));
                 })
             }
             await Promise.all(promises);
+
+            if (config.normalization) {
+                const normalizations = await this.getNormalizationOptions()
+                const validNormalizations = new Set(normalizations)
+                this.state.normalization = validNormalizations.has(config.normalization) ? config.normalization : 'NONE'
+            }
 
             const tmp = this.contactMatrixView.colorScaleThresholdCache;
             this.eventBus.release()
