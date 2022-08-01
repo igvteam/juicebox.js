@@ -25,7 +25,7 @@ $igv-trackgear-grey-color: #7F7F7F;
 $igv-trackgear-popover-border-radius: 4px;
 $igv-trackgear-font-color: #4b4b4b;
 $igv-trackgear-default-font-face: 'Open Sans', sans-serif;
-@import "igv-menu-popup";
+@import "jb-igv-menu-popup";
 
 
 $nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));

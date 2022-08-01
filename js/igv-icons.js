@@ -42,7 +42,7 @@ function createWrappedIcon(name, color) {
 
 function createCheckbox(name, initialState) {
 
-    let $container = $('<div>', {class: 'igv-menu-popup-check-container'});
+    let $container = $('<div>', {class: 'jb-igv-menu-popup-check-container'});
 
     let $div = $('<div>');
     $container.append($div);

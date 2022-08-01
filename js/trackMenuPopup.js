@@ -87,11 +87,11 @@ const trackMenuItemListHelper =     (itemList, $popover) => {
 const MenuPopup = function ($parent) {
 
     // popover container
-    this.$popover = $('<div>', {class: 'igv-menu-popup'});
+    this.$popover = $('<div>', {class: 'jb-igv-menu-popup'});
     $parent.append(this.$popover);
 
     // popover header
-    let $popoverHeader = $('<div>', {class: 'igv-menu-popup-header'});
+    let $popoverHeader = $('<div>', {class: 'jb-igv-menu-popup-header'});
     this.$popover.append($popoverHeader);
 
     UIUtils.attachDialogCloseHandlerWithParent($popoverHeader.get(0), () => this.$popover.hide());
@@ -130,10 +130,10 @@ MenuPopup.prototype.presentMenuList = function (dx, dy, list) {
                 $e.removeClass('igv-track-menu-border-top');
             }
 
-            if ($e.hasClass('igv-track-menu-border-top') || $e.hasClass('igv-menu-popup-check-container')) {
+            if ($e.hasClass('igv-track-menu-border-top') || $e.hasClass('jb-igv-menu-popup-check-container')) {
                 // do nothing
             } else if ($e.is('div')) {
-                $e.addClass('igv-menu-popup-shim');
+                $e.addClass('jb-igv-menu-popup-shim');
             }
 
             this.$popoverContent.append($e);
@@ -258,7 +258,7 @@ function present(e, popover) {
 
 }
 
-const hideAllMenuPopups = () => $('.igv-menu-popup').hide()
+const hideAllMenuPopups = () => $('.jb-igv-menu-popup').hide()
 
 export default MenuPopup;
 
