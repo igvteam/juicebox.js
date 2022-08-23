@@ -22,7 +22,7 @@
  */
 
 import {igvxhr} from '../node_modules/igv-utils/src/index.js'
-import {createBrowser, setCurrentBrowser, getAllBrowsers, getCurrentBrowser} from './createBrowser.js';
+import {createBrowser, setCurrentBrowser, getAllBrowsers, getCurrentBrowser, processSession} from './createBrowser.js';
 import {version} from "./version.js";
 import {compressedSession, restoreSession, toJSON} from "./session.js";
 import {init} from "./init.js"
@@ -32,6 +32,7 @@ export default {
     version,
     init,
     toJSON,
+    processSession,
     restoreSession,
     compressedSession,
     createBrowser,

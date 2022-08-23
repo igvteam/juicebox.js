@@ -64,20 +64,8 @@ async function createBrowserList(hic_container, session) {
     allBrowsers = [];
     const initPromises = [];
     for (let config of configList) {
-        setDefaults(config);
-        if (StringUtils.isString(config.state)) {
-            config.state = State.parse(config.state);
-        }
-        if (StringUtils.isString(config.colorScale)) {
-            config.colorScale = ColorScale.parse(config.colorScale);
-        }
-        if (StringUtils.isString(config.backgroundColor)) {
-            config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
-        }
-        if(false === session.syncDatasets) {
-            config.synchable = false;
-        }
 
+        processSession(config)
         const browser = new HICBrowser($hic_container, config);
 
         allBrowsers.push(browser);
@@ -92,6 +80,24 @@ async function createBrowserList(hic_container, session) {
             b.$browser_panel_delete_button.show();
         });
     }
+}
+
+function processSession(session) {
+
+    setDefaults(session);
+    if (StringUtils.isString(session.state)) {
+        session.state = State.parse(session.state);
+    }
+    if (StringUtils.isString(session.colorScale)) {
+        session.colorScale = ColorScale.parse(session.colorScale);
+    }
+    if (StringUtils.isString(session.backgroundColor)) {
+        session.backgroundColor = ContactMatrixView.parseBackgroundColor(session.backgroundColor);
+    }
+    if(false === session.syncDatasets) {
+        session.synchable = false;
+    }
+
 }
 
 async function updateAllBrowsers() {
@@ -231,5 +237,6 @@ export {
     getCurrentBrowser,
     syncBrowsers,
     deleteAllBrowsers,
-    getAllBrowsers
+    getAllBrowsers,
+    processSession
 }
