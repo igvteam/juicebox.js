@@ -110,8 +110,7 @@ class HICBrowser {
         const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
         ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
         ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
-        const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor
-        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
+        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, ContactMatrixView.defaultBackgroundColor);
 
         this.$menu = this.createMenu(this.$root);
         this.$menu.hide();
