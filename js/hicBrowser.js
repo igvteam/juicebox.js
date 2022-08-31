@@ -615,7 +615,9 @@ class HICBrowser {
             this.$contactMaplabel.attr('title', name);
             config.name = name;
 
-            this.dataset = await Dataset.loadDataset(config)
+            const appContainer = this.$root.get(0).parentElement
+
+            this.dataset = await Dataset.loadDataset(Object.assign({ parentElement: appContainer}, config))
             this.dataset.name = name
 
             const previousGenomeId = this.genome ? this.genome.id : undefined;
@@ -710,7 +712,9 @@ class HICBrowser {
             const name = extractName(config)
             config.name = name
 
-            const controlDataset = await Dataset.loadDataset(config)
+            const appContainer = this.$root.get(0).parentElement
+
+            const controlDataset = await Dataset.loadDataset(Object.assign({ parentElement: appContainer}, config))
             controlDataset.name = name
 
             if (!this.dataset || this.dataset.isCompatible(controlDataset)) {
