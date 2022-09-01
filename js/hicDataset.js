@@ -70,6 +70,18 @@ class Dataset {
         return this.straw.getContactRecords(normalization, region1, region2, units, binsize)
     }
 
+    async getContactRecordsWithSyncState(syncState, normalization, viewportWidth) {
+
+        const {chr1Name, chr2Name, binSize, binX, binY, pixelSize} = syncState
+        const widthInBP = viewportWidth * binSize / pixelSize
+
+        const region1 = {chr: chr1Name, start: binX * binSize, end: binX * binSize + widthInBP}
+        const region2 = {chr: chr2Name, start: binY * binSize, end: binY * binSize + widthInBP}
+
+        return this.getContactRecords(normalization, region1, region2, "BP", binSize)
+
+    }
+
     async hasNormalizationVector(type, chr, unit, binSize) {
         return this.straw.hicFile.hasNormalizationVector(type, chr, unit, binSize);
     }
