@@ -615,7 +615,12 @@ class HICBrowser {
             this.$contactMaplabel.attr('title', name);
             config.name = name;
 
-            this.dataset = await Dataset.loadDataset(config)
+            const hicFileAlert = str => {
+                this.eventBus.post(HICEvent('NormalizationExternalChange', 'NONE'));
+                Alert.presentAlert(str)
+            }
+
+            this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
             this.dataset.name = name
 
             const previousGenomeId = this.genome ? this.genome.id : undefined;
@@ -710,7 +715,13 @@ class HICBrowser {
             const name = extractName(config)
             config.name = name
 
-            const controlDataset = await Dataset.loadDataset(config)
+            const hicFileAlert = str => {
+                this.eventBus.post(HICEvent('NormalizationExternalChange', 'NONE'))
+                Alert.presentAlert(str)
+            }
+
+            const controlDataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
+
             controlDataset.name = name
 
             if (!this.dataset || this.dataset.isCompatible(controlDataset)) {

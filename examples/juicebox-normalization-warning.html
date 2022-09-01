@@ -27,29 +27,20 @@
     // import juicebox from "../dist/juicebox.esm.js";
     // import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.esm.js";
 
-    const config = {
-        url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
-        name: "GM12878",
-        //locus: "22:33,319,567-36,009,566",   // <= optional initial locus
-        tracks: [
-            {
-                url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
-                name: "CTCF",
-                min: 0,
-                max: 25,
-                color: "#ff8802"
-            }
-        ]
-    }
+    const config =
+        {
+            "backgroundColor": "255,255,255",
+            "url": "https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/bifocals_iter2/solid_tissues.hic",
+            "name": "solid_tissues.hic",
+            "state": "11,11,7,6887.85247848789,6887.318078195596,640,640,1,SCALE",
+            "colorScale": "696,255,0,0",
+            "nvi": "265914034843,68023"
+        };
 
-
-    const container = document.getElementById("app-container");
-
-    juicebox.init(container, config)
-        .then(function (hicBrowser) {
-            console.log("Juicebox loaded");
-        })
-
+    (async () => {
+        const browser = await juicebox.init(document.getElementById("app-container"), config)
+        console.log(`${ browser.id } is good to go`)
+    })()
 
 </script>
 
