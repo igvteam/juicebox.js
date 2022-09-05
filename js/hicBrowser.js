@@ -679,10 +679,9 @@ class HICBrowser {
             syncBrowsers();
 
             // Find a browser to sync with, if any
-            const compatibleBrowsers = getAllBrowsers().filter(b => b != this &&
-                b.dataset && b.dataset.isCompatible(this.dataset));
+            const compatibleBrowsers = getAllBrowsers().filter(b => b !== this && b.dataset && b.dataset.isCompatible(this.dataset));
             if (compatibleBrowsers.length > 0) {
-                this.syncState(compatibleBrowsers[0].getSyncState());
+                this.syncState(getSyncState(compatibleBrowsers[0].dataset, compatibleBrowsers[0].state))
             }
 
         } catch (error) {
@@ -1116,22 +1115,6 @@ class HICBrowser {
         this.eventBus.post(hicEvent);
     }
 
-
-    /**
-     * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
-     * and resolution arrays
-     */
-    getSyncState() {
-        return {
-            chr1Name: this.dataset.chromosomes[this.state.chr1].name,
-            chr2Name: this.dataset.chromosomes[this.state.chr2].name,
-            binSize: this.dataset.bpResolutions[this.state.zoom],
-            binX: this.state.x,            // TODO -- tranlsate to lower right corner
-            binY: this.state.y,
-            pixelSize: this.state.pixelSize
-        };
-    }
-
     /**
      * Return true if this browser can be synched to the given state
      * @param syncState
@@ -1294,6 +1277,41 @@ class HICBrowser {
 
     }
 
+    async createStateWithLocus(chr, start, end) {
+
+        let xLocus
+        let yLocus
+
+        // bp
+        xLocus = yLocus = this.parseLocusString(`${chr}:${start}-${end}`)
+
+        // pixel
+        const { width, height } = this.contactMatrixView.getViewDimensions()
+
+        // bp-per-bin
+        const bpResolutions = this.getResolutions()
+
+        // bp-per-pixel
+        let resolutionTarget = Math.max((xLocus.end - xLocus.start) / width, (yLocus.end - yLocus.start) / height)
+
+        // TODO: In findMatchingZoomIndex() we  are comparing resolutionTarget (bp/pixel) with bpResolutions (bp/bin)
+        // TODO: We are mixing units of comparison. How can this be correct?
+        const zoom = true === this.resolutionLocked ? this.state.zoom : this.findMatchingZoomIndex(resolutionTarget, bpResolutions)
+
+        const { binSize } = bpResolutions[zoom]
+        const pixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, binSize / resolutionTarget))
+        const newXBin = xLocus.start / binSize
+        const newYBin = yLocus.start / binSize
+
+        this.state.chr1 = xLocus.chr
+        this.state.chr2 = yLocus.chr
+        this.state.zoom = zoom
+        this.state.x = newXBin
+        this.state.y = newYBin
+        this.state.pixelSize = pixelSize
+
+    }
+
     clamp() {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
             chr1Length = this.dataset.chromosomes[this.state.chr1].size,
@@ -1309,17 +1327,6 @@ class HICBrowser {
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-    }
-
-    receiveEvent(event) {
-        // if ("LocusChange" === event.type) {
-        //     if (event.propogate) {
-        //         for (let browser of this.synchedBrowsers) {
-        //             browser.syncState(this.getSyncState());
-        //         }
-        //     }
-        //     this.update(event);
-        // }
     }
 
     /**
@@ -1354,7 +1361,7 @@ class HICBrowser {
                 await Promise.all(promises);
 
                 if (event && event.propogate) {
-                    let syncState1 = this.getSyncState();
+                    const syncState1 = getSyncState(this.dataset, this.state)
                     for (let browser of this.synchedBrowsers) {
                         browser.syncState(syncState1);
                     }
@@ -1507,6 +1514,20 @@ class HICBrowser {
     }
 }
 
+/**
+ * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
+ * and resolution arrays
+ */
+function getSyncState(dataset, state) {
+    return {
+        chr1Name: dataset.chromosomes[state.chr1].name,
+        chr2Name: dataset.chromosomes[state.chr2].name,
+        binSize: dataset.bpResolutions[state.zoom],
+        binX: state.x,            // TODO -- tranlsate to lower right corner
+        binY: state.y,
+        pixelSize: state.pixelSize
+    }
+}
 
 function extractName(config) {
     if (config.name === undefined) {
@@ -1586,5 +1607,6 @@ function presentError(prefix, error) {
 
 }
 
+export { getSyncState }
 export default HICBrowser
 

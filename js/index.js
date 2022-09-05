@@ -27,6 +27,7 @@ import {version} from "./version.js";
 import {compressedSession, restoreSession, toJSON} from "./session.js";
 import {init} from "./init.js"
 import EventBus from "./eventBus.js"
+import { getSyncState } from "./hicBrowser.js"
 
 export default {
     version,
@@ -39,6 +40,7 @@ export default {
     getCurrentBrowser,
     setCurrentBrowser,
     getAllBrowsers,
+    getSyncState,
     igvxhr,
     EventBus
 }
