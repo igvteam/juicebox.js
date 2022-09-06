@@ -1300,15 +1300,8 @@ class HICBrowser {
 
         const { binSize } = bpResolutions[zoom]
         const pixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, binSize / resolutionTarget))
-        const newXBin = xLocus.start / binSize
-        const newYBin = yLocus.start / binSize
 
-        this.state.chr1 = xLocus.chr
-        this.state.chr2 = yLocus.chr
-        this.state.zoom = zoom
-        this.state.x = newXBin
-        this.state.y = newYBin
-        this.state.pixelSize = pixelSize
+        return new State(xLocus.chr, yLocus.chr, zoom, xLocus.start/binSize, yLocus.start/binSize, width, height, pixelSize, this.state.normalization)
 
     }
 
