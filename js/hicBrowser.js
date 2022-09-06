@@ -1394,7 +1394,7 @@ class HICBrowser {
 
     toJSON() {
 
-        if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
+        if (!(this.dataset && this.dataset.url)) return {}
 
         const jsonOBJ = {};
 
