@@ -27,7 +27,7 @@
  */
 
 import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
-import IGVGraphics from "./igv/igv-canvas.js"
+import IGVGraphics from "./igv-canvas.js"
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 function randomRGB(min, max) {
