@@ -3,7 +3,6 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
-import {TrackPair} from './trackPair.js'
 import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
 
 // Keep in sync with juicebox.scss variables
@@ -23,11 +22,6 @@ const scrollbar_height = 20;
 // $hic-axis-height: 40px;
 const axis_height = 40;
 
-// $track-margin: 2px;
-const track_margin = 2;
-
-export const trackHeight = 40;
-
 class LayoutController {
 
     constructor(browser, $root) {
@@ -38,7 +32,6 @@ class LayoutController {
 
         this.createAllContainers(browser, $root);
     }
-
 
     createAllContainers(browser, $root) {
 
@@ -146,111 +139,12 @@ class LayoutController {
         return this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
     }
 
-    tracksLoaded(tracks) {
+    doLayoutWithRootContainerSize(size) {
 
-        this.doLayoutTrackXYPairCount(tracks.length + this.browser.trackPairs.length);
+        this.browser.$root.width(size.width);
+        this.browser.$root.height(size.height + getNavbarHeight());
 
-        tracks.forEach((track, index) => {
-            const trackPair = new TrackPair(
-                this.browser,
-                trackHeight,
-                this.$x_tracks,
-                this.$y_tracks,
-                track,
-                index
-            )
-            this.browser.trackPairs.push(trackPair);
-        });
-    }
-
-    removeAllTrackXYPairs() {
-
-        if (this.browser.trackPairs.length === 0 ) {
-            return;
-        }
-
-        for(let trackPair of this.browser.trackPairs) {
-            // discard DOM element's
-            trackPair.dispose();
-        }
-        this.browser.trackPairs = []
-        this.browser.updateLayout();
-        this.doLayoutTrackXYPairCount(0)
-
-        // What ???
-        // [...Array(this.browser.trackPairs.length).keys()].forEach(() => {
-        //
-        //     // select last track to discard
-        //     let discard = this.browser.trackPairs[this.browser.trackPairs.length - 1];
-        //
-        //     // discard DOM element's
-        //     discard['x'].$viewport.remove();
-        //     discard['y'].$viewport.remove();
-        //
-        //     // remove discard from list
-        //     const index = this.browser.trackPairs.indexOf(discard);
-        //     this.browser.trackPairs.splice(index, 1);
-        //
-        //     discard = undefined;
-        //     this.doLayoutTrackXYPairCount(this.browser.trackPairs.length);
-        //
-        // });
-    };
-
-    removeLastTrackXYPair() {
-
-        if (this.browser.trackPairs.length > 0) {
-
-            // select last track to dicard
-            let discard = this.browser.trackPairs[this.browser.trackPairs.length - 1];
-
-            // discard DOM element's
-            discard['x'].$viewport.remove();
-            discard['y'].$viewport.remove();
-
-            // remove discard from list
-            const index = this.browser.trackPairs.indexOf(discard);
-            this.browser.trackPairs.splice(index, 1);
-
-            discard = undefined;
-            this.doLayoutTrackXYPairCount(this.browser.trackPairs.length);
-
-            this.browser.updateLayout();
-
-        } else {
-            //console.log('No more tracks.');
-        }
-    }
-
-    removeTrackXYPair(trackXYPair) {
-
-        if (this.browser.trackPairs.length > 0) {
-
-            const discard = trackXYPair;
-
-            // discard DOM element's
-            discard['x'].$viewport.remove();
-            discard['y'].$viewport.remove();
-
-            // remove discard from list
-            const index = this.browser.trackPairs.indexOf(discard);
-            this.browser.trackPairs.splice(index, 1);
-
-            this.doLayoutTrackXYPairCount(this.browser.trackPairs.length);
-
-            this.browser.updateLayout();
-
-
-        } else {
-            //console.log('No more tracks.');
-        }
-
-    };
-
-    doLayoutTrackXYPairCount(trackXYPairCount) {
-
-
-        const track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (trackHeight + track_margin);
+        const track_aggregate_height = 0
 
         let tokens = [getNavbarHeight(), track_aggregate_height].map(number => `${number}px`);
         const height_calc = 'calc(100% - (' + tokens.join(' + ') + '))';
@@ -266,7 +160,6 @@ class LayoutController {
 
         // x-tracks
         this.$x_tracks.css('width', width_calc);
-
 
         // content container
         this.$content_container.css('height', height_calc);
@@ -285,16 +178,6 @@ class LayoutController {
 
         // x-scrollbar
         this.browser.contactMatrixView.scrollbarWidget.$x_axis_scrollbar_container.css('width', width_calc);
-
-    }
-
-    doLayoutWithRootContainerSize(size) {
-
-        this.browser.$root.width(size.width);
-        this.browser.$root.height(size.height + getNavbarHeight());
-
-        const count = this.browser.trackPairs.length > 0 ? this.browser.trackPairs.length : 0;
-        this.doLayoutTrackXYPairCount(count);
 
         this.browser.updateLayout();
     }

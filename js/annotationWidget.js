@@ -44,8 +44,6 @@ class AnnotationWidget {
     updateBody(tracks) {
 
         var self = this,
-            trackPairs,
-
             isTrack2D,
             zi;
 
@@ -57,11 +55,6 @@ class AnnotationWidget {
             // Reverse list to present layers in "z" order.
             for (zi = tracks.length - 1; zi >= 0; zi--) {
                 annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
-            }
-        } else {
-            trackPairs = tracks;
-            for (let trackRenderer of trackPairs) {
-                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
             }
         }
     }
@@ -154,7 +147,6 @@ function annotationPanelRow($container, track) {
         str,
         isTrack2D,
         trackList,
-        xyTrackRendererPair,
         trackRenderer,
         track1D,
         index,
@@ -163,12 +155,6 @@ function annotationPanelRow($container, track) {
 
     isTrack2D = (track instanceof Track2D);
     trackList = this.trackListRetrievalCallback();
-
-    if (false === isTrack2D) {
-        xyTrackRendererPair = track;
-        track1D = xyTrackRendererPair.x.track;
-        trackRenderer = xyTrackRendererPair.x.track.trackView;
-    }
 
     // row container
     $row_container = $('<div>', {class: 'hic-annotation-row-container'});
@@ -324,8 +310,6 @@ function annotationPanelRow($container, track) {
             self.browser.contactMatrixView.update();
 
             self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
-        } else {
-            self.browser.layoutController.removeTrackXYPair(trackRenderer.trackRenderPair);
         }
 
         self.updateBody(trackList);

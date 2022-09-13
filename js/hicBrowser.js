@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import igv from './igv/igv.js'
+import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
@@ -33,7 +33,7 @@ import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
 import EventBus from "./eventBus.js";
 import Track2D from './track2D.js'
-import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
+import LayoutController, {getNavbarContainer, getNavbarHeight } from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
@@ -52,7 +52,6 @@ import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
-import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {isFile} from "./fileUtils.js"
 
 const DEFAULT_PIXEL_SIZE = 1
@@ -71,7 +70,6 @@ class HICBrowser {
         this.showTrackLabelAndGutter = true;
 
         this.id = `browser_${DOMUtils.guid()}`;
-        this.trackPairs = [];
         this.tracks2D = [];
         this.normVectorFiles = [];
 
@@ -440,13 +438,9 @@ class HICBrowser {
      */
     async loadTracks(configs) {
 
-        // If loading a single track remember its name, for error message
-        const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
-
         try {
             this.contactMatrixView.startSpinner();
 
-            const tracks = [];
             const promises2D = [];
 
             for (let config of /*trackConfigurations*/configs) {
@@ -465,30 +459,10 @@ class HICBrowser {
                     config.autoscale = true;
                 }
 
-                // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
-                config.height = trackHeight;
-
                 if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
-                } else {
-                    const track = await igv.createTrack(config, this);
-                    tracks.push(track)
                 }
-            }
-
-            if (tracks.length > 0) {
-
-                this.layoutController.tracksLoaded(tracks);
-
-                const $gear_container = $('.hic-igv-right-hand-gutter');
-                if (true === this.showTrackLabelAndGutter) {
-                    $gear_container.show();
-                } else {
-                    $gear_container.hide();
-                }
-
-                await this.updateLayout();
             }
 
             if (promises2D.length > 0) {
@@ -529,24 +503,8 @@ class HICBrowser {
         return normVectors;
     }
 
-    /**
-     * Render the XY pair of tracks.
-     *
-     * @param xy
-     */
-    async renderTrackXY(xy) {
-
-        try {
-            this.startSpinner()
-            await xy.updateViews();
-        } finally {
-            this.stopSpinner()
-        }
-    }
-
     reset() {
-        this.layoutController.removeAllTrackXYPairs();
-        this.contactMatrixView.clearImageCaches();
+         this.contactMatrixView.clearImageCaches();
         this.tracks2D = [];
         this.tracks = [];
         this.$contactMaplabel.text("");
@@ -1082,11 +1040,6 @@ class HICBrowser {
 
         this.clamp();
 
-        this.trackPairs.forEach(function (xyTrackRenderPair, index) {
-            sync(xyTrackRenderPair.x, index);
-            sync(xyTrackRenderPair.y, index);
-        });
-
         function sync(trackRenderer, index) {
             trackRenderer.$viewport.css({order: index});
             trackRenderer.syncCanvas();
@@ -1353,9 +1306,6 @@ class HICBrowser {
 
                 const promises = []
 
-                for (let xyTrackRenderPair of this.trackPairs) {
-                    promises.push(this.renderTrackXY(xyTrackRenderPair));
-                }
                 promises.push(this.contactMatrixView.update(event));
                 await Promise.all(promises);
 
@@ -1436,43 +1386,22 @@ class HICBrowser {
             }
         }
 
-        if (this.trackPairs.length > 0 || this.tracks2D.length > 0) {
-            let tracks = [];
-            jsonOBJ.tracks = tracks;
-            for (let trackRenderer of this.trackPairs) {
-                const track = trackRenderer.x.track;
-                const config = track.config;
-                if (typeof config.url === "string") {
-                    const t = {
-                        url: config.url
-                    }
-                    if (track.name) {
-                        t.name = track.name;
-                    }
-                    if (track.dataRange) {
-                        t.min = track.dataRange.min;
-                        t.max = track.dataRange.max;
-                    }
-                    if (track.color) {
-                        t.color = track.color;
-                    }
-                    tracks.push(t);
-                }
+        if (this.tracks2D.length > 0) {
 
-            }
-            for (let track of this.tracks2D) {
-                var config = track.config;
-                if (typeof config.url === "string") {
-                    const t = {
-                        url: config.url
+            const tracks = []
+            jsonOBJ.tracks = tracks
+
+            for (const { url, name, color } of this.tracks2D) {
+
+                if (typeof url === "string") {
+                    const t = { url }
+                    if (name) {
+                        t.name = name
                     }
-                    if (track.name) {
-                        t.name = track.name;
+                    if (color) {
+                        t.color = color
                     }
-                    if (track.color) {
-                        t.color = track.color;
-                    }
-                    tracks.push(t);
+                    tracks.push(t)
                 }
             }
         }
