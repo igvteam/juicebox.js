@@ -25,8 +25,6 @@ $igv-trackgear-grey-color: #7F7F7F;
 $igv-trackgear-popover-border-radius: 4px;
 $igv-trackgear-font-color: #4b4b4b;
 $igv-trackgear-default-font-face: 'Open Sans', sans-serif;
-@import "jb-igv-menu-popup";
-
 
 $nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
 
@@ -296,6 +294,10 @@ $default-font-family: 'Open Sans', sans-serif;
   border-width: 2px;
   border-color: #bfbfbf;
 
+}
+
+.hic-root-selected {
+  border-color: #5f5f5f;
 }
 
 .hic-root-prevent-interaction {
@@ -1548,10 +1550,6 @@ div[id$="content-container"] {
   width: 120px;
   height: 120px;
   background-color: #3a8ab4;
-}
-
-.hic-root-selected {
-  border-color: #5f5f5f;
 }
 
 .unselect {
