@@ -8,7 +8,10 @@ import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
 // Keep in sync with juicebox.scss variables
 
 // $nav-bar-label-height: 36px;
-const nav_bar_label_height = 36;
+// const nav_bar_label_height = 36;
+
+// $nav-bar-label-height: 0;
+const nav_bar_label_height = 0;
 
 // $nav-bar-widget-container-height: 36px;
 const nav_bar_widget_container_height = 36;
@@ -208,7 +211,8 @@ function createNavBar(browser, $root) {
              </div>
         </div>`;
 
-    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
+    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container))
+    // document.querySelector(`#${browser.id}-contact-map-hic-nav-bar-map-container`).style.display = 'none'
 
     browser.$contactMaplabel = $hic_navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
 
@@ -226,7 +230,8 @@ function createNavBar(browser, $root) {
             <div id="${browser.id}-control-map-hic-nav-bar-map-label"></div>
         </div>`;
 
-    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
+    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container))
+    // document.querySelector(`#${browser.id}-control-map-hic-nav-bar-map-container`).style.display = 'none'
 
     browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
 

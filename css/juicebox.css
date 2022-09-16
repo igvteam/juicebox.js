@@ -42,7 +42,7 @@
   left: 0;
   right: 0;
   width: 860px;
-  height: 1020px;
+  height: 948px;
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -432,14 +432,14 @@
     justify-content: space-between;
     align-items: center;
     width: 95%;
-    height: 36px; }
+    height: 0; }
     .hic-navbar-container div[id$="hic-nav-bar-map-container"] div[id$="hic-nav-bar-map-label"] {
       height: 100%;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
       vertical-align: middle;
-      line-height: 36px;
+      line-height: 0;
       background-color: transparent; }
     .hic-navbar-container div[id$="hic-nav-bar-map-container"] .hic-nav-bar-button-container {
       height: 100%;
@@ -691,7 +691,7 @@ div[id$="content-container"] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (160px + 0px));
+  height: calc(100% - (88px + 0px));
   background-color: white; }
   div[id$="content-container"] div[id$="x-axis-container"] {
     display: flex;
