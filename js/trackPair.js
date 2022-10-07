@@ -8,7 +8,6 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
-import {doAutoscale} from "./igv/util/igvUtils.js"
 
 class TrackPair {
 
@@ -363,6 +362,32 @@ class Tile {
     containsRange(chr, startBP, endBP, bpp) {
         return chr === this.chr && this.bpp === bpp && this.startBP <= startBP && this.endBP >= endBP;
     }
+}
+
+function doAutoscale(features) {
+    var min, max
+
+    if (features.length > 0) {
+        min = Number.MAX_VALUE
+        max = -Number.MAX_VALUE
+
+        features.forEach(function (f) {
+            if (!Number.isNaN(f.value)) {
+                min = Math.min(min, f.value)
+                max = Math.max(max, f.value)
+            }
+        })
+
+        // Insure we have a zero baseline
+        if (max > 0) min = Math.min(0, min)
+        if (max < 0) max = 0
+    } else {
+        // No features -- default
+        min = 0
+        max = 100
+    }
+
+    return {min: min, max: max}
 }
 
 function compareGenomicStates(gs1, gs2) {

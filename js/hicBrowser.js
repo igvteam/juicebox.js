@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import igv from './igv/igv.js'
+import igv from '../node_modules/igv/js/index.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
