@@ -3,7 +3,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
-import {TrackPair} from './trackPair.js'
+import TrackPair from './trackPair.js'
 import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
 
 // Keep in sync with juicebox.scss variables

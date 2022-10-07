@@ -953,8 +953,8 @@ class HICBrowser {
             // jump from whole genome to chromosome
             const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
             const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX);
-            const chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
+            const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX);
+            const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY);
             this.setChromosomes(chrX.index, chrY.index);
         } else {
             const resolutions = this.getResolutions();

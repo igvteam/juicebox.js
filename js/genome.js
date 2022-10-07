@@ -97,7 +97,7 @@ class Genome {
         return this.getCumulativeOffset(chr.name) + bp;
     };
 
-    getChromsosomeForCoordinate(bp) {
+    getChromosomeForCoordinate(bp) {
         var i = 0,
             offset = 0,
             l;
