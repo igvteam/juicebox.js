@@ -140,6 +140,8 @@ class HICBrowser {
 
     async init(config) {
 
+        await igv.GenomeUtils.initializeGenomes({ loadDefaultGenomes: true })
+
         this.state = config.state ? config.state : State.default()
         this.pending = new Map();
         this.eventBus.hold();
@@ -216,6 +218,21 @@ class HICBrowser {
             this.$user_interaction_shield.hide();
             this.contactMatrixView.disableUpdates = false;
             this.contactMatrixView.update();
+        }
+
+    }
+
+    async setGenome(dataset) {
+
+        const previousGenomeId = this.genome ? this.genome.id : undefined
+
+        this.genome = new Genome(dataset.genomeId, dataset.chromosomes)
+
+        const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ dataset.genomeId ]
+        this.genome.sequence = await igv.loadFasta(genomeConfig)
+
+        if (this.genome.id !== previousGenomeId) {
+            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
         }
 
     }
@@ -449,12 +466,18 @@ class HICBrowser {
             const tracks = [];
             const promises2D = [];
 
+            const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
+            configs.push(sequenceTrackConfig)
+
             for (let config of /*trackConfigurations*/configs) {
 
-                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+                if (config.type !== 'sequence') {
 
-                if(!config.format) {
-                    config.format = TrackUtils.inferFileFormat(fileName)
+                    const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+
+                    if(!config.format) {
+                        config.format = TrackUtils.inferFileFormat(fileName)
+                    }
                 }
 
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
@@ -476,6 +499,7 @@ class HICBrowser {
                     tracks.push(track)
                 }
             }
+
 
             if (tracks.length > 0) {
 
@@ -623,15 +647,8 @@ class HICBrowser {
             this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
             this.dataset.name = name
 
-            const previousGenomeId = this.genome ? this.genome.id : undefined;
-            this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes);
+            await this.setGenome(this.dataset)
 
-            // TODO -- this is not going to work with browsers on different assemblies on the same page.
-            //igv.browser.genome = this.genome;
-
-            if (this.genome.id !== previousGenomeId) {
-                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
-            }
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             if (config.state) {

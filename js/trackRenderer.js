@@ -77,7 +77,6 @@ class TrackRenderer {
         this.$viewport.remove();
     }
 
-
     syncCanvas() {
         this.$canvas.width(this.$viewport.width());
         this.$canvas.attr('width', this.$viewport.width());

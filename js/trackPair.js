@@ -2,7 +2,8 @@
  * Created by dat on 4/5/17.
  */
 
-
+import igv from '../node_modules/igv/js/index.js'
+import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
@@ -174,26 +175,25 @@ class TrackPair {
 
     async createImageTile(genomicState, tileFeatures) {
 
-        const chrName = genomicState.chromosome.name;
-        const bpPerPixel = genomicState.bpp
-
-        if (bpPerPixel * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) {
+        if (genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) {
             // TODO -- return zoom in message
         } else {
 
             // Expand the requested range so we can pan a bit without reloading
             const pixelWidth = 3 * this.x.$canvas.width();
-            const lengthBP = Math.round(bpPerPixel * pixelWidth);
+            const lengthBP = Math.round(genomicState.bpp * pixelWidth);
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             const bpEnd = bpStart + lengthBP;
 
-            const features = tileFeatures || await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, bpPerPixel)
+            console.log(`bpp(${ genomicState.bpp }) calculated-bpp(${ (bpEnd - bpStart)/pixelWidth }): bp(${ StringUtils.numberFormatter(bpEnd - bpStart)}) pixel(${ StringUtils.numberFormatter(pixelWidth)})`)
 
-            const buffer = document.createElement('canvas');
-            buffer.width = pixelWidth;
-            buffer.height = this.x.$canvas.height();
+            const features = tileFeatures || await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp)
 
-            const context = buffer.getContext("2d");
+            const canvas = document.createElement('canvas');
+            canvas.width = pixelWidth;
+            canvas.height = this.x.$canvas.height();
+
+            const context = canvas.getContext("2d");
 
             if (features) {
                 const drawConfiguration =
@@ -203,10 +203,10 @@ class TrackPair {
                         pixelWidth,
                         bpStart,
                         bpEnd,
-                        bpPerPixel,
+                        bpPerPixel: genomicState.bpp,
                         genomicState,
-                        pixelHeight: Math.min(buffer.width, buffer.height),
-                        viewportContainerX: (genomicState.startBP - bpStart) / bpPerPixel,
+                        pixelHeight: Math.min(canvas.width, canvas.height),
+                        viewportContainerX: (genomicState.startBP - bpStart) / genomicState.bpp,
                         viewportContainerWidth: pixelWidth,
                         viewportWidth: pixelWidth,
                         referenceFrame: {}
@@ -223,10 +223,13 @@ class TrackPair {
 
 
             } else {
-                context.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
+                // context.clearRect(0, 0, this.x.$canvas.width(), this.x.$canvas.height())
+                // igv.IGVGraphics.fillRect(context, 0, 0, canvas.width, canvas.height, { 'fillStyle': 'rgb(0, 255, 0)' });
+                igv.IGVGraphics.drawRandomColorVerticalLines(context)
+
             }
 
-            this.tile = new Tile(chrName, bpStart, bpEnd, bpPerPixel, buffer, features);
+            this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features);
             return this.tile
         }
     }
