@@ -498,7 +498,12 @@ class HICBrowser {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
-                    const track = await igv.createTrack(config, this);
+                    const track = await igv.createTrack(config, this)
+
+                    if (typeof track.postInit === 'function') {
+                        await track.postInit()
+                    }
+
                     tracks.push(track)
                 }
             }
@@ -651,6 +656,16 @@ class HICBrowser {
             this.dataset.name = name
 
             await this.setGenome(this.dataset)
+
+            const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ]
+            if (genomeConfig.tracks && genomeConfig.tracks.length > 0) {
+
+                for (let track of genomeConfig.tracks) {
+                    track.displayMode = 'COLLAPSED'
+                }
+
+                await this.loadTracks(genomeConfig.tracks)
+            }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 

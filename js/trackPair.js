@@ -175,7 +175,7 @@ class TrackPair {
 
     async createImageTile(genomicState, tileFeatures) {
 
-        if (genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) {
+        if (this.track.visibilityWindow > 0 && genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) {
             // TODO -- return zoom in message
         } else {
 
