@@ -176,7 +176,7 @@ class LayoutController {
         this.browser.updateLayout();
         this.doLayoutTrackXYPairCount(0)
 
-    };
+    }
 
     removeLastTrackXYPair() {
 

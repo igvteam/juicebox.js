@@ -2,7 +2,7 @@
  * Created by dat on 4/5/17.
  */
 
-import igv from '../node_modules/igv/js/index.js'
+import igv from '../node_modules/igv/dist/igv.esm.js'
 import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'

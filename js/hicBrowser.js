@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import igv from '../node_modules/igv/js/index.js'
+import igv from '../node_modules/igv/dist/igv.esm.js'
 import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
@@ -188,7 +188,7 @@ class HICBrowser {
 
             const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
 
-            config.tracks = config.tracks ?  [ ...config.tracks, sequenceTrackConfig ] : [ sequenceTrackConfig ]
+            // config.tracks = config.tracks ?  [ ...config.tracks, sequenceTrackConfig ] : [ sequenceTrackConfig ]
             if (config.tracks) {
                 promises.push(this.loadTracks(config.tracks))
             }
@@ -475,14 +475,14 @@ class HICBrowser {
 
             for (let config of configs) {
 
-                if (config.type !== 'sequence') {
-
-                    const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
-
-                    if(!config.format) {
-                        config.format = TrackUtils.inferFileFormat(fileName)
-                    }
-                }
+                // if (config.type !== 'sequence') {
+                //
+                //     const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+                //
+                //     if(!config.format) {
+                //         config.format = TrackUtils.inferFileFormat(fileName)
+                //     }
+                // }
 
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
                     delete config.color;
@@ -664,7 +664,8 @@ class HICBrowser {
                     track.displayMode = 'COLLAPSED'
                 }
 
-                await this.loadTracks(genomeConfig.tracks)
+                const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
+                await this.loadTracks([ ...genomeConfig.tracks, sequenceTrackConfig ])
             }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
