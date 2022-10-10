@@ -184,7 +184,11 @@ class HICBrowser {
                 await this.parseGotoInput(config.locus)
             }
 
-            var promises = [];
+            const promises = [];
+
+            const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
+
+            config.tracks = config.tracks ?  [ ...config.tracks, sequenceTrackConfig ] : [ sequenceTrackConfig ]
             if (config.tracks) {
                 promises.push(this.loadTracks(config.tracks))
             }
@@ -466,10 +470,10 @@ class HICBrowser {
             const tracks = [];
             const promises2D = [];
 
-            const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
-            configs.push(sequenceTrackConfig)
+            // const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
+            // configs.push(sequenceTrackConfig)
 
-            for (let config of /*trackConfigurations*/configs) {
+            for (let config of configs) {
 
                 if (config.type !== 'sequence') {
 
@@ -488,7 +492,6 @@ class HICBrowser {
                     config.autoscale = true;
                 }
 
-                // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
                 config.height = trackHeight;
 
                 if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
