@@ -185,8 +185,6 @@ class TrackPair {
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             const bpEnd = bpStart + lengthBP;
 
-            console.log(`bpp(${ genomicState.bpp }) calculated-bpp(${ (bpEnd - bpStart)/pixelWidth }): bp(${ StringUtils.numberFormatter(bpEnd - bpStart)}) pixel(${ StringUtils.numberFormatter(pixelWidth)})`)
-
             const features = tileFeatures || await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp)
 
             const canvas = document.createElement('canvas');
@@ -223,9 +221,15 @@ class TrackPair {
 
 
             } else {
+
                 // context.clearRect(0, 0, this.x.$canvas.width(), this.x.$canvas.height())
+
                 // igv.IGVGraphics.fillRect(context, 0, 0, canvas.width, canvas.height, { 'fillStyle': 'rgb(0, 255, 0)' });
-                igv.IGVGraphics.drawRandomColorVerticalLines(context)
+
+                const wye = canvas.height - canvas.height/4
+                igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { 'fillStyle': 'rgba(0,0,0,0.1)' });
+
+                // igv.IGVGraphics.drawRandomColorVerticalLines(context)
 
             }
 
