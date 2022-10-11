@@ -19,7 +19,8 @@
 
 <script type="module">
 
-    import juicebox from '../js/index.js';
+    // import juicebox from '../js/index.js';
+    import juicebox from '../dist/juicebox.esm.js'
 
     const config_igv_tracks =
         {
@@ -71,6 +72,8 @@
         url: "https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/moshe/all.hic",
         name: "Deep Map Test",
         locus: '8:128,752,711-128,753,714',
+        width: 960,
+        height: 960,
         // tracks: [
         //     {
         //         url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
@@ -83,7 +86,7 @@
     }
 
 
-    juicebox.init(document.getElementById("app-container"), {})
+    juicebox.init(document.getElementById("app-container"), config_deep_map)
         .then(browser => {
             console.log(`${ browser.id } is good to go`);
         })

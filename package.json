@@ -47,7 +47,7 @@
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
     "hic-straw": "^2.0.6",
-    "igv": "^2.13.3",
+    "igv": "github:igvteam/igv.js#v2.13.3-juicebox",
     "igv-ui": "github:igvteam/igv-ui#v1.2.5",
     "igv-utils": "github:igvteam/igv-utils#v1.2.10-jb",
     "mocha": "^8.2.1",
