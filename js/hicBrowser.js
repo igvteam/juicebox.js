@@ -470,19 +470,16 @@ class HICBrowser {
             const tracks = [];
             const promises2D = [];
 
-            // const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
-            // configs.push(sequenceTrackConfig)
-
             for (let config of configs) {
 
-                // if (config.type !== 'sequence') {
-                //
-                //     const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
-                //
-                //     if(!config.format) {
-                //         config.format = TrackUtils.inferFileFormat(fileName)
-                //     }
-                // }
+                if (config.type !== 'sequence') {
+
+                    const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+
+                    if(!config.format) {
+                        config.format = TrackUtils.inferFileFormat(fileName)
+                    }
+                }
 
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
                     delete config.color;
