@@ -53,8 +53,8 @@ class TrackPair {
     }
 
     setTrackName(name) {
-        this.track.name = name;
-        this.x.$label.text(name);
+        this.track.id = name
+        this.x.$label.text(name)
     }
 
     setColor(color) {

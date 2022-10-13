@@ -126,14 +126,14 @@ function unsetColorMenuItem({trackRenderer, label}) {
     }
 }
 
-function trackRenameMenuItem(trackRenderer) {
+function trackRenameMenuItem(trackPair) {
     const click = e => {
         const callback = (value) => {
             value = value.trim();
             value = ('' === value || undefined === value) ? 'untitled' : value;
-            trackRenderer.setTrackName(value);
+            trackPair.setTrackName(value);
         };
-        trackRenderer.browser.inputDialog.present({label: 'Track Name', value: trackRenderer.track.name, callback}, e);
+        trackPair.browser.inputDialog.present({label: 'Track Name', value: trackPair.track.name, callback}, e);
     };
     const object = $('<div>');
     object.text('Set track name');
