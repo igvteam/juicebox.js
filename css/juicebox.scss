@@ -25,8 +25,6 @@ $igv-trackgear-grey-color: #7F7F7F;
 $igv-trackgear-popover-border-radius: 4px;
 $igv-trackgear-font-color: #4b4b4b;
 $igv-trackgear-default-font-face: 'Open Sans', sans-serif;
-@import "igv-menu-popup";
-
 
 $nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
 
@@ -73,6 +71,8 @@ $scrollbar-handle-color: #a5a5a5;
 $scrollbar-color: #efefef;
 
 $default-font-family: 'Open Sans', sans-serif;
+
+@import "igv-menu-popup";
 
 @mixin x-scrollbar-label {
   div {
@@ -227,7 +227,7 @@ $default-font-family: 'Open Sans', sans-serif;
 .hic-igv-right-hand-gutter {
   position: absolute;
   top: 0;
-  right: 0;
+  right: -16px;
   margin-top: 4px;
   background-color: transparent;
   width: unset;
@@ -1562,11 +1562,10 @@ div[id$="content-container"] {
   user-select: none;
 }
 
-
 .igv-trackgear-container {
   position: relative;
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   margin-left: 4px;
   color: $igv-trackgear-grey-color;
 }
