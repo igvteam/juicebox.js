@@ -15,17 +15,16 @@ class TrackRenderer {
 
     init($container, size, order) {
 
-        var self = this;
-
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
+        $container.append(this.$viewport);
+
         if (size.width) {
             this.$viewport.width(size.width);
         }
         if (size.height) {
             this.$viewport.height(size.height);
         }
-        $container.append(this.$viewport);
         this.$viewport.css({order: order});
 
         // canvas
@@ -34,24 +33,43 @@ class TrackRenderer {
         this.ctx = this.$canvas.get(0).getContext("2d");
 
         if ('x' === this.axis) {
+
+            // track reorder handle
+            this.$trackReorderHandle = $('<div class="x-track-reorder-handle">')
+            this.$viewport.append(this.$trackReorderHandle)
+
+            this.$trackReorderHandle.append(`<i class="fa fa-arrow-up"></i>`)
+            this.$trackReorderHandle.append(`<i class="fa fa-arrow-down"></i>`)
+
+            for (let el of this.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
+                el.addEventListener('click', e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    const direction = e.target.classList.contains('fa-arrow-up') ? 'up' : 'down'
+                    console.log(`move track ${ direction }`)
+                })
+            }
+
             // label
-            this.$label = $('<div class="x-track-label">');
+            this.$label = $('<div class="x-track-label">')
+            this.$viewport.append(this.$label)
+
             const str = this.track.name || 'untitled';
-            this.$label.text(str);
-            this.$viewport.append(this.$label);
-            if (true === self.browser.showTrackLabelAndGutter) {
+            this.$label.text(str)
+
+            if (true === this.browser.showTrackLabelAndGutter) {
                 this.$label.show();
             } else {
                 this.$label.hide();
             }
 
-            this.$viewport.on('click', function (e) {
+            this.$viewport.on('click', e => {
 
                 e.preventDefault();
                 e.stopPropagation();
 
-                self.browser.toggleTrackLabelAndGutterState();
-                if (true === self.browser.showTrackLabelAndGutter) {
+                this.browser.toggleTrackLabelAndGutterState();
+                if (true === this.browser.showTrackLabelAndGutter) {
                     $('.x-track-label').show();
                     $('.hic-igv-right-hand-gutter').show();
                 } else {
@@ -59,10 +77,6 @@ class TrackRenderer {
                     $('.hic-igv-right-hand-gutter').hide();
                 }
             })
-        } else {
-            // Context transform
-
-            //this.ctx.rotate(Math.PI/2)
         }
 
         // track spinner container

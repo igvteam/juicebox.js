@@ -1115,6 +1115,34 @@ div[id$="x-track-container"] {
       // canvas inserted here
 
       // x-track label
+      .x-track-reorder-handle {
+        display: block;
+
+        position: absolute;
+        top: 0;
+        left: -32;
+
+        width: 16px;
+        height: 100%;
+
+        background-color: transparent;
+
+        >i {
+          color: #7F7F7F;
+          font-size: 0.75rem;
+        }
+
+        >i:first-child {
+          margin-bottom: 2px;
+        }
+
+        >i:last-child {
+          margin-top: 2px;
+        }
+
+      }
+
+      // x-track label
       .x-track-label {
         display: inline-block;
 
