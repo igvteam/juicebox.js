@@ -11,9 +11,6 @@ const MenuUtils = {
 
         const menuItems = []
 
-        menuItems.push(trackReorderMenuItem(trackPair))
-        menuItems.push("<hr/>")
-
         menuItems.push(trackRenameMenuItem(trackPair))
         menuItems.push("<hr/>")
 
@@ -74,18 +71,6 @@ const MenuUtils = {
 
         return menuItems;
     }
-
-}
-
-function trackReorderMenuItem(trackPair) {
-
-    const object = $('<div>')
-    object.text('Reorder track')
-
-    const click = () => console.log('reorder track')
-
-    return { object, click }
-
 
 }
 

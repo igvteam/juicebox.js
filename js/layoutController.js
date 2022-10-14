@@ -6,7 +6,7 @@ import Ruler from './ruler.js'
 import TrackPair from './trackPair.js'
 import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
 
-// Keep in sync with juicebox.scss variables
+// Keep these magic numbers in sync with corresponding juicebox.scss variables
 
 // $nav-bar-label-height: 36px;
 const nav_bar_label_height = 36;
@@ -152,14 +152,17 @@ class LayoutController {
         return this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
     }
 
-    tracksLoaded(tracks) {
+    updateLayoutWithTracks(tracks) {
 
-        this.doLayoutTrackXYPairCount(tracks.length + this.browser.trackPairs.length);
+        this.resizeLayoutWithTrackXYPairCount(tracks.length + this.browser.trackPairs.length)
 
-        tracks.forEach((track, index) => {
+        for (const track of tracks) {
+            const index = tracks.indexOf(track)
             const trackPair = new TrackPair(this.browser, trackHeight, this.$x_tracks, this.$y_tracks, track, index)
-            this.browser.trackPairs.push(trackPair);
-        });
+            trackPair.init()
+            this.browser.trackPairs.push(trackPair)
+        }
+
     }
 
     removeAllTrackXYPairs() {
@@ -174,7 +177,7 @@ class LayoutController {
         }
         this.browser.trackPairs = []
         this.browser.updateLayout();
-        this.doLayoutTrackXYPairCount(0)
+        this.resizeLayoutWithTrackXYPairCount(0)
 
     }
 
@@ -194,7 +197,7 @@ class LayoutController {
             this.browser.trackPairs.splice(index, 1);
 
             discard = undefined;
-            this.doLayoutTrackXYPairCount(this.browser.trackPairs.length);
+            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length);
 
             this.browser.updateLayout();
 
@@ -217,7 +220,7 @@ class LayoutController {
             const index = this.browser.trackPairs.indexOf(discard);
             this.browser.trackPairs.splice(index, 1);
 
-            this.doLayoutTrackXYPairCount(this.browser.trackPairs.length);
+            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length);
 
             this.browser.updateLayout();
 
@@ -228,7 +231,7 @@ class LayoutController {
 
     };
 
-    doLayoutTrackXYPairCount(trackXYPairCount) {
+    resizeLayoutWithTrackXYPairCount(trackXYPairCount) {
 
         const track_aggregate_height = (0 === trackXYPairCount) ? 0 : trackXYPairCount * (trackHeight + track_margin);
 
@@ -274,7 +277,7 @@ class LayoutController {
         this.browser.$root.height(size.height + getNavbarHeight());
 
         const count = this.browser.trackPairs.length > 0 ? this.browser.trackPairs.length : 0;
-        this.doLayoutTrackXYPairCount(count);
+        this.resizeLayoutWithTrackXYPairCount(count);
 
         this.browser.updateLayout();
     }

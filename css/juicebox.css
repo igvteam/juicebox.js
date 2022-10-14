@@ -861,20 +861,23 @@ div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-
   display: block;
   position: absolute;
   top: 0;
-  left: -32;
+  left: -32px;
   width: 16px;
   height: 100%;
   background-color: transparent;
 }
 div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-reorder-handle > i {
   color: #7F7F7F;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  display: block;
 }
 div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-reorder-handle > i:first-child {
-  margin-bottom: 2px;
+  margin-top: 2px;
+  margin-bottom: 1px;
 }
 div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-reorder-handle > i:last-child {
-  margin-top: 2px;
+  margin-top: 1px;
+  margin-bottom: 2px;
 }
 div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-label {
   display: inline-block;

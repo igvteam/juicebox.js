@@ -18,9 +18,12 @@ class TrackPair {
 
         this.browser = browser;
         this.track = track;
-        this.x = new TrackRenderer(browser, {height: trackHeight}, $x_tracks, track, 'x', index)
-        this.y = new TrackRenderer(browser, {width: trackHeight}, $y_tracks, track, 'y', index)
-        this.init();
+
+        this.x = new TrackRenderer(browser, track, 'x')
+        this.x.init($x_tracks, { height: trackHeight }, index)
+
+        this.y = new TrackRenderer(browser, track, 'y')
+        this.y.init($y_tracks, { width: trackHeight }, index)
     }
 
     init() {
@@ -33,11 +36,49 @@ class TrackPair {
         });
         this.colorPicker.hide();
 
-        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0],
-            (min, max) => this.setDataRange(min, max));
-
+        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max));
 
         this.appendRightHandGutter(this.x.$viewport);
+
+        for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
+
+            el.addEventListener('click', e => {
+
+                e.preventDefault()
+                e.stopPropagation()
+
+                const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1
+
+                let order = parseInt(this.x.$viewport.get(0).style.order)
+
+                if (0 === order && -1 === direction) {
+                    return
+                } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
+                    return
+                }
+
+                if (-1 === direction) {
+                    --order
+                    if (order < 0 ) {
+                        order = this.browser.trackPairs.length - 1
+                    }
+                } else {
+                    ++order
+                    if (this.browser.trackPairs.length === order) {
+                        order = 0
+                    }
+                }
+
+                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => order === parseInt(trackPair.x.$viewport.get(0).style.order))
+                targetTrackPair.x.$viewport.get(0).style.order = this.x.$viewport.get(0).style.order
+                targetTrackPair.y.$viewport.get(0).style.order = this.y.$viewport.get(0).style.order
+
+                this.x.$viewport.get(0).style.order = `${ order }`
+                this.y.$viewport.get(0).style.order = `${ order }`
+
+
+            })
+        }
 
         // igvjs compatibility
         this.track.trackView = this;
@@ -239,8 +280,8 @@ class TrackPair {
     }
 
     dispose() {
-        this['x'].dispose();
-        this['y'].dispose();
+        this.x.dispose()
+        this.y.dispose()
     }
 }
 
@@ -268,10 +309,6 @@ function doAutoscale(features) {
     }
 
     return {min: min, max: max}
-}
-
-function compareGenomicStates(gs1, gs2) {
-    return gs1.bpp === gs2.bpp && gs1.chromosome === gs2.chromosome && gs1.startBP === gs2.startBP && gs1.endBP === gs2.endBP;
 }
 
 export default TrackPair

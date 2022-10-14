@@ -26,8 +26,8 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
-import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import {Alert,InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {DOMUtils, FileUtils, TrackUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
@@ -52,7 +52,6 @@ import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
-import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {isFile} from "./fileUtils.js"
 
 const DEFAULT_PIXEL_SIZE = 1
@@ -508,7 +507,7 @@ class HICBrowser {
 
             if (tracks.length > 0) {
 
-                this.layoutController.tracksLoaded(tracks);
+                this.layoutController.updateLayoutWithTracks(tracks);
 
                 const $gear_container = $('.hic-igv-right-hand-gutter');
                 if (true === this.showTrackLabelAndGutter) {
@@ -1286,6 +1285,8 @@ class HICBrowser {
         }
 
         let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+
+        console.log(`browser.goto - target resolution ${ StringUtils.numberFormatter(targetResolution) }`)
 
         if (minResolution && targetResolution < minResolution) {
             const maxExtent = viewWidth * minResolution;

@@ -3,14 +3,13 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class TrackRenderer {
 
-    constructor(browser, size, $container, track, axis, order) {
+    constructor(browser, track, axis) {
 
         this.browser = browser;
         this.track = track;
-        this.id = `trackRender_${DOMUtils.guid()}`;
         this.axis = axis;
-        this.init($container, size, order);
 
+        this.id = `trackRender_${DOMUtils.guid()}`;
     }
 
     init($container, size, order) {
@@ -25,7 +24,8 @@ class TrackRenderer {
         if (size.height) {
             this.$viewport.height(size.height);
         }
-        this.$viewport.css({order: order});
+
+        this.$viewport.css({ order: order });
 
         // canvas
         this.$canvas = $('<canvas>');
@@ -40,15 +40,6 @@ class TrackRenderer {
 
             this.$trackReorderHandle.append(`<i class="fa fa-arrow-up"></i>`)
             this.$trackReorderHandle.append(`<i class="fa fa-arrow-down"></i>`)
-
-            for (let el of this.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
-                el.addEventListener('click', e => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    const direction = e.target.classList.contains('fa-arrow-up') ? 'up' : 'down'
-                    console.log(`move track ${ direction }`)
-                })
-            }
 
             // label
             this.$label = $('<div class="x-track-label">')
@@ -86,9 +77,9 @@ class TrackRenderer {
 
     }
 
-    dispose($container, size, order) {
-        this.tile = undefined;
-        this.$viewport.remove();
+    dispose() {
+        this.tile = undefined
+        this.$viewport.remove()
     }
 
     syncCanvas() {

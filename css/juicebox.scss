@@ -1120,7 +1120,7 @@ div[id$="x-track-container"] {
 
         position: absolute;
         top: 0;
-        left: -32;
+        left: -32px;
 
         width: 16px;
         height: 100%;
@@ -1129,15 +1129,18 @@ div[id$="x-track-container"] {
 
         >i {
           color: #7F7F7F;
-          font-size: 0.75rem;
+          font-size: 0.80rem;
+          display: block;
         }
 
         >i:first-child {
-          margin-bottom: 2px;
+          margin-top: 2px;
+          margin-bottom: 1px;
         }
 
         >i:last-child {
-          margin-top: 2px;
+          margin-top: 1px;
+          margin-bottom: 2px;
         }
 
       }
