@@ -16,16 +16,11 @@ class TrackRenderer {
 
         // track canvas container
         this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
-        $container.append(this.$viewport);
+        $container.append(this.$viewport)
 
-        if (size.width) {
-            this.$viewport.width(size.width);
-        }
-        if (size.height) {
-            this.$viewport.height(size.height);
-        }
+        'x' === this.axis ? this.$viewport.height(size) : this.$viewport.width(size)
 
-        this.$viewport.css({ order: order });
+        this.$viewport.get(0).style.order = `${ order }`
 
         // canvas
         this.$canvas = $('<canvas>');

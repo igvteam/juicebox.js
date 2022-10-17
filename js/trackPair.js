@@ -8,22 +8,14 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
-import TrackRenderer from "./trackRenderer.js";
 import Tile from "./tile.js";
 import * as hicUtils from './hicUtils.js';
 
 class TrackPair {
 
-    constructor(browser, trackHeight, $x_tracks, $y_tracks, track, index) {
-
+    constructor(browser, track) {
         this.browser = browser;
         this.track = track;
-
-        this.x = new TrackRenderer(browser, track, 'x')
-        this.x.init($x_tracks, { height: trackHeight }, index)
-
-        this.y = new TrackRenderer(browser, track, 'y')
-        this.y.init($y_tracks, { width: trackHeight }, index)
     }
 
     init() {

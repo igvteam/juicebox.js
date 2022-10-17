@@ -1114,21 +1114,15 @@ class HICBrowser {
 
         this.clamp()
 
-        // console.log(`BEFORE ${ hicUtils.trackOrderDescription(this.trackPairs) }`)
-
         for (const trackXYPair of this.trackPairs) {
 
-            const index = this.trackPairs.indexOf(trackXYPair)
+            trackXYPair.x.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
+            trackXYPair.y.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
 
-            trackXYPair.x.$viewport.css({ order: index })
             trackXYPair.x.syncCanvas()
-
-            trackXYPair.y.$viewport.css({ order: index })
             trackXYPair.y.syncCanvas()
 
         }
-
-        // console.log(`AFTER ${ hicUtils.trackOrderDescription(this.trackPairs) }`)
 
         this.layoutController.xAxisRuler.update()
         this.layoutController.yAxisRuler.update()

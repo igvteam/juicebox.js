@@ -4,6 +4,7 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
 import TrackPair from './trackPair.js'
+import TrackRenderer from './trackRenderer.js';
 import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
@@ -157,10 +158,18 @@ class LayoutController {
         this.resizeLayoutWithTrackXYPairCount(tracks.length + this.browser.trackPairs.length)
 
         for (const track of tracks) {
-            const index = tracks.indexOf(track)
-            const trackPair = new TrackPair(this.browser, trackHeight, this.$x_tracks, this.$y_tracks, track, index)
-            trackPair.init()
+
+            const trackPair = new TrackPair(this.browser, track)
             this.browser.trackPairs.push(trackPair)
+
+            trackPair.x = new TrackRenderer(this.browser, track, 'x')
+            trackPair.x.init(this.$x_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
+
+            trackPair.y = new TrackRenderer(this.browser, track, 'y')
+            trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
+
+            trackPair.init()
+
         }
 
     }
