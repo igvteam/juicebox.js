@@ -4,7 +4,7 @@
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
 import TrackPair from './trackPair.js'
-import {deleteBrowser, setCurrentBrowser} from "./createBrowser.js"
+import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
@@ -210,26 +210,21 @@ class LayoutController {
 
         if (this.browser.trackPairs.length > 0) {
 
-            const discard = trackXYPair;
+            // remove DOM element
+            trackXYPair.x.$viewport.remove()
+            trackXYPair.y.$viewport.remove()
 
-            // discard DOM element's
-            discard['x'].$viewport.remove();
-            discard['y'].$viewport.remove();
+            // remove from trackPairs list
+            const index = this.browser.trackPairs.indexOf(trackXYPair)
+            this.browser.trackPairs.splice(index, 1)
 
-            // remove discard from list
-            const index = this.browser.trackPairs.indexOf(discard);
-            this.browser.trackPairs.splice(index, 1);
+            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length)
 
-            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length);
+            this.browser.updateLayout()
 
-            this.browser.updateLayout();
-
-
-        } else {
-            //console.log('No more tracks.');
         }
 
-    };
+    }
 
     resizeLayoutWithTrackXYPairCount(trackXYPairCount) {
 

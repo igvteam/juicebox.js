@@ -1112,22 +1112,28 @@ class HICBrowser {
      */
     async updateLayout() {
 
-        this.clamp();
+        this.clamp()
 
-        this.trackPairs.forEach(function (xyTrackRenderPair, index) {
-            sync(xyTrackRenderPair.x, index);
-            sync(xyTrackRenderPair.y, index);
-        });
+        // console.log(`BEFORE ${ hicUtils.trackOrderDescription(this.trackPairs) }`)
 
-        function sync(trackRenderer, index) {
-            trackRenderer.$viewport.css({order: index});
-            trackRenderer.syncCanvas();
+        for (const trackXYPair of this.trackPairs) {
+
+            const index = this.trackPairs.indexOf(trackXYPair)
+
+            trackXYPair.x.$viewport.css({ order: index })
+            trackXYPair.x.syncCanvas()
+
+            trackXYPair.y.$viewport.css({ order: index })
+            trackXYPair.y.syncCanvas()
+
         }
 
-        this.layoutController.xAxisRuler.update();
-        this.layoutController.yAxisRuler.update();
+        // console.log(`AFTER ${ hicUtils.trackOrderDescription(this.trackPairs) }`)
 
-        await this.update();
+        this.layoutController.xAxisRuler.update()
+        this.layoutController.yAxisRuler.update()
+
+        await this.update()
 
     }
 

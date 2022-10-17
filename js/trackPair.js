@@ -3,7 +3,6 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
-import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
@@ -11,6 +10,7 @@ import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
 import TrackRenderer from "./trackRenderer.js";
 import Tile from "./tile.js";
+import * as hicUtils from './hicUtils.js';
 
 class TrackPair {
 
@@ -57,25 +57,20 @@ class TrackPair {
                     return
                 }
 
-                if (-1 === direction) {
-                    --order
-                    if (order < 0 ) {
-                        order = this.browser.trackPairs.length - 1
-                    }
-                } else {
-                    ++order
-                    if (this.browser.trackPairs.length === order) {
-                        order = 0
-                    }
-                }
+                const newOrder = -1 === direction ? order - 1 : 1 + order
 
-                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => order === parseInt(trackPair.x.$viewport.get(0).style.order))
-                targetTrackPair.x.$viewport.get(0).style.order = this.x.$viewport.get(0).style.order
-                targetTrackPair.y.$viewport.get(0).style.order = this.y.$viewport.get(0).style.order
+                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order))
+                targetTrackPair.x.$viewport.get(0).style.order = `${ order }`
+                targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
 
-                this.x.$viewport.get(0).style.order = `${ order }`
-                this.y.$viewport.get(0).style.order = `${ order }`
+                this.x.$viewport.get(0).style.order = `${ newOrder }`;
+                this.y.$viewport.get(0).style.order = `${ newOrder }`;
 
+
+                const a = this.browser.trackPairs;
+                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ];
+
+                console.log(`Track Reorder ${ hicUtils.trackOrderDescription(this.browser.trackPairs) }`)
 
             })
         }
