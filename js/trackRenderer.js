@@ -40,7 +40,7 @@ class TrackRenderer {
             this.$label = $('<div class="x-track-label">')
             this.$viewport.append(this.$label)
 
-            const str = this.track.name || 'untitled';
+            const str = this.track.name || ''
             this.$label.text(str)
 
             if (true === this.browser.showTrackLabelAndGutter) {
