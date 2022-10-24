@@ -59,11 +59,6 @@ class Ruler {
 
         this.$wholeGenomeContainer = $parent.find("div[id$='-axis-whole-genome-container']");
 
-        this.yAxisTransformWithContext = ctx => {
-            ctx.scale(-1, 1);
-            ctx.rotate(Math.PI / 2.0);
-        };
-
         this.setAxisTransform(axis);
 
         browser.eventBus.subscribe('MapLoad', this);
@@ -231,10 +226,8 @@ class Ruler {
 
     setAxisTransform(axis) {
 
-        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
-
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) {
-        };
+        this.canvasTransform          = ('y' === axis) ? canvasTransformWithContext      : identityTransformWithContext
+        this.labelTransform = ('y' === axis) ? labelTransformWithContext : noopTransformWithContext
 
     };
 
@@ -411,7 +404,7 @@ class Ruler {
                         // console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
 
                         this.ctx.save();
-                        this.labelReflectionTransform(this.ctx, pixel);
+                        this.labelTransform(this.ctx, pixel);
                         igv.IGVGraphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
                         this.ctx.restore();
 
@@ -541,7 +534,6 @@ function hitTest(bboxes, value) {
     return $result;
 }
 
-
 function TickSpacing(majorTick, majorUnit, unitMultiplier) {
     this.majorTick = majorTick;
     this.majorUnit = majorUnit;
@@ -584,7 +576,11 @@ function findSpacing(rulerLengthBP) {
     }
 }
 
-function reflectionTransformWithContext(context, exe) {
+function canvasTransformWithContext(ctx) {
+    ctx.setTransform(0, 1, 1, 0, 0, 0)
+}
+
+function labelTransformWithContext(context, exe) {
     context.translate(exe, 0);
     context.scale(-1, 1);
     context.translate(-exe, 0);
@@ -593,6 +589,10 @@ function reflectionTransformWithContext(context, exe) {
 function identityTransformWithContext(context) {
     // 3x2 matrix. column major. (sx 0 0 sy tx ty).
     context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function noopTransformWithContext(ctx) {
+
 }
 
 export default Ruler;

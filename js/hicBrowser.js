@@ -434,9 +434,10 @@ class HICBrowser {
                 this.genome.getGenomeLength() / width :
                 resolution / this.state.pixelSize
 
-        const gs = {
-            bpp: bpp
-        };
+        const gs =
+            {
+                bpp
+            }
 
         if (axis === "x") {
             gs.chromosome = this.dataset.chromosomes[this.state.chr1];

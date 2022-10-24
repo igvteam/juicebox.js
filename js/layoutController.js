@@ -27,8 +27,8 @@ const axis_height = 40;
 // $track-margin: 2px;
 const track_margin = 2;
 
-// $track-height: 32px;
-export const trackHeight = 32;
+// $track-height: 36px;
+export const trackHeight = 36;
 
 class LayoutController {
 

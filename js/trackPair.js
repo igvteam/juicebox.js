@@ -170,35 +170,37 @@ class TrackPair {
 
         const genomicStateX = this.browser.genomicState(this.x.axis);
         if (this.tileX) {
-            this.tileX = await this.createImageTile(genomicStateX, this.tileX.features)
+            this.tileX = await this.createImageTile({ axis: 'x', ...genomicStateX }, this.tileX.features)
             this.x.drawTile(this.tileX, genomicStateX);
         }
 
         const genomicStateY = this.browser.genomicState(this.y.axis);
         if (this.tileY) {
-            this.tileY = await this.createImageTile(genomicStateX, this.tileY.features)
-            this.y.drawTile(this.tileY, genomicStateY);
+            this.tileY = await this.createImageTile({ axis: 'y', ...genomicStateY }, this.tileY.features)
+            this.y.drawTile(this.tileY, genomicStateY)
         }
     }
 
     async getTileX(genomicState) {
-        const chrName = genomicState.chromosome.name;
-        const bpPerPixel = genomicState.bpp;
-        if (!(this.tileX && this.tileX.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpPerPixel))) {
-            this.tileX = await this.createImageTile(genomicState);
+
+        const { chromosome, bpp } = genomicState
+
+        if (!(this.tileX && this.tileX.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
+            this.tileX = await this.createImageTile({ axis: 'x', ...genomicState })
         }
-        return this.tileX;
+
+        return this.tileX
     }
 
     async getTileY(genomicState) {
-        const chrName = genomicState.chromosome.name;
-        const bpPerPixel = genomicState.bpp;
-        if (this.tileX && this.tileX.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpPerPixel)) {
-            this.tileY = this.tileX;
-        } else if (!(this.tileY && this.tileY.containsRange(chrName, genomicState.startBP, genomicState.endBP, bpPerPixel))) {
-            this.tileY = await this.createImageTile(genomicState);
+
+        const { chromosome, bpp } = genomicState
+
+        if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
+            this.tileY = await this.createImageTile({ axis: 'y', ...genomicState })
         }
-        return this.tileY;
+
+        return this.tileY
     }
 
     async createImageTile(genomicState, tileFeatures) {
@@ -224,6 +226,7 @@ class TrackPair {
             if (features) {
                 const drawConfiguration =
                     {
+                        axis: genomicState.axis,
                         features,
                         context,
                         pixelWidth,
@@ -245,8 +248,8 @@ class TrackPair {
                         this.track.dataRange = doAutoscale(features);
                     }
                 }
-                this.track.draw(drawConfiguration);
 
+                this.track.draw(drawConfiguration);
 
             } else {
 

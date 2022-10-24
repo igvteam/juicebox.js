@@ -885,7 +885,7 @@ div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-
   top: 0;
   left: 0;
   height: 22px;
-  margin-top: 4px;
+  margin-top: 4.5px;
   padding-left: 4px;
   padding-right: 4px;
   padding-top: 1px;
@@ -903,9 +903,9 @@ div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-
   position: absolute;
   top: 0;
   left: 50%;
-  width: 32px;
-  height: 32px;
-  margin-left: -16px;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
   background-color: rgba(255, 255, 255, 0);
 }
 
@@ -1007,9 +1007,9 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   position: absolute;
   top: 50%;
   left: 0;
-  width: 32px;
-  height: 32px;
-  margin-top: -16px;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
   background-color: rgba(255, 255, 255, 0);
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-axis] {
