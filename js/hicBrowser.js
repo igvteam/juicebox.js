@@ -245,6 +245,11 @@ class HICBrowser {
         const config = igv.GenomeUtils.KNOWN_GENOMES[ genomeId ]
 
         if (config.tracks && config.tracks.length > 0) {
+
+            for (let track of config.tracks) {
+                track.displayMode = 'COLLAPSED'
+            }
+
             return config.tracks
         } else {
             return undefined

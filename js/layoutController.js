@@ -6,6 +6,8 @@ import Ruler from './ruler.js'
 import TrackPair from './trackPair.js'
 import TrackRenderer from './trackRenderer.js';
 import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
+import HICEvent from "./hicEvent.js";
+import EventBus from "./eventBus.js";
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
@@ -170,6 +172,7 @@ class LayoutController {
 
             trackPair.init()
 
+            EventBus.globalBus.post(HICEvent("TrackXYPairLoad", trackPair))
         }
 
         for (const trackPair of this.browser.trackPairs) {
