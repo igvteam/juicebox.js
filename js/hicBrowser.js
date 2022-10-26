@@ -240,6 +240,17 @@ class HICBrowser {
 
     }
 
+    getGenomeTrackConfigurations(genomeId) {
+
+        const config = igv.GenomeUtils.KNOWN_GENOMES[ genomeId ]
+
+        if (config.tracks && config.tracks.length > 0) {
+            return config.tracks
+        } else {
+            return undefined
+        }
+    }
+
     createMenu($root) {
 
         const html =
