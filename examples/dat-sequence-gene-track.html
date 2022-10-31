@@ -22,35 +22,6 @@
     import juicebox from '../js/index.js'
     // import juicebox from '../dist/juicebox.esm.js'
 
-    const config_igv_tracks =
-        {
-            "backgroundColor": "0,74,136",
-            "url": "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic",
-            "name": "Combined",
-            "state": "7,7,5,815.66029,815.66029,640,640,1,NONE",
-            "colorScale": "23,255,114,110",
-            "selectedGene": "egfr",
-            "nvi": "13433880319,35723",
-            "controlUrl": "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic",
-            "controlName": "Untreated, HIC005",
-            "displayMode": "B",
-            "controlNvi": "6846576837,36479",
-            "tracks": [
-                // {
-                //     "url": "https://www.encodeproject.org/files/ENCFF166FMF/@@download/ENCFF166FMF.bigWig",
-                //     "name": "Homo sapiens 22Rv1 CTCF ",
-                //     "min": 0,
-                //     "max": 4.052322006225586
-                // },
-                {
-                    "url": "https://www.encodeproject.org/files/ENCFF386HDH/@@download/ENCFF386HDH.bigWig",
-                    "name": "Homo sapiens ...",
-                    "min": 0,
-                    "max": 1.5872053418840681
-                }
-            ]
-        }
-
 
     const config = {
         url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
@@ -59,15 +30,6 @@
         // locus: '8:128,752,711-128,753,714',
         width: 800,
         height: 800,
-        // tracks: [
-        //     {
-        //         url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
-        //         name: "CTCF",
-        //         min: 0,
-        //         max: 25,
-        //         color: "#ff8802"
-        //     }
-        // ]
     }
 
     const config_deep_map = {
@@ -100,8 +62,22 @@
         ]
     }
 
+    const config_session_bug =
+        {
+            "backgroundColor": "0,74,136",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic",
+            "name": "Combined",
+            "state": "7,7,5,815.66029,815.66029,640,640,1,NONE",
+            "colorScale": "23,255,114,110",
+            "selectedGene": "egfr",
+            "nvi": "13433880319,35723",
+            "controlUrl": "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic",
+            "controlName": "Untreated, HIC005",
+            "displayMode": "B",
+            "controlNvi": "6846576837,36479"
+        }
 
-    juicebox.init(document.getElementById("app-container"), config_deep_map)
+    juicebox.init(document.getElementById("app-container"), config_session_bug)
         .then(browser => {
             console.log(`${ browser.id } is good to go`);
         })

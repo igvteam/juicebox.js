@@ -315,7 +315,9 @@ function setTrackReorderArrowColors(trackPairs) {
         const order = parseInt(el.style.order)
         if (0 === order) {
             el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0'
+            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
         } else if (trackPairs.length - 1 === order) {
+            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
             el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0'
         } else {
             el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
