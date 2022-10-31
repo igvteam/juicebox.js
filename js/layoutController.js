@@ -3,7 +3,7 @@
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import Ruler from './ruler.js'
-import TrackPair from './trackPair.js'
+import TrackPair, {setTrackReorderArrowColors} from './trackPair.js'
 import TrackRenderer from './trackRenderer.js';
 import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
 import HICEvent from "./hicEvent.js";
@@ -180,6 +180,8 @@ class LayoutController {
             trackPair.x.$viewport.get(0).style.order = order
             trackPair.y.$viewport.get(0).style.order = order
         }
+
+        setTrackReorderArrowColors(this.browser.trackPairs)
 
     }
 

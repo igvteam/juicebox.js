@@ -53,6 +53,7 @@ import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
 import {isFile} from "./fileUtils.js"
+import {setTrackReorderArrowColors} from "./trackPair.js";
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 12;
@@ -1143,6 +1144,8 @@ class HICBrowser {
 
         this.layoutController.xAxisRuler.update()
         this.layoutController.yAxisRuler.update()
+
+        setTrackReorderArrowColors(this.trackPairs)
 
         await this.update()
 

@@ -44,10 +44,15 @@ class TrackPair {
                 let order = parseInt(this.x.$viewport.get(0).style.order)
 
                 if (0 === order && -1 === direction) {
+
+                    // el.style.color = '#f00'
                     return
                 } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
+                    // el.style.color = '#0f0'
                     return
                 }
+
+                // el.style.color = '#7F7F7F'
 
                 const newOrder = -1 === direction ? order - 1 : 1 + order
 
@@ -60,9 +65,9 @@ class TrackPair {
 
 
                 const a = this.browser.trackPairs;
-                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ];
+                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ]
 
-                console.log(`Track Reorder ${ hicUtils.trackOrderDescription(this.browser.trackPairs) }`)
+                setTrackReorderArrowColors(this.browser.trackPairs)
 
             })
         }
@@ -301,4 +306,24 @@ function doAutoscale(features) {
     return {min: min, max: max}
 }
 
+function setTrackReorderArrowColors(trackPairs) {
+
+    trackPairs.forEach(trackPair => {
+
+        const el = trackPair.x.$viewport.get(0)
+
+        const order = parseInt(el.style.order)
+        if (0 === order) {
+            el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0'
+        } else if (trackPairs.length - 1 === order) {
+            el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0'
+        } else {
+            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
+            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
+        }
+    })
+
+}
+
+export { setTrackReorderArrowColors }
 export default TrackPair
