@@ -7,7 +7,7 @@ import {createCheckbox} from "./igv-icons.js"
  */
 const MenuUtils = {
 
-    trackMenuItemList: function (trackPair) {
+    trackMenuItemList: trackPair => {
 
         const menuItems = []
 
@@ -31,23 +31,20 @@ const MenuUtils = {
         return menuItems
     },
 
-    numericDataMenuItems: function (trackPair) {
+    numericDataMenuItems: trackPair => {
 
-        const menuItems = [];
+        const menuItems = []
 
         // Data range
-        const $e = $('<div>');
+        const object = $('<div>')
+        object.text('Set data range')
 
-        $e.text('Set data range');
-        const clickHandler = function () {
-            const currentDataRange = trackPair.track.dataRange;
-            trackPair.dataRangeDialog.show({
-                min: currentDataRange.min || 0,
-                max: currentDataRange.max,
-            })
+        const click = () => {
+            const { min, max } = trackPair.track.dataRange;
+            trackPair.dataRangeDialog.show({ min: min || 0, max })
         }
 
-        menuItems.push({object: $e, click: clickHandler});
+        menuItems.push({ object, click })
 
         if (trackPair.track.logScale !== undefined) {
             menuItems.push({

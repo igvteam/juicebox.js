@@ -9,7 +9,6 @@ import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
 import Tile from "./tile.js";
-import * as hicUtils from './hicUtils.js';
 
 class TrackPair {
 
@@ -135,7 +134,10 @@ class TrackPair {
         $container.click(e => {
             e.preventDefault();
             e.stopPropagation();
-            this.trackGearPopup.presentMenuList(-(this.trackGearPopup.$popover.width()), 0, MenuUtils.trackMenuItemList(this));
+
+            const { trackMenuItemList, numericDataMenuItems } = MenuUtils
+            const { width } = this.trackGearPopup.$popover.get(0).getBoundingClientRect()
+            this.trackGearPopup.presentMenuList(-width, 0, [ ...trackMenuItemList(this), ...numericDataMenuItems(this) ])
         });
     }
 
@@ -257,16 +259,8 @@ class TrackPair {
                 this.track.draw(drawConfiguration);
 
             } else {
-
-                // context.clearRect(0, 0, this.x.$canvas.width(), this.x.$canvas.height())
-
-                // igv.IGVGraphics.fillRect(context, 0, 0, canvas.width, canvas.height, { 'fillStyle': 'rgb(0, 255, 0)' });
-
                 const wye = canvas.height - canvas.height/4
                 igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { 'fillStyle': 'rgba(0,0,0,0.1)' });
-
-                // igv.IGVGraphics.drawRandomColorVerticalLines(context)
-
             }
 
             this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features);
