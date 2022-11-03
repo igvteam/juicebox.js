@@ -56,7 +56,7 @@ import {isFile} from "./fileUtils.js"
 import {setTrackReorderArrowColors} from "./trackPair.js";
 
 const DEFAULT_PIXEL_SIZE = 1
-const MAX_PIXEL_SIZE = 12;
+const MAX_PIXEL_SIZE = 128
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
 class HICBrowser {
@@ -1015,36 +1015,32 @@ class HICBrowser {
             this.state.x += (dx / this.state.pixelSize);
             this.state.y += (dy / this.state.pixelSize);
 
-            if (this.resolutionLocked ||
-                (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
-                (direction < 0 && this.state.zoom === resolutions[0].index)) {
+            const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index
+            const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index
+            if (this.resolutionLocked || directionPositive || directionNegative) {
 
                 const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
                 const state = this.state;
                 const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
                 const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+
                 state.pixelSize = newPixelSize;
                 state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
                 state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
-                this.clamp();
+                this.clamp()
 
-                let event = HICEvent("LocusChange", {
-                    state: state,
-                    resolutionChanged: false,
-                    chrChanged: false
-                })
+                console.log(`browser - zoomAndCenter() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(this.dataset.bpResolutions[this.state.zoom]) } `)
 
-                this.update(event);
-                //this.eventBus.post(event);
+                this.update(HICEvent("LocusChange", { state, resolutionChanged: false, chrChanged: false }))
 
             } else {
                 let i;
                 for (i = 0; i < resolutions.length; i++) {
                     if (this.state.zoom === resolutions[i].index) break;
                 }
-                if (i !== undefined) {
+                if (i) {
                     const newZoom = resolutions[i + direction].index;
                     this.setZoom(newZoom);
                 }
@@ -1059,43 +1055,32 @@ class HICBrowser {
      */
     async setZoom(zoom) {
 
-        try {
+        const currentResolution = this.dataset.bpResolutions[this.state.zoom]
+        const { width, height } = this.contactMatrixView.getViewDimensions();
+        const xCenter = this.state.x + width / (2 * this.state.pixelSize);    // center in bins
+        const yCenter = this.state.y + height / (2 * this.state.pixelSize);    // center in bins
 
-            // Shift x,y to maintain center, if possible
-            const bpResolutions = this.dataset.bpResolutions;
-            const currentResolution = bpResolutions[this.state.zoom];
-            const viewDimensions = this.contactMatrixView.getViewDimensions();
-            const xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-            const yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+        const newResolution = this.dataset.bpResolutions[zoom];
+        const newXCenter = xCenter * (currentResolution / newResolution);
+        const newYCenter = yCenter * (currentResolution / newResolution);
 
-            const newResolution = bpResolutions[zoom];
-            const newXCenter = xCenter * (currentResolution / newResolution);
-            const newYCenter = yCenter * (currentResolution / newResolution);
-            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
-            const state = this.state;
-            const newPixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPS);
-            const zoomChanged = (state.zoom !== zoom);
+        const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
 
-            state.zoom = zoom;
-            state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
-            state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
-            state.pixelSize = newPixelSize;
-            this.clamp();
+        this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
 
-            await this.contactMatrixView.zoomIn()
+        const resolutionChanged = (this.state.zoom !== zoom);
 
-            let event = HICEvent("LocusChange", {
-                state: state,
-                resolutionChanged: zoomChanged,
-                chrChanged: false
-            })
+        this.state.zoom = zoom
+        this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize));
+        this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize));
 
-            this.update(event);
-            //this.eventBus.post(event);
+        this.clamp()
 
-        } finally {
-            // this.stopSpinner()
-        }
+        await this.contactMatrixView.zoomIn()
+
+        console.log(`browser - setZoom() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(newResolution) } `)
+
+        this.update( HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }) )
 
     };
 
