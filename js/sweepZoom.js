@@ -88,33 +88,26 @@ class SweepZoom {
 
     commit() {
 
-
-        this.$rulerSweeper.hide();
-
-        const state = this.browser.state;
-
-        // bp-per-bin
-        const resolution = this.browser.resolution();
+        this.$rulerSweeper.hide()
 
         // Convert page -> offset coordinates
-        const posX = this.sweepRect.x - this.$target.offset().left;
-        const posY = this.sweepRect.y - this.$target.offset().top;
+        const xPixel = this.sweepRect.x - this.$target.offset().left
+        const yPixel = this.sweepRect.y - this.$target.offset().top
 
+        const { x, y, chr1, chr2, zoom, pixelSize } = this.browser.state
+
+        // bp-per-bin
+        const bpResolution = this.browser.dataset.bpResolutions[ zoom ]
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const x = (state.x + (posX / state.pixelSize)) * resolution;
-        const y = (state.y + (posY / state.pixelSize)) * resolution;
+        const xBP = (x + (xPixel / pixelSize)) * bpResolution
+        const yBP = (y + (yPixel / pixelSize)) * bpResolution
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const width = (this.sweepRect.width / state.pixelSize) * resolution;
-        const height = (this.sweepRect.height / state.pixelSize) * resolution;
+        const  widthBP = ( this.sweepRect.width / pixelSize) * bpResolution
+        const heightBP = (this.sweepRect.height / pixelSize) * bpResolution
 
-        // bp = bp + bp
-        const xMax = x + width;
-        const yMax = y + height;
-
-        const minimumResolution = this.browser.dataset.bpResolutions[this.browser.dataset.bpResolutions.length - 1];
-        this.browser.goto(state.chr1, x, xMax, state.chr2, y, yMax, minimumResolution);
+        this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP, yBP + heightBP)
 
     }
 }

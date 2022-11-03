@@ -1291,8 +1291,6 @@ class HICBrowser {
 
         let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
 
-        console.log(`browser.goto - target resolution ${ StringUtils.numberFormatter(targetResolution) }`)
-
         if (minResolution && targetResolution < minResolution) {
             const maxExtent = viewWidth * minResolution;
             const xCenter = (bpX + bpXMax) / 2;
@@ -1326,6 +1324,9 @@ class HICBrowser {
         this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearImageCaches();
+
+
+        console.log(`browser - goto() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(newResolution) } `)
 
 
         let event = HICEvent("LocusChange", {
