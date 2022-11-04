@@ -82,7 +82,12 @@ const MenuUtils = {
                 <div>G</div>
             </div>`
 
-        menuItems.push({ object: $(html), click: () => {} })
+        const click = e => {
+            e.preventDefault()
+            e.stopPropagation()
+        }
+
+        menuItems.push({ object: $(html), click })
 
         return menuItems
 
