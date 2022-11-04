@@ -135,9 +135,21 @@ class TrackPair {
             e.preventDefault();
             e.stopPropagation();
 
-            const { trackMenuItemList, numericDataMenuItems } = MenuUtils
+            const { trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems } = MenuUtils
+
+            const list = [ ...trackMenuItemList(this) ]
+
+            if ('wig' === this.track.type) {
+                list.push(...numericDataMenuItems(this))
+            }
+
+            if ('sequence' === this.track.type) {
+                list.push(...nucleotideColorChartMenuItems(this))
+            }
+
             const { width } = this.trackGearPopup.$popover.get(0).getBoundingClientRect()
-            this.trackGearPopup.presentMenuList(-width, 0, [ ...trackMenuItemList(this), ...numericDataMenuItems(this) ])
+
+            this.trackGearPopup.presentMenuList(-width, 0, list)
         });
     }
 

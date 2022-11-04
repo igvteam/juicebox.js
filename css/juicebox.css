@@ -102,6 +102,37 @@
   height: 12px;
 }
 
+.jb-igv-menu-popup-chart {
+  display: flex;
+  flex-flow: row;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+  align-items: center;
+  height: 16px;
+}
+.jb-igv-menu-popup-chart > div {
+  font-size: 0.75rem;
+  font-weight: 800;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  color: white;
+  text-align: center;
+  vertical-align: middle;
+}
+.jb-igv-menu-popup-chart > div:nth-child(1) {
+  background-color: rgb(0, 200, 0);
+}
+.jb-igv-menu-popup-chart > div:nth-child(2) {
+  background-color: rgb(0, 0, 200);
+}
+.jb-igv-menu-popup-chart > div:nth-child(3) {
+  background-color: rgb(255, 0, 0);
+}
+.jb-igv-menu-popup-chart > div:nth-child(4) {
+  background-color: rgb(209, 113, 5);
+}
+
 .hic-igv-right-hand-gutter {
   position: absolute;
   top: 0;

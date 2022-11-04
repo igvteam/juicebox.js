@@ -67,6 +67,25 @@ const MenuUtils = {
         )
 
         return menuItems;
+    },
+
+    nucleotideColorChartMenuItems: trackPair => {
+
+        const menuItems = []
+        menuItems.push('<hr/>')
+
+        const html =
+            `<div class="jb-igv-menu-popup-chart">
+                <div>A</div>
+                <div>C</div>
+                <div>T</div>
+                <div>G</div>
+            </div>`
+
+        menuItems.push({ object: $(html), click: () => {} })
+
+        return menuItems
+
     }
 
 }
