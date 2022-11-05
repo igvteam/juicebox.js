@@ -668,16 +668,16 @@ class HICBrowser {
 
             await this.setGenome(this.dataset)
 
-            // const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ]
-            // if (genomeConfig.tracks && genomeConfig.tracks.length > 0) {
-            //
-            //     for (let track of genomeConfig.tracks) {
-            //         track.displayMode = 'COLLAPSED'
-            //     }
-            //
-            //     const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
-            //     await this.loadTracks([ ...genomeConfig.tracks, sequenceTrackConfig ])
-            // }
+            const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ]
+            if (genomeConfig.tracks && genomeConfig.tracks.length > 0) {
+
+                for (let track of genomeConfig.tracks) {
+                    track.displayMode = 'COLLAPSED'
+                }
+
+                const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
+                await this.loadTracks([ ...genomeConfig.tracks, sequenceTrackConfig ])
+            }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
