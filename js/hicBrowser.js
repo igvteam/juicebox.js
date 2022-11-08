@@ -1480,8 +1480,14 @@ class HICBrowser {
                 const track = trackRenderer.x.track;
                 const config = track.config;
                 if (typeof config.url === "string") {
-                    const t = {
-                        url: config.url
+                    
+                    const t = { url: config.url }
+
+                    if (config.type) {
+                        t.type = config.type
+                    }
+                    if (config.format) {
+                        t.format = config.format
                     }
                     if (track.name) {
                         t.name = track.name;
