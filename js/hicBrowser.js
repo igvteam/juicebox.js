@@ -1477,10 +1477,12 @@ class HICBrowser {
             let tracks = [];
             jsonOBJ.tracks = tracks;
             for (let trackRenderer of this.trackPairs) {
+
                 const track = trackRenderer.x.track;
-                const config = track.config;
+                const config = track.config
+
                 if (typeof config.url === "string") {
-                    
+
                     const t = { url: config.url }
 
                     if (config.type) {
@@ -1499,7 +1501,9 @@ class HICBrowser {
                     if (track.color) {
                         t.color = track.color;
                     }
-                    tracks.push(t);
+                    tracks.push(t)
+                } else if ('sequence' === config.type) {
+                    tracks.push({ type: 'sequence', format: 'sequence' })
                 }
 
             }
