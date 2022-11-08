@@ -230,6 +230,11 @@ class HICBrowser {
         this.genome = new Genome(dataset.genomeId, dataset.chromosomes)
 
         const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ dataset.genomeId ]
+
+        if (undefined === genomeConfig) {
+            const str = `Unsupported genome ${ dataset.genomeId }`
+            throw Error(str)
+        }
         this.genome.sequence = await igv.loadFasta(genomeConfig)
 
         if (this.genome.id !== previousGenomeId) {
@@ -666,7 +671,12 @@ class HICBrowser {
             this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
             this.dataset.name = name
 
-            await this.setGenome(this.dataset)
+            try {
+                await this.setGenome(this.dataset)
+            } catch (e) {
+                console.error(e.message)
+                Alert.presentAlert(e.message)
+            }
 
             // const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ]
             // if (genomeConfig.tracks && genomeConfig.tracks.length > 0) {
