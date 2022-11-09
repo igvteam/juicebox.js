@@ -232,7 +232,7 @@ class HICBrowser {
         const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ dataset.genomeId ]
 
         if (undefined === genomeConfig) {
-            const str = `Unsupported genome ${ dataset.genomeId }`
+            const str = `Visual DNA sequence track not supported for ${ dataset.genomeId } genome`
             throw Error(str)
         }
         this.genome.sequence = await igv.loadFasta(genomeConfig)
