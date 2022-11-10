@@ -231,15 +231,32 @@ class HICBrowser {
 
         const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ dataset.genomeId ]
 
-        if (undefined === genomeConfig) {
-            const str = `Visual DNA sequence track not supported for ${ dataset.genomeId } genome`
-            throw Error(str)
+        if (genomeConfig) {
+            this.genome.sequence = await igv.loadFasta(genomeConfig)
+        } else {
+            this.genome.sequence = undefined
         }
-        this.genome.sequence = await igv.loadFasta(genomeConfig)
+
+        console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
 
         if (this.genome.id !== previousGenomeId) {
-            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
+            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
         }
+
+
+        // if (undefined === genomeConfig) {
+        //     EventBus.globalBus.post(HICEvent("GenomeChange", 'NO_GENOME'))
+        //     // const str = `Visual DNA sequence track not supported for ${ dataset.genomeId } genome`
+        //     // throw Error(str)
+        // } else {
+        //
+        //     this.genome.sequence = await igv.loadFasta(genomeConfig)
+        //
+        //     if (this.genome.id !== previousGenomeId) {
+        //         EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
+        //     }
+        //
+        // }
 
     }
 
