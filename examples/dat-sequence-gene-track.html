@@ -30,6 +30,19 @@
         // locus: '8:128,752,711-128,753,714',
         width: 800,
         height: 800,
+        tracks: [
+            {
+                // type: "sequence",
+                // name: "Human (GRCh37/hg19)",     // <= Optional
+                url: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta",
+                indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg19/hg19.fasta.fai",
+            },
+            // {
+            //     "url": "https://www.encodeproject.org/files/ENCFF754TJH/@@download/ENCFF754TJH.bigWig",
+            //     "name": "Encode bigwig",
+            //     color: "#ff0289"
+            // },
+        ]
     }
 
     const config_deep_map = {
@@ -62,25 +75,7 @@
         ]
     }
 
-    const session_bug =
-        {
-            "backgroundColor": "255,255,255",
-            "url": "https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/moshe/all.hic",
-            "name": "all.hic",
-            "state": "8,8,16,7256882.810416669,7256884.185416662,640,640,15.157894736842106,NONE",
-            "colorScale": "2,255,0,0",
-            "nvi": "372248688388,68157",
-            "tracks": [
-                {
-                    "url": "https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.txt.gz",
-                    "name": "Refseq Genes",
-                    "min": null,
-                    "max": null
-                }
-            ]
-        }
-
-    juicebox.init(document.getElementById("app-container"), session_bug)
+    juicebox.init(document.getElementById("app-container"), config)
         .then(browser => {
             console.log(`${ browser.id } is good to go`);
         })

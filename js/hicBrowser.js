@@ -508,13 +508,16 @@ class HICBrowser {
 
             for (let config of configs) {
 
-                if (config.type !== 'sequence') {
+                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url)
 
-                    const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+                const extension = hicUtils.getExtension(fileName)
 
-                    if(!config.format) {
-                        config.format = TrackUtils.inferFileFormat(fileName)
-                    }
+                if ('fasta' === extension || 'fa' === extension) {
+                    config.type = config.format = 'sequence'
+                }
+
+                if(!config.format) {
+                    config.format = TrackUtils.inferFileFormat(fileName)
                 }
 
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
@@ -527,7 +530,7 @@ class HICBrowser {
 
                 config.height = trackHeight;
 
-                if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
+                if ("bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
