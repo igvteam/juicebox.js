@@ -21,6 +21,7 @@
 
     import juicebox from '../js/index.js'
 
+
     const config =
         {
 
@@ -72,7 +73,13 @@
             //     ],
         }
 
-    juicebox.init(document.getElementById("app-container"), config_deep_map)
+    const debug =
+        {
+            url: 'https://hicfiles.s3.amazonaws.com/external/ay/p-falciparum-3d7-0h-hiseq.hic',
+            name: 'No Sequence Track Available',
+        }
+
+    juicebox.init(document.getElementById("app-container"), debug)
         .then(browser => {
 
             console.log(`${ browser.id } is good to go`)

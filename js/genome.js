@@ -37,8 +37,11 @@ class Genome {
     constructor(id, chromosomes, config) {
 
         this.id = id;
-        this.chromosomes = chromosomes;
-        this.config = createConfig(config)
+        this.chromosomes = chromosomes
+
+        if (config) {
+            this.config = createConfig(config)
+        }
 
         this.wgChromosomeNames = [];
         this.chromosomeLookupTable = {};
