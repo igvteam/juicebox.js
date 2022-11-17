@@ -34,10 +34,12 @@
  * @constructor
  */
 class Genome {
-    constructor(id, chromosomes) {
+    constructor(id, chromosomes, config) {
 
         this.id = id;
         this.chromosomes = chromosomes;
+        this.config = config
+
         this.wgChromosomeNames = [];
         this.chromosomeLookupTable = {};
 

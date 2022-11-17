@@ -56,25 +56,34 @@
 
             // locus: '8',
             locus: 'chr8:63,069,506-63,074,545',
-            tracks:
-                [
-                    {
-                        name: "Sequence - As Track",
-                        url: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
-                        indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai",
-                    },
-                    {
-                        name: "Refseq Genes - As Track",
-                        format: "refgene",
-                        url: "https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.txt.gz",
-                        indexURL: "https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.txt.gz.tbi"
-                    }
-                ],
+            // tracks:
+            //     [
+            //         {
+            //             name: "Sequence - As Track",
+            //             url: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa",
+            //             indexURL: "https://s3.amazonaws.com/igv.broadinstitute.org/genomes/seq/hg38/hg38.fa.fai",
+            //         },
+            //         {
+            //             name: "Refseq Genes - As Track",
+            //             format: "refgene",
+            //             url: "https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.txt.gz",
+            //             indexURL: "https://s3.amazonaws.com/igv.org.genomes/hg38/ncbiRefSeq.txt.gz.tbi"
+            //         }
+            //     ],
         }
 
     juicebox.init(document.getElementById("app-container"), config_deep_map)
         .then(browser => {
-            console.log(`${ browser.id } is good to go`);
+
+            console.log(`${ browser.id } is good to go`)
+
+            const { id } = browser.genome
+            console.log(`genome change to ${ id }`)
+
+            const { fastaURL, indexURL, tracks } = browser.genome.config
+
+            browser.loadTracks([ { url: fastaURL, indexURL }, ...tracks ])
+
         })
 
 

@@ -227,36 +227,13 @@ class HICBrowser {
 
         const previousGenomeId = this.genome ? this.genome.id : undefined
 
-        this.genome = new Genome(dataset.genomeId, dataset.chromosomes)
-
-        const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ dataset.genomeId ]
-
-        if (genomeConfig) {
-            this.genome.sequence = await igv.loadFasta(genomeConfig)
-        } else {
-            this.genome.sequence = undefined
-        }
+        this.genome = new Genome(dataset.genomeId, dataset.chromosomes, igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ])
 
         console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
 
         if (this.genome.id !== previousGenomeId) {
             EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
         }
-
-
-        // if (undefined === genomeConfig) {
-        //     EventBus.globalBus.post(HICEvent("GenomeChange", 'NO_GENOME'))
-        //     // const str = `Visual DNA sequence track not supported for ${ dataset.genomeId } genome`
-        //     // throw Error(str)
-        // } else {
-        //
-        //     this.genome.sequence = await igv.loadFasta(genomeConfig)
-        //
-        //     if (this.genome.id !== previousGenomeId) {
-        //         EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
-        //     }
-        //
-        // }
 
     }
 
@@ -697,17 +674,6 @@ class HICBrowser {
                 console.error(e.message)
                 Alert.presentAlert(e.message)
             }
-
-            // const genomeConfig = igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ]
-            // if (genomeConfig.tracks && genomeConfig.tracks.length > 0) {
-            //
-            //     for (let track of genomeConfig.tracks) {
-            //         track.displayMode = 'COLLAPSED'
-            //     }
-            //
-            //     const sequenceTrackConfig = { type: 'sequence', format: 'sequence' }
-            //     await this.loadTracks([ ...genomeConfig.tracks, sequenceTrackConfig ])
-            // }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
