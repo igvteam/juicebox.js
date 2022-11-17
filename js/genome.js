@@ -38,7 +38,7 @@ class Genome {
 
         this.id = id;
         this.chromosomes = chromosomes;
-        this.config = config
+        this.config = createConfig(config)
 
         this.wgChromosomeNames = [];
         this.chromosomeLookupTable = {};
@@ -130,6 +130,23 @@ class Genome {
     getGenomeLength() {
         return this.genomeLength;
     }
+}
+
+function createConfig(genomeJSON) {
+
+    let { url, indexURL, fastaURL, compressedIndexURL, name, type, format, color, altColor, tracks } = genomeJSON
+
+    if (fastaURL) {
+        url = fastaURL
+    }
+
+    if (tracks && tracks.length > 0) {
+        return { url, indexURL, compressedIndexURL, name, type, format, color, altColor, track: tracks[ 0 ] }
+    } else {
+        return { url, indexURL, compressedIndexURL, name, type, format, color, altColor }
+    }
+
+
 }
 
 function computeCumulativeOffsets() {

@@ -80,9 +80,14 @@
             const { id } = browser.genome
             console.log(`genome change to ${ id }`)
 
-            const { fastaURL, indexURL, tracks } = browser.genome.config
+            const { config } = browser.genome
 
-            browser.loadTracks([ { url: fastaURL, indexURL }, ...tracks ])
+            if (config.track) {
+                browser.loadTracks([ config, config.track ])
+            } else {
+                browser.loadTracks([ config ])
+            }
+
 
         })
 
