@@ -229,7 +229,7 @@ class HICBrowser {
 
         this.genome = new Genome(dataset.genomeId, dataset.chromosomes, igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ])
 
-        console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
+        // console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
 
         if (this.genome.id !== previousGenomeId) {
             EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
@@ -1024,8 +1024,6 @@ class HICBrowser {
 
                 this.clamp()
 
-                console.log(`browser - zoomAndCenter() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(this.dataset.bpResolutions[this.state.zoom]) } `)
-
                 this.update(HICEvent("LocusChange", { state, resolutionChanged: false, chrChanged: false }))
 
             } else {
@@ -1070,8 +1068,6 @@ class HICBrowser {
         this.clamp()
 
         await this.contactMatrixView.zoomIn()
-
-        console.log(`browser - setZoom() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(newResolution) } `)
 
         this.update( HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }) )
 
@@ -1317,10 +1313,6 @@ class HICBrowser {
         this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearImageCaches();
-
-
-        console.log(`browser - goto() pixelSize ${ this.state.pixelSize } resolution ${ StringUtils.numberFormatter(newResolution) } `)
-
 
         let event = HICEvent("LocusChange", {
             state: this.state,

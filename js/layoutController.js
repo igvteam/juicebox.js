@@ -221,8 +221,6 @@ class LayoutController {
 
             this.browser.updateLayout();
 
-        } else {
-            //console.log('No more tracks.');
         }
     }
 
