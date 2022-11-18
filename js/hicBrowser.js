@@ -511,7 +511,7 @@ class HICBrowser {
 
                 config.height = trackHeight;
 
-                if ("bedpe" === config.format || "interact" === config.format) {
+                if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
