@@ -497,8 +497,12 @@ class HICBrowser {
                     config.format = TrackUtils.inferFileFormat(fileName)
                 }
 
+                if ('annotation' === config.type) {
+                    config.displayMode = 'COLLAPSED'
+                }
+
                 if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
-                    delete config.color;
+                    delete config.color
                 }
 
                 if (config.max === undefined) {
