@@ -7,15 +7,15 @@ import {createCheckbox} from "./igv-icons.js"
  */
 const MenuUtils = {
 
-    trackMenuItemList: function (trackPair) {
+    trackMenuItemList: trackPair => {
 
+        const menuItems = []
 
-        let menuItems = [];
+        menuItems.push(trackRenameMenuItem(trackPair))
+        menuItems.push("<hr/>")
 
-        menuItems.push(trackRenameMenuItem(trackPair));
-        menuItems.push("<hr/>");
-        menuItems.push(colorPickerMenuItem({trackRenderer: trackPair, label: "Set color", option: "color"}));
-        menuItems.push(unsetColorMenuItem({trackRenderer: trackPair, label: "Unset color"}));
+        menuItems.push(colorPickerMenuItem({ trackPair, label: "Set color", option: "color" }))
+        menuItems.push(unsetColorMenuItem({ trackPair, label: "Unset color" }))
 
         const trackMenuItems = trackPair.track.menuItemList();
         if(trackMenuItems && trackMenuItems.length > 0) {
@@ -23,39 +23,28 @@ const MenuUtils = {
             menuItems.push.apply(menuItems, trackMenuItems);
         }
 
-
-        // const vizWindowTypes = new Set(['alignment', 'annotation', 'variant', 'eqtl', 'snp']);
-        // const hasVizWindow = trackRenderer.track.config && trackRenderer.track.config.visibilityWindow !== undefined;
-        // if (hasVizWindow || vizWindowTypes.has(trackRenderer.track.config.type)) {
-        //     menuItems.push('<hr/>');
-        //     menuItems.push(visibilityWindowMenuItem(trackRenderer));
-        // }
-
         if (trackPair.track.removable !== false) {
             menuItems.push('<hr/>');
-            menuItems.push(trackRemovalMenuItem(trackPair));
+            menuItems.push(trackRemovalMenuItem(trackPair))
         }
 
-        return menuItems;
+        return menuItems
     },
 
-    numericDataMenuItems: function (trackPair) {
+    numericDataMenuItems: trackPair => {
 
-        const menuItems = [];
+        const menuItems = []
 
         // Data range
-        const $e = $('<div>');
+        const object = $('<div>')
+        object.text('Set data range')
 
-        $e.text('Set data range');
-        const clickHandler = function () {
-            const currentDataRange = trackPair.track.dataRange;
-            trackPair.dataRangeDialog.show({
-                min: currentDataRange.min || 0,
-                max: currentDataRange.max,
-            })
+        const click = () => {
+            const { min, max } = trackPair.track.dataRange;
+            trackPair.dataRangeDialog.show({ min: min || 0, max })
         }
 
-        menuItems.push({object: $e, click: clickHandler});
+        menuItems.push({ object, click })
 
         if (trackPair.track.logScale !== undefined) {
             menuItems.push({
@@ -78,99 +67,83 @@ const MenuUtils = {
         )
 
         return menuItems;
-    }
+    },
 
-}
+    nucleotideColorChartMenuItems: trackPair => {
 
+        const menuItems = []
+        menuItems.push('<hr/>')
 
-function trackRemovalMenuItem(trackRenderer) {
+        const html =
+            `<div class="jb-igv-menu-popup-chart">
+                <div>A</div>
+                <div>C</div>
+                <div>T</div>
+                <div>G</div>
+            </div>`
 
-    var $e, menuClickHandler;
-    $e = $('<div>');
-    $e.text('Remove track');
-
-    menuClickHandler = function menuClickHandler() {
-        var browser = trackRenderer.browser;
-        browser.layoutController.removeTrackXYPair(trackRenderer);
-    };
-
-    return {object: $e, click: menuClickHandler};
-
-}
-
-function colorPickerMenuItem({trackRenderer, label, option}) {
-    var $e,
-        clickHandler;
-
-    $e = $('<div>');
-    $e.text(label);
-
-    clickHandler = function () {
-        trackRenderer.colorPicker.show();
-    };
-
-    return {object: $e, click: clickHandler};
-}
-
-function unsetColorMenuItem({trackRenderer, label}) {
-
-    const $e = $('<div>');
-    $e.text(label);
-
-    return {
-        object: $e,
-        click: () => {
-            trackRenderer.track.color = undefined;
-            trackRenderer.repaintViews();
+        const click = e => {
+            e.preventDefault()
+            e.stopPropagation()
         }
+
+        menuItems.push({ object: $(html), click })
+
+        return menuItems
+
     }
+
 }
 
-function trackRenameMenuItem(trackRenderer) {
+function trackRemovalMenuItem(trackPair) {
+
+    const object = $('<div>')
+    object.text('Remove track')
+
+    const click = () => trackPair.browser.layoutController.removeTrackXYPair(trackPair)
+
+    return { object, click }
+
+}
+
+function colorPickerMenuItem({ trackPair, label, option }) {
+
+    const object = $('<div>')
+    object.text(label)
+
+    const click = () => trackPair.colorPicker.show()
+
+    return { object, click }
+}
+
+function unsetColorMenuItem({trackPair, label}) {
+
+    const object = $('<div>')
+    object.text(label)
+
+    const click = () => {
+        trackPair.track.color = undefined
+        trackPair.repaintViews()
+    }
+
+    return { object, click }
+}
+
+function trackRenameMenuItem(trackPair) {
+
+    const object = $('<div>')
+    object.text('Set track name')
+
     const click = e => {
-        const callback = (value) => {
-            value = value.trim();
-            value = ('' === value || undefined === value) ? 'untitled' : value;
-            trackRenderer.setTrackName(value);
-        };
-        trackRenderer.browser.inputDialog.present({label: 'Track Name', value: trackRenderer.track.name, callback}, e);
-    };
-    const object = $('<div>');
-    object.text('Set track name');
-    return {object, click};
+
+        const callback = value => {
+            '' === value || undefined === value ? trackPair.setTrackName('') : trackPair.setTrackName(value.trim())
+        }
+
+        trackPair.browser.inputDialog.present({label: 'Track Name', value: trackPair.track.name || '', callback }, e)
+    }
+
+    return { object, click }
 }
 
-// function visibilityWindowMenuItem(trackRenderer) {
-//
-//     const click = e => {
-//
-//         const callback = () => {
-//
-//             let value = trackRenderer.browser.inputDialog.input.value
-//             value = '' === value || undefined === value ? -1 : value.trim()
-//
-//             trackRenderer.track.visibilityWindow = Number.parseInt(value);
-//             trackRenderer.track.config.visibilityWindow = Number.parseInt(value);
-//
-//             trackRenderer.updateViews();
-//         }
-//
-//         const config =
-//             {
-//                 label: 'Visibility Window',
-//                 value: (trackRenderer.track.visibilityWindow),
-//                 callback
-//             }
-//         trackRenderer.browser.inputDialog.present(config, e);
-//
-//     };
-//
-//     const object = $('<div>');
-//     object.text('Set visibility window');
-//     return {object, click};
-//
-// }
-
-
-
-export default MenuUtils;
+export default MenuUtils

@@ -25,9 +25,9 @@
  * @author Jim Robinson
  */
 
-import igv from './igv/igv.js'
-import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {DOMUtils, FileUtils, TrackUtils} from '../node_modules/igv-utils/src/index.js'
+import igv from '../node_modules/igv/dist/igv.esm.js'
+import {Alert,InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {DOMUtils, FileUtils, TrackUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js";
@@ -52,11 +52,11 @@ import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
 import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
-import {InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {isFile} from "./fileUtils.js"
+import {setTrackReorderArrowColors} from "./trackPair.js";
 
 const DEFAULT_PIXEL_SIZE = 1
-const MAX_PIXEL_SIZE = 12;
+const MAX_PIXEL_SIZE = 128
 const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
 
 class HICBrowser {
@@ -140,6 +140,8 @@ class HICBrowser {
 
     async init(config) {
 
+        await igv.GenomeUtils.initializeGenomes({ loadDefaultGenomes: true })
+
         this.state = config.state ? config.state : State.default()
         this.pending = new Map();
         this.eventBus.hold();
@@ -182,7 +184,8 @@ class HICBrowser {
                 await this.parseGotoInput(config.locus)
             }
 
-            var promises = [];
+            const promises = []
+
             if (config.tracks) {
                 promises.push(this.loadTracks(config.tracks))
             }
@@ -218,6 +221,36 @@ class HICBrowser {
             this.contactMatrixView.update();
         }
 
+    }
+
+    async setGenome(dataset) {
+
+        const previousGenomeId = this.genome ? this.genome.id : undefined
+
+        this.genome = new Genome(dataset.genomeId, dataset.chromosomes, igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ])
+
+        // console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
+
+        if (this.genome.id !== previousGenomeId) {
+            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
+        }
+
+    }
+
+    getGenomeTrackConfigurations(genomeId) {
+
+        const config = igv.GenomeUtils.KNOWN_GENOMES[ genomeId ]
+
+        if (config.tracks && config.tracks.length > 0) {
+
+            for (let track of config.tracks) {
+                track.displayMode = 'COLLAPSED'
+            }
+
+            return config.tracks
+        } else {
+            return undefined
+        }
     }
 
     createMenu($root) {
@@ -414,9 +447,10 @@ class HICBrowser {
                 this.genome.getGenomeLength() / width :
                 resolution / this.state.pixelSize
 
-        const gs = {
-            bpp: bpp
-        };
+        const gs =
+            {
+                bpp
+            }
 
         if (axis === "x") {
             gs.chromosome = this.dataset.chromosomes[this.state.chr1];
@@ -449,9 +483,15 @@ class HICBrowser {
             const tracks = [];
             const promises2D = [];
 
-            for (let config of /*trackConfigurations*/configs) {
+            for (let config of configs) {
 
-                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url);
+                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url)
+
+                const extension = hicUtils.getExtension(fileName)
+
+                if ('fasta' === extension || 'fa' === extension) {
+                    config.type = config.format = 'sequence'
+                }
 
                 if(!config.format) {
                     config.format = TrackUtils.inferFileFormat(fileName)
@@ -465,21 +505,26 @@ class HICBrowser {
                     config.autoscale = true;
                 }
 
-                // config.height = ("annotation" === config.type) ? annotationTrackHeight : wigTrackHeight;
                 config.height = trackHeight;
 
-                if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
+                if ("bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
                     promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
-                    const track = await igv.createTrack(config, this);
+                    const track = await igv.createTrack(config, this)
+
+                    if (typeof track.postInit === 'function') {
+                        await track.postInit()
+                    }
+
                     tracks.push(track)
                 }
             }
 
+
             if (tracks.length > 0) {
 
-                this.layoutController.tracksLoaded(tracks);
+                this.layoutController.updateLayoutWithTracks(tracks);
 
                 const $gear_container = $('.hic-igv-right-hand-gutter');
                 if (true === this.showTrackLabelAndGutter) {
@@ -623,15 +668,13 @@ class HICBrowser {
             this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
             this.dataset.name = name
 
-            const previousGenomeId = this.genome ? this.genome.id : undefined;
-            this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes);
-
-            // TODO -- this is not going to work with browsers on different assemblies on the same page.
-            //igv.browser.genome = this.genome;
-
-            if (this.genome.id !== previousGenomeId) {
-                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
+            try {
+                await this.setGenome(this.dataset)
+            } catch (e) {
+                console.error(e.message)
+                Alert.presentAlert(e.message)
             }
+
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             if (config.state) {
@@ -953,8 +996,8 @@ class HICBrowser {
             // jump from whole genome to chromosome
             const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
             const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const chrX = this.genome.getChromsosomeForCoordinate(genomeCoordX);
-            const chrY = this.genome.getChromsosomeForCoordinate(genomeCoordY);
+            const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX);
+            const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY);
             this.setChromosomes(chrX.index, chrY.index);
         } else {
             const resolutions = this.getResolutions();
@@ -965,36 +1008,30 @@ class HICBrowser {
             this.state.x += (dx / this.state.pixelSize);
             this.state.y += (dy / this.state.pixelSize);
 
-            if (this.resolutionLocked ||
-                (direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index) ||
-                (direction < 0 && this.state.zoom === resolutions[0].index)) {
+            const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index
+            const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index
+            if (this.resolutionLocked || directionPositive || directionNegative) {
 
                 const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
                 const state = this.state;
                 const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
                 const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+
                 state.pixelSize = newPixelSize;
                 state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
                 state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
 
-                this.clamp();
+                this.clamp()
 
-                let event = HICEvent("LocusChange", {
-                    state: state,
-                    resolutionChanged: false,
-                    chrChanged: false
-                })
-
-                this.update(event);
-                //this.eventBus.post(event);
+                this.update(HICEvent("LocusChange", { state, resolutionChanged: false, chrChanged: false }))
 
             } else {
                 let i;
                 for (i = 0; i < resolutions.length; i++) {
                     if (this.state.zoom === resolutions[i].index) break;
                 }
-                if (i !== undefined) {
+                if (i) {
                     const newZoom = resolutions[i + direction].index;
                     this.setZoom(newZoom);
                 }
@@ -1009,43 +1046,30 @@ class HICBrowser {
      */
     async setZoom(zoom) {
 
-        try {
+        const currentResolution = this.dataset.bpResolutions[this.state.zoom]
+        const { width, height } = this.contactMatrixView.getViewDimensions();
+        const xCenter = this.state.x + width / (2 * this.state.pixelSize);    // center in bins
+        const yCenter = this.state.y + height / (2 * this.state.pixelSize);    // center in bins
 
-            // Shift x,y to maintain center, if possible
-            const bpResolutions = this.dataset.bpResolutions;
-            const currentResolution = bpResolutions[this.state.zoom];
-            const viewDimensions = this.contactMatrixView.getViewDimensions();
-            const xCenter = this.state.x + viewDimensions.width / (2 * this.state.pixelSize);    // center in bins
-            const yCenter = this.state.y + viewDimensions.height / (2 * this.state.pixelSize);    // center in bins
+        const newResolution = this.dataset.bpResolutions[zoom];
+        const newXCenter = xCenter * (currentResolution / newResolution);
+        const newYCenter = yCenter * (currentResolution / newResolution);
 
-            const newResolution = bpResolutions[zoom];
-            const newXCenter = xCenter * (currentResolution / newResolution);
-            const newYCenter = yCenter * (currentResolution / newResolution);
-            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
-            const state = this.state;
-            const newPixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPS);
-            const zoomChanged = (state.zoom !== zoom);
+        const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
 
-            state.zoom = zoom;
-            state.x = Math.max(0, newXCenter - viewDimensions.width / (2 * newPixelSize));
-            state.y = Math.max(0, newYCenter - viewDimensions.height / (2 * newPixelSize));
-            state.pixelSize = newPixelSize;
-            this.clamp();
+        this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
 
-            await this.contactMatrixView.zoomIn()
+        const resolutionChanged = (this.state.zoom !== zoom);
 
-            let event = HICEvent("LocusChange", {
-                state: state,
-                resolutionChanged: zoomChanged,
-                chrChanged: false
-            })
+        this.state.zoom = zoom
+        this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize));
+        this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize));
 
-            this.update(event);
-            //this.eventBus.post(event);
+        this.clamp()
 
-        } finally {
-            // this.stopSpinner()
-        }
+        await this.contactMatrixView.zoomIn()
+
+        this.update( HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }) )
 
     };
 
@@ -1080,22 +1104,24 @@ class HICBrowser {
      */
     async updateLayout() {
 
-        this.clamp();
+        this.clamp()
 
-        this.trackPairs.forEach(function (xyTrackRenderPair, index) {
-            sync(xyTrackRenderPair.x, index);
-            sync(xyTrackRenderPair.y, index);
-        });
+        for (const trackXYPair of this.trackPairs) {
 
-        function sync(trackRenderer, index) {
-            trackRenderer.$viewport.css({order: index});
-            trackRenderer.syncCanvas();
+            trackXYPair.x.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
+            trackXYPair.y.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
+
+            trackXYPair.x.syncCanvas()
+            trackXYPair.y.syncCanvas()
+
         }
 
-        this.layoutController.xAxisRuler.update();
-        this.layoutController.yAxisRuler.update();
+        this.layoutController.xAxisRuler.update()
+        this.layoutController.yAxisRuler.update()
 
-        await this.update();
+        setTrackReorderArrowColors(this.trackPairs)
+
+        await this.update()
 
     }
 
@@ -1288,7 +1314,6 @@ class HICBrowser {
 
         this.contactMatrixView.clearImageCaches();
 
-
         let event = HICEvent("LocusChange", {
             state: this.state,
             resolutionChanged: zoomChanged,
@@ -1440,11 +1465,19 @@ class HICBrowser {
             let tracks = [];
             jsonOBJ.tracks = tracks;
             for (let trackRenderer of this.trackPairs) {
+
                 const track = trackRenderer.x.track;
-                const config = track.config;
+                const config = track.config
+
                 if (typeof config.url === "string") {
-                    const t = {
-                        url: config.url
+
+                    const t = { url: config.url }
+
+                    if (config.type) {
+                        t.type = config.type
+                    }
+                    if (config.format) {
+                        t.format = config.format
                     }
                     if (track.name) {
                         t.name = track.name;
@@ -1456,7 +1489,9 @@ class HICBrowser {
                     if (track.color) {
                         t.color = track.color;
                     }
-                    tracks.push(t);
+                    tracks.push(t)
+                } else if ('sequence' === config.type) {
+                    tracks.push({ type: 'sequence', format: 'sequence' })
                 }
 
             }

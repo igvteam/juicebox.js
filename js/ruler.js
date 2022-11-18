@@ -27,7 +27,7 @@
  */
 
 import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
-import IGVGraphics from "./igv/igv-canvas.js"
+import igv from '../node_modules/igv/dist/igv.esm.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 function randomRGB(min, max) {
@@ -58,11 +58,6 @@ class Ruler {
         this.ctx.canvas.height = this.$axis.height();
 
         this.$wholeGenomeContainer = $parent.find("div[id$='-axis-whole-genome-container']");
-
-        this.yAxisTransformWithContext = ctx => {
-            ctx.scale(-1, 1);
-            ctx.rotate(Math.PI / 2.0);
-        };
 
         this.setAxisTransform(axis);
 
@@ -231,10 +226,8 @@ class Ruler {
 
     setAxisTransform(axis) {
 
-        this.canvasTransform = ('y' === axis) ? this.yAxisTransformWithContext : identityTransformWithContext;
-
-        this.labelReflectionTransform = ('y' === axis) ? reflectionTransformWithContext : function (context, exe) {
-        };
+        this.canvasTransform          = ('y' === axis) ? canvasTransformWithContext      : identityTransformWithContext
+        this.labelTransform = ('y' === axis) ? labelTransformWithContext : noopTransformWithContext
 
     };
 
@@ -308,14 +301,14 @@ class Ruler {
         this.hideWholeGenome();
 
         identityTransformWithContext(this.ctx);
-        IGVGraphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+        igv.IGVGraphics.fillRect(this.ctx, 0, 0, this.$canvas.width(), this.$canvas.height(), {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
         this.canvasTransform(this.ctx);
 
         w = ('x' === this.axis) ? this.$canvas.width() : this.$canvas.height();
         h = ('x' === this.axis) ? this.$canvas.height() : this.$canvas.width();
 
-        IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+        igv.IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
         config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
 
@@ -359,7 +352,7 @@ class Ruler {
 
         } else {
 
-            IGVGraphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
+            igv.IGVGraphics.fillRect(this.ctx, 0, 0, options.rulerLengthPixels, options.rulerHeightPixels, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
             fontStyle = {
                 textAlign: 'center',
@@ -376,7 +369,7 @@ class Ruler {
 
             pixel = pixelLast = 0;
 
-            IGVGraphics.setProperties(this.ctx, fontStyle);
+            igv.IGVGraphics.setProperties(this.ctx, fontStyle);
             this.ctx.lineWidth = 1.0;
 
             yShim = 1;
@@ -411,8 +404,8 @@ class Ruler {
                         // console.log('   label delta(' + Math.abs(pixel - pixelLast) + ') modulo(' + modulo + ') bpp(' + options.bpPerPixel + ')');
 
                         this.ctx.save();
-                        this.labelReflectionTransform(this.ctx, pixel);
-                        IGVGraphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
+                        this.labelTransform(this.ctx, pixel);
+                        igv.IGVGraphics.fillText(this.ctx, rulerLabel, pixel, options.height - (tickHeight / 0.75));
                         this.ctx.restore();
 
                     }
@@ -422,7 +415,7 @@ class Ruler {
                 }
 
                 if (Math.floor((pixel * options.bpPerPixel) + options.bpStart) < chrSize) {
-                    IGVGraphics.strokeLine(this.ctx,
+                    igv.IGVGraphics.strokeLine(this.ctx,
                         pixel, options.height - tickHeight,
                         pixel, options.height - yShim);
                 }
@@ -432,7 +425,7 @@ class Ruler {
 
             } // while (pixel < options.rulerLengthPixels)
 
-            IGVGraphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
+            igv.IGVGraphics.strokeLine(this.ctx, 0, options.height - yShim, options.rulerLengthPixels, options.height - yShim);
 
         }
 
@@ -541,7 +534,6 @@ function hitTest(bboxes, value) {
     return $result;
 }
 
-
 function TickSpacing(majorTick, majorUnit, unitMultiplier) {
     this.majorTick = majorTick;
     this.majorUnit = majorUnit;
@@ -584,7 +576,11 @@ function findSpacing(rulerLengthBP) {
     }
 }
 
-function reflectionTransformWithContext(context, exe) {
+function canvasTransformWithContext(ctx) {
+    ctx.setTransform(0, 1, 1, 0, 0, 0)
+}
+
+function labelTransformWithContext(context, exe) {
     context.translate(exe, 0);
     context.scale(-1, 1);
     context.translate(-exe, 0);
@@ -593,6 +589,10 @@ function reflectionTransformWithContext(context, exe) {
 function identityTransformWithContext(context) {
     // 3x2 matrix. column major. (sx 0 0 sy tx ty).
     context.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function noopTransformWithContext(ctx) {
+
 }
 
 export default Ruler;

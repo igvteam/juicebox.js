@@ -2,34 +2,61 @@
 <head>
     <meta charset="UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <title>Juicebox</title>
+    <title>Juicebox - ES6 </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
     <!-- Font Awesome CSS-->
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.css">
 
     <!-- Juicebox CSS-->
-<!--    <link rel="stylesheet" type="text/css" href="../dist/css/juicebox.css">-->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/css/juicebox.css">
-
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
 
 </head>
 
 <body>
 
-
 <div id="app-container"></div>
-
 
 <script type="module">
 
-    import juicebox from '../js/index.js';
-    // import juicebox from "../dist/juicebox.esm.js";
-    // import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.2.0/dist/juicebox.esm.js";
+    // import juicebox from '../js/index.js';
+    import juicebox from "../dist/juicebox.esm.js"
+
+
+    const config_igv_tracks =
+        {
+            "backgroundColor": "0,74,136",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic",
+            "name": "Combined",
+            "state": "7,7,5,815.66029,815.66029,640,640,1,NONE",
+            "colorScale": "23,255,114,110",
+            "selectedGene": "egfr",
+            "nvi": "13433880319,35723",
+            "controlUrl": "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic",
+            "controlName": "Untreated, HIC005",
+            "displayMode": "B",
+            "controlNvi": "6846576837,36479",
+            "tracks": [
+                // {
+                //     "url": "https://www.encodeproject.org/files/ENCFF166FMF/@@download/ENCFF166FMF.bigWig",
+                //     "name": "Homo sapiens 22Rv1 CTCF ",
+                //     "min": 0,
+                //     "max": 4.052322006225586
+                // },
+                {
+                    "url": "https://www.encodeproject.org/files/ENCFF386HDH/@@download/ENCFF386HDH.bigWig",
+                    "name": "Homo sapiens ...",
+                    "min": 0,
+                    "max": 1.5872053418840681
+                }
+            ]
+        }
+
 
     const config = {
         url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
         name: "GM12878",
+        locus: '8:128,752,711-128,753,714',
         //locus: "22:33,319,567-36,009,566",   // <= optional initial locus
         tracks: [
             {
@@ -42,12 +69,25 @@
         ]
     }
 
+    const config_deep_map = {
+        url: "https://s3.us-central-1.wasabisys.com/aiden-encode-hic-mirror/moshe/all.hic",
+        name: "Deep Map Test",
+        locus: '8:128,752,711-128,753,714',
+        // tracks: [
+        //     {
+        //         url: "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig",
+        //         name: "CTCF",
+        //         min: 0,
+        //         max: 25,
+        //         color: "#ff8802"
+        //     }
+        // ]
+    }
 
-    const container = document.getElementById("app-container");
 
-    juicebox.init(container, config)
-        .then(function (hicBrowser) {
-            console.log("Juicebox loaded");
+    juicebox.init(document.getElementById("app-container"), {})
+        .then(browser => {
+            console.log(`${ browser.id } is good to go`);
         })
 
 
