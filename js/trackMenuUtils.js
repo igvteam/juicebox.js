@@ -17,12 +17,6 @@ const MenuUtils = {
         menuItems.push(colorPickerMenuItem({ trackPair, label: "Set color", option: "color" }))
         menuItems.push(unsetColorMenuItem({ trackPair, label: "Unset color" }))
 
-        const trackMenuItems = trackPair.track.menuItemList();
-        if(trackMenuItems && trackMenuItems.length > 0) {
-            menuItems.push('<hr/>');
-            menuItems.push.apply(menuItems, trackMenuItems);
-        }
-
         if (trackPair.track.removable !== false) {
             menuItems.push('<hr/>');
             menuItems.push(trackRemovalMenuItem(trackPair))
