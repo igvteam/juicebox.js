@@ -140,7 +140,7 @@ class HICBrowser {
 
     async init(config) {
 
-        await igv.GenomeUtils.initializeGenomes({ loadDefaultGenomes: true })
+        await igv.GenomeUtils.initializeGenomes(config)
 
         this.state = config.state ? config.state : State.default()
         this.pending = new Map();
