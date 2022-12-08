@@ -229,8 +229,6 @@ class HICBrowser {
 
         this.genome = new Genome(dataset.genomeId, dataset.chromosomes, igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ])
 
-        // console.log(`Setting genome. Previous ${ previousGenomeId } Updated ${ this.genome.id }`)
-
         if (this.genome.id !== previousGenomeId) {
             EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
         }
@@ -519,6 +517,14 @@ class HICBrowser {
 
                     if (typeof track.postInit === 'function') {
                         await track.postInit()
+                    }
+
+                    if ('refgene' === config.format) {
+                        EventBus.globalBus.post(HICEvent("DidLoadRefGeneTrack", track))
+                    }
+
+                    if ('sequence' === config.format) {
+                        EventBus.globalBus.post(HICEvent("DidLoadSequenceTrack", track))
                     }
 
                     tracks.push(track)

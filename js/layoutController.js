@@ -240,6 +240,8 @@ class LayoutController {
 
             this.browser.updateLayout()
 
+            EventBus.globalBus.post(HICEvent("DidRemoveTrackPair", trackXYPair))
+
         }
 
     }
