@@ -519,14 +519,6 @@ class HICBrowser {
                         await track.postInit()
                     }
 
-                    if ('refgene' === config.format) {
-                        EventBus.globalBus.post(HICEvent("DidLoadRefGeneTrack", track))
-                    }
-
-                    if ('sequence' === config.format) {
-                        EventBus.globalBus.post(HICEvent("DidLoadSequenceTrack", track))
-                    }
-
                     tracks.push(track)
                 }
             }
