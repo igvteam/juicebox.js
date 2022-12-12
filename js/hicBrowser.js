@@ -140,8 +140,6 @@ class HICBrowser {
 
     async init(config) {
 
-        await igv.GenomeUtils.initializeGenomes({ loadDefaultGenomes: true })
-
         this.state = config.state ? config.state : State.default()
         this.pending = new Map();
         this.eventBus.hold();
@@ -222,35 +220,6 @@ class HICBrowser {
         }
 
     }
-
-    async setGenome(dataset) {
-
-        const previousGenomeId = this.genome ? this.genome.id : undefined
-
-        this.genome = new Genome(dataset.genomeId, dataset.chromosomes, igv.GenomeUtils.KNOWN_GENOMES[ this.dataset.genomeId ])
-
-        if (this.genome.id !== previousGenomeId) {
-            EventBus.globalBus.post(HICEvent("GenomeChange", this.genome))
-        }
-
-    }
-
-    getGenomeTrackConfigurations(genomeId) {
-
-        const config = igv.GenomeUtils.KNOWN_GENOMES[ genomeId ]
-
-        if (config.tracks && config.tracks.length > 0) {
-
-            for (let track of config.tracks) {
-                track.displayMode = 'COLLAPSED'
-            }
-
-            return config.tracks
-        } else {
-            return undefined
-        }
-    }
-
     createMenu($root) {
 
         const html =
@@ -670,11 +639,14 @@ class HICBrowser {
             this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
             this.dataset.name = name
 
-            try {
-                await this.setGenome(this.dataset)
-            } catch (e) {
-                console.error(e.message)
-                Alert.presentAlert(e.message)
+            const previousGenomeId = this.genome ? this.genome.id : undefined;
+            this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes)
+
+            // TODO -- this is not going to work with browsers on different assemblies on the same page.
+            //igv.browser.genome = this.genome;
+
+            if (this.genome.id !== previousGenomeId) {
+                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
             }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
