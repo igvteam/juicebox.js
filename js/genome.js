@@ -34,14 +34,10 @@
  * @constructor
  */
 class Genome {
-    constructor(id, chromosomes, config) {
+    constructor(id, chromosomes) {
 
         this.id = id;
         this.chromosomes = chromosomes
-
-        if (config) {
-            this.config = createConfig(config)
-        }
 
         this.wgChromosomeNames = [];
         this.chromosomeLookupTable = {};
@@ -134,24 +130,6 @@ class Genome {
         return this.genomeLength;
     }
 }
-
-function createConfig(genomeJSON) {
-
-    let { url, indexURL, fastaURL, compressedIndexURL, name, type, format, color, altColor, tracks } = genomeJSON
-
-    if (fastaURL) {
-        url = fastaURL
-    }
-
-    if (tracks && tracks.length > 0) {
-        return { url, indexURL, compressedIndexURL, name, type, format, color, altColor, track: tracks[ 0 ] }
-    } else {
-        return { url, indexURL, compressedIndexURL, name, type, format, color, altColor }
-    }
-
-
-}
-
 function computeCumulativeOffsets() {
 
     const cumulativeOffsets = {};
