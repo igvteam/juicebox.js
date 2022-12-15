@@ -642,9 +642,6 @@ class HICBrowser {
             const previousGenomeId = this.genome ? this.genome.id : undefined;
             this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes)
 
-            // TODO -- this is not going to work with browsers on different assemblies on the same page.
-            //igv.browser.genome = this.genome;
-
             if (this.genome.id !== previousGenomeId) {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
             }

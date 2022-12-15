@@ -42,6 +42,7 @@ class TrackRenderer {
 
             const str = this.track.name || ''
             this.$label.text(str)
+            this.$label.get(0).title = str
 
             if (true === this.browser.showTrackLabelAndGutter) {
                 this.$label.show();

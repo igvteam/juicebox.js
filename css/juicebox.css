@@ -916,6 +916,7 @@ div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-
   top: 0;
   left: 0;
   height: 22px;
+  width: 120px;
   margin-top: 4.5px;
   padding-left: 4px;
   padding-right: 4px;
