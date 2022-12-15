@@ -208,20 +208,6 @@ function setDefaults(config) {
 
 }
 
-
-// mock igv browser objects for igv.js compatibility
-// function createIGV($hic_container, hicBrowser) {
-//
-//     igv.browser =
-//         {
-//             constants: {defaultColor: "rgb(0,0,150)"},
-//
-//             // Compatibility wit igv menus
-//             trackContainerDiv: hicBrowser.layoutController.$x_track_container.get(0)
-//         };
-//     igv.popover = new Popover($hic_container.get(0), igv.browser);
-// }
-
 export {
     defaultSize,
     createBrowser,
