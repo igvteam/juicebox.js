@@ -42,9 +42,12 @@ class ContactMatrixView {
 
     constructor(browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
+        this.browser = browser
 
-        this.browser = browser;
-        this.$viewport = $viewport;
+        this.$viewport = $viewport
+        this.viewport = $viewport.get(0)
+
+
         this.sweepZoom = sweepZoom;
         this.scrollbarWidget = scrollbarWidget;
 
@@ -57,8 +60,24 @@ class ContactMatrixView {
         this.backgroundColor = backgroundColor;
         this.backgroundRGBString = IGVColor.rgbColor(backgroundColor.r, backgroundColor.g, backgroundColor.b)
 
-        this.$canvas = $viewport.find('canvas');
-        this.ctx = this.$canvas.get(0).getContext('2d');
+        let canvas
+        const { width, height } = this.viewport.getBoundingClientRect()
+
+        // contact map canvas
+        canvas = this.viewport.querySelector(`#${browser.id}-contact-map-canvas`)
+        this.ctx = canvas.getContext('2d')
+        this.ctx.canvas.width = width
+        this.ctx.canvas.height = height
+
+        const str = `#${browser.id}-contact-map-canvas`
+        this.$canvas = $viewport.find(str)
+
+
+        // live contact map canvas
+        canvas = this.viewport.querySelector(`#${browser.id}-live-contact-map-canvas`)
+        this.ctx_live = canvas.getContext('bitmaprenderer')
+        this.ctx_live.canvas.width = width
+        this.ctx_live.canvas.height = height
 
         this.$fa_spinner = $viewport.find('.fa-spinner');
         this.spinnerCount = 0;
@@ -184,6 +203,9 @@ class ContactMatrixView {
         if (!this.browser.dataset) {
             return;
         }
+
+        this.ctx.canvas.style.display = 'block'
+        this.ctx_live.canvas.style.display = 'none'
 
         const viewportWidth = this.$viewport.width()
         const viewportHeight = this.$viewport.height()

@@ -110,7 +110,8 @@ class LayoutController {
 
         const html_viewport =
             `<div id="${browser.id}-viewport">
-                <canvas></canvas>
+			    <canvas id="${browser.id}-contact-map-canvas"></canvas>
+			    <canvas id="${browser.id}-live-contact-map-canvas"></canvas>
                 <i class="fa fa-spinner fa-spin" style="font-size: 48px; position: absolute; left: 40%; top: 40%; display: none;"></i>
                 <div id="${browser.id}-sweep-zoom-container" style="display: none;"></div>
                 <div id="${browser.id}-x-guide" style="display: none;"></div>
