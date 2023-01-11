@@ -646,7 +646,8 @@ class HICBrowser {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
             }
 
-            this.eventBus.post(HICEvent("MapLoad", this.dataset));
+            this.eventBus.post(HICEvent("MapLoad", this.dataset))
+            EventBus.globalBus.post(HICEvent('MapLoad', this))
 
             if (config.state) {
                 if (!config.state.hasOwnProperty("chr1")) {
