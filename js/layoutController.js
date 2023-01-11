@@ -11,11 +11,11 @@ import EventBus from "./eventBus.js";
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
-// $nav-bar-label-height: 36px;
-const nav_bar_label_height = 36;
+// $nav-bar-label-height: 24px;
+const nav_bar_label_height = 24;
 
-// $nav-bar-widget-container-height: 36px;
-const nav_bar_widget_container_height = 36;
+// $nav-bar-widget-container-height: 30px;
+const nav_bar_widget_container_height = 30;
 
 // $nav-bar-widget-container-margin: 4px;
 const nav_bar_widget_container_margin = 4;
