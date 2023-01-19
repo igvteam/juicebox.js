@@ -200,8 +200,12 @@ class ContactMatrixView {
 
     async repaint() {
 
-        if (!this.browser.dataset) {
-            return;
+        if (undefined === this.browser.dataset) {
+            return
+        }
+
+        if (this.browser.dataset.isLiveContactMapDataSet) {
+            return
         }
 
         this.ctx.canvas.style.display = 'block'
