@@ -53,7 +53,7 @@ class Dataset {
     async init() {
 
         this.isLiveContactMapDataSet = undefined
-        
+
         this.hicFile = this.straw.hicFile;
         await this.hicFile.init();
         this.normalizationTypes = ['NONE'];
