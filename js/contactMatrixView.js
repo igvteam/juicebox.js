@@ -192,6 +192,10 @@ class ContactMatrixView {
 
     async update() {
 
+        if (this.browser.dataset.isLiveContactMapDataSet) {
+            return
+        }
+
         if (this.disableUpdates) return   // This flag is set during browser startup
 
         await this.repaint()

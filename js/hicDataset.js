@@ -44,11 +44,16 @@ const knownGenomes = {
 class Dataset {
 
     constructor(config) {
+
+        this.isLiveContactMapDataSet = undefined
+
         this.straw = new Straw(config)
     }
 
     async init() {
 
+        this.isLiveContactMapDataSet = undefined
+        
         this.hicFile = this.straw.hicFile;
         await this.hicFile.init();
         this.normalizationTypes = ['NONE'];
