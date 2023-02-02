@@ -642,9 +642,9 @@ class HICBrowser {
             const previousGenomeId = this.genome ? this.genome.id : undefined;
             this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes)
 
-            if (this.genome.id !== previousGenomeId) {
-                EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
-            }
+            // if (this.genome.id !== previousGenomeId) {
+            //     EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
+            // }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset))
             EventBus.globalBus.post(HICEvent('MapLoad', this))
