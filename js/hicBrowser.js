@@ -26,12 +26,12 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
-import {Alert,InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {DOMUtils, FileUtils, TrackUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {Alert, InputDialog, DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {FileUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
-import {Globals} from "./globals.js";
-import EventBus from "./eventBus.js";
+import {Globals} from "./globals.js"
+import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
 import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
 import HICEvent from './hicEvent.js'
@@ -39,100 +39,100 @@ import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import LocusGoto from "./hicLocusGoto.js";
-import ResolutionSelector from "./hicResolutionSelector.js";
-import ColorScaleWidget from "./hicColorScaleWidget.js";
-import ControlMapWidget from "./controlMapWidget.js";
-import NormalizationWidget from "./normalizationWidget.js";
-import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js";
-import AnnotationWidget from "./annotationWidget.js";
-import SweepZoom from "./sweepZoom.js";
-import ScrollbarWidget from "./scrollbarWidget.js";
-import ContactMatrixView from "./contactMatrixView.js";
-import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
-import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
-import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
+import LocusGoto from "./hicLocusGoto.js"
+import ResolutionSelector from "./hicResolutionSelector.js"
+import ColorScaleWidget from "./hicColorScaleWidget.js"
+import ControlMapWidget from "./controlMapWidget.js"
+import NormalizationWidget from "./normalizationWidget.js"
+import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js"
+import AnnotationWidget from "./annotationWidget.js"
+import SweepZoom from "./sweepZoom.js"
+import ScrollbarWidget from "./scrollbarWidget.js"
+import ContactMatrixView from "./contactMatrixView.js"
+import ColorScale, {defaultColorScaleConfig} from "./colorScale.js"
+import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js"
+import {getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
-import {setTrackReorderArrowColors} from "./trackPair.js";
+import {setTrackReorderArrowColors} from "./trackPair.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
-const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)";
+const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)"
 
 class HICBrowser {
 
     constructor($app_container, config) {
 
-        this.config = config;
-        this.figureMode = config.figureMode || config.miniMode;    // Mini mode for backward compatibility
-        this.resolutionLocked = false;
-        this.eventBus = new EventBus();
+        this.config = config
+        this.figureMode = config.figureMode || config.miniMode    // Mini mode for backward compatibility
+        this.resolutionLocked = false
+        this.eventBus = new EventBus()
 
-        this.showTrackLabelAndGutter = true;
+        this.showTrackLabelAndGutter = true
 
-        this.id = `browser_${DOMUtils.guid()}`;
-        this.trackPairs = [];
-        this.tracks2D = [];
-        this.normVectorFiles = [];
+        this.id = `browser_${DOMUtils.guid()}`
+        this.trackPairs = []
+        this.tracks2D = []
+        this.normVectorFiles = []
 
-        this.synchable = config.synchable !== false;
-        this.synchedBrowsers = [];
+        this.synchable = config.synchable !== false
+        this.synchedBrowsers = []
 
-        this.isMobile = hicUtils.isMobile();
+        this.isMobile = hicUtils.isMobile()
 
-        this.$root = $('<div class="hic-root unselect">');
+        this.$root = $('<div class="hic-root unselect">')
 
         if (config.width) {
-            this.$root.css("width", String(config.width));
+            this.$root.css("width", String(config.width))
         }
         if (config.height) {
-            this.$root.css("height", String(config.height + getNavbarHeight()));
+            this.$root.css("height", String(config.height + getNavbarHeight()))
         }
 
-        $app_container.append(this.$root);
+        $app_container.append(this.$root)
 
-        this.layoutController = new LayoutController(this, this.$root);
+        this.layoutController = new LayoutController(this, this.$root)
 
         // nav bar related objects
-        this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
-        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
-        this.resolutionSelector.setResolutionLock(this.resolutionLocked);
-        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
-        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
-        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
-        this.inputDialog = new InputDialog($app_container.get(0), this);
+        this.locusGoto = new LocusGoto(this, getNavbarContainer(this))
+        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this))
+        this.resolutionSelector.setResolutionLock(this.resolutionLocked)
+        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this))
+        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this))
+        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this))
+        this.inputDialog = new InputDialog($app_container.get(0), this)
 
         // contact map container related objects
-        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
-        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
+        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport())
+        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer())
 
-        const colorScale = new ColorScale(defaultColorScaleConfig);
+        const colorScale = new ColorScale(defaultColorScaleConfig)
 
-        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
+        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold)
         ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
         ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
         const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor
-        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
+        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor)
 
-        this.$menu = this.createMenu(this.$root);
-        this.$menu.hide();
+        this.$menu = this.createMenu(this.$root)
+        this.$menu.hide()
 
-        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'));
+        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'))
 
         const annotation2DWidgetConfig =
             {
                 title: '2D Annotations',
                 alertMessage: 'No 2D annotations currently loaded for this map'
-            };
+            }
 
-        this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
+        this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D)
 
         // prevent user interaction during lengthy data loads
-        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'});
-        this.$root.append(this.$user_interaction_shield);
-        this.$user_interaction_shield.hide();
+        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'})
+        this.$root.append(this.$user_interaction_shield)
+        this.$user_interaction_shield.hide()
 
-        this.hideCrosshairs();
+        this.hideCrosshairs()
 
 
         //this.eventBus.subscribe("LocusChange", this);
@@ -141,20 +141,20 @@ class HICBrowser {
     async init(config) {
 
         this.state = config.state ? config.state : State.default()
-        this.pending = new Map();
-        this.eventBus.hold();
-        this.contactMatrixView.disableUpdates = true;
+        this.pending = new Map()
+        this.eventBus.hold()
+        this.contactMatrixView.disableUpdates = true
 
         try {
-            this.contactMatrixView.startSpinner();
-            this.$user_interaction_shield.show();
+            this.contactMatrixView.startSpinner()
+            this.$user_interaction_shield.show()
 
             // if (!config.name) config.name = await extractName(config)
             // const prefix = hasControl ? "A: " : "";
             // browser.$contactMaplabel.text(prefix + config.name);
             // browser.$contactMaplabel.attr('title', config.name);
 
-            await this.loadHicFile(config, true);
+            await this.loadHicFile(config, true)
 
             if (config.controlUrl) {
                 await this.loadHicControlFile({
@@ -162,7 +162,7 @@ class HICBrowser {
                     name: config.controlName,
                     nvi: config.controlNvi,
                     isControl: true
-                }, true);
+                }, true)
             }
 
             if (config.cycle) {
@@ -170,15 +170,15 @@ class HICBrowser {
             }
 
             if (config.displayMode) {
-                this.contactMatrixView.displayMode = config.displayMode;
-                this.eventBus.post({type: "DisplayMode", data: config.displayMode});
+                this.contactMatrixView.displayMode = config.displayMode
+                this.eventBus.post({type: "DisplayMode", data: config.displayMode})
             }
             if (config.colorScale) {
                 // This must be done after dataset load
-                this.contactMatrixView.setColorScale(config.colorScale);
-                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()});
+                this.contactMatrixView.setColorScale(config.colorScale)
+                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()})
             }
-            if(config.locus) {
+            if (config.locus) {
                 await this.parseGotoInput(config.locus)
             }
 
@@ -191,10 +191,10 @@ class HICBrowser {
             // TODO -- find out if this is even being used
             if (config.normVectorFiles) {
                 config.normVectorFiles.forEach(function (nv) {
-                    promises.push(this.loadNormalizationFile(nv));
+                    promises.push(this.loadNormalizationFile(nv))
                 })
             }
-            await Promise.all(promises);
+            await Promise.all(promises)
 
             if (config.normalization) {
                 const normalizations = await this.getNormalizationOptions()
@@ -202,24 +202,25 @@ class HICBrowser {
                 this.state.normalization = validNormalizations.has(config.normalization) ? config.normalization : 'NONE'
             }
 
-            const tmp = this.contactMatrixView.colorScaleThresholdCache;
+            const tmp = this.contactMatrixView.colorScaleThresholdCache
             this.eventBus.release()
             this.contactMatrixView.colorScaleThresholdCache = tmp
 
             if (config.cycle) {
-                this.controlMapWidget.toggleDisplayModeCycle();
+                this.controlMapWidget.toggleDisplayModeCycle()
             } else {
                 await this.update()
             }
 
         } finally {
-            this.contactMatrixView.stopSpinner();
-            this.$user_interaction_shield.hide();
-            this.contactMatrixView.disableUpdates = false;
-            this.contactMatrixView.update();
+            this.contactMatrixView.stopSpinner()
+            this.$user_interaction_shield.hide()
+            this.contactMatrixView.disableUpdates = false
+            this.contactMatrixView.update()
         }
 
     }
+
     createMenu($root) {
 
         const html =
@@ -238,71 +239,71 @@ class HICBrowser {
 	        <div class="hic-annotation-presentation-button-container">
 		        <button type="button">2D Annotations</button>
 	        </div>
-        </div>`;
+        </div>`
 
-        $root.append($(html));
+        $root.append($(html))
 
-        const $menu = $root.find(".hic-menu");
+        const $menu = $root.find(".hic-menu")
 
-        const $fa = $root.find(".fa-times");
-        $fa.on('click', () => this.toggleMenu());
+        const $fa = $root.find(".fa-times")
+        $fa.on('click', () => this.toggleMenu())
 
-        return $menu;
+        return $menu
 
     }
 
     toggleTrackLabelAndGutterState() {
-        this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter;
+        this.showTrackLabelAndGutter = !this.showTrackLabelAndGutter
     }
 
     toggleMenu() {
         if (this.$menu.is(':visible')) {
-            this.hideMenu();
+            this.hideMenu()
         } else {
-            this.showMenu();
+            this.showMenu()
         }
     }
 
     showMenu() {
-        this.$menu.show();
+        this.$menu.show()
     }
 
     hideMenu() {
-        this.$menu.hide();
+        this.$menu.hide()
     };
 
     startSpinner() {
-        this.contactMatrixView.startSpinner();
+        this.contactMatrixView.startSpinner()
     }
 
     stopSpinner() {
-        this.contactMatrixView.stopSpinner();
+        this.contactMatrixView.stopSpinner()
     }
 
     async setDisplayMode(mode) {
-        await this.contactMatrixView.setDisplayMode(mode);
-        this.eventBus.post(HICEvent("DisplayMode", mode));
+        await this.contactMatrixView.setDisplayMode(mode)
+        this.eventBus.post(HICEvent("DisplayMode", mode))
     }
 
     getDisplayMode() {
-        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined;
+        return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined
     }
 
     toggleDisplayMode() {
-        this.controlMapWidget.toggleDisplayMode();
+        this.controlMapWidget.toggleDisplayMode()
     }
 
     async getNormalizationOptions() {
 
-        if (!this.dataset) return [];
+        if (!this.dataset) return []
 
-        const baseOptions = await this.dataset.getNormalizationOptions();
+        const baseOptions = await this.dataset.getNormalizationOptions()
         if (this.controlDataset) {
-            let controlOptions = await this.controlDataset.getNormalizationOptions();
-            controlOptions = new Set(controlOptions);
-            return baseOptions.filter(base => controlOptions.has(base));
+            let controlOptions = await this.controlDataset.getNormalizationOptions()
+            controlOptions = new Set(controlOptions)
+            return baseOptions.filter(base => controlOptions.has(base))
         } else {
-            return baseOptions;
+            return baseOptions
         }
     }
 
@@ -311,16 +312,16 @@ class HICBrowser {
      * @returns {{index: *, binSize: *}[]|Array}
      */
     getResolutions() {
-        if (!this.dataset) return [];
+        if (!this.dataset) return []
 
         const baseResolutions = this.dataset.bpResolutions.map(function (resolution, index) {
             return {index: index, binSize: resolution}
-        });
+        })
         if (this.controlDataset) {
-            let controlResolutions = new Set(this.controlDataset.bpResolutions);
-            return baseResolutions.filter(base => controlResolutions.has(base.binSize));
+            let controlResolutions = new Set(this.controlDataset.bpResolutions)
+            return baseResolutions.filter(base => controlResolutions.has(base.binSize))
         } else {
-            return baseResolutions;
+            return baseResolutions
         }
     }
 
@@ -330,43 +331,43 @@ class HICBrowser {
 
     getColorScale() {
 
-        if (!this.contactMatrixView) return undefined;
+        if (!this.contactMatrixView) return undefined
 
         switch (this.getDisplayMode()) {
             case 'AOB':
             case 'BOA':
-                return this.contactMatrixView.ratioColorScale;
+                return this.contactMatrixView.ratioColorScale
             case 'AMB':
-                return this.contactMatrixView.diffColorScale;
+                return this.contactMatrixView.diffColorScale
             default:
-                return this.contactMatrixView.colorScale;
+                return this.contactMatrixView.colorScale
         }
     }
 
     setColorScaleThreshold(threshold) {
-        this.contactMatrixView.setColorScaleThreshold(threshold);
+        this.contactMatrixView.setColorScaleThreshold(threshold)
     }
 
     updateCrosshairs({x, y, xNormalized, yNormalized}) {
 
-        const xGuide = y < 0 ? {left: 0} : {top: y, left: 0};
-        this.contactMatrixView.$x_guide.css(xGuide);
-        this.layoutController.$x_track_guide.css(xGuide);
+        const xGuide = y < 0 ? {left: 0} : {top: y, left: 0}
+        this.contactMatrixView.$x_guide.css(xGuide)
+        this.layoutController.$x_track_guide.css(xGuide)
 
-        const yGuide = x < 0 ? {top: 0} : {top: 0, left: x};
-        this.contactMatrixView.$y_guide.css(yGuide);
-        this.layoutController.$y_track_guide.css(yGuide);
+        const yGuide = x < 0 ? {top: 0} : {top: 0, left: x}
+        this.contactMatrixView.$y_guide.css(yGuide)
+        this.layoutController.$y_track_guide.css(yGuide)
 
         if (this.customCrosshairsHandler) {
 
-            const {x: stateX, y: stateY, pixelSize} = this.state;
-            const resolution = this.resolution();
+            const {x: stateX, y: stateY, pixelSize} = this.state
+            const resolution = this.resolution()
 
-            const xBP = (stateX + (x / pixelSize)) * resolution;
-            const yBP = (stateY + (y / pixelSize)) * resolution;
+            const xBP = (stateX + (x / pixelSize)) * resolution
+            const yBP = (stateY + (y / pixelSize)) * resolution
 
-            let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
-            let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
+            let {startBP: startXBP, endBP: endXBP} = this.genomicState('x')
+            let {startBP: startYBP, endBP: endYBP} = this.genomicState('y')
 
             this.customCrosshairsHandler({
                 xBP,
@@ -377,38 +378,38 @@ class HICBrowser {
                 endYBP,
                 interpolantX: xNormalized,
                 interpolantY: yNormalized
-            });
+            })
         }
 
     }
 
     setCustomCrosshairsHandler(crosshairsHandler) {
-        this.customCrosshairsHandler = crosshairsHandler;
+        this.customCrosshairsHandler = crosshairsHandler
     }
 
     hideCrosshairs() {
 
-        this.contactMatrixView.$x_guide.hide();
-        this.layoutController.$x_track_guide.hide();
+        this.contactMatrixView.$x_guide.hide()
+        this.layoutController.$x_track_guide.hide()
 
-        this.contactMatrixView.$y_guide.hide();
-        this.layoutController.$y_track_guide.hide();
+        this.contactMatrixView.$y_guide.hide()
+        this.layoutController.$y_track_guide.hide()
 
     }
 
     showCrosshairs() {
 
-        this.contactMatrixView.$x_guide.show();
-        this.layoutController.$x_track_guide.show();
+        this.contactMatrixView.$x_guide.show()
+        this.layoutController.$x_track_guide.show()
 
-        this.contactMatrixView.$y_guide.show();
-        this.layoutController.$y_track_guide.show();
+        this.contactMatrixView.$y_guide.show()
+        this.layoutController.$y_track_guide.show()
     }
 
     genomicState(axis) {
 
         let width = this.contactMatrixView.getViewDimensions().width
-        let resolution = this.dataset.bpResolutions[this.state.zoom];
+        let resolution = this.dataset.bpResolutions[this.state.zoom]
         const bpp =
             (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
                 this.genome.getGenomeLength() / width :
@@ -420,15 +421,15 @@ class HICBrowser {
             }
 
         if (axis === "x") {
-            gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-            gs.startBP = this.state.x * resolution;
-            gs.endBP = gs.startBP + bpp * width;
+            gs.chromosome = this.dataset.chromosomes[this.state.chr1]
+            gs.startBP = this.state.x * resolution
+            gs.endBP = gs.startBP + bpp * width
         } else {
-            gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-            gs.startBP = this.state.y * resolution;
-            gs.endBP = gs.startBP + bpp * this.contactMatrixView.getViewDimensions().height;
+            gs.chromosome = this.dataset.chromosomes[this.state.chr2]
+            gs.startBP = this.state.y * resolution
+            gs.endBP = gs.startBP + bpp * this.contactMatrixView.getViewDimensions().height
         }
-        return gs;
+        return gs
     }
 
 
@@ -442,17 +443,19 @@ class HICBrowser {
     async loadTracks(configs) {
 
         // If loading a single track remember its name, for error message
-        const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks";
+        const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks"
 
         try {
-            this.contactMatrixView.startSpinner();
+            this.contactMatrixView.startSpinner()
 
-            const tracks = [];
-            const promises2D = [];
+            const tracks = []
+            const promises2D = []
 
             for (let config of configs) {
 
-                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url)
+                const fileName = isFile(config.url) ?
+                    config.url.name :
+                    config.filename || await FileUtils.getFilename(config.url)
 
                 const extension = hicUtils.getExtension(fileName)
 
@@ -460,8 +463,8 @@ class HICBrowser {
                     config.type = config.format = 'sequence'
                 }
 
-                if(!config.format) {
-                    config.format = TrackUtils.inferFileFormat(fileName)
+                if (!config.format) {
+                    config.format = igv.TrackUtils.inferFileFormat(fileName)
                 }
 
                 if ('annotation' === config.type) {
@@ -473,14 +476,14 @@ class HICBrowser {
                 }
 
                 if (config.max === undefined) {
-                    config.autoscale = true;
+                    config.autoscale = true
                 }
 
-                config.height = trackHeight;
+                config.height = trackHeight
 
                 if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
                     // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config, this.genome));
+                    promises2D.push(Track2D.loadTrack2D(config, this.genome))
                 } else {
                     const track = await igv.createTrack(config, this)
 
@@ -495,54 +498,54 @@ class HICBrowser {
 
             if (tracks.length > 0) {
 
-                this.layoutController.updateLayoutWithTracks(tracks);
+                this.layoutController.updateLayoutWithTracks(tracks)
 
-                const $gear_container = $('.hic-igv-right-hand-gutter');
+                const $gear_container = $('.hic-igv-right-hand-gutter')
                 if (true === this.showTrackLabelAndGutter) {
-                    $gear_container.show();
+                    $gear_container.show()
                 } else {
-                    $gear_container.hide();
+                    $gear_container.hide()
                 }
 
-                await this.updateLayout();
+                await this.updateLayout()
             }
 
             if (promises2D.length > 0) {
 
                 const tracks2D = await Promise.all(promises2D)
                 if (tracks2D && tracks2D.length > 0) {
-                    this.tracks2D = this.tracks2D.concat(tracks2D);
-                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
+                    this.tracks2D = this.tracks2D.concat(tracks2D)
+                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D))
                 }
 
             }
 
         } catch (error) {
-            presentError(errorPrefix, error);
+            presentError(errorPrefix, error)
             console.error(error)
 
         } finally {
-            this.contactMatrixView.stopSpinner();
+            this.contactMatrixView.stopSpinner()
         }
     }
 
     async loadNormalizationFile(url) {
 
-        if (!this.dataset) return;
-        this.eventBus.post(HICEvent("NormalizationFileLoad", "start"));
+        if (!this.dataset) return
+        this.eventBus.post(HICEvent("NormalizationFileLoad", "start"))
 
         const normVectors = await this.dataset.hicFile.readNormalizationVectorFile(url, this.dataset.chromosomes)
         for (let type of normVectors['types']) {
             if (!this.dataset.normalizationTypes) {
-                this.dataset.normalizationTypes = [];
+                this.dataset.normalizationTypes = []
             }
             if (!this.dataset.normalizationTypes.includes(type)) {
-                this.dataset.normalizationTypes.push(type);
+                this.dataset.normalizationTypes.push(type)
             }
-            this.eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+            this.eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset))
         }
 
-        return normVectors;
+        return normVectors
     }
 
     /**
@@ -554,41 +557,41 @@ class HICBrowser {
 
         try {
             this.startSpinner()
-            await xy.updateViews();
+            await xy.updateViews()
         } finally {
             this.stopSpinner()
         }
     }
 
     reset() {
-        this.layoutController.removeAllTrackXYPairs();
-        this.contactMatrixView.clearImageCaches();
-        this.tracks2D = [];
-        this.tracks = [];
-        this.$contactMaplabel.text("");
-        this.$contactMaplabel.attr('title', "");
-        this.$controlMaplabel.text("");
-        this.$controlMaplabel.attr('title', "");
-        this.dataset = undefined;
-        this.controlDataset = undefined;
-        this.unsyncSelf();
+        this.layoutController.removeAllTrackXYPairs()
+        this.contactMatrixView.clearImageCaches()
+        this.tracks2D = []
+        this.tracks = []
+        this.$contactMaplabel.text("")
+        this.$contactMaplabel.attr('title', "")
+        this.$controlMaplabel.text("")
+        this.$controlMaplabel.attr('title', "")
+        this.dataset = undefined
+        this.controlDataset = undefined
+        this.unsyncSelf()
     }
 
     clearSession() {
         // Clear current datasets.
-        this.dataset = undefined;
-        this.controlDataset = undefined;
-        this.setDisplayMode('A');
-        this.unsyncSelf();
+        this.dataset = undefined
+        this.controlDataset = undefined
+        this.setDisplayMode('A')
+        this.unsyncSelf()
     }
 
     /**
      * Remove reference to self from all synchedBrowsers lists.
      */
     unsyncSelf() {
-        const allBrowsers = getAllBrowsers();
+        const allBrowsers = getAllBrowsers()
         for (let b of allBrowsers) {
-            b.unsync(this);
+            b.unsync(this)
         }
     }
 
@@ -597,7 +600,7 @@ class HICBrowser {
      * @param browser
      */
     unsync(browser) {
-        this.synchedBrowsers = this.synchedBrowsers.filter(b => b != browser);
+        this.synchedBrowsers = this.synchedBrowsers.filter(b => b != browser)
     }
 
     /**
@@ -612,51 +615,51 @@ class HICBrowser {
     async loadHicFile(config, noUpdates) {
 
         if (!config.url) {
-            console.log("No .hic url specified");
-            return undefined;
+            console.log("No .hic url specified")
+            return undefined
         }
 
-        this.clearSession();
+        this.clearSession()
 
         try {
 
-            this.contactMatrixView.startSpinner();
+            this.contactMatrixView.startSpinner()
             if (!noUpdates) {
-                this.$user_interaction_shield.show();
+                this.$user_interaction_shield.show()
             }
 
             const name = extractName(config)
-            const prefix = this.controlDataset ? "A: " : "";
-            this.$contactMaplabel.text(prefix + name);
-            this.$contactMaplabel.attr('title', name);
-            config.name = name;
+            const prefix = this.controlDataset ? "A: " : ""
+            this.$contactMaplabel.text(prefix + name)
+            this.$contactMaplabel.attr('title', name)
+            config.name = name
 
             const hicFileAlert = str => {
-                this.eventBus.post(HICEvent('NormalizationExternalChange', 'NONE'));
+                this.eventBus.post(HICEvent('NormalizationExternalChange', 'NONE'))
                 Alert.presentAlert(str)
             }
 
-            this.dataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
+            this.dataset = await Dataset.loadDataset(Object.assign({alert: hicFileAlert}, config))
             this.dataset.name = name
 
-            const previousGenomeId = this.genome ? this.genome.id : undefined;
+            const previousGenomeId = this.genome ? this.genome.id : undefined
             this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes)
 
             if (this.genome.id !== previousGenomeId) {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
             }
 
-            this.eventBus.post(HICEvent("MapLoad", this.dataset));
+            this.eventBus.post(HICEvent("MapLoad", this.dataset))
 
             if (config.state) {
                 if (!config.state.hasOwnProperty("chr1")) {
-                    config.state = State.parse(config.state);
+                    config.state = State.parse(config.state)
                 }
-                await this.setState(config.state);
+                await this.setState(config.state)
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
-                this.syncState(config.synchState);
+                this.syncState(config.synchState)
             } else {
-                await this.setState(State.default(this.config));
+                await this.setState(State.default(this.config))
             }
 
 
@@ -679,35 +682,35 @@ class HICBrowser {
 
             if (config.nvi) {
                 await this.dataset.getNormVectorIndex(config)
-                eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset));
+                eventBus.post(HICEvent("NormVectorIndexLoad", this.dataset))
             } else {
                 const dataset = this.dataset
                 dataset.getNormVectorIndex(config)
                     .then(function (normVectorIndex) {
                         if (!config.isControl) {
-                            eventBus.post(HICEvent("NormVectorIndexLoad", dataset));
+                            eventBus.post(HICEvent("NormVectorIndexLoad", dataset))
                         }
                     })
             }
 
-            syncBrowsers();
+            syncBrowsers()
 
             // Find a browser to sync with, if any
             const compatibleBrowsers = getAllBrowsers().filter(b => b != this &&
-                b.dataset && b.dataset.isCompatible(this.dataset));
+                b.dataset && b.dataset.isCompatible(this.dataset))
             if (compatibleBrowsers.length > 0) {
-                this.syncState(compatibleBrowsers[0].getSyncState());
+                this.syncState(compatibleBrowsers[0].getSyncState())
             }
 
         } catch (error) {
-            this.$contactMaplabel.text('');
-            this.$contactMaplabel.attr('');
-            config.name = name;
-            throw error;
+            this.$contactMaplabel.text('')
+            this.$contactMaplabel.attr('')
+            config.name = name
+            throw error
         } finally {
-            this.stopSpinner();
+            this.stopSpinner()
             if (!noUpdates) {
-                this.$user_interaction_shield.hide();
+                this.$user_interaction_shield.hide()
             }
         }
     }
@@ -734,46 +737,46 @@ class HICBrowser {
                 Alert.presentAlert(str)
             }
 
-            const controlDataset = await Dataset.loadDataset(Object.assign({ alert: hicFileAlert }, config))
+            const controlDataset = await Dataset.loadDataset(Object.assign({alert: hicFileAlert}, config))
 
             controlDataset.name = name
 
             if (!this.dataset || this.dataset.isCompatible(controlDataset)) {
-                this.controlDataset = controlDataset;
+                this.controlDataset = controlDataset
                 if (this.dataset) {
-                    this.$contactMaplabel.text("A: " + this.dataset.name);
+                    this.$contactMaplabel.text("A: " + this.dataset.name)
                 }
-                this.$controlMaplabel.text("B: " + controlDataset.name);
-                this.$controlMaplabel.attr('title', controlDataset.name);
+                this.$controlMaplabel.text("B: " + controlDataset.name)
+                this.$controlMaplabel.attr('title', controlDataset.name)
 
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
-                this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset));
+                this.eventBus.post(HICEvent("ControlMapLoad", this.controlDataset))
 
                 if (!noUpdates) {
-                    this.update();
+                    this.update()
                 }
             } else {
-                Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')');
+                Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')')
             }
         } finally {
-            this.$user_interaction_shield.hide();
-            this.stopSpinner();
+            this.$user_interaction_shield.hide()
+            this.stopSpinner()
         }
     }
 
     async parseGotoInput(string) {
 
-        let xLocus;
-        let yLocus;
-        const loci = string.split(' ');
+        let xLocus
+        let yLocus
+        const loci = string.split(' ')
         if (loci.length === 1) {
-            xLocus = this.parseLocusString(loci[0]);
-            yLocus = xLocus;
+            xLocus = this.parseLocusString(loci[0])
+            yLocus = xLocus
         } else {
-            xLocus = this.parseLocusString(loci[0]);
-            yLocus = this.parseLocusString(loci[1]);
-            if (yLocus === undefined) yLocus = xLocus;
+            xLocus = this.parseLocusString(loci[0])
+            yLocus = this.parseLocusString(loci[1])
+            if (yLocus === undefined) yLocus = xLocus
         }
 
         if (xLocus === undefined) {
@@ -781,21 +784,21 @@ class HICBrowser {
             const result = await geneSearch(this.genome.id, loci[0].trim())
 
             if (result) {
-                Globals.selectedGene = loci[0].trim();
-                xLocus = this.parseLocusString(result);
-                yLocus = xLocus;
-                this.state.selectedGene = Globals.selectedGene;
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000);
+                Globals.selectedGene = loci[0].trim()
+                xLocus = this.parseLocusString(result)
+                yLocus = xLocus
+                this.state.selectedGene = Globals.selectedGene
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
             } else {
-                alert('No feature found with name "' + loci[0] + '"');
+                alert('No feature found with name "' + loci[0] + '"')
             }
 
         } else {
 
             if (xLocus.wholeChr && yLocus.wholeChr) {
-                await this.setChromosomes(xLocus.chr, yLocus.chr);
+                await this.setChromosomes(xLocus.chr, yLocus.chr)
             } else {
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end);
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
             }
         }
 
@@ -812,44 +815,44 @@ class HICBrowser {
      * @returns {number}
      */
     findMatchingZoomIndex(targetResolution, resolutionArray) {
-        const isObject = resolutionArray.length > 0 && resolutionArray[0].index !== undefined;
+        const isObject = resolutionArray.length > 0 && resolutionArray[0].index !== undefined
         for (let z = resolutionArray.length - 1; z > 0; z--) {
-            const binSize = isObject ? resolutionArray[z].binSize : resolutionArray[z];
-            const index = isObject ? resolutionArray[z].index : z;
+            const binSize = isObject ? resolutionArray[z].binSize : resolutionArray[z]
+            const index = isObject ? resolutionArray[z].index : z
             if (binSize >= targetResolution) {
-                return index;
+                return index
             }
         }
-        return 0;
+        return 0
     };
 
     parseLocusString(locus) {
 
-        const locusObject = {};
-        const parts = locus.trim().split(':');
-        const chromosome = this.genome.getChromosome(parts[0].toLowerCase());
+        const locusObject = {}
+        const parts = locus.trim().split(':')
+        const chromosome = this.genome.getChromosome(parts[0].toLowerCase())
 
         if (!chromosome) {
-            return undefined;
+            return undefined
         } else {
-            locusObject.chr = chromosome.index;
+            locusObject.chr = chromosome.index
         }
 
         if (parts.length === 1) {
             // Chromosome name only
-            locusObject.start = 0;
-            locusObject.end = this.dataset.chromosomes[locusObject.chr].size;
-            locusObject.wholeChr = true;
+            locusObject.start = 0
+            locusObject.end = this.dataset.chromosomes[locusObject.chr].size
+            locusObject.wholeChr = true
         } else {
-            const extent = parts[1].split("-");
-            let numeric = extent[0].replace(/\,/g, '');
-            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1;
+            const extent = parts[1].split("-")
+            let numeric = extent[0].replace(/\,/g, '')
+            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1
             if (extent.length == 2) {
-                numeric = extent[1].replace(/\,/g, '');
-                locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10);
+                numeric = extent[1].replace(/\,/g, '')
+                locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10)
             }
         }
-        return locusObject;
+        return locusObject
     };
 
 
@@ -863,13 +866,13 @@ class HICBrowser {
     async pinchZoom(anchorPx, anchorPy, scaleFactor) {
 
         if (this.state.chr1 === 0) {
-            await this.zoomAndCenter(1, anchorPx, anchorPy);
+            await this.zoomAndCenter(1, anchorPx, anchorPy)
         } else {
             try {
                 this.startSpinner()
 
-                const bpResolutions = this.getResolutions();
-                const currentResolution = bpResolutions[this.state.zoom];
+                const bpResolutions = this.getResolutions()
+                const currentResolution = bpResolutions[this.state.zoom]
 
                 let newBinSize
                 let newZoom
@@ -880,42 +883,42 @@ class HICBrowser {
                     (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
                     (this.state.zoom === 0 && scaleFactor < 1)) {
                     // Can't change resolution level, must adjust pixel size
-                    newBinSize = currentResolution.binSize;
-                    newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
-                    newZoom = this.state.zoom;
-                    zoomChanged = false;
+                    newBinSize = currentResolution.binSize
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor)
+                    newZoom = this.state.zoom
+                    zoomChanged = false
                 } else {
-                    const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
-                    newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
-                    newBinSize = bpResolutions[newZoom].binSize;
-                    zoomChanged = newZoom !== this.state.zoom;
-                    newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
+                    const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor
+                    newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions)
+                    newBinSize = bpResolutions[newZoom].binSize
+                    zoomChanged = newZoom !== this.state.zoom
+                    newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize)
                 }
                 const z = await this.minZoom(this.state.chr1, this.state.chr2)
 
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
                     // Zoom out to whole genome
-                    this.setChromosomes(0, 0);
+                    this.setChromosomes(0, 0)
                 } else {
 
                     const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom)
 
-                    const state = this.state;
+                    const state = this.state
 
-                    newPixelSize = Math.max(newPixelSize, minPS);
+                    newPixelSize = Math.max(newPixelSize, minPS)
 
                     // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
-                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
+                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize
+                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize
 
-                    state.x = gx / newBinSize - anchorPx / newPixelSize;
-                    state.y = gy / newBinSize - anchorPy / newPixelSize;
+                    state.x = gx / newBinSize - anchorPx / newPixelSize
+                    state.y = gy / newBinSize - anchorPy / newPixelSize
 
-                    state.zoom = newZoom;
-                    state.pixelSize = newPixelSize;
+                    state.zoom = newZoom
+                    state.pixelSize = newPixelSize
 
-                    this.clamp();
+                    this.clamp()
 
                     this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
 
@@ -925,7 +928,7 @@ class HICBrowser {
                         chrChanged: false
                     })
 
-                    this.update(event);
+                    this.update(event)
                     //this.eventBus.post(event);
                 }
             } finally {
@@ -961,50 +964,50 @@ class HICBrowser {
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
 
-        if (!this.dataset) return;
+        if (!this.dataset) return
 
         if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
             // jump from whole genome to chromosome
-            const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX);
-            const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY);
-            this.setChromosomes(chrX.index, chrY.index);
+            const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize
+            const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize
+            const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX)
+            const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY)
+            this.setChromosomes(chrX.index, chrY.index)
         } else {
-            const resolutions = this.getResolutions();
+            const resolutions = this.getResolutions()
             const viewDimensions = this.contactMatrixView.getViewDimensions()
             const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
             const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
 
-            this.state.x += (dx / this.state.pixelSize);
-            this.state.y += (dy / this.state.pixelSize);
+            this.state.x += (dx / this.state.pixelSize)
+            this.state.y += (dy / this.state.pixelSize)
 
             const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index
             const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index
             if (this.resolutionLocked || directionPositive || directionNegative) {
 
                 const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-                const state = this.state;
-                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
+                const state = this.state
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS)
 
-                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize
 
-                state.pixelSize = newPixelSize;
-                state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
-                state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
+                state.pixelSize = newPixelSize
+                state.x += shiftRatio * (viewDimensions.width / state.pixelSize)
+                state.y += shiftRatio * (viewDimensions.height / state.pixelSize)
 
                 this.clamp()
 
-                this.update(HICEvent("LocusChange", { state, resolutionChanged: false, chrChanged: false }))
+                this.update(HICEvent("LocusChange", {state, resolutionChanged: false, chrChanged: false}))
 
             } else {
-                let i;
+                let i
                 for (i = 0; i < resolutions.length; i++) {
-                    if (this.state.zoom === resolutions[i].index) break;
+                    if (this.state.zoom === resolutions[i].index) break
                 }
                 if (i) {
-                    const newZoom = resolutions[i + direction].index;
-                    this.setZoom(newZoom);
+                    const newZoom = resolutions[i + direction].index
+                    this.setZoom(newZoom)
                 }
             }
         }
@@ -1018,29 +1021,29 @@ class HICBrowser {
     async setZoom(zoom) {
 
         const currentResolution = this.dataset.bpResolutions[this.state.zoom]
-        const { width, height } = this.contactMatrixView.getViewDimensions();
-        const xCenter = this.state.x + width / (2 * this.state.pixelSize);    // center in bins
-        const yCenter = this.state.y + height / (2 * this.state.pixelSize);    // center in bins
+        const {width, height} = this.contactMatrixView.getViewDimensions()
+        const xCenter = this.state.x + width / (2 * this.state.pixelSize)    // center in bins
+        const yCenter = this.state.y + height / (2 * this.state.pixelSize)    // center in bins
 
-        const newResolution = this.dataset.bpResolutions[zoom];
-        const newXCenter = xCenter * (currentResolution / newResolution);
-        const newYCenter = yCenter * (currentResolution / newResolution);
+        const newResolution = this.dataset.bpResolutions[zoom]
+        const newXCenter = xCenter * (currentResolution / newResolution)
+        const newYCenter = yCenter * (currentResolution / newResolution)
 
         const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
 
         this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
 
-        const resolutionChanged = (this.state.zoom !== zoom);
+        const resolutionChanged = (this.state.zoom !== zoom)
 
         this.state.zoom = zoom
-        this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize));
-        this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize));
+        this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize))
+        this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize))
 
         this.clamp()
 
         await this.contactMatrixView.zoomIn()
 
-        this.update( HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }) )
+        this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged, chrChanged: false}))
 
     };
 
@@ -1050,18 +1053,18 @@ class HICBrowser {
             this.startSpinner()
 
             const z = await this.minZoom(chr1, chr2)
-            this.state.chr1 = Math.min(chr1, chr2);
-            this.state.chr2 = Math.max(chr1, chr2);
-            this.state.x = 0;
-            this.state.y = 0;
-            this.state.zoom = z;
+            this.state.chr1 = Math.min(chr1, chr2)
+            this.state.chr2 = Math.max(chr1, chr2)
+            this.state.x = 0
+            this.state.y = 0
+            this.state.zoom = z
 
             const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS));
+            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
 
             let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true})
 
-            this.update(event);
+            this.update(event)
             //this.eventBus.post(event);
 
         } finally {
@@ -1079,8 +1082,8 @@ class HICBrowser {
 
         for (const trackXYPair of this.trackPairs) {
 
-            trackXYPair.x.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
-            trackXYPair.y.$viewport.get(0).style.order = `${ this.trackPairs.indexOf(trackXYPair) }`
+            trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+            trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
 
             trackXYPair.x.syncCanvas()
             trackXYPair.y.syncCanvas()
@@ -1103,11 +1106,11 @@ class HICBrowser {
      */
     async setState(state) {
 
-        const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
-        this.state = state;
+        const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2
+        this.state = state
         // Possibly adjust pixel size
         const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-        this.state.pixelSize = Math.max(state.pixelSize, minPS);
+        this.state.pixelSize = Math.max(state.pixelSize, minPS)
 
         let hicEvent = new HICEvent("LocusChange", {
             state: this.state,
@@ -1115,8 +1118,8 @@ class HICBrowser {
             chrChanged: chrChanged
         })
 
-        this.update(hicEvent);
-        this.eventBus.post(hicEvent);
+        this.update(hicEvent)
+        this.eventBus.post(hicEvent)
     }
 
 
@@ -1132,7 +1135,7 @@ class HICBrowser {
             binX: this.state.x,            // TODO -- tranlsate to lower right corner
             binY: this.state.y,
             pixelSize: this.state.pixelSize
-        };
+        }
     }
 
     /**
@@ -1141,11 +1144,11 @@ class HICBrowser {
      */
     canBeSynched(syncState) {
 
-        if(false === this.synchable) return false;   // Explicitly not synchable
+        if (false === this.synchable) return false   // Explicitly not synchable
 
         return this.dataset &&
             (this.dataset.getChrIndexFromName(syncState.chr1Name) !== undefined) &&
-            (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined);
+            (this.dataset.getChrIndexFromName(syncState.chr2Name) !== undefined)
 
     }
 
@@ -1155,47 +1158,47 @@ class HICBrowser {
      */
     syncState(syncState) {
 
-        if(!syncState || false === this.synchable) return;
+        if (!syncState || false === this.synchable) return
 
-        if (!this.dataset) return;
+        if (!this.dataset) return
 
         var chr1 = this.genome.getChromosome(syncState.chr1Name),
             chr2 = this.genome.getChromosome(syncState.chr2Name),
             zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
             x = syncState.binX,
             y = syncState.binY,
-            pixelSize = syncState.pixelSize;
+            pixelSize = syncState.pixelSize
 
         if (!(chr1 && chr2)) {
-            return;   // Can't be synched.
+            return   // Can't be synched.
         }
 
         if (zoom === undefined) {
             // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
-            zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions);
+            zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions)
 
             // Compute equivalent in basepairs / pixel
-            pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom];
+            pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom]
 
             // Translate bins so that origin is unchanged in basepairs
-            x = (syncState.binX / syncState.pixelSize) * pixelSize;
-            y = (syncState.binY / syncState.pixelSize) * pixelSize;
+            x = (syncState.binX / syncState.pixelSize) * pixelSize
+            y = (syncState.binY / syncState.pixelSize) * pixelSize
 
             if (pixelSize > MAX_PIXEL_SIZE) {
-                console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)");
-                return;
+                console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)")
+                return
             }
         }
 
 
-        const zoomChanged = (this.state.zoom !== zoom);
-        const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index);
-        this.state.chr1 = chr1.index;
-        this.state.chr2 = chr2.index;
-        this.state.zoom = zoom;
-        this.state.x = x;
-        this.state.y = y;
-        this.state.pixelSize = pixelSize;
+        const zoomChanged = (this.state.zoom !== zoom)
+        const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index)
+        this.state.chr1 = chr1.index
+        this.state.chr2 = chr2.index
+        this.state.zoom = zoom
+        this.state.x = x
+        this.state.y = y
+        this.state.pixelSize = pixelSize
 
         let event = HICEvent("LocusChange", {
             state: this.state,
@@ -1210,80 +1213,80 @@ class HICBrowser {
 
     setNormalization(normalization) {
 
-        this.state.normalization = normalization;
+        this.state.normalization = normalization
         this.eventBus.post(HICEvent("NormalizationChange", this.state.normalization))
     }
 
     shiftPixels(dx, dy) {
 
-        if (!this.dataset) return;
-        this.state.x += (dx / this.state.pixelSize);
-        this.state.y += (dy / this.state.pixelSize);
-        this.clamp();
+        if (!this.dataset) return
+        this.state.x += (dx / this.state.pixelSize)
+        this.state.y += (dy / this.state.pixelSize)
+        this.clamp()
 
         const locusChangeEvent = HICEvent("LocusChange", {
             state: this.state,
             resolutionChanged: false,
             dragging: true,
             chrChanged: false
-        });
-        locusChangeEvent.dragging = true;
+        })
+        locusChangeEvent.dragging = true
 
-        this.update(locusChangeEvent);
-        this.eventBus.post(locusChangeEvent);
+        this.update(locusChangeEvent)
+        this.eventBus.post(locusChangeEvent)
     }
 
     goto(chr1, bpX, bpXMax, chr2, bpY, bpYMax, minResolution) {
 
-        const viewDimensions = this.contactMatrixView.getViewDimensions();
-        const bpResolutions = this.getResolutions();
-        const currentResolution = bpResolutions[this.state.zoom].binSize;
-        const viewWidth = viewDimensions.width;
+        const viewDimensions = this.contactMatrixView.getViewDimensions()
+        const bpResolutions = this.getResolutions()
+        const currentResolution = bpResolutions[this.state.zoom].binSize
+        const viewWidth = viewDimensions.width
 
         if (!bpXMax) {
-            bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2));
-            bpXMax = bpX + viewWidth * currentResolution;
+            bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2))
+            bpXMax = bpX + viewWidth * currentResolution
         }
         if (!bpYMax) {
-            bpY = Math.max(0, bpY - Math.floor(viewDimensions.height * currentResolution / 2));
-            bpYMax = bpY + viewDimensions.height * currentResolution;
+            bpY = Math.max(0, bpY - Math.floor(viewDimensions.height * currentResolution / 2))
+            bpYMax = bpY + viewDimensions.height * currentResolution
         }
 
-        let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height);
+        let targetResolution = Math.max((bpXMax - bpX) / viewDimensions.width, (bpYMax - bpY) / viewDimensions.height)
 
         if (minResolution && targetResolution < minResolution) {
-            const maxExtent = viewWidth * minResolution;
-            const xCenter = (bpX + bpXMax) / 2;
-            const yCenter = (bpY + bpYMax) / 2;
-            bpX = Math.max(xCenter - maxExtent / 2);
-            bpY = Math.max(0, yCenter - maxExtent / 2);
-            targetResolution = minResolution;
+            const maxExtent = viewWidth * minResolution
+            const xCenter = (bpX + bpXMax) / 2
+            const yCenter = (bpY + bpYMax) / 2
+            bpX = Math.max(xCenter - maxExtent / 2)
+            bpY = Math.max(0, yCenter - maxExtent / 2)
+            targetResolution = minResolution
         }
 
-        let zoomChanged;
-        let newZoom;
+        let zoomChanged
+        let newZoom
         if (true === this.resolutionLocked && minResolution === undefined) {
-            zoomChanged = false;
-            newZoom = this.state.zoom;
+            zoomChanged = false
+            newZoom = this.state.zoom
         } else {
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-            zoomChanged = (newZoom !== this.state.zoom);
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions)
+            zoomChanged = (newZoom !== this.state.zoom)
         }
 
-        const newResolution = bpResolutions[newZoom].binSize;
-        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
-        const newXBin = bpX / newResolution;
-        const newYBin = bpY / newResolution;
+        const newResolution = bpResolutions[newZoom].binSize
+        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution))
+        const newXBin = bpX / newResolution
+        const newYBin = bpY / newResolution
 
-        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2;
-        this.state.chr1 = chr1;
-        this.state.chr2 = chr2;
-        this.state.zoom = newZoom;
-        this.state.x = newXBin;
-        this.state.y = newYBin;
-        this.state.pixelSize = newPixelSize;
+        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2
+        this.state.chr1 = chr1
+        this.state.chr2 = chr2
+        this.state.zoom = newZoom
+        this.state.x = newXBin
+        this.state.y = newYBin
+        this.state.pixelSize = newPixelSize
 
-        this.contactMatrixView.clearImageCaches();
+        this.contactMatrixView.clearImageCaches()
 
         let event = HICEvent("LocusChange", {
             state: this.state,
@@ -1291,7 +1294,7 @@ class HICBrowser {
             chrChanged: chrChanged
         })
 
-        this.update(event);
+        this.update(event)
         //this.eventBus.post(event);
 
     }
@@ -1302,15 +1305,15 @@ class HICBrowser {
             chr2Length = this.dataset.chromosomes[this.state.chr2].size,
             binSize = this.dataset.bpResolutions[this.state.zoom],
             maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
-            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
+            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize)
 
         // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
-        maxX = Math.max(0, maxX);
-        maxY = Math.max(0, maxY);
+        maxX = Math.max(0, maxX)
+        maxY = Math.max(0, maxY)
 
 
-        this.state.x = Math.min(Math.max(0, this.state.x), maxX);
-        this.state.y = Math.min(Math.max(0, this.state.y), maxY);
+        this.state.x = Math.min(Math.max(0, this.state.x), maxX)
+        this.state.y = Math.min(Math.max(0, this.state.y), maxY)
     }
 
     receiveEvent(event) {
@@ -1335,41 +1338,41 @@ class HICBrowser {
     async update(event) {
 
         if (this.updating) {
-            const type = event ? event.type : "NONE";
-            this.pending.set(type, event);
+            const type = event ? event.type : "NONE"
+            this.pending.set(type, event)
         } else {
-            this.updating = true;
+            this.updating = true
             try {
 
-                this.startSpinner();
+                this.startSpinner()
                 if (event !== undefined && "LocusChange" === event.type) {
-                    this.layoutController.xAxisRuler.locusChange(event);
-                    this.layoutController.yAxisRuler.locusChange(event);
+                    this.layoutController.xAxisRuler.locusChange(event)
+                    this.layoutController.yAxisRuler.locusChange(event)
                 }
 
                 const promises = []
 
                 for (let xyTrackRenderPair of this.trackPairs) {
-                    promises.push(this.renderTrackXY(xyTrackRenderPair));
+                    promises.push(this.renderTrackXY(xyTrackRenderPair))
                 }
-                promises.push(this.contactMatrixView.update(event));
-                await Promise.all(promises);
+                promises.push(this.contactMatrixView.update(event))
+                await Promise.all(promises)
 
                 if (event && event.propogate) {
-                    let syncState1 = this.getSyncState();
+                    let syncState1 = this.getSyncState()
                     for (let browser of this.synchedBrowsers) {
-                        browser.syncState(syncState1);
+                        browser.syncState(syncState1)
                     }
                 }
 
             } finally {
-                this.updating = false;
+                this.updating = false
                 if (this.pending.size > 0) {
                     const events = []
                     for (let [k, v] of this.pending) {
-                        events.push(v);
+                        events.push(v)
                     }
-                    this.pending.clear();
+                    this.pending.clear()
                     for (let e of events) {
                         this.update(e)
                     }
@@ -1378,71 +1381,71 @@ class HICBrowser {
                     // possibly, unless update was called from an event post (infinite loop)
                     this.eventBus.post(event)
                 }
-                this.stopSpinner();
+                this.stopSpinner()
             }
         }
     }
 
     repaintMatrix() {
-        this.contactMatrixView.imageTileCache = {};
-        this.contactMatrixView.initialImage = undefined;
-        this.contactMatrixView.update();
+        this.contactMatrixView.imageTileCache = {}
+        this.contactMatrixView.initialImage = undefined
+        this.contactMatrixView.update()
     }
 
     resolution() {
-        return this.dataset.bpResolutions[this.state.zoom];
+        return this.dataset.bpResolutions[this.state.zoom]
     };
 
 
     toJSON() {
 
-        if (!(this.dataset && this.dataset.url)) return "{}";   // URL is required
+        if (!(this.dataset && this.dataset.url)) return "{}"   // URL is required
 
-        const jsonOBJ = {};
+        const jsonOBJ = {}
 
         jsonOBJ.backgroundColor = this.contactMatrixView.stringifyBackgroundColor()
-        jsonOBJ.url = this.dataset.url;
+        jsonOBJ.url = this.dataset.url
         if (this.dataset.name) {
-            jsonOBJ.name = this.dataset.name;
+            jsonOBJ.name = this.dataset.name
         }
-        jsonOBJ.state = this.state.stringify();
-        jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
+        jsonOBJ.state = this.state.stringify()
+        jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify()
         if (Globals.selectedGene) {
-            jsonOBJ.selectedGene = Globals.selectedGene;
+            jsonOBJ.selectedGene = Globals.selectedGene
         }
-        let nviString = getNviString(this.dataset);
+        let nviString = getNviString(this.dataset)
         if (nviString) {
-            jsonOBJ.nvi = nviString;
+            jsonOBJ.nvi = nviString
         }
         if (this.controlDataset) {
-            jsonOBJ.controlUrl = this.controlUrl;
+            jsonOBJ.controlUrl = this.controlUrl
             if (this.controlDataset.name) {
-                jsonOBJ.controlName = this.controlDataset.name;
+                jsonOBJ.controlName = this.controlDataset.name
             }
-            const displayMode = this.getDisplayMode();
+            const displayMode = this.getDisplayMode()
             if (displayMode) {
-                jsonOBJ.displayMode = this.getDisplayMode();
+                jsonOBJ.displayMode = this.getDisplayMode()
             }
-            nviString = getNviString(this.controlDataset);
+            nviString = getNviString(this.controlDataset)
             if (nviString) {
-                jsonOBJ.controlNvi = nviString;
+                jsonOBJ.controlNvi = nviString
             }
             if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
-                jsonOBJ.cycle = true;
+                jsonOBJ.cycle = true
             }
         }
 
         if (this.trackPairs.length > 0 || this.tracks2D.length > 0) {
-            let tracks = [];
-            jsonOBJ.tracks = tracks;
+            let tracks = []
+            jsonOBJ.tracks = tracks
             for (let trackRenderer of this.trackPairs) {
 
-                const track = trackRenderer.x.track;
+                const track = trackRenderer.x.track
                 const config = track.config
 
                 if (typeof config.url === "string") {
 
-                    const t = { url: config.url }
+                    const t = {url: config.url}
 
                     if (config.type) {
                         t.type = config.type
@@ -1451,70 +1454,70 @@ class HICBrowser {
                         t.format = config.format
                     }
                     if (track.name) {
-                        t.name = track.name;
+                        t.name = track.name
                     }
                     if (track.dataRange) {
-                        t.min = track.dataRange.min;
-                        t.max = track.dataRange.max;
+                        t.min = track.dataRange.min
+                        t.max = track.dataRange.max
                     }
                     if (track.color) {
-                        t.color = track.color;
+                        t.color = track.color
                     }
                     tracks.push(t)
                 } else if ('sequence' === config.type) {
-                    tracks.push({ type: 'sequence', format: 'sequence' })
+                    tracks.push({type: 'sequence', format: 'sequence'})
                 }
 
             }
             for (let track of this.tracks2D) {
-                var config = track.config;
+                var config = track.config
                 if (typeof config.url === "string") {
                     const t = {
                         url: config.url
                     }
                     if (track.name) {
-                        t.name = track.name;
+                        t.name = track.name
                     }
                     if (track.color) {
-                        t.color = track.color;
+                        t.color = track.color
                     }
-                    tracks.push(t);
+                    tracks.push(t)
                 }
             }
         }
 
-        return jsonOBJ;
+        return jsonOBJ
     }
 
 
     async minZoom(chr1, chr2) {
 
-        const viewDimensions = this.contactMatrixView.getViewDimensions();
+        const viewDimensions = this.contactMatrixView.getViewDimensions()
         const chromosome1 = this.dataset.chromosomes[chr1]
-        const chromosome2 = this.dataset.chromosomes[chr2];
-        const chr1Length = chromosome1.size;
-        const chr2Length = chromosome2.size;
-        const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height);
+        const chromosome2 = this.dataset.chromosomes[chr2]
+        const chr1Length = chromosome1.size
+        const chr2Length = chromosome2.size
+        const binSize = Math.max(chr1Length / viewDimensions.width, chr2Length / viewDimensions.height)
 
         const matrix = await this.dataset.getMatrix(chr1, chr2)
         if (!matrix) {
-            throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`);
+            throw new Error(`Data not avaiable for chromosomes ${chromosome1.name} - ${chromosome2.name}`)
         }
-        return matrix.findZoomForResolution(binSize);
+        return matrix.findZoomForResolution(binSize)
     }
 
     async minPixelSize(chr1, chr2, z) {
 
-        const viewDimensions = this.contactMatrixView.getViewDimensions();
-        const chr1Length = this.dataset.chromosomes[chr1].size;
-        const chr2Length = this.dataset.chromosomes[chr2].size;
+        const viewDimensions = this.contactMatrixView.getViewDimensions()
+        const chr1Length = this.dataset.chromosomes[chr1].size
+        const chr2Length = this.dataset.chromosomes[chr2].size
 
         const matrix = await this.dataset.getMatrix(chr1, chr2)
-        const zd = matrix.getZoomDataByIndex(z, "BP");
-        const binSize = zd.zoom.binSize;
-        const nBins1 = chr1Length / binSize;
-        const nBins2 = chr2Length / binSize;
-        return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2));
+        const zd = matrix.getZoomDataByIndex(z, "BP")
+        const binSize = zd.zoom.binSize
+        const nBins1 = chr1Length / binSize
+        const nBins2 = chr2Length / binSize
+        return (Math.min(viewDimensions.width / nBins1, viewDimensions.height / nBins2))
 
     }
 }
@@ -1522,16 +1525,16 @@ class HICBrowser {
 
 function extractName(config) {
     if (config.name === undefined) {
-        const urlOrFile = config.url;
+        const urlOrFile = config.url
         if (isFile(urlOrFile)) {
-            return urlOrFile.name;
+            return urlOrFile.name
         } else {
-            const str = urlOrFile.split('?').shift();
-            const idx = urlOrFile.lastIndexOf("/");
-            return idx > 0 ? str.substring(idx + 1) : str;
+            const str = urlOrFile.split('?').shift()
+            const idx = urlOrFile.lastIndexOf("/")
+            return idx > 0 ? str.substring(idx + 1) : str
         }
     } else {
-        return config.name;
+        return config.name
     }
 }
 
@@ -1555,16 +1558,16 @@ function parseUri(str) {
     var o = parseUri.options,
         m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
         uri = {},
-        i = 14;
+        i = 14
 
-    while (i--) uri[o.key[i]] = m[i] || "";
+    while (i--) uri[o.key[i]] = m[i] || ""
 
-    uri[o.q.name] = {};
+    uri[o.q.name] = {}
     uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-        if ($1) uri[o.q.name][$1] = $2;
-    });
+        if ($1) uri[o.q.name][$1] = $2
+    })
 
-    return uri;
+    return uri
 }
 
 parseUri.options = {
@@ -1578,10 +1581,10 @@ parseUri.options = {
         strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
         loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
     }
-};
+}
 
 function replaceAll(str, target, replacement) {
-    return str.split(target).join(replacement);
+    return str.split(target).join(replacement)
 }
 
 function presentError(prefix, error) {
@@ -1590,11 +1593,11 @@ function presentError(prefix, error) {
         "403": "Access forbidden",
         "404": "Not found"
     }
-    var msg = error.message;
+    var msg = error.message
     if (httpMessages.hasOwnProperty(msg)) {
-        msg = httpMessages[msg];
+        msg = httpMessages[msg]
     }
-    Alert.presentAlert(prefix + ": " + msg);
+    Alert.presentAlert(prefix + ": " + msg)
 
 }
 
