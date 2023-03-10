@@ -20,7 +20,8 @@
   "scripts": {
     "build": "node scripts/updateVersion && npx rollup --config",
     "test": "mocha -u tdd -r esm",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "prepare":  "npm run build"
   },
   "keywords": [
     "conformation capture",
