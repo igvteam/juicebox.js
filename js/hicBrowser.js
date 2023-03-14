@@ -772,10 +772,10 @@ class HICBrowser {
         const loci = string.split(' ')
         if (loci.length === 1) {
             xLocus = this.parseLocusString(loci[0])
-            yLocus = xLocus
+            //yLocus = xLocus
         } else {
             xLocus = this.parseLocusString(loci[0])
-            yLocus = this.parseLocusString(loci[1])
+            //yLocus = this.parseLocusString(loci[1])
             if (yLocus === undefined) yLocus = xLocus
         }
 
@@ -786,9 +786,10 @@ class HICBrowser {
             if (result) {
                 Globals.selectedGene = loci[0].trim()
                 xLocus = this.parseLocusString(result)
-                yLocus = xLocus
+                //yLocus = xLocus
                 this.state.selectedGene = Globals.selectedGene
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
+                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
+                this.goto1D(xLocus.chr, xLocus.start, xLocus.end,  5000)
             } else {
                 alert('No feature found with name "' + loci[0] + '"')
             }
@@ -798,7 +799,8 @@ class HICBrowser {
             if (xLocus.wholeChr && yLocus.wholeChr) {
                 await this.setChromosomes(xLocus.chr, yLocus.chr)
             } else {
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
+                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
+                this.goto1D(xLocus.chr, xLocus.start, xLocus.end)
             }
         }
 
@@ -1298,6 +1300,63 @@ class HICBrowser {
         //this.eventBus.post(event);
 
     }
+
+    goto1D(chr1, bpX, bpXMax, minResolution) {
+
+        const viewDimensions = this.contactMatrixView.getViewDimensions()
+        const bpResolutions = this.getResolutions()
+        const currentResolution = bpResolutions[this.state.zoom].binSize
+        const viewWidth = viewDimensions.width
+
+        if (!bpXMax) {
+            bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2))
+            bpXMax = bpX + viewWidth * currentResolution
+        }
+
+        let targetResolution = (bpXMax - bpX) / viewDimensions.width
+
+        if (minResolution && targetResolution < minResolution) {
+            const maxExtent = viewWidth * minResolution
+            const xCenter = (bpX + bpXMax) / 2
+            bpX = Math.max(xCenter - maxExtent / 2)
+            targetResolution = minResolution
+        }
+
+        let zoomChanged
+        let newZoom
+        if (true === this.resolutionLocked && minResolution === undefined) {
+            zoomChanged = false
+            newZoom = this.state.zoom
+        } else {
+            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions)
+            zoomChanged = (newZoom !== this.state.zoom)
+        }
+
+        const newResolution = bpResolutions[newZoom].binSize
+        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution))
+        const newXBin = bpX / newResolution
+
+        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2
+        this.state.chr1 = chr1
+        //this.state.chr2 = chr2
+        this.state.zoom = newZoom
+        this.state.x = newXBin
+        //this.state.y = newYBin
+        this.state.pixelSize = newPixelSize
+
+        this.contactMatrixView.clearImageCaches()
+
+        let event = HICEvent("LocusChange", {
+            state: this.state,
+            resolutionChanged: zoomChanged,
+            chrChanged: chrChanged
+        })
+
+        this.update(event)
+        //this.eventBus.post(event);
+
+    }
+
 
     clamp() {
         var viewDimensions = this.contactMatrixView.getViewDimensions(),
