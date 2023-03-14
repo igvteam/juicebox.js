@@ -23,7 +23,7 @@
 
 import ColorScale from './colorScale.js'
 
-const defaultRatioColorScaleConfig = {threshold: 5, positive: {r: 255, g: 0, b: 0}, negative: {r: 0, g: 0, b: 255}}
+const defaultRatioColorScaleConfig = {threshold: 5, positive: {r: 0, g: 0, b: 255}, negative: {r: 255, g: 0, b: 0}}
 
 class RatioColorScale {
 

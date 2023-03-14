@@ -99,7 +99,7 @@ class HICBrowser {
         this.resolutionSelector.setResolutionLock(this.resolutionLocked)
         this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this))
         this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this))
-        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this))
+        //this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this))
         this.inputDialog = new InputDialog($app_container.get(0), this)
 
         // contact map container related objects
