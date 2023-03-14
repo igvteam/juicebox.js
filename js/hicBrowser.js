@@ -659,7 +659,13 @@ class HICBrowser {
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState)
             } else {
-                await this.setState(State.default(this.config))
+                // Find celltype chromosome
+                const cellTypeChr = this.dataset.chromosomes.find(c => c.name === 'celltype')
+                if(!cellTypeChr) {
+                    throw Error("celltype 'chromosome' not found")
+
+                }
+                await this.setState(State.default(this.config), cellTypeChr.index)
             }
 
 

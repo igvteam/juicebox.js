@@ -117,12 +117,16 @@ class State {
 
     }
 
-    static default(configOrUndefined) {
+    static default(configOrUndefined, cellTypeChr) {
+
+        if(cellTypeChr === undefined) {
+            cellTypeChr = 25
+        }
 
         if (configOrUndefined) {
-            return new State(0, 0, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
+            return new State(1, cellTypeChr, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
         } else {
-            return new State(0, 0, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+            return new State(1, cellTypeChr, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
         }
 
     }
