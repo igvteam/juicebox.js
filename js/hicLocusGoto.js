@@ -38,7 +38,7 @@ class LocusGoto {
         this.$container = $("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
         $parent.append(this.$container);
 
-        this.$resolution_selector = $('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$resolution_selector = $('<input type="text" placeholder="chr:start-end or gene name">');
         this.$container.append(this.$resolution_selector);
 
         this.$resolution_selector.on('change', function (e) {
@@ -69,8 +69,8 @@ class LocusGoto {
                 const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
                 const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-                xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
-                    chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
+                xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1)
+                   // + " " + chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
 
             }
             this.$resolution_selector.val(xy);

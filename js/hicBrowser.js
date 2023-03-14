@@ -650,22 +650,34 @@ class HICBrowser {
             }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset))
-
-            if (config.state) {
-                if (!config.state.hasOwnProperty("chr1")) {
-                    config.state = State.parse(config.state)
-                }
-                await this.setState(config.state)
-            } else if (config.synchState && this.canBeSynched(config.synchState)) {
+            if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState)
             } else {
                 // Find celltype chromosome
                 const cellTypeChr = this.dataset.chromosomes.find(c => c.name === 'celltype')
-                if(!cellTypeChr) {
+                if (!cellTypeChr) {
                     throw Error("celltype 'chromosome' not found")
-
                 }
-                await this.setState(State.default(this.config), cellTypeChr.index)
+
+                let state
+                if (config.state) {
+                    if (config.state.hasOwnProperty("chr1")) {
+                        state = config.state
+                    } else {
+                        state = State.parse(config.state)
+                    }
+                } else {
+                    state = State.default(this.config, cellTypeChr.index)
+                }
+
+                // Compute pixel size to fill view -- this will remain constant
+                // Assumption -- single resolution
+                const bpResolution = this.getResolutions()[0].binSize
+                const viewDimensions = this.contactMatrixView.getViewDimensions()
+                state.pixelSize = viewDimensions.height / (cellTypeChr.bpLength / bpResolution)
+                console.log(state.pixelSize)
+
+                await this.setState(state)
             }
 
 
@@ -776,14 +788,7 @@ class HICBrowser {
         let xLocus
         let yLocus
         const loci = string.split(' ')
-        if (loci.length === 1) {
-            xLocus = this.parseLocusString(loci[0])
-            //yLocus = xLocus
-        } else {
-            xLocus = this.parseLocusString(loci[0])
-            //yLocus = this.parseLocusString(loci[1])
-            if (yLocus === undefined) yLocus = xLocus
-        }
+        xLocus = this.parseLocusString(loci[0])
 
         if (xLocus === undefined) {
             // Try a gene name search.
@@ -792,10 +797,8 @@ class HICBrowser {
             if (result) {
                 Globals.selectedGene = loci[0].trim()
                 xLocus = this.parseLocusString(result)
-                //yLocus = xLocus
                 this.state.selectedGene = Globals.selectedGene
-                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
-                this.goto1D(xLocus.chr, xLocus.start, xLocus.end,  5000)
+                this.gotoSB(xLocus.chr, xLocus.start, xLocus.end, 5000)
             } else {
                 alert('No feature found with name "' + loci[0] + '"')
             }
@@ -803,14 +806,12 @@ class HICBrowser {
         } else {
 
             if (xLocus.wholeChr && yLocus.wholeChr) {
-                await this.setChromosomes(xLocus.chr, yLocus.chr)
+                //await this.setChromosomes(xLocus.chr, yLocus.chr)
             } else {
-                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
-                this.goto1D(xLocus.chr, xLocus.start, xLocus.end)
+                this.gotoSB(xLocus.chr, xLocus.start, xLocus.end)
             }
         }
-
-    };
+    }
 
     /**
      * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
@@ -1307,48 +1308,39 @@ class HICBrowser {
 
     }
 
-    goto1D(chr1, bpX, bpXMax, minResolution) {
+    /**
+     * GOTO for "shoebox".  X and Y need treated independently, Y is cell type, X is genomic coordinates*
+     * @param chr1
+     * @param bpX
+     * @param bpXMax
+     * @param chr2
+     * @param bpY
+     * @param bpYMax
+     * @param minResolution
+     */
+    gotoSB(chr1, bpX, bpXMax) {
 
         const viewDimensions = this.contactMatrixView.getViewDimensions()
         const bpResolutions = this.getResolutions()
         const currentResolution = bpResolutions[this.state.zoom].binSize
         const viewWidth = viewDimensions.width
 
-        if (!bpXMax) {
+        let zoomChanged = false
+
+        if (bpXMax) {
+            const bpwidth = viewWidth * currentResolution
+            const shift = (bpwidth - (bpXMax - bpX)) / 2
+            bpX += shift
+        } else (!bpXMax)
+        {
             bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2))
-            bpXMax = bpX + viewWidth * currentResolution
         }
 
-        let targetResolution = (bpXMax - bpX) / viewDimensions.width
-
-        if (minResolution && targetResolution < minResolution) {
-            const maxExtent = viewWidth * minResolution
-            const xCenter = (bpX + bpXMax) / 2
-            bpX = Math.max(xCenter - maxExtent / 2)
-            targetResolution = minResolution
-        }
-
-        let zoomChanged
-        let newZoom
-        if (true === this.resolutionLocked && minResolution === undefined) {
-            zoomChanged = false
-            newZoom = this.state.zoom
-        } else {
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions)
-            zoomChanged = (newZoom !== this.state.zoom)
-        }
-
-        const newResolution = bpResolutions[newZoom].binSize
-        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution))
-        const newXBin = bpX / newResolution
-
-        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2
+        //newXPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution))
+        const newXBin = bpX / currentResolution
+        const chrChanged = this.state.chr1 !== chr1
         this.state.chr1 = chr1
-        //this.state.chr2 = chr2
-        this.state.zoom = newZoom
         this.state.x = newXBin
-        //this.state.y = newYBin
-        this.state.pixelSize = newPixelSize
 
         this.contactMatrixView.clearImageCaches()
 
@@ -1359,8 +1351,6 @@ class HICBrowser {
         })
 
         this.update(event)
-        //this.eventBus.post(event);
-
     }
 
 

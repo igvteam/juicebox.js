@@ -101,16 +101,13 @@ class SweepZoom {
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
         const xBP = (x + (xPixel / pixelSize)) * bpResolution
-        //const yBP = (y + (yPixel / pixelSize)) * bpResolution
-        const yBP = y * bpResolution
+        const yBP = (y + (yPixel / pixelSize)) * bpResolution
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
         const  widthBP = ( this.sweepRect.width / pixelSize) * bpResolution
-        //const heightBP = (this.sweepRect.height / pixelSize) * bpResolution
+        const heightBP = (this.sweepRect.height / pixelSize) * bpResolution
 
-        //this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP)
-        this.browser.goto1D(chr1, xBP, xBP + widthBP)
-
+        this.browser.gotoSB(chr1, xBP, xBP + widthBP)
 
     }
 }
