@@ -89621,12 +89621,16 @@ class State {
 
     }
 
-    static default(configOrUndefined) {
+    static default(configOrUndefined, cellTypeChr) {
+
+        if(cellTypeChr === undefined) {
+            cellTypeChr = 25;
+        }
 
         if (configOrUndefined) {
-            return new State(0, 0, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
+            return new State(1, cellTypeChr, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
         } else {
-            return new State(0, 0, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+            return new State(1, cellTypeChr, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
         }
 
     }
@@ -93267,7 +93271,13 @@ class HICBrowser {
             } else if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState);
             } else {
-                await this.setState(State.default(this.config));
+                // Find celltype chromosome
+                const cellTypeChr = this.dataset.chromosomes.find(c => c.name === 'celltype');
+                if(!cellTypeChr) {
+                    throw Error("celltype 'chromosome' not found")
+
+                }
+                await this.setState(State.default(this.config), cellTypeChr.index);
             }
 
 
