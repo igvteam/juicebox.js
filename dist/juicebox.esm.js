@@ -94001,9 +94001,9 @@ class HICBrowser {
         if (this.trackPairs.length > 0 || this.tracks2D.length > 0) {
             let tracks = [];
             jsonOBJ.tracks = tracks;
-            for (let trackRenderer of this.trackPairs) {
+            for (let trackPair of this.trackPairs) {
 
-                const track = trackRenderer.x.track;
+                const track = trackPair.track;
                 const config = track.config;
 
                 if (typeof config.url === "string") {
