@@ -243,7 +243,7 @@ class TrackPair {
         } else {
 
             // Expand the requested range so we can pan a bit without reloading
-            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : this.y.$canvas.height()
+            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : 3 * this.y.$canvas.height()
             const lengthBP = Math.round(genomicState.bpp * pixelWidth)
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3))
             const bpEnd = bpStart + lengthBP
