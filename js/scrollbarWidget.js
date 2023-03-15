@@ -100,7 +100,7 @@ class ScrollbarWidget {
                 pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
 
                 // pixel / pixel-per-bin -> bin
-                bins = [pixels[0] / pixelSize, pixels[pixels.length - 1] / pixelSize];
+                bins = [pixels[0] / 1, pixels[pixels.length - 1] / pixelSize];
 
                 // bin / bin -> percentage
                 percentages = bins.map((bin, i) => {

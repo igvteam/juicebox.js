@@ -310,7 +310,7 @@ class Ruler {
 
         igv.IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
-        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
+        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / 1 //browser.state.pixelSize;
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];

@@ -237,7 +237,7 @@ class ContactMatrixView {
         }
 
         const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-        const widthInBins = this.$viewport.width() / pixelSizeInt
+        const widthInBins = this.$viewport.width() / 1
         const heightInBins = this.$viewport.height() / pixelSizeInt
         const blockCol1 = Math.floor(state.x / imageTileDimension)
         const blockCol2 = Math.floor((state.x + widthInBins) / imageTileDimension)
@@ -270,7 +270,7 @@ class ContactMatrixView {
             chr2: state.chr2,
             x: state.x * zd.zoom.binSize,
             y: state.y * zd.zoom.binSize,
-            w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+            w: viewportWidth * zd.zoom.binSize / 1,
             h: viewportHeight * zd.zoom.binSize / state.pixelSize
         }
 
@@ -575,7 +575,7 @@ class ContactMatrixView {
             const newGenomicExtent = {
                 x: state.x * zd.zoom.binSize,
                 y: state.y * zd.zoom.binSize,
-                w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+                w: viewportWidth * zd.zoom.binSize / 1,
                 h: viewportHeight * zd.zoom.binSize / state.pixelSize
             }
 
@@ -606,11 +606,11 @@ class ContactMatrixView {
 
         const {x, y, pixelSize} = this.browser.state
         //const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
-        const offsetX = (x0 - x) * pixelSize
+        const offsetX = (x0 - x) * 1
         const offsetY = (y0 - y) * pixelSize
 
         const scale = pixelSize; // / pixelSizeInt
-        const scaledWidth = image.width * scale
+        const scaledWidth = image.width * 1
         const scaledHeight = image.height * scale
 
         const viewportWidth = this.$viewport.width()

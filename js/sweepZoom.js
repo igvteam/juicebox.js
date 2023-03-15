@@ -100,7 +100,7 @@ class SweepZoom {
         const bpResolution = this.browser.dataset.bpResolutions[ zoom ]
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const xBP = (x + (xPixel / pixelSize)) * bpResolution
+        const xBP = (x + (xPixel / 1)) * bpResolution
         const yBP = (y + (yPixel / pixelSize)) * bpResolution
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)

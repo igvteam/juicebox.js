@@ -63,7 +63,7 @@ class LocusGoto {
                 const chr2 = this.browser.dataset.chromosomes[state.chr2];
                 const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
                 const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-                const pixelsPerBin = state.pixelSize;
+                const pixelsPerBin = 1 //state.pixelSize;
                 const startBP1 = 1 + Math.round(state.x * bpPerBin);
                 const startBP2 = 1 + Math.round(state.y * bpPerBin);
                 const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
