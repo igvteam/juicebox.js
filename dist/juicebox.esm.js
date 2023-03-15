@@ -81119,61 +81119,65 @@ class TrackPair {
 
     init() {
 
-        this.colorPicker = new ColorPicker({
-            parent: this.x.$viewport[0],
-            width: 456,
-            height: undefined,
-            colorHandler: color => this.setColor(color)
-        });
-        this.colorPicker.hide();
-
-        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max));
-
-        this.appendRightHandGutter(this.x.$viewport);
-
-        for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
-
-            el.addEventListener('click', e => {
-
-                e.preventDefault();
-                e.stopPropagation();
-
-                const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1;
-
-                let order = parseInt(this.x.$viewport.get(0).style.order);
-
-                if (0 === order && -1 === direction) {
-
-                    // el.style.color = '#f00'
-                    return
-                } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
-                    // el.style.color = '#0f0'
-                    return
-                }
-
-                // el.style.color = '#7F7F7F'
-
-                const newOrder = -1 === direction ? order - 1 : 1 + order;
-
-                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order));
-                targetTrackPair.x.$viewport.get(0).style.order = `${ order }`;
-                //targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
-
-                this.x.$viewport.get(0).style.order = `${ newOrder }`;
-                //this.y.$viewport.get(0).style.order = `${ newOrder }`;
-
-
-                const a = this.browser.trackPairs;
-                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ];
-
-                setTrackReorderArrowColors(this.browser.trackPairs);
-
+        if (this.x) {
+            this.colorPicker = new ColorPicker({
+                parent: this.x.$viewport[0],
+                width: 456,
+                height: undefined,
+                colorHandler: color => this.setColor(color)
             });
+            this.colorPicker.hide();
+
+
+            this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max));
+
+            this.appendRightHandGutter(this.x.$viewport);
+
+
+            for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
+
+                el.addEventListener('click', e => {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1;
+
+                    let order = parseInt(this.x.$viewport.get(0).style.order);
+
+                    if (0 === order && -1 === direction) {
+
+                        // el.style.color = '#f00'
+                        return
+                    } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
+                        // el.style.color = '#0f0'
+                        return
+                    }
+
+                    // el.style.color = '#7F7F7F'
+
+                    const newOrder = -1 === direction ? order - 1 : 1 + order;
+
+                    const [targetTrackPair] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order));
+                    targetTrackPair.x.$viewport.get(0).style.order = `${order}`;
+                    //targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
+
+                    this.x.$viewport.get(0).style.order = `${newOrder}`;
+                    //this.y.$viewport.get(0).style.order = `${ newOrder }`;
+
+
+                    const a = this.browser.trackPairs;
+                    [a[order], a[newOrder]] = [a[newOrder], a[order]];
+
+                    setTrackReorderArrowColors(this.browser.trackPairs);
+
+                });
+            }
         }
 
         // igvjs compatibility
         this.track.trackView = this;
-        this.track.trackView.trackDiv = this.x.$viewport.get(0);
+        this.track.trackView.trackDiv = this.x ? this.x.$viewport.get(0) : this.y.$viewport.get(0);
 
     }
 
@@ -81190,14 +81194,18 @@ class TrackPair {
     }
 
     setColor(color) {
-        //this.y.tile = undefined;
-        this.x.tile = undefined;
+        if (this.y) {
+            this.y.tile = undefined;
+        }
+        if (this.x) {
+            this.x.tile = undefined;
+        }
         this.track.color = color;
         this.repaintViews();
     }
 
     dataRange() {
-        return this.track.dataRange ? this.track.dataRange : undefined;
+        return this.track.dataRange ? this.track.dataRange : undefined
     }
 
     setDataRange(min, max) {
@@ -81235,9 +81243,9 @@ class TrackPair {
             e.preventDefault();
             e.stopPropagation();
 
-            const { trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems } = MenuUtils;
+            const {trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems} = MenuUtils;
 
-            const list = [ ...trackMenuItemList(this) ];
+            const list = [...trackMenuItemList(this)];
 
             if ('wig' === this.track.type) {
                 list.push(...numericDataMenuItems(this));
@@ -81247,7 +81255,7 @@ class TrackPair {
                 list.push(...nucleotideColorChartMenuItems(this));
             }
 
-            const { width } = this.trackGearPopup.$popover.get(0).getBoundingClientRect();
+            const {width} = this.trackGearPopup.$popover.get(0).getBoundingClientRect();
 
             this.trackGearPopup.presentMenuList(-width, 0, list);
         });
@@ -81260,17 +81268,20 @@ class TrackPair {
         } else {
             try {
                 this.updating = true;
-                const genomicStateX = this.browser.genomicState(this.x.axis);
-                let imageTileX = await this.getTileX(genomicStateX);
-                if (imageTileX) {
-                    this.x.drawTile(imageTileX, genomicStateX);
+                if (this.x) {
+                    const genomicStateX = this.browser.genomicState(this.x.axis);
+                    let imageTileX = await this.getTileX(genomicStateX);
+                    if (imageTileX) {
+                        this.x.drawTile(imageTileX, genomicStateX);
+                    }
                 }
-
-                // const genomicStateY = this.browser.genomicState(this.y.axis);
-                // let imageTileY = await this.getTileY(genomicStateY);
-                // if (imageTileY) {
-                //     this.y.drawTile(imageTileY, genomicStateY);
-                // }
+                if (this.y) {
+                    const genomicStateY = this.browser.genomicState(this.y.axis);
+                    let imageTileY = await this.getTileY(genomicStateY);
+                    if (imageTileY) {
+                        this.y.drawTile(imageTileY, genomicStateY);
+                    }
+                }
             } finally {
                 this.updating = false;
                 if (this.pending) {
@@ -81287,47 +81298,50 @@ class TrackPair {
      */
     async repaintViews() {
 
-        const genomicStateX = this.browser.genomicState(this.x.axis);
-        if (this.tileX) {
-            this.tileX = await this.createImageTile({ axis: 'x', ...genomicStateX }, this.tileX.features);
-            this.x.drawTile(this.tileX, genomicStateX);
+        if (this.x) {
+            const genomicStateX = this.browser.genomicState(this.x.axis);
+            if (this.tileX) {
+                this.tileX = await this.createImageTile({axis: 'x', ...genomicStateX}, this.tileX.features);
+                this.x.drawTile(this.tileX, genomicStateX);
+            }
         }
-
-        // const genomicStateY = this.browser.genomicState(this.y.axis);
-        // if (this.tileY) {
-        //     this.tileY = await this.createImageTile({ axis: 'y', ...genomicStateY }, this.tileY.features)
-        //     this.y.drawTile(this.tileY, genomicStateY)
-        // }
+        if (this.y) {
+            const genomicStateY = this.browser.genomicState(this.y.axis);
+            if (this.tileY) {
+                this.tileY = await this.createImageTile({axis: 'y', ...genomicStateY}, this.tileY.features);
+                this.y.drawTile(this.tileY, genomicStateY);
+            }
+        }
     }
 
     async getTileX(genomicState) {
 
-        const { chromosome, bpp } = genomicState;
+        const {chromosome, bpp} = genomicState;
 
         if (!(this.tileX && this.tileX.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
-            this.tileX = await this.createImageTile({ axis: 'x', ...genomicState });
+            this.tileX = await this.createImageTile({axis: 'x', ...genomicState});
         }
 
         return this.tileX
     }
 
-    // async getTileY(genomicState) {
-    //
-    //     const { chromosome, bpp } = genomicState
-    //
-    //     if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
-    //         this.tileY = await this.createImageTile({ axis: 'y', ...genomicState })
-    //     }
-    //
-    //     return this.tileY
-    // }
+    async getTileY(genomicState) {
+
+        const {chromosome, bpp} = genomicState;
+
+        if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
+            this.tileY = await this.createImageTile({axis: 'y', ...genomicState});
+        }
+
+        return this.tileY
+    }
 
     async createImageTile(genomicState, tileFeatures) {
 
         if (this.track.visibilityWindow > 0 && genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) ; else {
 
             // Expand the requested range so we can pan a bit without reloading
-            const pixelWidth = 3 * this.x.$canvas.width();
+            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : this.y.$canvas.height();
             const lengthBP = Math.round(genomicState.bpp * pixelWidth);
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             const bpEnd = bpStart + lengthBP;
@@ -81336,7 +81350,7 @@ class TrackPair {
 
             const canvas = document.createElement('canvas');
             canvas.width = pixelWidth;
-            canvas.height = this.x.$canvas.height();
+            canvas.height = this.x ? this.x.$canvas.height() : this.y.$canvas.width();
 
             const context = canvas.getContext("2d");
 
@@ -81369,8 +81383,8 @@ class TrackPair {
                 this.track.draw(drawConfiguration);
 
             } else {
-                const wye = canvas.height - canvas.height/4;
-                index$1.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { 'fillStyle': 'rgba(0,0,0,0.1)' });
+                const wye = canvas.height - canvas.height / 4;
+                index$1.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, {'fillStyle': 'rgba(0,0,0,0.1)'});
             }
 
             this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features);
@@ -81379,8 +81393,8 @@ class TrackPair {
     }
 
     dispose() {
-        this.x.dispose();
-        //this.y.dispose()
+        if (this.x) this.x.dispose();
+        if (this.y) this.y.dispose();
     }
 }
 
@@ -81414,18 +81428,20 @@ function setTrackReorderArrowColors(trackPairs) {
 
     trackPairs.forEach(trackPair => {
 
-        const el = trackPair.x.$viewport.get(0);
+        if (trackPair.x) {
+            const el = trackPair.x.$viewport.get(0);
 
-        const order = parseInt(el.style.order);
-        if (0 === order) {
-            el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0';
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F';
-        } else if (trackPairs.length - 1 === order) {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F';
-            el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0';
-        } else {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F';
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F';
+            const order = parseInt(el.style.order);
+            if (0 === order) {
+                el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0';
+                el.querySelector('.fa-arrow-down').style.color = '#7F7F7F';
+            } else if (trackPairs.length - 1 === order) {
+                el.querySelector('.fa-arrow-up').style.color = '#7F7F7F';
+                el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0';
+            } else {
+                el.querySelector('.fa-arrow-up').style.color = '#7F7F7F';
+                el.querySelector('.fa-arrow-down').style.color = '#7F7F7F';
+            }
         }
     });
 
@@ -81714,16 +81730,16 @@ class LayoutController {
 
     getContactMatrixViewport() {
         const $parent = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
-        return $parent.find("div[id$='-viewport']");
+        return $parent.find("div[id$='-viewport']")
     }
 
     getYAxisScrollbarContainer() {
         const $parent = this.$content_container.find("div[id$='-y-tracks-y-axis-viewport-y-scrollbar']");
-        return $parent.find("div[id$='-y-axis-scrollbar-container']");
+        return $parent.find("div[id$='-y-axis-scrollbar-container']")
     }
 
     getXAxisScrollbarContainer() {
-        return this.$content_container.find("div[id$='-x-axis-scrollbar-container']");
+        return this.$content_container.find("div[id$='-x-axis-scrollbar-container']")
     }
 
     updateLayoutWithTracks(tracks) {
@@ -81735,11 +81751,17 @@ class LayoutController {
             const trackPair = new TrackPair(this.browser, track);
             this.browser.trackPairs.unshift(trackPair);
 
-            trackPair.x = new TrackRenderer(this.browser, track, 'x');
-            trackPair.x.init(this.$x_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair));
+            // Determine if this is a genomic or celltype track
+            const isCelltype = track.name && track.name.toLowerCase() === "celltype";
 
-            //trackPair.y = new TrackRenderer(this.browser, track, 'y')
-            //trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
+            if (isCelltype) {
+                trackPair.y = new TrackRenderer(this.browser, track, 'y');
+                trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair));
+            }
+            else {
+                trackPair.x = new TrackRenderer(this.browser, track, 'x');
+                trackPair.x.init(this.$x_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair));
+            }
 
             trackPair.init();
 
@@ -81747,9 +81769,13 @@ class LayoutController {
         }
 
         for (const trackPair of this.browser.trackPairs) {
-            const order = `${ this.browser.trackPairs.indexOf(trackPair) }`;
-            trackPair.x.$viewport.get(0).style.order = order;
-            //trackPair.y.$viewport.get(0).style.order = order
+            const order = `${this.browser.trackPairs.indexOf(trackPair)}`;
+            if (trackPair.x) {
+                trackPair.x.$viewport.get(0).style.order = order;
+            }
+            if (trackPair.y) {
+                trackPair.y.$viewport.get(0).style.order = order;
+            }
         }
 
         setTrackReorderArrowColors(this.browser.trackPairs);
@@ -81758,11 +81784,11 @@ class LayoutController {
 
     removeAllTrackXYPairs() {
 
-        if (this.browser.trackPairs.length === 0 ) {
-            return;
+        if (this.browser.trackPairs.length === 0) {
+            return
         }
 
-        for(let trackPair of this.browser.trackPairs) {
+        for (let trackPair of this.browser.trackPairs) {
             // discard DOM element's
             trackPair.dispose();
         }
@@ -81800,8 +81826,12 @@ class LayoutController {
         if (this.browser.trackPairs.length > 0) {
 
             // remove DOM element
-            trackXYPair.x.$viewport.remove();
-            //trackXYPair.y.$viewport.remove()
+            if (trackXYPair.x) {
+                trackXYPair.x.$viewport.remove();
+            }
+            if (trackXYPair.y) {
+                trackXYPair.y.$viewport.remove();
+            }
 
             // remove from trackPairs list
             const index = this.browser.trackPairs.indexOf(trackXYPair);
@@ -93567,12 +93597,14 @@ class HICBrowser {
 
         for (const trackXYPair of this.trackPairs) {
 
-            trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`;
-            //trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
-
-            trackXYPair.x.syncCanvas();
-            //trackXYPair.y.syncCanvas()
-
+            if(trackXYPair.x) {
+                trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`;
+                trackXYPair.x.syncCanvas();
+            }
+            if(trackXYPair.y) {
+                trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`;
+                trackXYPair.y.syncCanvas();
+            }
         }
 
         this.layoutController.xAxisRuler.update();
