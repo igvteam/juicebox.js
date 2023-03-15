@@ -676,7 +676,8 @@ class HICBrowser {
                 // Assumption -- single resolution
                 const bpResolution = this.getResolutions()[0].binSize
                 const viewDimensions = this.contactMatrixView.getViewDimensions()
-                state.pixelSize = viewDimensions.height / (cellTypeChr.bpLength / bpResolution)
+                const rowCount = cellTypeChr.bpLength / bpResolution
+                state.pixelSize = viewDimensions.height / rowCount
                 console.log(state.pixelSize)
 
                 await this.setState(state)
