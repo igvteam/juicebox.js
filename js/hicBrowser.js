@@ -678,6 +678,9 @@ class HICBrowser {
                 const viewDimensions = this.contactMatrixView.getViewDimensions()
                 const rowCount = cellTypeChr.bpLength / bpResolution
                 state.pixelSize = viewDimensions.height / rowCount
+
+                // hardcode to 1
+                state.pixelSize = 1
                 console.log(state.pixelSize)
 
                 await this.setState(state)
