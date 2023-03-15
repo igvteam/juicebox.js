@@ -94749,6 +94749,8 @@ async function init$1(container, config) {
         if(queryConfig) {
             config= queryConfig;
         }
+        // ignore width and height.  Not sure this is the right thing to do
+        config.width = config.height = undefined;
     }
 
     await restoreSession(container, config);
