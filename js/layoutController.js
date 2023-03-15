@@ -167,8 +167,8 @@ class LayoutController {
             trackPair.x = new TrackRenderer(this.browser, track, 'x')
             trackPair.x.init(this.$x_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
 
-            trackPair.y = new TrackRenderer(this.browser, track, 'y')
-            trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
+            //trackPair.y = new TrackRenderer(this.browser, track, 'y')
+            //trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
 
             trackPair.init()
 
@@ -178,7 +178,7 @@ class LayoutController {
         for (const trackPair of this.browser.trackPairs) {
             const order = `${ this.browser.trackPairs.indexOf(trackPair) }`
             trackPair.x.$viewport.get(0).style.order = order
-            trackPair.y.$viewport.get(0).style.order = order
+            //trackPair.y.$viewport.get(0).style.order = order
         }
 
         setTrackReorderArrowColors(this.browser.trackPairs)
@@ -230,7 +230,7 @@ class LayoutController {
 
             // remove DOM element
             trackXYPair.x.$viewport.remove()
-            trackXYPair.y.$viewport.remove()
+            //trackXYPair.y.$viewport.remove()
 
             // remove from trackPairs list
             const index = this.browser.trackPairs.indexOf(trackXYPair)

@@ -1092,10 +1092,10 @@ class HICBrowser {
         for (const trackXYPair of this.trackPairs) {
 
             trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
-            trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+            //trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
 
             trackXYPair.x.syncCanvas()
-            trackXYPair.y.syncCanvas()
+            //trackXYPair.y.syncCanvas()
 
         }
 

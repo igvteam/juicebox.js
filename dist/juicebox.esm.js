@@ -81157,10 +81157,10 @@ class TrackPair {
 
                 const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order));
                 targetTrackPair.x.$viewport.get(0).style.order = `${ order }`;
-                targetTrackPair.y.$viewport.get(0).style.order = `${ order }`;
+                //targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
 
                 this.x.$viewport.get(0).style.order = `${ newOrder }`;
-                this.y.$viewport.get(0).style.order = `${ newOrder }`;
+                //this.y.$viewport.get(0).style.order = `${ newOrder }`;
 
 
                 const a = this.browser.trackPairs;
@@ -81190,7 +81190,7 @@ class TrackPair {
     }
 
     setColor(color) {
-        this.y.tile = undefined;
+        //this.y.tile = undefined;
         this.x.tile = undefined;
         this.track.color = color;
         this.repaintViews();
@@ -81211,7 +81211,7 @@ class TrackPair {
         }
         this.track.autoscale = false;
         this.track.config.autoScale = false;
-        this.y.tile = undefined;
+        //this.y.tile = undefined;
         this.x.tile = undefined;
         this.repaintViews();
     }
@@ -81266,11 +81266,11 @@ class TrackPair {
                     this.x.drawTile(imageTileX, genomicStateX);
                 }
 
-                const genomicStateY = this.browser.genomicState(this.y.axis);
-                let imageTileY = await this.getTileY(genomicStateY);
-                if (imageTileY) {
-                    this.y.drawTile(imageTileY, genomicStateY);
-                }
+                // const genomicStateY = this.browser.genomicState(this.y.axis);
+                // let imageTileY = await this.getTileY(genomicStateY);
+                // if (imageTileY) {
+                //     this.y.drawTile(imageTileY, genomicStateY);
+                // }
             } finally {
                 this.updating = false;
                 if (this.pending) {
@@ -81293,11 +81293,11 @@ class TrackPair {
             this.x.drawTile(this.tileX, genomicStateX);
         }
 
-        const genomicStateY = this.browser.genomicState(this.y.axis);
-        if (this.tileY) {
-            this.tileY = await this.createImageTile({ axis: 'y', ...genomicStateY }, this.tileY.features);
-            this.y.drawTile(this.tileY, genomicStateY);
-        }
+        // const genomicStateY = this.browser.genomicState(this.y.axis);
+        // if (this.tileY) {
+        //     this.tileY = await this.createImageTile({ axis: 'y', ...genomicStateY }, this.tileY.features)
+        //     this.y.drawTile(this.tileY, genomicStateY)
+        // }
     }
 
     async getTileX(genomicState) {
@@ -81311,16 +81311,16 @@ class TrackPair {
         return this.tileX
     }
 
-    async getTileY(genomicState) {
-
-        const { chromosome, bpp } = genomicState;
-
-        if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
-            this.tileY = await this.createImageTile({ axis: 'y', ...genomicState });
-        }
-
-        return this.tileY
-    }
+    // async getTileY(genomicState) {
+    //
+    //     const { chromosome, bpp } = genomicState
+    //
+    //     if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
+    //         this.tileY = await this.createImageTile({ axis: 'y', ...genomicState })
+    //     }
+    //
+    //     return this.tileY
+    // }
 
     async createImageTile(genomicState, tileFeatures) {
 
@@ -81380,7 +81380,7 @@ class TrackPair {
 
     dispose() {
         this.x.dispose();
-        this.y.dispose();
+        //this.y.dispose()
     }
 }
 
@@ -81738,8 +81738,8 @@ class LayoutController {
             trackPair.x = new TrackRenderer(this.browser, track, 'x');
             trackPair.x.init(this.$x_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair));
 
-            trackPair.y = new TrackRenderer(this.browser, track, 'y');
-            trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair));
+            //trackPair.y = new TrackRenderer(this.browser, track, 'y')
+            //trackPair.y.init(this.$y_tracks, trackHeight, this.browser.trackPairs.indexOf(trackPair))
 
             trackPair.init();
 
@@ -81749,7 +81749,7 @@ class LayoutController {
         for (const trackPair of this.browser.trackPairs) {
             const order = `${ this.browser.trackPairs.indexOf(trackPair) }`;
             trackPair.x.$viewport.get(0).style.order = order;
-            trackPair.y.$viewport.get(0).style.order = order;
+            //trackPair.y.$viewport.get(0).style.order = order
         }
 
         setTrackReorderArrowColors(this.browser.trackPairs);
@@ -81801,7 +81801,7 @@ class LayoutController {
 
             // remove DOM element
             trackXYPair.x.$viewport.remove();
-            trackXYPair.y.$viewport.remove();
+            //trackXYPair.y.$viewport.remove()
 
             // remove from trackPairs list
             const index = this.browser.trackPairs.indexOf(trackXYPair);
@@ -93568,10 +93568,10 @@ class HICBrowser {
         for (const trackXYPair of this.trackPairs) {
 
             trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`;
-            trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`;
+            //trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
 
             trackXYPair.x.syncCanvas();
-            trackXYPair.y.syncCanvas();
+            //trackXYPair.y.syncCanvas()
 
         }
 
