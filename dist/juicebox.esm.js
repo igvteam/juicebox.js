@@ -81341,7 +81341,7 @@ class TrackPair {
         if (this.track.visibilityWindow > 0 && genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) ; else {
 
             // Expand the requested range so we can pan a bit without reloading
-            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : this.y.$canvas.height();
+            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : 3 * this.y.$canvas.height();
             const lengthBP = Math.round(genomicState.bpp * pixelWidth);
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             const bpEnd = bpStart + lengthBP;
@@ -92918,10 +92918,12 @@ class HICBrowser {
 
         let width = this.contactMatrixView.getViewDimensions().width;
         let resolution = this.dataset.bpResolutions[this.state.zoom];
+
+        const ps = axis === "x" ? 1 : this.state.pixelSize;
         const bpp =
             (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
                 this.genome.getGenomeLength() / width :
-                resolution / 1;
+                resolution / ps;
 
         const gs =
             {
@@ -93182,7 +93184,11 @@ class HICBrowser {
                 // Assumption -- single resolution
                 const bpResolution = this.getResolutions()[0].binSize;
                 const viewDimensions = this.contactMatrixView.getViewDimensions();
-                state.pixelSize = viewDimensions.height / (cellTypeChr.bpLength / bpResolution);
+                const rowCount = cellTypeChr.bpLength / bpResolution;
+                state.pixelSize = viewDimensions.height / rowCount;
+
+                // hardcode to 1
+                state.pixelSize = 1;
                 console.log(state.pixelSize);
 
                 await this.setState(state);
