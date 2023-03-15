@@ -410,10 +410,12 @@ class HICBrowser {
 
         let width = this.contactMatrixView.getViewDimensions().width
         let resolution = this.dataset.bpResolutions[this.state.zoom]
+
+        const ps = axis === "x" ? 1 : this.state.pixelSize
         const bpp =
             (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
                 this.genome.getGenomeLength() / width :
-                resolution / 1
+                resolution / ps
 
         const gs =
             {
