@@ -80327,7 +80327,7 @@ class Ruler {
 
         index$1.IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor$1.rgbColor(255, 255, 255)});
 
-        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
+        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / 1; //browser.state.pixelSize;
 
         bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
         config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];
@@ -89735,7 +89735,7 @@ class LocusGoto {
         this.$container = $$2("<div>", {class: 'hic-chromosome-goto-container', title: 'Chromosome Goto'});
         $parent.append(this.$container);
 
-        this.$resolution_selector = $$2('<input type="text" placeholder="chr-x-axis chr-y-axis">');
+        this.$resolution_selector = $$2('<input type="text" placeholder="chr:start-end or gene name">');
         this.$container.append(this.$resolution_selector);
 
         this.$resolution_selector.on('change', function (e) {
@@ -89760,14 +89760,14 @@ class LocusGoto {
                 const chr2 = this.browser.dataset.chromosomes[state.chr2];
                 const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
                 const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-                const pixelsPerBin = state.pixelSize;
+                const pixelsPerBin = 1; //state.pixelSize;
                 const startBP1 = 1 + Math.round(state.x * bpPerBin);
                 const startBP2 = 1 + Math.round(state.y * bpPerBin);
                 const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-                const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
+                Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-                xy = chr1.name + ":" + numberFormatter$2(startBP1) + "-" + numberFormatter$2(endBP1) + " " +
-                    chr2.name + ":" + numberFormatter$2(startBP2) + "-" + numberFormatter$2(endBP2);
+                xy = chr1.name + ":" + numberFormatter$2(startBP1) + "-" + numberFormatter$2(endBP1);
+                   // + " " + chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
 
             }
             this.$resolution_selector.val(xy);
@@ -90053,7 +90053,7 @@ class ColorScale {
  *
  */
 
-const defaultRatioColorScaleConfig = {threshold: 5, positive: {r: 255, g: 0, b: 0}, negative: {r: 0, g: 0, b: 255}};
+const defaultRatioColorScaleConfig = {threshold: 5, positive: {r: 0, g: 0, b: 255}, negative: {r: 255, g: 0, b: 0}};
 
 class RatioColorScale {
 
@@ -90348,7 +90348,7 @@ class ContactMatrixView {
         }
 
         const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
-        const widthInBins = this.$viewport.width() / pixelSizeInt;
+        const widthInBins = this.$viewport.width() / 1;
         const heightInBins = this.$viewport.height() / pixelSizeInt;
         const blockCol1 = Math.floor(state.x / imageTileDimension);
         const blockCol2 = Math.floor((state.x + widthInBins) / imageTileDimension);
@@ -90381,7 +90381,7 @@ class ContactMatrixView {
             chr2: state.chr2,
             x: state.x * zd.zoom.binSize,
             y: state.y * zd.zoom.binSize,
-            w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+            w: viewportWidth * zd.zoom.binSize / 1,
             h: viewportHeight * zd.zoom.binSize / state.pixelSize
         };
 
@@ -90686,7 +90686,7 @@ class ContactMatrixView {
             const newGenomicExtent = {
                 x: state.x * zd.zoom.binSize,
                 y: state.y * zd.zoom.binSize,
-                w: viewportWidth * zd.zoom.binSize / state.pixelSize,
+                w: viewportWidth * zd.zoom.binSize / 1,
                 h: viewportHeight * zd.zoom.binSize / state.pixelSize
             };
 
@@ -90717,11 +90717,11 @@ class ContactMatrixView {
 
         const {x, y, pixelSize} = this.browser.state;
         //const pixelSizeInt = Math.max(1, Math.floor(pixelSize))
-        const offsetX = (x0 - x) * pixelSize;
+        const offsetX = (x0 - x) * 1;
         const offsetY = (y0 - y) * pixelSize;
 
         const scale = pixelSize; // / pixelSizeInt
-        const scaledWidth = image.width * scale;
+        const scaledWidth = image.width * 1;
         const scaledHeight = image.height * scale;
 
         const viewportWidth = this.$viewport.width();
@@ -91744,136 +91744,6 @@ function cycle_solid() {
  *
  */
 
-var labels =
-    {
-        NONE: 'None',
-        VC: 'Coverage',
-        VC_SQRT: 'Coverage - Sqrt',
-        KR: 'Balanced',
-        INTER_VC: 'Interchromosomal Coverage',
-        INTER_VC_SQRT: 'Interchromosomal Coverage - Sqrt',
-        INTER_KR: 'Interchromosomal Balanced',
-        GW_VC: 'Genome-wide Coverage',
-        GW_VC_SQRT: 'Genome-wide Coverage - Sqrt',
-        GW_KR: 'Genome-wide Balanced'
-    };
-
-class NormalizationWidget {
-
-    constructor(browser, $hic_navbar_container) {
-
-        this.browser = browser;
-
-        const $parent = $hic_navbar_container.find("div[id$='lower-hic-nav-bar-widget-container']");
-
-        this.$container = $$2("<div>", {class: 'hic-normalization-selector-container', title: 'Normalization'});
-        $parent.append(this.$container);
-
-        let $label = $$2('<div>');
-        $label.text('Norm');
-        this.$container.append($label);
-        // $label.hide();
-
-        this.$normalization_selector = $$2('<select name="select">');
-        this.$normalization_selector.attr('name', 'normalization_selector');
-        this.$normalization_selector.on('change', () => {
-            this.browser.setNormalization(this.$normalization_selector.val());
-        });
-        this.$container.append(this.$normalization_selector);
-
-        this.$spinner = $$2('<div>');
-        this.$spinner.text('Loading ...');
-        this.$container.append(this.$spinner);
-        this.$spinner.hide();
-
-        this.browser.eventBus.subscribe("MapLoad", this);
-        this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
-        this.browser.eventBus.subscribe("NormalizationFileLoad", this);
-        this.browser.eventBus.subscribe("NormalizationExternalChange", this);
-
-    }
-
-    startNotReady() {
-        this.$normalization_selector.hide();
-        this.$spinner.show();
-    }
-
-    stopNotReady() {
-        this.$spinner.hide();
-        this.$normalization_selector.show();
-    }
-
-    receiveEvent(event) {
-
-
-        if ("NormVectorIndexLoad" === event.type) {
-
-            updateOptions.call(this);
-
-            // TODO -- end norm widget "not ready" state
-            this.stopNotReady();
-
-        } else if ("NormalizationFileLoad" === event.type) {
-            if (event.data === "start") {
-                this.startNotReady();
-            } else {
-                this.stopNotReady();
-            }
-        } else if ("NormalizationExternalChange" === event.type) {
-
-            this.$normalization_selector
-                .find('option')
-                .filter(function (index) {
-                    var s1 = this.value;
-                    var s2 = event.data;
-                    return s1 === s2;
-                })
-                .prop('selected', true);
-        }
-
-        async function updateOptions() {
-            const norm = this.browser.state.normalization;
-            const normalizationTypes = await this.browser.getNormalizationOptions();
-            if (normalizationTypes) {
-                const elements = normalizationTypes.map(function (normalization) {
-                    const label = labels[normalization] || normalization;
-                    const isSelected = (norm === normalization);
-                    const titleString = (label === undefined ? '' : ' title = "' + label + '" ');
-                    const valueString = ' value=' + normalization + (isSelected ? ' selected' : '');
-                    const labelPresentation = '&nbsp &nbsp' + label + '&nbsp &nbsp';
-                    return '<option' + titleString + valueString + '>' + labelPresentation + '</option>';
-                });
-
-                this.$normalization_selector.empty();
-                this.$normalization_selector.append(elements.join(''));
-            }
-        }
-    }
-}
-
-/*
- *  The MIT License (MIT)
- *
- * Copyright (c) 2016-2017 The Regents of the University of California
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated documentation files (the "Software"), to deal in the Software without restriction, including
- * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
- * following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all copies or substantial
- * portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
- * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,  FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
- * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
- * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- *
- */
-
 /**
  * Created by dat on 3/22/17.
  */
@@ -92507,15 +92377,13 @@ class SweepZoom {
         const bpResolution = this.browser.dataset.bpResolutions[ zoom ];
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const xBP = (x + (xPixel / pixelSize)) * bpResolution;
+        const xBP = (x + (xPixel / 1)) * bpResolution;
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
         const  widthBP = ( this.sweepRect.width / pixelSize) * bpResolution;
-        //const heightBP = (this.sweepRect.height / pixelSize) * bpResolution
+        (this.sweepRect.height / pixelSize) * bpResolution;
 
-        //this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP)
-        this.browser.goto1D(chr1, xBP, xBP + widthBP);
-
+        this.browser.gotoSB(chr1, xBP, xBP + widthBP);
 
     }
 }
@@ -92615,7 +92483,7 @@ class ScrollbarWidget {
                 pixels = [this.browser.contactMatrixView.getViewDimensions().width, this.browser.contactMatrixView.getViewDimensions().height];
 
                 // pixel / pixel-per-bin -> bin
-                bins = [pixels[0] / pixelSize, pixels[pixels.length - 1] / pixelSize];
+                bins = [pixels[0] / 1, pixels[pixels.length - 1] / pixelSize];
 
                 // bin / bin -> percentage
                 percentages = bins.map((bin, i) => {
@@ -92666,8 +92534,6 @@ class ScrollbarWidget {
  * THE SOFTWARE.
  *
  */
-
-const DEFAULT_PIXEL_SIZE = 1;
 const MAX_PIXEL_SIZE = 128;
 const DEFAULT_ANNOTATION_COLOR$1 = "rgb(22, 129, 198)";
 
@@ -92711,7 +92577,7 @@ class HICBrowser {
         this.resolutionSelector.setResolutionLock(this.resolutionLocked);
         this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
         this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
-        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
+        //this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this))
         this.inputDialog = new InputDialog($app_container.get(0), this);
 
         // contact map container related objects
@@ -92975,7 +92841,7 @@ class HICBrowser {
             const {x: stateX, y: stateY, pixelSize} = this.state;
             const resolution = this.resolution();
 
-            const xBP = (stateX + (x / pixelSize)) * resolution;
+            const xBP = (stateX + (x / 1)) * resolution;
             const yBP = (stateY + (y / pixelSize)) * resolution;
 
             let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
@@ -93025,7 +92891,7 @@ class HICBrowser {
         const bpp =
             (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
                 this.genome.getGenomeLength() / width :
-                resolution / this.state.pixelSize;
+                resolution / 1;
 
         const gs =
             {
@@ -93262,22 +93128,34 @@ class HICBrowser {
             }
 
             this.eventBus.post(HICEvent("MapLoad", this.dataset));
-
-            if (config.state) {
-                if (!config.state.hasOwnProperty("chr1")) {
-                    config.state = State.parse(config.state);
-                }
-                await this.setState(config.state);
-            } else if (config.synchState && this.canBeSynched(config.synchState)) {
+            if (config.synchState && this.canBeSynched(config.synchState)) {
                 this.syncState(config.synchState);
             } else {
                 // Find celltype chromosome
                 const cellTypeChr = this.dataset.chromosomes.find(c => c.name === 'celltype');
-                if(!cellTypeChr) {
+                if (!cellTypeChr) {
                     throw Error("celltype 'chromosome' not found")
-
                 }
-                await this.setState(State.default(this.config), cellTypeChr.index);
+
+                let state;
+                if (config.state) {
+                    if (config.state.hasOwnProperty("chr1")) {
+                        state = config.state;
+                    } else {
+                        state = State.parse(config.state);
+                    }
+                } else {
+                    state = State.default(this.config, cellTypeChr.index);
+                }
+
+                // Compute pixel size to fill view -- this will remain constant
+                // Assumption -- single resolution
+                const bpResolution = this.getResolutions()[0].binSize;
+                const viewDimensions = this.contactMatrixView.getViewDimensions();
+                state.pixelSize = viewDimensions.height / (cellTypeChr.bpLength / bpResolution);
+                console.log(state.pixelSize);
+
+                await this.setState(state);
             }
 
 
@@ -93388,14 +93266,7 @@ class HICBrowser {
         let xLocus;
         let yLocus;
         const loci = string.split(' ');
-        if (loci.length === 1) {
-            xLocus = this.parseLocusString(loci[0]);
-            //yLocus = xLocus
-        } else {
-            xLocus = this.parseLocusString(loci[0]);
-            //yLocus = this.parseLocusString(loci[1])
-            if (yLocus === undefined) yLocus = xLocus;
-        }
+        xLocus = this.parseLocusString(loci[0]);
 
         if (xLocus === undefined) {
             // Try a gene name search.
@@ -93404,25 +93275,19 @@ class HICBrowser {
             if (result) {
                 Globals.selectedGene = loci[0].trim();
                 xLocus = this.parseLocusString(result);
-                //yLocus = xLocus
                 this.state.selectedGene = Globals.selectedGene;
-                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
-                this.goto1D(xLocus.chr, xLocus.start, xLocus.end,  5000);
+                this.gotoSB(xLocus.chr, xLocus.start, xLocus.end, 5000);
             } else {
                 alert('No feature found with name "' + loci[0] + '"');
             }
 
         } else {
 
-            if (xLocus.wholeChr && yLocus.wholeChr) {
-                await this.setChromosomes(xLocus.chr, yLocus.chr);
-            } else {
-                //this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
-                this.goto1D(xLocus.chr, xLocus.start, xLocus.end);
+            if (xLocus.wholeChr && yLocus.wholeChr) ; else {
+                this.gotoSB(xLocus.chr, xLocus.start, xLocus.end);
             }
         }
-
-    };
+    }
 
     /**
      * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
@@ -93485,76 +93350,76 @@ class HICBrowser {
      */
     async pinchZoom(anchorPx, anchorPy, scaleFactor) {
 
-        if (this.state.chr1 === 0) {
-            await this.zoomAndCenter(1, anchorPx, anchorPy);
-        } else {
-            try {
-                this.startSpinner();
-
-                const bpResolutions = this.getResolutions();
-                const currentResolution = bpResolutions[this.state.zoom];
-
-                let newBinSize;
-                let newZoom;
-                let newPixelSize;
-                let zoomChanged;
-
-                if (this.resolutionLocked ||
-                    (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
-                    (this.state.zoom === 0 && scaleFactor < 1)) {
-                    // Can't change resolution level, must adjust pixel size
-                    newBinSize = currentResolution.binSize;
-                    newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
-                    newZoom = this.state.zoom;
-                    zoomChanged = false;
-                } else {
-                    const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
-                    newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
-                    newBinSize = bpResolutions[newZoom].binSize;
-                    zoomChanged = newZoom !== this.state.zoom;
-                    newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
-                }
-                const z = await this.minZoom(this.state.chr1, this.state.chr2);
-
-
-                if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
-                    // Zoom out to whole genome
-                    this.setChromosomes(0, 0);
-                } else {
-
-                    const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom);
-
-                    const state = this.state;
-
-                    newPixelSize = Math.max(newPixelSize, minPS);
-
-                    // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
-                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
-
-                    state.x = gx / newBinSize - anchorPx / newPixelSize;
-                    state.y = gy / newBinSize - anchorPy / newPixelSize;
-
-                    state.zoom = newZoom;
-                    state.pixelSize = newPixelSize;
-
-                    this.clamp();
-
-                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor);
-
-                    let event = HICEvent("LocusChange", {
-                        state: state,
-                        resolutionChanged: zoomChanged,
-                        chrChanged: false
-                    });
-
-                    this.update(event);
-                    //this.eventBus.post(event);
-                }
-            } finally {
-                this.stopSpinner();
-            }
-        }
+        // if (this.state.chr1 === 0) {
+        //     await this.zoomAndCenter(1, anchorPx, anchorPy)
+        // } else {
+        //     try {
+        //         this.startSpinner()
+        //
+        //         const bpResolutions = this.getResolutions()
+        //         const currentResolution = bpResolutions[this.state.zoom]
+        //
+        //         let newBinSize
+        //         let newZoom
+        //         let newPixelSize
+        //         let zoomChanged
+        //
+        //         if (this.resolutionLocked ||
+        //             (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
+        //             (this.state.zoom === 0 && scaleFactor < 1)) {
+        //             // Can't change resolution level, must adjust pixel size
+        //             newBinSize = currentResolution.binSize
+        //             newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor)
+        //             newZoom = this.state.zoom
+        //             zoomChanged = false
+        //         } else {
+        //             const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor
+        //             newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions)
+        //             newBinSize = bpResolutions[newZoom].binSize
+        //             zoomChanged = newZoom !== this.state.zoom
+        //             newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize)
+        //         }
+        //         const z = await this.minZoom(this.state.chr1, this.state.chr2)
+        //
+        //
+        //         if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
+        //             // Zoom out to whole genome
+        //             this.setChromosomes(0, 0)
+        //         } else {
+        //
+        //             const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom)
+        //
+        //             const state = this.state
+        //
+        //             newPixelSize = Math.max(newPixelSize, minPS)
+        //
+        //             // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+        //             const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize
+        //             const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize
+        //
+        //             state.x = gx / newBinSize - anchorPx / newPixelSize
+        //             state.y = gy / newBinSize - anchorPy / newPixelSize
+        //
+        //             state.zoom = newZoom
+        //             state.pixelSize = newPixelSize
+        //
+        //             this.clamp()
+        //
+        //             this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
+        //
+        //             let event = HICEvent("LocusChange", {
+        //                 state: state,
+        //                 resolutionChanged: zoomChanged,
+        //                 chrChanged: false
+        //             })
+        //
+        //             this.update(event)
+        //             //this.eventBus.post(event);
+        //         }
+        //     } finally {
+        //         this.stopSpinner()
+        //     }
+        // }
 
     }
 
@@ -93584,53 +93449,53 @@ class HICBrowser {
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
 
-        if (!this.dataset) return
-
-        if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
-            // jump from whole genome to chromosome
-            const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize;
-            const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX);
-            const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY);
-            this.setChromosomes(chrX.index, chrY.index);
-        } else {
-            const resolutions = this.getResolutions();
-            const viewDimensions = this.contactMatrixView.getViewDimensions();
-            const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2;
-            const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2;
-
-            this.state.x += (dx / this.state.pixelSize);
-            this.state.y += (dy / this.state.pixelSize);
-
-            const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index;
-            const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index;
-            if (this.resolutionLocked || directionPositive || directionNegative) {
-
-                const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom);
-                const state = this.state;
-                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
-
-                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
-
-                state.pixelSize = newPixelSize;
-                state.x += shiftRatio * (viewDimensions.width / state.pixelSize);
-                state.y += shiftRatio * (viewDimensions.height / state.pixelSize);
-
-                this.clamp();
-
-                this.update(HICEvent("LocusChange", {state, resolutionChanged: false, chrChanged: false}));
-
-            } else {
-                let i;
-                for (i = 0; i < resolutions.length; i++) {
-                    if (this.state.zoom === resolutions[i].index) break
-                }
-                if (i) {
-                    const newZoom = resolutions[i + direction].index;
-                    this.setZoom(newZoom);
-                }
-            }
-        }
+        // if (!this.dataset) return
+        //
+        // if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
+        //     // jump from whole genome to chromosome
+        //     const genomeCoordX = centerPX * this.dataset.wholeGenomeResolution / 1
+        //     const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize
+        //     const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX)
+        //     const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY)
+        //     this.setChromosomes(chrX.index, chrY.index)
+        // } else {
+        //     const resolutions = this.getResolutions()
+        //     const viewDimensions = this.contactMatrixView.getViewDimensions()
+        //     const dx = centerPX === undefined ? 0 : centerPX - viewDimensions.width / 2
+        //     const dy = centerPY === undefined ? 0 : centerPY - viewDimensions.height / 2
+        //
+        //     this.state.x += (dx / this.state.pixelSize)
+        //     this.state.y += (dy / this.state.pixelSize)
+        //
+        //     const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index
+        //     const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index
+        //     if (this.resolutionLocked || directionPositive || directionNegative) {
+        //
+        //         const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
+        //         const state = this.state
+        //         const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS)
+        //
+        //         const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize
+        //
+        //         state.pixelSize = newPixelSize
+        //         state.x += shiftRatio * (viewDimensions.width / state.pixelSize)
+        //         state.y += shiftRatio * (viewDimensions.height / state.pixelSize)
+        //
+        //         this.clamp()
+        //
+        //         this.update(HICEvent("LocusChange", {state, resolutionChanged: false, chrChanged: false}))
+        //
+        //     } else {
+        //         let i
+        //         for (i = 0; i < resolutions.length; i++) {
+        //             if (this.state.zoom === resolutions[i].index) break
+        //         }
+        //         if (i) {
+        //             const newZoom = resolutions[i + direction].index
+        //             this.setZoom(newZoom)
+        //         }
+        //     }
+        // }
     }
 
     /**
@@ -93640,30 +93505,30 @@ class HICBrowser {
      */
     async setZoom(zoom) {
 
-        const currentResolution = this.dataset.bpResolutions[this.state.zoom];
-        const {width, height} = this.contactMatrixView.getViewDimensions();
-        const xCenter = this.state.x + width / (2 * this.state.pixelSize);    // center in bins
-        const yCenter = this.state.y + height / (2 * this.state.pixelSize);    // center in bins
-
-        const newResolution = this.dataset.bpResolutions[zoom];
-        const newXCenter = xCenter * (currentResolution / newResolution);
-        const newYCenter = yCenter * (currentResolution / newResolution);
-
-        const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom);
-
-        this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize);
-
-        const resolutionChanged = (this.state.zoom !== zoom);
-
-        this.state.zoom = zoom;
-        this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize));
-        this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize));
-
-        this.clamp();
-
-        await this.contactMatrixView.zoomIn();
-
-        this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged, chrChanged: false}));
+        // const currentResolution = this.dataset.bpResolutions[this.state.zoom]
+        // const {width, height} = this.contactMatrixView.getViewDimensions()
+        // const xCenter = this.state.x + width / (2 * 1)    // center in bins
+        // const yCenter = this.state.y + height / (2 * this.state.pixelSize)    // center in bins
+        //
+        // const newResolution = this.dataset.bpResolutions[zoom]
+        // const newXCenter = xCenter * (currentResolution / newResolution)
+        // const newYCenter = yCenter * (currentResolution / newResolution)
+        //
+        // const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
+        //
+        // this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
+        //
+        // const resolutionChanged = (this.state.zoom !== zoom)
+        //
+        // this.state.zoom = zoom
+        // this.state.x = Math.max(0, newXCenter - width / (2 * this.state.pixelSize))
+        // this.state.y = Math.max(0, newYCenter - height / (2 * this.state.pixelSize))
+        //
+        // this.clamp()
+        //
+        // await this.contactMatrixView.zoomIn()
+        //
+        // this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged, chrChanged: false}))
 
     };
 
@@ -93679,8 +93544,8 @@ class HICBrowser {
             this.state.y = 0;
             this.state.zoom = z;
 
-            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom);
-            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS));
+            //const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
+            //this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
 
             let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true});
 
@@ -93729,8 +93594,8 @@ class HICBrowser {
         const chrChanged = !this.state || this.state.chr1 !== state.chr1 || this.state.chr2 !== state.chr2;
         this.state = state;
         // Possibly adjust pixel size
-        const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom);
-        this.state.pixelSize = Math.max(state.pixelSize, minPS);
+        //const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
+        this.state.pixelSize = state.pixelSize; // Math.max(state.pixelSize, minPS)
 
         let hicEvent = new HICEvent("LocusChange", {
             state: this.state,
@@ -93919,48 +93784,39 @@ class HICBrowser {
 
     }
 
-    goto1D(chr1, bpX, bpXMax, minResolution) {
+    /**
+     * GOTO for "shoebox".  X and Y need treated independently, Y is cell type, X is genomic coordinates*
+     * @param chr1
+     * @param bpX
+     * @param bpXMax
+     * @param chr2
+     * @param bpY
+     * @param bpYMax
+     * @param minResolution
+     */
+    gotoSB(chr1, bpX, bpXMax) {
 
         const viewDimensions = this.contactMatrixView.getViewDimensions();
         const bpResolutions = this.getResolutions();
         const currentResolution = bpResolutions[this.state.zoom].binSize;
         const viewWidth = viewDimensions.width;
 
-        if (!bpXMax) {
+        let zoomChanged = false;
+
+        if (bpXMax) {
+            const bpwidth = viewWidth * currentResolution;
+            const shift = (bpwidth - (bpXMax - bpX)) / 2;
+            bpX += shift;
+        }
+        {
             bpX = Math.max(0, bpX - Math.floor(viewWidth * currentResolution / 2));
-            bpXMax = bpX + viewWidth * currentResolution;
         }
 
-        let targetResolution = (bpXMax - bpX) / viewDimensions.width;
-
-        if (minResolution && targetResolution < minResolution) {
-            const maxExtent = viewWidth * minResolution;
-            const xCenter = (bpX + bpXMax) / 2;
-            bpX = Math.max(xCenter - maxExtent / 2);
-            targetResolution = minResolution;
-        }
-
-        let zoomChanged;
-        let newZoom;
-        if (true === this.resolutionLocked && minResolution === undefined) {
-            zoomChanged = false;
-            newZoom = this.state.zoom;
-        } else {
-            newZoom = this.findMatchingZoomIndex(targetResolution, bpResolutions);
-            zoomChanged = (newZoom !== this.state.zoom);
-        }
-
-        const newResolution = bpResolutions[newZoom].binSize;
-        const newPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution));
-        const newXBin = bpX / newResolution;
-
-        const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2;
+        //newXPixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, newResolution / targetResolution))
+        const newXBin = bpX / currentResolution;
+        const chrChanged = this.state.chr1 !== chr1;
         this.state.chr1 = chr1;
-        //this.state.chr2 = chr2
-        this.state.zoom = newZoom;
         this.state.x = newXBin;
-        //this.state.y = newYBin
-        this.state.pixelSize = newPixelSize;
 
         this.contactMatrixView.clearImageCaches();
 
@@ -93971,8 +93827,6 @@ class HICBrowser {
         });
 
         this.update(event);
-        //this.eventBus.post(event);
-
     }
 
 
@@ -93981,7 +93835,7 @@ class HICBrowser {
             chr1Length = this.dataset.chromosomes[this.state.chr1].size,
             chr2Length = this.dataset.chromosomes[this.state.chr2].size,
             binSize = this.dataset.bpResolutions[this.state.zoom],
-            maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
+            maxX = (chr1Length / binSize) - (viewDimensions.width / 1),
             maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
 
         // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
