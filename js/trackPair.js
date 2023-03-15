@@ -8,80 +8,84 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
-import Tile from "./tile.js";
+import Tile from "./tile.js"
 
 class TrackPair {
 
     constructor(browser, track) {
-        this.browser = browser;
-        this.track = track;
+        this.browser = browser
+        this.track = track
     }
 
     init() {
 
-        this.colorPicker = new ColorPicker({
-            parent: this.x.$viewport[0],
-            width: 456,
-            height: undefined,
-            colorHandler: color => this.setColor(color)
-        });
-        this.colorPicker.hide();
-
-        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max));
-
-        this.appendRightHandGutter(this.x.$viewport);
-
-        for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
-
-            el.addEventListener('click', e => {
-
-                e.preventDefault()
-                e.stopPropagation()
-
-                const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1
-
-                let order = parseInt(this.x.$viewport.get(0).style.order)
-
-                if (0 === order && -1 === direction) {
-
-                    // el.style.color = '#f00'
-                    return
-                } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
-                    // el.style.color = '#0f0'
-                    return
-                }
-
-                // el.style.color = '#7F7F7F'
-
-                const newOrder = -1 === direction ? order - 1 : 1 + order
-
-                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order))
-                targetTrackPair.x.$viewport.get(0).style.order = `${ order }`
-                //targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
-
-                this.x.$viewport.get(0).style.order = `${ newOrder }`;
-                //this.y.$viewport.get(0).style.order = `${ newOrder }`;
-
-
-                const a = this.browser.trackPairs;
-                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ]
-
-                setTrackReorderArrowColors(this.browser.trackPairs)
-
+        if (this.x) {
+            this.colorPicker = new ColorPicker({
+                parent: this.x.$viewport[0],
+                width: 456,
+                height: undefined,
+                colorHandler: color => this.setColor(color)
             })
+            this.colorPicker.hide()
+
+
+            this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max))
+
+            this.appendRightHandGutter(this.x.$viewport)
+
+
+            for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
+
+                el.addEventListener('click', e => {
+
+                    e.preventDefault()
+                    e.stopPropagation()
+
+                    const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1
+
+                    let order = parseInt(this.x.$viewport.get(0).style.order)
+
+                    if (0 === order && -1 === direction) {
+
+                        // el.style.color = '#f00'
+                        return
+                    } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
+                        // el.style.color = '#0f0'
+                        return
+                    }
+
+                    // el.style.color = '#7F7F7F'
+
+                    const newOrder = -1 === direction ? order - 1 : 1 + order
+
+                    const [targetTrackPair] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order))
+                    targetTrackPair.x.$viewport.get(0).style.order = `${order}`
+                    //targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
+
+                    this.x.$viewport.get(0).style.order = `${newOrder}`
+                    //this.y.$viewport.get(0).style.order = `${ newOrder }`;
+
+
+                    const a = this.browser.trackPairs;
+                    [a[order], a[newOrder]] = [a[newOrder], a[order]]
+
+                    setTrackReorderArrowColors(this.browser.trackPairs)
+
+                })
+            }
         }
 
         // igvjs compatibility
-        this.track.trackView = this;
-        this.track.trackView.trackDiv = this.x.$viewport.get(0);
+        this.track.trackView = this
+        this.track.trackView.trackDiv = this.x ? this.x.$viewport.get(0) : this.y.$viewport.get(0)
 
     }
 
     presentColorPicker() {
-        const bbox = this.x.trackDiv.getBoundingClientRect();
-        this.colorPicker.origin = {x: bbox.x, y: 0};
-        this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
-        this.colorPicker.$container.show();
+        const bbox = this.x.trackDiv.getBoundingClientRect()
+        this.colorPicker.origin = {x: bbox.x, y: 0}
+        this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y})
+        this.colorPicker.$container.show()
     }
 
     setTrackName(name) {
@@ -90,54 +94,58 @@ class TrackPair {
     }
 
     setColor(color) {
-        //this.y.tile = undefined;
-        this.x.tile = undefined;
-        this.track.color = color;
-        this.repaintViews();
+        if (this.y) {
+            this.y.tile = undefined
+        }
+        if (this.x) {
+            this.x.tile = undefined
+        }
+        this.track.color = color
+        this.repaintViews()
     }
 
     dataRange() {
-        return this.track.dataRange ? this.track.dataRange : undefined;
+        return this.track.dataRange ? this.track.dataRange : undefined
     }
 
     setDataRange(min, max) {
         if (min !== undefined) {
-            this.track.dataRange.min = min;
-            this.track.config.min = min;
+            this.track.dataRange.min = min
+            this.track.config.min = min
         }
         if (max !== undefined) {
-            this.track.dataRange.max = max;
-            this.track.config.max = max;
+            this.track.dataRange.max = max
+            this.track.config.max = max
         }
-        this.track.autoscale = false;
+        this.track.autoscale = false
         this.track.config.autoScale = false
         //this.y.tile = undefined;
-        this.x.tile = undefined;
-        this.repaintViews();
+        this.x.tile = undefined
+        this.repaintViews()
     }
 
     appendRightHandGutter($parent) {
         let $div = $('<div class="hic-igv-right-hand-gutter">')
         $parent.append($div)
-        this.createTrackGearPopup($div);
+        this.createTrackGearPopup($div)
     }
 
     createTrackGearPopup($parent) {
 
-        let $container = $("<div>", {class: 'igv-trackgear-container'});
-        $parent.append($container);
+        let $container = $("<div>", {class: 'igv-trackgear-container'})
+        $parent.append($container)
 
-        $container.append(createIcon('cog'));
+        $container.append(createIcon('cog'))
 
-        this.trackGearPopup = new MenuPopup($parent);
-        this.trackGearPopup.$popover.hide();
+        this.trackGearPopup = new MenuPopup($parent)
+        this.trackGearPopup.$popover.hide()
         $container.click(e => {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault()
+            e.stopPropagation()
 
-            const { trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems } = MenuUtils
+            const {trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems} = MenuUtils
 
-            const list = [ ...trackMenuItemList(this) ]
+            const list = [...trackMenuItemList(this)]
 
             if ('wig' === this.track.type) {
                 list.push(...numericDataMenuItems(this))
@@ -147,35 +155,38 @@ class TrackPair {
                 list.push(...nucleotideColorChartMenuItems(this))
             }
 
-            const { width } = this.trackGearPopup.$popover.get(0).getBoundingClientRect()
+            const {width} = this.trackGearPopup.$popover.get(0).getBoundingClientRect()
 
             this.trackGearPopup.presentMenuList(-width, 0, list)
-        });
+        })
     }
 
     async updateViews() {
 
         if (this.updating) {
-            this.pending = true;
+            this.pending = true
         } else {
             try {
-                this.updating = true;
-                const genomicStateX = this.browser.genomicState(this.x.axis);
-                let imageTileX = await this.getTileX(genomicStateX);
-                if (imageTileX) {
-                    this.x.drawTile(imageTileX, genomicStateX);
+                this.updating = true
+                if (this.x) {
+                    const genomicStateX = this.browser.genomicState(this.x.axis)
+                    let imageTileX = await this.getTileX(genomicStateX)
+                    if (imageTileX) {
+                        this.x.drawTile(imageTileX, genomicStateX)
+                    }
                 }
-
-                // const genomicStateY = this.browser.genomicState(this.y.axis);
-                // let imageTileY = await this.getTileY(genomicStateY);
-                // if (imageTileY) {
-                //     this.y.drawTile(imageTileY, genomicStateY);
-                // }
+                if (this.y) {
+                    const genomicStateY = this.browser.genomicState(this.y.axis)
+                    let imageTileY = await this.getTileY(genomicStateY)
+                    if (imageTileY) {
+                        this.y.drawTile(imageTileY, genomicStateY)
+                    }
+                }
             } finally {
-                this.updating = false;
+                this.updating = false
                 if (this.pending) {
-                    this.pending = false;
-                    this.updateViews();
+                    this.pending = false
+                    this.updateViews()
                 }
             }
         }
@@ -187,40 +198,43 @@ class TrackPair {
      */
     async repaintViews() {
 
-        const genomicStateX = this.browser.genomicState(this.x.axis);
-        if (this.tileX) {
-            this.tileX = await this.createImageTile({ axis: 'x', ...genomicStateX }, this.tileX.features)
-            this.x.drawTile(this.tileX, genomicStateX);
+        if (this.x) {
+            const genomicStateX = this.browser.genomicState(this.x.axis)
+            if (this.tileX) {
+                this.tileX = await this.createImageTile({axis: 'x', ...genomicStateX}, this.tileX.features)
+                this.x.drawTile(this.tileX, genomicStateX)
+            }
         }
-
-        // const genomicStateY = this.browser.genomicState(this.y.axis);
-        // if (this.tileY) {
-        //     this.tileY = await this.createImageTile({ axis: 'y', ...genomicStateY }, this.tileY.features)
-        //     this.y.drawTile(this.tileY, genomicStateY)
-        // }
+        if (this.y) {
+            const genomicStateY = this.browser.genomicState(this.y.axis)
+            if (this.tileY) {
+                this.tileY = await this.createImageTile({axis: 'y', ...genomicStateY}, this.tileY.features)
+                this.y.drawTile(this.tileY, genomicStateY)
+            }
+        }
     }
 
     async getTileX(genomicState) {
 
-        const { chromosome, bpp } = genomicState
+        const {chromosome, bpp} = genomicState
 
         if (!(this.tileX && this.tileX.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
-            this.tileX = await this.createImageTile({ axis: 'x', ...genomicState })
+            this.tileX = await this.createImageTile({axis: 'x', ...genomicState})
         }
 
         return this.tileX
     }
 
-    // async getTileY(genomicState) {
-    //
-    //     const { chromosome, bpp } = genomicState
-    //
-    //     if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
-    //         this.tileY = await this.createImageTile({ axis: 'y', ...genomicState })
-    //     }
-    //
-    //     return this.tileY
-    // }
+    async getTileY(genomicState) {
+
+        const {chromosome, bpp} = genomicState
+
+        if (!(this.tileY && this.tileY.containsRange(chromosome.name, genomicState.startBP, genomicState.endBP, bpp))) {
+            this.tileY = await this.createImageTile({axis: 'y', ...genomicState})
+        }
+
+        return this.tileY
+    }
 
     async createImageTile(genomicState, tileFeatures) {
 
@@ -229,18 +243,18 @@ class TrackPair {
         } else {
 
             // Expand the requested range so we can pan a bit without reloading
-            const pixelWidth = 3 * this.x.$canvas.width();
-            const lengthBP = Math.round(genomicState.bpp * pixelWidth);
-            const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
-            const bpEnd = bpStart + lengthBP;
+            const pixelWidth = this.x ? 3 * this.x.$canvas.width() : this.y.$canvas.height()
+            const lengthBP = Math.round(genomicState.bpp * pixelWidth)
+            const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3))
+            const bpEnd = bpStart + lengthBP
 
             const features = tileFeatures || await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp)
 
-            const canvas = document.createElement('canvas');
-            canvas.width = pixelWidth;
-            canvas.height = this.x.$canvas.height();
+            const canvas = document.createElement('canvas')
+            canvas.width = pixelWidth
+            canvas.height = this.x ? this.x.$canvas.height() : this.y.$canvas.width()
 
-            const context = canvas.getContext("2d");
+            const context = canvas.getContext("2d")
 
             if (features) {
                 const drawConfiguration =
@@ -258,31 +272,31 @@ class TrackPair {
                         viewportContainerWidth: pixelWidth,
                         viewportWidth: pixelWidth,
                         referenceFrame: {}
-                    };
+                    }
 
                 if (this.track.autoscale || !this.track.dataRange) {
                     if (typeof this.track.doAutoscale === 'function') {
-                        this.track.doAutoscale(features);
+                        this.track.doAutoscale(features)
                     } else {
-                        this.track.dataRange = doAutoscale(features);
+                        this.track.dataRange = doAutoscale(features)
                     }
                 }
 
-                this.track.draw(drawConfiguration);
+                this.track.draw(drawConfiguration)
 
             } else {
-                const wye = canvas.height - canvas.height/4
-                igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { 'fillStyle': 'rgba(0,0,0,0.1)' });
+                const wye = canvas.height - canvas.height / 4
+                igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, {'fillStyle': 'rgba(0,0,0,0.1)'})
             }
 
-            this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features);
+            this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features)
             return this.tile
         }
     }
 
     dispose() {
-        this.x.dispose()
-        //this.y.dispose()
+        if (this.x) this.x.dispose()
+        if (this.y) this.y.dispose()
     }
 }
 
@@ -316,22 +330,24 @@ function setTrackReorderArrowColors(trackPairs) {
 
     trackPairs.forEach(trackPair => {
 
-        const el = trackPair.x.$viewport.get(0)
+        if (trackPair.x) {
+            const el = trackPair.x.$viewport.get(0)
 
-        const order = parseInt(el.style.order)
-        if (0 === order) {
-            el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0'
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
-        } else if (trackPairs.length - 1 === order) {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
-            el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0'
-        } else {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
+            const order = parseInt(el.style.order)
+            if (0 === order) {
+                el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0'
+                el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
+            } else if (trackPairs.length - 1 === order) {
+                el.querySelector('.fa-arrow-up').style.color = '#7F7F7F'
+                el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0'
+            } else {
+                el.querySelector('.fa-arrow-up').style.color = '#7F7F7F'
+                el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
+            }
         }
     })
 
 }
 
-export { setTrackReorderArrowColors }
+export {setTrackReorderArrowColors}
 export default TrackPair

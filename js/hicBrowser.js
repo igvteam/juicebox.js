@@ -1091,12 +1091,14 @@ class HICBrowser {
 
         for (const trackXYPair of this.trackPairs) {
 
-            trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
-            //trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
-
-            trackXYPair.x.syncCanvas()
-            //trackXYPair.y.syncCanvas()
-
+            if(trackXYPair.x) {
+                trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+                trackXYPair.x.syncCanvas()
+            }
+            if(trackXYPair.y) {
+                trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+                trackXYPair.y.syncCanvas()
+            }
         }
 
         this.layoutController.xAxisRuler.update()
