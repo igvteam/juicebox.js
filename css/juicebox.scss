@@ -42,8 +42,8 @@ $track-height: 36px;
 $track-aggregate-height: $track-count * $track-height;
 
 //
-$hic-viewport-width: 800px;
-$hic-viewport-height: 800px;
+$hic-viewport-width: 1480px;
+$hic-viewport-height: 600px;
 $hic-viewport-spinner-size: 120px;
 
 //
@@ -52,7 +52,7 @@ $hic-menu-item-padding: 8px;
 $hic-menu-margin: 8px;
 
 //
-$hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
+//$hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
 $hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
 
 $hic-annotation-modal-row-height: 40px;
@@ -285,7 +285,7 @@ $default-font-family: 'Open Sans', sans-serif;
 
   left: 0;
   right: 0;
-  width: $hic-root-width;
+  width: 100%;
   height: $hic-root-height;
 
   margin: 4px;

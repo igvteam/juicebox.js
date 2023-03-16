@@ -82,12 +82,12 @@ class HICBrowser {
 
         this.$root = $('<div class="hic-root unselect">')
 
-        if (config.width) {
-            this.$root.css("width", String(config.width))
-        }
-        if (config.height) {
-            this.$root.css("height", String(config.height + getNavbarHeight()))
-        }
+        // if (config.width) {
+        //     this.$root.css("width", String(config.width))
+        // }
+        // if (config.height) {
+        //     this.$root.css("height", String(config.height + getNavbarHeight()))
+        // }
 
         $app_container.append(this.$root)
 
