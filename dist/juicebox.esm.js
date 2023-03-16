@@ -81189,7 +81189,10 @@ class TrackPair {
     }
 
     setTrackName(name) {
-        this.track.id = name;
+        this.track.name = name;
+      }
+
+    setTrackLabelName(name) {
         this.x.$label.text(name);
     }
 
