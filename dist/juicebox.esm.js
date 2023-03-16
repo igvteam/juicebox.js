@@ -91238,6 +91238,8 @@ class ColorScaleWidget {
         this.$container = $$2('<div class="hic-colorscale-widget-container">');
         $container.append(this.$container);
 
+        this.$container.append($$2('<label style="font-weight: bolder;margin-right: 5px">Map Color Scale:</label>'));
+
         // contact map background color picker
         const {r: _r, g: _g, b: _b} = ContactMatrixView.defaultBackgroundColor;
         this.$mapBackgroundColorpickerButton = colorSwatch(IGVColor$1.rgbColor(_r, _g, _b));
