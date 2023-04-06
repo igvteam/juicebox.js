@@ -28,7 +28,9 @@
 
 import {isFile} from "./fileUtils.js"
 import Straw from '../node_modules/hic-straw/src/straw.js'
-import {GoogleUtils, GoogleDrive} from '../node_modules/igv-utils/src/index.js'
+import * as GoogleUtils from "../node_modules/google-utils/src/googleUtils.js"
+import * as GoogleDrive from "../node_modules/google-utils/src/googleDrive.js"
+
 import IGVRemoteFile from "./igvRemoteFile.js"
 
 const knownGenomes = {

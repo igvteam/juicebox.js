@@ -6,30 +6,9 @@ import "./utils/mockObjects.js"
 import {assert} from 'chai';
 
 import {extractConfig} from "../js/urlUtils.js";
-import Zlib from "igv-utils/src/vendor/zlib_and_gzip"
 
 suite("testURLs", function () {
 
-    test("Compress string", function() {
-
-        const str = '{"browsers": [{"url": "https://www.encodeproject.org/files/ENCFF179HVU/@@download/ENCFF179HVU.hic", "name": "GM12878", "nvi": "2659219603,36479", "tracks": [{"url": "https://www.encodeproject.org/files/ENCFF000ARJ/@@download/ENCFF000ARJ.bigWig", "name": "CTCF", "min": 0, "max": 5, "color": "#004a88"}]}]}'
-            const bytes = [];
-            for (var i = 0; i < str.length; i++) {
-                bytes.push(str.charCodeAt(i));
-            }
-            const compressedBytes = new Zlib.RawDeflate(bytes).compress();            // UInt8Arry
-
-            for(let b of compressedBytes) {
-                console.log(b)
-            }
-
-            const compressedString = String.fromCharCode.apply(null, compressedBytes);      // Convert to string
-
-            let enc = btoa(compressedString);
-            console.log(enc)
-            console.log(enc.replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-'))   // URL safe
-
-    })
 
     test("Session blob", async function () {
 

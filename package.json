@@ -3,6 +3,7 @@
   "version": "2.3.2",
   "main": "dist/juicebox.min.js",
   "module": "dist/juicebox.esm.js",
+  "type": "module",
   "files": [
     "dist/**"
   ],
@@ -18,8 +19,8 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
-    "build": "node scripts/updateVersion && npx rollup --config",
-    "test": "mocha -u tdd -r esm",
+    "build": "node scripts/updateVersion.cjs && npx rollup --config",
+    "test": "mocha -ui tdd",
     "prepack": "npm run build"
   },
   "keywords": [
@@ -34,22 +35,19 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.16.0",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-commonjs": "^21.0.1",
-    "@rollup/plugin-node-resolve": "^13.0.6",
     "@rollup/plugin-strip": "^3.0.1",
     "@xmldom/xmldom": "^0.7.5",
     "atob": "^2.1.2",
     "btoa": "^1.2.1",
     "chai": "^4.2.0",
     "core-js": "^3.6.5",
-    "esm": "^3.2.25",
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
-    "hic-straw": "^2.0.6",
-    "igv": "^2.15.2",
+    "google-utils": "github:igvteam/google-utils#v1.0.2",
+    "hic-straw": "^2.1.0",
+    "igv": "^2.15.3",
     "igv-ui": "github:igvteam/igv-ui#v1.5.0",
-    "igv-utils": "github:igvteam/igv-utils#v1.4.3",
+    "igv-utils": "github:igvteam/igv-utils#v1.4.4",
     "mocha": "^8.2.1",
     "node-fetch": "^2.6.1",
     "rollup": "^2.59.0",
