@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "2.3.2",
+  "version": "2.4.1",
   "main": "dist/juicebox.min.js",
   "module": "dist/juicebox.esm.js",
   "type": "module",
@@ -45,7 +45,7 @@
     "fs-extra": "^8.1.0",
     "google-utils": "github:igvteam/google-utils#v1.0.2",
     "hic-straw": "^2.1.0",
-    "igv": "^2.15.3",
+    "igv": "^2.15.4",
     "igv-ui": "github:igvteam/igv-ui#v1.5.0",
     "igv-utils": "github:igvteam/igv-utils#v1.4.4",
     "mocha": "^8.2.1",
