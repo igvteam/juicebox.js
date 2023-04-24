@@ -54,6 +54,7 @@ import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.j
 import {getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
 import {setTrackReorderArrowColors} from "./trackPair.js"
+import nvi from './nvi.js'
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
@@ -667,16 +668,12 @@ class HICBrowser {
             // Let it load in the background
             const eventBus = this.eventBus
 
-            // If nvi is not supplied, try reading it from remote lambda service
+            // If nvi is not supplied, try lookup table of known values
             if (!config.nvi && typeof config.url === "string") {
                 const url = new URL(config.url)
                 const key = encodeURIComponent(url.hostname + url.pathname)
-                const nviResponse = await fetch('https://t5dvc6kn3f.execute-api.us-east-1.amazonaws.com/dev/nvi/' + key)
-                if (nviResponse.status === 200) {
-                    const nvi = await nviResponse.text()
-                    if (nvi) {
-                        config.nvi = nvi
-                    }
+                if(nvi.hasOwnProperty(key)) {
+                    config.nvi = nvi[key]
                 }
             }
 
