@@ -777,8 +777,17 @@ class HICBrowser {
         }
 
         if (xLocus === undefined) {
-            // Try a gene name search.
-            const result = await geneSearch(this.genome.id, loci[0].trim())
+
+            let result
+            // Try feature lookup table first
+            if(this.genome.featureDB.has(string.toUpperCase())) {
+                const feature = this.genome.featureDB.get(string.toUpperCase())
+                result = `${feature.chr}:${feature.start + 1}-${feature.end}`
+            }
+            else {
+                // Try a gene name search.
+                result = await geneSearch(this.genome.id, loci[0].trim())
+            }
 
             if (result) {
                 Globals.selectedGene = loci[0].trim()
