@@ -19,8 +19,8 @@
 
 <script type="module">
 
-    // import juicebox from '../js/index.js';
-    import juicebox from "../dist/juicebox.esm.js"
+    import juicebox from '../js/index.js';
+    // import juicebox from "../dist/juicebox.esm.js"
 
 
     const config_igv_tracks =
@@ -85,7 +85,7 @@
     }
 
 
-    juicebox.init(document.getElementById("app-container"), {})
+    juicebox.init(document.getElementById("app-container"), config_deep_map)
         .then(browser => {
             console.log(`${ browser.id } is good to go`);
         })

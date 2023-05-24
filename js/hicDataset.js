@@ -28,7 +28,9 @@
 
 import {isFile} from "./fileUtils.js"
 import Straw from '../node_modules/hic-straw/src/straw.js'
-import {GoogleUtils} from '../node_modules/igv-utils/src/index.js'
+import * as GoogleUtils from "../node_modules/google-utils/src/googleUtils.js"
+import * as GoogleDrive from "../node_modules/google-utils/src/googleDrive.js"
+
 import IGVRemoteFile from "./igvRemoteFile.js"
 
 const knownGenomes = {
@@ -44,15 +46,10 @@ const knownGenomes = {
 class Dataset {
 
     constructor(config) {
-
-        this.isLiveContactMapDataSet = undefined
-
         this.straw = new Straw(config)
     }
 
     async init() {
-
-        this.isLiveContactMapDataSet = undefined
 
         this.hicFile = this.straw.hicFile;
         await this.hicFile.init();
@@ -188,7 +185,7 @@ class Dataset {
             // If this is a google url, add api KEY
             if (GoogleUtils.isGoogleURL(config.url)) {
                 if (GoogleUtils.isGoogleDriveURL(config.url)) {
-                    config.url = GoogleUtils.driveDownloadURL(config.url)
+                    config.url = GoogleDrive.getDriveDownloadURL(config.url)
                 }
                 const copy = Object.assign({}, config);
                 config.file = new IGVRemoteFile(copy);

@@ -24,8 +24,7 @@
  */
 
 import $ from "../vendor/jquery-3.3.1.slim.js";
-import {DOMUtils, makeDraggable, UIUtils} from "../node_modules/igv-utils/src/index.js";
-import {ColorPicker} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {DOMUtils, makeDraggable, UIUtils, ColorPicker} from '../node_modules/igv-ui/dist/igv-ui.js'
 
 const trackMenuItemListHelper =     (itemList, $popover) => {
 

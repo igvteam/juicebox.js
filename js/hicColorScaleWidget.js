@@ -25,8 +25,8 @@
  * Created by dat on 3/3/17.
  */
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import {IGVColor, DOMUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
-import { ColorPicker, createColorSwatchSelector, GenericContainer} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import { DOMUtils, ColorPicker, createColorSwatchSelector, GenericContainer} from '../node_modules/igv-ui/dist/igv-ui.js'
 import RatioColorScale, {defaultRatioColorScaleConfig} from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";

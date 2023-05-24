@@ -1,5 +1,5 @@
-import {DOMUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
+import {DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
 
 class TrackRenderer {
 

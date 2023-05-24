@@ -26,12 +26,12 @@
  */
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
-import {Alert,InputDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {DOMUtils, FileUtils, TrackUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {Alert, InputDialog, DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {FileUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
-import {Globals} from "./globals.js";
-import EventBus from "./eventBus.js";
+import {Globals} from "./globals.js"
+import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
 import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
 import HICEvent from './hicEvent.js'
@@ -39,21 +39,21 @@ import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import geneSearch from './geneSearch.js'
-import LocusGoto from "./hicLocusGoto.js";
-import ResolutionSelector from "./hicResolutionSelector.js";
-import ColorScaleWidget from "./hicColorScaleWidget.js";
-import ControlMapWidget from "./controlMapWidget.js";
-import NormalizationWidget from "./normalizationWidget.js";
-import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js";
-import AnnotationWidget from "./annotationWidget.js";
-import SweepZoom from "./sweepZoom.js";
-import ScrollbarWidget from "./scrollbarWidget.js";
-import ContactMatrixView from "./contactMatrixView.js";
-import ColorScale, {defaultColorScaleConfig} from "./colorScale.js";
-import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js";
-import {getAllBrowsers, syncBrowsers} from "./createBrowser.js";
+import LocusGoto from "./hicLocusGoto.js"
+import ResolutionSelector from "./hicResolutionSelector.js"
+import ColorScaleWidget from "./hicColorScaleWidget.js"
+import ControlMapWidget from "./controlMapWidget.js"
+import NormalizationWidget from "./normalizationWidget.js"
+import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js"
+import AnnotationWidget from "./annotationWidget.js"
+import SweepZoom from "./sweepZoom.js"
+import ScrollbarWidget from "./scrollbarWidget.js"
+import ContactMatrixView from "./contactMatrixView.js"
+import ColorScale, {defaultColorScaleConfig} from "./colorScale.js"
+import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js"
+import {getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
-import {setTrackReorderArrowColors} from "./trackPair.js";
+import {setTrackReorderArrowColors} from "./trackPair.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
@@ -452,7 +452,7 @@ class HICBrowser {
 
             for (let config of configs) {
 
-                const fileName = isFile(config.url) ? config.url.name : await FileUtils.getFilenameExtended(config.url)
+                const fileName = isFile(config.url) ? config.url.name : config.filename || await FileUtils.getFilename(config.url)
 
                 const extension = hicUtils.getExtension(fileName)
 
