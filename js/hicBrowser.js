@@ -794,7 +794,7 @@ class HICBrowser {
                 xLocus = this.parseLocusString(result)
                 yLocus = xLocus
                 this.state.selectedGene = Globals.selectedGene
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end, 5000)
+                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
             } else {
                 alert('No feature found with name "' + loci[0] + '"')
             }
