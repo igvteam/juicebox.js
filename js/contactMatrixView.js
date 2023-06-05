@@ -30,6 +30,7 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
+import {Track2DDisplaceModes} from "./globals.js";
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
@@ -427,11 +428,16 @@ class ContactMatrixView {
 
                     if (track2D.isVisible) {
 
-                        const chr1Name = zd.chr1.name;
-                        const chr2Name = zd.chr2.name;
-                        const features = track2D.getFeatures(chr1Name, chr2Name);
+                        console.log(`${ Date.now() } track2D ${ track2D.name } display mode ${ track2D.displayMode }`)
+
+                        const chr1Name = zd.chr1.name
+                        const chr2Name = zd.chr2.name
+
+                        const features = track2D.getFeatures(chr1Name, chr2Name)
 
                         if (features) {
+
+                            ctx.strokeStyle = track2D.color ? track2D.color : color;
 
                             for (let {chr1, x1, x2, y1, y2, color} of features) {
 
@@ -452,16 +458,22 @@ class ContactMatrixView {
 
                                 const dim = Math.max(image.width, image.height);
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
-                                    //console.log(`${row} ${column}    ${x1} ${x2}`)
-                                    ctx.strokeStyle = track2D.color ? track2D.color : color;
-                                    ctx.strokeRect(px1, py1, w, h);
-                                    if (sameChr && row === column) {
-                                        ctx.strokeRect(py1, px1, h, w);
+
+                                    if (track2D.displayMode & Track2DDisplaceModes.displayLowerMatrix) {
+                                        ctx.strokeRect(px1, py1, w, h)
+                                    }
+
+                                    if (track2D.displayMode & Track2DDisplaceModes.displayUpperMatrix) {
+                                        if (sameChr && row === column) {
+                                            ctx.strokeRect(py1, px1, h, w)
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
+
+                        } // if (features)
+
+                    } // if (track2D.isVisible)
                 }
 
 

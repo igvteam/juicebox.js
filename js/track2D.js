@@ -11,7 +11,7 @@ class Track2D {
         this.featureCount = 0;
         this.isVisible = true;
 
-        this.displayMode = Track2DDisplaceModes.displayAllMatrix;
+        this.displayMode = Track2DDisplaceModes.displayUpperMatrix|Track2DDisplaceModes.displayLowerMatrix;
 
         if (config.color && validateColor(config.color)) {
             this.color = this.color = config.color;    // If specified, this will override colors of individual records.

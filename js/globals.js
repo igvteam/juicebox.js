@@ -24,10 +24,9 @@
 const Globals = {};
 
 const Track2DDisplaceModes = {
-    displayAllMatrix: 'displayAllMatrix',
-    displayLowerMatrix: 'displayLowerMatrix',
-    displayUpperMatrix: 'displayUpperMatrix'
-};
+    displayLowerMatrix: 0b01,
+    displayUpperMatrix: 0b10,
+}
 
 
 export {Track2DDisplaceModes, Globals}

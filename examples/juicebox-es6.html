@@ -50,8 +50,25 @@
                     "max": 1.5872053418840681
                 }
             ]
-        }
+        };
 
+    const config_2d_annotation =
+        {
+            "backgroundColor": "110,110,110",
+            "url": "https://www.encodeproject.org/files/ENCFF799QGA/@@download/ENCFF799QGA.hic",
+            "name": "in-situ agar GM12878 MboI experiment",
+            "state": "7,7,8,10792.6029,10800.6029,640,640,1,NONE",
+            "colorScale": "12,255,41,135",
+            "selectedGene": "egfr",
+            "nvi": "1228682189,36479",
+            "tracks": [
+                {
+                    "url": "https://www.dropbox.com/s/mjjkvrkvghm1n4u/GSM1872886_GM12878_CTCF_PET_clusters.txt?dl=0",
+                    "name": "GSM1872886_GM12878_CTCF_PET_clusters.txt",
+                    "color": "#cefa6e"
+                }
+            ]
+        };
 
     const config = {
         url: "https://www.encodeproject.org/files/ENCFF718AWL/@@download/ENCFF718AWL.hic",
@@ -86,7 +103,7 @@
     }
 
 
-    juicebox.init(document.getElementById("app-container"), config)
+    juicebox.init(document.getElementById("app-container"), config_2d_annotation)
         .then(browser => {
             console.log(`${ browser.id } is good to go`);
         })

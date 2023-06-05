@@ -211,9 +211,11 @@ function annotationPanelRow($container, track) {
         // matrix diagonal widget
         const $matrix_diagonal_div = $('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
         $row.append($matrix_diagonal_div);
-        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
+        $matrix_diagonal_div.on('click.matrix_diagonal_div', e => {
             e.preventDefault();
             matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
+            this.browser.contactMatrixView.clearImageCaches();
+            this.browser.contactMatrixView.update();
         });
 
     }
@@ -337,25 +339,25 @@ function matrixDiagionalWidgetHandler($icon, track2D) {
     if ($icon.hasClass('matrix-diagonal-widget-all')) {
 
         $icon.removeClass('matrix-diagonal-widget-all');
-
         $icon.addClass('matrix-diagonal-widget-lower');
+
         track2D.displayMode = Track2DDisplaceModes.displayLowerMatrix;
     } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
 
         $icon.removeClass('matrix-diagonal-widget-lower');
-
         $icon.addClass('matrix-diagonal-widget-upper');
+
         track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix;
     } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
 
         $icon.removeClass('matrix-diagonal-widget-upper');
-
         $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+
+        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix|Track2DDisplaceModes.displayLowerMatrix;
     } else {
 
         $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix|Track2DDisplaceModes.displayLowerMatrix;
     }
 }
 
