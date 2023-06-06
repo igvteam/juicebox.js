@@ -30,7 +30,7 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
-import {Track2DDisplaceModes} from "./globals.js"
+import {Track2DDisplayModes} from "./globals.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -457,11 +457,11 @@ class ContactMatrixView {
                                 const dim = Math.max(image.width, image.height)
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
-                                    if (track2D.displayMode & Track2DDisplaceModes.displayLowerMatrix) {
+                                    if (track2D.displayMode & Track2DDisplayModes.displayLowerMatrix) {
                                         ctx.strokeRect(px1, py1, w, h)
                                     }
 
-                                    if (track2D.displayMode & Track2DDisplaceModes.displayUpperMatrix) {
+                                    if (track2D.displayMode & Track2DDisplayModes.displayUpperMatrix) {
                                         if (sameChr && row === column) {
                                             ctx.strokeRect(py1, px1, h, w)
                                         }
