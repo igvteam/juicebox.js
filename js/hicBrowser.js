@@ -1479,20 +1479,23 @@ class HICBrowser {
 
                 if (typeof track2D.config.url === "string") {
 
-                    const t = {
-                        url: track2D.config.url
-                    }
+                    const json =
+                        {
+                            url: track2D.config.url
+                        }
                     if (track2D.name) {
-                        t.name = track2D.name
+                        json.name = track2D.name
                     }
                     if (track2D.color) {
-                        t.color = track2D.color
+                        json.color = track2D.color
                     }
 
                     const list = Object.keys(Track2DDisplayModes).filter(key => track2D.displayMode === Track2DDisplayModes[ key ])
-                    t.displayModeKey = list[ 0 ]
+                    json.displayModeKey = list[ 0 ]
 
-                    tracks.push(t)
+                    json.isVisible = track2D.isVisible
+
+                    tracks.push(json)
                 }
             }
         }

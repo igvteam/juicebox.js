@@ -7,18 +7,19 @@ class Track2D {
 
         this.config = config;
         this.name = config.name;
-        this.featureMap = {};
-        this.featureCount = 0;
-        this.isVisible = true;
-
-        this.displayMode = config.displayModeKey ? Track2DDisplayModes [ config.displayModeKey ] : Track2DDisplayModes.displayAllMatrix
 
         if (config.color && validateColor(config.color)) {
             this.color = this.color = config.color;    // If specified, this will override colors of individual records.
         }
 
+        this.displayMode = config.displayModeKey ? Track2DDisplayModes [ config.displayModeKey ] : Track2DDisplayModes.displayAllMatrix
+
+        this.isVisible = undefined === config.isVisible ? true : config.isVisible
+
         this.repColor = features.length > 0 ? features[0].color : "black";
 
+        this.featureMap = {};
+        this.featureCount = 0;
         for (let f of features) {
             this.featureCount++;
             const key = getKey(f.chr1, f.chr2);
