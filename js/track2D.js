@@ -12,7 +12,7 @@ class Track2D {
             this.color = this.color = config.color;    // If specified, this will override colors of individual records.
         }
 
-        this.displayMode = config.displayModeKey ? Track2DDisplayModes [ config.displayModeKey ] : Track2DDisplayModes.displayAllMatrix
+        this.displayMode = config.displayModeKey ? Track2DDisplayModes [config.displayModeKey] : Track2DDisplayModes.displayAllMatrix
 
         this.isVisible = undefined === config.isVisible ? true : config.isVisible
 
