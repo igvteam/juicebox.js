@@ -30,7 +30,7 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
-import {Track2DDisplayModes} from "./globals.js"
+import Track2D from "./track2D.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -424,9 +424,15 @@ class ContactMatrixView {
                 //Draw 2D tracks
                 ctx.save()
                 ctx.lineWidth = 2
+
+
                 for (let track2D of this.browser.tracks2D) {
 
-                    if (track2D.isVisible) {
+                    const skip =
+                        !track2D.isVisible ||
+                        ((track2D.displayMode & Track2D.DisplayModes.lower) && row < column) ||
+                        ((track2D.displayMode & Track2D.DisplayModes.upper) && row > column)
+                    if (!skip) {
 
                         const chr1Name = zd.chr1.name
                         const chr2Name = zd.chr2.name
@@ -435,13 +441,15 @@ class ContactMatrixView {
 
                         if (features) {
 
-                            ctx.strokeStyle = track2D.color ? track2D.color : color
 
                             for (let {chr1, x1, x2, y1, y2, color} of features) {
 
-                                // Chr name order
+                                ctx.strokeStyle = track2D.color || color
+
+                                // Chr name order -- test for equality of zoom data chr1 and feature chr1
                                 const flip = chr1Name !== chr1
 
+                                //Note: transpose = sameChr && row < column
                                 const fx1 = transpose || flip ? y1 : x1
                                 const fx2 = transpose || flip ? y2 : x2
                                 const fy1 = transpose || flip ? x1 : y1
@@ -457,15 +465,24 @@ class ContactMatrixView {
                                 const dim = Math.max(image.width, image.height)
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
-                                    if (track2D.displayMode & Track2DDisplayModes.displayLowerMatrix) {
+
+                                    if (track2D.displayMode & Track2D.DisplayModes.lower) {
                                         ctx.strokeRect(px1, py1, w, h)
                                     }
 
-                                    if (track2D.displayMode & Track2DDisplayModes.displayUpperMatrix) {
-                                        if (sameChr && row === column) {
-                                            ctx.strokeRect(py1, px1, h, w)
-                                        }
+                                    // By convention intra-chromosome data is always stored in lower diagonal coordinates.
+                                    // If we are on a diagonal tile, draw the symettrical reflection unless display mode is lower
+                                    const onDiagonalTile = sameChr && row === column
+                                    if (onDiagonalTile && !(track2D.displayMode & Track2D.DisplayModes.lower)) {
+                                        ctx.strokeRect(py1, px1, h, w)
                                     }
+
+
+                                    // ctx.strokeStyle = track2D.color ? track2D.color : color;
+                                    // ctx.strokeRect(px1, py1, w, h);
+                                    // if (sameChr && row === column) {
+                                    //     ctx.strokeRect(py1, px1, h, w);
+                                    // }
                                 }
                             }
 
@@ -478,8 +495,8 @@ class ContactMatrixView {
                 ctx.restore()
 
                 // Uncomment to reveal tile boundaries for debugging.
-                //  ctx.fillStyle = "rgb(255,255,255)";
-                //  ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                ctx.fillStyle = "rgb(255,255,255)"
+                ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
                 var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}

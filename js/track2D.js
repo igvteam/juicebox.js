@@ -1,51 +1,83 @@
 import {igvxhr, StringUtils} from '../node_modules/igv-utils/src/index.js'
-import {Track2DDisplayModes} from './globals.js';
 
 class Track2D {
 
+    static DisplayModes = {
+        lower: 0b01,
+        upper: 0b10,
+        both: 0b01 | 0b10,
+    }
+
     constructor(config, features) {
 
-        this.config = config;
-        this.name = config.name;
+        this.config = config
+        this.name = config.name
 
         if (config.color && validateColor(config.color)) {
-            this.color = this.color = config.color;    // If specified, this will override colors of individual records.
+            this.color = this.color = config.color    // If specified, this will override colors of individual records.
         }
 
-        this.displayMode = config.displayModeKey ? Track2DDisplayModes [config.displayModeKey] : Track2DDisplayModes.displayAllMatrix
+        this.displayMode = config.displayMode ? Track2D.DisplayModes [config.displayMode] : Track2D.DisplayModes.both
 
         this.isVisible = undefined === config.isVisible ? true : config.isVisible
 
-        this.repColor = features.length > 0 ? features[0].color : "black";
+        this.repColor = features.length > 0 ? features[0].color : "black"
 
-        this.featureMap = {};
-        this.featureCount = 0;
+        this.featureMap = {}
+        this.featureCount = 0
         for (let f of features) {
-            this.featureCount++;
-            const key = getKey(f.chr1, f.chr2);
-            let list = this.featureMap[key];
+            this.featureCount++
+            const key = getKey(f.chr1, f.chr2)
+            let list = this.featureMap[key]
             if (!list) {
-                list = [];
-                this.featureMap[key] = list;
+                list = []
+                this.featureMap[key] = list
             }
-            list.push(f);
+            list.push(f)
         }
     }
 
     static async loadTrack2D(config, genome) {
 
-        const data = await igvxhr.loadString(config.url, buildOptions(config));
-        const features = parseData(data, isBedPE(config), genome);
-        return new Track2D(config, features);
+        const data = await igvxhr.loadString(config.url, buildOptions(config))
+        const features = parseData(data, isBedPE(config), genome)
+        return new Track2D(config, features)
     }
 
     getColor() {
-        return this.color || this.repColor;
+        return this.color || this.repColor
     }
 
     getFeatures(chr1, chr2) {
-        const key = getKey(chr1, chr2);
-        return this.featureMap[key];
+        const key = getKey(chr1, chr2)
+        return this.featureMap[key]
+    }
+
+    toJSON() {
+        const json =
+            {
+                url: this.config.url
+            }
+        if (this.name) {
+            json.name = this.name
+        }
+        if (this.color) {
+            json.color = this.color
+        }
+        // Display mode -- no value needed for "both"
+        for (let dm of ["lower", "upper"]) {
+            if (this.displayMode === Track2D.DisplayModes[dm]) {
+                json.displayMode = dm
+            }
+        }
+
+        // isVisible -- no value needed for true
+        if (!this.isVisible) {
+            json.isVisible = this.isVisible
+        }
+
+        return json
+
     }
 
 }
@@ -54,39 +86,39 @@ class Track2D {
 function isBedPE(config) {
 
     if (typeof config.url === "string") {
-        return config.url.toLowerCase().indexOf(".bedpe") > 0;
+        return config.url.toLowerCase().indexOf(".bedpe") > 0
     } else if (typeof config.name === "string") {
-        return config.name.toLowerCase().indexOf(".bedpe") > 0;
+        return config.name.toLowerCase().indexOf(".bedpe") > 0
     } else {
-        return true;  // Default
+        return true  // Default
     }
 }
 
 function parseData(data, isBedPE, genome) {
 
-    if (!data) return null;
+    if (!data) return null
 
     const lines = StringUtils.splitLines(data)
     const allFeatures = []
-    const delimiter = "\t";
-    const start = isBedPE ? 0 : 1;
-    const colorColumn = isBedPE ? 10 : 6;
+    const delimiter = "\t"
+    const start = isBedPE ? 0 : 1
+    const colorColumn = isBedPE ? 10 : 6
 
-    let errorCount = 0;
+    let errorCount = 0
     for (let line of lines) {
-        line = line.trim();
+        line = line.trim()
         if (line.startsWith("#") || line.startsWith("track") || line.startsWith("browser") || line.length === 0) {
-            continue;
+            continue
         }
-        const tokens = line.split(delimiter);
+        const tokens = line.split(delimiter)
         if (tokens.length < 6 && errorCount <= 5) {
             if (errorCount === 5) {
-                console.error("...");
+                console.error("...")
             } else {
-                console.error("Could not parse line: " + line);
+                console.error("Could not parse line: " + line)
             }
-            errorCount++;
-            continue;
+            errorCount++
+            continue
         }
 
         const feature = {
@@ -103,21 +135,21 @@ function parseData(data, isBedPE, genome) {
         }
 
         if (!Number.isNaN(feature.x1)) {
-            allFeatures.push(feature);
+            allFeatures.push(feature)
         }
     }
 
-    return allFeatures;
+    return allFeatures
 }
 
 function getKey(chr1, chr2) {
-    return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2;
+    return chr1 > chr2 ? chr2 + "_" + chr1 : chr1 + "_" + chr2
 }
 
 function validateColor(str) {
-    var div = document.createElement("div");
-    div.style.borderColor = str;
-    return div.style.borderColor !== "";
+    var div = document.createElement("div")
+    div.style.borderColor = str
+    return div.style.borderColor !== ""
 }
 
 function isString(x) {
@@ -130,9 +162,9 @@ function buildOptions(config, options) {
         headers: config.headers,
         withCredentials: config.withCredentials,
         filename: config.filename
-    };
+    }
 
-    return Object.assign(defaultOptions, options);
+    return Object.assign(defaultOptions, options)
 }
 
 export default Track2D

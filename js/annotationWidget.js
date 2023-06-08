@@ -23,9 +23,9 @@
 
 import {Alert, createColorSwatchSelector} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {makeDraggable} from '../node_modules/igv-ui/dist/igv-ui.js'
-import Track2D from './track2D.js'
 import HICEvent from './hicEvent.js'
-import {Track2DDisplayModes} from './globals.js'
+import Track2D from './track2D.js'
+
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class AnnotationWidget {
@@ -220,15 +220,15 @@ function annotationPanelRow($container, track) {
 
         switch (track.displayMode) {
 
-            case Track2DDisplayModes.displayLowerMatrix:
+            case Track2D.DisplayModes.displayLowerMatrix:
                 displayModeIcon.classList.add('matrix-diagonal-widget-lower')
                 break
 
-            case Track2DDisplayModes.displayUpperMatrix:
+            case Track2D.DisplayModes.displayUpperMatrix:
                 displayModeIcon.classList.add('matrix-diagonal-widget-upper')
                 break
 
-            case Track2DDisplayModes.displayAllMatrix:
+           default:
                 displayModeIcon.classList.add('matrix-diagonal-widget-all')
 
         }
@@ -363,23 +363,23 @@ function displayModeHandler($displayModeIcon, track2D) {
         $displayModeIcon.removeClass('matrix-diagonal-widget-all')
         $displayModeIcon.addClass('matrix-diagonal-widget-lower')
 
-        track2D.displayMode = Track2DDisplayModes.displayLowerMatrix
+        track2D.displayMode = Track2D.DisplayModes.displayLowerMatrix
     } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-lower')) {
 
         $displayModeIcon.removeClass('matrix-diagonal-widget-lower')
         $displayModeIcon.addClass('matrix-diagonal-widget-upper')
 
-        track2D.displayMode = Track2DDisplayModes.displayUpperMatrix
+        track2D.displayMode = Track2D.DisplayModes.displayUpperMatrix
     } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-upper')) {
 
         $displayModeIcon.removeClass('matrix-diagonal-widget-upper')
         $displayModeIcon.addClass('matrix-diagonal-widget-all')
 
-        track2D.displayMode = Track2DDisplayModes.displayAllMatrix
+        track2D.displayMode = Track2D.DisplayModes.displayAllMatrix
     } else {
 
         $displayModeIcon.addClass('matrix-diagonal-widget-all')
-        track2D.displayMode = Track2DDisplayModes.displayAllMatrix
+        track2D.displayMode = Track2D.DisplayModes.displayAllMatrix
     }
 }
 

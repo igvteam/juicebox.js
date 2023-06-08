@@ -30,7 +30,7 @@ import {Alert, InputDialog, DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.j
 import {FileUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
-import {Globals, Track2DDisplayModes} from "./globals.js"
+import {Globals} from "./globals.js"
 import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
 import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
@@ -1475,26 +1475,8 @@ class HICBrowser {
 
             }
             for (const track2D of this.tracks2D) {
-
                 if (typeof track2D.config.url === "string") {
-
-                    const json =
-                        {
-                            url: track2D.config.url
-                        }
-                    if (track2D.name) {
-                        json.name = track2D.name
-                    }
-                    if (track2D.color) {
-                        json.color = track2D.color
-                    }
-
-                    const list = Object.keys(Track2DDisplayModes).filter(key => track2D.displayMode === Track2DDisplayModes[key])
-                    json.displayModeKey = list[0]
-
-                    json.isVisible = track2D.isVisible
-
-                    tracks.push(json)
+                    tracks.push(track2D.toJSON())
                 }
             }
         }
