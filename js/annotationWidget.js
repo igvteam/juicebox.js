@@ -220,11 +220,11 @@ function annotationPanelRow($container, track) {
 
         switch (track.displayMode) {
 
-            case Track2D.DisplayModes.displayLowerMatrix:
+            case "lower":
                 displayModeIcon.classList.add('matrix-diagonal-widget-lower')
                 break
 
-            case Track2D.DisplayModes.displayUpperMatrix:
+            case "upper":
                 displayModeIcon.classList.add('matrix-diagonal-widget-upper')
                 break
 
@@ -359,27 +359,26 @@ function annotationPanelRow($container, track) {
 function displayModeHandler($displayModeIcon, track2D) {
 
     if ($displayModeIcon.hasClass('matrix-diagonal-widget-all')) {
-
         $displayModeIcon.removeClass('matrix-diagonal-widget-all')
         $displayModeIcon.addClass('matrix-diagonal-widget-lower')
 
-        track2D.displayMode = Track2D.DisplayModes.displayLowerMatrix
+        track2D.displayMode = "lower"
     } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-lower')) {
 
         $displayModeIcon.removeClass('matrix-diagonal-widget-lower')
         $displayModeIcon.addClass('matrix-diagonal-widget-upper')
 
-        track2D.displayMode = Track2D.DisplayModes.displayUpperMatrix
+        track2D.displayMode = "upper"
     } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-upper')) {
 
         $displayModeIcon.removeClass('matrix-diagonal-widget-upper')
         $displayModeIcon.addClass('matrix-diagonal-widget-all')
 
-        track2D.displayMode = Track2D.DisplayModes.displayAllMatrix
+        track2D.displayMode = undefined
     } else {
 
         $displayModeIcon.addClass('matrix-diagonal-widget-all')
-        track2D.displayMode = Track2D.DisplayModes.displayAllMatrix
+        track2D.displayMode = undefined
     }
 }
 

@@ -426,12 +426,14 @@ class ContactMatrixView {
                 ctx.lineWidth = 2
 
 
-                for (let track2D of this.browser.tracks2D) {
+                const onDiagonalTile = sameChr && row === column
 
+                for (let track2D of this.browser.tracks2D) {
                     const skip =
                         !track2D.isVisible ||
-                        ((track2D.displayMode & Track2D.DisplayModes.lower) && row < column) ||
-                        ((track2D.displayMode & Track2D.DisplayModes.upper) && row > column)
+                        (sameChr && "lower" === track2D.displayMode  && row < column) ||
+                        (sameChr && "upper" === track2D.displayMode && row > column)
+
                     if (!skip) {
 
                         const chr1Name = zd.chr1.name
@@ -440,7 +442,6 @@ class ContactMatrixView {
                         const features = track2D.getFeatures(chr1Name, chr2Name)
 
                         if (features) {
-
 
                             for (let {chr1, x1, x2, y1, y2, color} of features) {
 
@@ -466,23 +467,15 @@ class ContactMatrixView {
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
 
-                                    if (track2D.displayMode & Track2D.DisplayModes.lower) {
+                                    if (!onDiagonalTile || "upper" !== track2D.displayMode) {
                                         ctx.strokeRect(px1, py1, w, h)
                                     }
 
                                     // By convention intra-chromosome data is always stored in lower diagonal coordinates.
                                     // If we are on a diagonal tile, draw the symettrical reflection unless display mode is lower
-                                    const onDiagonalTile = sameChr && row === column
-                                    if (onDiagonalTile && !(track2D.displayMode & Track2D.DisplayModes.lower)) {
+                                    if (onDiagonalTile && "lower" !== track2D.displayMode) {
                                         ctx.strokeRect(py1, px1, h, w)
                                     }
-
-
-                                    // ctx.strokeStyle = track2D.color ? track2D.color : color;
-                                    // ctx.strokeRect(px1, py1, w, h);
-                                    // if (sameChr && row === column) {
-                                    //     ctx.strokeRect(py1, px1, h, w);
-                                    // }
                                 }
                             }
 
@@ -495,8 +488,8 @@ class ContactMatrixView {
                 ctx.restore()
 
                 // Uncomment to reveal tile boundaries for debugging.
-                ctx.fillStyle = "rgb(255,255,255)"
-                ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                // ctx.fillStyle = "rgb(255,255,255)"
+                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
                 var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}

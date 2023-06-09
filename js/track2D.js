@@ -17,7 +17,7 @@ class Track2D {
             this.color = this.color = config.color    // If specified, this will override colors of individual records.
         }
 
-        this.displayMode = config.displayMode ? Track2D.DisplayModes [config.displayMode] : Track2D.DisplayModes.both
+        this.displayMode = config.displayMode // Can be undefined => both
 
         this.isVisible = undefined === config.isVisible ? true : config.isVisible
 
@@ -64,14 +64,9 @@ class Track2D {
         if (this.color) {
             json.color = this.color
         }
-        // Display mode -- no value needed for "both"
-        for (let dm of ["lower", "upper"]) {
-            if (this.displayMode === Track2D.DisplayModes[dm]) {
-                json.displayMode = dm
-            }
+        if (this.displayMode) {
+            json.displayMode = dm
         }
-
-        // isVisible -- no value needed for true
         if (!this.isVisible) {
             json.isVisible = this.isVisible
         }
