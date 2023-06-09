@@ -143,7 +143,7 @@ class HICBrowser {
 
         this.state = config.state ? config.state : State.default()
         if(config.normalization) {
-            state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
+            this.state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
         }
 
         this.pending = new Map()
@@ -178,13 +178,16 @@ class HICBrowser {
                 this.contactMatrixView.displayMode = config.displayMode
                 this.eventBus.post({type: "DisplayMode", data: config.displayMode})
             }
-            if (config.colorScale) {
-                // This must be done after dataset load
-                this.contactMatrixView.setColorScale(config.colorScale)
-                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()})
-            }
             if (config.locus) {
                 await this.parseGotoInput(config.locus)
+            }
+            if (config.colorScale) {
+                // This must be done after dataset load
+                if(config.normalization) {
+                    this.state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
+                }
+                this.contactMatrixView.setColorScale(config.colorScale)
+                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()})
             }
 
             const promises = []

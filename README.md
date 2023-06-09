@@ -13,7 +13,7 @@ Requirements:
 
 * Juicebox CSS
 
-    ``` <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/juicebox.js@2.4.6/dist/css/juicebox.css">```
+    ``` <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/juicebox.js@2.4.8/dist/css/juicebox.css">```
     
 * Juicebox javascript -- see below
 
@@ -21,13 +21,13 @@ Requirements:
 To import juicebox as an ES6 module
 
 ```javascript
-import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.4.6/dist/juicebox.esm.js";
+import juicebox from "https://cdn.jsdelivr.net/npm/juicebox.js@2.4.8/dist/juicebox.esm.js";
 ``` 
 
 Or as a script include (defines the "juicebox" global)
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/juicebox.js@2.4.6/dist/juicebox.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/juicebox.js@2.4.8/dist/juicebox.min.js"></script>
 ```   
  
 Alternatively you can install with npm  
