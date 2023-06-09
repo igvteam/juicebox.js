@@ -21,23 +21,23 @@
  *
  */
 
-import {Alert, createColorSwatchSelector} from '../node_modules/igv-ui/dist/igv-ui.js';
-import {makeDraggable} from '../node_modules/igv-ui/dist/igv-ui.js';
-import Track2D from './track2D.js'
+import {Alert, createColorSwatchSelector} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {makeDraggable} from '../node_modules/igv-ui/dist/igv-ui.js'
 import HICEvent from './hicEvent.js'
-import {Track2DDisplaceModes} from './globals.js'
+import Track2D from './track2D.js'
+
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
 class AnnotationWidget {
 
     constructor(browser, $container, {title, alertMessage}, trackListRetrievalCallback) {
 
-        this.browser = browser;
-        this.trackListRetrievalCallback = trackListRetrievalCallback;
+        this.browser = browser
+        this.trackListRetrievalCallback = trackListRetrievalCallback
 
-        annotationPresentationButton.call(this, $container, alertMessage);
+        annotationPresentationButton.call(this, $container, alertMessage)
 
-        annotationPanel.call(this, this.browser.$root, title);
+        annotationPanel.call(this, this.browser.$root, title)
 
     }
 
@@ -47,43 +47,47 @@ class AnnotationWidget {
             trackPairs,
 
             isTrack2D,
-            zi;
+            zi
 
-        self.$annotationPanel.find('.hic-annotation-row-container').remove();
+        self.$annotationPanel.find('.hic-annotation-row-container').remove()
 
-        isTrack2D = (tracks[0] instanceof Track2D);
+        isTrack2D = (tracks[0] instanceof Track2D)
 
         if (isTrack2D) {
             // Reverse list to present layers in "z" order.
             for (zi = tracks.length - 1; zi >= 0; zi--) {
-                annotationPanelRow.call(self, self.$annotationPanel, tracks[zi]);
+                annotationPanelRow.call(self, self.$annotationPanel, tracks[zi])
             }
         } else {
-            trackPairs = tracks;
+            trackPairs = tracks
             for (let trackRenderer of trackPairs) {
-                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer);
+                annotationPanelRow.call(self, self.$annotationPanel, trackRenderer)
             }
         }
+    }
+
+    updateTrackDisplaymode() {
+
     }
 }
 
 function annotationPresentationButton($parent, alertMessage) {
 
-    const $button = $parent.find("button");
+    const $button = $parent.find("button")
 
     $button.on('click', () => {
 
-        const list = this.trackListRetrievalCallback();
+        const list = this.trackListRetrievalCallback()
 
         if (list.length > 0) {
-            this.updateBody(this.trackListRetrievalCallback());
-            this.$annotationPanel.toggle();
+            this.updateBody(this.trackListRetrievalCallback())
+            this.$annotationPanel.toggle()
         } else {
-            Alert.presentAlert(alertMessage);
+            Alert.presentAlert(alertMessage)
         }
 
-        this.browser.hideMenu();
-    });
+        this.browser.hideMenu()
+    })
 }
 
 function annotationPanel($parent, title) {
@@ -92,30 +96,30 @@ function annotationPanel($parent, title) {
         $panel_header,
         $load_container,
         $div,
-        $fa;
+        $fa
 
-    this.$annotationPanel = $('<div>', {class: 'hic-annotation-panel-container'});
-    $parent.append(this.$annotationPanel);
+    this.$annotationPanel = $('<div>', {class: 'hic-annotation-panel-container'})
+    $parent.append(this.$annotationPanel)
 
     // close button container
-    $panel_header = $('<div>', {class: 'hic-annotation-panel-header'});
-    this.$annotationPanel.append($panel_header);
+    $panel_header = $('<div>', {class: 'hic-annotation-panel-header'})
+    this.$annotationPanel.append($panel_header)
 
     // panel title
-    $div = $('<div>');
-    $div.text(title);
-    $panel_header.append($div);
+    $div = $('<div>')
+    $div.text(title)
+    $panel_header.append($div)
 
     // close button
-    $div = $('<div>', {class: 'hic-menu-close-button'});
-    $panel_header.append($div);
+    $div = $('<div>', {class: 'hic-menu-close-button'})
+    $panel_header.append($div)
 
-    $fa = $("<i>", {class: 'fa fa-times'});
-    $div.append($fa);
+    $fa = $("<i>", {class: 'fa fa-times'})
+    $div.append($fa)
 
     $fa.on('click', function (e) {
-        self.$annotationPanel.toggle();
-    });
+        self.$annotationPanel.toggle()
+    })
 
     // TODO: Continue changes for load functions added to side panel
     // load container
@@ -133,8 +137,8 @@ function annotationPanel($parent, title) {
     // $div.text('Blah');
 
     //this.$annotationPanel.draggable();
-    makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0));
-    this.$annotationPanel.hide();
+    makeDraggable(this.$annotationPanel.get(0), $panel_header.get(0))
+    this.$annotationPanel.hide()
 }
 
 function annotationPanelRow($container, track) {
@@ -159,252 +163,271 @@ function annotationPanelRow($container, track) {
         track1D,
         index,
         upp,
-        dwn;
+        dwn
 
-    isTrack2D = (track instanceof Track2D);
-    trackList = this.trackListRetrievalCallback();
+    isTrack2D = (track instanceof Track2D)
+    trackList = this.trackListRetrievalCallback()
 
     if (false === isTrack2D) {
-        xyTrackRendererPair = track;
-        track1D = xyTrackRendererPair.x.track;
-        trackRenderer = xyTrackRendererPair.x.track.trackView;
+        xyTrackRendererPair = track
+        track1D = xyTrackRendererPair.x.track
+        trackRenderer = xyTrackRendererPair.x.track.trackView
     }
 
     // row container
-    $row_container = $('<div>', {class: 'hic-annotation-row-container'});
-    $container.append($row_container);
+    $row_container = $('<div>', {class: 'hic-annotation-row-container'})
+    $container.append($row_container)
 
     // one row
-    $row = $('<div>', {class: 'hic-annotation-modal-row'});
-    $row_container.append($row);
+    $row = $('<div>', {class: 'hic-annotation-modal-row'})
+    $row_container.append($row)
 
     // track name
-    $e = $("<div>");
-    $e.text(isTrack2D ? track.config.name : track1D.config.name);
-    $row.append($e);
+    $e = $("<div>")
+    $e.text(isTrack2D ? track.config.name : track1D.config.name)
+    $row.append($e)
 
     // track hide/show
     if (isTrack2D) {
-        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'});
-        $row.append($hideShowTrack);
+        str = (true === track.isVisible) ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg'
+        $hideShowTrack = $("<i>", {class: str, 'aria-hidden': 'true'})
+        $row.append($hideShowTrack)
         $hideShowTrack.on('click', function (e) {
 
             if ($hideShowTrack.hasClass('fa-eye')) {
-                $hideShowTrack.addClass('fa-eye-slash');
-                $hideShowTrack.removeClass('fa-eye');
-                track.isVisible = false;
+                $hideShowTrack.addClass('fa-eye-slash')
+                $hideShowTrack.removeClass('fa-eye')
+                track.isVisible = false
             } else {
-                $hideShowTrack.addClass('fa-eye');
-                $hideShowTrack.removeClass('fa-eye-slash');
-                track.isVisible = true;
+                $hideShowTrack.addClass('fa-eye')
+                $hideShowTrack.removeClass('fa-eye-slash')
+                track.isVisible = true
             }
 
-            self.browser.contactMatrixView.clearImageCaches();
-            self.browser.contactMatrixView.update();
+            self.browser.contactMatrixView.clearImageCaches()
+            self.browser.contactMatrixView.update()
 
-        });
+        })
     }
 
     if (isTrack2D) {
 
         // matrix diagonal widget
-        const $matrix_diagonal_div = $('<div>', {class: 'matrix-diagonal-widget-container matrix-diagonal-widget-all'});
-        $row.append($matrix_diagonal_div);
-        $matrix_diagonal_div.on('click.matrix_diagonal_div', (e) => {
-            e.preventDefault();
-            matrixDiagionalWidgetHandler($matrix_diagonal_div, track);
-        });
+        const displayModeIcon = document.createElement('div')
+        $row.get(0).appendChild(displayModeIcon)
+
+        displayModeIcon.classList.add('matrix-diagonal-widget-container')
+
+        switch (track.displayMode) {
+
+            case "lower":
+                displayModeIcon.classList.add('matrix-diagonal-widget-lower')
+                break
+
+            case "upper":
+                displayModeIcon.classList.add('matrix-diagonal-widget-upper')
+                break
+
+           default:
+                displayModeIcon.classList.add('matrix-diagonal-widget-all')
+
+        }
+
+        displayModeIcon.addEventListener('click', e => {
+            e.preventDefault()
+            displayModeHandler($(displayModeIcon), track)
+            this.browser.contactMatrixView.clearImageCaches()
+            this.browser.contactMatrixView.update()
+        })
 
     }
 
     // color swatch selector button
-    $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color);
-    $row.append($colorpickerButton);
+    $colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track1D.color)
+    $row.append($colorpickerButton)
 
     // color swatch selector
     $colorpickerContainer = createAnnotationPanelColorpickerContainer($row_container, {width: ((29 * 24) + 1 + 1)}, function () {
-        $row.next('.hic-color-swatch-container').toggle();
-    });
+        $row.next('.hic-color-swatch-container').toggle()
+    })
 
     $colorpickerButton.on('click', function (e) {
-        $row.next('.hic-color-swatch-container').toggle();
-    });
+        $row.next('.hic-color-swatch-container').toggle()
+    })
 
-    $colorpickerContainer.hide();
+    $colorpickerContainer.hide()
 
     const colorHandler = color => {
 
-        var $swatch;
+        var $swatch
 
-        $swatch = $row.find('.fa-square');
-        $swatch.css({'color': color});
+        $swatch = $row.find('.fa-square')
+        $swatch.css({'color': color})
 
         if (isTrack2D) {
-            track.color = color;
-            self.browser.eventBus.post(HICEvent('TrackState2D', track));
+            track.color = color
+            self.browser.eventBus.post(HICEvent('TrackState2D', track))
         } else {
-            trackRenderer.setColor(color);
+            trackRenderer.setColor(color)
         }
 
     }
 
-    createColorSwatchSelector($colorpickerContainer.get(0), colorHandler);
+    createColorSwatchSelector($colorpickerContainer.get(0), colorHandler)
 
 
     // track up/down
-    $e = $('<div>', {class: 'up-down-arrow-container'});
-    $row.append($e);
+    $e = $('<div>', {class: 'up-down-arrow-container'})
+    $row.append($e)
 
-    $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'});
-    $e.append($upTrack);
+    $upTrack = $("<i>", {class: 'fa fa-arrow-up', 'aria-hidden': 'true'})
+    $e.append($upTrack)
 
-    $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'});
-    $e.append($downTrack);
+    $downTrack = $("<i>", {class: 'fa fa-arrow-down', 'aria-hidden': 'true'})
+    $e.append($downTrack)
 
     if (1 === trackList.length) {
-        $upTrack.css('color', hidden_color);
-        $downTrack.css('color', hidden_color);
+        $upTrack.css('color', hidden_color)
+        $downTrack.css('color', hidden_color)
     } else if (track === trackList[0]) {
-        $o = isTrack2D ? $downTrack : $upTrack;
-        $o.css('color', hidden_color);
+        $o = isTrack2D ? $downTrack : $upTrack
+        $o.css('color', hidden_color)
     } else if (track === trackList[trackList.length - 1]) {
-        $o = isTrack2D ? $upTrack : $downTrack;
-        $o.css('color', hidden_color);
+        $o = isTrack2D ? $upTrack : $downTrack
+        $o.css('color', hidden_color)
     }
 
-    index = trackList.indexOf(track);
+    index = trackList.indexOf(track)
 
     upp = function (e) {
 
-        track = trackList[(index + 1)];
-        trackList[(index + 1)] = trackList[index];
-        trackList[index] = track;
+        track = trackList[(index + 1)]
+        trackList[(index + 1)] = trackList[index]
+        trackList[index] = track
         if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
-            self.updateBody(trackList);
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList))
+            self.updateBody(trackList)
         } else {
-            self.browser.updateLayout();
-            self.updateBody(trackList);
+            self.browser.updateLayout()
+            self.updateBody(trackList)
         }
-    };
+    }
 
     dwn = function (e) {
 
-        track = trackList[(index - 1)];
-        trackList[(index - 1)] = trackList[index];
-        trackList[index] = track;
+        track = trackList[(index - 1)]
+        trackList[(index - 1)] = trackList[index]
+        trackList[index] = track
         if (isTrack2D) {
-            self.browser.eventBus.post(HICEvent('TrackState2D', trackList));
-            self.updateBody(trackList);
+            self.browser.eventBus.post(HICEvent('TrackState2D', trackList))
+            self.updateBody(trackList)
         } else {
-            self.browser.updateLayout();
-            self.updateBody(trackList);
+            self.browser.updateLayout()
+            self.updateBody(trackList)
         }
-    };
+    }
 
-    $upTrack.on('click', isTrack2D ? upp : dwn);
+    $upTrack.on('click', isTrack2D ? upp : dwn)
 
-    $downTrack.on('click', isTrack2D ? dwn : upp);
+    $downTrack.on('click', isTrack2D ? dwn : upp)
 
 
     // track delete
-    $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'});
-    $row.append($deleteTrack);
+    $deleteTrack = $("<i>", {class: 'fa fa-trash-o fa-lg', 'aria-hidden': 'true'})
+    $row.append($deleteTrack)
     $deleteTrack.on('click', function (e) {
-        var index;
+        var index
 
         if (isTrack2D) {
 
-            index = trackList.indexOf(track);
+            index = trackList.indexOf(track)
 
-            trackList.splice(index, 1);
+            trackList.splice(index, 1)
 
-            self.browser.contactMatrixView.clearImageCaches();
-            self.browser.contactMatrixView.update();
+            self.browser.contactMatrixView.clearImageCaches()
+            self.browser.contactMatrixView.update()
 
-            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+            self.browser.eventBus.post(HICEvent('TrackLoad2D', trackList))
         } else {
-            self.browser.layoutController.removeTrackXYPair(trackRenderer.trackRenderPair);
+            self.browser.layoutController.removeTrackXYPair(trackRenderer.trackRenderPair)
         }
 
-        self.updateBody(trackList);
-    });
+        self.updateBody(trackList)
+    })
 }
 
-function matrixDiagionalWidgetHandler($icon, track2D) {
+function displayModeHandler($displayModeIcon, track2D) {
 
-    if ($icon.hasClass('matrix-diagonal-widget-all')) {
+    if ($displayModeIcon.hasClass('matrix-diagonal-widget-all')) {
+        $displayModeIcon.removeClass('matrix-diagonal-widget-all')
+        $displayModeIcon.addClass('matrix-diagonal-widget-lower')
 
-        $icon.removeClass('matrix-diagonal-widget-all');
+        track2D.displayMode = "lower"
+    } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-lower')) {
 
-        $icon.addClass('matrix-diagonal-widget-lower');
-        track2D.displayMode = Track2DDisplaceModes.displayLowerMatrix;
-    } else if ($icon.hasClass('matrix-diagonal-widget-lower')) {
+        $displayModeIcon.removeClass('matrix-diagonal-widget-lower')
+        $displayModeIcon.addClass('matrix-diagonal-widget-upper')
 
-        $icon.removeClass('matrix-diagonal-widget-lower');
+        track2D.displayMode = "upper"
+    } else if ($displayModeIcon.hasClass('matrix-diagonal-widget-upper')) {
 
-        $icon.addClass('matrix-diagonal-widget-upper');
-        track2D.displayMode = Track2DDisplaceModes.displayUpperMatrix;
-    } else if ($icon.hasClass('matrix-diagonal-widget-upper')) {
+        $displayModeIcon.removeClass('matrix-diagonal-widget-upper')
+        $displayModeIcon.addClass('matrix-diagonal-widget-all')
 
-        $icon.removeClass('matrix-diagonal-widget-upper');
-
-        $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+        track2D.displayMode = undefined
     } else {
 
-        $icon.addClass('matrix-diagonal-widget-all');
-        track2D.displayMode = Track2DDisplaceModes.displayAllMatrix;
+        $displayModeIcon.addClass('matrix-diagonal-widget-all')
+        track2D.displayMode = undefined
     }
 }
 
 function annotationColorSwatch(rgbString) {
     var $swatch,
-        $fa;
+        $fa
 
-    $swatch = $('<div>', {class: 'igv-color-swatch'});
+    $swatch = $('<div>', {class: 'igv-color-swatch'})
 
-    $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'});
-    $swatch.append($fa);
+    $fa = $('<i>', {class: 'fa fa-square fa-lg', 'aria-hidden': 'true'})
+    $swatch.append($fa)
 
-    $fa.css({color: rgbString});
+    $fa.css({color: rgbString})
 
-    return $swatch;
+    return $swatch
 }
 
 function createAnnotationPanelColorpickerContainer($parent, config, closeHandler) {
 
     var $container,
         $header,
-        $fa;
+        $fa
 
-    $container = $('<div>', {class: 'hic-color-swatch-container'});
-    $parent.append($container);
+    $container = $('<div>', {class: 'hic-color-swatch-container'})
+    $parent.append($container)
 
     // width
     if (config && config.width) {
-        $container.width(config.width);
+        $container.width(config.width)
     }
 
     // height
     if (config && config.height) {
-        $container.height(config.height);
+        $container.height(config.height)
     }
 
     // header
-    $header = $('<div>');
-    $container.append($header);
+    $header = $('<div>')
+    $container.append($header)
 
     // close button
-    $fa = $("<i>", {class: 'fa fa-times'});
-    $header.append($fa);
+    $fa = $("<i>", {class: 'fa fa-times'})
+    $header.append($fa)
 
     $fa.on('click', function (e) {
-        closeHandler();
-    });
+        closeHandler()
+    })
 
-    return $container;
+    return $container
 }
 
 

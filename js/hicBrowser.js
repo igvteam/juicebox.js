@@ -672,7 +672,7 @@ class HICBrowser {
             if (!config.nvi && typeof config.url === "string") {
                 const url = new URL(config.url)
                 const key = encodeURIComponent(url.hostname + url.pathname)
-                if(nvi.hasOwnProperty(key)) {
+                if (nvi.hasOwnProperty(key)) {
                     config.nvi = nvi[key]
                 }
             }
@@ -780,11 +780,10 @@ class HICBrowser {
 
             let result
             // Try feature lookup table first
-            if(this.genome.featureDB.has(string.toUpperCase())) {
+            if (this.genome.featureDB.has(string.toUpperCase())) {
                 const feature = this.genome.featureDB.get(string.toUpperCase())
                 result = `${feature.chr}:${feature.start + 1}-${feature.end}`
-            }
-            else {
+            } else {
                 // Try a gene name search.
                 result = await geneSearch(this.genome.id, loci[0].trim())
             }
@@ -1475,19 +1474,9 @@ class HICBrowser {
                 }
 
             }
-            for (let track of this.tracks2D) {
-                var config = track.config
-                if (typeof config.url === "string") {
-                    const t = {
-                        url: config.url
-                    }
-                    if (track.name) {
-                        t.name = track.name
-                    }
-                    if (track.color) {
-                        t.color = track.color
-                    }
-                    tracks.push(t)
+            for (const track2D of this.tracks2D) {
+                if (typeof track2D.config.url === "string") {
+                    tracks.push(track2D.toJSON())
                 }
             }
         }
