@@ -142,6 +142,10 @@ class HICBrowser {
     async init(config) {
 
         this.state = config.state ? config.state : State.default()
+        if(config.normalization) {
+            state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
+        }
+
         this.pending = new Map()
         this.eventBus.hold()
         this.contactMatrixView.disableUpdates = true
