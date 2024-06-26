@@ -29,12 +29,9 @@ import $ from '../vendor/jquery-3.3.1.slim.js'
 import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
-import * as hicUtils from './hicUtils.js'
-import hic from "./index"
+import hic from "./index.js"
 
 const DRAG_THRESHOLD = 2;
-const DOUBLE_TAP_DIST_THRESHOLD = 20;
-const DOUBLE_TAP_TIME_THRESHOLD = 300;
 
 const imageTileDimension = 685;
 
@@ -528,12 +525,13 @@ class ContactMatrixView {
             imageData.data[index + 3] = a;
         }
 
-    };
+    }
 
     /**
      * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
      * data to computer scale.
      *
+     * @param ds
      * @param zd
      * @param row1
      * @param row2
@@ -741,7 +739,6 @@ class ContactMatrixView {
         this.spinnerCount = Math.max(0, this.spinnerCount)   // This should not be neccessary
     }
 
-
     addMouseHandlers($viewport) {
 
         let isMouseDown = false;
@@ -759,331 +756,129 @@ class ContactMatrixView {
             mouseDown = mouseLast = undefined;
         }
 
-        // function shiftCurrentImage(self, dx, dy) {
-        //     var canvasWidth = self.$canvas.width(),
-        //         canvasHeight = self.$canvas.height(),
-        //         imageData;
-        //
-        //     imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        //     self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        //     self.ctx.putImageData(imageData, dx, dy);
-        // }
-        //
-        // function mouseWheelHandler(e) {
-        //     e.preventDefault();
-        //     e.stopPropagation();
-        //
-        //     const t = Date.now();
-        //     if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-        //         // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-        //         var direction = e.deltaY < 0 ? 1 : -1,
-        //             coords = DOMUtils.translateMouseCoordinates(e, $viewport[0]),
-        //             x = coords.x,
-        //             y = coords.y;
-        //         self.browser.wheelClickZoom(direction, x, y);
-        //         lastWheelTime = t;
-        //     }
-        // }
-
-
         this.isDragging = false;
 
-        if (!this.browser.isMobile) {
+        $viewport.dblclick((e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const mouseX = e.offsetX || e.layerX
+            const mouseY = e.offsetY || e.layerX;
+            this.browser.zoomAndCenter(1, mouseX, mouseY);
+        });
 
-            $viewport.dblclick((e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const mouseX = e.offsetX || e.layerX
-                const mouseY = e.offsetY || e.layerX;
-                this.browser.zoomAndCenter(1, mouseX, mouseY);
-            });
+        $viewport.on('mouseover', (e) => mouseOver = true)
 
-            $viewport.on('mouseover', (e) => mouseOver = true)
+        $viewport.on('mouseout', (e) => mouseOver = undefined)
 
-            $viewport.on('mouseout', (e) => mouseOver = undefined)
+        $viewport.on('mousedown', (e) => {
 
-            $viewport.on('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-                e.preventDefault();
-                e.stopPropagation();
+            if (this.browser.$menu.is(':visible')) {
+                this.browser.hideMenu();
+            }
 
-                if (this.browser.$menu.is(':visible')) {
-                    this.browser.hideMenu();
-                }
+            mouseLast = {x: e.offsetX, y: e.offsetY};
+            mouseDown = {x: e.offsetX, y: e.offsetY};
 
-                mouseLast = {x: e.offsetX, y: e.offsetY};
-                mouseDown = {x: e.offsetX, y: e.offsetY};
-
-                isSweepZooming = (true === e.altKey);
-                if (isSweepZooming) {
-                    const eFixed = $.event.fix(e);
-                    this.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
-                }
-
-                isMouseDown = true;
-
-            })
-
-            $viewport.on('mousemove', (e) => {
-
-                e.preventDefault();
-                e.stopPropagation();
-                const coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    };
-
-                // Sets pageX and pageY for browsers that don't support them
+            isSweepZooming = (true === e.altKey);
+            if (isSweepZooming) {
                 const eFixed = $.event.fix(e);
+                this.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY});
+            }
 
-                const xy =
-                    {
-                        x: eFixed.pageX - $viewport.offset().left,
-                        y: eFixed.pageY - $viewport.offset().top
-                    };
+            isMouseDown = true;
 
-                const {width, height} = $viewport.get(0).getBoundingClientRect();
-                xy.xNormalized = xy.x / width;
-                xy.yNormalized = xy.y / height;
+        })
 
+        $viewport.on('mousemove', (e) => {
 
-                this.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
+            e.preventDefault();
+            e.stopPropagation();
+            const coords =
+                {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
 
-                if (true === this.willShowCrosshairs) {
-                    this.browser.updateCrosshairs(xy);
-                    this.browser.showCrosshairs();
-                }
+            // Sets pageX and pageY for browsers that don't support them
+            const eFixed = $.event.fix(e);
 
-                if (isMouseDown) { // Possibly dragging
+            const xy =
+                {
+                    x: eFixed.pageX - $viewport.offset().left,
+                    y: eFixed.pageY - $viewport.offset().top
+                };
 
-                    if (isSweepZooming) {
-                        this.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
-
-                    } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
-
-                        this.isDragging = true;
-                        const dx = mouseLast.x - coords.x;
-                        const dy = mouseLast.y - coords.y;
-
-                        // If matrix data is updating shift current map image while we wait
-                        //if (this.updating) {
-                        //    shiftCurrentImage(this, -dx, -dy);
-                        //}
-
-                        this.browser.shiftPixels(dx, dy);
-                    }
-
-                    mouseLast = coords;
-                }
-            })
-
-            $viewport.on('mouseup', panMouseUpOrMouseOut)
-
-            $viewport.on('mouseleave', () => {
-                this.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
-                this.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
-                panMouseUpOrMouseOut();
-            })
+            const {width, height} = $viewport.get(0).getBoundingClientRect();
+            xy.xNormalized = xy.x / width;
+            xy.yNormalized = xy.y / height;
 
 
-            // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
-            // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
-            // $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
+            this.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
 
-            // document level events
-            $(document).on('keydown.contact_matrix_view', (e) => {
-                if (undefined === this.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                    this.willShowCrosshairs = true;
-                    this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
-                }
-            })
+            if (true === this.willShowCrosshairs) {
+                this.browser.updateCrosshairs(xy);
+                this.browser.showCrosshairs();
+            }
 
-            $(document).on('keyup.contact_matrix_view', (e) => {
-                this.browser.hideCrosshairs();
-                this.willShowCrosshairs = undefined;
-                this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
-            })
+            if (isMouseDown) { // Possibly dragging
 
-            // for sweep-zoom allow user to sweep beyond viewport extent
-            // sweep area clamps since viewport mouse handlers stop firing
-            // when the viewport boundary is crossed.
-            $(document).on('mouseup.contact_matrix_view', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 if (isSweepZooming) {
-                    isSweepZooming = false;
-                    this.sweepZoom.commit();
-                }
-            })
-        }
-    }
+                    this.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY});
 
+                } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
 
-    /**
-     * Add touch handlers.  Touches are mapped to one of the following application level events
-     *  - double tap, equivalent to double click
-     *  - move
-     *  - pinch
-     *
-     * @param $viewport
-     */
+                    this.isDragging = true;
+                    const dx = mouseLast.x - coords.x;
+                    const dy = mouseLast.y - coords.y;
 
-    addTouchHandlers($viewport) {
+                    // If matrix data is updating shift current map image while we wait
+                    //if (this.updating) {
+                    //    shiftCurrentImage(this, -dx, -dy);
+                    //}
 
-        let lastTouch, pinch;
-        const viewport = $viewport[0];
-
-        /**
-         * Touch start -- 3 possibilities
-         *   (1) beginning of a drag (pan)
-         *   (2) first tap of a double tap
-         *   (3) beginning of a pinch
-         */
-        viewport.ontouchstart = (ev) => {
-
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                offsetX = touchCoords.x,
-                offsetY = touchCoords.y,
-                count = ev.targetTouches.length,
-                timeStamp = ev.timeStamp || Date.now(),
-                resolved = false,
-                dx, dy, dist, direction;
-
-            if (count === 2) {
-                touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport);
-                offsetX = (offsetX + touchCoords.x) / 2;
-                offsetY = (offsetY + touchCoords.y) / 2;
-            }
-
-            // NOTE: If the user makes simultaneous touches, the browser may fire a
-            // separate touchstart event for each touch point. Thus if there are
-            // two simultaneous touches, the first touchstart event will have
-            // targetTouches length of one and the second event will have a length
-            // of two.  In this case replace previous touch with this one and return
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
-                return;
-            }
-
-
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-
-                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
-                dx = lastTouch.x - offsetX;
-                dy = lastTouch.y - offsetY;
-                dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                    this.browser.zoomAndCenter(direction, offsetX, offsetY);
-                    lastTouch = undefined;
-                    resolved = true;
-                }
-            }
-
-            if (!resolved) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length};
-            }
-        }
-
-        viewport.ontouchmove = hicUtils.throttle((ev) => {
-
-            var touchCoords1, touchCoords2, t;
-
-            ev.preventDefault();
-            ev.stopPropagation();
-
-            if (ev.targetTouches.length === 2) {
-
-                // Update pinch  (assuming 2 finger movement is a pinch)
-                touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport);
-                touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport);
-
-                t = {
-                    x1: touchCoords1.x,
-                    y1: touchCoords1.y,
-                    x2: touchCoords2.x,
-                    y2: touchCoords2.y
-                };
-
-                if (pinch) {
-                    pinch.end = t;
-                } else {
-                    pinch = {start: t};
-                }
-            } else {
-                // Assuming 1 finger movement is a drag
-
-                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                    offsetX = touchCoords.x,
-                    offsetY = touchCoords.y;
-                if (lastTouch) {
-                    var dx = lastTouch.x - offsetX,
-                        dy = lastTouch.y - offsetY;
-                    if (!isNaN(dx) && !isNaN(dy)) {
-                        this.isDragging = true
-                        this.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY);
-                    }
+                    this.browser.shiftPixels(dx, dy);
                 }
 
-                lastTouch = {
-                    x: offsetX,
-                    y: offsetY,
-                    timeStamp: ev.timeStamp || Date.now(),
-                    count: ev.targetTouches.length
-                };
+                mouseLast = coords;
             }
+        })
 
-        }, 50);
+        $viewport.on('mouseup', panMouseUpOrMouseOut)
 
-        viewport.ontouchend = (ev) => {
+        $viewport.on('mouseleave', () => {
+            this.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
+            this.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
+            panMouseUpOrMouseOut();
+        })
 
-            ev.preventDefault();
-            ev.stopPropagation();
 
-            if (pinch && pinch.end !== undefined) {
-
-                var startT = pinch.start,
-                    endT = pinch.end,
-                    dxStart = startT.x2 - startT.x1,
-                    dyStart = startT.y2 - startT.y1,
-                    dxEnd = endT.x2 - endT.x1,
-                    dyEnd = endT.y2 - endT.y1,
-                    distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
-                    scale = distEnd / distStart,
-                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
-                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
-                    anchorPx = (startT.x1 + startT.x2) / 2,
-                    anchorPy = (startT.y1 + startT.y2) / 2;
-
-                if (scale < 0.8 || scale > 1.2) {
-                    lastTouch = undefined;
-                    this.browser.pinchZoom(anchorPx, anchorPy, scale);
-                }
-            } else if (this.isDragging) {
-                this.isDragging = false;
-                this.browser.eventBus.post(HICEvent("DragStopped"));
+        $(document).on('keydown.contact_matrix_view', (e) => {
+            if (undefined === this.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
+                this.willShowCrosshairs = true;
+                this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
             }
+        })
 
-            // a touch end always ends a pinch
-            pinch = undefined;
+        $(document).on('keyup.contact_matrix_view', (e) => {
+            this.browser.hideCrosshairs();
+            this.willShowCrosshairs = undefined;
+            this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
+        })
 
-        }
-
-        function translateTouchCoordinates(e, target) {
-
-            var $target = $(target),
-                posx,
-                posy;
-            posx = e.pageX - $target.offset().left;
-            posy = e.pageY - $target.offset().top;
-            return {x: posx, y: posy}
-        }
-
+        // for sweep-zoom allow user to sweep beyond viewport extent
+        // sweep area clamps since viewport mouse handlers stop firing
+        // when the viewport boundary is crossed.
+        $(document).on('mouseup.contact_matrix_view', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isSweepZooming) {
+                isSweepZooming = false;
+                this.sweepZoom.commit();
+            }
+        })
     }
 
 }
@@ -1191,7 +986,6 @@ function getMatrices(chr1, chr2) {
     return Promise.all(promises);
 }
 
-
 function computePercentile(records, p) {
     const counts = records.map(r => r.counts)
     counts.sort(function (a, b) {
@@ -1202,6 +996,5 @@ function computePercentile(records, p) {
 
     // return HICMath.percentile(array, p);
 }
-
 
 export default ContactMatrixView
