@@ -53,45 +53,37 @@ async function createBrowser(hic_container, config, callback) {
  * Create multiple browsers, maintaining order specified in configList.  Called from restore session
  *
  * @param hic_container
- * @param configList
+ * @param session
  */
 async function createBrowserList(hic_container, session) {
 
     const $hic_container = $(hic_container);
-    const configList = session.browsers || [session];
+    const [ config ] = session.browsers || [session];
 
+    setDefaults(config)
 
-    allBrowsers = [];
-    const initPromises = [];
-    for (let config of configList) {
-        setDefaults(config);
-        if (StringUtils.isString(config.state)) {
-            config.state = State.parse(config.state);
-        }
-        if (StringUtils.isString(config.colorScale)) {
-            config.colorScale = ColorScale.parse(config.colorScale);
-        }
-        if (StringUtils.isString(config.backgroundColor)) {
-            config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
-        }
-        if(false === session.syncDatasets) {
-            config.synchable = false;
-        }
-
-        const browser = new HICBrowser($hic_container, config);
-
-        allBrowsers.push(browser);
-        initPromises.push(browser.init(config));
+    if (StringUtils.isString(config.state)) {
+        config.state = State.parse(config.state);
     }
-    await Promise.all(initPromises);
-
-    setCurrentBrowser(allBrowsers[0]);
-
-    if (allBrowsers.length > 1) {
-        allBrowsers.forEach(function (b) {
-            b.$browser_panel_delete_button.show();
-        });
+    if (StringUtils.isString(config.colorScale)) {
+        config.colorScale = ColorScale.parse(config.colorScale);
     }
+    if (StringUtils.isString(config.backgroundColor)) {
+        config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
+    }
+    if(false === session.syncDatasets) {
+        config.synchable = false;
+    }
+
+    const browser = new HICBrowser($hic_container, config)
+    await browser.init(config)
+
+    currentBrowser = browser
+
+    allBrowsers = [ browser ]
+
+    return browser
+
 }
 
 async function updateAllBrowsers() {

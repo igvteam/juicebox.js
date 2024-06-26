@@ -42,19 +42,10 @@ async function restoreSession(container, session) {
     if (session.hasOwnProperty("selectedGene")) {
         Globals.selectedGene = session.selectedGene;
     }
-    if (session.hasOwnProperty("caption")) {
-        const captionText = session.caption;
-        var captionDiv = document.getElementById("hic-caption");
-        if (captionDiv) {
-            captionDiv.textContent = captionText;
-        }
-    }
 
-    await createBrowserList(container, session);
+    const browser = await createBrowserList(container, session)
 
-    if (false !== session.syncDatasets) {
-        syncBrowsers();
-    }
+    return browser
 
 }
 
