@@ -173,7 +173,6 @@ class ContactMatrixView {
 
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
-                this.addTouchHandlers(this.$viewport);
                 this.addMouseHandlers(this.$viewport);
                 this.mouseHandlersEnabled = true;
             }
