@@ -26,6 +26,7 @@
  * @author Jim Robinson
  */
 
+import {StringUtils} from '../node_modules/igv-utils/src/index.js'
 import { defaultSize } from './createBrowser.js'
 
 class State {
@@ -80,6 +81,46 @@ class State {
         var s1 = JSON.stringify(this);
         var s2 = JSON.stringify(state);
         return s1 === s2;
+    }
+
+    description(genome, binSize, width) {
+
+        const { chr1, x, pixelSize } = this
+
+        // bp = bin * bp-per-bin
+        const xBP = x * binSize
+
+        // bin = pixel / pixel-per-bin
+        const widthBin = width / pixelSize
+
+        // bp = bin * bp-per-bin
+        const widthBP = widthBin * binSize
+
+        const xEnd = x + widthBin
+
+        const xEndBP = xBP + widthBP
+
+        // chromosome length - bp & bin
+        const { name, bpLength } = genome.getChromosome(genome.wgChromosomeNames[ chr1 ])
+        const lengthBin = bpLength / binSize
+
+        const f = StringUtils.numberFormatter(width)
+        const d = StringUtils.numberFormatter(x)
+        const g = StringUtils.numberFormatter(xBP)
+        const a = StringUtils.numberFormatter(bpLength)
+        const b = StringUtils.numberFormatter(lengthBin)
+        const c = StringUtils.numberFormatter(binSize)
+        const e = StringUtils.numberFormatter(pixelSize)
+
+        const strings =
+            [
+                `${ name }`,
+                `Screen Width\npixel(${f}) bin(${ StringUtils.numberFormatter(widthBin)}) bp(${ StringUtils.numberFormatter(widthBP)})`,
+                `Start\nbin(${d}) bp(${g})\nEnd\nbin(${ StringUtils.numberFormatter(xEnd) }) bp(${ StringUtils.numberFormatter(xEndBP)})`,
+                `Bin Size\nbp-per-bin(${c})\nPixel Size\npixel-per-bin(${e})`
+            ]
+
+        return `\n${ strings.join('\n') }`
     }
 
     static parse(string) {

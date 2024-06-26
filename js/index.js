@@ -28,10 +28,8 @@ import {compressedSession, restoreSession, toJSON} from "./session.js";
 import {init} from "./init.js"
 import EventBus from "./eventBus.js"
 import State from "./hicState.js";
-import HICEvent from "./hicEvent.js";
-import ContactMatrixView from './contactMatrixView.js'
-import HicState from './hicState.js'
-import ColorScale from './colorScale.js'
+import ColorScale from "./colorScale.js"
+
 export default {
     version,
     init,
@@ -45,8 +43,5 @@ export default {
     igvxhr,
     EventBus,
     State,
-    HICEvent,
-    ContactMatrixView,
-    HicState,
     ColorScale
 }

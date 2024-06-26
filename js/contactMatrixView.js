@@ -30,6 +30,7 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
+import hic from "./index"
 
 const DRAG_THRESHOLD = 2;
 const DOUBLE_TAP_DIST_THRESHOLD = 20;
@@ -38,7 +39,6 @@ const DOUBLE_TAP_TIME_THRESHOLD = 300;
 const imageTileDimension = 685;
 
 class ContactMatrixView {
-
 
     constructor(browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
@@ -656,6 +656,74 @@ class ContactMatrixView {
         }
     }
 
+    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, data, contactFrequencyArray, liveMapTraceLength) {
+
+        this.ctx.canvas.style.display = 'none'
+        this.ctx_live.canvas.style.display = 'block'
+
+        const zoomIndexA = state.zoom
+        const { chr1, chr2 } = state
+        const zoomData = liveContactMapDataSet.getZoomDataByIndex(chr1, chr2, zoomIndexA)
+
+        // Clear caches
+        this.colorScaleThresholdCache = {}
+        this.imageTileCache = {}
+        this.imageTileCacheKeys = []
+
+        this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
+
+        paintContactFrequencyArrayWithColorScale(this.colorScale, data.workerValuesBuffer, contactFrequencyArray)
+
+        // Render by copying image data to display canvas bitmap render context
+        await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
+
+        // Update UI
+        browser.state = state
+        browser.dataset = liveContactMapDataSet
+
+        browser.eventBus.post(HICEvent('MapLoad', browser.dataset))
+        hic.EventBus.globalBus.post(HICEvent('MapLoad', browser))
+
+        const eventConfig =
+            {
+                state,
+                resolutionChanged: true,
+                chrChanged: true,
+                displayMode: 'LIVE',
+                dataset: liveContactMapDataSet
+            }
+
+        browser.eventBus.post(HICEvent('LocusChange', eventConfig))
+
+    }
+
+    checkColorScale_sw(browser, state, displayMode, liveContactMapDataSet, zoomData) {
+
+        const colorScaleKey = createColorScaleKey(state, displayMode)
+
+        let percentile = computeContactRecordsPercentile(liveContactMapDataSet.contactRecordList, 95)
+
+        if (!isNaN(percentile)) {
+
+            if (0 === zoomData.chr1.index) {
+                // Heuristic for whole genome view
+                percentile *= 4
+            }
+
+            this.colorScale = new hic.ColorScale(this.colorScale)
+
+            this.colorScale.setThreshold(percentile)
+
+            browser.eventBus.post(HICEvent("ColorScale", this.colorScale))
+
+            this.colorScaleThresholdCache[colorScaleKey] = percentile
+
+        }
+
+        return this.colorScale
+
+    }
+
     startSpinner() {
 
         if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
@@ -1022,6 +1090,55 @@ class ContactMatrixView {
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
 
+function paintContactFrequencyArrayWithColorScale(colorScale, frequencies, array) {
+
+    let i = 0
+    for (let frequency of frequencies) {
+
+        const { red, green, blue, alpha } = colorScale.getColor(frequency)
+
+        array[i++] = red
+        array[i++] = green
+        array[i++] = blue
+        array[i++] = alpha
+    }
+}
+
+async function renderArrayToCanvas(ctx, array, liveMapTraceLength) {
+
+    const { width, height } = ctx.canvas;
+
+    const imageData = new ImageData(array, liveMapTraceLength, liveMapTraceLength);
+
+    // const config =
+    //     {
+    //         resizeWidth: width,
+    //         resizeHeight: height
+    //     };
+    //
+    // const imageBitmap = await createImageBitmap(imageData, config);
+
+    const imageBitmap = await createImageBitmap(imageData)
+
+    ctx.transferFromImageBitmap(imageBitmap);
+
+}
+
+function createColorScaleKey(state, displayMode) {
+    return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
+}
+
+function computeContactRecordsPercentile(contactRecords, p) {
+
+    const counts = contactRecords.map(({ counts }) => counts)
+
+    counts.sort((a, b) => a - b)
+
+    const index = Math.floor((p / 100) * contactRecords.length);
+    return counts[index];
+
+}
+
 function colorScaleKey(state, displayMode) {
     return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
 }
@@ -1085,5 +1202,6 @@ function computePercentile(records, p) {
 
     // return HICMath.percentile(array, p);
 }
+
 
 export default ContactMatrixView
