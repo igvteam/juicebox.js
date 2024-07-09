@@ -19,9 +19,10 @@
     "url": "https://github.com/igvteam/juicebox.js/issues"
   },
   "scripts": {
+    "prepack": "npm run build",
+    "prepare": "npm run build",
     "build": "node scripts/updateVersion.cjs && npx rollup --config",
-    "test": "mocha -ui tdd",
-    "prepack": "npm run build"
+    "test": "mocha -ui tdd"
   },
   "keywords": [
     "conformation capture",
