@@ -1,6 +1,6 @@
 {
   "name": "juicebox.js",
-  "version": "2.4.8",
+  "version": "2.4.9",
   "main": "dist/juicebox.min.js",
   "module": "dist/juicebox.esm.js",
   "type": "module",
