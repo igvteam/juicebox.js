@@ -65,7 +65,7 @@ class Track2D {
             json.color = this.color
         }
         if (this.displayMode) {
-            json.displayMode = dm
+            json.displayMode = this.displayMode
         }
         if (!this.isVisible) {
             json.isVisible = this.isVisible
