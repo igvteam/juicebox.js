@@ -48,7 +48,7 @@
     "finalhandler": "^1.1.2",
     "fs-extra": "^8.1.0",
     "hic-straw": "github:igvteam/hic-straw#v2.1.2",
-    "igv": "github:igvteam/igv.js#master",
+    "igv": "github:igvteam/igv.js",
     "igv-ui": "github:igvteam/igv-ui#v1.5.0",
     "igv-utils": "github:igvteam/igv-utils#v1.4.5",
     "google-utils": "github:igvteam/google-utils#v1.0.2",

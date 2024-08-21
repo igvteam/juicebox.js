@@ -1,3 +1,12 @@
+:root {
+  --nav-bar-label-height: 36px;
+  --nav-bar-widget-container-height: 36px;
+  --nav-bar-widget-container-margin: 4px;
+  --hic-scrollbar-height: 20px;
+  --hic-axis-height: 40px;
+  --track-margin: 2px;
+}
+
 .jb-igv-menu-popup {
   position: absolute;
   top: 0;
@@ -183,8 +192,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: 860px;
-  height: 1020px;
+  width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + 800px);
+  height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + 800px + calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))));
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -275,7 +284,7 @@
 .hic-menu .hic-colorscale-widget-container input {
   display: block;
   margin-right: 4px;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   padding: 4px;
   font-family: "Open Sans", sans-serif;
@@ -314,7 +323,7 @@
 }
 .hic-menu .hic-normalization-selector-container select {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -356,7 +365,7 @@
 }
 .hic-menu .hic-resolution-selector-container select {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -626,7 +635,7 @@
   justify-content: space-between;
   align-items: center;
   width: 95%;
-  height: 36px;
+  height: var(--nav-bar-label-height);
 }
 .hic-navbar-container div[id$=hic-nav-bar-map-container] div[id$=hic-nav-bar-map-label] {
   height: 100%;
@@ -634,7 +643,7 @@
   white-space: nowrap;
   overflow: hidden;
   vertical-align: middle;
-  line-height: 36px;
+  line-height: var(--nav-bar-label-height);
   background-color: transparent;
 }
 .hic-navbar-container div[id$=hic-nav-bar-map-container] .hic-nav-bar-button-container {
@@ -667,9 +676,9 @@
   justify-content: space-between;
   align-items: center;
   width: 95%;
-  height: 36px;
-  margin-top: 4px;
-  margin-bottom: 4px;
+  height: var(--nav-bar-widget-container-height);
+  margin-top: var(--nav-bar-widget-container-margin);
+  margin-bottom: var(--nav-bar-widget-container-margin);
 }
 
 .hic-chromosome-goto-container {
@@ -677,7 +686,7 @@
 }
 .hic-chromosome-goto-container input {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 100%;
   padding-left: 4px;
   font-family: "Open Sans", sans-serif;
@@ -714,7 +723,7 @@
 .hic-colorscale-widget-container input {
   display: block;
   margin-right: 4px;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   padding: 4px;
   font-family: "Open Sans", sans-serif;
@@ -767,7 +776,7 @@
 }
 .hic-control-map-selector-container select {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -793,7 +802,7 @@
 }
 .hic-normalization-selector-container select {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -833,7 +842,7 @@
 }
 .hic-resolution-selector-container select {
   display: block;
-  height: 32px;
+  height: var(--nav-bar-widget-container-height)-4px;
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -855,7 +864,7 @@ div[id$=x-track-container] {
 div[id$=x-track-container] div[id$=track-shim] {
   width: 0px;
   height: 100%;
-  margin-right: 40px;
+  margin-right: var(--hic-axis-height);
 }
 div[id$=x-track-container] div[id$=x-tracks] {
   position: relative;
@@ -863,9 +872,9 @@ div[id$=x-track-container] div[id$=x-tracks] {
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
-  width: calc(100% - (0px + 40px + 20px));
+  width: calc(100% - (0px + var(--hic-axis-height) + var(--hic-scrollbar-height)));
   height: 100%;
-  margin-right: 20px;
+  margin-right: var(--hic-scrollbar-height);
 }
 div[id$=x-track-container] div[id$=x-tracks] div[id$=y-track-guide] {
   position: absolute;
@@ -886,7 +895,7 @@ div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container {
   position: relative;
   width: 100%;
   margin-right: 0;
-  margin-bottom: 2px;
+  margin-bottom: var(--track-margin);
 }
 div[id$=x-track-container] div[id$=x-tracks] .x-track-canvas-container .x-track-reorder-handle {
   display: block;
@@ -947,7 +956,7 @@ div[id$=content-container] {
   flex-wrap: nowrap;
   justify-content: space-between;
   width: 100%;
-  height: calc(100% - (160px + 0px));
+  height: calc(100% - (calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))) + 0px));
   background-color: white;
 }
 div[id$=content-container] div[id$=x-axis-container] {
@@ -956,12 +965,12 @@ div[id$=content-container] div[id$=x-axis-container] {
   flex-wrap: nowrap;
   justify-content: flex-end;
   width: 100%;
-  height: 40px;
+  height: var(--hic-axis-height);
 }
 div[id$=content-container] div[id$=x-axis-container] div[id$=x-axis] {
-  width: calc(100% - (0px + 40px + 20px));
+  width: calc(100% - (0px + var(--hic-axis-height) + var(--hic-scrollbar-height)));
   height: 100%;
-  margin-right: 20px;
+  margin-right: var(--hic-scrollbar-height);
   background-color: white;
 }
 div[id$=content-container] div[id$=x-axis-container] div[id$=x-axis] div[id$=x-axis-whole-genome-container] {
@@ -1000,7 +1009,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] {
   flex-wrap: nowrap;
   justify-content: flex-end;
   width: 100%;
-  height: calc(100% - (40px + 20px));
+  height: calc(100% - (var(--hic-axis-height) + var(--hic-scrollbar-height)));
   background-color: white;
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-tracks] {
@@ -1031,7 +1040,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   display: block;
   position: relative;
   height: 100%;
-  margin-right: 2px;
+  margin-right: var(--track-margin);
   background-color: white;
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-tracks] .y-track-canvas-container .y-track-spinner {
@@ -1045,9 +1054,9 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   background-color: rgba(255, 255, 255, 0);
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-axis] {
-  width: 40px;
+  width: var(--hic-axis-height);
   height: 100%;
-  margin-bottom: 20px;
+  margin-bottom: var(--hic-scrollbar-height);
   background-color: white;
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-axis] div[id$=y-axis-whole-genome-container] {
@@ -1085,7 +1094,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   position: relative;
   left: 0;
   top: 0;
-  width: calc(100% - (0px + 40px + 20px));
+  width: calc(100% - (0px + var(--hic-axis-height) + var(--hic-scrollbar-height)));
   height: 100%;
   overflow-x: hidden;
   overflow-y: hidden;
@@ -1144,7 +1153,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-axis-scrollbar-container] {
   display: block;
   position: relative;
-  width: 20px;
+  width: var(--hic-scrollbar-height);
   height: 100%;
   background-color: #efefef;
 }
@@ -1166,7 +1175,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   z-index: 512;
   vertical-align: middle;
   text-align: center;
-  line-height: 20px;
+  line-height: var(--hic-scrollbar-height);
   color: #373737;
   font-family: "Open Sans", sans-serif;
   font-size: medium;
@@ -1179,14 +1188,14 @@ div[id$=content-container] div[id$=x-scrollbar-container] {
   flex-wrap: nowrap;
   justify-content: flex-end;
   width: 100%;
-  height: 20px;
+  height: var(--hic-scrollbar-height);
 }
 div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollbar-container] {
   display: block;
   position: relative;
-  width: calc(100% - (0px + 40px + 20px));
+  width: calc(100% - (0px + var(--hic-axis-height) + var(--hic-scrollbar-height)));
   height: 100%;
-  margin-right: 20px;
+  margin-right: var(--hic-scrollbar-height);
   background-color: #efefef;
 }
 div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollbar-container] div[id$=x-axis-scrollbar] {
@@ -1206,12 +1215,12 @@ div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollb
   top: 0;
   right: 0;
   bottom: 0;
-  height: 20px;
+  height: var(--hic-scrollbar-height);
   width: 100%;
   z-index: 512;
   vertical-align: middle;
   text-align: center;
-  line-height: 20px;
+  line-height: var(--hic-scrollbar-height);
   color: #373737;
   font-family: "Open Sans", sans-serif;
   font-size: medium;

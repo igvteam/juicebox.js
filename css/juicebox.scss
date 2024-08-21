@@ -1,32 +1,41 @@
+:root {
+  --nav-bar-label-height: 36px;
+  --nav-bar-widget-container-height: 36px;
+  --nav-bar-widget-container-margin: 4px;
+  --hic-scrollbar-height: 20px;
+  --hic-axis-height: 40px;
+  --track-margin: 2px;
+}
+
 //
 $hic-color-swatch-size: 24px;
 
 // ::::::::::::::: Keep in sync with layoutController.js :::::::::::::::
 
 // nav_bar_label_height
-$nav-bar-label-height: 36px;
+$nav-bar-label-height: var(--nav-bar-label-height);
 
 // nav_bar_widget_container_height
-$nav-bar-widget-container-height: 36px;
+$nav-bar-widget-container-height: var(--nav-bar-widget-container-height);
 
 // nav_bar_widget_container_margin
-$nav-bar-widget-container-margin: 4px;
+$nav-bar-widget-container-margin: var(--nav-bar-widget-container-margin);
 
 // scrollbar_height
-$hic-scrollbar-height: 20px;
+$hic-scrollbar-height: var(--hic-scrollbar-height);
 
 // axis_height
-$hic-axis-height: 40px;
+$hic-axis-height: var(--hic-axis-height);
 
 // track_margin
-$track-margin: 2px;
+$track-margin: var(--track-margin);
 
 $igv-trackgear-grey-color: #7F7F7F;
 $igv-trackgear-popover-border-radius: 4px;
 $igv-trackgear-font-color: #4b4b4b;
 $igv-trackgear-default-font-face: 'Open Sans', sans-serif;
 
-$nav-bar-height: 2 * ($nav-bar-label-height + $nav-bar-widget-container-height + (2 * $nav-bar-widget-container-margin));
+$nav-bar-height: calc(2 * (#{$nav-bar-label-height} + #{$nav-bar-widget-container-height} + 2 * #{$nav-bar-widget-container-margin}));
 
 $nav-bar-widget-height: 24px;
 
@@ -52,8 +61,8 @@ $hic-menu-item-padding: 8px;
 $hic-menu-margin: 8px;
 
 //
-$hic-root-width: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-width;
-$hic-root-height: $hic-scrollbar-height + $hic-axis-height + $hic-viewport-height + $nav-bar-height;
+$hic-root-width: calc(#{$hic-scrollbar-height} + #{$hic-axis-height} + #{$hic-viewport-width});
+$hic-root-height: calc(#{$hic-scrollbar-height} + #{$hic-axis-height} + #{$hic-viewport-height} + #{$nav-bar-height});
 
 $hic-annotation-modal-row-height: 40px;
 
