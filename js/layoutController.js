@@ -11,23 +11,12 @@ import EventBus from "./eventBus.js";
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
-// $nav-bar-label-height: 24px;
-const nav_bar_label_height = 36;
-
-// $nav-bar-widget-container-height: 30px;
-const nav_bar_widget_container_height = 36;
-
-// $nav-bar-widget-container-margin: 4px;
-const nav_bar_widget_container_margin = 4;
-
-// $hic-scrollbar-height: 20px;
-const scrollbar_height = 20;
-
-// $hic-axis-height: 40px;
-const axis_height = 40;
-
-// $track-margin: 2px;
-const track_margin = 2;
+let nav_bar_label_height
+let nav_bar_widget_container_height
+let nav_bar_widget_container_margin
+let scrollbar_height
+let axis_height
+let track_margin
 
 // $track-height: 36px;
 export const trackHeight = 36;
@@ -35,11 +24,8 @@ export const trackHeight = 36;
 class LayoutController {
 
     constructor(browser, $root) {
-
         this.browser = browser;
-
         createNavBar(browser, $root);
-
         this.createAllContainers(browser, $root);
     }
 
@@ -297,17 +283,40 @@ class LayoutController {
 
         this.browser.updateLayout();
     }
+
+    static syncCSSCustomProperties() {
+
+        const root = getComputedStyle(document.documentElement);
+
+        const cssProperties =
+            [
+                '--nav-bar-label-height',
+                '--nav-bar-widget-container-height',
+                '--nav-bar-widget-container-margin',
+                '--hic-scrollbar-height',
+                '--hic-axis-height',
+                '--track-margin'
+            ];
+
+        [
+            nav_bar_label_height,
+            nav_bar_widget_container_height,
+            nav_bar_widget_container_margin,
+            scrollbar_height,
+            axis_height,
+            track_margin
+        ] = cssProperties.map(property => parseInt(root.getPropertyValue(property).trim(), 10))
+
+    }
 }
 
 function getNavbarHeight() {
     return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
 }
 
-// function getNavbarHeight() {
-//     return 160
-// }
-
-const getNavbarContainer = browser => browser.$root.find('.hic-navbar-container');
+function getNavbarContainer(browser) {
+    return browser.$root.find('.hic-navbar-container')
+}
 
 function createNavBar(browser, $root) {
 

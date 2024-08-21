@@ -82,6 +82,8 @@ class HICBrowser {
 
         this.$root = $('<div class="hic-root unselect">');
 
+        LayoutController.syncCSSCustomProperties()
+
         if (config.width) {
             this.$root.css("width", String(config.width));
         }
