@@ -1,3 +1,5 @@
+@use "sass:math";
+
 :root {
   --nav-bar-label-height: 36px;
   --nav-bar-widget-container-height: 36px;
@@ -527,10 +529,10 @@ $default-font-family: 'Open Sans', sans-serif;
   align-items: center;
 
   width: 100%;
-  height: $hic-menu-item-height / 2;
+  height: math.div($hic-menu-item-height, 2);
 
-  margin-top: $hic-menu-margin / 2;
-  margin-bottom: $hic-menu-margin / 2;
+  margin-top: math.div($hic-menu-margin, 2);
+  margin-bottom: math.div($hic-menu-margin, 2);
 
   padding-right: $hic-menu-margin;
 
@@ -1196,7 +1198,7 @@ div[id$="x-track-container"] {
         width: $track-height;
         height: $track-height;
 
-        margin-left: -($track-height/2);
+        margin-left: math.div($track-height, -2);
 
         background-color: rgba(255, 255, 255, 0);
       }
@@ -1357,7 +1359,7 @@ div[id$="content-container"] {
           width: $track-height;
           height: $track-height;
 
-          margin-top: -($track-height/2);
+          margin-top: math.div($track-height, -2);
 
           //z-index: 512;
 
