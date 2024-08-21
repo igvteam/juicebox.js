@@ -86,7 +86,9 @@ class HICBrowser {
             this.$root.css("width", String(config.width));
         }
         if (config.height) {
-            this.$root.css("height", String(config.height + getNavbarHeight()));
+            const navbarHeight = getNavbarHeight()
+            const h = config.height + navbarHeight
+            this.$root.css("height", String(h))
         }
 
         $app_container.append(this.$root);

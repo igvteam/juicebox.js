@@ -12,10 +12,10 @@ import EventBus from "./eventBus.js";
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
 // $nav-bar-label-height: 24px;
-const nav_bar_label_height = 24;
+const nav_bar_label_height = 36;
 
 // $nav-bar-widget-container-height: 30px;
-const nav_bar_widget_container_height = 30;
+const nav_bar_widget_container_height = 36;
 
 // $nav-bar-widget-container-margin: 4px;
 const nav_bar_widget_container_margin = 4;
@@ -299,7 +299,13 @@ class LayoutController {
     }
 }
 
-const getNavbarHeight = () => 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
+function getNavbarHeight() {
+    return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
+}
+
+// function getNavbarHeight() {
+//     return 160
+// }
 
 const getNavbarContainer = browser => browser.$root.find('.hic-navbar-container');
 
