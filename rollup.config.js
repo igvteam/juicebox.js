@@ -20,6 +20,7 @@ export default [
                 targets:
                     [
                         {src: 'css/juicebox.css', dest: 'dist/css/'},
+                        { src: 'css/juicebox.css.map', dest: 'dist/css/' },
                         {src: 'css/img', dest: 'dist/css/'}
                     ]
             })
