@@ -61,9 +61,20 @@ class ColorScaleWidget {
         this.$container.append(this.$plusButton)
         this.plusColorPicker = createColorPicker(browser, this.$plusButton, '+')
 
-        this.$minusButton.on('click', () => presentColorPicker(this.minusColorPicker, this.plusColorPicker, this.backgroundColorpicker))
-        this.$plusButton.on('click', () => presentColorPicker(this.plusColorPicker, this.minusColorPicker, this.backgroundColorpicker))
-        this.$mapBackgroundColorpickerButton.on('click', () => presentColorPicker(this.backgroundColorpicker, this.minusColorPicker, this.plusColorPicker))
+        this.$minusButton.on('click', () => {
+            presentColorPicker(this.minusColorPicker, this.plusColorPicker, this.backgroundColorpicker)
+        })
+
+
+        // foreground color picker
+        this.$plusButton.on('click', () => {
+            presentColorPicker(this.plusColorPicker, this.minusColorPicker, this.backgroundColorpicker)
+        })
+
+        // background color picker
+        this.$mapBackgroundColorpickerButton.on('click', () => {
+            presentColorPicker(this.backgroundColorpicker, this.minusColorPicker, this.plusColorPicker)
+        })
 
         // threshold
         this.$high_colorscale_input = $('<input>', {'type': 'text', 'placeholder': '', 'title': 'color scale input'});

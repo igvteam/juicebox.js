@@ -653,7 +653,7 @@ class ContactMatrixView {
         }
     }
 
-    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, data, contactFrequencyArray, liveMapTraceLength) {
+    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, contactFrequencies, contactFrequencyArray, liveMapTraceLength) {
 
         this.ctx.canvas.style.display = 'none'
         this.ctx_live.canvas.style.display = 'block'
@@ -669,7 +669,7 @@ class ContactMatrixView {
 
         this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 
-        paintContactFrequencyArrayWithColorScale(this.colorScale, data.workerValuesBuffer, contactFrequencyArray)
+        paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray)
 
         // Render by copying image data to display canvas bitmap render context
         await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
@@ -884,10 +884,10 @@ class ContactMatrixView {
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
 
-function paintContactFrequencyArrayWithColorScale(colorScale, frequencies, array) {
+function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, array) {
 
     let i = 0
-    for (let frequency of frequencies) {
+    for (let frequency of contactFrequencies) {
 
         const { red, green, blue, alpha } = colorScale.getColor(frequency)
 
