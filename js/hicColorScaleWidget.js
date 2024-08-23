@@ -30,6 +30,7 @@ import { DOMUtils, ColorPicker, createColorSwatchSelector, GenericContainer} fro
 import RatioColorScale, {defaultRatioColorScaleConfig} from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
+import HICEvent from "./hicEvent"
 
 class ColorScaleWidget {
 
@@ -170,7 +171,7 @@ function createColorPicker(browser, $parent, type) {
             $parent.get(0).style.backgroundColor = hexString
             const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
             browser.contactMatrixView.setBackgroundColor({r, g, b})
-
+            browser.eventBus.post(new HICEvent("DidUpdateColor", "background"))
         }
 
     } else {
@@ -182,6 +183,7 @@ function createColorPicker(browser, $parent, type) {
             const [r, g, b] = IGVColor.hexToRgb(hexString).split('(').pop().split(')').shift().split(',').map(str => parseInt(str, 10))
             browser.getColorScale().setColorComponents({r, g, b}, type)
             browser.repaintMatrix()
+            browser.eventBus.post(new HICEvent("DidUpdateColor", "foreground"))
         }
 
     }
