@@ -30,7 +30,7 @@ import { DOMUtils, ColorPicker, createColorSwatchSelector, GenericContainer} fro
 import RatioColorScale, {defaultRatioColorScaleConfig} from './ratioColorScale.js'
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
-import HICEvent from "./hicEvent"
+import HICEvent from "./hicEvent.js"
 
 class ColorScaleWidget {
 

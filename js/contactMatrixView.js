@@ -429,6 +429,9 @@ class ContactMatrixView {
                                 rgba = this.colorScale.getColor(rec.counts);
                         }
 
+                        // const { red, green, blue, alpha } = rgba
+                        // console.log(`getImageTile - alpha ${ alpha }`)
+
                         // TODO -- verify that this bitblting is faster than fillRect
                         setPixel(id, x, y, rgba.red, rgba.green, rgba.blue, rgba.alpha);
                         if (sameChr && row === column) {
@@ -669,9 +672,8 @@ class ContactMatrixView {
 
         this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 
-        paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray)
+        paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray, this.backgroundColor)
 
-        // Render by copying image data to display canvas bitmap render context
         await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
 
         // Update UI
@@ -884,17 +886,30 @@ class ContactMatrixView {
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
 
-function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, array) {
+function compositeColors(foreRGBA, backRGB) {
+
+    const alpha = foreRGBA.a / 255;
+
+    const r = Math.round(alpha * foreRGBA.r + (1 - alpha) * backRGB.r);
+    const g = Math.round(alpha * foreRGBA.g + (1 - alpha) * backRGB.g);
+    const b = Math.round(alpha * foreRGBA.b + (1 - alpha) * backRGB.b);
+
+    return { r, g, b };
+}
+
+function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, array, backgroundColor) {
 
     let i = 0
     for (let frequency of contactFrequencies) {
 
         const { red, green, blue, alpha } = colorScale.getColor(frequency)
+        const A = { r:red, g:green, b:blue, a:alpha }
+        const { r, g, b } = compositeColors(A, backgroundColor)
 
-        array[i++] = red
-        array[i++] = green
-        array[i++] = blue
-        array[i++] = alpha
+        array[i++] = r
+        array[i++] = g
+        array[i++] = b
+        array[i++] = 255
     }
 }
 
