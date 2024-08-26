@@ -99,6 +99,10 @@ class ContactMatrixView {
         this.drawsInProgress = new Set()
     }
 
+    doRenderLiveContactMap() {
+        return 'block' === this.ctx_live.canvas.style.display
+    }
+
     setBackgroundColor(rgb) {
         this.backgroundColor = rgb
         this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
