@@ -311,7 +311,8 @@ class LayoutController {
 }
 
 function getNavbarHeight() {
-    return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
+    // return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
+    return 2 * nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin)
 }
 
 function getNavbarContainer(browser) {
@@ -360,8 +361,8 @@ function createNavBar(browser, $root) {
 
     browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
 
-    const html_upper_hic_nav_bar_widget_container = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
-    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
+    // const html_upper_hic_nav_bar_widget_container = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
+    // $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
 
     const html_lower_hic_nav_bar_widget_container = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
     $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
