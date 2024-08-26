@@ -312,7 +312,7 @@ class LayoutController {
 
 function getNavbarHeight() {
     // return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
-    return 2 * nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin)
+    return nav_bar_label_height + 2 * (nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin))
 }
 
 function getNavbarContainer(browser) {
@@ -352,17 +352,17 @@ function createNavBar(browser, $root) {
     // Delete button is only vidible if there is more then one browser
     browser.$browser_panel_delete_button.hide();
 
-    const html_control_map_hic_nav_bar_map_container =
-        `<div id="${browser.id}-control-map-hic-nav-bar-map-container">
-            <div id="${browser.id}-control-map-hic-nav-bar-map-label"></div>
-        </div>`;
+    // const html_control_map_hic_nav_bar_map_container =
+    //     `<div id="${browser.id}-control-map-hic-nav-bar-map-container">
+    //         <div id="${browser.id}-control-map-hic-nav-bar-map-label"></div>
+    //     </div>`;
+    //
+    // $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
 
-    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
+    // browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
 
-    browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
-
-    // const html_upper_hic_nav_bar_widget_container = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
-    // $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
+    const html_upper_hic_nav_bar_widget_container = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
+    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
 
     const html_lower_hic_nav_bar_widget_container = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
     $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));

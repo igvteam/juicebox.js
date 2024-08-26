@@ -6,7 +6,7 @@
   --hic-axis-height: 40px;
   --track-margin: 2px;
   /* Calculating the nav-bar height */
-  --nav-bar-height: calc(2 * var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin));
+  --nav-bar-height: calc(var(--nav-bar-label-height) + 2 * (var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin)));
 }
 
 .jb-igv-menu-popup {

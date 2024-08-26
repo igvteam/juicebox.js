@@ -571,8 +571,8 @@ class HICBrowser {
         this.tracks = [];
         this.$contactMaplabel.text("");
         this.$contactMaplabel.attr('title', "");
-        this.$controlMaplabel.text("");
-        this.$controlMaplabel.attr('title', "");
+        // this.$controlMaplabel.text("");
+        // this.$controlMaplabel.attr('title', "");
         this.dataset = undefined;
         this.controlDataset = undefined;
         this.unsyncSelf();
@@ -748,8 +748,8 @@ class HICBrowser {
                 if (this.dataset) {
                     this.$contactMaplabel.text("A: " + this.dataset.name);
                 }
-                this.$controlMaplabel.text("B: " + controlDataset.name);
-                this.$controlMaplabel.attr('title', controlDataset.name);
+                // this.$controlMaplabel.text("B: " + controlDataset.name);
+                // this.$controlMaplabel.attr('title', controlDataset.name);
 
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
