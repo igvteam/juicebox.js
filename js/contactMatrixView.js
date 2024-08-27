@@ -204,12 +204,12 @@ class ContactMatrixView {
             return
         }
 
-        if (this.browser.dataset.isLiveContactMapDataSet) {
-            return
-        }
+        // if (this.browser.dataset.isLiveContactMapDataSet) {
+        //     return
+        // }
 
-        this.ctx.canvas.style.display = 'block'
-        this.ctx_live.canvas.style.display = 'none'
+        // this.ctx.canvas.style.display = 'block'
+        // this.ctx_live.canvas.style.display = 'none'
 
         const viewportWidth = this.$viewport.width()
         const viewportHeight = this.$viewport.height()
@@ -662,8 +662,8 @@ class ContactMatrixView {
 
     async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, contactFrequencies, contactFrequencyArray, liveMapTraceLength) {
 
-        this.ctx.canvas.style.display = 'none'
-        this.ctx_live.canvas.style.display = 'block'
+        // this.ctx.canvas.style.display = 'none'
+        // this.ctx_live.canvas.style.display = 'block'
 
         const zoomIndexA = state.zoom
         const { chr1, chr2 } = state
@@ -680,11 +680,13 @@ class ContactMatrixView {
 
         await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
 
+        return
+
         // Update UI
         browser.state = state
         browser.dataset = liveContactMapDataSet
-
         browser.eventBus.post(HICEvent('MapLoad', browser.dataset))
+
         hic.EventBus.globalBus.post(HICEvent('MapLoad', browser))
 
         const eventConfig =
