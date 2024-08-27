@@ -1434,6 +1434,12 @@ div[id$="content-container"] {
       overflow-x: hidden;
       overflow-y: hidden;
 
+      >canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
       // spinner container
       div[id$="viewport-spinner-container"] {
         display: table-cell;

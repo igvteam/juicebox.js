@@ -1101,6 +1101,11 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   overflow-x: hidden;
   overflow-y: hidden;
 }
+div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] > canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] div[id$=viewport-spinner-container] {
   display: table-cell;
   margin: auto;
