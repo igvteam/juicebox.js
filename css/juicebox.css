@@ -1098,13 +1098,18 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   top: 0;
   width: calc(100% - (0px + var(--hic-axis-height) + var(--hic-scrollbar-height)));
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: hidden;
 }
-div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] > canvas {
+div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] > div {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] > div > canvas {
   position: absolute;
   top: 0;
   left: 0;
+  width: 100%;
+  height: 100%;
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=viewport] div[id$=viewport-spinner-container] {
   display: table-cell;

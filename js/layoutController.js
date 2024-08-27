@@ -96,8 +96,15 @@ class LayoutController {
 
         const html_viewport =
             `<div id="${browser.id}-viewport">
-			    <canvas id="${browser.id}-contact-map-canvas"></canvas>
-			    <canvas id="${browser.id}-live-contact-map-canvas"></canvas>
+
+                <div class="tab-pane fade show active" id="${browser.id}-contact-map-container" role="tabpanel" tabindex="0">
+                    <canvas id="${browser.id}-contact-map-canvas"></canvas>
+                </div>
+			    
+			    <div class="tab-pane fade" id="${browser.id}-live-contact-map-canvas-container" role="tabpanel" tabindex="0">
+			        <canvas id="${browser.id}-live-contact-map-canvas"></canvas>
+                </div>
+			  
                 <i class="fa fa-spinner fa-spin" style="font-size: 48px; position: absolute; left: 40%; top: 40%; display: none;"></i>
                 <div id="${browser.id}-sweep-zoom-container" style="display: none;"></div>
                 <div id="${browser.id}-x-guide" style="display: none;"></div>
