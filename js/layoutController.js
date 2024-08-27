@@ -97,7 +97,7 @@ class LayoutController {
         const html_viewport =
             `<div id="${browser.id}-viewport">
 
-                <div class="tab-pane fade show active" id="${browser.id}-contact-map-container" role="tabpanel" tabindex="0">
+                <div class="tab-pane fade show active" id="${browser.id}-contact-map-canvas-container" role="tabpanel" tabindex="0">
                     <canvas id="${browser.id}-contact-map-canvas"></canvas>
                 </div>
 			    
