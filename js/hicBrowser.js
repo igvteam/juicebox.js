@@ -362,26 +362,8 @@ class HICBrowser {
         this.layoutController.$y_track_guide.css(yGuide);
 
         if (this.customCrosshairsHandler) {
-
-            const {x: stateX, y: stateY, pixelSize} = this.state;
-            const resolution = this.resolution();
-
-            const xBP = (stateX + (x / pixelSize)) * resolution;
-            const yBP = (stateY + (y / pixelSize)) * resolution;
-
-            let {startBP: startXBP, endBP: endXBP} = this.genomicState('x');
-            let {startBP: startYBP, endBP: endYBP} = this.genomicState('y');
-
-            this.customCrosshairsHandler({
-                xBP,
-                yBP,
-                startXBP,
-                startYBP,
-                endXBP,
-                endYBP,
-                interpolantX: xNormalized,
-                interpolantY: yNormalized
-            });
+            const payload = this.contactMatrixView.prepareCustomCrosshairsHandlerPayload({ x, y, xNormalized, yNormalized })
+            this.customCrosshairsHandler(payload)
         }
 
     }
@@ -410,29 +392,7 @@ class HICBrowser {
     }
 
     genomicState(axis) {
-
-        let width = this.contactMatrixView.getViewDimensions().width
-        let resolution = this.dataset.bpResolutions[this.state.zoom];
-        const bpp =
-            (this.dataset.chromosomes[this.state.chr1].name.toLowerCase() === "all") ?
-                this.genome.getGenomeLength() / width :
-                resolution / this.state.pixelSize
-
-        const gs =
-            {
-                bpp
-            }
-
-        if (axis === "x") {
-            gs.chromosome = this.dataset.chromosomes[this.state.chr1];
-            gs.startBP = this.state.x * resolution;
-            gs.endBP = gs.startBP + bpp * width;
-        } else {
-            gs.chromosome = this.dataset.chromosomes[this.state.chr2];
-            gs.startBP = this.state.y * resolution;
-            gs.endBP = gs.startBP + bpp * this.contactMatrixView.getViewDimensions().height;
-        }
-        return gs;
+        return this.contactMatrixView.genomicState(this, axis)
     }
 
 
@@ -1395,8 +1355,8 @@ class HICBrowser {
     }
 
     resolution() {
-        return this.dataset.bpResolutions[this.state.zoom];
-    };
+        return this.contactMatrixView.resolution()
+    }
 
 
     toJSON() {

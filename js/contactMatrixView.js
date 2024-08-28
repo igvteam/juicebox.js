@@ -99,8 +99,113 @@ class ContactMatrixView {
         this.drawsInProgress = new Set()
     }
 
-    doRenderLiveContactMap() {
-        return 'block' === this.ctx_live.canvas.style.display
+    panelTabSelectionHandler(isliveContactMap) {
+        this.isliveContactMap = isliveContactMap;
+    }
+
+    selectStateAndDataset() {
+        let state
+        let dataset
+        if (false === this.isliveContactMap) {
+            if (this.browser.state && this.browser.dataset) {
+                return { state: this.browser.state, dataset: this.browser.dataset }
+            } else {
+                return undefined
+            }
+        } else {
+            if (this.browser.liveContactMapState && this.browser.liveContactMapDataSet) {
+                return { state: this.browser.liveContactMapState, dataset: this.browser.liveContactMapDataSet }
+            } else {
+                return undefined
+            }
+        }
+
+    }
+
+    resolution() {
+
+        const result = this.selectStateAndDataset()
+
+        if (result) {
+            const { state, dataset } = result
+            return dataset.bpResolutions[state.zoom]
+        } else {
+            return undefined
+        }
+
+
+    }
+
+    genomicState(browser, axis) {
+
+        const result = this.selectStateAndDataset()
+
+        if (result) {
+            const { state, dataset } = result
+            const width = this.getViewDimensions().width
+            const height = this.getViewDimensions().height
+
+            const resolution = dataset.bpResolutions[state.zoom]
+
+            const chr1 = dataset.chromosomes[state.chr1]
+            const chr2 = dataset.chromosomes[state.chr2]
+
+            const bpp = (chr1.name.toLowerCase() === "all") ? browser.genome.getGenomeLength() / width : resolution / state.pixelSize
+
+            const gs = { bpp }
+
+            if (axis === "x") {
+                gs.chromosome = chr1
+                gs.startBP = state.x * resolution;
+                gs.endBP = gs.startBP + bpp * width;
+            } else {
+                gs.chromosome = chr2
+                gs.startBP = state.y * resolution;
+                gs.endBP = gs.startBP + bpp * height;
+            }
+
+            return gs
+        } else {
+            return undefined
+        }
+
+    }
+
+    prepareCustomCrosshairsHandlerPayload({x, y, xNormalized, yNormalized}) {
+
+        const result = this.selectStateAndDataset()
+
+        if (result) {
+            const { state, dataset } = result
+
+            const {x: stateX, y: stateY, pixelSize} = state
+
+            const resolution = this.resolution()
+
+            const xBP = (stateX + (x / pixelSize)) * resolution;
+            const yBP = (stateY + (y / pixelSize)) * resolution;
+
+            let {startBP: startXBP, endBP: endXBP} = this.genomicState(this.browser, 'x');
+            let {startBP: startYBP, endBP: endYBP} = this.genomicState(this.browser, 'y');
+
+            const payload =
+                {
+                    xBP,
+                    yBP,
+                    startXBP,
+                    startYBP,
+                    endXBP,
+                    endYBP,
+                    interpolantX: xNormalized,
+                    interpolantY: yNormalized
+                }
+
+            return payload
+
+        } else {
+            return undefined
+        }
+
     }
 
     setBackgroundColor(rgb) {
@@ -679,6 +784,16 @@ class ContactMatrixView {
         paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray, this.backgroundColor)
 
         await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
+
+        browser.liveContactMapState = state
+        browser.liveContactMapDataSet = liveContactMapDataSet
+
+        this.panelTabSelectionHandler(true)
+
+        if (!this.mouseHandlersEnabled) {
+            this.addMouseHandlers(this.$viewport);
+            this.mouseHandlersEnabled = true;
+        }
 
         return
 
