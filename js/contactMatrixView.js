@@ -99,14 +99,12 @@ class ContactMatrixView {
         this.drawsInProgress = new Set()
     }
 
-    panelTabSelectionHandler(isliveContactMap) {
-        this.isliveContactMap = isliveContactMap;
+    assessPanelTabSelection(isliveContactMapTabSelection) {
+        this.isliveContactMapTabSelection = isliveContactMapTabSelection;
     }
 
-    selectStateAndDataset() {
-        let state
-        let dataset
-        if (false === this.isliveContactMap) {
+    selectStateAndDataset(isliveContactMapTabSelection) {
+        if (false === isliveContactMapTabSelection) {
             if (this.browser.state && this.browser.dataset) {
                 return { state: this.browser.state, dataset: this.browser.dataset }
             } else {
@@ -119,17 +117,17 @@ class ContactMatrixView {
                 return undefined
             }
         }
-
     }
 
     resolution() {
 
-        const result = this.selectStateAndDataset()
+        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
             return dataset.bpResolutions[state.zoom]
         } else {
+            console.warn(`resolution(): State and Dataset are not both defined`)
             return undefined
         }
 
@@ -138,7 +136,7 @@ class ContactMatrixView {
 
     genomicState(browser, axis) {
 
-        const result = this.selectStateAndDataset()
+        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
@@ -166,6 +164,7 @@ class ContactMatrixView {
 
             return gs
         } else {
+            console.warn(`genomicState(): State and Dataset are not both defined`)
             return undefined
         }
 
@@ -173,7 +172,7 @@ class ContactMatrixView {
 
     prepareCustomCrosshairsHandlerPayload({x, y, xNormalized, yNormalized}) {
 
-        const result = this.selectStateAndDataset()
+        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
@@ -203,6 +202,7 @@ class ContactMatrixView {
             return payload
 
         } else {
+            console.warn(`prepareCustomCrosshairsHandlerPayload(): State and Dataset are not both defined`)
             return undefined
         }
 
@@ -767,8 +767,8 @@ class ContactMatrixView {
 
     async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, contactFrequencies, contactFrequencyArray, liveMapTraceLength) {
 
-        // this.ctx.canvas.style.display = 'none'
-        // this.ctx_live.canvas.style.display = 'block'
+        // Set conditions to present a live contact map rather than a Hi-C map
+        this.assessPanelTabSelection(true)
 
         const zoomIndexA = state.zoom
         const { chr1, chr2 } = state
@@ -788,32 +788,24 @@ class ContactMatrixView {
         browser.liveContactMapState = state
         browser.liveContactMapDataSet = liveContactMapDataSet
 
-        this.panelTabSelectionHandler(true)
 
         if (!this.mouseHandlersEnabled) {
             this.addMouseHandlers(this.$viewport);
             this.mouseHandlersEnabled = true;
         }
 
-        return
-
-        // Update UI
-        browser.state = state
-        browser.dataset = liveContactMapDataSet
-        browser.eventBus.post(HICEvent('MapLoad', browser.dataset))
-
-        hic.EventBus.globalBus.post(HICEvent('MapLoad', browser))
-
-        const eventConfig =
-            {
-                state,
-                resolutionChanged: true,
-                chrChanged: true,
-                displayMode: 'LIVE',
-                dataset: liveContactMapDataSet
-            }
-
-        browser.eventBus.post(HICEvent('LocusChange', eventConfig))
+        // browser.eventBus.post(HICEvent('MapLoad', liveContactMapDataSet))
+        //
+        // const eventConfig =
+        //     {
+        //         state,
+        //         resolutionChanged: true,
+        //         chrChanged: true,
+        //         displayMode: 'LIVE',
+        //         dataset: liveContactMapDataSet
+        //     }
+        //
+        // browser.eventBus.post(HICEvent('LocusChange', eventConfig))
 
     }
 
@@ -1018,19 +1010,19 @@ function compositeColors(foreRGBA, backRGB) {
     return { r, g, b };
 }
 
-function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, array, backgroundColor) {
+function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, contactFrequencyArray, backgroundColor) {
 
     let i = 0
-    for (let frequency of contactFrequencies) {
+    for (const frequency of contactFrequencies) {
 
         const { red, green, blue, alpha } = colorScale.getColor(frequency)
         const A = { r:red, g:green, b:blue, a:alpha }
         const { r, g, b } = compositeColors(A, backgroundColor)
 
-        array[i++] = r
-        array[i++] = g
-        array[i++] = b
-        array[i++] = 255
+        contactFrequencyArray[i++] = r
+        contactFrequencyArray[i++] = g
+        contactFrequencyArray[i++] = b
+        contactFrequencyArray[i++] = 255
     }
 }
 
