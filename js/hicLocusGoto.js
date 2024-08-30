@@ -52,36 +52,57 @@ class LocusGoto {
     receiveEvent(event) {
 
         if (event.type === "LocusChange") {
-
-            let xy;
-            const state = event.data.state || this.browser.state;
-            const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
-            if (isWholeGenome) {
-                xy = 'All';
-            } else {
-                const chr1 = this.browser.dataset.chromosomes[state.chr1];
-                const chr2 = this.browser.dataset.chromosomes[state.chr2];
-                const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-                const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-                const pixelsPerBin = state.pixelSize;
-                const startBP1 = 1 + Math.round(state.x * bpPerBin);
-                const startBP2 = 1 + Math.round(state.y * bpPerBin);
-
-                const chr1Size = chr1.size || chr1.bpLength
-                const endBP1 = Math.min(chr1Size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1)
-
-                const chr12Size = chr2.size || chr1.bpLength
-                const endBP2 = Math.min(chr12Size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1)
-                
-
-                xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
-                    chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
-
-            }
-            this.$resolution_selector.val(xy);
+            this.locusChangeEventHandler(event)
         }
     }
+
+    locusChangeEventHandler(event){
+
+        let xy;
+        const state = event.data.state || this.browser.state;
+        const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
+        if (isWholeGenome) {
+            this.$resolution_selector.val('All')
+        } else {
+            this.doChangeLocus({ state: event.data.state, dataset: this.browser.dataset })
+        }
+
+    }
+
+    doChangeLocus({ state, dataset }) {
+
+        const chromosomes = dataset.chromosomes.slice()
+
+        if (true === dataset.isLiveContactMapDataSet) {
+            chromosomes.unshift('shim')
+        }
+
+        const chr1 = chromosomes[state.chr1];
+        const chr2 = chromosomes[state.chr2];
+
+        const bpPerBin = dataset.bpResolutions[state.zoom];
+
+        const startBP1 = 1 + Math.round(state.x * bpPerBin);
+        const startBP2 = 1 + Math.round(state.y * bpPerBin);
+
+        const chr1Size = chr1.size || chr1.bpLength
+        const chr12Size = chr2.size || chr1.bpLength
+
+        const pixelsPerBin = state.pixelSize
+        const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
+        const endBP1 = Math.min(chr1Size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1)
+        const endBP2 = Math.min(chr12Size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1)
+
+
+        const xy = chr1.name + ":" + StringUtils.numberFormatter(startBP1) + "-" + StringUtils.numberFormatter(endBP1) + " " +
+            chr2.name + ":" + StringUtils.numberFormatter(startBP2) + "-" + StringUtils.numberFormatter(endBP2);
+
+        this.$resolution_selector.val(xy)
+
+    }
 }
+
+
 
 
 export default LocusGoto

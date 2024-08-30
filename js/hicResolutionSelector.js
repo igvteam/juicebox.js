@@ -104,7 +104,9 @@ class ResolutionSelector {
         } else if (event.type === "MapLoad") {
             browser.resolutionLocked = false;
             this.setResolutionLock(false);
-            updateResolutions.call(this, browser.state.zoom);
+
+            const { state } = event.data
+            updateResolutions.call(this, state.zoom);
         } else if (event.type === "ControlMapLoad") {
             updateResolutions.call(this, browser.state.zoom)
         }

@@ -280,7 +280,6 @@ class ContactMatrixView {
 
         if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
 
-            // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
                 this.addMouseHandlers(this.$viewport);
                 this.mouseHandlersEnabled = true;
@@ -770,42 +769,22 @@ class ContactMatrixView {
         // Set conditions to present a live contact map rather than a Hi-C map
         this.assessPanelTabSelection(true)
 
+        browser.liveContactMapState = state
+        browser.liveContactMapDataSet = liveContactMapDataSet
+
+        browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
+
+        browser.locusGoto.doChangeLocus({ state, dataset: liveContactMapDataSet })
+
         const zoomIndexA = state.zoom
         const { chr1, chr2 } = state
         const zoomData = liveContactMapDataSet.getZoomDataByIndex(chr1, chr2, zoomIndexA)
-
-        // Clear caches
-        this.colorScaleThresholdCache = {}
-        this.imageTileCache = {}
-        this.imageTileCacheKeys = []
 
         this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 
         paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray, this.backgroundColor)
 
         await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
-
-        browser.liveContactMapState = state
-        browser.liveContactMapDataSet = liveContactMapDataSet
-
-
-        if (!this.mouseHandlersEnabled) {
-            this.addMouseHandlers(this.$viewport);
-            this.mouseHandlersEnabled = true;
-        }
-
-        // browser.eventBus.post(HICEvent('MapLoad', liveContactMapDataSet))
-        //
-        // const eventConfig =
-        //     {
-        //         state,
-        //         resolutionChanged: true,
-        //         chrChanged: true,
-        //         displayMode: 'LIVE',
-        //         dataset: liveContactMapDataSet
-        //     }
-        //
-        // browser.eventBus.post(HICEvent('LocusChange', eventConfig))
 
     }
 

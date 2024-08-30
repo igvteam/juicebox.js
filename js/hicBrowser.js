@@ -606,13 +606,6 @@ class HICBrowser {
             const previousGenomeId = this.genome ? this.genome.id : undefined;
             this.genome = new Genome(this.dataset.genomeId, this.dataset.chromosomes)
 
-            // if (this.genome.id !== previousGenomeId) {
-            //     EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id))
-            // }
-
-            this.eventBus.post(HICEvent("MapLoad", this.dataset))
-            EventBus.globalBus.post(HICEvent('MapLoad', this))
-
             if (config.state) {
                 if (!config.state.hasOwnProperty("chr1")) {
                     config.state = State.parse(config.state);
@@ -624,6 +617,8 @@ class HICBrowser {
                 await this.setState(State.default(this.config));
             }
 
+            this.eventBus.post(HICEvent("MapLoad", { dataset: this.dataset, state: this.state }))
+            EventBus.globalBus.post(HICEvent('MapLoad', this))
 
             // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
             // Let it load in the background
@@ -1276,17 +1271,6 @@ class HICBrowser {
 
         this.state.x = Math.min(Math.max(0, this.state.x), maxX);
         this.state.y = Math.min(Math.max(0, this.state.y), maxY);
-    }
-
-    receiveEvent(event) {
-        // if ("LocusChange" === event.type) {
-        //     if (event.propogate) {
-        //         for (let browser of this.synchedBrowsers) {
-        //             browser.syncState(this.getSyncState());
-        //         }
-        //     }
-        //     this.update(event);
-        // }
     }
 
     /**

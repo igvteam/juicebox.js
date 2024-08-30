@@ -240,8 +240,8 @@ class Ruler {
             $e;
 
         if ('MapLoad' === event.type) {
-            this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data);
-            this.update();
+            this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, event.data.dataset);
+            this.update(event.data)
         } else if ('UpdateContactMapMousePosition' === event.type) {
 
             if (this.bboxes) {
@@ -285,7 +285,7 @@ class Ruler {
         this.update();
     };
 
-    update() {
+    update(eventDataOrUndefined) {
 
         var w,
             h,
@@ -293,7 +293,17 @@ class Ruler {
             config = {},
             browser = this.browser;
 
-        if (browser.dataset.isWholeGenome(browser.state.chr1)) {
+        let dataset
+        let state
+        if (eventDataOrUndefined) {
+            dataset = eventDataOrUndefined.dataset
+            state = eventDataOrUndefined.state
+        } else {
+            dataset = browser.dataset
+            state = browser.state
+        }
+
+        if (dataset.isWholeGenome(state.chr1)) {
             this.showWholeGenome();
             return;
         }
@@ -310,10 +320,14 @@ class Ruler {
 
         igv.IGVGraphics.fillRect(this.ctx, 0, 0, w, h, {fillStyle: IGVColor.rgbColor(255, 255, 255)});
 
-        config.bpPerPixel = browser.dataset.bpResolutions[browser.state.zoom] / browser.state.pixelSize;
+        config.dataset = dataset
 
-        bin = ('x' === this.axis) ? browser.state.x : browser.state.y;
-        config.bpStart = bin * browser.dataset.bpResolutions[browser.state.zoom];
+        config.state = state
+
+        config.bpPerPixel = dataset.bpResolutions[state.zoom] / state.pixelSize;
+
+        bin = ('x' === this.axis) ? state.x : state.y;
+        config.bpStart = bin * dataset.bpResolutions[state.zoom];
 
         config.rulerTickMarkReferencePixels = Math.max(Math.max(this.$canvas.width(), this.$canvas.height()), Math.max(this.$otherRulerCanvas.width(), this.$otherRulerCanvas.height()));
 
@@ -327,8 +341,7 @@ class Ruler {
 
     draw(options) {
 
-        var self = this,
-            fontStyle,
+        var fontStyle,
             tickSpec,
             majorTickSpacing,
             nTick,
@@ -343,12 +356,24 @@ class Ruler {
             rulerLabel,
             chrSize,
             chrName,
-            chromosomes = this.browser.dataset.chromosomes;
+            chromosomes;
 
-        chrName = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].name : chromosomes[this.browser.state.chr2].name;
-        chrSize = ('x' === this.axis) ? chromosomes[this.browser.state.chr1].size : chromosomes[this.browser.state.chr2].size;
+        chromosomes = options.dataset.chromosomes.slice()
 
-        if (options.chrName === "all") {
+        if (true === options.dataset.isLiveContactMapDataSet) {
+            chromosomes.unshift('shim')
+        }
+
+        const chr1 = chromosomes[options.state.chr1]
+        const chr1Length = chr1.size || chr1.bpLength
+
+        const chr2 = chromosomes[options.state.chr2]
+        const chr2Length = chr2.size || chr2.bpLength
+
+        chrName = ('x' === this.axis) ? chr1.name : chr2.name
+        chrSize = ('x' === this.axis) ? chr1Length : chr2Length
+
+        if ('all' === chrName) {
 
         } else {
 

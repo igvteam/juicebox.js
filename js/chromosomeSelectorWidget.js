@@ -88,17 +88,16 @@ class ChromosomeSelectorWidget {
 
     }
 
-    respondToDataLoadWithDataset(dataset) {
+    respondToDataLoadWithDataset({ dataset, state }) {
 
-        var elements,
-            str,
+        var str,
             $xFound,
             $yFound;
 
         this.$x_axis_selector.empty();
         this.$y_axis_selector.empty();
 
-        elements = dataset.chromosomes.map(({name}, index) => `<option value=${index.toString()}>${name}</option>`);
+        const elements = dataset.chromosomes.map(({name}, index) => `<option value=${index.toString()}>${name}</option>`);
 
         this.$x_axis_selector.append(elements.join(''));
         this.$y_axis_selector.append(elements.join(''));
