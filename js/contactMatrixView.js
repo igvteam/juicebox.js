@@ -308,12 +308,7 @@ class ContactMatrixView {
             return
         }
 
-        // if (this.browser.dataset.isLiveContactMapDataSet) {
-        //     return
-        // }
-
-        // this.ctx.canvas.style.display = 'block'
-        // this.ctx_live.canvas.style.display = 'none'
+        console.log('ContactMatrixView - render Hi-C canvas')
 
         const viewportWidth = this.$viewport.width()
         const viewportHeight = this.$viewport.height()
@@ -766,19 +761,18 @@ class ContactMatrixView {
 
     async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, contactFrequencies, contactFrequencyArray, liveMapTraceLength) {
 
-        // Set conditions to present a live contact map rather than a Hi-C map
-        this.assessPanelTabSelection(true)
-
         browser.liveContactMapState = state
         browser.liveContactMapDataSet = liveContactMapDataSet
 
         browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
 
-        browser.locusGoto.doChangeLocus({ state, dataset: liveContactMapDataSet })
+        browser.locusGoto.doChangeLocus({ dataset: liveContactMapDataSet, state })
 
         const zoomIndexA = state.zoom
         const { chr1, chr2 } = state
         const zoomData = liveContactMapDataSet.getZoomDataByIndex(chr1, chr2, zoomIndexA)
+
+        console.log('ContactMatrixView - render Live Contact canvas')
 
         this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 

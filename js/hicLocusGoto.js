@@ -71,11 +71,7 @@ class LocusGoto {
 
     doChangeLocus({ state, dataset }) {
 
-        const chromosomes = dataset.chromosomes.slice()
-
-        if (true === dataset.isLiveContactMapDataSet) {
-            chromosomes.unshift('shim')
-        }
+        const chromosomes = dataset.chromosomes
 
         const chr1 = chromosomes[state.chr1];
         const chr2 = chromosomes[state.chr2];

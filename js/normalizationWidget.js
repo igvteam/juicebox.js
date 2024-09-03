@@ -68,7 +68,6 @@ class NormalizationWidget {
         this.$container.append(this.$spinner);
         this.$spinner.hide();
 
-        this.browser.eventBus.subscribe("MapLoad", this);
         this.browser.eventBus.subscribe("NormVectorIndexLoad", this);
         this.browser.eventBus.subscribe("NormalizationFileLoad", this);
         this.browser.eventBus.subscribe("NormalizationExternalChange", this);

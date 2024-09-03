@@ -358,11 +358,7 @@ class Ruler {
             chrName,
             chromosomes;
 
-        chromosomes = options.dataset.chromosomes.slice()
-
-        if (true === options.dataset.isLiveContactMapDataSet) {
-            chromosomes.unshift('shim')
-        }
+        chromosomes = options.dataset.chromosomes
 
         const chr1 = chromosomes[options.state.chr1]
         const chr1Length = chr1.size || chr1.bpLength
