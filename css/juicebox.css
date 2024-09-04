@@ -1135,7 +1135,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   top: 50%;
   left: 0;
   width: 100%;
-  height: 1px;
+  height: 2px;
   mix-blend-mode: difference;
   background-color: white;
   user-select: none;
@@ -1147,7 +1147,7 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   position: absolute;
   top: 0;
   left: 50%;
-  width: 1px;
+  width: 2px;
   height: 100%;
   mix-blend-mode: difference;
   background-color: white;
