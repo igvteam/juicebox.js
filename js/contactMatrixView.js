@@ -759,7 +759,7 @@ class ContactMatrixView {
         }
     }
 
-    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, contactFrequencies, contactFrequencyArray, liveMapTraceLength) {
+    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, frequencies, frequencyRGBAList, liveMapTraceLength) {
 
         browser.liveContactMapState = state
         browser.liveContactMapDataSet = liveContactMapDataSet
@@ -776,9 +776,9 @@ class ContactMatrixView {
 
         this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 
-        paintContactFrequencyArrayWithColorScale(this.colorScale, contactFrequencies, contactFrequencyArray, this.backgroundColor)
+        paintContactFrequencyArrayWithColorScale(this.colorScale, frequencies, frequencyRGBAList, this.backgroundColor)
 
-        await renderArrayToCanvas(this.ctx_live, contactFrequencyArray, liveMapTraceLength)
+        await renderArrayToCanvas(this.ctx_live, frequencyRGBAList, liveMapTraceLength)
 
     }
 
@@ -972,38 +972,39 @@ class ContactMatrixView {
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
 
-function compositeColors(foreRGBA, backRGB) {
+function paintContactFrequencyArrayWithColorScale(colorScale, frequencies, frequencyRGBAList, backgroundRGB) {
 
-    const alpha = foreRGBA.a / 255;
+    const compositeColors = (foreRGBA, backRGB) => {
 
-    const r = Math.round(alpha * foreRGBA.r + (1 - alpha) * backRGB.r);
-    const g = Math.round(alpha * foreRGBA.g + (1 - alpha) * backRGB.g);
-    const b = Math.round(alpha * foreRGBA.b + (1 - alpha) * backRGB.b);
+        const alpha = foreRGBA.a / 255;
 
-    return { r, g, b };
-}
+        const r = Math.round(alpha * foreRGBA.r + (1 - alpha) * backRGB.r);
+        const g = Math.round(alpha * foreRGBA.g + (1 - alpha) * backRGB.g);
+        const b = Math.round(alpha * foreRGBA.b + (1 - alpha) * backRGB.b);
 
-function paintContactFrequencyArrayWithColorScale(colorScale, contactFrequencies, contactFrequencyArray, backgroundColor) {
+        return { r, g, b };
+    }
+
 
     let i = 0
-    for (const frequency of contactFrequencies) {
+    for (const frequency of frequencies) {
 
         const { red, green, blue, alpha } = colorScale.getColor(frequency)
-        const A = { r:red, g:green, b:blue, a:alpha }
-        const { r, g, b } = compositeColors(A, backgroundColor)
+        const foregroundRGBA = { r:red, g:green, b:blue, a:alpha }
+        const { r, g, b } = compositeColors(foregroundRGBA, backgroundRGB)
 
-        contactFrequencyArray[i++] = r
-        contactFrequencyArray[i++] = g
-        contactFrequencyArray[i++] = b
-        contactFrequencyArray[i++] = 255
+        frequencyRGBAList[i++] = r
+        frequencyRGBAList[i++] = g
+        frequencyRGBAList[i++] = b
+        frequencyRGBAList[i++] = 255
     }
 }
 
-async function renderArrayToCanvas(ctx, array, liveMapTraceLength) {
+async function renderArrayToCanvas(ctx, rgbaList, liveMapTraceLength) {
 
     const { width, height } = ctx.canvas;
 
-    const imageData = new ImageData(array, liveMapTraceLength, liveMapTraceLength);
+    const imageData = new ImageData(rgbaList, liveMapTraceLength, liveMapTraceLength);
 
     // const config =
     //     {
