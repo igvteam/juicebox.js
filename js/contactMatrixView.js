@@ -104,14 +104,20 @@ class ContactMatrixView {
     }
 
     selectStateAndDataset(isliveContactMapTabSelection) {
+
+        const canUseLivePayload = !(undefined === this.browser.liveContactMapState || undefined === this.browser.liveContactMapDataSet)
+        const canUseHiCPayload = !(undefined === this.browser.state || undefined === this.browser.dataset)
+
         if (false === isliveContactMapTabSelection) {
-            if (this.browser.state && this.browser.dataset) {
+            if (true === canUseHiCPayload) {
                 return { state: this.browser.state, dataset: this.browser.dataset }
+            } else if (true === canUseLivePayload) {
+                return { state: this.browser.liveContactMapState, dataset: this.browser.liveContactMapDataSet }
             } else {
                 return undefined
             }
         } else {
-            if (this.browser.liveContactMapState && this.browser.liveContactMapDataSet) {
+            if (true === canUseLivePayload) {
                 return { state: this.browser.liveContactMapState, dataset: this.browser.liveContactMapDataSet }
             } else {
                 return undefined
