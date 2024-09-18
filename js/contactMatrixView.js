@@ -759,11 +759,11 @@ class ContactMatrixView {
         }
     }
 
-    async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, frequencies, frequencyRGBAList, liveMapTraceLength) {
+    async renderWithLiveContactFrequencyData(state, liveContactMapDataSet, frequencies, frequencyRGBAList, liveMapTraceLength) {
 
-        browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
+        this.browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
 
-        browser.locusGoto.doChangeLocus({ dataset: liveContactMapDataSet, state })
+        this.browser.locusGoto.doChangeLocus({ dataset: liveContactMapDataSet, state })
 
         const zoomIndexA = state.zoom
         const { chr1, chr2 } = state
@@ -771,7 +771,7 @@ class ContactMatrixView {
 
         console.log('ContactMatrixView - render Live Contact canvas')
 
-        this.checkColorScale_sw(browser, state, 'LIVE', liveContactMapDataSet, zoomData)
+        this.checkColorScale_sw(this.browser, state, 'LIVE', liveContactMapDataSet, zoomData)
 
         paintContactFrequencyArrayWithColorScale(this.colorScale, frequencies, frequencyRGBAList, this.backgroundColor)
 
