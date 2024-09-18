@@ -60,7 +60,7 @@ class ContactMatrixView {
         let canvas
         const { width, height } = this.viewport.getBoundingClientRect()
 
-        // contact map canvas
+        // Hi-C Map
         canvas = this.viewport.querySelector(`#${browser.id}-contact-map-canvas`)
         this.ctx = canvas.getContext('2d')
         this.ctx.canvas.width = width
@@ -69,12 +69,17 @@ class ContactMatrixView {
         const str = `#${browser.id}-contact-map-canvas`
         this.$canvas = $viewport.find(str)
 
-
-        // live contact map canvas
+        // Live Contact Map
         canvas = this.viewport.querySelector(`#${browser.id}-live-contact-map-canvas`)
         this.ctx_live = canvas.getContext('bitmaprenderer')
         this.ctx_live.canvas.width = width
         this.ctx_live.canvas.height = height
+
+        // Live Distance Map
+        canvas = this.viewport.querySelector(`#${browser.id}-live-distance-map-canvas`)
+        this.ctx_live_distance = canvas.getContext('bitmaprenderer')
+        this.ctx_live_distance.canvas.width = width
+        this.ctx_live_distance.canvas.height = height
 
         this.$fa_spinner = $viewport.find('.fa-spinner');
         this.spinnerCount = 0;
