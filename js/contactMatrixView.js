@@ -761,9 +761,6 @@ class ContactMatrixView {
 
     async renderWithLiveContactFrequencyData(browser, state, liveContactMapDataSet, frequencies, frequencyRGBAList, liveMapTraceLength) {
 
-        browser.liveContactMapState = state
-        browser.liveContactMapDataSet = liveContactMapDataSet
-
         browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
 
         browser.locusGoto.doChangeLocus({ dataset: liveContactMapDataSet, state })

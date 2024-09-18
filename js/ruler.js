@@ -285,6 +285,11 @@ class Ruler {
         this.update();
     };
 
+    presentLiveMapRuler(liveState, liveMapDataset) {
+        this.wholeGenomeLayout(this.$axis, this.$wholeGenomeContainer, this.axis, liveMapDataset)
+        this.update({ state:liveState, dataset:liveMapDataset })
+    }
+
     update(eventDataOrUndefined) {
 
         var w,
