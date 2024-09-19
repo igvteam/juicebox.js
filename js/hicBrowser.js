@@ -78,6 +78,9 @@ class HICBrowser {
         this.synchable = config.synchable !== false;
         this.synchedBrowsers = [];
 
+        this.liveContactMapState = undefined
+        this.liveContactMapDataSet = undefined
+
         this.isMobile = hicUtils.isMobile();
 
         this.$root = $('<div class="hic-root unselect">');

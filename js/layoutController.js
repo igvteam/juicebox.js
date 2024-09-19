@@ -101,7 +101,7 @@ class LayoutController {
                     <canvas id="${browser.id}-contact-map-canvas"></canvas>
                 </div>
 			    
-			    <div id="${browser.id}-live-contact-map-canvas-container" class="tab-pane fade show active" role="tabpanel" tabindex="0">
+			    <div id="${browser.id}-live-contact-map-canvas-container" class="tab-pane fade" role="tabpanel" tabindex="0">
 			        <canvas id="${browser.id}-live-contact-map-canvas"></canvas>
                 </div>
 			    
