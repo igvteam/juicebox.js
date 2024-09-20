@@ -770,26 +770,6 @@ class ContactMatrixView {
         }
     }
 
-    async renderWithLiveContactFrequencyData(state, liveContactMapDataSet, frequencies, frequencyRGBAList, liveMapTraceLength) {
-
-        this.browser.eventBus.post(HICEvent('MapLoad', { dataset: liveContactMapDataSet, state }))
-
-        this.browser.locusGoto.doChangeLocus({ dataset: liveContactMapDataSet, state })
-
-        const zoomIndexA = state.zoom
-        const { chr1, chr2 } = state
-        const zoomData = liveContactMapDataSet.getZoomDataByIndex(chr1, chr2, zoomIndexA)
-
-        console.log('ContactMatrixView - render Live Contact canvas')
-
-        this.checkColorScale_sw(this.browser, state, 'LIVE', liveContactMapDataSet, zoomData)
-
-        paintContactFrequencyArrayWithColorScale(this.colorScale, frequencies, frequencyRGBAList, this.backgroundColor)
-
-        await renderArrayToCanvas(this.ctx_live, frequencyRGBAList, liveMapTraceLength)
-
-    }
-
     checkColorScale_sw(browser, state, displayMode, liveContactMapDataSet, zoomData) {
 
         const colorScaleKey = createColorScaleKey(state, displayMode)
@@ -980,54 +960,6 @@ class ContactMatrixView {
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
 
-function paintContactFrequencyArrayWithColorScale(colorScale, frequencies, frequencyRGBAList, backgroundRGB) {
-
-    const compositeColors = (foreRGBA, backRGB) => {
-
-        const alpha = foreRGBA.a / 255;
-
-        const r = Math.round(alpha * foreRGBA.r + (1 - alpha) * backRGB.r);
-        const g = Math.round(alpha * foreRGBA.g + (1 - alpha) * backRGB.g);
-        const b = Math.round(alpha * foreRGBA.b + (1 - alpha) * backRGB.b);
-
-        return { r, g, b };
-    }
-
-
-    let i = 0
-    for (const frequency of frequencies) {
-
-        const { red, green, blue, alpha } = colorScale.getColor(frequency)
-        const foregroundRGBA = { r:red, g:green, b:blue, a:alpha }
-        const { r, g, b } = compositeColors(foregroundRGBA, backgroundRGB)
-
-        frequencyRGBAList[i++] = r
-        frequencyRGBAList[i++] = g
-        frequencyRGBAList[i++] = b
-        frequencyRGBAList[i++] = 255
-    }
-}
-
-async function renderArrayToCanvas(ctx, rgbaList, liveMapTraceLength) {
-
-    const { width, height } = ctx.canvas;
-
-    const imageData = new ImageData(rgbaList, liveMapTraceLength, liveMapTraceLength);
-
-    // const config =
-    //     {
-    //         resizeWidth: width,
-    //         resizeHeight: height
-    //     };
-    //
-    // const imageBitmap = await createImageBitmap(imageData, config);
-
-    const imageBitmap = await createImageBitmap(imageData)
-
-    ctx.transferFromImageBitmap(imageBitmap);
-
-}
-
 function createColorScaleKey(state, displayMode) {
     return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
 }
@@ -1046,16 +978,6 @@ function computeContactRecordsPercentile(contactRecords, p) {
 function colorScaleKey(state, displayMode) {
     return "" + state.chr1 + "_" + state.chr2 + "_" + state.zoom + "_" + state.normalization + "_" + displayMode;
 }
-
-/**
- * Returns a promise for an image tile
- *
- * @param zd
- * @param row
- * @param column
- * @param state
- * @returns {*}
- */
 
 const inProgressCache = {}
 
