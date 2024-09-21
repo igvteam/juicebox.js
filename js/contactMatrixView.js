@@ -104,26 +104,26 @@ class ContactMatrixView {
         this.drawsInProgress = new Set()
     }
 
-    assessPanelTabSelection(isliveContactMapTabSelection) {
-        this.isliveContactMapTabSelection = isliveContactMapTabSelection;
+    assessTabSelection(isliveMapTabSelection) {
+        this.isliveMapTabSelection = isliveMapTabSelection;
     }
 
-    selectStateAndDataset(isliveContactMapTabSelection) {
+    selectStateAndDataset(isliveMapTabSelection) {
 
-        const canUseLivePayload = !(undefined === this.browser.liveContactMapState || undefined === this.browser.liveContactMapDataSet)
+        const canUseLivePayload = !(undefined === this.browser.liveMapState || undefined === this.browser.liveMapDataSet)
         const canUseHiCPayload = !(undefined === this.browser.state || undefined === this.browser.dataset)
 
-        if (false === isliveContactMapTabSelection) {
+        if (false === isliveMapTabSelection) {
             if (true === canUseHiCPayload) {
                 return { state: this.browser.state, dataset: this.browser.dataset }
             } else if (true === canUseLivePayload) {
-                return { state: this.browser.liveContactMapState, dataset: this.browser.liveContactMapDataSet }
+                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataSet }
             } else {
                 return undefined
             }
         } else {
             if (true === canUseLivePayload) {
-                return { state: this.browser.liveContactMapState, dataset: this.browser.liveContactMapDataSet }
+                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataSet }
             } else {
                 return undefined
             }
@@ -132,7 +132,7 @@ class ContactMatrixView {
 
     resolution() {
 
-        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
+        const result = this.selectStateAndDataset(this.isliveMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
@@ -147,7 +147,7 @@ class ContactMatrixView {
 
     genomicState(browser, axis) {
 
-        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
+        const result = this.selectStateAndDataset(this.isliveMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
@@ -183,7 +183,7 @@ class ContactMatrixView {
 
     prepareCustomCrosshairsHandlerPayload({x, y, xNormalized, yNormalized}) {
 
-        const result = this.selectStateAndDataset(this.isliveContactMapTabSelection)
+        const result = this.selectStateAndDataset(this.isliveMapTabSelection)
 
         if (result) {
             const { state, dataset } = result
@@ -319,7 +319,7 @@ class ContactMatrixView {
             return
         }
 
-        console.log('ContactMatrixView - render Hi-C canvas')
+        console.log('ContactMatrixView.repaint(). Render Hi-C Map')
 
         const viewportWidth = this.$viewport.width()
         const viewportHeight = this.$viewport.height()
@@ -770,11 +770,11 @@ class ContactMatrixView {
         }
     }
 
-    checkColorScale_sw(browser, state, displayMode, liveContactMapDataSet, zoomData) {
+    checkColorScale_sw(browser, state, displayMode, liveMapDataSet, zoomData) {
 
         const colorScaleKey = createColorScaleKey(state, displayMode)
 
-        let percentile = computeContactRecordsPercentile(liveContactMapDataSet.contactRecordList, 95)
+        let percentile = computeContactRecordsPercentile(liveMapDataSet.contactRecordList, 95)
 
         if (!isNaN(percentile)) {
 

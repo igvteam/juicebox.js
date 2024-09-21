@@ -78,8 +78,8 @@ class HICBrowser {
         this.synchable = config.synchable !== false;
         this.synchedBrowsers = [];
 
-        this.liveContactMapState = undefined
-        this.liveContactMapDataSet = undefined
+        this.liveMapState = undefined
+        this.liveMapDataSet = undefined
 
         this.isMobile = hicUtils.isMobile();
 
