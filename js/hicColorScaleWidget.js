@@ -154,7 +154,13 @@ function paintSwatch($swatch, {r, g, b}) {
 
 const updateThreshold = (browser, scaleFactor) => {
     const colorScale = browser.getColorScale();
-    browser.setColorScaleThreshold(colorScale.getThreshold() * scaleFactor);
+
+    const threshold = colorScale.getThreshold() * scaleFactor
+
+    browser.setColorScaleThreshold(threshold);
+
+    browser.eventBus.post(new HICEvent("DidUpdateColorScaleThreshold", colorScale))
+
     return StringUtils.numberFormatter(colorScale.getThreshold());
 }
 
