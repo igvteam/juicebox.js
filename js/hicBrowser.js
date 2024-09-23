@@ -79,7 +79,7 @@ class HICBrowser {
         this.synchedBrowsers = [];
 
         this.liveMapState = undefined
-        this.liveMapDataSet = undefined
+        this.liveMapDataset = undefined
 
         this.isMobile = hicUtils.isMobile();
 

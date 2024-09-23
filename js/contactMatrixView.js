@@ -110,20 +110,20 @@ class ContactMatrixView {
 
     selectStateAndDataset(isliveMapTabSelection) {
 
-        const canUseLivePayload = !(undefined === this.browser.liveMapState || undefined === this.browser.liveMapDataSet)
+        const canUseLivePayload = !(undefined === this.browser.liveMapState || undefined === this.browser.liveMapDataset)
         const canUseHiCPayload = !(undefined === this.browser.state || undefined === this.browser.dataset)
 
         if (false === isliveMapTabSelection) {
             if (true === canUseHiCPayload) {
                 return { state: this.browser.state, dataset: this.browser.dataset }
             } else if (true === canUseLivePayload) {
-                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataSet }
+                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataset }
             } else {
                 return undefined
             }
         } else {
             if (true === canUseLivePayload) {
-                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataSet }
+                return { state: this.browser.liveMapState, dataset: this.browser.liveMapDataset }
             } else {
                 return undefined
             }
@@ -770,11 +770,11 @@ class ContactMatrixView {
         }
     }
 
-    checkColorScale_sw(browser, state, displayMode, liveMapDataSet, zoomData) {
+    checkColorScale_sw(browser, state, displayMode, liveMapDataset, zoomData) {
 
         const colorScaleKey = createColorScaleKey(state, displayMode)
 
-        let percentile = computeContactRecordsPercentile(liveMapDataSet.contactRecordList, 95)
+        let percentile = computeContactRecordsPercentile(liveMapDataset.contactRecordList, 95)
 
         if (!isNaN(percentile)) {
 
