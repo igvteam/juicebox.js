@@ -104,7 +104,7 @@ class ContactMatrixView {
         this.drawsInProgress = new Set()
     }
 
-    assessTabSelection(isliveMapTabSelection) {
+    assessLiveMapStatus(isliveMapTabSelection) {
         this.isliveMapTabSelection = isliveMapTabSelection;
     }
 
