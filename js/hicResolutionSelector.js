@@ -80,19 +80,22 @@ class ResolutionSelector {
     receiveEvent(event) {
 
         const browser = this.browser;
+        const state = event.data.state
+        const dataset = event.data.dataset || browser.dataset
 
         if (event.type === "LocusChange") {
+
             if (true === event.data.resolutionChanged) {
                 browser.resolutionLocked = false;
                 this.setResolutionLock(browser.resolutionLocked);
             }
 
             if (event.data.chrChanged !== false) {  // Default true
-                const isWholeGenome = browser.dataset.isWholeGenome(event.data.state.chr1);
+                const isWholeGenome = dataset.isWholeGenome(state.chr1);
                 this.$label.text(isWholeGenome ? 'Resolution (mb)' : 'Resolution (kb)');
-                updateResolutions.call(this, browser.state.zoom);
+                updateResolutions.call(this, state.zoom, dataset);
             } else {
-                const selectedIndex = browser.state.zoom;
+                const selectedIndex = state.zoom;
                 this.$resolution_selector
                     .find('option')
                     .filter(function (index) {
@@ -105,17 +108,14 @@ class ResolutionSelector {
             browser.resolutionLocked = false;
             this.setResolutionLock(false);
 
-            const { state } = event.data
-            updateResolutions.call(this, state.zoom);
+            updateResolutions.call(this, state.zoom, dataset);
         } else if (event.type === "ControlMapLoad") {
-            updateResolutions.call(this, browser.state.zoom)
+            updateResolutions.call(this, state.zoom, dataset)
         }
 
-        async function updateResolutions(zoomIndex) {
+        async function updateResolutions(zoomIndex, dataset) {
 
-            const resolutions = browser.isWholeGenome() ?
-                [{index: 0, binSize: browser.dataset.wholeGenomeResolution}] :
-                browser.getResolutions();
+            const resolutions = browser.isWholeGenome() ? [{index: 0, binSize: dataset.wholeGenomeResolution}] : browser.getResolutions();
             let htmlString = '';
             for (let resolution of resolutions) {
                 const binSize = resolution.binSize;

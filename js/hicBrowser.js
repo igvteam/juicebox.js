@@ -536,8 +536,13 @@ class HICBrowser {
         this.$contactMaplabel.attr('title', "");
         // this.$controlMaplabel.text("");
         // this.$controlMaplabel.attr('title', "");
+        
         this.dataset = undefined;
         this.controlDataset = undefined;
+
+        this.liveMapState = undefined
+        this.liveMapDataset = undefined
+
         this.unsyncSelf();
     }
 

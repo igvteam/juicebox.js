@@ -74,8 +74,8 @@ class ScrollbarWidget {
 
         if (!this.isDragging && event.type === "LocusChange") {
 
-            var state = event.data.state,
-                dataset = self.browser.dataset;
+            const state = event.data.state;
+            const dataset = event.data.dataset || self.browser.dataset;
 
             if (0 === state.chr1) {
                 this.$x_axis_scrollbar.hide();
@@ -91,9 +91,7 @@ class ScrollbarWidget {
                 const {chr1, chr2, zoom, pixelSize, x, y} = state;
 
                 // bp / bp-per-bin -> bin
-                chromosomeLengthsBin = [chr1, chr2].map(chr => {
-                    return dataset.chromosomes[chr].size / dataset.bpResolutions[zoom]
-                });
+                chromosomeLengthsBin = [chr1, chr2].map(chr => dataset.chromosomes[chr].size / dataset.bpResolutions[zoom]);
 
                 chromosomeLengthsPixel = chromosomeLengthsBin.map(bin => bin * pixelSize);
 

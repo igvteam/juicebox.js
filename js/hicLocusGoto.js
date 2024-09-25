@@ -58,13 +58,15 @@ class LocusGoto {
 
     locusChangeEventHandler(event){
 
-        let xy;
         const state = event.data.state || this.browser.state;
-        const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
+        const dataset = event.data.dataset || this.browser.dataset;
+
+        const isWholeGenome = dataset.isWholeGenome(state.chr1)
+
         if (isWholeGenome) {
             this.$resolution_selector.val('All')
         } else {
-            this.doChangeLocus({ state: event.data.state, dataset: this.browser.dataset })
+            this.doChangeLocus({ state, dataset })
         }
 
     }
