@@ -83,7 +83,8 @@ class HICBrowser {
 
         this.isMobile = hicUtils.isMobile();
 
-        this.$root = $('<div class="hic-root unselect">');
+        // this.$root = $('<div class="hic-root unselect">');
+        this.$root = $('<div class="hic-root">');
 
         LayoutController.syncCSSCustomProperties()
 
@@ -536,7 +537,7 @@ class HICBrowser {
         this.$contactMaplabel.attr('title', "");
         // this.$controlMaplabel.text("");
         // this.$controlMaplabel.attr('title', "");
-        
+
         this.dataset = undefined;
         this.controlDataset = undefined;
 
