@@ -29,6 +29,7 @@ import {init} from "./init.js"
 import EventBus from "./eventBus.js"
 import State from "./hicState.js";
 import ColorScale from "./colorScale.js"
+import HICEvent from "./hicEvent.js"
 
 export default {
     version,
@@ -43,5 +44,6 @@ export default {
     igvxhr,
     EventBus,
     State,
-    ColorScale
+    ColorScale,
+    HICEvent
 }
