@@ -77,7 +77,7 @@ class HICBrowser {
         this.normVectorFiles = []
 
         this.synchable = config.synchable !== false
-        this.synchedBrowsers = []
+        this.synchedBrowsers = new Set()
 
         this.isMobile = hicUtils.isMobile()
 
@@ -608,7 +608,8 @@ class HICBrowser {
      * @param browser
      */
     unsync(browser) {
-        this.synchedBrowsers = this.synchedBrowsers.filter(b => b != browser)
+        const list = [...this.synchedBrowsers]
+        this.synchedBrowsers = new Set(list.filter(b => b !== browser))
     }
 
     /**
@@ -1166,60 +1167,62 @@ class HICBrowser {
 
     /**
      * Used to synch state with other browsers
-     * @param state  browser state
      */
-    syncState(syncState) {
+    syncState(targetState) {
 
-        if (!syncState || false === this.synchable) return
+        if (!targetState || false === this.synchable) return
 
         if (!this.dataset) return
 
-        var chr1 = this.genome.getChromosome(syncState.chr1Name),
-            chr2 = this.genome.getChromosome(syncState.chr2Name),
-            zoom = this.dataset.getZoomIndexForBinSize(syncState.binSize, "BP"),
-            x = syncState.binX,
-            y = syncState.binY,
-            pixelSize = syncState.pixelSize
-
+        const chr1 = this.genome.getChromosome(targetState.chr1Name)
+        const chr2 = this.genome.getChromosome(targetState.chr2Name)
         if (!(chr1 && chr2)) {
             return   // Can't be synched.
         }
 
-        if (zoom === undefined) {
-            // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
-            zoom = this.findMatchingZoomIndex(syncState.binSize, this.dataset.bpResolutions)
+        let zoom = this.dataset.getZoomIndexForBinSize(targetState.binSize, "BP")
+        let pixelSize = targetState.pixelSize
 
-            // Compute equivalent in basepairs / pixel
-            pixelSize = (syncState.pixelSize / syncState.binSize) * this.dataset.bpResolutions[zoom]
+        let xBin = targetState.binX
+        let yBin = targetState.binY
+
+        if (zoom < 0) {
+            // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
+            zoom = this.findMatchingZoomIndex(targetState.binSize, this.dataset.bpResolutions)
+            const binSize = this.dataset.bpResolutions[zoom]
+
+            // pixel/bin
+            pixelSize = (targetState.pixelSize / targetState.binSize) * binSize
 
             // Translate bins so that origin is unchanged in basepairs
-            x = (syncState.binX / syncState.pixelSize) * pixelSize
-            y = (syncState.binY / syncState.pixelSize) * pixelSize
+            xBin = (targetState.binX / targetState.pixelSize) * pixelSize
+            yBin = (targetState.binY / targetState.pixelSize) * pixelSize
 
             if (pixelSize > MAX_PIXEL_SIZE) {
-                console.log("Cannot synch map " + this.dataset.name + " (resolution " + syncState.binSize + " not available)")
+                console.log("Cannot synch map " + this.dataset.name + " (resolution " + targetState.binSize + " not available)")
                 return
             }
         }
 
-
         const zoomChanged = (this.state.zoom !== zoom)
+
         const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index)
+
         this.state.chr1 = chr1.index
         this.state.chr2 = chr2.index
         this.state.zoom = zoom
-        this.state.x = x
-        this.state.y = y
+        this.state.x = xBin
+        this.state.y = yBin
         this.state.pixelSize = pixelSize
 
-        let event = HICEvent("LocusChange", {
-            state: this.state,
-            resolutionChanged: zoomChanged,
-            chrChanged: chrChanged
-        }, false)
+        const payload =
+            {
+                state: this.state,
+                resolutionChanged: zoomChanged,
+                chrChanged
+            }
 
-        this.update(event)
-        //this.eventBus.post(event);
+        this.update(HICEvent("LocusChange", payload, false))
 
     }
 
@@ -1328,17 +1331,6 @@ class HICBrowser {
         this.state.y = Math.min(Math.max(0, this.state.y), maxY)
     }
 
-    receiveEvent(event) {
-        // if ("LocusChange" === event.type) {
-        //     if (event.propogate) {
-        //         for (let browser of this.synchedBrowsers) {
-        //             browser.syncState(this.getSyncState());
-        //         }
-        //     }
-        //     this.update(event);
-        // }
-    }
-
     /**
      * Update the maps and tracks.  This method can be called from the browser event thread repeatedly, for example
      * while mouse dragging.  If called while an update is in progress queue the event for processing later.  It
@@ -1372,7 +1364,7 @@ class HICBrowser {
 
                 if (event && event.propogate) {
                     let syncState1 = this.getSyncState()
-                    for (let browser of this.synchedBrowsers) {
+                    for (const browser of [...this.synchedBrowsers]) {
                         browser.syncState(syncState1)
                     }
                 }
