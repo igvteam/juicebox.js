@@ -30,7 +30,6 @@ import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
-import Track2D from "./track2D.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20

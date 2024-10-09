@@ -82,6 +82,14 @@ class State {
         return s1 === s2;
     }
 
+    async sizeBP(dataset, zoomIndex, pixels){
+        const matrix = await dataset.getMatrix(this.chr1, this.chr2)
+        const { zoom } = matrix.getZoomDataByIndex(zoomIndex, 'BP')
+
+        // bp = pixel * (bp/bin) * (bin/pixel) = pixel * bp/pixel = bp
+        return pixels * (zoom.binSize/this.pixelSize)
+    }
+
     static parse(string) {
 
         const tokens = string.split(",")
