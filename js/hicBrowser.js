@@ -1060,10 +1060,9 @@ class HICBrowser {
 
         this.clamp()
 
-        const bpPerPixel = binSizeNew/this.state.pixelSize
-
-        const locus = getLocus(this.dataset, this.state, width, height, bpPerPixel)
-        console.log(`setZoom: ${ this.config.name } locus ${ locusDescription(locus) }`)
+        // const bpPerPixel = binSizeNew/this.state.pixelSize
+        // const locus = getLocus(this.dataset, this.state, width, height, bpPerPixel)
+        // console.log(`setZoom: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         await this.contactMatrixView.zoomIn()
 
@@ -1311,10 +1310,10 @@ class HICBrowser {
         this.state.y = newYBin
         this.state.pixelSize = pixelSize
 
-        console.log(`goto: bpPerPixelTarget ${ bpPerPixelTarget } === ${ binSizeNew/pixelSize }`)
-
-        const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/pixelSize)
-        console.log(`goto: ${ this.config.name } locus ${ locusDescription(locus) }`)
+        // console.log(`goto: bpPerPixelTarget ${ bpPerPixelTarget } === ${ binSizeNew/pixelSize }`)
+        //
+        // const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/pixelSize)
+        // console.log(`goto: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         this.contactMatrixView.clearImageCaches()
 

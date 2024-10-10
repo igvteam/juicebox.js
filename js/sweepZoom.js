@@ -103,10 +103,9 @@ class SweepZoom {
         const bpResolution = this.browser.dataset.bpResolutions[ zoom ]
 
         // bp/pixel = (bp/bin) / (pixel/bin) = bp/pixel
-        const bpPerPixel = bpResolution / pixelSize
-
-        const locus = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
-        console.log(`sweepZoom: ${ this.browser.config.name } locus ${ locusDescription(locus) }`)
+        // const bpPerPixel = bpResolution / pixelSize
+        // const locus = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
+        // console.log(`sweepZoom: ${ this.browser.config.name } locus ${ locusDescription(locus) }`)
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
         const xBP = (x + (xPixel / pixelSize)) * bpResolution
