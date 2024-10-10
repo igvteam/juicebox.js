@@ -1210,15 +1210,15 @@ class HICBrowser {
         this.state.y = yBinNew
         this.state.pixelSize = pixelSizeNew
 
-        const { width, height } = this.contactMatrixView.getViewDimensions()
-
-        const targetWidthBP = (targetState.binSize / targetState.pixelSize) * width
-        const widthBP = await this.state.sizeBP(this.dataset, this.state.zoom, width)
-
-        console.log(`syncState: targetWidthBP ${ StringUtils.numberFormatter(targetWidthBP) } syncedWidthBP ${ StringUtils.numberFormatter(widthBP) }`)
-
-        const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/this.state.pixelSize)
-        console.log(`syncState: ${ this.config.name } locus ${ locusDescription(locus) }`)
+        // const { width, height } = this.contactMatrixView.getViewDimensions()
+        //
+        // const targetWidthBP = (targetState.binSize / targetState.pixelSize) * width
+        // const widthBP = await this.state.sizeBP(this.dataset, this.state.zoom, width)
+        //
+        // console.log(`syncState: targetWidthBP ${ StringUtils.numberFormatter(targetWidthBP) } syncedWidthBP ${ StringUtils.numberFormatter(widthBP) }`)
+        //
+        // const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/this.state.pixelSize)
+        // console.log(`syncState: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         const payload =
             {
