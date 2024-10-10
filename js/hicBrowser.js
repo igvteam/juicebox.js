@@ -1198,8 +1198,8 @@ class HICBrowser {
         const binSizeNew = this.dataset.bpResolutions[ zoomNew ]
         const pixelSizeNew = Math.min(MAX_PIXEL_SIZE, Math.max(1, binSizeNew / bpPerPixelTarget))
 
-        const xBinNew = targetState.binX * (pixelSizeNew/targetState.pixelSize)
-        const yBinNew = targetState.binY * (pixelSizeNew/targetState.pixelSize)
+        const xBinNew = targetState.binX * (targetState.binSize/binSizeNew)
+        const yBinNew = targetState.binY * (targetState.binSize/binSizeNew)
 
         const zoomChanged = (this.state.zoom !== zoomNew)
         const chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index)
@@ -1211,8 +1211,6 @@ class HICBrowser {
         this.state.y = yBinNew
         this.state.pixelSize = pixelSizeNew
 
-        // console.log(`Target State PixelSize ${ targetState.pixelSize }. ${ this.config.name } State PixelSize ${ this.state.pixelSize }`)
-
         const { width, height } = this.contactMatrixView.getViewDimensions()
 
         const targetWidthBP = (targetState.binSize / targetState.pixelSize) * width
@@ -1222,66 +1220,6 @@ class HICBrowser {
 
         const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/this.state.pixelSize)
         console.log(`syncState: ${ this.config.name } locus ${ locusDescription(locus) }`)
-
-        const payload =
-            {
-                state: this.state,
-                resolutionChanged: zoomChanged,
-                chrChanged
-            }
-
-        this.update(HICEvent("LocusChange", payload, false))
-
-    }
-
-    __syncState(targetState) {
-
-        if (!targetState || false === this.synchable) return
-
-        if (!this.dataset) return
-
-        const chr1 = this.genome.getChromosome(targetState.chr1Name)
-        const chr2 = this.genome.getChromosome(targetState.chr2Name)
-        if (!(chr1 && chr2)) {
-            return   // Can't be synched.
-        }
-
-        let zoomChanged
-        let chrChanged
-
-        let zoom = this.dataset.getZoomIndexForBinSize(targetState.binSize, "BP")
-        let pixelSize = targetState.pixelSize
-
-        let xBin = targetState.binX
-        let yBin = targetState.binY
-
-        if (zoom < 0) {
-            // Get the closest zoom available and adjust pixel size.   TODO -- cache this somehow
-            zoom = this.findMatchingZoomIndex(targetState.binSize, this.dataset.bpResolutions)
-            const binSize = this.dataset.bpResolutions[zoom]
-
-            // pixel/bin
-            pixelSize = (targetState.pixelSize / targetState.binSize) * binSize
-
-            // Translate bins so that origin is unchanged in basepairs
-            xBin = (targetState.binX / targetState.pixelSize) * pixelSize
-            yBin = (targetState.binY / targetState.pixelSize) * pixelSize
-
-            if (pixelSize > MAX_PIXEL_SIZE) {
-                console.log("Cannot synch map " + this.dataset.name + " (resolution " + targetState.binSize + " not available)")
-                return
-            }
-        }
-
-        zoomChanged = (this.state.zoom !== zoom)
-        chrChanged = (this.state.chr1 !== chr1.index || this.state.chr2 !== chr2.index)
-
-        this.state.chr1 = chr1.index
-        this.state.chr2 = chr2.index
-        this.state.zoom = zoom
-        this.state.x = xBin
-        this.state.y = yBin
-        this.state.pixelSize = pixelSize
 
         const payload =
             {
