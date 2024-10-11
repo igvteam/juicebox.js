@@ -129,7 +129,7 @@ function setCurrentBrowser(browser) {// unselect current browser
 function deleteBrowser(browser) {
     browser.unsyncSelf();
     browser.$root.remove();
-    allBrowsers = allBrowsers.filter(b => b != browser);
+    allBrowsers = allBrowsers.filter(b => b !== browser);
     if (allBrowsers.length <= 1) {
         allBrowsers.forEach(function (b) {
             b.$browser_panel_delete_button.hide();
@@ -150,11 +150,12 @@ function syncBrowsers(browsers) {
         for (let b2 of synchableBrowsers) {
             if (b1 === b2) continue;
             if (b1.dataset.isCompatible(b2.dataset)) {
-                b1.synchedBrowsers.push(b2);
-                b2.synchedBrowsers.push(b1);
+                b1.synchedBrowsers.add(b2);
+                b2.synchedBrowsers.add(b1);
             }
         }
     }
+
 }
 
 function getAllBrowsers() {

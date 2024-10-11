@@ -26,11 +26,10 @@
  */
 
 import $ from '../vendor/jquery-3.3.1.slim.js'
-import {IGVColor} from '../node_modules/igv-utils/src/index.js'
+import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
-import Track2D from "./track2D.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -443,6 +442,8 @@ class ContactMatrixView {
 
                         if (features) {
 
+                            // console.log(`contactMatrixView - getImageTile(): render 2D annotations ${ features.length }`)
+
                             for (let {chr1, x1, x2, y1, y2, color} of features) {
 
                                 ctx.strokeStyle = track2D.color || color
@@ -460,21 +461,31 @@ class ContactMatrixView {
                                 let px2 = (fx2 - x0bp) / zd.zoom.binSize
                                 let py1 = (fy1 - y0bp) / zd.zoom.binSize
                                 let py2 = (fy2 - y0bp) / zd.zoom.binSize
-                                let w = px2 - px1
-                                let h = py2 - py1
+                                let w = Math.round(Math.max(1, px2 - px1))
+                                let h = Math.round(Math.max(1, py2 - py1))
 
                                 const dim = Math.max(image.width, image.height)
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
 
                                     if (!onDiagonalTile || "upper" !== track2D.displayMode) {
-                                        ctx.strokeRect(px1, py1, w, h)
+                                        const xx = Math.round(px1)
+                                        const yy = Math.round(py1)
+                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
+                                        const endStr = `width ${ StringUtils.numberFormatter(w) } height ${ StringUtils.numberFormatter(h) }`
+                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
+                                        ctx.strokeRect(xx, yy, w, h)
                                     }
 
                                     // By convention intra-chromosome data is always stored in lower diagonal coordinates.
                                     // If we are on a diagonal tile, draw the symettrical reflection unless display mode is lower
                                     if (onDiagonalTile && "lower" !== track2D.displayMode) {
-                                        ctx.strokeRect(py1, px1, h, w)
+                                        const xx = Math.round(py1)
+                                        const yy = Math.round(px1)
+                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
+                                        const endStr = `width ${ StringUtils.numberFormatter(h) } height ${ StringUtils.numberFormatter(w) }`
+                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
+                                        ctx.strokeRect(xx, yy, h, w)
                                     }
                                 }
                             }
