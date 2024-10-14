@@ -30,6 +30,7 @@ import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
+import {getLocus} from "./genomicUtils.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -176,6 +177,35 @@ class ContactMatrixView {
         if (this.disableUpdates) return   // This flag is set during browser startup
 
         await this.repaint()
+
+        const matrix = await this.browser.dataset.getMatrix(this.browser.state.chr1, this.browser.state.chr2)
+        const zoomData = matrix.getZoomDataByIndex(this.browser.state.zoom, 'BP')
+
+        const { width, height } = this.getViewDimensions()
+        const bpPerPixel = zoomData.zoom.binSize/this.browser.state.pixelSize
+        const { xStarBP, yStartBP, xEndBP, yEndBP } = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
+
+        for (const track2D of this.browser.tracks2D) {
+
+            const features = track2D.getFeatures(zoomData.chr1.name, zoomData.chr1.name)
+
+            for (const { x1, x2, y1, y2, color } of features) {
+
+                this.ctx.strokeStyle = 'pink'
+
+                if (x1 >= xStarBP && x2 <= xEndBP && y1 >= yStartBP && y2 <= yEndBP) {
+
+                    const width = Math.max(1, (x2 - x1) / bpPerPixel)
+                    const height = Math.max(1, (y2 - y1) / bpPerPixel)
+                    const exe = Math.floor((x1-xStarBP)/bpPerPixel)
+                    const wye = Math.floor((y1-yStartBP)/bpPerPixel)
+                    console.log(`${ Date.now() } render feature width ${ width } height ${ height }`)
+
+                    this.ctx.strokeRect(exe, wye, width, height)
+                }
+
+            }
+        }
 
     }
 
@@ -424,10 +454,12 @@ class ContactMatrixView {
                 ctx.save()
                 ctx.lineWidth = 2
 
-
                 const onDiagonalTile = sameChr && row === column
 
                 for (let track2D of this.browser.tracks2D) {
+
+                    ctx.strokeStyle = track2D.color || color
+
                     const skip =
                         !track2D.isVisible ||
                         (sameChr && "lower" === track2D.displayMode  && row < column) ||
@@ -442,11 +474,7 @@ class ContactMatrixView {
 
                         if (features) {
 
-                            // console.log(`contactMatrixView - getImageTile(): render 2D annotations ${ features.length }`)
-
-                            for (let {chr1, x1, x2, y1, y2, color} of features) {
-
-                                ctx.strokeStyle = track2D.color || color
+                            for (const {chr1, x1, x2, y1, y2, color} of features) {
 
                                 // Chr name order -- test for equality of zoom data chr1 and feature chr1
                                 const flip = chr1Name !== chr1
@@ -467,14 +495,14 @@ class ContactMatrixView {
                                 const dim = Math.max(image.width, image.height)
                                 if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
-
                                     if (!onDiagonalTile || "upper" !== track2D.displayMode) {
                                         const xx = Math.round(px1)
                                         const yy = Math.round(py1)
                                         const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
                                         const endStr = `width ${ StringUtils.numberFormatter(w) } height ${ StringUtils.numberFormatter(h) }`
                                         // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-                                        ctx.strokeRect(xx, yy, w, h)
+
+                                        // ctx.strokeRect(xx, yy, w, h)
                                     }
 
                                     // By convention intra-chromosome data is always stored in lower diagonal coordinates.
@@ -485,10 +513,12 @@ class ContactMatrixView {
                                         const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
                                         const endStr = `width ${ StringUtils.numberFormatter(h) } height ${ StringUtils.numberFormatter(w) }`
                                         // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-                                        ctx.strokeRect(xx, yy, h, w)
+
+                                        // ctx.strokeRect(xx, yy, h, w)
                                     }
                                 }
-                            }
+
+                            } // for(...)
 
                         } // if (features)
 
@@ -499,8 +529,9 @@ class ContactMatrixView {
                 ctx.restore()
 
                 // Uncomment to reveal tile boundaries for debugging.
-                // ctx.fillStyle = "rgb(255,255,255)"
-                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                // ctx.strokeStyle = "rgb(255,255,255)"
+                ctx.strokeStyle = "pink"
+                ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
 
                 var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}
