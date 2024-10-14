@@ -183,29 +183,54 @@ class ContactMatrixView {
 
         const { width, height } = this.getViewDimensions()
         const bpPerPixel = zoomData.zoom.binSize/this.browser.state.pixelSize
-        const { xStarBP, yStartBP, xEndBP, yEndBP } = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
+        const { xStartBP, yStartBP, xEndBP, yEndBP } = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
+
+        this.ctx.save()
+        this.ctx.lineWidth = 2
+
+        const renderFeatures = (xS, xE, yS, yE) => {
+            const w = Math.max(1, (xE - xS)/bpPerPixel)
+            const h = Math.max(1, (yE - yS)/bpPerPixel)
+            const x = Math.floor((xS - xStartBP)/bpPerPixel)
+            const y = Math.floor((yS - yStartBP)/bpPerPixel)
+            this.ctx.strokeRect(x, y, w, h)
+        }
+
+        const renderUpperFeatures = (track2D, features) => {
+            for (const { x1:xS, x2:xE, y1:yS, y2:yE, color } of features) {
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
+
+        const renderLowerFeatures = (track2D, features) => {
+            for (const { x1:yS, x2:yE, y1:xS, y2:xE, color } of features) {
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
 
         for (const track2D of this.browser.tracks2D) {
 
             const features = track2D.getFeatures(zoomData.chr1.name, zoomData.chr1.name)
 
-            for (const { x1, x2, y1, y2, color } of features) {
+            if (features) {
 
-                this.ctx.strokeStyle = 'pink'
-
-                if (x1 >= xStarBP && x2 <= xEndBP && y1 >= yStartBP && y2 <= yEndBP) {
-
-                    const width = Math.max(1, (x2 - x1) / bpPerPixel)
-                    const height = Math.max(1, (y2 - y1) / bpPerPixel)
-                    const exe = Math.floor((x1-xStarBP)/bpPerPixel)
-                    const wye = Math.floor((y1-yStartBP)/bpPerPixel)
-                    console.log(`${ Date.now() } render feature width ${ width } height ${ height }`)
-
-                    this.ctx.strokeRect(exe, wye, width, height)
+                if ('COLLAPSED' === track2D.displayMode || undefined === track2D.displayMode) {
+                    renderUpperFeatures(track2D, features)
+                    renderLowerFeatures(track2D, features)
+                } else if ('upper' === track2D.displayMode) {
+                    renderUpperFeatures(track2D, features)
+                } else if ('lower' === track2D.displayMode) {
+                    renderLowerFeatures(track2D, features)
                 }
 
             }
+
+
         }
+
+        this.ctx.restore()
 
     }
 
@@ -446,96 +471,14 @@ class ContactMatrixView {
                     }
 
                     ctx.putImageData(id, 0, 0)
-                } else {
-                    //console.log("No block for " + blockNumber);
                 }
-
-                //Draw 2D tracks
-                ctx.save()
-                ctx.lineWidth = 2
-
-                const onDiagonalTile = sameChr && row === column
-
-                for (let track2D of this.browser.tracks2D) {
-
-                    ctx.strokeStyle = track2D.color || color
-
-                    const skip =
-                        !track2D.isVisible ||
-                        (sameChr && "lower" === track2D.displayMode  && row < column) ||
-                        (sameChr && "upper" === track2D.displayMode && row > column)
-
-                    if (!skip) {
-
-                        const chr1Name = zd.chr1.name
-                        const chr2Name = zd.chr2.name
-
-                        const features = track2D.getFeatures(chr1Name, chr2Name)
-
-                        if (features) {
-
-                            for (const {chr1, x1, x2, y1, y2, color} of features) {
-
-                                // Chr name order -- test for equality of zoom data chr1 and feature chr1
-                                const flip = chr1Name !== chr1
-
-                                //Note: transpose = sameChr && row < column
-                                const fx1 = transpose || flip ? y1 : x1
-                                const fx2 = transpose || flip ? y2 : x2
-                                const fy1 = transpose || flip ? x1 : y1
-                                const fy2 = transpose || flip ? x2 : y2
-
-                                let px1 = (fx1 - x0bp) / zd.zoom.binSize
-                                let px2 = (fx2 - x0bp) / zd.zoom.binSize
-                                let py1 = (fy1 - y0bp) / zd.zoom.binSize
-                                let py2 = (fy2 - y0bp) / zd.zoom.binSize
-                                let w = Math.round(Math.max(1, px2 - px1))
-                                let h = Math.round(Math.max(1, py2 - py1))
-
-                                const dim = Math.max(image.width, image.height)
-                                if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
-
-                                    if (!onDiagonalTile || "upper" !== track2D.displayMode) {
-                                        const xx = Math.round(px1)
-                                        const yy = Math.round(py1)
-                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
-                                        const endStr = `width ${ StringUtils.numberFormatter(w) } height ${ StringUtils.numberFormatter(h) }`
-                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-
-                                        // ctx.strokeRect(xx, yy, w, h)
-                                    }
-
-                                    // By convention intra-chromosome data is always stored in lower diagonal coordinates.
-                                    // If we are on a diagonal tile, draw the symettrical reflection unless display mode is lower
-                                    if (onDiagonalTile && "lower" !== track2D.displayMode) {
-                                        const xx = Math.round(py1)
-                                        const yy = Math.round(px1)
-                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
-                                        const endStr = `width ${ StringUtils.numberFormatter(h) } height ${ StringUtils.numberFormatter(w) }`
-                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-
-                                        // ctx.strokeRect(xx, yy, h, w)
-                                    }
-                                }
-
-                            } // for(...)
-
-                        } // if (features)
-
-                    } // if (track2D.isVisible)
-                }
-
-
-                ctx.restore()
 
                 // Uncomment to reveal tile boundaries for debugging.
                 // ctx.strokeStyle = "rgb(255,255,255)"
-                ctx.strokeStyle = "pink"
-                ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
+                // ctx.strokeStyle = "pink"
+                // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
-
-                var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}
-
+                const imageTile = { row, column, blockBinCount: imageTileDimension, image }
 
                 if (this.imageTileCacheLimit > 0) {
                     if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
@@ -549,7 +492,6 @@ class ContactMatrixView {
                 return imageTile
 
             } finally {
-                //console.log("Finish load for " + key)
                 this.drawsInProgress.delete(key)
                 this.stopSpinner()
             }
