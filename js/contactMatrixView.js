@@ -179,84 +179,9 @@ class ContactMatrixView {
 
         await this.repaint()
 
-        if (true === doLegacyTrack2DRendering) {
-            return
+        if (false === doLegacyTrack2DRendering){
+            await this.render2DTracks(this.browser.tracks2D, this.browser.dataset, this.browser.state)
         }
-
-        const matrix = await this.browser.dataset.getMatrix(this.browser.state.chr1, this.browser.state.chr2)
-        const zoomData = matrix.getZoomDataByIndex(this.browser.state.zoom, 'BP')
-
-        const { width, height } = this.getViewDimensions()
-        const bpPerPixel = zoomData.zoom.binSize/this.browser.state.pixelSize
-        const { xStartBP, yStartBP, xEndBP, yEndBP } =  getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
-
-        const chr1Name = zoomData.chr1.name
-        const chr2Name = zoomData.chr2.name
-
-        const sameChr = zoomData.chr1.index === zoomData.chr2.index
-
-        this.ctx.save()
-        this.ctx.lineWidth = 2
-
-        const renderFeatures = (xS, xE, yS, yE) => {
-
-            if (xE < xStartBP || xS > xEndBP || yE < yStartBP || yS > yEndBP) {
-                // trivially reject
-            } else {
-                const w = Math.max(1, (xE - xS)/bpPerPixel)
-                const h = Math.max(1, (yE - yS)/bpPerPixel)
-                const x = Math.floor((xS - xStartBP)/bpPerPixel)
-                const y = Math.floor((yS - yStartBP)/bpPerPixel)
-                this.ctx.strokeRect(x, y, w, h)
-            }
-
-        }
-
-        const renderLowerFeatures = (track2D, features) => {
-            for (const { chr1, x1:xS, x2:xE, y1:yS, y2:yE, color } of features) {
-
-                const flip = chr1Name !== chr1
-
-                this.ctx.strokeStyle = track2D.color || color
-                renderFeatures(xS, xE, yS, yE)
-            }
-        }
-
-        const renderUpperFeatures = (track2D, features) => {
-            for (const { chr1, x1:yS, x2:yE, y1:xS, y2:xE, color } of features) {
-
-                const flip = chr1Name !== chr1
-
-                this.ctx.strokeStyle = track2D.color || color
-                renderFeatures(xS, xE, yS, yE)
-            }
-        }
-
-        for (const track2D of this.browser.tracks2D) {
-
-            if (false === track2D.isVisible) {
-                continue
-            }
-
-            const features = track2D.getFeatures(zoomData.chr1.name, zoomData.chr1.name)
-
-            if (features) {
-
-                if ('COLLAPSED' === track2D.displayMode || undefined === track2D.displayMode) {
-                    renderLowerFeatures(track2D, features)
-                    renderUpperFeatures(track2D, features)
-                } else if ('lower' === track2D.displayMode) {
-                    renderLowerFeatures(track2D, features)
-                } else if ('upper' === track2D.displayMode) {
-                    renderUpperFeatures(track2D, features)
-                }
-
-            }
-
-
-        }
-
-        this.ctx.restore()
 
     }
 
@@ -1089,6 +1014,84 @@ class ContactMatrixView {
 
     }
 
+    async render2DTracks(track2DList, dataset, state) {
+
+        const matrix = await dataset.getMatrix(state.chr1, state.chr2)
+        const zoomData = matrix.getZoomDataByIndex(state.zoom, 'BP')
+
+        const { width, height } = this.getViewDimensions()
+        const bpPerPixel = zoomData.zoom.binSize/state.pixelSize
+        const { xStartBP, yStartBP, xEndBP, yEndBP } =  getLocus(dataset, state, width, height, bpPerPixel)
+
+        const chr1Name = zoomData.chr1.name
+        const chr2Name = zoomData.chr2.name
+
+        const sameChr = zoomData.chr1.index === zoomData.chr2.index
+
+        this.ctx.save()
+        this.ctx.lineWidth = 2
+
+        const renderFeatures = (xS, xE, yS, yE) => {
+
+            if (xE < xStartBP || xS > xEndBP || yE < yStartBP || yS > yEndBP) {
+                // trivially reject
+            } else {
+                const w = Math.max(1, (xE - xS)/bpPerPixel)
+                const h = Math.max(1, (yE - yS)/bpPerPixel)
+                const x = Math.floor((xS - xStartBP)/bpPerPixel)
+                const y = Math.floor((yS - yStartBP)/bpPerPixel)
+                this.ctx.strokeRect(x, y, w, h)
+            }
+
+        }
+
+        const renderLowerFeatures = (track2D, features) => {
+            for (const { chr1, x1:xS, x2:xE, y1:yS, y2:yE, color } of features) {
+
+                const flip = chr1Name !== chr1
+
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
+
+        const renderUpperFeatures = (track2D, features) => {
+            for (const { chr1, x1:yS, x2:yE, y1:xS, y2:xE, color } of features) {
+
+                const flip = chr1Name !== chr1
+
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
+
+        for (const track2D of track2DList) {
+
+            if (false === track2D.isVisible) {
+                continue
+            }
+
+            const features = track2D.getFeatures(zoomData.chr1.name, zoomData.chr1.name)
+
+            if (features) {
+
+                if ('COLLAPSED' === track2D.displayMode || undefined === track2D.displayMode) {
+                    renderLowerFeatures(track2D, features)
+                    renderUpperFeatures(track2D, features)
+                } else if ('lower' === track2D.displayMode) {
+                    renderLowerFeatures(track2D, features)
+                } else if ('upper' === track2D.displayMode) {
+                    renderUpperFeatures(track2D, features)
+                }
+
+            }
+
+
+        }
+
+        this.ctx.restore()
+
+    }
 }
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
