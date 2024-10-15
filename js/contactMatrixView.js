@@ -179,7 +179,7 @@ class ContactMatrixView {
 
         await this.repaint()
 
-        if (false === doLegacyTrack2DRendering){
+        if (this.browser.dataset && false === doLegacyTrack2DRendering){
             await this.render2DTracks(this.browser.tracks2D, this.browser.dataset, this.browser.state)
         }
 
