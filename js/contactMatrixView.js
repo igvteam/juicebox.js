@@ -183,17 +183,23 @@ class ContactMatrixView {
 
         const { width, height } = this.getViewDimensions()
         const bpPerPixel = zoomData.zoom.binSize/this.browser.state.pixelSize
-        const { xStartBP, yStartBP, xEndBP, yEndBP } = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
+        const { xStartBP, yStartBP, xEndBP, yEndBP } =  getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
 
         this.ctx.save()
         this.ctx.lineWidth = 2
 
         const renderFeatures = (xS, xE, yS, yE) => {
-            const w = Math.max(1, (xE - xS)/bpPerPixel)
-            const h = Math.max(1, (yE - yS)/bpPerPixel)
-            const x = Math.floor((xS - xStartBP)/bpPerPixel)
-            const y = Math.floor((yS - yStartBP)/bpPerPixel)
-            this.ctx.strokeRect(x, y, w, h)
+
+            if (xE < xStartBP || xS > xEndBP || yE < yStartBP || yS > yEndBP) {
+                // trivially reject
+            } else {
+                const w = Math.max(1, (xE - xS)/bpPerPixel)
+                const h = Math.max(1, (yE - yS)/bpPerPixel)
+                const x = Math.floor((xS - xStartBP)/bpPerPixel)
+                const y = Math.floor((yS - yStartBP)/bpPerPixel)
+                this.ctx.strokeRect(x, y, w, h)
+            }
+
         }
 
         const renderUpperFeatures = (track2D, features) => {
