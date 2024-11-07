@@ -30,6 +30,7 @@ import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
+import {getLocus} from "./genomicUtils.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -37,8 +38,9 @@ const DOUBLE_TAP_TIME_THRESHOLD = 300
 
 const imageTileDimension = 685
 
-class ContactMatrixView {
+const doLegacyTrack2DRendering = false
 
+class ContactMatrixView {
 
     constructor(browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
 
@@ -86,7 +88,7 @@ class ContactMatrixView {
     setBackgroundColor(rgb) {
         this.backgroundColor = rgb
         this.backgroundRGBString = IGVColor.rgbColor(rgb.r, rgb.g, rgb.b)
-        this.repaint()
+        this.update()
     }
 
     stringifyBackgroundColor() {
@@ -176,6 +178,10 @@ class ContactMatrixView {
         if (this.disableUpdates) return   // This flag is set during browser startup
 
         await this.repaint()
+
+        if (this.browser.dataset && false === doLegacyTrack2DRendering){
+            await this.render2DTracks(this.browser.tracks2D, this.browser.dataset, this.browser.state)
+        }
 
     }
 
@@ -416,95 +422,83 @@ class ContactMatrixView {
                     }
 
                     ctx.putImageData(id, 0, 0)
-                } else {
-                    //console.log("No block for " + blockNumber);
                 }
 
-                //Draw 2D tracks
-                ctx.save()
-                ctx.lineWidth = 2
+
+                if (true === doLegacyTrack2DRendering) {
+
+                    //Draw 2D tracks
+                    ctx.save()
+                    ctx.lineWidth = 2
+
+                    const onDiagonalTile = sameChr && row === column
+
+                    for (let track2D of this.browser.tracks2D) {
+                        const skip =
+                            !track2D.isVisible ||
+                            (sameChr && "lower" === track2D.displayMode  && row < column) ||
+                            (sameChr && "upper" === track2D.displayMode && row > column)
+
+                        if (!skip) {
+
+                            const chr1Name = zd.chr1.name
+                            const chr2Name = zd.chr2.name
+
+                            const features = track2D.getFeatures(chr1Name, chr2Name)
+
+                            if (features) {
+
+                                for (let {chr1, x1, x2, y1, y2, color} of features) {
+
+                                    ctx.strokeStyle = track2D.color || color
+
+                                    // Chr name order -- test for equality of zoom data chr1 and feature chr1
+                                    const flip = chr1Name !== chr1
+
+                                    //Note: transpose = sameChr && row < column
+                                    const fx1 = transpose || flip ? y1 : x1
+                                    const fx2 = transpose || flip ? y2 : x2
+                                    const fy1 = transpose || flip ? x1 : y1
+                                    const fy2 = transpose || flip ? x2 : y2
+
+                                    let px1 = (fx1 - x0bp) / zd.zoom.binSize
+                                    let px2 = (fx2 - x0bp) / zd.zoom.binSize
+                                    let py1 = (fy1 - y0bp) / zd.zoom.binSize
+                                    let py2 = (fy2 - y0bp) / zd.zoom.binSize
+                                    let w = px2 - px1
+                                    let h = py2 - py1
+
+                                    const dim = Math.max(image.width, image.height)
+                                    if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
 
 
-                const onDiagonalTile = sameChr && row === column
+                                        if (!onDiagonalTile || "upper" !== track2D.displayMode) {
+                                            ctx.strokeRect(px1, py1, w, h)
+                                        }
 
-                for (let track2D of this.browser.tracks2D) {
-                    const skip =
-                        !track2D.isVisible ||
-                        (sameChr && "lower" === track2D.displayMode  && row < column) ||
-                        (sameChr && "upper" === track2D.displayMode && row > column)
-
-                    if (!skip) {
-
-                        const chr1Name = zd.chr1.name
-                        const chr2Name = zd.chr2.name
-
-                        const features = track2D.getFeatures(chr1Name, chr2Name)
-
-                        if (features) {
-
-                            // console.log(`contactMatrixView - getImageTile(): render 2D annotations ${ features.length }`)
-
-                            for (let {chr1, x1, x2, y1, y2, color} of features) {
-
-                                ctx.strokeStyle = track2D.color || color
-
-                                // Chr name order -- test for equality of zoom data chr1 and feature chr1
-                                const flip = chr1Name !== chr1
-
-                                //Note: transpose = sameChr && row < column
-                                const fx1 = transpose || flip ? y1 : x1
-                                const fx2 = transpose || flip ? y2 : x2
-                                const fy1 = transpose || flip ? x1 : y1
-                                const fy2 = transpose || flip ? x2 : y2
-
-                                let px1 = (fx1 - x0bp) / zd.zoom.binSize
-                                let px2 = (fx2 - x0bp) / zd.zoom.binSize
-                                let py1 = (fy1 - y0bp) / zd.zoom.binSize
-                                let py2 = (fy2 - y0bp) / zd.zoom.binSize
-                                let w = Math.round(Math.max(1, px2 - px1))
-                                let h = Math.round(Math.max(1, py2 - py1))
-
-                                const dim = Math.max(image.width, image.height)
-                                if (px2 > 0 && px1 < dim && py2 > 0 && py1 < dim) {
-
-
-                                    if (!onDiagonalTile || "upper" !== track2D.displayMode) {
-                                        const xx = Math.round(px1)
-                                        const yy = Math.round(py1)
-                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
-                                        const endStr = `width ${ StringUtils.numberFormatter(w) } height ${ StringUtils.numberFormatter(h) }`
-                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-                                        ctx.strokeRect(xx, yy, w, h)
-                                    }
-
-                                    // By convention intra-chromosome data is always stored in lower diagonal coordinates.
-                                    // If we are on a diagonal tile, draw the symettrical reflection unless display mode is lower
-                                    if (onDiagonalTile && "lower" !== track2D.displayMode) {
-                                        const xx = Math.round(py1)
-                                        const yy = Math.round(px1)
-                                        const startStr = `xStart ${ StringUtils.numberFormatter(xx) } yStart ${ StringUtils.numberFormatter(yy) }`
-                                        const endStr = `width ${ StringUtils.numberFormatter(h) } height ${ StringUtils.numberFormatter(w) }`
-                                        // console.log(`render ${ chr1 } ${ startStr } ${ endStr }`)
-                                        ctx.strokeRect(xx, yy, h, w)
+                                        // By convention intra-chromosome data is always stored in lower diagonal coordinates.
+                                        // If we are on a diagonal tile, draw the symmetrical reflection unless display mode is lower
+                                        if (onDiagonalTile && "lower" !== track2D.displayMode) {
+                                            ctx.strokeRect(py1, px1, h, w)
+                                        }
                                     }
                                 }
-                            }
 
-                        } // if (features)
+                            } // if (features)
 
-                    } // if (track2D.isVisible)
-                }
+                        }
+                    }
 
+                    ctx.restore()
 
-                ctx.restore()
+                } // if (true === doLegacyTrack2DRendering)
 
                 // Uncomment to reveal tile boundaries for debugging.
-                // ctx.fillStyle = "rgb(255,255,255)"
+                // ctx.strokeStyle = "rgb(255,255,255)"
+                // ctx.strokeStyle = "pink"
                 // ctx.strokeRect(0, 0, image.width - 1, image.height - 1)
 
-
-                var imageTile = {row: row, column: column, blockBinCount: imageTileDimension, image: image}
-
+                const imageTile = { row, column, blockBinCount: imageTileDimension, image }
 
                 if (this.imageTileCacheLimit > 0) {
                     if (this.imageTileCacheKeys.length > this.imageTileCacheLimit) {
@@ -518,7 +512,6 @@ class ContactMatrixView {
                 return imageTile
 
             } finally {
-                //console.log("Finish load for " + key)
                 this.drawsInProgress.delete(key)
                 this.stopSpinner()
             }
@@ -533,7 +526,7 @@ class ContactMatrixView {
             imageData.data[index + 3] = a
         }
 
-    };
+    }
 
     /**
      * Return a promise to adjust the color scale, if needed.  This function might need to load the contact
@@ -677,7 +670,6 @@ class ContactMatrixView {
         }
         this.spinnerCount = Math.max(0, this.spinnerCount)   // This should not be neccessary
     }
-
 
     addMouseHandlers($viewport) {
 
@@ -856,7 +848,6 @@ class ContactMatrixView {
         }
     }
 
-
     /**
      * Add touch handlers.  Touches are mapped to one of the following application level events
      *  - double tap, equivalent to double click
@@ -1023,6 +1014,84 @@ class ContactMatrixView {
 
     }
 
+    async render2DTracks(track2DList, dataset, state) {
+
+        const matrix = await dataset.getMatrix(state.chr1, state.chr2)
+        const zoomData = matrix.getZoomDataByIndex(state.zoom, 'BP')
+
+        const { width, height } = this.getViewDimensions()
+        const bpPerPixel = zoomData.zoom.binSize/state.pixelSize
+        const { xStartBP, yStartBP, xEndBP, yEndBP } =  getLocus(dataset, state, width, height, bpPerPixel)
+
+        const chr1Name = zoomData.chr1.name
+        const chr2Name = zoomData.chr2.name
+
+        const sameChr = zoomData.chr1.index === zoomData.chr2.index
+
+        this.ctx.save()
+        this.ctx.lineWidth = 2
+
+        const renderFeatures = (xS, xE, yS, yE) => {
+
+            if (xE < xStartBP || xS > xEndBP || yE < yStartBP || yS > yEndBP) {
+                // trivially reject
+            } else {
+                const w = Math.max(1, (xE - xS)/bpPerPixel)
+                const h = Math.max(1, (yE - yS)/bpPerPixel)
+                const x = Math.floor((xS - xStartBP)/bpPerPixel)
+                const y = Math.floor((yS - yStartBP)/bpPerPixel)
+                this.ctx.strokeRect(x, y, w, h)
+            }
+
+        }
+
+        const renderLowerFeatures = (track2D, features) => {
+            for (const { chr1, x1:xS, x2:xE, y1:yS, y2:yE, color } of features) {
+
+                const flip = chr1Name !== chr1
+
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
+
+        const renderUpperFeatures = (track2D, features) => {
+            for (const { chr1, x1:yS, x2:yE, y1:xS, y2:xE, color } of features) {
+
+                const flip = chr1Name !== chr1
+
+                this.ctx.strokeStyle = track2D.color || color
+                renderFeatures(xS, xE, yS, yE)
+            }
+        }
+
+        for (const track2D of track2DList) {
+
+            if (false === track2D.isVisible) {
+                continue
+            }
+
+            const features = track2D.getFeatures(zoomData.chr1.name, zoomData.chr1.name)
+
+            if (features) {
+
+                if ('COLLAPSED' === track2D.displayMode || undefined === track2D.displayMode) {
+                    renderLowerFeatures(track2D, features)
+                    renderUpperFeatures(track2D, features)
+                } else if ('lower' === track2D.displayMode) {
+                    renderLowerFeatures(track2D, features)
+                } else if ('upper' === track2D.displayMode) {
+                    renderUpperFeatures(track2D, features)
+                }
+
+            }
+
+
+        }
+
+        this.ctx.restore()
+
+    }
 }
 
 ContactMatrixView.defaultBackgroundColor = {r: 255, g: 255, b: 255}
@@ -1078,7 +1147,6 @@ function getMatrices(chr1, chr2) {
     }
     return Promise.all(promises)
 }
-
 
 function computePercentile(records, p) {
     const counts = records.map(r => r.counts)
