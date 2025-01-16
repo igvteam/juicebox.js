@@ -1,0 +1,45 @@
+<html>
+<head>
+    <meta charSet="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <title>Juicebox - ES6 </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <!-- Font Awesome CSS-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.css">
+
+    <!-- Juicebox CSS-->
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
+
+</head>
+
+<body>
+
+<div id="app-container"></div>
+
+<script type="module">
+
+    import juicebox from '../js/index.js';
+
+    const config =
+        {
+            "backgroundColor": "255,255,255",
+            "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic",
+            "name": "Combined",
+            "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
+            "normalization": "VC_SQRT",
+            "colorScale": "66.20668236071833,255,0,0",
+        }
+
+
+    juicebox.init(document.getElementById("app-container"), config)
+        .then(browser => {
+            console.log(`${browser.id} is good to go`)
+        })
+
+
+</script>
+
+</body>
+
+</html>
