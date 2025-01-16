@@ -8,6 +8,7 @@ import TrackRenderer from './trackRenderer.js';
 import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
 import HICEvent from "./hicEvent.js";
 import EventBus from "./eventBus.js";
+import { createDOMFromHTMLString } from "./utils.js"
 
 // Keep these magic numbers in sync with corresponding juicebox.scss variables
 
@@ -38,7 +39,7 @@ class LayoutController {
 
         this.browser = browser;
 
-        createNavBar(browser, $root);
+        createNavBar(browser, $root.get(0));
 
         this.createAllContainers(browser, $root);
     }
@@ -298,22 +299,27 @@ class LayoutController {
     }
 }
 
-const getNavbarHeight = () => 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
+function getNavbarHeight() {
+    return 2 * (nav_bar_label_height + nav_bar_widget_container_height + (2 * nav_bar_widget_container_margin));
+}
 
-const getNavbarContainer = browser => browser.$root.find('.hic-navbar-container');
+function getNavbarContainer(browser) {
+    return browser.$root.find('.hic-navbar-container');
+}
 
-function createNavBar(browser, $root) {
+function createNavBar(browser, root) {
 
-    const $hic_navbar_container = $('<div>', {class: 'hic-navbar-container'});
-    $root.append($hic_navbar_container);
+    const hicNavbarContainer = document.createElement('div');
+    hicNavbarContainer.className = 'hic-navbar-container';
+    root.appendChild(hicNavbarContainer);
 
-    $hic_navbar_container.on('click', e => {
+    hicNavbarContainer.addEventListener('click', e => {
         e.stopPropagation();
         e.preventDefault();
         setCurrentBrowser(browser);
     });
 
-    const html_contact_map_hic_nav_bar_map_container =
+    const htmlContactMapHicNavBarMapContainer =
         `<div id="${browser.id}-contact-map-hic-nav-bar-map-container">
             <div id="${browser.id}-contact-map-hic-nav-bar-map-label"></div>
              <div class="hic-nav-bar-button-container">
@@ -322,34 +328,32 @@ function createNavBar(browser, $root) {
              </div>
         </div>`;
 
-    $hic_navbar_container.append($(html_contact_map_hic_nav_bar_map_container));
+    hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlContactMapHicNavBarMapContainer));
 
-    browser.$contactMaplabel = $hic_navbar_container.find("div[id$='contact-map-hic-nav-bar-map-label']");
+    browser.contactMapLabel = hicNavbarContainer.querySelector(`div[id$='contact-map-hic-nav-bar-map-label']`);
+    browser.menuPresentDismiss = hicNavbarContainer.querySelector('.fa-bars');
+    browser.menuPresentDismiss.addEventListener('click', e => browser.toggleMenu());
 
-    browser.$menuPresentDismiss = $hic_navbar_container.find('.fa-bars');
-    browser.$menuPresentDismiss.on('click', e => browser.toggleMenu());
+    browser.browserPanelDeleteButton = hicNavbarContainer.querySelector('.fa-minus-circle');
+    browser.browserPanelDeleteButton.addEventListener('click', e => deleteBrowser(browser));
 
-    browser.$browser_panel_delete_button = $hic_navbar_container.find('.fa-minus-circle');
-    browser.$browser_panel_delete_button.on('click', e => deleteBrowser(browser));
+    // Delete button is only visible if there is more than one browser
+    browser.browserPanelDeleteButton.style.display = 'none';
 
-    // Delete button is only vidible if there is more then one browser
-    browser.$browser_panel_delete_button.hide();
-
-    const html_control_map_hic_nav_bar_map_container =
+    const htmlControlMapHicNavBarMapContainer =
         `<div id="${browser.id}-control-map-hic-nav-bar-map-container">
             <div id="${browser.id}-control-map-hic-nav-bar-map-label"></div>
         </div>`;
 
-    $hic_navbar_container.append($(html_control_map_hic_nav_bar_map_container));
+    hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlControlMapHicNavBarMapContainer));
 
-    browser.$controlMaplabel = $hic_navbar_container.find("div[id$='control-map-hic-nav-bar-map-label']");
+    browser.controlMapLabel = hicNavbarContainer.querySelector(`div[id$='control-map-hic-nav-bar-map-label']`);
 
-    const html_upper_hic_nav_bar_widget_container = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
-    $hic_navbar_container.append($(html_upper_hic_nav_bar_widget_container));
+    const htmlUpperHicNavBarWidgetContainer = `<div id="${browser.id}-upper-hic-nav-bar-widget-container"></div>`;
+    hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlUpperHicNavBarWidgetContainer));
 
-    const html_lower_hic_nav_bar_widget_container = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
-    $hic_navbar_container.append($(html_lower_hic_nav_bar_widget_container));
-
+    const htmlLowerHicNavBarWidgetContainer = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
+    hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlLowerHicNavBarWidgetContainer));
 }
 
 export {getNavbarHeight, getNavbarContainer};

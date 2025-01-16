@@ -27,7 +27,7 @@
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {Alert, InputDialog, DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
-import {FileUtils, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {FileUtils} from '../node_modules/igv-utils/src/index.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js"
@@ -55,7 +55,6 @@ import {getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
 import {setTrackReorderArrowColors} from "./trackPair.js"
 import nvi from './nvi.js'
-import {getLocus, locusDescription} from "./genomicUtils.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
@@ -154,11 +153,6 @@ class HICBrowser {
         try {
             this.contactMatrixView.startSpinner()
             this.$user_interaction_shield.show()
-
-            // if (!config.name) config.name = await extractName(config)
-            // const prefix = hasControl ? "A: " : "";
-            // browser.$contactMaplabel.text(prefix + config.name);
-            // browser.$contactMaplabel.attr('title', config.name);
 
             await this.loadHicFile(config, true)
 
