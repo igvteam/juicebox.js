@@ -571,10 +571,10 @@ class HICBrowser {
         this.contactMatrixView.clearImageCaches()
         this.tracks2D = []
         this.tracks = []
-        this.$contactMaplabel.text("")
-        this.$contactMaplabel.attr('title', "")
-        this.$controlMaplabel.text("")
-        this.$controlMaplabel.attr('title', "")
+        this.contactMapLabel.textContent = "";
+        this.contactMapLabel.title = "";
+        this.controlMapLabel.textContent = "";
+        this.controlMapLabel.title = "";
         this.dataset = undefined
         this.controlDataset = undefined
         this.unsyncSelf()
@@ -634,8 +634,8 @@ class HICBrowser {
 
             const name = extractName(config)
             const prefix = this.controlDataset ? "A: " : ""
-            this.$contactMaplabel.text(prefix + name)
-            this.$contactMaplabel.attr('title', name)
+            this.contactMapLabel.textContent = prefix + name;
+            this.contactMapLabel.setAttribute('title', name);
             config.name = name
 
             const hicFileAlert = str => {
@@ -702,8 +702,8 @@ class HICBrowser {
             }
 
         } catch (error) {
-            this.$contactMaplabel.text('')
-            this.$contactMaplabel.attr('')
+            this.contactMapLabel.textContent = "";
+            this.contactMapLabel.title = "";
             config.name = name
             throw error
         } finally {
@@ -743,7 +743,7 @@ class HICBrowser {
             if (!this.dataset || this.dataset.isCompatible(controlDataset)) {
                 this.controlDataset = controlDataset
                 if (this.dataset) {
-                    this.$contactMaplabel.text("A: " + this.dataset.name)
+                    this.contactMapLabel.textContent = "A: " + this.dataset.name;
                 }
                 this.$controlMaplabel.text("B: " + controlDataset.name)
                 this.$controlMaplabel.attr('title', controlDataset.name)
