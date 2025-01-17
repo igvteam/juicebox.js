@@ -34,13 +34,13 @@ const trackHeight = 36;
 
 class LayoutController {
 
-    constructor(browser, $root) {
+    constructor(browser, rootElement) {
 
         this.browser = browser;
 
-        createNavBar(browser, $root.get(0));
+        createNavBar(browser, rootElement);
 
-        this.createAllContainers(browser, $root.get(0));
+        this.createAllContainers(browser, rootElement);
     }
 
     createAllContainers(browser, root) {
@@ -258,7 +258,7 @@ function getNavbarHeight() {
 }
 
 function getNavbarContainer(browser) {
-    return browser.$root.find('.hic-navbar-container');
+    return browser.rootElement.querySelector('.hic-navbar-container');
 }
 
 function createNavBar(browser, root) {

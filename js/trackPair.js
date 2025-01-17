@@ -13,8 +13,10 @@ import Tile from "./tile.js";
 class TrackPair {
 
     constructor(browser, track) {
-        this.browser = browser;
-        this.track = track;
+        this.browser = browser
+        this.track = track
+        this.x = undefined
+        this.y = undefined
     }
 
     init() {

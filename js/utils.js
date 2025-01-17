@@ -4,4 +4,9 @@ function createDOMFromHTMLString(string) {
     return template.content.firstElementChild;
 }
 
-export { createDOMFromHTMLString }
+function getOffset(element) {
+    const { top, left } = element.getBoundingClientRect();
+    return { top: top + window.scrollY, left: left + window.scrollX };
+}
+
+export { createDOMFromHTMLString, getOffset }
