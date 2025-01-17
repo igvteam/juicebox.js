@@ -30,18 +30,6 @@ import {IGVColor, IGVMath} from '../node_modules/igv-utils/src/index.js'
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import $ from '../vendor/jquery-3.3.1.slim.js'
 
-function randomRGB(min, max) {
-
-    min = IGVMath.clamp(min, 0, 255)
-    max = IGVMath.clamp(max, 0, 255)
-
-    const r = Math.round(Math.random() * (max - min) + min).toString(10)
-    const g = Math.round(Math.random() * (max - min) + min).toString(10)
-    const b = Math.round(Math.random() * (max - min) + min).toString(10)
-    return `rgb(${r},${g},${b})`
-
-}
-
 class Ruler {
 
     constructor(browser, parentElement, axis) {
@@ -176,23 +164,25 @@ class Ruler {
     hideWholeGenome() {
         this.wholeGenomeContainerElement.style.display = 'none';
         this.canvasElement.style.display = 'block';
-    };
+    }
 
     showWholeGenome() {
         this.canvasElement.style.display = 'none';
         this.wholeGenomeContainerElement.style.display = 'block';
-    };
+    }
 
     setAxisTransform(axis) {
 
         this.canvasTransform    = ('y' === axis) ? canvasTransformWithContext      : identityTransformWithContext
         this.labelTransform     = ('y' === axis) ? labelTransformWithContext : noopTransformWithContext
 
-    };
+    }
 
     unhighlightWholeChromosome() {
-        this.$wholeGenomeContainer.children().removeClass('hic-whole-genome-chromosome-highlight');
-    };
+        for (const child of this.wholeGenomeContainerElement.children) {
+            child.classList.remove('hic-whole-genome-chromosome-highlight');
+        }
+    }
 
     receiveEvent(event) {
         let offset, element;
@@ -216,7 +206,7 @@ class Ruler {
 
         this.update();
 
-    };
+    }
 
     updateWidthWithCalculation(calc) {
         this.axisElement.style.width = calc;
@@ -227,7 +217,7 @@ class Ruler {
 
         this.wholeGenomeLayout(this.axisElement, this.wholeGenomeContainerElement, this.axis, this.browser.dataset);
         this.update();
-    };
+    }
 
     updateHeight(height) {
         this.canvasElement.height = height;
@@ -235,7 +225,7 @@ class Ruler {
 
         this.wholeGenomeLayout(this.axisElement, this.wholeGenomeContainerElement, this.axis, this.browser.dataset);
         this.update();
-    };
+    }
 
     update() {
         const browser = this.browser;
@@ -289,7 +279,7 @@ class Ruler {
         config.height = Math.min(this.canvasElement.width, this.canvasElement.height);
 
         this.draw(config);
-    };
+    }
 
     draw(options) {
         const {
@@ -301,7 +291,8 @@ class Ruler {
             chrName
         } = options;
 
-        const { chromosomes, state } = this.browser;
+        const { chromosomes } = this.browser.dataset;
+        const { state } = this.browser;
         const axisIsX = this.axis === 'x';
         const chr = axisIsX ? chromosomes[state.chr1] : chromosomes[state.chr2];
         const { name: chrNameSelected, size: chrSize } = chr;
@@ -401,7 +392,7 @@ const formatNumber = (num, decimal = 0) => {
     // formattedNum = `$${formattedNum}`;
 
     return formattedNum;
-};
+}
 
 function bbox(axis, childElement, firstChildElement) {
     const offset = axis === 'x'
