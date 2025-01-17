@@ -25,7 +25,6 @@
  * @author Jim Robinson
  */
 
-import $ from '../vendor/jquery-3.3.1.slim.js'
 import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
@@ -42,47 +41,43 @@ const doLegacyTrack2DRendering = false
 
 class ContactMatrixView {
 
-    constructor(browser, $viewport, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
+    constructor(browser, viewportElement, sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor) {
+        this.browser = browser;
+        this.viewportElement = viewportElement;
+        this.sweepZoom = sweepZoom;
+        this.scrollbarWidget = scrollbarWidget;
 
-
-        this.browser = browser
-        this.$viewport = $viewport
-        this.sweepZoom = sweepZoom
-        this.scrollbarWidget = scrollbarWidget
-
-        // Set initial color scales.  These might be overriden / adjusted via parameters
-        this.colorScale = colorScale
-
-        this.ratioColorScale = ratioColorScale
+        // Set initial color scales. These might be overridden/adjusted via parameters
+        this.colorScale = colorScale;
+        this.ratioColorScale = ratioColorScale;
         // this.diffColorScale = new RatioColorScale(100, false);
 
-        this.backgroundColor = backgroundColor
-        this.backgroundRGBString = IGVColor.rgbColor(backgroundColor.r, backgroundColor.g, backgroundColor.b)
+        this.backgroundColor = backgroundColor;
+        this.backgroundRGBString = IGVColor.rgbColor(backgroundColor.r, backgroundColor.g, backgroundColor.b);
 
-        this.$canvas = $viewport.find('canvas')
-        this.ctx = this.$canvas.get(0).getContext('2d')
+        this.canvasElement = viewportElement.querySelector('canvas');
+        this.ctx = this.canvasElement.getContext('2d');
 
-        this.$fa_spinner = $viewport.find('.fa-spinner')
-        this.spinnerCount = 0
+        this.faSpinnerElement = viewportElement.querySelector('.fa-spinner');
+        this.spinnerCount = 0;
 
-        this.$x_guide = $viewport.find("div[id$='-x-guide']")
-        this.$y_guide = $viewport.find("div[id$='-y-guide']")
+        this.xGuideElement = viewportElement.querySelector("div[id$='-x-guide']");
+        this.yGuideElement = viewportElement.querySelector("div[id$='-y-guide']");
 
-        this.displayMode = 'A'
-        this.imageTileCache = {}
-        this.imageTileCacheKeys = []
-        this.imageTileCacheLimit = 8 //8 is the minimum number required to support A/B cycling
-        this.colorScaleThresholdCache = {}
+        this.displayMode = 'A';
+        this.imageTileCache = {};
+        this.imageTileCacheKeys = [];
+        this.imageTileCacheLimit = 8; // 8 is the minimum number required to support A/B cycling
+        this.colorScaleThresholdCache = {};
 
+        this.browser.eventBus.subscribe("NormalizationChange", this);
+        this.browser.eventBus.subscribe("TrackLoad2D", this);
+        this.browser.eventBus.subscribe("TrackState2D", this);
+        this.browser.eventBus.subscribe("MapLoad", this);
+        this.browser.eventBus.subscribe("ControlMapLoad", this);
+        this.browser.eventBus.subscribe("ColorChange", this);
 
-        this.browser.eventBus.subscribe("NormalizationChange", this)
-        this.browser.eventBus.subscribe("TrackLoad2D", this)
-        this.browser.eventBus.subscribe("TrackState2D", this)
-        this.browser.eventBus.subscribe("MapLoad", this)
-        this.browser.eventBus.subscribe("ControlMapLoad", this)
-        this.browser.eventBus.subscribe("ColorChange", this)
-
-        this.drawsInProgress = new Set()
+        this.drawsInProgress = new Set();
     }
 
     setBackgroundColor(rgb) {
@@ -148,28 +143,26 @@ class ContactMatrixView {
 
     getViewDimensions() {
         return {
-            width: this.$viewport.width(),
-            height: this.$viewport.height()
-        }
+            width: this.viewportElement.offsetWidth,
+            height: this.viewportElement.offsetHeight
+        };
     }
 
     async receiveEvent(event) {
-
-        if ("MapLoad" === event.type || "ControlMapLoad" === event.type) {
-
+        if (event.type === "MapLoad" || event.type === "ControlMapLoad") {
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
-                this.addTouchHandlers(this.$viewport)
-                this.addMouseHandlers(this.$viewport)
-                this.mouseHandlersEnabled = true
+                this.addTouchHandlers(this.viewportElement);
+                this.addMouseHandlers(this.viewportElement);
+                this.mouseHandlersEnabled = true;
             }
-            this.clearImageCaches()
-            this.colorScaleThresholdCache = {}
+            this.clearImageCaches();
+            this.colorScaleThresholdCache = {};
         } else {
-            if (!("LocusChange" === event.type)) {
-                this.clearImageCaches()
+            if (event.type !== "LocusChange") {
+                this.clearImageCaches();
             }
-            this.update()
+            this.update();
         }
     }
 
@@ -186,91 +179,76 @@ class ContactMatrixView {
     }
 
     async repaint() {
+        if (!this.browser.dataset) return;
 
-        if (!this.browser.dataset) {
-            return
-        }
+        const viewportWidth = this.viewportElement.offsetWidth;
+        const viewportHeight = this.viewportElement.offsetHeight;
+        const canvasWidth = this.canvasElement.width;
+        const canvasHeight = this.canvasElement.height;
 
-        const viewportWidth = this.$viewport.width()
-        const viewportHeight = this.$viewport.height()
-        const canvasWidth = this.$canvas.width()
-        const canvasHeight = this.$canvas.height()
         if (canvasWidth !== viewportWidth || canvasHeight !== viewportHeight) {
-            this.$canvas.width(viewportWidth)
-            this.$canvas.height(viewportHeight)
-            this.$canvas.attr('width', this.$viewport.width())
-            this.$canvas.attr('height', this.$viewport.height())
+            this.canvasElement.width = viewportWidth;
+            this.canvasElement.height = viewportHeight;
+            this.canvasElement.setAttribute('width', viewportWidth);
+            this.canvasElement.setAttribute('height', viewportHeight);
         }
 
-        const browser = this.browser
-        const state = browser.state
+        const { state, dataset, controlDataset } = this.browser;
+        let ds = dataset, dsControl = null, zdControl = null;
+        let zoom = state.zoom, controlZoom;
 
-        let ds
-        let dsControl
-        let zdControl
-        let zoom
-        let controlZoom
         switch (this.displayMode) {
-            case 'A':
-                zoom = state.zoom
-                ds = this.browser.dataset
-                break
             case 'B':
-                zoom = getBZoomIndex(state.zoom)
-                ds = this.browser.controlDataset
-                break
+                zoom = getBZoomIndex(state.zoom);
+                ds = controlDataset;
+                break;
             case 'AOB':
             case 'AMB':
-                zoom = state.zoom
-                controlZoom = getBZoomIndex(state.zoom)
-                ds = this.browser.dataset
-                dsControl = this.browser.controlDataset
-                break
+                controlZoom = getBZoomIndex(state.zoom);
+                dsControl = controlDataset;
+                break;
             case 'BOA':
-                zoom = getBZoomIndex(state.zoom)
-                controlZoom = state.zoom
-                ds = this.browser.controlDataset
-                dsControl = this.browser.dataset
+                zoom = getBZoomIndex(state.zoom);
+                controlZoom = state.zoom;
+                ds = controlDataset;
+                dsControl = dataset;
+                break;
         }
 
-        const matrix = await ds.getMatrix(state.chr1, state.chr2)
-        const unit = "BP"   // FRAG is not supported
-        const zd = matrix.getZoomDataByIndex(zoom, unit)
+        const matrix = await ds.getMatrix(state.chr1, state.chr2);
+        const zd = matrix.getZoomDataByIndex(zoom, "BP");
 
         if (dsControl) {
-            const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2)
-            zdControl = matrixControl.getZoomDataByIndex(controlZoom, unit)
+            const matrixControl = await dsControl.getMatrix(state.chr1, state.chr2);
+            zdControl = matrixControl.getZoomDataByIndex(controlZoom, "BP");
         }
 
-        const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize))
-        const widthInBins = this.$viewport.width() / pixelSizeInt
-        const heightInBins = this.$viewport.height() / pixelSizeInt
-        const blockCol1 = Math.floor(state.x / imageTileDimension)
-        const blockCol2 = Math.floor((state.x + widthInBins) / imageTileDimension)
-        const blockRow1 = Math.floor(state.y / imageTileDimension)
-        const blockRow2 = Math.floor((state.y + heightInBins) / imageTileDimension)
+        const pixelSizeInt = Math.max(1, Math.floor(state.pixelSize));
+        const widthInBins = viewportWidth / pixelSizeInt;
+        const heightInBins = viewportHeight / pixelSizeInt;
+        const blockCol1 = Math.floor(state.x / imageTileDimension);
+        const blockCol2 = Math.floor((state.x + widthInBins) / imageTileDimension);
+        const blockRow1 = Math.floor(state.y / imageTileDimension);
+        const blockRow2 = Math.floor((state.y + heightInBins) / imageTileDimension);
 
-        if ("NONE" !== state.normalization) {
+        if (state.normalization !== "NONE") {
             if (!ds.hasNormalizationVector(state.normalization, zd.chr1.name, zd.zoom.unit, zd.zoom.binSize)) {
-                Alert.presentAlert("Normalization option " + normalization + " unavailable at this resolution.")
-                this.browser.eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"))
-                state.normalization = "NONE"
+                Alert.presentAlert(`Normalization option ${state.normalization} unavailable at this resolution.`);
+                this.browser.eventBus.post(new HICEvent("NormalizationExternalChange", "NONE"));
+                state.normalization = "NONE";
             }
         }
 
-        await this.checkColorScale(ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization)
+        await this.checkColorScale(ds, zd, blockRow1, blockRow2, blockCol1, blockCol2, state.normalization);
 
-        this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
+        this.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
         for (let r = blockRow1; r <= blockRow2; r++) {
             for (let c = blockCol1; c <= blockCol2; c++) {
-                const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state)
-                if (tile.image) {
-                    this.paintTile(tile)
-                }
+                const tile = await this.getImageTile(ds, dsControl, zd, zdControl, r, c, state);
+                if (tile.image) this.paintTile(tile);
             }
         }
 
-        // Record genomic extent of current canvas
         this.genomicExtent = {
             chr1: state.chr1,
             chr2: state.chr2,
@@ -278,18 +256,16 @@ class ContactMatrixView {
             y: state.y * zd.zoom.binSize,
             w: viewportWidth * zd.zoom.binSize / state.pixelSize,
             h: viewportHeight * zd.zoom.binSize / state.pixelSize
-        }
+        };
 
         function getBZoomIndex(zoom) {
-            const binSize = browser.dataset.getBinSizeForZoomIndex(zoom)
-            if (!binSize) {
-                throw Error("Invalid zoom (resolution) index: " + zoom)
-            }
-            const bZoom = browser.controlDataset.getZoomIndexForBinSize(binSize)
-            if (bZoom < 0) {
-                throw Error(`Invalid binSize for "B" map: ${binSize}`)
-            }
-            return bZoom
+            const binSize = dataset.getBinSizeForZoomIndex(zoom);
+            if (!binSize) throw new Error(`Invalid zoom (resolution) index: ${zoom}`);
+
+            const bZoom = controlDataset.getZoomIndexForBinSize(binSize);
+            if (bZoom < 0) throw new Error(`Invalid binSize for "B" map: ${binSize}`);
+
+            return bZoom;
         }
     }
 
@@ -586,40 +562,40 @@ class ContactMatrixView {
     }
 
     async zoomIn() {
-        const state = this.browser.state
-        const viewportWidth = this.$viewport.width()
-        const viewportHeight = this.$viewport.height()
-        const matrices = await getMatrices.call(this, state.chr1, state.chr2)
+        const state = this.browser.state;
+        const viewportWidth = this.viewportElement.offsetWidth;
+        const viewportHeight = this.viewportElement.offsetHeight;
+        const matrices = await getMatrices.call(this, state.chr1, state.chr2);
 
-        var matrix = matrices[0]
+        const matrix = matrices[0];
 
         if (matrix) {
-            const unit = "BP"
-            const zd = await matrix.getZoomDataByIndex(state.zoom, unit)
+            const unit = "BP";
+            const zd = await matrix.getZoomDataByIndex(state.zoom, unit);
             const newGenomicExtent = {
                 x: state.x * zd.zoom.binSize,
                 y: state.y * zd.zoom.binSize,
                 w: viewportWidth * zd.zoom.binSize / state.pixelSize,
                 h: viewportHeight * zd.zoom.binSize / state.pixelSize
-            }
+            };
 
             // Zoom out not supported
-            if (newGenomicExtent.w > this.genomicExtent.w) return
+            if (newGenomicExtent.w > this.genomicExtent.w) return;
 
-            const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth
-            const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight
-            const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth
-            const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight
-            const img = this.$canvas[0]
+            const sx = ((newGenomicExtent.x - this.genomicExtent.x) / this.genomicExtent.w) * viewportWidth;
+            const sy = ((newGenomicExtent.y - this.genomicExtent.y) / this.genomicExtent.w) * viewportHeight;
+            const sWidth = (newGenomicExtent.w / this.genomicExtent.w) * viewportWidth;
+            const sHeight = (newGenomicExtent.h / this.genomicExtent.h) * viewportHeight;
+            const img = this.canvasElement;
 
-            const backCanvas = document.createElement('canvas')
-            backCanvas.width = img.width
-            backCanvas.height = img.height
-            const backCtx = backCanvas.getContext('2d')
-            backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight)
+            const backCanvas = document.createElement('canvas');
+            backCanvas.width = img.width;
+            backCanvas.height = img.height;
+            const backCtx = backCanvas.getContext('2d');
+            backCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, viewportWidth, viewportHeight);
 
-            this.ctx.clearRect(0, 0, viewportWidth, viewportHeight)
-            this.ctx.drawImage(backCanvas, 0, 0)
+            this.ctx.clearRect(0, 0, viewportWidth, viewportHeight);
+            this.ctx.drawImage(backCanvas, 0, 0);
         }
     }
 
@@ -637,10 +613,7 @@ class ContactMatrixView {
         const scaledWidth = image.width * scale
         const scaledHeight = image.height * scale
 
-        const viewportWidth = this.$viewport.width()
-        const viewportHeight = this.$viewport.height()
-
-        if (offsetX <= viewportWidth && offsetX + scaledWidth >= 0 && offsetY <= viewportHeight && offsetY + scaledHeight >= 0) {
+        if (offsetX <= this.viewportElement.offsetWidth && offsetX + scaledWidth >= 0 && offsetY <= this.viewportElement.offsetHeight && offsetY + scaledHeight >= 0) {
             this.ctx.fillStyle = this.backgroundRGBString
             this.ctx.fillRect(offsetX, offsetY, scaledWidth, scaledHeight)
             if (scale === 1) {
@@ -655,198 +628,133 @@ class ContactMatrixView {
     }
 
     startSpinner() {
-
-        if (true === this.browser.isLoadingHICFile && this.browser.$user_interaction_shield) {
-            this.browser.$user_interaction_shield.show()
+        if (this.browser.isLoadingHICFile && this.browser.userInteractionShieldElement) {
+            this.browser.userInteractionShieldElement.style.display = 'block';
         }
-        this.$fa_spinner.css("display", "inline-block")
-        this.spinnerCount++
+        this.faSpinnerElement.style.display = 'inline-block';
+        this.spinnerCount++;
     }
 
     stopSpinner() {
-        this.spinnerCount--
-        if (0 === this.spinnerCount) {
-            this.$fa_spinner.css("display", "none")
+        this.spinnerCount--;
+        if (this.spinnerCount === 0) {
+            this.faSpinnerElement.style.display = 'none';
         }
-        this.spinnerCount = Math.max(0, this.spinnerCount)   // This should not be neccessary
+        this.spinnerCount = Math.max(0, this.spinnerCount); // This should not be necessary
     }
 
-    addMouseHandlers($viewport) {
+    addMouseHandlers(viewportElement) {
+        let isMouseDown = false;
+        let isSweepZooming = false;
+        let mouseDown, mouseLast, mouseOver;
 
-        let isMouseDown = false
-        let isSweepZooming = false
-        let mouseDown
-        let mouseLast
-        let mouseOver
-
-        const panMouseUpOrMouseOut = (e) => {
-            if (true === this.isDragging) {
-                this.isDragging = false
-                this.browser.eventBus.post(HICEvent("DragStopped"))
+        const panMouseUpOrMouseOut = () => {
+            if (this.isDragging) {
+                this.isDragging = false;
+                this.browser.eventBus.post(HICEvent("DragStopped"));
             }
-            isMouseDown = false
-            mouseDown = mouseLast = undefined
-        }
+            isMouseDown = false;
+            mouseDown = mouseLast = undefined;
+        };
 
-        // function shiftCurrentImage(self, dx, dy) {
-        //     var canvasWidth = self.$canvas.width(),
-        //         canvasHeight = self.$canvas.height(),
-        //         imageData;
-        //
-        //     imageData = self.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-        //     self.ctx.clearRect(0, 0, canvasWidth, canvasHeight);
-        //     self.ctx.putImageData(imageData, dx, dy);
-        // }
-        //
-        // function mouseWheelHandler(e) {
-        //     e.preventDefault();
-        //     e.stopPropagation();
-        //
-        //     const t = Date.now();
-        //     if (lastWheelTime === undefined || (t - lastWheelTime > 1000)) {
-        //         // cross-browser wheel delta  -- Firefox returns a "detail" object that is opposite in sign to wheelDelta
-        //         var direction = e.deltaY < 0 ? 1 : -1,
-        //             coords = DOMUtils.translateMouseCoordinates(e, $viewport[0]),
-        //             x = coords.x,
-        //             y = coords.y;
-        //         self.browser.wheelClickZoom(direction, x, y);
-        //         lastWheelTime = t;
-        //     }
-        // }
-
-
-        this.isDragging = false
+        this.isDragging = false;
 
         if (!this.browser.isMobile) {
+            viewportElement.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const mouseX = e.offsetX;
+                const mouseY = e.offsetY;
+                this.browser.zoomAndCenter(1, mouseX, mouseY);
+            });
 
-            $viewport.dblclick((e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                const mouseX = e.offsetX || e.layerX
-                const mouseY = e.offsetY || e.layerX
-                this.browser.zoomAndCenter(1, mouseX, mouseY)
-            })
+            viewportElement.addEventListener('mouseover', () => mouseOver = true);
+            viewportElement.addEventListener('mouseout', () => mouseOver = undefined);
 
-            $viewport.on('mouseover', (e) => mouseOver = true)
+            viewportElement.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
 
-            $viewport.on('mouseout', (e) => mouseOver = undefined)
-
-            $viewport.on('mousedown', (e) => {
-
-                e.preventDefault()
-                e.stopPropagation()
-
-                if (this.browser.$menu.is(':visible')) {
-                    this.browser.hideMenu()
+                if (this.browser.menuElement?.style.display === 'block') {
+                    this.browser.hideMenu();
                 }
 
-                mouseLast = {x: e.offsetX, y: e.offsetY}
-                mouseDown = {x: e.offsetX, y: e.offsetY}
+                mouseLast = { x: e.offsetX, y: e.offsetY };
+                mouseDown = { x: e.offsetX, y: e.offsetY };
+                isSweepZooming = e.altKey;
 
-                isSweepZooming = (true === e.altKey)
                 if (isSweepZooming) {
-                    const eFixed = $.event.fix(e)
-                    this.sweepZoom.initialize({x: eFixed.pageX, y: eFixed.pageY})
+                    this.sweepZoom.initialize({ x: e.pageX, y: e.pageY });
                 }
 
-                isMouseDown = true
+                isMouseDown = true;
+            });
 
-            })
+            viewportElement.addEventListener('mousemove', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const coords = { x: e.offsetX, y: e.offsetY };
+                const xy = {
+                    x: e.pageX - viewportElement.getBoundingClientRect().left,
+                    y: e.pageY - viewportElement.getBoundingClientRect().top
+                };
 
-            $viewport.on('mousemove', (e) => {
+                const { width, height } = viewportElement.getBoundingClientRect();
+                xy.xNormalized = xy.x / width;
+                xy.yNormalized = xy.y / height;
 
-                e.preventDefault()
-                e.stopPropagation()
-                const coords =
-                    {
-                        x: e.offsetX,
-                        y: e.offsetY
-                    }
+                this.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false));
 
-                // Sets pageX and pageY for browsers that don't support them
-                const eFixed = $.event.fix(e)
-
-                const xy =
-                    {
-                        x: eFixed.pageX - $viewport.offset().left,
-                        y: eFixed.pageY - $viewport.offset().top
-                    }
-
-                const {width, height} = $viewport.get(0).getBoundingClientRect()
-                xy.xNormalized = xy.x / width
-                xy.yNormalized = xy.y / height
-
-
-                this.browser.eventBus.post(HICEvent("UpdateContactMapMousePosition", xy, false))
-
-                if (true === this.willShowCrosshairs) {
-                    this.browser.updateCrosshairs(xy)
-                    this.browser.showCrosshairs()
+                if (this.willShowCrosshairs) {
+                    this.browser.updateCrosshairs(xy);
+                    this.browser.showCrosshairs();
                 }
 
-                if (isMouseDown) { // Possibly dragging
-
+                if (isMouseDown) {
                     if (isSweepZooming) {
-                        this.sweepZoom.update({x: eFixed.pageX, y: eFixed.pageY})
-
+                        this.sweepZoom.update({ x: e.pageX, y: e.pageY });
                     } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
-
-                        this.isDragging = true
-                        const dx = mouseLast.x - coords.x
-                        const dy = mouseLast.y - coords.y
-
-                        // If matrix data is updating shift current map image while we wait
-                        //if (this.updating) {
-                        //    shiftCurrentImage(this, -dx, -dy);
-                        //}
-
-                        this.browser.shiftPixels(dx, dy)
+                        this.isDragging = true;
+                        const dx = mouseLast.x - coords.x;
+                        const dy = mouseLast.y - coords.y;
+                        this.browser.shiftPixels(dx, dy);
                     }
-
-                    mouseLast = coords
+                    mouseLast = coords;
                 }
-            })
+            });
 
-            $viewport.on('mouseup', panMouseUpOrMouseOut)
+            viewportElement.addEventListener('mouseup', panMouseUpOrMouseOut);
 
-            $viewport.on('mouseleave', () => {
-                this.browser.layoutController.xAxisRuler.unhighlightWholeChromosome()
-                this.browser.layoutController.yAxisRuler.unhighlightWholeChromosome()
-                panMouseUpOrMouseOut()
-            })
+            viewportElement.addEventListener('mouseleave', () => {
+                this.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
+                this.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
+                panMouseUpOrMouseOut();
+            });
 
-
-            // Mousewheel events -- ie exposes event only via addEventListener, no onwheel attribute
-            // NOte from spec -- trackpads commonly map pinch to mousewheel + ctrl
-            // $viewport[0].addEventListener("wheel", mouseWheelHandler, 250, false);
-
-            // document level events
-            $(document).on('keydown.contact_matrix_view', (e) => {
-                if (undefined === this.willShowCrosshairs && true === mouseOver && true === e.shiftKey) {
-                    this.willShowCrosshairs = true
-                    this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false))
+            document.addEventListener('keydown', (e) => {
+                if (!this.willShowCrosshairs && mouseOver && e.shiftKey) {
+                    this.willShowCrosshairs = true;
+                    this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
                 }
-            })
+            });
 
-            $(document).on('keyup.contact_matrix_view', (e) => {
-                this.browser.hideCrosshairs()
-                this.willShowCrosshairs = undefined
-                this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false))
-            })
+            document.addEventListener('keyup', () => {
+                this.browser.hideCrosshairs();
+                this.willShowCrosshairs = undefined;
+                this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
+            });
 
-            // for sweep-zoom allow user to sweep beyond viewport extent
-            // sweep area clamps since viewport mouse handlers stop firing
-            // when the viewport boundary is crossed.
-            $(document).on('mouseup.contact_matrix_view', (e) => {
-                e.preventDefault()
-                e.stopPropagation()
+            document.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 if (isSweepZooming) {
-                    isSweepZooming = false
-                    this.sweepZoom.commit()
+                    isSweepZooming = false;
+                    this.sweepZoom.commit();
                 }
-            })
+            });
         }
     }
+
 
     /**
      * Add touch handlers.  Touches are mapped to one of the following application level events
@@ -857,103 +765,84 @@ class ContactMatrixView {
      * @param $viewport
      */
 
-    addTouchHandlers($viewport) {
+    addTouchHandlers(viewportElement) {
+        let lastTouch, pinch;
 
-        let lastTouch, pinch
-        const viewport = $viewport[0]
+        const translateTouchCoordinates = (e, target) => {
+            const rect = target.getBoundingClientRect();
+            return {
+                x: e.pageX - rect.left,
+                y: e.pageY - rect.top
+            };
+        };
 
-        /**
-         * Touch start -- 3 possibilities
-         *   (1) beginning of a drag (pan)
-         *   (2) first tap of a double tap
-         *   (3) beginning of a pinch
-         */
-        viewport.ontouchstart = (ev) => {
+        viewportElement.ontouchstart = (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
 
-            ev.preventDefault()
-            ev.stopPropagation()
-
-            var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                offsetX = touchCoords.x,
-                offsetY = touchCoords.y,
-                count = ev.targetTouches.length,
-                timeStamp = ev.timeStamp || Date.now(),
-                resolved = false,
-                dx, dy, dist, direction
+            let touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewportElement);
+            let offsetX = touchCoords.x;
+            let offsetY = touchCoords.y;
+            const count = ev.targetTouches.length;
+            const timeStamp = ev.timeStamp || Date.now();
+            let resolved = false;
 
             if (count === 2) {
-                touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport)
-                offsetX = (offsetX + touchCoords.x) / 2
-                offsetY = (offsetY + touchCoords.y) / 2
+                touchCoords = translateTouchCoordinates(ev.targetTouches[1], viewportElement);
+                offsetX = (offsetX + touchCoords.x) / 2;
+                offsetY = (offsetY + touchCoords.y) / 2;
             }
 
-            // NOTE: If the user makes simultaneous touches, the browser may fire a
-            // separate touchstart event for each touch point. Thus if there are
-            // two simultaneous touches, the first touchstart event will have
-            // targetTouches length of one and the second event will have a length
-            // of two.  In this case replace previous touch with this one and return
-            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && ev.targetTouches.length > 1 && lastTouch.count === 1) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length}
-                return
+            if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD) && count > 1 && lastTouch.count === 1) {
+                lastTouch = { x: offsetX, y: offsetY, timeStamp, count };
+                return;
             }
-
 
             if (lastTouch && (timeStamp - lastTouch.timeStamp < DOUBLE_TAP_TIME_THRESHOLD)) {
-
-                direction = (lastTouch.count === 2 || count === 2) ? -1 : 1
-                dx = lastTouch.x - offsetX
-                dy = lastTouch.y - offsetY
-                dist = Math.sqrt(dx * dx + dy * dy)
+                const dx = lastTouch.x - offsetX;
+                const dy = lastTouch.y - offsetY;
+                const dist = Math.hypot(dx, dy);
+                const direction = (lastTouch.count === 2 || count === 2) ? -1 : 1;
 
                 if (dist < DOUBLE_TAP_DIST_THRESHOLD) {
-                    this.browser.zoomAndCenter(direction, offsetX, offsetY)
-                    lastTouch = undefined
-                    resolved = true
+                    this.browser.zoomAndCenter(direction, offsetX, offsetY);
+                    lastTouch = undefined;
+                    resolved = true;
                 }
             }
 
             if (!resolved) {
-                lastTouch = {x: offsetX, y: offsetY, timeStamp: timeStamp, count: ev.targetTouches.length}
+                lastTouch = { x: offsetX, y: offsetY, timeStamp, count };
             }
-        }
+        };
 
-        viewport.ontouchmove = hicUtils.throttle((ev) => {
-
-            var touchCoords1, touchCoords2, t
-
-            ev.preventDefault()
-            ev.stopPropagation()
+        viewportElement.ontouchmove = hicUtils.throttle((ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
 
             if (ev.targetTouches.length === 2) {
+                const touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewportElement);
+                const touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewportElement);
 
-                // Update pinch  (assuming 2 finger movement is a pinch)
-                touchCoords1 = translateTouchCoordinates(ev.targetTouches[0], viewport)
-                touchCoords2 = translateTouchCoordinates(ev.targetTouches[1], viewport)
-
-                t = {
+                const t = {
                     x1: touchCoords1.x,
                     y1: touchCoords1.y,
                     x2: touchCoords2.x,
                     y2: touchCoords2.y
-                }
+                };
 
-                if (pinch) {
-                    pinch.end = t
-                } else {
-                    pinch = {start: t}
-                }
+                pinch ? (pinch.end = t) : (pinch = { start: t });
             } else {
-                // Assuming 1 finger movement is a drag
+                const touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewportElement);
+                const offsetX = touchCoords.x;
+                const offsetY = touchCoords.y;
 
-                var touchCoords = translateTouchCoordinates(ev.targetTouches[0], viewport),
-                    offsetX = touchCoords.x,
-                    offsetY = touchCoords.y
                 if (lastTouch) {
-                    var dx = lastTouch.x - offsetX,
-                        dy = lastTouch.y - offsetY
+                    const dx = lastTouch.x - offsetX;
+                    const dy = lastTouch.y - offsetY;
                     if (!isNaN(dx) && !isNaN(dy)) {
-                        this.isDragging = true
-                        this.browser.shiftPixels(lastTouch.x - offsetX, lastTouch.y - offsetY)
+                        this.isDragging = true;
+                        this.browser.shiftPixels(dx, dy);
                     }
                 }
 
@@ -962,57 +851,41 @@ class ContactMatrixView {
                     y: offsetY,
                     timeStamp: ev.timeStamp || Date.now(),
                     count: ev.targetTouches.length
-                }
+                };
             }
+        }, 50);
 
-        }, 50)
+        viewportElement.ontouchend = (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
 
-        viewport.ontouchend = (ev) => {
+            if (pinch && pinch.end) {
+                const { start, end } = pinch;
+                const dxStart = start.x2 - start.x1;
+                const dyStart = start.y2 - start.y1;
+                const dxEnd = end.x2 - end.x1;
+                const dyEnd = end.y2 - end.y1;
 
-            ev.preventDefault()
-            ev.stopPropagation()
+                const distStart = Math.hypot(dxStart, dyStart);
+                const distEnd = Math.hypot(dxEnd, dyEnd);
+                const scale = distEnd / distStart;
 
-            if (pinch && pinch.end !== undefined) {
-
-                var startT = pinch.start,
-                    endT = pinch.end,
-                    dxStart = startT.x2 - startT.x1,
-                    dyStart = startT.y2 - startT.y1,
-                    dxEnd = endT.x2 - endT.x1,
-                    dyEnd = endT.y2 - endT.y1,
-                    distStart = Math.sqrt(dxStart * dxStart + dyStart * dyStart),
-                    distEnd = Math.sqrt(dxEnd * dxEnd + dyEnd * dyEnd),
-                    scale = distEnd / distStart,
-                    deltaX = (endT.x1 + endT.x2) / 2 - (startT.x1 + startT.x2) / 2,
-                    deltaY = (endT.y1 + endT.y2) / 2 - (startT.y1 + startT.y2) / 2,
-                    anchorPx = (startT.x1 + startT.x2) / 2,
-                    anchorPy = (startT.y1 + startT.y2) / 2
+                const anchorX = (start.x1 + start.x2) / 2;
+                const anchorY = (start.y1 + start.y2) / 2;
 
                 if (scale < 0.8 || scale > 1.2) {
-                    lastTouch = undefined
-                    this.browser.pinchZoom(anchorPx, anchorPy, scale)
+                    lastTouch = undefined;
+                    this.browser.pinchZoom(anchorX, anchorY, scale);
                 }
             } else if (this.isDragging) {
-                this.isDragging = false
-                this.browser.eventBus.post(HICEvent("DragStopped"))
+                this.isDragging = false;
+                this.browser.eventBus.post(HICEvent("DragStopped"));
             }
 
-            // a touch end always ends a pinch
-            pinch = undefined
-
-        }
-
-        function translateTouchCoordinates(e, target) {
-
-            var $target = $(target),
-                posx,
-                posy
-            posx = e.pageX - $target.offset().left
-            posy = e.pageY - $target.offset().top
-            return {x: posx, y: posy}
-        }
-
+            pinch = undefined;
+        };
     }
+
 
     async render2DTracks(track2DList, dataset, state) {
 

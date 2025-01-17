@@ -21,45 +21,38 @@
  *
  */
 
-import {getLocus, locusDescription} from "./genomicUtils.js"
-
-/**
- * Created by dat on 3/14/17.
- */
-
 class SweepZoom {
 
-    constructor(browser, $target) {
-
+    constructor(browser, targetElement) {
         this.browser = browser;
+        this.targetElement = targetElement;
 
-        this.$target = $target;
-
-        this.$rulerSweeper = $target.find("div[id$='-sweep-zoom-container']");
-        this.$rulerSweeper.hide();
+        this.rulerSweeperElement = targetElement.querySelector("div[id$='-sweep-zoom-container']");
+        this.rulerSweeperElement.style.display = 'none';
 
         this.sweepRect = {};
     }
 
     initialize(pageCoords) {
-
         this.anchor = pageCoords;
-        this.coordinateFrame = this.$rulerSweeper.parent().offset();
-        this.aspectRatio = this.$target.width() / this.$target.height();
+        const parentRect = this.rulerSweeperElement.parentElement.getBoundingClientRect();
+        this.coordinateFrame = { top: parentRect.top + window.scrollY, left: parentRect.left + window.scrollX };
+        this.aspectRatio = this.targetElement.offsetWidth / this.targetElement.offsetHeight;
+
         this.sweepRect.x = {
             x: pageCoords.x,
             y: pageCoords.y,
             width: 1,
             height: 1
         };
-        this.clipped = {value: false};
+
+        this.clipped = { value: false };
     }
 
     update(pageCoords) {
-
-        var anchor = this.anchor,
-            dx = Math.abs(pageCoords.x - anchor.x),
-            dy = Math.abs(pageCoords.y - anchor.y);
+        const anchor = this.anchor;
+        let dx = Math.abs(pageCoords.x - anchor.x);
+        let dy = Math.abs(pageCoords.y - anchor.y);
 
         // Adjust deltas to conform to aspect ratio
         if (dx / dy > this.aspectRatio) {
@@ -73,50 +66,35 @@ class SweepZoom {
         this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
         this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
 
-
-        this.$rulerSweeper.width(this.sweepRect.width);
-        this.$rulerSweeper.height(this.sweepRect.height);
-
-
-        this.$rulerSweeper.offset(
-            {
-                left: this.sweepRect.x,
-                top: this.sweepRect.y
-            }
-        );
-        this.$rulerSweeper.show();
-
+        this.rulerSweeperElement.style.width = `${this.sweepRect.width}px`;
+        this.rulerSweeperElement.style.height = `${this.sweepRect.height}px`;
+        this.rulerSweeperElement.style.left = `${this.sweepRect.x}px`;
+        this.rulerSweeperElement.style.top = `${this.sweepRect.y}px`;
+        this.rulerSweeperElement.style.display = 'block';
     }
 
     commit() {
-
-        this.$rulerSweeper.hide()
+        this.rulerSweeperElement.style.display = 'none';
 
         // Convert page -> offset coordinates
-        const xPixel = this.sweepRect.x - this.$target.offset().left
-        const yPixel = this.sweepRect.y - this.$target.offset().top
+        const targetRect = this.targetElement.getBoundingClientRect();
+        const xPixel = this.sweepRect.x - (targetRect.left + window.scrollX);
+        const yPixel = this.sweepRect.y - (targetRect.top + window.scrollY);
 
-        const { width, height } = this.browser.contactMatrixView.getViewDimensions()
-        const { x, y, chr1, chr2, zoom, pixelSize } = this.browser.state
+        const { width, height } = this.browser.contactMatrixView.getViewDimensions();
+        const { x, y, chr1, chr2, zoom, pixelSize } = this.browser.state;
 
         // bp-per-bin
-        const bpResolution = this.browser.dataset.bpResolutions[ zoom ]
-
-        // bp/pixel = (bp/bin) / (pixel/bin) = bp/pixel
-        // const bpPerPixel = bpResolution / pixelSize
-        // const locus = getLocus(this.browser.dataset, this.browser.state, width, height, bpPerPixel)
-        // console.log(`sweepZoom: ${ this.browser.config.name } locus ${ locusDescription(locus) }`)
+        const bpResolution = this.browser.dataset.bpResolutions[zoom];
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const xBP = (x + (xPixel / pixelSize)) * bpResolution
-        const yBP = (y + (yPixel / pixelSize)) * bpResolution
+        const xBP = (x + (xPixel / pixelSize)) * bpResolution;
+        const yBP = (y + (yPixel / pixelSize)) * bpResolution;
 
-        // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const  widthBP = ( this.sweepRect.width / pixelSize) * bpResolution
-        const heightBP = (this.sweepRect.height / pixelSize) * bpResolution
+        const widthBP = (this.sweepRect.width / pixelSize) * bpResolution;
+        const heightBP = (this.sweepRect.height / pixelSize) * bpResolution;
 
-        this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP, yBP + heightBP)
-
+        this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP, yBP + heightBP);
     }
 }
 

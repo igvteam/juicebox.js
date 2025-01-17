@@ -391,22 +391,19 @@ class HICBrowser {
     }
 
     hideCrosshairs() {
+        this.contactMatrixView.xGuideElement.style.display = 'none';
+        this.layoutController.xTrackGuideElement.style.display = 'none';
 
-        this.contactMatrixView.$x_guide.hide()
-        this.layoutController.$x_track_guide.hide()
-
-        this.contactMatrixView.$y_guide.hide()
-        this.layoutController.$y_track_guide.hide()
-
+        this.contactMatrixView.yGuideElement.style.display = 'none';
+        this.layoutController.yTrackGuideElement.style.display = 'none';
     }
 
     showCrosshairs() {
+        this.contactMatrixView.xGuideElement.style.display = 'block';
+        this.layoutController.xTrackGuideElement.style.display = 'block';
 
-        this.contactMatrixView.$x_guide.show()
-        this.layoutController.$x_track_guide.show()
-
-        this.contactMatrixView.$y_guide.show()
-        this.layoutController.$y_track_guide.show()
+        this.contactMatrixView.yGuideElement.style.display = 'block';
+        this.layoutController.yTrackGuideElement.style.display = 'block';
     }
 
     genomicState(axis) {

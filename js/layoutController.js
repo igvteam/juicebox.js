@@ -57,7 +57,7 @@ class LayoutController {
         this.xTrackContainer = root.querySelector(`div[id$='x-track-container']`);
         this.trackShim = this.xTrackContainer.querySelector(`div[id$='track-shim']`);
         this.xTracks = this.xTrackContainer.querySelector(`div[id$='x-tracks']`);
-        this.yTrackGuide = this.xTrackContainer.querySelector(`div[id$='y-track-guide']`);
+        this.yTrackGuideElement = this.xTrackContainer.querySelector(`div[id$='y-track-guide']`);
 
         this.contentContainer = createDOMFromHTMLString(`<div id="${browser.id}-content-container"></div>`);
         root.appendChild(this.contentContainer);
@@ -90,13 +90,14 @@ class LayoutController {
         const yTracksYAxisViewportYScrollbar = this.contentContainer.querySelector(`div[id$='-y-tracks-y-axis-viewport-y-scrollbar']`);
 
         this.yTracks = yTracksYAxisViewportYScrollbar.querySelector(`div[id$='-y-tracks']`);
-        this.xTrackGuide = this.yTracks.querySelector(`div[id$='-x-track-guide']`);
+        this.xTrackGuideElement = this.yTracks.querySelector(`div[id$='-x-track-guide']`);
 
         this.yAxisRuler = new Ruler(browser, yTracksYAxisViewportYScrollbar, 'y');
 
-        this.xAxisRuler.otherRulerCanvas = this.yAxisRuler.canvas;
+        this.xAxisRuler.otherRulerCanvas = this.yAxisRuler.canvasElement;
         this.xAxisRuler.otherRuler = this.yAxisRuler;
-        this.yAxisRuler.otherRulerCanvas = this.xAxisRuler.canvas;
+
+        this.yAxisRuler.otherRulerCanvas = this.xAxisRuler.canvasElement;
         this.yAxisRuler.otherRuler = this.xAxisRuler;
 
         const htmlViewport = createDOMFromHTMLString(`
