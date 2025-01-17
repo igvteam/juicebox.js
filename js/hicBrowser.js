@@ -62,99 +62,97 @@ const DEFAULT_ANNOTATION_COLOR = "rgb(22, 129, 198)"
 
 class HICBrowser {
 
-    constructor($app_container, config) {
+    constructor(appContainer, config) {
+        this.config = config;
+        this.figureMode = config.figureMode || config.miniMode; // Mini mode for backward compatibility
+        this.resolutionLocked = false;
+        this.eventBus = new EventBus();
 
-        this.config = config
-        this.figureMode = config.figureMode || config.miniMode    // Mini mode for backward compatibility
-        this.resolutionLocked = false
-        this.eventBus = new EventBus()
+        this.showTrackLabelAndGutter = true;
 
-        this.showTrackLabelAndGutter = true
+        this.id = `browser_${DOMUtils.guid()}`;
+        this.trackPairs = [];
+        this.tracks2D = [];
+        this.normVectorFiles = [];
 
-        this.id = `browser_${DOMUtils.guid()}`
-        this.trackPairs = []
-        this.tracks2D = []
-        this.normVectorFiles = []
+        this.synchable = config.synchable !== false;
+        this.synchedBrowsers = new Set();
 
-        this.synchable = config.synchable !== false
-        this.synchedBrowsers = new Set()
+        this.isMobile = hicUtils.isMobile();
 
-        this.isMobile = hicUtils.isMobile()
-
-        this.$root = $('<div class="hic-root unselect">')
+        this.rootElement = document.createElement('div');
+        this.rootElement.className = 'hic-root unselect';
 
         if (config.width) {
-            this.$root.css("width", String(config.width))
+            this.rootElement.style.width = `${config.width}`;
         }
         if (config.height) {
-            this.$root.css("height", String(config.height + getNavbarHeight()))
+            this.rootElement.style.height = `${config.height + getNavbarHeight()}`;
         }
 
-        $app_container.append(this.$root)
+        appContainer.appendChild(this.rootElement);
 
-        this.layoutController = new LayoutController(this, this.$root)
+        this.layoutController = new LayoutController(this, this.rootElement);
 
         // nav bar related objects
-        this.locusGoto = new LocusGoto(this, getNavbarContainer(this))
-        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this))
-        this.resolutionSelector.setResolutionLock(this.resolutionLocked)
-        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this))
-        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this))
-        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this))
-        this.inputDialog = new InputDialog($app_container.get(0), this)
+        this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
+        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
+        this.resolutionSelector.setResolutionLock(this.resolutionLocked);
+        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
+        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
+        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
+        this.inputDialog = new InputDialog(appContainer, this);
 
         // contact map container related objects
-        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport())
-        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer())
+        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
+        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
 
-        const colorScale = new ColorScale(defaultColorScaleConfig)
+        const colorScale = new ColorScale(defaultColorScaleConfig);
 
-        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold)
-        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-')
-        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+')
-        const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor
-        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor)
+        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
+        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-');
+        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+');
+        const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor;
+        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
 
-        this.$menu = this.createMenu(this.$root)
-        this.$menu.hide()
+        this.menuElement = this.createMenu(this.rootElement);
+        this.menuElement.style.display = 'none';
 
-        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.$menu.find('.hic-chromosome-selector-widget-container'))
+        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.menuElement.querySelector('.hic-chromosome-selector-widget-container'));
 
-        const annotation2DWidgetConfig =
-            {
-                title: '2D Annotations',
-                alertMessage: 'No 2D annotations currently loaded for this map'
-            }
+        const annotation2DWidgetConfig = {
+            title: '2D Annotations',
+            alertMessage: 'No 2D annotations currently loaded for this map'
+        };
 
-        this.annotation2DWidget = new AnnotationWidget(this, this.$menu.find(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D)
+        this.annotation2DWidget = new AnnotationWidget(this, this.menuElement.querySelector(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
 
         // prevent user interaction during lengthy data loads
-        this.$user_interaction_shield = $('<div>', {class: 'hic-root-prevent-interaction'})
-        this.$root.append(this.$user_interaction_shield)
-        this.$user_interaction_shield.hide()
+        this.userInteractionShield = document.createElement('div');
+        this.userInteractionShield.className = 'hic-root-prevent-interaction';
+        this.rootElement.appendChild(this.userInteractionShield);
+        this.userInteractionShield.style.display = 'none';
 
-        this.hideCrosshairs()
-
+        this.hideCrosshairs();
 
         //this.eventBus.subscribe("LocusChange", this);
     }
 
     async init(config) {
-
-        this.state = config.state ? config.state : State.default()
-        if(config.normalization) {
-            this.state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
+        this.state = config.state ? config.state : State.default();
+        if (config.normalization) {
+            this.state.normalization = config.normalization;
         }
 
-        this.pending = new Map()
-        this.eventBus.hold()
-        this.contactMatrixView.disableUpdates = true
+        this.pending = new Map();
+        this.eventBus.hold();
+        this.contactMatrixView.disableUpdates = true;
 
         try {
-            this.contactMatrixView.startSpinner()
-            this.$user_interaction_shield.show()
+            this.contactMatrixView.startSpinner();
+            this.userInteractionShield.style.display = 'block';
 
-            await this.loadHicFile(config, true)
+            await this.loadHicFile(config, true);
 
             if (config.controlUrl) {
                 await this.loadHicControlFile({
@@ -162,97 +160,97 @@ class HICBrowser {
                     name: config.controlName,
                     nvi: config.controlNvi,
                     isControl: true
-                }, true)
+                }, true);
             }
 
             if (config.cycle) {
-                config.displayMode = "A"
+                config.displayMode = "A";
             }
 
             if (config.displayMode) {
-                this.contactMatrixView.displayMode = config.displayMode
-                this.eventBus.post({type: "DisplayMode", data: config.displayMode})
-            }
-            if (config.locus) {
-                await this.parseGotoInput(config.locus)
-            }
-            if (config.colorScale) {
-                // This must be done after dataset load
-                if(config.normalization) {
-                    this.state.normalization = config.normalization   // Explicitly set normalization, overrides setting in config.state
-                }
-                this.contactMatrixView.setColorScale(config.colorScale)
-                this.eventBus.post({type: "ColorScale", data: this.contactMatrixView.getColorScale()})
+                this.contactMatrixView.displayMode = config.displayMode;
+                this.eventBus.post({ type: "DisplayMode", data: config.displayMode });
             }
 
-            const promises = []
+            if (config.locus) {
+                await this.parseGotoInput(config.locus);
+            }
+
+            if (config.colorScale) {
+                if (config.normalization) {
+                    this.state.normalization = config.normalization;
+                }
+                this.contactMatrixView.setColorScale(config.colorScale);
+                this.eventBus.post({ type: "ColorScale", data: this.contactMatrixView.getColorScale() });
+            }
+
+            const promises = [];
 
             if (config.tracks) {
-                promises.push(this.loadTracks(config.tracks))
+                promises.push(this.loadTracks(config.tracks));
             }
 
-            // TODO -- find out if this is even being used
             if (config.normVectorFiles) {
-                config.normVectorFiles.forEach(function (nv) {
-                    promises.push(this.loadNormalizationFile(nv))
-                })
+                config.normVectorFiles.forEach(nv => {
+                    promises.push(this.loadNormalizationFile(nv));
+                });
             }
-            await Promise.all(promises)
+
+            await Promise.all(promises);
 
             if (config.normalization) {
-                const normalizations = await this.getNormalizationOptions()
-                const validNormalizations = new Set(normalizations)
-                this.state.normalization = validNormalizations.has(config.normalization) ? config.normalization : 'NONE'
+                const normalizations = await this.getNormalizationOptions();
+                const validNormalizations = new Set(normalizations);
+                this.state.normalization = validNormalizations.has(config.normalization) ? config.normalization : 'NONE';
             }
 
-            const tmp = this.contactMatrixView.colorScaleThresholdCache
-            this.eventBus.release()
-            this.contactMatrixView.colorScaleThresholdCache = tmp
+            const tmp = this.contactMatrixView.colorScaleThresholdCache;
+            this.eventBus.release();
+            this.contactMatrixView.colorScaleThresholdCache = tmp;
 
             if (config.cycle) {
-                this.controlMapWidget.toggleDisplayModeCycle()
+                this.controlMapWidget.toggleDisplayModeCycle();
             } else {
-                await this.update()
+                await this.update();
             }
 
         } finally {
-            this.contactMatrixView.stopSpinner()
-            this.$user_interaction_shield.hide()
-            this.contactMatrixView.disableUpdates = false
-            this.contactMatrixView.update()
+            this.contactMatrixView.stopSpinner();
+            this.userInteractionShield.style.display = 'none';
+            this.contactMatrixView.disableUpdates = false;
+            this.contactMatrixView.update();
         }
-
     }
 
-    createMenu($root) {
-
-        const html =
-            `<div class="hic-menu" style="display: none;">
+    createMenu(rootElement) {
+        const html = `
+        <div class="hic-menu" style="display: none;">
             <div class="hic-menu-close-button">
                 <i class="fa fa-times"></i>
             </div>
-	        <div class="hic-chromosome-selector-widget-container">
-		        <div>Chromosomes</div>
+            <div class="hic-chromosome-selector-widget-container">
+                <div>Chromosomes</div>
                 <div>
                     <select name="x-axis-selector"></select>
                     <select name="y-axis-selector"></select>
                     <div></div>
                 </div>
-	        </div>
-	        <div class="hic-annotation-presentation-button-container">
-		        <button type="button">2D Annotations</button>
-	        </div>
-        </div>`
+            </div>
+            <div class="hic-annotation-presentation-button-container">
+                <button type="button">2D Annotations</button>
+            </div>
+        </div>`;
 
-        $root.append($(html))
+        const template = document.createElement('template');
+        template.innerHTML = html.trim();
+        const menuElement = template.content.firstChild;
 
-        const $menu = $root.find(".hic-menu")
+        rootElement.appendChild(menuElement);
 
-        const $fa = $root.find(".fa-times")
-        $fa.on('click', () => this.toggleMenu())
+        const closeButton = menuElement.querySelector(".fa-times");
+        closeButton.addEventListener('click', () => this.toggleMenu());
 
-        return $menu
-
+        return menuElement;
     }
 
     toggleTrackLabelAndGutterState() {
@@ -1524,7 +1522,6 @@ class HICBrowser {
 
     }
 }
-
 
 function extractName(config) {
     if (config.name === undefined) {

@@ -21,6 +21,8 @@
  *
  */
 
+import {getOffset} from "./utils.js"
+
 class SweepZoom {
 
     constructor(browser, targetElement) {
@@ -33,55 +35,25 @@ class SweepZoom {
         this.sweepRect = {};
     }
 
-    initialize(pageCoords) {
-        this.anchor = pageCoords;
-        const parentRect = this.rulerSweeperElement.parentElement.getBoundingClientRect();
-        this.coordinateFrame = { top: parentRect.top + window.scrollY, left: parentRect.left + window.scrollX };
-        this.aspectRatio = this.targetElement.offsetWidth / this.targetElement.offsetHeight;
-
-        this.sweepRect.x = {
-            x: pageCoords.x,
-            y: pageCoords.y,
-            width: 1,
-            height: 1
-        };
-
-        this.clipped = { value: false };
-    }
-
-    update(pageCoords) {
-        const anchor = this.anchor;
-        let dx = Math.abs(pageCoords.x - anchor.x);
-        let dy = Math.abs(pageCoords.y - anchor.y);
-
-        // Adjust deltas to conform to aspect ratio
-        if (dx / dy > this.aspectRatio) {
-            dy = dx / this.aspectRatio;
-        } else {
-            dx = dy * this.aspectRatio;
-        }
-
-        this.sweepRect.width = dx;
-        this.sweepRect.height = dy;
-        this.sweepRect.x = anchor.x < pageCoords.x ? anchor.x : anchor.x - dx;
-        this.sweepRect.y = anchor.y < pageCoords.y ? anchor.y : anchor.y - dy;
-
-        this.rulerSweeperElement.style.width = `${this.sweepRect.width}px`;
-        this.rulerSweeperElement.style.height = `${this.sweepRect.height}px`;
-        this.rulerSweeperElement.style.left = `${this.sweepRect.x}px`;
-        this.rulerSweeperElement.style.top = `${this.sweepRect.y}px`;
+    initialize(startX, startY) {
+        this.rulerSweeperElement.style.left = `${startX}px`;
+        this.rulerSweeperElement.style.top = `${startY}px`;
+        this.rulerSweeperElement.style.width = '0px';
+        this.rulerSweeperElement.style.height = '0px';
         this.rulerSweeperElement.style.display = 'block';
     }
 
-    commit() {
+    update({ left, top, width, height }) {
+        this.rulerSweeperElement.style.width = width
+        this.rulerSweeperElement.style.height = height
+        this.rulerSweeperElement.style.left = left
+        this.rulerSweeperElement.style.top = top
+    }
+
+    commit({ xPixel, yPixel, width, height }) {
+
         this.rulerSweeperElement.style.display = 'none';
 
-        // Convert page -> offset coordinates
-        const targetRect = this.targetElement.getBoundingClientRect();
-        const xPixel = this.sweepRect.x - (targetRect.left + window.scrollX);
-        const yPixel = this.sweepRect.y - (targetRect.top + window.scrollY);
-
-        const { width, height } = this.browser.contactMatrixView.getViewDimensions();
         const { x, y, chr1, chr2, zoom, pixelSize } = this.browser.state;
 
         // bp-per-bin
@@ -91,10 +63,11 @@ class SweepZoom {
         const xBP = (x + (xPixel / pixelSize)) * bpResolution;
         const yBP = (y + (yPixel / pixelSize)) * bpResolution;
 
-        const widthBP = (this.sweepRect.width / pixelSize) * bpResolution;
-        const heightBP = (this.sweepRect.height / pixelSize) * bpResolution;
+        const  widthBP = ( width / pixelSize) * bpResolution;
+        const heightBP = (height / pixelSize) * bpResolution;
 
         this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP, yBP + heightBP);
+
     }
 }
 

@@ -30,6 +30,7 @@ import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'
 import {getLocus} from "./genomicUtils.js"
+import {getOffset} from "./utils.js"
 
 const DRAG_THRESHOLD = 2
 const DOUBLE_TAP_DIST_THRESHOLD = 20
@@ -153,7 +154,7 @@ class ContactMatrixView {
             // Don't enable mouse actions until we have a dataset.
             if (!this.mouseHandlersEnabled) {
                 this.addTouchHandlers(this.viewportElement);
-                this.addMouseHandlers(this.viewportElement);
+                this.addMouseHandlers(this.viewportElement)
                 this.mouseHandlersEnabled = true;
             }
             this.clearImageCaches();
@@ -644,9 +645,17 @@ class ContactMatrixView {
     }
 
     addMouseHandlers(viewportElement) {
+
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let currentY = 0;
+
         let isMouseDown = false;
         let isSweepZooming = false;
-        let mouseDown, mouseLast, mouseOver;
+        let mouseDown
+        let mouseLast
+        let mouseOver;
 
         const panMouseUpOrMouseOut = () => {
             if (this.isDragging) {
@@ -660,16 +669,6 @@ class ContactMatrixView {
         this.isDragging = false;
 
         if (!this.browser.isMobile) {
-            viewportElement.addEventListener('dblclick', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const mouseX = e.offsetX;
-                const mouseY = e.offsetY;
-                this.browser.zoomAndCenter(1, mouseX, mouseY);
-            });
-
-            viewportElement.addEventListener('mouseover', () => mouseOver = true);
-            viewportElement.addEventListener('mouseout', () => mouseOver = undefined);
 
             viewportElement.addEventListener('mousedown', (e) => {
                 e.preventDefault();
@@ -681,23 +680,38 @@ class ContactMatrixView {
 
                 mouseLast = { x: e.offsetX, y: e.offsetY };
                 mouseDown = { x: e.offsetX, y: e.offsetY };
-                isSweepZooming = e.altKey;
 
-                if (isSweepZooming) {
-                    this.sweepZoom.initialize({ x: e.pageX, y: e.pageY });
+                if (e.altKey) {
+                    isSweepZooming = true
+
+                    const { top, left } = viewportElement.getBoundingClientRect()
+                    startX = e.clientX - left
+                    startY = e.clientY - top
+
+                    this.sweepZoom.initialize(startX, startY);
                 }
 
                 isMouseDown = true;
-            });
+            })
 
             viewportElement.addEventListener('mousemove', (e) => {
+
                 e.preventDefault();
                 e.stopPropagation();
-                const coords = { x: e.offsetX, y: e.offsetY };
-                const xy = {
-                    x: e.pageX - viewportElement.getBoundingClientRect().left,
-                    y: e.pageY - viewportElement.getBoundingClientRect().top
-                };
+
+                const coords =
+                    {
+                        x: e.offsetX,
+                        y: e.offsetY
+                    };
+
+                const { top, left } = getOffset(viewportElement)
+
+                const xy =
+                    {
+                        x: e.pageX - left,
+                        y: e.pageY - top
+                    };
 
                 const { width, height } = viewportElement.getBoundingClientRect();
                 xy.xNormalized = xy.x / width;
@@ -712,7 +726,24 @@ class ContactMatrixView {
 
                 if (isMouseDown) {
                     if (isSweepZooming) {
-                        this.sweepZoom.update({ x: e.pageX, y: e.pageY });
+
+                        const { left, top } = viewportElement.getBoundingClientRect();
+                        currentX = e.clientX - left;
+                        currentY = e.clientY - top;
+                        const width = Math.abs(currentX - startX);
+                        const height = Math.abs(currentY - startY);
+
+                        const config =
+                            {
+                                left: `${Math.min(startX, currentX)}px`,
+                                top: `${Math.min(startY, currentY)}px`,
+                                width: `${width}px`,
+                                height: `${height}px`,
+                            }
+
+
+                        this.sweepZoom.update(config);
+
                     } else if (mouseDown.x && Math.abs(coords.x - mouseDown.x) > DRAG_THRESHOLD) {
                         this.isDragging = true;
                         const dx = mouseLast.x - coords.x;
@@ -721,40 +752,61 @@ class ContactMatrixView {
                     }
                     mouseLast = coords;
                 }
-            });
+            })
 
-            viewportElement.addEventListener('mouseup', panMouseUpOrMouseOut);
+            viewportElement.addEventListener('mouseup', panMouseUpOrMouseOut)
+
+            viewportElement.addEventListener('dblclick', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const mouseX = e.offsetX;
+                const mouseY = e.offsetY;
+                this.browser.zoomAndCenter(1, mouseX, mouseY);
+            })
+
+            viewportElement.addEventListener('mouseover', () => mouseOver = true)
+            viewportElement.addEventListener('mouseout', () => mouseOver = undefined)
+
 
             viewportElement.addEventListener('mouseleave', () => {
                 this.browser.layoutController.xAxisRuler.unhighlightWholeChromosome();
                 this.browser.layoutController.yAxisRuler.unhighlightWholeChromosome();
                 panMouseUpOrMouseOut();
-            });
+            })
 
             document.addEventListener('keydown', (e) => {
                 if (!this.willShowCrosshairs && mouseOver && e.shiftKey) {
                     this.willShowCrosshairs = true;
                     this.browser.eventBus.post(HICEvent('DidShowCrosshairs', 'DidShowCrosshairs', false));
                 }
-            });
+            })
 
             document.addEventListener('keyup', () => {
                 this.browser.hideCrosshairs();
                 this.willShowCrosshairs = undefined;
                 this.browser.eventBus.post(HICEvent('DidHideCrosshairs', 'DidHideCrosshairs', false));
-            });
+            })
 
             document.addEventListener('mouseup', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+
                 if (isSweepZooming) {
                     isSweepZooming = false;
-                    this.sweepZoom.commit();
+
+                    const sweepRect =
+                        {
+                            xPixel: Math.min(startX, currentX),
+                            yPixel: Math.min(startY, currentY),
+                            width: Math.abs(currentX - startX),
+                            height: Math.abs(currentY - startY)
+                        };
+
+                    this.sweepZoom.commit(sweepRect)
                 }
-            });
+            })
         }
     }
-
 
     /**
      * Add touch handlers.  Touches are mapped to one of the following application level events
@@ -885,7 +937,6 @@ class ContactMatrixView {
             pinch = undefined;
         };
     }
-
 
     async render2DTracks(track2DList, dataset, state) {
 
