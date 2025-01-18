@@ -242,7 +242,7 @@ class LayoutController {
         this.yTracks.style.width = `${trackAggregateHeight}px`;
 
         // y-axis - repaint canvas
-        this.yAxisRuler.updateHeight(this.yAxisRuler.axis.offsetHeight);
+        this.yAxisRuler.updateHeight(this.yAxisRuler.axisElement.offsetHeight);
 
         // viewport
         this.browser.contactMatrixView.viewportElement.style.width = widthCalc;
