@@ -168,8 +168,8 @@ class LayoutController {
 
         for (const trackPair of this.browser.trackPairs) {
             const order = `${ this.browser.trackPairs.indexOf(trackPair) }`
-            trackPair.x.$viewport.get(0).style.order = order
-            trackPair.y.$viewport.get(0).style.order = order
+            trackPair.x.viewportElement.style.order = order
+            trackPair.y.viewportElement.style.order = order
         }
 
         setTrackReorderArrowColors(this.browser.trackPairs)
@@ -245,10 +245,10 @@ class LayoutController {
         this.yAxisRuler.updateHeight(this.yAxisRuler.axis.offsetHeight);
 
         // viewport
-        this.browser.contactMatrixView.viewport.style.width = widthCalc;
+        this.browser.contactMatrixView.viewportElement.style.width = widthCalc;
 
         // x-scrollbar
-        this.browser.contactMatrixView.scrollbarWidget.xAxisScrollbarContainer.style.width = widthCalc;
+        this.browser.contactMatrixView.scrollbarWidget.xAxisScrollbarContainerElement.style.width = widthCalc;
     }
 
 }
