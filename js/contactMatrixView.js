@@ -25,7 +25,7 @@
  * @author Jim Robinson
  */
 
-import {IGVColor, StringUtils} from '../node_modules/igv-utils/src/index.js'
+import {IGVColor} from '../node_modules/igv-utils/src/index.js'
 import ColorScale from './colorScale.js'
 import HICEvent from './hicEvent.js'
 import * as hicUtils from './hicUtils.js'

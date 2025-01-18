@@ -20,63 +20,57 @@ class TrackPair {
     }
 
     init() {
-
         this.colorPicker = new ColorPicker({
-            parent: this.x.$viewport[0],
+            parent: this.x.viewportElement,
             width: 456,
             height: undefined,
             colorHandler: color => this.setColor(color)
         });
         this.colorPicker.hide();
 
-        this.dataRangeDialog = new DataRangeDialog(this.x.$viewport[0], (min, max) => this.setDataRange(min, max));
+        this.dataRangeDialog = new DataRangeDialog(this.x.viewportElement, (min, max) => this.setDataRange(min, max));
 
-        this.appendRightHandGutter(this.x.$viewport);
+        this.appendRightHandGutter(this.x.viewportElement);
 
-        for (const el of this.x.$trackReorderHandle.get(0).querySelectorAll('.fa')) {
-
+        for (const el of this.x.trackReorderHandleElement.querySelectorAll('.fa')) {
             el.addEventListener('click', e => {
+                e.preventDefault();
+                e.stopPropagation();
 
-                e.preventDefault()
-                e.stopPropagation()
+                const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1;
 
-                const direction = e.target.classList.contains('fa-arrow-up') ? -1 : 1
+                let order = parseInt(this.x.viewportElement.style.order);
 
-                let order = parseInt(this.x.$viewport.get(0).style.order)
-
-                if (0 === order && -1 === direction) {
-
-                    // el.style.color = '#f00'
-                    return
-                } else if (this.browser.trackPairs.length - 1 === order && 1 === direction) {
-                    // el.style.color = '#0f0'
-                    return
+                if (order === 0 && direction === -1) {
+                    return;
+                } else if (this.browser.trackPairs.length - 1 === order && direction === 1) {
+                    return;
                 }
 
-                // el.style.color = '#7F7F7F'
+                const newOrder = direction === -1 ? order - 1 : order + 1;
 
-                const newOrder = -1 === direction ? order - 1 : 1 + order
+                const targetTrackPair = this.browser.trackPairs.find(
+                    trackPair => newOrder === parseInt(trackPair.x.viewportElement.style.order)
+                );
 
-                const [ targetTrackPair ] = this.browser.trackPairs.filter(trackPair => newOrder === parseInt(trackPair.x.$viewport.get(0).style.order))
-                targetTrackPair.x.$viewport.get(0).style.order = `${ order }`
-                targetTrackPair.y.$viewport.get(0).style.order = `${ order }`
+                if (targetTrackPair) {
+                    targetTrackPair.x.viewportElement.style.order = `${order}`;
+                    targetTrackPair.y.viewportElement.style.order = `${order}`;
+                }
 
-                this.x.$viewport.get(0).style.order = `${ newOrder }`;
-                this.y.$viewport.get(0).style.order = `${ newOrder }`;
-
+                this.x.viewportElement.style.order = `${newOrder}`;
+                this.y.viewportElement.style.order = `${newOrder}`;
 
                 const a = this.browser.trackPairs;
-                [ a[ order ], a[ newOrder ] ] = [ a[ newOrder ], a[ order ] ]
+                [a[order], a[newOrder]] = [a[newOrder], a[order]];
 
-                setTrackReorderArrowColors(this.browser.trackPairs)
-
-            })
+                setTrackReorderArrowColors(this.browser.trackPairs);
+            });
         }
 
         // igvjs compatibility
         this.track.trackView = this;
-        this.track.trackView.trackDiv = this.x.$viewport.get(0);
-
+        this.track.trackView.trackDiv = this.x.viewportElement;
     }
 
     presentColorPicker() {
@@ -89,10 +83,6 @@ class TrackPair {
     setTrackName(name) {
         this.track.name = name
       }
-
-    setTrackLabelName(name) {
-        this.x.$label.text(name)
-    }
 
     setColor(color) {
         this.y.tile = undefined;
@@ -121,40 +111,42 @@ class TrackPair {
         this.repaintViews();
     }
 
-    appendRightHandGutter($parent) {
-        let $div = $('<div class="hic-igv-right-hand-gutter">')
-        $parent.append($div)
-        this.createTrackGearPopup($div);
+    appendRightHandGutter(parentElement) {
+        const div = document.createElement('div');
+        div.className = 'hic-igv-right-hand-gutter';
+        parentElement.appendChild(div);
+        this.createTrackGearPopup(div);
     }
 
-    createTrackGearPopup($parent) {
+    createTrackGearPopup(parentElement) {
+        const container = document.createElement('div');
+        container.className = 'igv-trackgear-container';
+        parentElement.appendChild(container);
 
-        let $container = $("<div>", {class: 'igv-trackgear-container'});
-        $parent.append($container);
+        container.appendChild(createIcon('cog'));
 
-        $container.append(createIcon('cog'));
+        this.trackGearPopup = new MenuPopup(parentElement);
+        this.trackGearPopup.popoverElement.style.display = 'none';
 
-        this.trackGearPopup = new MenuPopup($parent);
-        this.trackGearPopup.$popover.hide();
-        $container.click(e => {
+        container.addEventListener('click', e => {
             e.preventDefault();
             e.stopPropagation();
 
-            const { trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems } = MenuUtils
+            const { trackMenuItemList, numericDataMenuItems, nucleotideColorChartMenuItems } = MenuUtils;
 
-            const list = [ ...trackMenuItemList(this) ]
+            const list = [...trackMenuItemList(this)];
 
-            if ('wig' === this.track.type) {
-                list.push(...numericDataMenuItems(this))
+            if (this.track.type === 'wig') {
+                list.push(...numericDataMenuItems(this));
             }
 
-            if ('sequence' === this.track.type) {
-                list.push(...nucleotideColorChartMenuItems(this))
+            if (this.track.type === 'sequence') {
+                list.push(...nucleotideColorChartMenuItems(this));
             }
 
-            const { width } = this.trackGearPopup.$popover.get(0).getBoundingClientRect()
+            const width = this.trackGearPopup.popoverElement.getBoundingClientRect().width;
 
-            this.trackGearPopup.presentMenuList(-width, 0, list)
+            this.trackGearPopup.presentMenuList(-width, 0, list);
         });
     }
 
@@ -228,42 +220,47 @@ class TrackPair {
     }
 
     async createImageTile(genomicState, tileFeatures) {
-
-        if (this.track.visibilityWindow > 0 && genomicState.bpp * Math.max(this.x.$canvas.width(), this.x.$canvas.height()) > this.track.visibilityWindow) {
+        if (
+            this.track.visibilityWindow > 0 &&
+            genomicState.bpp * Math.max(this.x.canvasElement.width, this.x.canvasElement.height) > this.track.visibilityWindow
+        ) {
             // TODO -- return zoom in message
         } else {
-
             // Expand the requested range so we can pan a bit without reloading
-            const pixelWidth = 3 * this.x.$canvas.width();
+            const pixelWidth = 3 * this.x.canvasElement.width;
             const lengthBP = Math.round(genomicState.bpp * pixelWidth);
             const bpStart = Math.max(0, Math.round(genomicState.startBP - lengthBP / 3));
             const bpEnd = bpStart + lengthBP;
 
-            const features = tileFeatures || await this.track.getFeatures(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp)
+            const features = tileFeatures || await this.track.getFeatures(
+                genomicState.chromosome.name,
+                bpStart,
+                bpEnd,
+                genomicState.bpp
+            );
 
             const canvas = document.createElement('canvas');
             canvas.width = pixelWidth;
-            canvas.height = this.x.$canvas.height();
+            canvas.height = this.x.canvasElement.height;
 
-            const context = canvas.getContext("2d");
+            const context = canvas.getContext('2d');
 
             if (features) {
-                const drawConfiguration =
-                    {
-                        axis: genomicState.axis,
-                        features,
-                        context,
-                        pixelWidth,
-                        bpStart,
-                        bpEnd,
-                        bpPerPixel: genomicState.bpp,
-                        genomicState,
-                        pixelHeight: Math.min(canvas.width, canvas.height),
-                        viewportContainerX: (genomicState.startBP - bpStart) / genomicState.bpp,
-                        viewportContainerWidth: pixelWidth,
-                        viewportWidth: pixelWidth,
-                        referenceFrame: {}
-                    };
+                const drawConfiguration = {
+                    axis: genomicState.axis,
+                    features,
+                    context,
+                    pixelWidth,
+                    bpStart,
+                    bpEnd,
+                    bpPerPixel: genomicState.bpp,
+                    genomicState,
+                    pixelHeight: Math.min(canvas.width, canvas.height),
+                    viewportContainerX: (genomicState.startBP - bpStart) / genomicState.bpp,
+                    viewportContainerWidth: pixelWidth,
+                    viewportWidth: pixelWidth,
+                    referenceFrame: {},
+                };
 
                 if (this.track.autoscale || !this.track.dataRange) {
                     if (typeof this.track.doAutoscale === 'function') {
@@ -274,14 +271,13 @@ class TrackPair {
                 }
 
                 this.track.draw(drawConfiguration);
-
             } else {
-                const wye = canvas.height - canvas.height/4
-                igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { 'fillStyle': 'rgba(0,0,0,0.1)' });
+                const wye = canvas.height - canvas.height / 4;
+                igv.IGVGraphics.fillRect(context, 0, wye, canvas.width, 2, { fillStyle: 'rgba(0,0,0,0.1)' });
             }
 
             this.tile = new Tile(genomicState.chromosome.name, bpStart, bpEnd, genomicState.bpp, canvas, features);
-            return this.tile
+            return this.tile;
         }
     }
 
@@ -292,49 +288,47 @@ class TrackPair {
 }
 
 function doAutoscale(features) {
-    var min, max
 
-    if (features.length > 0) {
-        min = Number.MAX_VALUE
-        max = -Number.MAX_VALUE
-
-        features.forEach(function (f) {
-            if (!Number.isNaN(f.value)) {
-                min = Math.min(min, f.value)
-                max = Math.max(max, f.value)
-            }
-        })
-
-        // Insure we have a zero baseline
-        if (max > 0) min = Math.min(0, min)
-        if (max < 0) max = 0
-    } else {
-        // No features -- default
-        min = 0
-        max = 100
+    if (features.length === 0) {
+        return { min: 0, max: 100 };
     }
 
-    return {min: min, max: max}
+    const values = features.map(f => f.value).filter(value => !Number.isNaN(value));
+
+    if (values.length === 0) {
+        return { min: 0, max: 100 };
+    }
+
+    let min = Math.min(...values);
+    let max = Math.max(...values);
+
+    // Ensure zero baseline
+    if (max > 0) min = Math.min(0, min);
+    if (max < 0) max = 0;
+
+    return { min, max };
 }
 
 function setTrackReorderArrowColors(trackPairs) {
 
-    trackPairs.forEach(trackPair => {
+    for (const trackPair of trackPairs) {
+        const el = trackPair.x.viewportElement;
+        const order = parseInt(el.style.order);
 
-        const el = trackPair.x.$viewport.get(0)
+        const arrowUp = el.querySelector('.fa-arrow-up');
+        const arrowDown = el.querySelector('.fa-arrow-down');
 
-        const order = parseInt(el.style.order)
-        if (0 === order) {
-            el.querySelector('.fa-arrow-up').style.color = 'rgba(0, 0, 0, 0'
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
-        } else if (trackPairs.length - 1 === order) {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
-            el.querySelector('.fa-arrow-down').style.color = 'rgba(0, 0, 0, 0'
+        if (order === 0) {
+            arrowUp.style.color = 'rgba(0, 0, 0, 0)';
+            arrowDown.style.color = '#7F7F7F';
+        } else if (order === trackPairs.length - 1) {
+            arrowUp.style.color = '#7F7F7F';
+            arrowDown.style.color = 'rgba(0, 0, 0, 0)';
         } else {
-            el.querySelector('.fa-arrow-up'  ).style.color = '#7F7F7F'
-            el.querySelector('.fa-arrow-down').style.color = '#7F7F7F'
+            arrowUp.style.color = '#7F7F7F';
+            arrowDown.style.color = '#7F7F7F';
         }
-    })
+    }
 
 }
 

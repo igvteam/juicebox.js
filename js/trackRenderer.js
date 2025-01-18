@@ -1,100 +1,82 @@
-import {DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
+import { DOMUtils } from '../node_modules/igv-ui/dist/igv-ui.js';
 
 class TrackRenderer {
 
     constructor(browser, track, axis) {
-
         this.browser = browser;
         this.track = track;
         this.axis = axis;
-
         this.id = `trackRender_${DOMUtils.guid()}`;
     }
 
-    init($container, size, order) {
+    init(containerElement, size, order) {
+        this.viewportElement = document.createElement('div');
+        this.viewportElement.className = (this.axis === 'x') ? 'x-track-canvas-container' : 'y-track-canvas-container';
+        containerElement.appendChild(this.viewportElement);
 
-        // track canvas container
-        this.$viewport = ('x' === this.axis) ? $('<div class="x-track-canvas-container">') : $('<div class="y-track-canvas-container">');
-        $container.append(this.$viewport)
+        if (this.axis === 'x') {
+            this.viewportElement.style.height = `${size}px`;
+        } else {
+            this.viewportElement.style.width = `${size}px`;
+        }
+        this.viewportElement.style.order = `${order}`;
 
-        'x' === this.axis ? this.$viewport.height(size) : this.$viewport.width(size)
+        this.canvasElement = document.createElement('canvas');
+        this.viewportElement.appendChild(this.canvasElement);
+        this.ctx = this.canvasElement.getContext("2d");
 
-        this.$viewport.get(0).style.order = `${ order }`
+        if (this.axis === 'x') {
+            this.trackReorderHandleElement = document.createElement('div');
+            this.trackReorderHandleElement.className = 'x-track-reorder-handle';
+            this.viewportElement.appendChild(this.trackReorderHandleElement);
 
-        // canvas
-        this.$canvas = $('<canvas>');
-        this.$viewport.append(this.$canvas);
-        this.ctx = this.$canvas.get(0).getContext("2d");
+            this.trackReorderHandleElement.innerHTML = '<i class="fa fa-arrow-up"></i><i class="fa fa-arrow-down"></i>';
 
-        if ('x' === this.axis) {
+            this.labelElement = document.createElement('div');
+            this.labelElement.className = 'x-track-label';
+            this.viewportElement.appendChild(this.labelElement);
 
-            // track reorder handle
-            this.$trackReorderHandle = $('<div class="x-track-reorder-handle">')
-            this.$viewport.append(this.$trackReorderHandle)
+            const labelText = this.track.name || '';
+            this.labelElement.textContent = labelText;
+            this.labelElement.title = labelText;
 
-            this.$trackReorderHandle.append(`<i class="fa fa-arrow-up"></i>`)
-            this.$trackReorderHandle.append(`<i class="fa fa-arrow-down"></i>`)
+            this.labelElement.style.display = this.browser.showTrackLabelAndGutter ? 'block' : 'none';
 
-            // label
-            this.$label = $('<div class="x-track-label">')
-            this.$viewport.append(this.$label)
-
-            const str = this.track.name || ''
-            this.$label.text(str)
-            this.$label.get(0).title = str
-
-            if (true === this.browser.showTrackLabelAndGutter) {
-                this.$label.show();
-            } else {
-                this.$label.hide();
-            }
-
-            this.$viewport.on('click', e => {
-
+            this.viewportElement.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-
                 this.browser.toggleTrackLabelAndGutterState();
-                if (true === this.browser.showTrackLabelAndGutter) {
-                    $('.x-track-label').show();
-                    $('.hic-igv-right-hand-gutter').show();
-                } else {
-                    $('.x-track-label').hide();
-                    $('.hic-igv-right-hand-gutter').hide();
-                }
-            })
+                const displayState = this.browser.showTrackLabelAndGutter ? 'block' : 'none';
+                document.querySelectorAll('.x-track-label, .hic-igv-right-hand-gutter').forEach(el => {
+                    el.style.display = displayState;
+                });
+            });
         }
 
-        // track spinner container
-        this.$spinner = ('x' === this.axis) ? $('<div class="x-track-spinner">') : $('<div class="y-track-spinner">');
-        this.$viewport.append(this.$spinner);
+        this.spinnerElement = document.createElement('div');
+        this.spinnerElement.className = (this.axis === 'x') ? 'x-track-spinner' : 'y-track-spinner';
+        this.viewportElement.appendChild(this.spinnerElement);
         this.stopSpinner();
-
     }
 
     dispose() {
-        this.tile = undefined
-        this.$viewport.remove()
+        this.tile = undefined;
+        this.viewportElement.remove();
     }
 
     syncCanvas() {
-        this.$canvas.width(this.$viewport.width());
-        this.$canvas.attr('width', this.$viewport.width());
-        this.$canvas.height(this.$viewport.height());
-        this.$canvas.attr('height', this.$viewport.height());
+        this.canvasElement.width = this.viewportElement.offsetWidth;
+        this.canvasElement.height = this.viewportElement.offsetHeight;
     }
 
     drawTile(tile, genomicState) {
-
         if (tile) {
             this.offsetPixel = Math.round((tile.startBP - genomicState.startBP) / genomicState.bpp);
-            if ('x' === this.axis) {
-                this.ctx.clearRect(0, 0, this.$canvas.width(), this.$canvas.height());
+            this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+            if (this.axis === 'x') {
                 this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             } else {
-                this.ctx.setTransform(0, 1, 1, 0, 0, 0)
-                this.ctx.clearRect(0, 0, this.$canvas.height(), this.$canvas.width());
+                this.ctx.setTransform(0, 1, 1, 0, 0, 0);
                 this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             }
         }
@@ -109,9 +91,8 @@ class TrackRenderer {
     }
 
     isLoading() {
-        return !(undefined === this.loading);
+        return this.loading !== undefined;
     }
-
 }
 
-export default TrackRenderer
+export default TrackRenderer;

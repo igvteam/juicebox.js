@@ -290,10 +290,6 @@ class HICBrowser {
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined
     }
 
-    toggleDisplayMode() {
-        this.controlMapWidget.toggleDisplayMode()
-    }
-
     async getNormalizationOptions() {
 
         if (!this.dataset) return []
@@ -439,91 +435,82 @@ class HICBrowser {
      * @param configs
      */
     async loadTracks(configs) {
-
-        // If loading a single track remember its name, for error message
-        const errorPrefix = 1 === configs.length ? ("Error loading track " + configs[0].name) : "Error loading tracks"
+        const errorPrefix = configs.length === 1 ? `Error loading track ${configs[0].name}` : "Error loading tracks";
 
         try {
-            this.contactMatrixView.startSpinner()
+            this.contactMatrixView.startSpinner();
 
-            const tracks = []
-            const promises2D = []
+            const tracks = [];
+            const promises2D = [];
 
             for (let config of configs) {
+                const fileName = isFile(config.url)
+                    ? config.url.name
+                    : config.filename || await FileUtils.getFilename(config.url);
 
-                const fileName = isFile(config.url) ?
-                    config.url.name :
-                    config.filename || await FileUtils.getFilename(config.url)
+                const extension = hicUtils.getExtension(fileName);
 
-                const extension = hicUtils.getExtension(fileName)
-
-                if ('fasta' === extension || 'fa' === extension) {
-                    config.type = config.format = 'sequence'
+                if (['fasta', 'fa'].includes(extension)) {
+                    config.type = config.format = 'sequence';
                 }
 
                 if (!config.format) {
-                    config.format = igv.TrackUtils.inferFileFormat(fileName)
+                    config.format = igv.TrackUtils.inferFileFormat(fileName);
                 }
 
-                if ('annotation' === config.type) {
-                    config.displayMode = 'COLLAPSED'
-                }
-
-                if ("annotation" === config.type && config.color === DEFAULT_ANNOTATION_COLOR) {
-                    delete config.color
+                if (config.type === 'annotation') {
+                    config.displayMode = 'COLLAPSED';
+                    if (config.color === DEFAULT_ANNOTATION_COLOR) {
+                        delete config.color;
+                    }
                 }
 
                 if (config.max === undefined) {
-                    config.autoscale = true
+                    config.autoscale = true;
                 }
 
-                config.height = trackHeight
+                config.height = trackHeight;
 
-                if (undefined === config.format || "bedpe" === config.format || "interact" === config.format) {
-                    // Assume this is a 2D track
-                    promises2D.push(Track2D.loadTrack2D(config, this.genome))
+                if (config.format === undefined || ['bedpe', 'interact'].includes(config.format)) {
+                    promises2D.push(Track2D.loadTrack2D(config, this.genome));
                 } else {
-                    const track = await igv.createTrack(config, this)
+                    const track = await igv.createTrack(config, this);
 
                     if (typeof track.postInit === 'function') {
-                        await track.postInit()
+                        await track.postInit();
                     }
 
-                    tracks.push(track)
+                    tracks.push(track);
                 }
             }
 
-
             if (tracks.length > 0) {
+                this.layoutController.updateLayoutWithTracks(tracks);
 
-                this.layoutController.updateLayoutWithTracks(tracks)
-
-                const $gear_container = $('.hic-igv-right-hand-gutter')
-                if (true === this.showTrackLabelAndGutter) {
-                    $gear_container.show()
+                const gearContainer = document.querySelector('.hic-igv-right-hand-gutter');
+                if (this.showTrackLabelAndGutter) {
+                    gearContainer.style.display = 'block';
                 } else {
-                    $gear_container.hide()
+                    gearContainer.style.display = 'none';
                 }
 
-                await this.updateLayout()
+                await this.updateLayout();
             }
 
             if (promises2D.length > 0) {
-
-                const tracks2D = await Promise.all(promises2D)
+                const tracks2D = await Promise.all(promises2D);
                 if (tracks2D && tracks2D.length > 0) {
-                    this.tracks2D = this.tracks2D.concat(tracks2D)
-                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D))
+                    this.tracks2D = this.tracks2D.concat(tracks2D);
+                    this.eventBus.post(HICEvent("TrackLoad2D", this.tracks2D));
                 }
-
             }
 
         } catch (error) {
-            presentError(errorPrefix, error)
-            console.error(error)
+            presentError(errorPrefix, error);
+            console.error(error);
 
         } finally {
-            this.contactMatrixView.stopSpinner()
+            this.contactMatrixView.stopSpinner();
         }
     }
 
@@ -1094,8 +1081,8 @@ class HICBrowser {
 
         for (const trackXYPair of this.trackPairs) {
 
-            trackXYPair.x.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
-            trackXYPair.y.$viewport.get(0).style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+            trackXYPair.x.viewportElement.style.order = `${this.trackPairs.indexOf(trackXYPair)}`
+            trackXYPair.y.viewportElement.style.order = `${this.trackPairs.indexOf(trackXYPair)}`
 
             trackXYPair.x.syncCanvas()
             trackXYPair.y.syncCanvas()
