@@ -27,66 +27,82 @@ import HICEvent from './hicEvent.js';
 import Track2D from './track2D.js';
 
 class AnnotationWidget {
-
     constructor(browser, container, { title, alertMessage }, trackListRetrievalCallback) {
         this.browser = browser;
         this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        this.createAnnotationPresentationButton(container, alertMessage);
-        this.createAnnotationPanel(this.browser.rootElement, title);
+        this.annotationPresentationButton(container, alertMessage);
+        this.annotationPanel(browser.rootElement, title);
     }
 
-    createAnnotationPresentationButton(parent, alertMessage) {
-        const button = parent.querySelector("button");
+    updateBody(tracks) {
+        this.annotationPanelElement.querySelectorAll('.hic-annotation-row-container').forEach(el => el.remove());
+
+        if (tracks[0] instanceof Track2D) {
+            for (let i = tracks.length - 1; i >= 0; i--) {
+                this.annotationPanelRow(this.annotationPanelElement, tracks[i]);
+            }
+        } else {
+            for (const trackRenderer of tracks) {
+                this.annotationPanelRow(this.annotationPanelElement, trackRenderer);
+            }
+        }
+    }
+
+    updateTrackDisplaymode() {}
+
+    annotationPresentationButton(parent, alertMessage) {
+        const button = parent.querySelector('button');
+
         button.addEventListener('click', () => {
             const list = this.trackListRetrievalCallback();
+
             if (list.length > 0) {
-                this.updateBody(list);
-                this.annotationPanel.style.display = this.annotationPanel.style.display === 'none' ? 'block' : 'none';
+                this.updateBody(this.trackListRetrievalCallback());
+                this.annotationPanelElement.style.display =
+                    this.annotationPanelElement.style.display === 'none' ? 'block' : 'none';
             } else {
                 Alert.presentAlert(alertMessage);
             }
+
             this.browser.hideMenu();
         });
     }
 
-    createAnnotationPanel(parent, title) {
-        this.annotationPanel = document.createElement('div');
-        this.annotationPanel.className = 'hic-annotation-panel-container';
-        parent.appendChild(this.annotationPanel);
+    annotationPanel(parent, title) {
+        this.annotationPanelElement = document.createElement('div');
+        this.annotationPanelElement.className = 'hic-annotation-panel-container';
+        parent.appendChild(this.annotationPanelElement);
 
         const panelHeader = document.createElement('div');
         panelHeader.className = 'hic-annotation-panel-header';
-        this.annotationPanel.appendChild(panelHeader);
+        this.annotationPanelElement.appendChild(panelHeader);
 
         const titleDiv = document.createElement('div');
         titleDiv.textContent = title;
         panelHeader.appendChild(titleDiv);
 
-        const closeButton = document.createElement('div');
-        closeButton.className = 'hic-menu-close-button';
-        panelHeader.appendChild(closeButton);
+        const closeButtonDiv = document.createElement('div');
+        closeButtonDiv.className = 'hic-menu-close-button';
+        panelHeader.appendChild(closeButtonDiv);
 
         const closeIcon = document.createElement('i');
         closeIcon.className = 'fa fa-times';
-        closeButton.appendChild(closeIcon);
+        closeButtonDiv.appendChild(closeIcon);
 
-        closeButton.addEventListener('click', () => {
-            this.annotationPanel.style.display = 'none';
+        closeIcon.addEventListener('click', () => {
+            this.annotationPanelElement.style.display =
+                this.annotationPanelElement.style.display === 'none' ? 'block' : 'none';
         });
 
-        makeDraggable(this.annotationPanel, panelHeader);
-        this.annotationPanel.style.display = 'none';
+        makeDraggable(this.annotationPanelElement, panelHeader);
+        this.annotationPanelElement.style.display = 'none';
     }
 
-    updateBody(tracks) {
-        this.annotationPanel.querySelectorAll('.hic-annotation-row-container').forEach(el => el.remove());
-        const isTrack2D = tracks[0] instanceof Track2D;
-        const trackList = isTrack2D ? tracks.slice().reverse() : tracks;
-        trackList.forEach(track => this.createAnnotationPanelRow(this.annotationPanel, track));
-    }
+    annotationPanelRow(container, track) {
+        const isTrack2D = track instanceof Track2D;
+        const trackList = this.trackListRetrievalCallback();
 
-    createAnnotationPanelRow(container, track) {
         const rowContainer = document.createElement('div');
         rowContainer.className = 'hic-annotation-row-container';
         container.appendChild(rowContainer);
@@ -96,22 +112,107 @@ class AnnotationWidget {
         rowContainer.appendChild(row);
 
         const trackName = document.createElement('div');
-        trackName.textContent = track instanceof Track2D ? track.config.name : track.x.track.config.name;
+        trackName.textContent = isTrack2D ? track.config.name : track.x.track.config.name;
         row.appendChild(trackName);
 
-        const toggleVisibilityIcon = document.createElement('i');
-        toggleVisibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-        row.appendChild(toggleVisibilityIcon);
+        if (isTrack2D) {
+            const visibilityIcon = document.createElement('i');
+            visibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+            row.appendChild(visibilityIcon);
 
-        toggleVisibilityIcon.addEventListener('click', () => {
-            track.isVisible = !track.isVisible;
-            toggleVisibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
-            this.browser.contactMatrixView.clearImageCaches();
-            this.browser.contactMatrixView.update();
+            visibilityIcon.addEventListener('click', () => {
+                track.isVisible = !track.isVisible;
+                visibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
+            });
+        }
+
+        if (isTrack2D) {
+            const displayModeIcon = document.createElement('div');
+            displayModeIcon.className = 'matrix-diagonal-widget-container';
+
+            switch (track.displayMode) {
+                case 'lower':
+                    displayModeIcon.classList.add('matrix-diagonal-widget-lower');
+                    break;
+                case 'upper':
+                    displayModeIcon.classList.add('matrix-diagonal-widget-upper');
+                    break;
+                default:
+                    displayModeIcon.classList.add('matrix-diagonal-widget-all');
+            }
+
+            displayModeIcon.addEventListener('click', () => {
+                this.displayModeHandler(displayModeIcon, track);
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
+            });
+
+            row.appendChild(displayModeIcon);
+        }
+
+        const colorSwatch = this.annotationColorSwatch(
+            isTrack2D ? track.getColor() : track.x.track.color
+        );
+        row.appendChild(colorSwatch);
+
+        const upDownContainer = document.createElement('div');
+        upDownContainer.className = 'up-down-arrow-container';
+        row.appendChild(upDownContainer);
+
+        const upArrow = document.createElement('i');
+        upArrow.className = 'fa fa-arrow-up';
+        upDownContainer.appendChild(upArrow);
+
+        const downArrow = document.createElement('i');
+        downArrow.className = 'fa fa-arrow-down';
+        upDownContainer.appendChild(downArrow);
+
+        const deleteIcon = document.createElement('i');
+        deleteIcon.className = 'fa fa-trash-o fa-lg';
+        row.appendChild(deleteIcon);
+
+        deleteIcon.addEventListener('click', () => {
+            const index = trackList.indexOf(track);
+            if (isTrack2D) {
+                trackList.splice(index, 1);
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
+                this.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+            } else {
+                this.browser.layoutController.removeTrackXYPair(track.x.track.trackRenderPair);
+            }
+
+            this.updateBody(trackList);
         });
     }
 
-    updateTrackDisplaymode() {}
+    displayModeHandler(icon, track2D) {
+        if (icon.classList.contains('matrix-diagonal-widget-all')) {
+            icon.classList.replace('matrix-diagonal-widget-all', 'matrix-diagonal-widget-lower');
+            track2D.displayMode = 'lower';
+        } else if (icon.classList.contains('matrix-diagonal-widget-lower')) {
+            icon.classList.replace('matrix-diagonal-widget-lower', 'matrix-diagonal-widget-upper');
+            track2D.displayMode = 'upper';
+        } else {
+            icon.classList.replace('matrix-diagonal-widget-upper', 'matrix-diagonal-widget-all');
+            track2D.displayMode = undefined;
+        }
+    }
+
+    annotationColorSwatch(color) {
+        const swatch = document.createElement('div');
+        swatch.className = 'igv-color-swatch';
+
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-square fa-lg';
+        icon.style.color = color;
+        swatch.appendChild(icon);
+
+        return swatch;
+    }
 }
 
 export default AnnotationWidget;

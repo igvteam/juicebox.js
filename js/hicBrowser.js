@@ -28,7 +28,6 @@
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {Alert, InputDialog, DOMUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
 import {FileUtils} from '../node_modules/igv-utils/src/index.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
 import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js"
 import EventBus from "./eventBus.js"
@@ -258,20 +257,20 @@ class HICBrowser {
     }
 
     toggleMenu() {
-        if (this.$menu.is(':visible')) {
-            this.hideMenu()
+        if (this.menuElement.style.display === "flex") {
+            this.hideMenu();
         } else {
-            this.showMenu()
+            this.showMenu();
         }
     }
 
     showMenu() {
-        this.$menu.show()
+        this.menuElement.style.display = "flex";
     }
 
     hideMenu() {
-        this.$menu.hide()
-    };
+        this.menuElement.style.display = "none";
+    }
 
     startSpinner() {
         this.contactMatrixView.startSpinner()
@@ -425,7 +424,6 @@ class HICBrowser {
         }
         return gs
     }
-
 
     /**
      * Load a list of 1D genome tracks (wig, etc).
@@ -844,7 +842,6 @@ class HICBrowser {
         return locusObject
     };
 
-
     /**
      * @param scaleFactor Values range from greater then 1 to decimal values less then one
      *                    Value > 1 are magnification (zoom in)
@@ -1019,7 +1016,6 @@ class HICBrowser {
         const binSizeNew = this.dataset.bpResolutions[zoom]
 
         const scaleFactor = binSize / binSizeNew
-        // console.log(`setZoom: scaleFactor ${ scaleFactor }`)
 
         const xCenterNew = xCenter * scaleFactor
         const yCenterNew = yCenter * scaleFactor
@@ -1035,10 +1031,6 @@ class HICBrowser {
         this.state.y = Math.max(0, yCenterNew - height / (2 * this.state.pixelSize))
 
         this.clamp()
-
-        // const bpPerPixel = binSizeNew/this.state.pixelSize
-        // const locus = getLocus(this.dataset, this.state, width, height, bpPerPixel)
-        // console.log(`setZoom: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         await this.contactMatrixView.zoomIn()
 
@@ -1098,7 +1090,6 @@ class HICBrowser {
 
     }
 
-
     /**
      * Set the matrix state.  Used to restore state from a bookmark
      * @param state  browser state
@@ -1120,7 +1111,6 @@ class HICBrowser {
         this.update(hicEvent)
         this.eventBus.post(hicEvent)
     }
-
 
     /**
      * Return a modified state object used for synching.  Other datasets might have different chromosome ordering
@@ -1185,16 +1175,6 @@ class HICBrowser {
         this.state.x = xBinNew
         this.state.y = yBinNew
         this.state.pixelSize = pixelSizeNew
-
-        // const { width, height } = this.contactMatrixView.getViewDimensions()
-        //
-        // const targetWidthBP = (targetState.binSize / targetState.pixelSize) * width
-        // const widthBP = await this.state.sizeBP(this.dataset, this.state.zoom, width)
-        //
-        // console.log(`syncState: targetWidthBP ${ StringUtils.numberFormatter(targetWidthBP) } syncedWidthBP ${ StringUtils.numberFormatter(widthBP) }`)
-        //
-        // const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/this.state.pixelSize)
-        // console.log(`syncState: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         const payload =
             {
@@ -1285,11 +1265,6 @@ class HICBrowser {
         this.state.x = newXBin
         this.state.y = newYBin
         this.state.pixelSize = pixelSize
-
-        // console.log(`goto: bpPerPixelTarget ${ bpPerPixelTarget } === ${ binSizeNew/pixelSize }`)
-        //
-        // const locus = getLocus(this.dataset, this.state, width, height, binSizeNew/pixelSize)
-        // console.log(`goto: ${ this.config.name } locus ${ locusDescription(locus) }`)
 
         this.contactMatrixView.clearImageCaches()
 
@@ -1390,7 +1365,6 @@ class HICBrowser {
         return this.dataset.bpResolutions[this.state.zoom]
     };
 
-
     toJSON() {
 
         if (!(this.dataset && this.dataset.url)) return "{}"   // URL is required
@@ -1472,7 +1446,6 @@ class HICBrowser {
 
         return jsonOBJ
     }
-
 
     async minZoom(chr1, chr2) {
 
@@ -1568,10 +1541,6 @@ parseUri.options = {
         strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
         loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
     }
-}
-
-function replaceAll(str, target, replacement) {
-    return str.split(target).join(replacement)
 }
 
 function presentError(prefix, error) {

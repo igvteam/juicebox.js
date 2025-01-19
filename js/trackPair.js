@@ -4,7 +4,6 @@
 
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
-import $ from '../vendor/jquery-3.3.1.slim.js'
 import MenuUtils from "./trackMenuUtils.js"
 import MenuPopup from "./trackMenuPopup.js"
 import {createIcon} from "./igv-icons.js"
