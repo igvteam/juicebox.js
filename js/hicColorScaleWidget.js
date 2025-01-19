@@ -139,9 +139,9 @@ function createColorPicker(browser, parent, type) {
 }
 
 function presentColorPicker(presentable, hideableA, hideableB) {
-    hideableA.style.display = 'none';
-    hideableB.style.display = 'none';
-    presentable.style.display = 'block';
+    hideableA.hide()
+    hideableB.hide()
+    presentable.show()
 }
 
 function colorSwatch(rgbString) {
