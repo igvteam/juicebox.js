@@ -36,6 +36,7 @@ class AnnotationWidget {
     }
 
     updateBody(tracks) {
+
         this.annotationPanelElement.querySelectorAll('.hic-annotation-row-container').forEach(el => el.remove());
 
         if (tracks[0] instanceof Track2D) {
@@ -49,8 +50,6 @@ class AnnotationWidget {
         }
     }
 
-    updateTrackDisplaymode() {}
-
     annotationPresentationButton(parent, alertMessage) {
         const button = parent.querySelector('button');
 
@@ -60,7 +59,7 @@ class AnnotationWidget {
             if (list.length > 0) {
                 this.updateBody(this.trackListRetrievalCallback());
                 this.annotationPanelElement.style.display =
-                    this.annotationPanelElement.style.display === 'none' ? 'block' : 'none';
+                    this.annotationPanelElement.style.display === 'none' ? 'flex' : 'none';
             } else {
                 Alert.presentAlert(alertMessage);
             }
@@ -92,7 +91,7 @@ class AnnotationWidget {
 
         closeIcon.addEventListener('click', () => {
             this.annotationPanelElement.style.display =
-                this.annotationPanelElement.style.display === 'none' ? 'block' : 'none';
+                this.annotationPanelElement.style.display === 'none' ? 'flex' : 'none';
         });
 
         makeDraggable(this.annotationPanelElement, panelHeader);
@@ -102,6 +101,11 @@ class AnnotationWidget {
     annotationPanelRow(container, track) {
         const isTrack2D = track instanceof Track2D;
         const trackList = this.trackListRetrievalCallback();
+
+        let trackRenderer
+        if (false === isTrack2D) {
+            trackRenderer = track.x.track.trackView
+        }
 
         const rowContainer = document.createElement('div');
         rowContainer.className = 'hic-annotation-row-container';
@@ -153,22 +157,101 @@ class AnnotationWidget {
             row.appendChild(displayModeIcon);
         }
 
-        const colorSwatch = this.annotationColorSwatch(
-            isTrack2D ? track.getColor() : track.x.track.color
-        );
-        row.appendChild(colorSwatch);
+        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, { width: (29 * 24 + 2) }, () => {
+            const nextElement = row.nextElementSibling;
+            if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
+                nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
+            }
+        });
 
+        const colorpickerButton = this.annotationColorSwatch(isTrack2D ? track.getColor() : track.x.track.color);
+        row.appendChild(colorpickerButton);
+
+        colorpickerButton.addEventListener('click', () => {
+            const nextElement = row.nextElementSibling;
+            if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
+                nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
+            }
+        });
+
+        colorpickerContainer.style.display = 'none';
+
+        const colorHandler = color => {
+            const swatch = row.querySelector('.fa-square');
+            if (swatch) {
+                swatch.style.color = color;
+            }
+
+            if (isTrack2D) {
+                track.color = color;
+                this.browser.eventBus.post(HICEvent('TrackState2D', track));
+            } else {
+                trackRenderer.setColor(color);
+            }
+        };
+
+        createColorSwatchSelector(colorpickerContainer, colorHandler);
+
+        // track up/down
         const upDownContainer = document.createElement('div');
         upDownContainer.className = 'up-down-arrow-container';
         row.appendChild(upDownContainer);
 
-        const upArrow = document.createElement('i');
-        upArrow.className = 'fa fa-arrow-up';
-        upDownContainer.appendChild(upArrow);
+        const upTrack = document.createElement('i');
+        upTrack.className = 'fa fa-arrow-up';
+        upTrack.setAttribute('aria-hidden', 'true');
+        upDownContainer.appendChild(upTrack);
 
-        const downArrow = document.createElement('i');
-        downArrow.className = 'fa fa-arrow-down';
-        upDownContainer.appendChild(downArrow);
+        const downTrack = document.createElement('i');
+        downTrack.className = 'fa fa-arrow-down';
+        downTrack.setAttribute('aria-hidden', 'true');
+        upDownContainer.appendChild(downTrack);
+
+        const hiddenColor = '#f7f7f7'
+        if (trackList.length === 1) {
+            upTrack.style.color = hiddenColor;
+            downTrack.style.color = hiddenColor;
+        } else if (track === trackList[0]) {
+            const arrow = isTrack2D ? downTrack : upTrack;
+            arrow.style.color = hiddenColor;
+        } else if (track === trackList[trackList.length - 1]) {
+            const arrow = isTrack2D ? upTrack : downTrack;
+            arrow.style.color = hiddenColor;
+        }
+
+        const index = trackList.indexOf(track);
+
+        const moveUp = () => {
+            const temp = trackList[index + 1];
+            trackList[index + 1] = trackList[index];
+            trackList[index] = temp;
+
+            if (isTrack2D) {
+                this.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+                this.updateBody(trackList);
+            } else {
+                this.browser.updateLayout();
+                this.updateBody(trackList);
+            }
+        };
+
+        const moveDown = () => {
+            const temp = trackList[index - 1];
+            trackList[index - 1] = trackList[index];
+            trackList[index] = temp;
+
+            if (isTrack2D) {
+                this.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+                this.updateBody(trackList);
+            } else {
+                this.browser.updateLayout();
+                this.updateBody(trackList);
+            }
+        };
+
+        upTrack.addEventListener('click', isTrack2D ? moveUp : moveDown);
+        downTrack.addEventListener('click', isTrack2D ? moveDown : moveUp);
+
 
         const deleteIcon = document.createElement('i');
         deleteIcon.className = 'fa fa-trash-o fa-lg';
@@ -213,6 +296,38 @@ class AnnotationWidget {
 
         return swatch;
     }
+}
+
+function createAnnotationPanelColorpickerContainer(parent, config, closeHandler) {
+
+    const container = document.createElement('div');
+    container.className = 'hic-color-swatch-container';
+    parent.appendChild(container);
+
+    // width
+    if (config && config.width) {
+        container.style.width = `${config.width}px`;
+    }
+
+    // height
+    if (config && config.height) {
+        container.style.height = `${config.height}px`;
+    }
+
+    // header
+    const header = document.createElement('div');
+    container.appendChild(header);
+
+    // close button
+    const closeButton = document.createElement('i');
+    closeButton.className = 'fa fa-times';
+    header.appendChild(closeButton);
+
+    closeButton.addEventListener('click', () => {
+        closeHandler();
+    });
+
+    return container;
 }
 
 export default AnnotationWidget;
