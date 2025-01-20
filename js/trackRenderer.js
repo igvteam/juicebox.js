@@ -71,14 +71,23 @@ class TrackRenderer {
 
     drawTile(tile, genomicState) {
         if (tile) {
-            this.offsetPixel = Math.round((tile.startBP - genomicState.startBP) / genomicState.bpp);
-            this.ctx.clearRect(0, 0, this.canvasElement.width, this.canvasElement.height);
+
+            let w
+            let h
             if (this.axis === 'x') {
-                this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
+                w = this.canvasElement.width
+                h = this.canvasElement.height
             } else {
+                h = this.canvasElement.width
+                w = this.canvasElement.height
                 this.ctx.setTransform(0, 1, 1, 0, 0, 0);
-                this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
             }
+
+            this.ctx.clearRect(0, 0, w, h);
+
+            this.offsetPixel = Math.round((tile.startBP - genomicState.startBP) / genomicState.bpp);
+            this.ctx.drawImage(tile.buffer, this.offsetPixel, 0);
+
         }
     }
 
