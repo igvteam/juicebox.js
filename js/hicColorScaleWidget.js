@@ -29,6 +29,7 @@ import { DOMUtils, ColorPicker, createColorSwatchSelector, GenericContainer } fr
 import RatioColorScale, { defaultRatioColorScaleConfig } from './ratioColorScale.js';
 import ContactMatrixView from "./contactMatrixView.js";
 import ColorScale from "./colorScale.js";
+import {parseRgbString} from "./utils.js"
 
 class ColorScaleWidget {
 
@@ -123,14 +124,16 @@ function createColorPicker(browser, parent, type) {
         defaultColors = [IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b))];
         colorHandler = (hex) => {
             parent.style.backgroundColor = hex;
-            const [r, g, b] = IGVColor.hexToRgb(hex).split(',').map(Number);
+            const rgbString = IGVColor.hexToRgb(hex)
+            const [r, g, b] = parseRgbString(rgbString)
             browser.contactMatrixView.setBackgroundColor({ r, g, b });
         };
     } else {
         defaultColors = [defaultRatioColorScaleConfig.negative, defaultRatioColorScaleConfig.positive].map(({ r, g, b }) => IGVColor.rgbToHex(IGVColor.rgbColor(r, g, b)));
         colorHandler = (hex) => {
             parent.style.backgroundColor = hex;
-            const [r, g, b] = IGVColor.hexToRgb(hex).split(',').map(Number);
+            const rgbString = IGVColor.hexToRgb(hex)
+            const [r, g, b] = parseRgbString(rgbString)
             browser.getColorScale().setColorComponents({ r, g, b }, type);
             browser.repaintMatrix();
         };
