@@ -56,13 +56,6 @@ function throttle(fn, threshhold, scope) {
     }
 }
 
-function trackOrderDescription(trackPairs) {
-
-    const strings = trackPairs.map(({ x }, index) => { return `name(${ x.track.id }) index(${ index }) order(${ x.$viewport.get(0).style.order })`}).join('\n')
-    return `\n${ strings }`
-
-}
-
 function getExtension(url) {
 
     if (undefined === url) {
@@ -91,4 +84,4 @@ function getExtension(url) {
 }
 
 
-export { isMobile, throttle, trackOrderDescription, getExtension }
+export { isMobile, throttle, getExtension }

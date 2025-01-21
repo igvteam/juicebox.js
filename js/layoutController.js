@@ -197,21 +197,19 @@ class LayoutController {
         if (this.browser.trackPairs.length > 0) {
 
             // remove DOM element
-            trackXYPair.x.$viewport.remove()
-            trackXYPair.y.$viewport.remove()
+            trackXYPair.x.viewportElement.remove();
+            trackXYPair.y.viewportElement.remove();
 
             // remove from trackPairs list
-            const index = this.browser.trackPairs.indexOf(trackXYPair)
-            this.browser.trackPairs.splice(index, 1)
+            const index = this.browser.trackPairs.indexOf(trackXYPair);
+            this.browser.trackPairs.splice(index, 1);
 
-            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length)
+            this.resizeLayoutWithTrackXYPairCount(this.browser.trackPairs.length);
 
-            this.browser.updateLayout()
+            this.browser.updateLayout();
 
-            EventBus.globalBus.post(HICEvent("TrackXYPairRemoval", trackXYPair))
-
+            EventBus.globalBus.post(HICEvent("TrackXYPairRemoval", trackXYPair));
         }
-
     }
 
     resizeLayoutWithTrackXYPairCount(trackXYPairCount) {

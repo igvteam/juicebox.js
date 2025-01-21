@@ -344,26 +344,31 @@ class HICBrowser {
         this.contactMatrixView.setColorScaleThreshold(threshold)
     }
 
-    updateCrosshairs({x, y, xNormalized, yNormalized}) {
+    updateCrosshairs({ x, y, xNormalized, yNormalized }) {
 
-        const xGuide = y < 0 ? {left: 0} : {top: y, left: 0}
-        this.contactMatrixView.$x_guide.css(xGuide)
-        this.layoutController.$x_track_guide.css(xGuide)
+        const xGuide = y < 0 ? { left: '0px' } : { top: `${y}px`, left: '0px' };
+        this.contactMatrixView.xGuideElement.style.left = xGuide.left;
+        if (xGuide.top !== undefined) this.contactMatrixView.xGuideElement.style.top = xGuide.top;
 
-        const yGuide = x < 0 ? {top: 0} : {top: 0, left: x}
-        this.contactMatrixView.$y_guide.css(yGuide)
-        this.layoutController.$y_track_guide.css(yGuide)
+        this.layoutController.xTrackGuideElement.style.left = xGuide.left;
+        if (xGuide.top !== undefined) this.layoutController.xTrackGuideElement.style.top = xGuide.top;
+
+        const yGuide = x < 0 ? { top: '0px' } : { top: '0px', left: `${x}px` };
+        this.contactMatrixView.yGuideElement.style.top = yGuide.top;
+        if (yGuide.left !== undefined) this.contactMatrixView.yGuideElement.style.left = yGuide.left;
+
+        this.layoutController.yTrackGuideElement.style.top = yGuide.top;
+        if (yGuide.left !== undefined) this.layoutController.yTrackGuideElement.style.left = yGuide.left;
 
         if (this.customCrosshairsHandler) {
+            const { x: stateX, y: stateY, pixelSize } = this.state;
+            const resolution = this.resolution();
 
-            const {x: stateX, y: stateY, pixelSize} = this.state
-            const resolution = this.resolution()
+            const xBP = (stateX + (x / pixelSize)) * resolution;
+            const yBP = (stateY + (y / pixelSize)) * resolution;
 
-            const xBP = (stateX + (x / pixelSize)) * resolution
-            const yBP = (stateY + (y / pixelSize)) * resolution
-
-            let {startBP: startXBP, endBP: endXBP} = this.genomicState('x')
-            let {startBP: startYBP, endBP: endYBP} = this.genomicState('y')
+            const { startBP: startXBP, endBP: endXBP } = this.genomicState('x');
+            const { startBP: startYBP, endBP: endYBP } = this.genomicState('y');
 
             this.customCrosshairsHandler({
                 xBP,
@@ -374,9 +379,8 @@ class HICBrowser {
                 endYBP,
                 interpolantX: xNormalized,
                 interpolantY: yNormalized
-            })
+            });
         }
-
     }
 
     setCustomCrosshairsHandler(crosshairsHandler) {
