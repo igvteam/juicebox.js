@@ -74,14 +74,20 @@ class TrackPair {
 
     presentColorPicker() {
         const bbox = this.x.trackDiv.getBoundingClientRect();
-        this.colorPicker.origin = {x: bbox.x, y: 0};
-        this.colorPicker.$container.offset({left: this.colorPicker.origin.x, top: this.colorPicker.origin.y});
-        this.colorPicker.$container.show();
+        this.colorPicker.origin = { x: bbox.x, y: 0 };
+
+        // Set the position of the colorPicker container
+        this.colorPicker.containerElement.style.left = `${this.colorPicker.origin.x}px`;
+        this.colorPicker.containerElement.style.top = `${this.colorPicker.origin.y}px`;
+
+        // Show the colorPicker container
+        this.colorPicker.containerElement.style.display = 'block';
     }
 
-    setTrackName(name) {
-        this.track.name = name
-      }
+    setTrackLabelName(name) {
+        this.x.labelElement.textContent = name;
+        this.x.labelElement.title = name;
+    }
 
     setColor(color) {
         this.y.tile = undefined;

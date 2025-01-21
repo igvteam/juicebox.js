@@ -131,10 +131,18 @@ function trackRenameMenuItem(trackPair) {
     const click = e => {
 
         const callback = value => {
-            '' === value || undefined === value ? trackPair.setTrackName('') : trackPair.setTrackName(value.trim())
+
+            let name
+            if ('' === value || undefined === value){
+                name = ''
+            } else {
+                name = value.trim()
+            }
+            trackPair.track.name = name
         }
 
-        trackPair.browser.inputDialog.present({label: 'Track Name', value: trackPair.track.name || '', callback }, e)
+        const value = trackPair.track.name || ''
+        trackPair.browser.inputDialog.present({ label: 'Track Name', value, callback }, e)
     }
 
     return { object, click }
