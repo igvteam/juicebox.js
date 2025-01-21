@@ -609,7 +609,7 @@ class HICBrowser {
 
             this.contactMatrixView.startSpinner()
             if (!noUpdates) {
-                this.$user_interaction_shield.show()
+                this.userInteractionShield.show()
             }
 
             const name = extractName(config)
@@ -689,7 +689,7 @@ class HICBrowser {
         } finally {
             this.stopSpinner()
             if (!noUpdates) {
-                this.$user_interaction_shield.hide()
+                this.userInteractionShield.hide()
             }
         }
     }
@@ -705,7 +705,7 @@ class HICBrowser {
     async loadHicControlFile(config, noUpdates) {
 
         try {
-            this.$user_interaction_shield.show()
+            this.userInteractionShield.show()
             this.contactMatrixView.startSpinner()
             this.controlUrl = config.url
             const name = extractName(config)
@@ -725,8 +725,8 @@ class HICBrowser {
                 if (this.dataset) {
                     this.contactMapLabel.textContent = "A: " + this.dataset.name;
                 }
-                this.$controlMaplabel.text("B: " + controlDataset.name)
-                this.$controlMaplabel.attr('title', controlDataset.name)
+                this.controlMaplabel.text("B: " + controlDataset.name)
+                this.controlMaplabel.attr('title', controlDataset.name)
 
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
@@ -739,7 +739,7 @@ class HICBrowser {
                 Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')')
             }
         } finally {
-            this.$user_interaction_shield.hide()
+            this.userInteractionShield.hide()
             this.stopSpinner()
         }
     }
