@@ -5,7 +5,7 @@
 import igv from '../node_modules/igv/dist/igv.esm.js'
 import {ColorPicker, DataRangeDialog} from '../node_modules/igv-ui/dist/igv-ui.js'
 import MenuUtils from "./trackMenuUtils.js"
-import MenuPopup from "./trackMenuPopup.js"
+import TrackGearPopup from "./trackGearPopup.js"
 import {createIcon} from "./igv-icons.js"
 import Tile from "./tile.js";
 
@@ -124,7 +124,7 @@ class TrackPair {
 
         container.appendChild(createIcon('cog'));
 
-        this.trackGearPopup = new MenuPopup(parentElement);
+        this.trackGearPopup = new TrackGearPopup(parentElement);
         this.trackGearPopup.popoverElement.style.display = 'none';
 
         container.addEventListener('click', e => {

@@ -26,28 +26,35 @@
 import $ from "../vendor/jquery-3.3.1.slim.js";
 import {makeDraggable, UIUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
 
-class MenuPopup {
-    constructor($parent) {
+class TrackGearPopup {
+
+    constructor(parentElement) {
         // Popover container
-        this.$popover = $('<div>', { class: 'jb-igv-menu-popup' });
-        $parent.append(this.$popover);
-        this.popoverElement = this.$popover.get(0);
+        this.popoverElement = document.createElement('div');
+        this.popoverElement.className = 'jb-igv-menu-popup';
+        parentElement.appendChild(this.popoverElement);
 
         // Popover header
-        const $popoverHeader = $('<div>', { class: 'jb-igv-menu-popup-header' });
-        this.$popover.append($popoverHeader);
+        const popoverHeaderElement = document.createElement('div');
+        popoverHeaderElement.className = 'jb-igv-menu-popup-header';
+        this.popoverElement.appendChild(popoverHeaderElement);
 
-        UIUtils.attachDialogCloseHandlerWithParent($popoverHeader.get(0), () => this.$popover.hide());
+        // Attach close handler
+        UIUtils.attachDialogCloseHandlerWithParent(popoverHeaderElement, () => {
+            this.popoverElement.style.display = 'none';
+        });
 
-        this.$popoverContent = $('<div>');
-        this.$popover.append(this.$popoverContent);
+        // Popover content
+        this.popoverContentElement = document.createElement('div');
+        this.popoverElement.appendChild(this.popoverContentElement);
 
-        makeDraggable(this.$popover.get(0), $popoverHeader.get(0));
+        // Make draggable
+        makeDraggable(this.popoverElement, popoverHeaderElement);
 
-        $popoverHeader.on('click.menu-popup-dismiss', (e) => {
+        // Prevent click propagation
+        popoverHeaderElement.addEventListener('click', (e) => {
             e.stopPropagation();
             e.preventDefault();
-            // absorb click to prevent it leaking through to parent DOM element
         });
     }
 
@@ -55,47 +62,56 @@ class MenuPopup {
         hideAllMenuPopups();
 
         if (list.length > 0) {
-            this.$popoverContent.empty();
+            // Clear popover content
+            this.popoverContentElement.innerHTML = '';
 
-            const updatedList = trackMenuItemListHelper(list, this.$popover);
+            const updatedList = trackMenuItemListHelper(list, this.popoverElement);
 
-            updatedList.forEach((item, index) => {
+            for (const item of updatedList) {
                 if (item.init) {
                     item.init();
                 }
 
-                const $e = item.object;
-                if (index === 0) {
-                    $e.removeClass('igv-track-menu-border-top');
+                const element = item.object.get(0); // Assuming `object` is a DOM element
+
+                // Remove the border-top class from the first item
+                if (updatedList.indexOf(item) === 0) {
+                    element.classList.remove('igv-track-menu-border-top');
                 }
 
+                // Add 'jb-igv-menu-popup-shim' if applicable
                 if (
-                    !$e.hasClass('igv-track-menu-border-top') &&
-                    !$e.hasClass('jb-igv-menu-popup-check-container') &&
-                    $e.is('div')
+                    !element.classList.contains('igv-track-menu-border-top') &&
+                    !element.classList.contains('jb-igv-menu-popup-check-container') &&
+                    element.tagName === 'DIV'
                 ) {
-                    $e.addClass('jb-igv-menu-popup-shim');
+                    element.classList.add('jb-igv-menu-popup-shim');
                 }
 
-                this.$popoverContent.append($e);
-            });
+                // Append element to the popover content
+                this.popoverContentElement.appendChild(element);
+            }
 
-            this.$popover.css({ left: `${dx}px`, top: `${dy}px` });
-            this.$popover.show();
+            // Position and display the popover
+            this.popoverElement.style.left = `${dx}px`;
+            this.popoverElement.style.top = `${dy}px`;
+            this.popoverElement.style.display = 'block';
         }
     }
 
     dispose() {
-        this.$popover.empty();
-        this.$popoverContent.empty();
+        this.popoverElement.innerHTML = '';
+        this.popoverContentElement.innerHTML = '';
 
-        Object.keys(this).forEach(key => {
+        for (let key of Object.keys(this)) {
             this[key] = undefined;
-        });
+        }
     }
 }
 
-function trackMenuItemListHelper(itemList, $popover){
+function trackMenuItemListHelper(itemList, popoverElement){
+
+    const $popover = $(popoverElement)
 
     var list = [];
 
@@ -127,25 +143,29 @@ function trackMenuItemListHelper(itemList, $popover){
             }
 
             if (item.click) {
-                $e.on('click', handleClick);
-                $e.on('touchend', function (e) {
-                    handleClick(e);
+                $e.on('click', e => {
+                    e.preventDefault();
+                    e.stopPropagation()
+                    item.click(e);
+                    $popover.hide();
+
                 });
-                $e.on('mouseup', function (e) {
+
+                $e.on('touchend', e => {
+                    e.preventDefault();
+                    e.stopPropagation()
+                    item.click(e);
+                    $popover.hide();
+                });
+
+                $e.on('mouseup', e => {
                     e.preventDefault();
                     e.stopPropagation();
                 })
 
-                // eslint-disable-next-line no-inner-declarations
-                function handleClick(e) {
-                    item.click(e);
-                    $popover.hide();
-                    e.preventDefault();
-                    e.stopPropagation()
-                }
             }
 
-            return {object: $e, init: (item.init || undefined)};
+            return { object: $e, init: (item.init || undefined)};
         });
     }
     return list;
@@ -155,5 +175,5 @@ function hideAllMenuPopups() {
     $('.jb-igv-menu-popup').hide()
 }
 
-export default MenuPopup
+export default TrackGearPopup
 
