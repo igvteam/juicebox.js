@@ -613,7 +613,7 @@ class HICBrowser {
 
             this.contactMatrixView.startSpinner()
             if (!noUpdates) {
-                this.userInteractionShield.show()
+                this.userInteractionShield.style.display = 'block';
             }
 
             const name = extractName(config)
@@ -693,7 +693,7 @@ class HICBrowser {
         } finally {
             this.stopSpinner()
             if (!noUpdates) {
-                this.userInteractionShield.hide()
+                this.userInteractionShield.style.display = 'none';
             }
         }
     }
@@ -709,7 +709,7 @@ class HICBrowser {
     async loadHicControlFile(config, noUpdates) {
 
         try {
-            this.userInteractionShield.show()
+            this.userInteractionShield.style.display = 'block';
             this.contactMatrixView.startSpinner()
             this.controlUrl = config.url
             const name = extractName(config)
@@ -743,7 +743,7 @@ class HICBrowser {
                 Alert.presentAlert('"B" map genome (' + controlDataset.genomeId + ') does not match "A" map genome (' + this.genome.id + ')')
             }
         } finally {
-            this.userInteractionShield.hide()
+            this.userInteractionShield.style.display = 'none';
             this.stopSpinner()
         }
     }
