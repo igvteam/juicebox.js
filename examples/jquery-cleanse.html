@@ -29,7 +29,7 @@
             "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
             "normalization": "VC_SQRT",
             "colorScale": "66.20668236071833,255,0,0",
-        }
+        };
 
     const config_with_2d_annotations =
         {
@@ -69,12 +69,30 @@
                     "displayMode": "lower"
                 }
             ]
-        }
+        };
 
-    juicebox.init(document.getElementById("app-container"), config_with_2d_annotations)
-        .then(browser => {
-            console.log(`${browser.id} is good to go`)
-        })
+    const config_a_b_maps =
+        {
+            "browsers": [
+                {
+                    "backgroundColor": "0,74,136",
+                    "url": "https://hicfiles.s3.amazonaws.com/hiseq/imr90/in-situ/combined.hic",
+                    "name": "Combined",
+                    "state": "7,7,5,815.66029,815.66029,640,640,1,NONE",
+                    "colorScale": "23,255,114,110",
+                    "selectedGene": "egfr",
+                    "nvi": "13433880319,35723",
+                    "controlUrl": "https://s3.amazonaws.com/hicfiles/hiseq/degron/untreated/unsynchronized/HIC005.hic",
+                    "controlName": "Untreated, HIC005",
+                    "displayMode": "B",
+                    "controlNvi": "6846576837,36479"
+                }
+            ],
+            "selectedGene": "egfr"
+        };
+
+    juicebox.init(document.getElementById("app-container"), config_a_b_maps)
+        .then(browser => console.log(`${browser.id} is good to go`))
 
 
 </script>

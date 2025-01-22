@@ -619,7 +619,7 @@ class HICBrowser {
             const name = extractName(config)
             const prefix = this.controlDataset ? "A: " : ""
             this.contactMapLabel.textContent = prefix + name;
-            this.contactMapLabel.setAttribute('title', name);
+            this.contactMapLabel.title = name
             config.name = name
 
             const hicFileAlert = str => {
@@ -729,8 +729,8 @@ class HICBrowser {
                 if (this.dataset) {
                     this.contactMapLabel.textContent = "A: " + this.dataset.name;
                 }
-                this.controlMaplabel.text("B: " + controlDataset.name)
-                this.controlMaplabel.attr('title', controlDataset.name)
+                this.controlMapLabel.textContent = "B: " + controlDataset.name
+                this.controlMapLabel.title = controlDataset.name
 
                 //For the control dataset, block until the norm vector index is loaded
                 await controlDataset.getNormVectorIndex(config)
