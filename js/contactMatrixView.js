@@ -629,8 +629,8 @@ class ContactMatrixView {
     }
 
     startSpinner() {
-        if (this.browser.isLoadingHICFile && this.browser.userInteractionShieldElement) {
-            this.browser.userInteractionShieldElement.style.display = 'block';
+        if (this.browser.isLoadingHICFile && this.browser.userInteractionShield) {
+            this.browser.userInteractionShield.style.display = 'block';
         }
         this.faSpinnerElement.style.display = 'inline-block';
         this.spinnerCount++;
