@@ -167,7 +167,7 @@ class Ruler {
 
     showWholeGenome() {
         this.canvasElement.style.display = 'none';
-        this.wholeGenomeContainerElement.style.display = 'block';
+        this.wholeGenomeContainerElement.style.display = 'flex';
     }
 
     setAxisTransform(axis) {
