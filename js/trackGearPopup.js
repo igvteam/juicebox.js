@@ -23,7 +23,6 @@
  * THE SOFTWARE.
  */
 
-import $ from "../vendor/jquery-3.3.1.slim.js";
 import {makeDraggable, UIUtils} from '../node_modules/igv-ui/dist/igv-ui.js'
 
 class TrackGearPopup {
@@ -59,7 +58,7 @@ class TrackGearPopup {
     }
 
     presentMenuList(dx, dy, list) {
-        hideAllMenuPopups();
+        TrackGearPopup.hideAllMenuPopups();
 
         if (list.length > 0) {
             // Clear popover content
@@ -72,24 +71,23 @@ class TrackGearPopup {
                     item.init();
                 }
 
-                const element = item.object.get(0); // Assuming `object` is a DOM element
 
                 // Remove the border-top class from the first item
                 if (updatedList.indexOf(item) === 0) {
-                    element.classList.remove('igv-track-menu-border-top');
+                    item.element.classList.remove('igv-track-menu-border-top');
                 }
 
                 // Add 'jb-igv-menu-popup-shim' if applicable
                 if (
-                    !element.classList.contains('igv-track-menu-border-top') &&
-                    !element.classList.contains('jb-igv-menu-popup-check-container') &&
-                    element.tagName === 'DIV'
+                    !item.element.classList.contains('igv-track-menu-border-top') &&
+                    !item.element.classList.contains('jb-igv-menu-popup-check-container') &&
+                    item.element.tagName === 'DIV'
                 ) {
-                    element.classList.add('jb-igv-menu-popup-shim');
+                    item.element.classList.add('jb-igv-menu-popup-shim');
                 }
 
                 // Append element to the popover content
-                this.popoverContentElement.appendChild(element);
+                this.popoverContentElement.appendChild(item.element);
             }
 
             // Position and display the popover
@@ -107,72 +105,71 @@ class TrackGearPopup {
             this[key] = undefined;
         }
     }
+
+    static hideAllMenuPopups() {
+        const popups = document.querySelectorAll('.jb-igv-menu-popup');
+        for (let popup of popups) {
+            popup.style.display = 'none';
+        }
+    }
+
 }
 
-function trackMenuItemListHelper(itemList, popoverElement){
+function trackMenuItemListHelper(itemList, popoverElement) {
 
-    const $popover = $(popoverElement)
-
-    var list = [];
+    let results = []
 
     if (itemList.length > 0) {
 
-        list = itemList.map(function (item, i) {
-            let $e;
-
-            // name and object fields checked for backward compatibility
+        results = itemList.map((item, i) => {
+            let element;
+            
             if (item.name) {
-                $e = $('<div>');
-                $e.text(item.name);
-            } else if (item.object) {
-                $e = $(item.object)     // This creates a JQuery object form a dom element, or clones if already a jQuery object
+                element = document.createElement('div');
+                element.textContent = item.name;
+            } else if (item.element) {
+                element = item.element instanceof HTMLElement ? item.element.cloneNode(true) : item.element;
             } else if (typeof item.label === 'string') {
-                $e = $('<div>');
-                $e.html(item.label)
+                element = document.createElement('div');
+                element.innerHTML = item.label;
             } else if (typeof item === 'string') {
-
                 if (item.startsWith("<")) {
-                    $e = $(item);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = item;
+                    element = tempDiv.firstElementChild;
                 } else {
-                    $e = $("<div>" + item + "</div>");
+                    element = document.createElement('div');
+                    element.textContent = item;
                 }
             }
 
-            if (0 === i) {
-                $e.addClass('igv-track-menu-border-top');
+            // Add top border class to the first item
+            if (i === 0 && element) {
+                element.classList.add('igv-track-menu-border-top');
             }
 
-            if (item.click) {
-                $e.on('click', e => {
-                    e.preventDefault();
-                    e.stopPropagation()
-                    item.click(e);
-                    $popover.hide();
-
-                });
-
-                $e.on('touchend', e => {
-                    e.preventDefault();
-                    e.stopPropagation()
-                    item.click(e);
-                    $popover.hide();
-                });
-
-                $e.on('mouseup', e => {
+            // Add click, touchend, and mouseup event listeners if item has a click handler
+            if (item.click && element) {
+                const eventHandler = e => {
                     e.preventDefault();
                     e.stopPropagation();
-                })
+                    item.click(e);
+                    popoverElement.style.display = 'none';
+                };
 
+                element.addEventListener('click', eventHandler);
+                element.addEventListener('touchend', eventHandler);
+                element.addEventListener('mouseup', e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
             }
 
-            return { object: $e, init: (item.init || undefined)};
+            return { element, init: item.init || undefined };
         });
     }
-    return list;
-}
 
-function hideAllMenuPopups() {
-    $('.jb-igv-menu-popup').hide()
+    return results;
 }
 
 export default TrackGearPopup
