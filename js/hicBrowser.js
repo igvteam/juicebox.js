@@ -1381,6 +1381,7 @@ class HICBrowser {
             jsonOBJ.name = this.dataset.name
         }
         jsonOBJ.state = this.state.stringify()
+        jsonOBJ.stateJSON = this.state.toJSON()
         jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify()
         if (Globals.selectedGene) {
             jsonOBJ.selectedGene = Globals.selectedGene

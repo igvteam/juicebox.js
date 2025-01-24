@@ -125,6 +125,36 @@ class State {
 
     }
 
+    // Method 1: Convert the State object to a JSON object
+    toJSON() {
+        return {
+            chr1: this.chr1,
+            chr2: this.chr2,
+            zoom: this.zoom,
+            x: this.x,
+            y: this.y,
+            width: this.width,
+            height: this.height,
+            pixelSize: this.pixelSize,
+            normalization: this.normalization || 'NONE'
+        };
+    }
+
+    // Method 2: Parse a JSON object and create an instance of the State class
+    static fromJSON(json) {
+        return new State(
+            json.chr1,
+            json.chr2,
+            json.zoom,
+            json.x,
+            json.y,
+            json.width,
+            json.height,
+            json.pixelSize,
+            json.normalization
+        );
+    }
+
     static default(configOrUndefined) {
 
         if (configOrUndefined) {
