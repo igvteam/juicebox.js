@@ -31,7 +31,7 @@
             "colorScale": "66.20668236071833,255,0,0",
         };
 
-    const config_with_2d_annotations =
+    const config_with_tracks =
         {
             "backgroundColor": "255,255,255",
             "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic",
@@ -91,7 +91,7 @@
             "selectedGene": "egfr"
         };
 
-    juicebox.init(document.getElementById("app-container"), config_a_b_maps)
+    juicebox.init(document.getElementById("app-container"), config_with_tracks)
         .then(browser => console.log(`${browser.id} is good to go`))
 
 
