@@ -42,13 +42,32 @@ async function createBrowserList(hicContainer, session) {
     allBrowsers = [];
     const initPromises = [];
 
-    for (let config of configList) {
-        setDefaults(config);
+    for (const config of configList) {
 
-        if (StringUtils.isString(config.state)) config.state = State.parse(config.state);
-        if (StringUtils.isString(config.colorScale)) config.colorScale = ColorScale.parse(config.colorScale);
-        if (StringUtils.isString(config.backgroundColor)) config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
-        if (session.syncDatasets === false) config.synchable = false;
+        if (config.stateJSON) {
+            config.state = State.fromJSON(config.stateJSON)
+        } else {
+            // TODO: Eventually move away from this string approach for State
+            if (StringUtils.isString(config.state)) {
+                config.state = State.parse(config.state);
+            }
+        }
+
+        if(undefined === config.state){
+            config.state = State.default()
+        }
+
+        setDefaults(config)
+
+        if (StringUtils.isString(config.colorScale)) {
+            config.colorScale = ColorScale.parse(config.colorScale);
+        }
+        if (StringUtils.isString(config.backgroundColor)) {
+            config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
+        }
+        if (session.syncDatasets === false) {
+            config.synchable = false;
+        }
 
         const browser = new HICBrowser(hicContainer, config);
         allBrowsers.push(browser);
@@ -121,27 +140,39 @@ function getAllBrowsers() {
 }
 
 function setDefaults(config) {
-    if (config.state) {
-        config.state = StringUtils.isString(config.state) ? State.parse(config.state) : new State(
-            config.state.chr1,
-            config.state.chr2,
-            config.state.zoom,
-            config.state.x,
-            config.state.y,
-            config.width,
-            config.height,
-            config.state.pixelSize,
-            config.state.normalization
-        );
-    }
+
+    // if (config.state) {
+    //
+    //     config.state = StringUtils.isString(config.state) ? State.parse(config.state) : new State(
+    //         config.state.chr1,
+    //         config.state.chr2,
+    //         config.state.zoom,
+    //         config.state.x,
+    //         config.state.y,
+    //         config.width,
+    //         config.height,
+    //         config.state.pixelSize,
+    //         config.state.normalization
+    //     );
+    // }
 
     if (config.figureMode === true) {
         config.showLocusGoto = false;
         config.showHicContactMapLabel = false;
         config.showChromosomeSelector = false;
     } else {
-        config.width = config.width ?? config.state?.width ?? defaultSize.width;
-        config.height = config.height ?? config.state?.height ?? defaultSize.height;
+
+        if (config.state) {
+            const { width, height } = config.state
+            config.width = width
+            config.height = height
+        } else {
+            config.width = defaultSize.width
+            config.height = defaultSize.height
+        }
+        // config.width = config.width ?? config.state?.width ?? defaultSize.width;
+        // config.height = config.height ?? config.state?.height ?? defaultSize.height;
+
         config.showLocusGoto = config.showLocusGoto ?? true;
         config.showHicContactMapLabel = config.showHicContactMapLabel ?? true;
         config.showChromosomeSelector = config.showChromosomeSelector ?? true;
