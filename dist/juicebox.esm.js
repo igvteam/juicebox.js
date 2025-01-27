@@ -85252,7 +85252,7 @@ class State {
             this.height = height;
 
             if ("undefined" === normalization) {
-                console.log("No normalization defined !!!");
+                console.warn("Normalization is undefined");
                 normalization = undefined;
             }
 
@@ -89310,10 +89310,8 @@ class HICBrowser {
     }
 
     async init(config) {
-        this.state = config.state ? config.state : State.default();
-        if (config.normalization) {
-            this.state.normalization = config.normalization;
-        }
+
+        this.state = config.state;
 
         this.pending = new Map();
         this.eventBus.hold();
@@ -90552,8 +90550,13 @@ class HICBrowser {
         if (this.dataset.name) {
             jsonOBJ.name = this.dataset.name;
         }
-        jsonOBJ.state = this.state.stringify();
-        jsonOBJ.stateJSON = this.state.toJSON();
+
+        if (jsonOBJ.stateJSON) {
+            jsonOBJ.stateJSON = this.state.toJSON();
+        } else {
+            jsonOBJ.state = this.state.stringify();
+        }
+
         jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
         if (Globals.selectedGene) {
             jsonOBJ.selectedGene = Globals.selectedGene;
@@ -90737,13 +90740,32 @@ async function createBrowserList(hicContainer, session) {
     allBrowsers = [];
     const initPromises = [];
 
-    for (let config of configList) {
+    for (const config of configList) {
+
+        if (config.stateJSON) {
+            config.state = State.fromJSON(config.stateJSON);
+        } else {
+            // TODO: Eventually move away from this string approach for State
+            if (isString$3(config.state)) {
+                config.state = State.parse(config.state);
+            }
+        }
+
+        if(undefined === config.state){
+            config.state = State.default();
+        }
+
         setDefaults(config);
 
-        if (isString$3(config.state)) config.state = State.parse(config.state);
-        if (isString$3(config.colorScale)) config.colorScale = ColorScale.parse(config.colorScale);
-        if (isString$3(config.backgroundColor)) config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
-        if (session.syncDatasets === false) config.synchable = false;
+        if (isString$3(config.colorScale)) {
+            config.colorScale = ColorScale.parse(config.colorScale);
+        }
+        if (isString$3(config.backgroundColor)) {
+            config.backgroundColor = ContactMatrixView.parseBackgroundColor(config.backgroundColor);
+        }
+        if (session.syncDatasets === false) {
+            config.synchable = false;
+        }
 
         const browser = new HICBrowser(hicContainer, config);
         allBrowsers.push(browser);
@@ -90810,27 +90832,39 @@ function getAllBrowsers() {
 }
 
 function setDefaults(config) {
-    if (config.state) {
-        config.state = isString$3(config.state) ? State.parse(config.state) : new State(
-            config.state.chr1,
-            config.state.chr2,
-            config.state.zoom,
-            config.state.x,
-            config.state.y,
-            config.width,
-            config.height,
-            config.state.pixelSize,
-            config.state.normalization
-        );
-    }
+
+    // if (config.state) {
+    //
+    //     config.state = StringUtils.isString(config.state) ? State.parse(config.state) : new State(
+    //         config.state.chr1,
+    //         config.state.chr2,
+    //         config.state.zoom,
+    //         config.state.x,
+    //         config.state.y,
+    //         config.width,
+    //         config.height,
+    //         config.state.pixelSize,
+    //         config.state.normalization
+    //     );
+    // }
 
     if (config.figureMode === true) {
         config.showLocusGoto = false;
         config.showHicContactMapLabel = false;
         config.showChromosomeSelector = false;
     } else {
-        config.width = config.width ?? config.state?.width ?? defaultSize.width;
-        config.height = config.height ?? config.state?.height ?? defaultSize.height;
+
+        if (config.state) {
+            const { width, height } = config.state;
+            config.width = width;
+            config.height = height;
+        } else {
+            config.width = defaultSize.width;
+            config.height = defaultSize.height;
+        }
+        // config.width = config.width ?? config.state?.width ?? defaultSize.width;
+        // config.height = config.height ?? config.state?.height ?? defaultSize.height;
+
         config.showLocusGoto = config.showLocusGoto ?? true;
         config.showHicContactMapLabel = config.showHicContactMapLabel ?? true;
         config.showChromosomeSelector = config.showChromosomeSelector ?? true;
