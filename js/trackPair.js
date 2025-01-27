@@ -292,24 +292,26 @@ class TrackPair {
     }
 }
 
-function doAutoscale(features) {
+function doAutoscale (features = []) {
+    let min = Number.MAX_VALUE;
+    let max = -Number.MAX_VALUE;
 
-    if (features.length === 0) {
-        return { min: 0, max: 100 };
+    if (features.length > 0) {
+        for (const { value } of features) {
+            if (!Number.isNaN(value)) {
+                min = Math.min(min, value);
+                max = Math.max(max, value);
+            }
+        }
+
+        // Ensure we have a zero baseline
+        if (max > 0) min = Math.min(0, min);
+        if (max < 0) max = 0;
+    } else {
+        // No features -- default
+        min = 0;
+        max = 100;
     }
-
-    const values = features.map(f => f.value).filter(value => !Number.isNaN(value));
-
-    if (values.length === 0) {
-        return { min: 0, max: 100 };
-    }
-
-    let min = Math.min(...values);
-    let max = Math.max(...values);
-
-    // Ensure zero baseline
-    if (max > 0) min = Math.min(0, min);
-    if (max < 0) max = 0;
 
     return { min, max };
 }
