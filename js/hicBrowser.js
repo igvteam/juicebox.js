@@ -138,10 +138,8 @@ class HICBrowser {
     }
 
     async init(config) {
-        this.state = config.state ? config.state : State.default();
-        if (config.normalization) {
-            this.state.normalization = config.normalization;
-        }
+
+        this.state = config.state
 
         this.pending = new Map();
         this.eventBus.hold();
@@ -1380,8 +1378,13 @@ class HICBrowser {
         if (this.dataset.name) {
             jsonOBJ.name = this.dataset.name
         }
-        jsonOBJ.state = this.state.stringify()
-        jsonOBJ.stateJSON = this.state.toJSON()
+
+        if (jsonOBJ.stateJSON) {
+            jsonOBJ.stateJSON = this.state.toJSON()
+        } else {
+            jsonOBJ.state = this.state.stringify()
+        }
+
         jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify()
         if (Globals.selectedGene) {
             jsonOBJ.selectedGene = Globals.selectedGene
@@ -1513,39 +1516,6 @@ function getNviString(dataset) {
     // } else {
     //     return undefined;
     // }
-}
-
-// parseUri 1.2.2
-// (c) Steven Levithan <stevenlevithan.com>
-// MIT License
-
-function parseUri(str) {
-    var o = parseUri.options,
-        m = o.parser[o.strictMode ? "strict" : "loose"].exec(str),
-        uri = {},
-        i = 14
-
-    while (i--) uri[o.key[i]] = m[i] || ""
-
-    uri[o.q.name] = {}
-    uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-        if ($1) uri[o.q.name][$1] = $2
-    })
-
-    return uri
-}
-
-parseUri.options = {
-    strictMode: false,
-    key: ["source", "protocol", "authority", "userInfo", "user", "password", "host", "port", "relative", "path", "directory", "file", "query", "anchor"],
-    q: {
-        name: "queryKey",
-        parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-    },
-    parser: {
-        strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-        loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-    }
 }
 
 function presentError(prefix, error) {

@@ -55,7 +55,7 @@ class State {
             this.height = height
 
             if ("undefined" === normalization) {
-                console.log("No normalization defined !!!");
+                console.warn("Normalization is undefined");
                 normalization = undefined;
             }
 
