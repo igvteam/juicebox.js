@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.css">
 
     <!-- Juicebox CSS-->
-<!--        <link rel="stylesheet" type="text/css" href="../css/juicebox.css">-->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/css/juicebox.css">
+        <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
+<!--    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/css/juicebox.css">-->
 
 </head>
 
@@ -20,10 +20,10 @@
 
 <script type="module">
 
-    // import juicebox from '../js/index.js';
-    import juicebox from "https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/juicebox.esm.js";
+    import juicebox from '../js/index.js';
+    // import juicebox from "https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/juicebox.esm.js";
 
-    const config_llm =
+    const config_2d_track =
         {
             "browsers": [
                 {
@@ -31,17 +31,6 @@
                     "url": "https://www.encodeproject.org/files/ENCFF473CAA/@@download/ENCFF473CAA.hic",
                     "name": "in-situ agar GM12878 MboI experiment",
                     "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
-                    "stateJSON": {
-                        "chr1": 17,
-                        "chr2": 17,
-                        "zoom": 8,
-                        "x": 12025.0154,
-                        "y": 12025.0154,
-                        "width": 800,
-                        "height": 800,
-                        "pixelSize": 1,
-                        "normalization": "NONE"
-                    },
                     "colorScale": "12,131,249,2",
                     "selectedGene": "ace",
                     "nvi": "1077514950,36479",
@@ -132,7 +121,7 @@
             "selectedGene": "egfr"
         };
 
-    juicebox.init(document.getElementById("app-container"), config_llm)
+    juicebox.init(document.getElementById("app-container"), config_2d_track)
         .then(browser => {
             console.log(`${browser.id} is good to go`)
             // const methods = listClassMethods(browser)
