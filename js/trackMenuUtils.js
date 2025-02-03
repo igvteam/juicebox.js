@@ -1,4 +1,3 @@
-import $ from "../vendor/jquery-3.3.1.slim.js";
 import {createCheckbox} from "./igv-icons.js"
 
 /**
@@ -26,118 +25,115 @@ const MenuUtils = {
     },
 
     numericDataMenuItems: trackPair => {
-
-        const menuItems = []
+        const menuItems = [];
 
         // Data range
-        const object = $('<div>')
-        object.text('Set data range')
+        const element = document.createElement('div');
+        element.textContent = 'Set data range';
 
         const click = () => {
             const { min, max } = trackPair.track.dataRange;
-            trackPair.dataRangeDialog.show({ min: min || 0, max })
-        }
+            trackPair.dataRangeDialog.show({ min: min || 0, max });
+        };
 
-        menuItems.push({ object, click })
+        menuItems.push({ element, click });
 
         if (trackPair.track.logScale !== undefined) {
             menuItems.push({
-                    object: createCheckbox("Log scale", trackPair.track.logScale),
-                    click: () => {
-                        trackPair.track.logScale = !trackPair.track.logScale;
-                        trackPair.repaintViews();
-                    }
+                element: createCheckbox("Log scale", trackPair.track.logScale),
+                click: () => {
+                    trackPair.track.logScale = !trackPair.track.logScale;
+                    trackPair.repaintViews();
                 }
-            )
+            });
         }
 
         menuItems.push({
-                object: createCheckbox("Autoscale", trackPair.track.autoscale),
-                click: () => {
-                    trackPair.track.autoscale = !trackPair.track.autoscale;
-                    trackPair.repaintViews();
-                }
+            element: createCheckbox("Autoscale", trackPair.track.autoscale),
+            click: () => {
+                trackPair.track.autoscale = !trackPair.track.autoscale;
+                trackPair.repaintViews();
             }
-        )
+        });
 
         return menuItems;
     },
 
     nucleotideColorChartMenuItems: trackPair => {
+        const menuItems = [];
+        menuItems.push(document.createElement('hr'));
 
-        const menuItems = []
-        menuItems.push('<hr/>')
-
-        const html =
-            `<div class="jb-igv-menu-popup-chart">
-                <div>A</div>
-                <div>C</div>
-                <div>T</div>
-                <div>G</div>
-            </div>`
+        const element = document.createElement('div');
+        element.className = 'jb-igv-menu-popup-chart';
+        element.innerHTML = `
+        <div>A</div>
+        <div>C</div>
+        <div>T</div>
+        <div>G</div>
+    `;
 
         const click = e => {
-            e.preventDefault()
-            e.stopPropagation()
-        }
+            e.preventDefault();
+            e.stopPropagation();
+        };
 
-        menuItems.push({ object: $(html), click })
+        menuItems.push({ element, click });
 
-        return menuItems
-
+        return menuItems;
     }
 
 }
 
 function trackRemovalMenuItem(trackPair) {
+    const element = document.createElement('div');
+    element.textContent = 'Remove track';
 
-    const object = $('<div>')
-    object.text('Remove track')
+    const click = () => trackPair.browser.layoutController.removeTrackXYPair(trackPair);
 
-    const click = () => trackPair.browser.layoutController.removeTrackXYPair(trackPair)
-
-    return { object, click }
-
+    return { element, click };
 }
 
 function colorPickerMenuItem({ trackPair, label, option }) {
+    const element = document.createElement('div');
+    element.textContent = label;
 
-    const object = $('<div>')
-    object.text(label)
+    const click = () => trackPair.colorPicker.show();
 
-    const click = () => trackPair.colorPicker.show()
-
-    return { object, click }
+    return { element, click };
 }
 
-function unsetColorMenuItem({trackPair, label}) {
-
-    const object = $('<div>')
-    object.text(label)
+function unsetColorMenuItem({ trackPair, label }) {
+    const element = document.createElement('div');
+    element.textContent = label;
 
     const click = () => {
-        trackPair.track.color = undefined
-        trackPair.repaintViews()
-    }
+        trackPair.track.color = undefined;
+        trackPair.repaintViews();
+    };
 
-    return { object, click }
+    return { element, click };
 }
 
 function trackRenameMenuItem(trackPair) {
-
-    const object = $('<div>')
-    object.text('Set track name')
+    const element = document.createElement('div');
+    element.textContent = 'Set track name';
 
     const click = e => {
-
         const callback = value => {
-            '' === value || undefined === value ? trackPair.setTrackName('') : trackPair.setTrackName(value.trim())
-        }
+            let name;
+            if (value === '' || value === undefined) {
+                name = '';
+            } else {
+                name = value.trim();
+            }
+            trackPair.track.name = name;
+        };
 
-        trackPair.browser.inputDialog.present({label: 'Track Name', value: trackPair.track.name || '', callback }, e)
-    }
+        const value = trackPair.track.name || '';
+        trackPair.browser.inputDialog.present({ label: 'Track Name', value, callback }, e);
+    };
 
-    return { object, click }
+    return { element, click };
 }
 
 export default MenuUtils
