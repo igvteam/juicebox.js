@@ -90559,11 +90559,7 @@
                 jsonOBJ.name = this.dataset.name;
             }
 
-            if (jsonOBJ.stateJSON) {
-                jsonOBJ.stateJSON = this.state.toJSON();
-            } else {
-                jsonOBJ.state = this.state.stringify();
-            }
+            jsonOBJ.state = this.state.stringify();
 
             jsonOBJ.colorScale = this.contactMatrixView.getColorScale().stringify();
             if (Globals.selectedGene) {
@@ -90879,7 +90875,7 @@
         }
     }
 
-    const version = "2.5.1";
+    const version = "2.5.2";
      //, commit}
 
     function toJSON() {
