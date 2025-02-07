@@ -29,45 +29,26 @@
 import {igvxhr, StringUtils} from '../node_modules/igv-utils/src/index.js'
 
 async function geneSearch(genomeId, featureName) {
+    const searchServiceURL = `https://portals.broadinstitute.org/webservices/igv/locus?genome=${genomeId}&name=${encodeURIComponent(featureName)}`;
 
-    // Hardcode this for now
-    const searchServiceURL = "https://portals.broadinstitute.org/webservices/igv/locus?genome=" + genomeId + "&name=" + featureName;
-    const data = await igvxhr.loadString(searchServiceURL);
-    var results = parseSearchResults(data);
+    try {
+        const data = await igvxhr.loadString(searchServiceURL);
+        const results = parseSearchResults(data);
 
-    if (results.length === 0) {
-        //alert('No feature found with name "' + feature + '"');
+        return results.length ? results[0] : undefined;
+    } catch (error) {
+        console.error(`Error fetching gene data for "${featureName}":`, error);
         return undefined;
-    } else {
-        // Just take first result for now
-        return results[0]
     }
 }
 
 
 function parseSearchResults(data) {
+    const parsed = StringUtils.splitLines(data)
+        .filter(line => line.trim() !== '').map(line => line.split('\t'))
+        .filter(tokens => tokens.length >= 3).map(tokens => tokens[1])
 
-    const lines = StringUtils.splitLines(data);
-    const linesTrimmed = [];
-    const results = [];
-
-    for (let item of lines) {
-        if ("" === item) {
-            // do nothing
-        } else {
-            linesTrimmed.push(item);
-        }
-    }
-
-    for (let line of linesTrimmed) {
-        // Example result -  EGFR	chr7:55,086,724-55,275,031	refseq
-        const tokens = line.split("\t");
-        if (tokens.length >= 3) {
-            results.push(tokens[1]);
-        }
-    }
-
-    return results;
+    return parsed
 }
 
-export default geneSearch
+export { geneSearch }
