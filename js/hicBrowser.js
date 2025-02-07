@@ -37,7 +37,7 @@ import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
-import geneSearch from './geneSearch.js'
+import { geneSearch } from './geneSearch.js'
 import LocusGoto from "./hicLocusGoto.js"
 import ResolutionSelector from "./hicResolutionSelector.js"
 import ColorScaleWidget from "./hicColorScaleWidget.js"
@@ -746,52 +746,81 @@ class HICBrowser {
         }
     }
 
-    async parseGotoInput(string) {
+    async parseGotoInput(input) {
+        const loci = input.trim().split(' ');
 
-        let xLocus
-        let yLocus
-        const loci = string.split(' ')
-        if (loci.length === 1) {
-            xLocus = this.parseLocusString(loci[0])
-            yLocus = xLocus
-        } else {
-            xLocus = this.parseLocusString(loci[0])
-            yLocus = this.parseLocusString(loci[1])
-            if (yLocus === undefined) yLocus = xLocus
+        let xLocus = this.parseLocusString(loci[0]) || await this.lookupFeatureOrGene(loci[0]);
+
+        if (!xLocus) {
+            console.error(`No feature found with name ${loci[ 0 ]}`)
+            alert(`No feature found with name ${loci[ 0 ]}`)
+            return;
         }
 
-        if (xLocus === undefined) {
-
-            let result
-            // Try feature lookup table first
-            if (this.genome.featureDB.has(string.toUpperCase())) {
-                const feature = this.genome.featureDB.get(string.toUpperCase())
-                result = `${feature.chr}:${feature.start + 1}-${feature.end}`
-            } else {
-                // Try a gene name search.
-                result = await geneSearch(this.genome.id, loci[0].trim())
-            }
-
-            if (result) {
-                Globals.selectedGene = loci[0].trim()
-                xLocus = this.parseLocusString(result)
-                yLocus = xLocus
-                this.state.selectedGene = Globals.selectedGene
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
-            } else {
-                alert('No feature found with name "' + loci[0] + '"')
-            }
-
-        } else {
-
-            if (xLocus.wholeChr && yLocus.wholeChr) {
-                await this.setChromosomes(xLocus.chr, yLocus.chr)
-            } else {
-                this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
-            }
+        let yLocus = loci[1] ? this.parseLocusString(loci[1]) : { ...xLocus }
+        if (!yLocus) {
+            yLocus = { ...xLocus }
         }
 
-    };
+        if (xLocus.wholeChr && yLocus.wholeChr) {
+            await this.setChromosomes(xLocus, yLocus)
+        } else {
+            this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
+        }
+    }
+
+    parseLocusString(locus) {
+        const [chrName, range] = locus.trim().toLowerCase().split(':');
+        const chromosome = this.genome.getChromosome(chrName);
+
+        if (!chromosome) {
+            return undefined;
+        }
+
+        const locusObject =
+            {
+                chr: chromosome.index,
+                wholeChr: !range
+            };
+
+        if (true === locusObject.wholeChr) {
+            // Chromosome name only, set to whole chromosome range
+            locusObject.start = 0;
+            locusObject.end = this.dataset.chromosomes?.[locusObject.chr]?.size || 0;
+        } else {
+            const [startStr, endStr] = range.split('-').map(part => part.replace(/,/g, ''));
+
+            // Internally, loci are 0-based.
+            locusObject.start = isNaN(startStr) ? undefined : parseInt(startStr, 10) - 1;
+            locusObject.end = isNaN(endStr) ? undefined : parseInt(endStr, 10);
+        }
+
+        return locusObject;
+    }
+
+    async lookupFeatureOrGene(name) {
+
+        const trimmedName = name.trim();
+        const upperName = trimmedName.toUpperCase();
+
+        if (this.genome.featureDB.has(upperName)) {
+            Globals.selectedGene = trimmedName
+            this.state.selectedGene = Globals.selectedGene
+            const {chr, start, end } = this.genome.featureDB.get(upperName)
+
+            // Internally, loci are 0-based. parseLocusString() assumes and user-provided locus which is 1-based
+            return this.parseLocusString(`${chr}:${start + 1}-${end}`)
+        }
+
+        const geneResult = await geneSearch(this.genome.id, trimmedName);
+        if (geneResult) {
+            Globals.selectedGene = trimmedName;
+            this.state.selectedGene = Globals.selectedGene;
+            return this.parseLocusString(geneResult)
+        }
+
+        return undefined;  // No match found
+    }
 
     /**
      * Find the closest matching zoom index (index into the dataset resolutions array) for the target resolution.
@@ -813,35 +842,6 @@ class HICBrowser {
             }
         }
         return 0
-    };
-
-    parseLocusString(locus) {
-
-        const locusObject = {}
-        const parts = locus.trim().split(':')
-        const chromosome = this.genome.getChromosome(parts[0].toLowerCase())
-
-        if (!chromosome) {
-            return undefined
-        } else {
-            locusObject.chr = chromosome.index
-        }
-
-        if (parts.length === 1) {
-            // Chromosome name only
-            locusObject.start = 0
-            locusObject.end = this.dataset.chromosomes[locusObject.chr].size
-            locusObject.wholeChr = true
-        } else {
-            const extent = parts[1].split("-")
-            let numeric = extent[0].replace(/\,/g, '')
-            locusObject.start = isNaN(numeric) ? undefined : parseInt(numeric, 10) - 1
-            if (extent.length == 2) {
-                numeric = extent[1].replace(/\,/g, '')
-                locusObject.end = isNaN(numeric) ? undefined : parseInt(numeric, 10)
-            }
-        }
-        return locusObject
     };
 
     /**
@@ -887,7 +887,9 @@ class HICBrowser {
 
                 if (!this.resolutionLocked && scaleFactor < 1 && newZoom < z) {
                     // Zoom out to whole genome
-                    this.setChromosomes(0, 0)
+                    const xLocus = this.parseLocusString('1')
+                    const yLocus = { xLocus }
+                    await this.setChromosomes(xLocus, yLocus)
                 } else {
 
                     const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom)
@@ -926,22 +928,6 @@ class HICBrowser {
 
     }
 
-    // TODO -- apparently not used.  Where is this handled?
-    // async wheelClickZoom(direction, centerPX, centerPY) {
-    //     if (this.resolutionLocked || this.state.chr1 === 0) {   // Resolution locked OR whole genome view
-    //         this.zoomAndCenter(direction, centerPX, centerPY);
-    //     } else {
-    //         const z = await minZoom.call(this, this.state.chr1, this.state.chr2)
-    //         var newZoom = this.state.zoom + direction;
-    //         if (direction < 0 && newZoom < z) {
-    //             this.setChromosomes(0, 0);
-    //         } else {
-    //             this.zoomAndCenter(direction, centerPX, centerPY);
-    //         }
-    //
-    //     }
-    // }
-
     // Zoom in response to a double-click
     /**
      * Zoom and center on bins at given screen coordinates.  Supports double-click zoom, pinch zoom.
@@ -960,7 +946,9 @@ class HICBrowser {
             const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize
             const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX)
             const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY)
-            this.setChromosomes(chrX.index, chrY.index)
+            const xLocus = { chr: chrX.index, start: 0, end: chrX.size, wholeChr: true }
+            const yLocus = { chr: chrY.index, start: 0, end: chrY.size, wholeChr: true }
+            await this.setChromosomes(xLocus, yLocus)
         } else {
             const resolutions = this.getResolutions()
             const { width, height } = this.contactMatrixView.getViewDimensions()
@@ -1040,7 +1028,26 @@ class HICBrowser {
 
     };
 
-    async setChromosomes(chr1, chr2) {
+    async setChromosomes(xLocus, yLocus) {
+
+        this.state.chr1 = Math.min(xLocus.chr, yLocus.chr)
+        this.state.locus1 = { chr: xLocus.chr, start: xLocus.start, end: xLocus.end }
+        this.state.x = 0
+
+        this.state.chr2 = Math.max(xLocus.chr, yLocus.chr)
+        this.state.locus2 = { chr: yLocus.chr, start: yLocus.start, end: yLocus.end }
+        this.state.y = 0
+
+        this.state.zoom = await this.minZoom(this.state.chr1, this.state.chr2)
+
+        const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
+        this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
+
+        await this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}))
+
+    }
+
+    async __setChromosomes(chr1, chr2) {
 
         try {
             this.startSpinner()
@@ -1267,6 +1274,10 @@ class HICBrowser {
         this.state.x = newXBin
         this.state.y = newYBin
         this.state.pixelSize = pixelSize
+        this.state.locus1 = { chr: chr1, start: bpX, end: bpXMax }
+        this.state.locus2 = { chr: chr2, start: bpY, end: bpYMax }
+
+        // Add locus to state
 
         this.contactMatrixView.clearImageCaches()
 

@@ -56,7 +56,9 @@
             "backgroundColor": "255,255,255",
             "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic",
             "name": "Combined",
-            "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
+            // "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
+            // "locus": "18:28,504,357-29,748,974",
+            "locus": "egfr",
             "normalization": "VC_SQRT",
             "colorScale": "66.20668236071833,255,0,0",
         };
@@ -121,7 +123,7 @@
             "selectedGene": "egfr"
         };
 
-    juicebox.init(document.getElementById("app-container"), config_2d_track)
+    juicebox.init(document.getElementById("app-container"), config)
         .then(browser => {
             console.log(`${browser.id} is good to go`)
             // const methods = listClassMethods(browser)

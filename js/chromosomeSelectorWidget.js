@@ -39,9 +39,9 @@ class ChromosomeSelectorWidget {
         const nextDiv = this.yAxisSelector.nextElementSibling;
         if (nextDiv) {
             nextDiv.addEventListener('click', async () => {
-                const chr1Index = parseInt(this.xAxisSelector.value, 10);
-                const chr2Index = parseInt(this.yAxisSelector.value, 10);
-                await browser.setChromosomes(chr1Index, chr2Index);
+                const xLocus = browser.parseLocusString(`${ parseInt(this.xAxisSelector.value, 10) }`)
+                const yLocus = browser.parseLocusString(`${ parseInt(this.yAxisSelector.value, 10) }`)
+                await browser.setChromosomes(xLocus, yLocus);
             });
         }
 

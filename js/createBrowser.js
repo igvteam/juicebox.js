@@ -44,16 +44,13 @@ async function createBrowserList(hicContainer, session) {
 
     for (const config of configList) {
 
-        if (config.stateJSON) {
-            config.state = State.fromJSON(config.stateJSON)
-        } else {
-            // TODO: Eventually move away from this string approach for State
-            if (StringUtils.isString(config.state)) {
-                config.state = State.parse(config.state);
+        if (config.state) {
+            if (typeof config.state === 'string') {
+                config.state = State.parse(config.state)
+            } else if (typeof config.state === 'object') {
+                config.state = State.fromJSON(config.state)
             }
-        }
-
-        if(undefined === config.state){
+        } else {
             config.state = State.default()
         }
 

@@ -59,6 +59,9 @@ class State {
                 normalization = undefined;
             }
 
+            this.locus1 = {}
+            this.locus2 = {}
+
             this.normalization = normalization;
         }
     }
@@ -130,6 +133,8 @@ class State {
         return {
             chr1: this.chr1,
             chr2: this.chr2,
+            locus1: { ...this.locus1 },
+            locus2: { ...this.locus2 },
             zoom: this.zoom,
             x: this.x,
             y: this.y,
