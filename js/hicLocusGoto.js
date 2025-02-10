@@ -64,13 +64,15 @@ class LocusGoto {
                 const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
                 const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
                 const pixelsPerBin = state.pixelSize;
-                const startBP1 = 1 + Math.round(state.x * bpPerBin);
-                const startBP2 = 1 + Math.round(state.y * bpPerBin);
-                const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-                const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-                xy = `${chr1.name}:${StringUtils.numberFormatter(startBP1)}-${StringUtils.numberFormatter(endBP1)} ` +
-                    `${chr2.name}:${StringUtils.numberFormatter(startBP2)}-${StringUtils.numberFormatter(endBP2)}`;
+                const xStartBP = 1 + Math.round(state.x * bpPerBin);
+                const xEndBP = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + xStartBP - 1);
+
+                const yStartBP = 1 + Math.round(state.y * bpPerBin);
+                const yEndBP = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + yStartBP - 1);
+
+                xy = `${chr1.name}:${StringUtils.numberFormatter(xStartBP)}-${StringUtils.numberFormatter(xEndBP)} ` +
+                    `${chr2.name}:${StringUtils.numberFormatter(yStartBP)}-${StringUtils.numberFormatter(yEndBP)}`;
             }
             this.resolutionSelectorElement.value = xy;
         }

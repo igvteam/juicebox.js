@@ -54,19 +54,19 @@ class SweepZoom {
 
         this.rulerSweeperElement.style.display = 'none';
 
-        const { x, y, chr1, chr2, zoom, pixelSize } = this.browser.state;
+        const { x, y, locus, zoom, pixelSize } = this.browser.state;
 
         // bp-per-bin
         const bpResolution = this.browser.dataset.bpResolutions[zoom];
 
         // bp = ((bin + pixel/pixel-per-bin) / bp-per-bin)
-        const xBP = (x + (xPixel / pixelSize)) * bpResolution;
-        const yBP = (y + (yPixel / pixelSize)) * bpResolution;
+        const xBP = (x + (xPixel / pixelSize)) * bpResolution
+        const yBP = (y + (yPixel / pixelSize)) * bpResolution
 
         const  widthBP = ( width / pixelSize) * bpResolution;
         const heightBP = (height / pixelSize) * bpResolution;
 
-        this.browser.goto(chr1, xBP, xBP + widthBP, chr2, yBP, yBP + heightBP);
+        this.browser.goto(locus.x.chr, Math.round(xBP), Math.round(xBP + widthBP), locus.y.chr, Math.round(yBP), Math.round(yBP + heightBP));
 
     }
 }
