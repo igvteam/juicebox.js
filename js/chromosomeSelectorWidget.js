@@ -39,8 +39,13 @@ class ChromosomeSelectorWidget {
         const nextDiv = this.yAxisSelector.nextElementSibling;
         if (nextDiv) {
             nextDiv.addEventListener('click', async () => {
-                const xLocus = browser.parseLocusString(`${ parseInt(this.xAxisSelector.value, 10) }`)
-                const yLocus = browser.parseLocusString(`${ parseInt(this.yAxisSelector.value, 10) }`)
+
+                const chrX = browser.dataset.chromosomes[ parseInt(this.xAxisSelector.value, 10) ]
+                const chrY = browser.dataset.chromosomes[ parseInt(this.yAxisSelector.value, 10) ]
+
+                const xLocus = browser.parseLocusString(chrX.name)
+                const yLocus = browser.parseLocusString(chrY.name)
+
                 await browser.setChromosomes(xLocus, yLocus);
             });
         }
@@ -72,7 +77,9 @@ class ChromosomeSelectorWidget {
     }
 
     respondToDataLoadWithDataset(dataset) {
-        const options = dataset.chromosomes.map(({ name }, index) => `<option value="${index}">${name}</option>`).join('');
+
+        const { chromosomes } = dataset
+        const options = chromosomes.map(({ name }, index) => `<option value="${index}">${name}</option>`).join('');
         this.xAxisSelector.innerHTML = options;
         this.yAxisSelector.innerHTML = options;
 

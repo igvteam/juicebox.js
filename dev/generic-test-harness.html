@@ -23,6 +23,11 @@
     import juicebox from '../js/index.js';
     // import juicebox from "https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/juicebox.esm.js";
 
+    const config_no_locus_no_state = {
+        "url": "https://www.encodeproject.org/files/ENCFF799QGA/@@download/ENCFF799QGA.hic",
+        "name": "in-situ agar GM12878 MboI experiment",
+    }
+
     const config_2d_track =
         {
             "browsers": [
@@ -58,8 +63,9 @@
             "name": "Combined",
             // "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
             // "locus": "18:28,504,357-29,748,974",
-            "locus": "egfr",
-            "normalization": "VC_SQRT",
+            // "locus": "egfr",
+            "locus": "all",
+            "normalization": "NONE",
             "colorScale": "66.20668236071833,255,0,0",
         };
 
