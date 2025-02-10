@@ -762,7 +762,7 @@ class HICBrowser {
             yLocus = { ...xLocus }
         }
 
-        if (xLocus.wholeChr && yLocus.wholeChr) {
+        if (xLocus.wholeChr && yLocus.wholeChr || 'All' === xLocus.chr && 'All' === yLocus.chr) {
             await this.setChromosomes(xLocus, yLocus)
         } else {
             this.goto(xLocus.chr, xLocus.start, xLocus.end, yLocus.chr, yLocus.start, yLocus.end)
@@ -779,20 +779,22 @@ class HICBrowser {
 
         const locusObject =
             {
-                chr: chromosome.index,
-                wholeChr: !range
+                chr: chromosome.name,
+                wholeChr: (undefined === range && 'All' !== chromosome.name)
             };
 
-        if (true === locusObject.wholeChr) {
-            // Chromosome name only, set to whole chromosome range
+        if (true === locusObject.wholeChr || 'All' === chromosome.name) {
+            // Chromosome name only or All: Set to whole range
             locusObject.start = 0;
-            locusObject.end = this.dataset.chromosomes?.[locusObject.chr]?.size || 0;
+            locusObject.end = chromosome.size
         } else {
+
             const [startStr, endStr] = range.split('-').map(part => part.replace(/,/g, ''));
 
             // Internally, loci are 0-based.
             locusObject.start = isNaN(startStr) ? undefined : parseInt(startStr, 10) - 1;
             locusObject.end = isNaN(endStr) ? undefined : parseInt(endStr, 10);
+
         }
 
         return locusObject;
@@ -946,8 +948,8 @@ class HICBrowser {
             const genomeCoordY = centerPY * this.dataset.wholeGenomeResolution / this.state.pixelSize
             const chrX = this.genome.getChromosomeForCoordinate(genomeCoordX)
             const chrY = this.genome.getChromosomeForCoordinate(genomeCoordY)
-            const xLocus = { chr: chrX.index, start: 0, end: chrX.size, wholeChr: true }
-            const yLocus = { chr: chrY.index, start: 0, end: chrY.size, wholeChr: true }
+            const xLocus = { chr: chrX.name, start: 0, end: chrX.size, wholeChr: true }
+            const yLocus = { chr: chrY.name, start: 0, end: chrY.size, wholeChr: true }
             await this.setChromosomes(xLocus, yLocus)
         } else {
             const resolutions = this.getResolutions()
@@ -1030,46 +1032,29 @@ class HICBrowser {
 
     async setChromosomes(xLocus, yLocus) {
 
-        this.state.chr1 = Math.min(xLocus.chr, yLocus.chr)
-        this.state.locus1 = { chr: xLocus.chr, start: xLocus.start, end: xLocus.end }
+        const { index:chr1Index } = this.genome.getChromosome(xLocus.chr)
+        const { index:chr2Index } = this.genome.getChromosome(yLocus.chr)
+
+        this.state.chr1 = Math.min(chr1Index, chr2Index)
         this.state.x = 0
 
-        this.state.chr2 = Math.max(xLocus.chr, yLocus.chr)
-        this.state.locus2 = { chr: yLocus.chr, start: yLocus.start, end: yLocus.end }
+        this.state.chr2 = Math.max(chr1Index, chr2Index)
         this.state.y = 0
 
-        this.state.zoom = await this.minZoom(this.state.chr1, this.state.chr2)
+        this.state.locus =
+            {
+                x: { chr: xLocus.chr, start: xLocus.start, end: xLocus.end },
+                y: { chr: yLocus.chr, start: yLocus.start, end: yLocus.end }
+            };
 
-        const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-        this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
+        if (xLocus.wholeChr && yLocus.wholeChr) {
+            this.state.zoom = await this.minZoom(this.state.chr1, this.state.chr2)
+            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
+            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
+        }
 
         await this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true}))
 
-    }
-
-    async __setChromosomes(chr1, chr2) {
-
-        try {
-            this.startSpinner()
-
-            const z = await this.minZoom(chr1, chr2)
-            this.state.chr1 = Math.min(chr1, chr2)
-            this.state.chr2 = Math.max(chr1, chr2)
-            this.state.x = 0
-            this.state.y = 0
-            this.state.zoom = z
-
-            const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-            this.state.pixelSize = Math.min(100, Math.max(DEFAULT_PIXEL_SIZE, minPS))
-
-            let event = HICEvent("LocusChange", {state: this.state, resolutionChanged: true, chrChanged: true})
-
-            this.update(event)
-            //this.eventBus.post(event);
-
-        } finally {
-            this.stopSpinner()
-        }
     }
 
     /**
@@ -1266,18 +1251,22 @@ class HICBrowser {
         const newXBin = bpX / binSizeNew
         const newYBin = bpY / binSizeNew
 
+        const { index:chr1Index } = this.genome.getChromosome(chr1)
+        const { index:chr2Index } = this.genome.getChromosome(chr2)
+
         const chrChanged = !this.state || this.state.chr1 !== chr1 || this.state.chr2 !== chr2
 
-        this.state.chr1 = chr1
-        this.state.chr2 = chr2
+        this.state.chr1 = chr1Index
+        this.state.chr2 = chr2Index
         this.state.zoom = zoomNew
         this.state.x = newXBin
         this.state.y = newYBin
         this.state.pixelSize = pixelSize
-        this.state.locus1 = { chr: chr1, start: bpX, end: bpXMax }
-        this.state.locus2 = { chr: chr2, start: bpY, end: bpYMax }
-
-        // Add locus to state
+        this.state.locus =
+            {
+                x: { chr: chr1, start: bpX, end: bpXMax },
+                y: { chr: chr2, start: bpY, end: bpYMax }
+            };
 
         this.contactMatrixView.clearImageCaches()
 

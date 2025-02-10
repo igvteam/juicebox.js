@@ -30,7 +30,7 @@ import { defaultSize } from './createBrowser.js'
 
 class State {
 
-    constructor(chr1, chr2, zoom, x, y, width, height, pixelSize, normalization) {
+    constructor(chr1, chr2, locus, zoom, x, y, width, height, pixelSize, normalization) {
 
         if (Number.isNaN(pixelSize)) {
             pixelSize = 1
@@ -59,8 +59,7 @@ class State {
                 normalization = undefined;
             }
 
-            this.locus1 = {}
-            this.locus2 = {}
+            this.locus = locus
 
             this.normalization = normalization;
         }
@@ -80,8 +79,8 @@ class State {
     }
 
     equals(state) {
-        var s1 = JSON.stringify(this);
-        var s2 = JSON.stringify(state);
+        const s1 = JSON.stringify(this);
+        const s2 = JSON.stringify(state);
         return s1 === s2;
     }
 
@@ -103,6 +102,7 @@ class State {
             return new State(
                 parseInt(tokens[0]),    // chr1
                 parseInt(tokens[1]),    // chr2
+                {}, // locus
                 parseFloat(tokens[2]), // zoom
                 parseFloat(tokens[3]), // x
                 parseFloat(tokens[4]), // y
@@ -116,6 +116,7 @@ class State {
             return new State(
                 parseInt(tokens[0]),    // chr1
                 parseInt(tokens[1]),    // chr2
+                {}, // locus
                 parseFloat(tokens[2]), // zoom
                 parseFloat(tokens[3]), // x
                 parseFloat(tokens[4]), // y
@@ -133,8 +134,7 @@ class State {
         return {
             chr1: this.chr1,
             chr2: this.chr2,
-            locus1: { ...this.locus1 },
-            locus2: { ...this.locus2 },
+            locus: { ...this.locus },
             zoom: this.zoom,
             x: this.x,
             y: this.y,
@@ -150,6 +150,7 @@ class State {
         return new State(
             json.chr1,
             json.chr2,
+            json.locus,
             json.zoom,
             json.x,
             json.y,
@@ -163,13 +164,12 @@ class State {
     static default(configOrUndefined) {
 
         if (configOrUndefined) {
-            return new State(0, 0, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
+            return new State(0, 0, {}, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
         } else {
-            return new State(0, 0, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+            return new State(0, 0, {}, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
         }
 
     }
-
 
 }
 
