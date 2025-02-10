@@ -157,7 +157,7 @@ class AnnotationWidget {
             row.appendChild(displayModeIcon);
         }
 
-        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, { width: (29 * 24 + 2) }, () => {
+        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
             const nextElement = row.nextElementSibling;
             if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
                 nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
@@ -298,20 +298,20 @@ class AnnotationWidget {
     }
 }
 
-function createAnnotationPanelColorpickerContainer(parent, config, closeHandler) {
+function createAnnotationPanelColorpickerContainer(parent, size, closeHandler) {
 
     const container = document.createElement('div');
     container.className = 'hic-color-swatch-container';
     parent.appendChild(container);
 
     // width
-    if (config && config.width) {
-        container.style.width = `${config.width}px`;
+    if (size && size.width) {
+        container.style.width = `${size.width}px`;
     }
 
     // height
-    if (config && config.height) {
-        container.style.height = `${config.height}px`;
+    if (size && size.height) {
+        container.style.height = `${size.height}px`;
     }
 
     // header

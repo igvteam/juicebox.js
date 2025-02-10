@@ -27,42 +27,136 @@
  */
 
 import { defaultSize } from './createBrowser.js'
+import {MAX_PIXEL_SIZE} from "./hicBrowser.js"
+import js from "./index.js"
 
 class State {
 
     constructor(chr1, chr2, locus, zoom, x, y, width, height, pixelSize, normalization) {
 
+        if (chr1 <= chr2) {
+            this.chr1 = chr1;
+            this['x'] = x;
+
+            this.chr2 = chr2;
+            this['y'] = y;
+        } else {
+            // Transpose
+            this.chr1 = chr2;
+            this['x'] = y;
+
+            this.chr2 = chr1;
+            this['y'] = x;
+        }
+
+        this.zoom = zoom;
+
+        this.width = width
+        this.height = height
+
+        if (undefined === normalization) {
+            console.warn("Normalization is undefined. Will use NONE");
+            normalization = 'NONE';
+        }
+        this.normalization = normalization;
+
         if (Number.isNaN(pixelSize)) {
             pixelSize = 1
         }
+        this.pixelSize = pixelSize;
 
-        if (chr1 !== undefined) {
-            if (chr1 <= chr2) {
-                this.chr1 = chr1;
-                this.chr2 = chr2;
-                this.x = x;
-                this.y = y;
-            } else {
-                // Transpose
-                this.chr1 = chr2;
-                this.chr2 = chr1;
-                this.x = y;
-                this.y = x;
-            }
-            this.zoom = zoom;
-            this.pixelSize = pixelSize;
-            this.width = width
-            this.height = height
+        this.locus = locus
 
-            if ("undefined" === normalization) {
-                console.warn("Normalization is undefined");
-                normalization = undefined;
-            }
+    }
 
-            this.locus = locus
+    configureLocus(browser, dataset){
 
-            this.normalization = normalization;
+        const bpPerBin = dataset.bpResolutions[this.zoom];
+
+        const startBP1 = Math.round(this.x * bpPerBin);
+        const startBP2 = Math.round(this.y * bpPerBin);
+
+        const chr1 = dataset.chromosomes[this.chr1];
+        const chr2 = dataset.chromosomes[this.chr2];
+        const viewDimensions = browser.contactMatrixView.getViewDimensions();
+        const pixelsPerBin = this.pixelSize;
+        const endBP1 = Math.min(chr1.size, Math.round(((viewDimensions.width / pixelsPerBin) * bpPerBin)) + startBP1);
+        const endBP2 = Math.min(chr2.size, Math.round(((viewDimensions.height / pixelsPerBin) * bpPerBin)) + startBP2);
+
+        const x = { chr:chr1.name, start:startBP1, end:endBP1 }
+        const y = { chr:chr2.name, start:startBP2, end:endBP2 }
+
+        this.locus = { x, y }
+    }
+
+    updateWithLoci(chr1Name, bpX, bpXMax, chr2Name, bpY, bpYMax, browser, width, height){
+
+        const bpResolutions = browser.getResolutions()
+
+        // bp/pixel
+        let bpPerPixelTarget = Math.max((bpXMax - bpX) / width, (bpYMax - bpY) / height)
+        let resolutionChanged
+        let zoomNew
+        if (true === browser.resolutionLocked) {
+            resolutionChanged = false
+            zoomNew = this.zoom
+        } else {
+            zoomNew = browser.findMatchingZoomIndex(bpPerPixelTarget, bpResolutions)
+            resolutionChanged = (zoomNew !== this.zoom)
         }
+
+        const { binSize:binSizeNew } = bpResolutions[zoomNew]
+        const pixelSize = Math.min(MAX_PIXEL_SIZE, Math.max(1, binSizeNew / bpPerPixelTarget))
+        const newXBin = bpX / binSizeNew
+        const newYBin = bpY / binSizeNew
+
+        const { index:chr1Index } = browser.genome.getChromosome( chr1Name )
+        const { index:chr2Index } = browser.genome.getChromosome( chr2Name )
+
+        const chrChanged = this.chr1 !== chr1Index || this.chr2 !== chr2Index
+
+        this.chr1 = chr1Index
+        this.chr2 = chr2Index
+        this.zoom = zoomNew
+        this.x = newXBin
+        this.y = newYBin
+        this.pixelSize = pixelSize
+        this.locus =
+            {
+                x: { chr: chr1Name, start: bpX, end: bpXMax },
+                y: { chr: chr2Name, start: bpY, end: bpYMax }
+            };
+
+        return { chrChanged, resolutionChanged }
+    }
+
+    sync(targetState, browser, genome, dataset){
+
+        const chr1 = genome.getChromosome(targetState.chr1Name)
+        const chr2 = genome.getChromosome(targetState.chr2Name)
+
+        const bpPerPixelTarget = targetState.binSize/targetState.pixelSize
+
+        const zoomNew = browser.findMatchingZoomIndex(bpPerPixelTarget, dataset.bpResolutions)
+        const binSizeNew = dataset.bpResolutions[ zoomNew ]
+        const pixelSizeNew = Math.min(MAX_PIXEL_SIZE, Math.max(1, binSizeNew / bpPerPixelTarget))
+
+        const xBinNew = targetState.binX * (targetState.binSize/binSizeNew)
+        const yBinNew = targetState.binY * (targetState.binSize/binSizeNew)
+
+        const zoomChanged = (browser.state.zoom !== zoomNew)
+        const chrChanged = (browser.state.chr1 !== chr1.index || browser.state.chr2 !== chr2.index)
+
+        this.chr1 = chr1.index
+        this.chr2 = chr2.index
+        this.zoom = zoomNew
+        this.x = xBinNew
+        this.y = yBinNew
+        this.pixelSize = pixelSizeNew
+        this.locus = { ...targetState.locus }
+
+        return { zoomChanged, chrChanged }
+
     }
 
     stringify() {
@@ -102,7 +196,7 @@ class State {
             return new State(
                 parseInt(tokens[0]),    // chr1
                 parseInt(tokens[1]),    // chr2
-                {}, // locus
+                undefined, // locus
                 parseFloat(tokens[2]), // zoom
                 parseFloat(tokens[3]), // x
                 parseFloat(tokens[4]), // y
@@ -116,7 +210,7 @@ class State {
             return new State(
                 parseInt(tokens[0]),    // chr1
                 parseInt(tokens[1]),    // chr2
-                {}, // locus
+                undefined, // locus
                 parseFloat(tokens[2]), // zoom
                 parseFloat(tokens[3]), // x
                 parseFloat(tokens[4]), // y
@@ -131,18 +225,25 @@ class State {
 
     // Method 1: Convert the State object to a JSON object
     toJSON() {
-        return {
-            chr1: this.chr1,
-            chr2: this.chr2,
-            locus: { ...this.locus },
-            zoom: this.zoom,
-            x: this.x,
-            y: this.y,
-            width: this.width,
-            height: this.height,
-            pixelSize: this.pixelSize,
-            normalization: this.normalization || 'NONE'
-        };
+
+        const json =
+            {
+                chr1: this.chr1,
+                chr2: this.chr2,
+                zoom: this.zoom,
+                x: this.x,
+                y: this.y,
+                width: this.width,
+                height: this.height,
+                pixelSize: this.pixelSize,
+                normalization: this.normalization || 'NONE'
+            }
+
+        if (this.locus) {
+            json.locus = this.locus
+        }
+
+        return json
     }
 
     // Method 2: Parse a JSON object and create an instance of the State class
@@ -163,12 +264,13 @@ class State {
 
     static default(configOrUndefined) {
 
-        if (configOrUndefined) {
-            return new State(0, 0, {}, 0, 0, 0, configOrUndefined.width, configOrUndefined.height, 1, "NONE")
-        } else {
-            return new State(0, 0, {}, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+        const state = new State(0, 0, undefined, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
+        if (configOrUndefined && configOrUndefined.width && configOrUndefined.height) {
+            state.width = configOrUndefined.width
+            state.height = configOrUndefined.height
         }
 
+        return state
     }
 
 }

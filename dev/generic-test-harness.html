@@ -23,9 +23,11 @@
     import juicebox from '../js/index.js';
     // import juicebox from "https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/juicebox.esm.js";
 
-    const config_no_locus_no_state = {
+    const config_locus_state_hacks = {
         "url": "https://www.encodeproject.org/files/ENCFF799QGA/@@download/ENCFF799QGA.hic",
         "name": "in-situ agar GM12878 MboI experiment",
+        // "locus": 'all'
+        // "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
     }
 
     const config_2d_track =
@@ -61,10 +63,11 @@
             "backgroundColor": "255,255,255",
             "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/dilution/combined.hic",
             "name": "Combined",
+            // "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
             // "locus": "18:28,504,357-29,748,974 18:28,504,357-29,748,974",
             // "locus": "18:28,504,357-29,748,974",
             // "locus": "egfr",
-            "locus": "all",
+            // "locus": "all",
             "normalization": "NONE",
             "colorScale": "66.20668236071833,255,0,0",
         };
@@ -131,9 +134,13 @@
 
     juicebox.init(document.getElementById("app-container"), config)
         .then(browser => {
+
             console.log(`${browser.id} is good to go`)
-            // const methods = listClassMethods(browser)
-            // const str = methods.join(' ')
+
+            const result = browser.toJSON()
+
+            console.log(`${ JSON.stringify(result, null, 2) }`)
+
         })
 
 
