@@ -228,7 +228,8 @@ class State {
         this.x = xBinNew
         this.y = yBinNew
         this.pixelSize = pixelSizeNew
-        this.locus = { ...targetState.locus }
+
+        this.configureLocus(browser, dataset, browser.contactMatrixView.getViewDimensions())
 
         return { zoomChanged, chrChanged }
 
