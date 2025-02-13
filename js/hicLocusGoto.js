@@ -54,30 +54,23 @@ class LocusGoto {
 
     receiveEvent(event) {
         if (event.type === "LocusChange") {
-            let xy;
+            let loci;
             const state = event.data.state || this.browser.state;
             const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
             if (isWholeGenome) {
-                xy = 'All';
+                loci = 'All';
             } else {
-                const chr1 = this.browser.dataset.chromosomes[state.chr1];
-                const chr2 = this.browser.dataset.chromosomes[state.chr2];
-                const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-                const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-                const pixelsPerBin = state.pixelSize;
 
-                const xStartBP = 1 + Math.round(state.x * bpPerBin);
-                const xEndBP = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + xStartBP - 1);
+                const { chr:chrX, start:sX, end:eX } = state.locus.x
+                const strX = `${chrX}:${prettyPrint(1 + sX)}-${prettyPrint(eX)}`
 
-                const yStartBP = 1 + Math.round(state.y * bpPerBin);
-                const yEndBP = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + yStartBP - 1);
+                const { chr:chrY, start:sY, end:eY } = state.locus.y
+                const strY = `${chrY}:${prettyPrint(1 + sY)}-${prettyPrint(eY)}`
 
-                console.log(`xStartBP ${ prettyPrint(xStartBP) } locus.x.start ${ prettyPrint(1 + state.locus.x.start) }`)
+                loci = `${strX} ${strY}`
 
-                xy = `${chr1.name}:${StringUtils.numberFormatter(xStartBP)}-${StringUtils.numberFormatter(xEndBP)} ` +
-                    `${chr2.name}:${StringUtils.numberFormatter(yStartBP)}-${StringUtils.numberFormatter(yEndBP)}`;
             }
-            this.resolutionSelectorElement.value = xy;
+            this.resolutionSelectorElement.value = loci;
         }
     }
 }
