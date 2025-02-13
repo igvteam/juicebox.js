@@ -75972,6 +75972,22 @@ function HICEvent (type, data, propogate) {
     }
 }
 
+/**
+ * Test if object is a File or File-like object.
+ *
+ * Copied from igv-utils.FileUtils version 1.3.8
+ *
+ * @param object
+ */
+function isFile(object) {
+    if(!object) {
+        return false;
+    }
+    return typeof object !== 'function' &&
+        (object instanceof File ||
+            (object.name !== undefined &&  typeof object.slice === 'function' && typeof object.arrayBuffer === 'function'))
+}
+
 function createDOMFromHTMLString(string) {
     const template = document.createElement('template');
     template.innerHTML = string.trim(); // Removes whitespace to avoid unintended text nodes
@@ -75995,6 +76011,44 @@ function parseRgbString(rgbString) {
 
     // Convert the matched strings into integers and return them as an array
     return match.slice(1, 4).map(Number);
+}
+
+function prettyPrint(number) {
+
+    if (typeof number !== "number") {
+        console.error(`${ number } must be a number`);
+        return
+    }
+
+    const integerPart = Math.trunc(number);
+    return integerPart.toLocaleString()
+}
+
+function extractName(config) {
+    if (config.name === undefined) {
+        const urlOrFile = config.url;
+        if (isFile(urlOrFile)) {
+            return urlOrFile.name
+        } else {
+            const str = urlOrFile.split('?').shift();
+            const idx = urlOrFile.lastIndexOf("/");
+            return idx > 0 ? str.substring(idx + 1) : str
+        }
+    } else {
+        return config.name
+    }
+}
+
+function presentError(prefix, error) {
+    const httpMessages =
+        {
+            401: "Access unauthorized",
+            403: "Access forbidden",
+            404: "Not found"
+        };
+
+    const msg = httpMessages[error.message] || error.message;
+    Alert$1.presentAlert(`${prefix}: ${msg}`);
 }
 
 /**
@@ -76298,22 +76352,6 @@ function createNavBar(browser, root) {
 
     const htmlLowerHicNavBarWidgetContainer = `<div id="${browser.id}-lower-hic-nav-bar-widget-container"></div>`;
     hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlLowerHicNavBarWidgetContainer));
-}
-
-/**
- * Test if object is a File or File-like object.
- *
- * Copied from igv-utils.FileUtils version 1.3.8
- *
- * @param object
- */
-function isFile(object) {
-    if(!object) {
-        return false;
-    }
-    return typeof object !== 'function' &&
-        (object instanceof File ||
-            (object.name !== undefined &&  typeof object.slice === 'function' && typeof object.arrayBuffer === 'function'))
 }
 
 // from https://github.com/imaya/zlib.js
@@ -85231,53 +85269,129 @@ class State {
 
     constructor(chr1, chr2, locus, zoom, x, y, width, height, pixelSize, normalization) {
 
-        if (chr1) {
-            if (chr1 <= chr2) {
-                this.chr1 = chr1;
-                this.chr2 = chr2;
-                this['x'] = x;
-                this['y'] = y;
-            } else {
-                // Transpose
-                this.chr1 = chr2;
-                this.chr2 = chr1;
-                this['x'] = y;
-                this['y'] = x;
-            }
-            this.zoom = zoom;
-            this.pixelSize = pixelSize;
-            this.width = width;
-            this.height = height;
+        if (chr1 <= chr2) {
+            this.chr1 = chr1;
+            this['x'] = x;
 
-            if ("undefined" === normalization) {
-                console.warn("Normalization is undefined");
-                normalization = undefined;
-            }
+            this.chr2 = chr2;
+            this['y'] = y;
+        } else {
+            // Transpose
+            this.chr1 = chr2;
+            this['x'] = y;
 
-            this.locus = locus;
-
-            this.normalization = normalization;
+            this.chr2 = chr1;
+            this['y'] = x;
         }
+
+        this.zoom = zoom;
+
+        this.width = width;
+        this.height = height;
+
+        if (undefined === normalization) {
+            console.warn("Normalization is undefined. Will use NONE");
+            normalization = 'NONE';
+        }
+        this.normalization = normalization;
 
         if (Number.isNaN(pixelSize)) {
             pixelSize = 1;
         }
+        this.pixelSize = pixelSize;
+
+        this.locus = locus;
 
     }
 
-    configureLocus(browser, dataset){
+    clampXY(dataset, viewDimensions) {
+
+        const { width, height } = viewDimensions;
+        const { chromosomes, bpResolutions } = dataset;
+
+        const binSize = bpResolutions[this.zoom];
+        const maxX = Math.max(0, chromosomes[this.chr1].size / binSize -  width / this.pixelSize);
+        const maxY = Math.max(0, chromosomes[this.chr2].size / binSize - height / this.pixelSize);
+
+        this.x = Math.min(Math.max(0, this.x), maxX);
+        this.y = Math.min(Math.max(0, this.y), maxY);
+    }
+
+    async panWithZoom(zoom, pixelSize, anchorPx, anchorPy, binSize, browser, dataset, viewDimensions, bpResolutions){
+
+        const minPixelSize = await browser.minPixelSize(this.chr1, this.chr2, zoom);
+        pixelSize = Math.max(pixelSize, minPixelSize);
+
+        // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+        bpResolutions[this.zoom];
+        const gx = (this.x + anchorPx / this.pixelSize) * bpResolutions[this.zoom].binSize;
+        const gy = (this.y + anchorPy / this.pixelSize) * bpResolutions[this.zoom].binSize;
+
+        this.x = gx / binSize - anchorPx / pixelSize;
+        this.y = gy / binSize - anchorPy / pixelSize;
+
+        this.zoom = zoom;
+        this.pixelSize = pixelSize;
+
+        this.clampXY(dataset, viewDimensions);
+
+    }
+
+    panShift(dx, dy, browser, dataset, viewDimensions) {
+
+        this.x += (dx / this.pixelSize);
+        this.y += (dy / this.pixelSize);
+        this.clampXY(dataset, viewDimensions);
+
+        this.configureLocus(browser, dataset, viewDimensions);
+
+    }
+
+    async setWithZoom(zoom, viewDimensions, browser, dataset){
+
+        const {width, height} = viewDimensions;
+
+        // bin = bin + pixel * bin/pixel = bin
+        const xCenter = this.x + (width/2) / this.pixelSize;
+        const yCenter = this.y + (height/2) / this.pixelSize;
+
+        const binSize = dataset.bpResolutions[this.zoom];
+        const binSizeNew = dataset.bpResolutions[zoom];
+
+        const scaleFactor = binSize / binSizeNew;
+
+        const xCenterNew = xCenter * scaleFactor;
+        const yCenterNew = yCenter * scaleFactor;
+
+        const minPixelSize = await browser.minPixelSize(this.chr1, this.chr2, zoom);
+
+        this.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize);
+
+        const resolutionChanged = (this.zoom !== zoom);
+
+        this.zoom = zoom;
+        this.x = Math.max(0, xCenterNew - width / (2 * this.pixelSize));
+        this.y = Math.max(0, yCenterNew - height / (2 * this.pixelSize));
+
+        this.clampXY(dataset, viewDimensions);
+
+        this.configureLocus(browser, dataset, viewDimensions);
+
+        return resolutionChanged
+    }
+
+    configureLocus(browser, dataset, viewDimensions){
 
         const bpPerBin = dataset.bpResolutions[this.zoom];
 
-        const startBP1 = 1 + Math.round(this.x * bpPerBin);
-        const startBP2 = 1 + Math.round(this.y * bpPerBin);
+        const startBP1 = Math.round(this.x * bpPerBin);
+        const startBP2 = Math.round(this.y * bpPerBin);
 
         const chr1 = dataset.chromosomes[this.chr1];
         const chr2 = dataset.chromosomes[this.chr2];
-        const viewDimensions = browser.contactMatrixView.getViewDimensions();
         const pixelsPerBin = this.pixelSize;
-        const endBP1 = Math.min(chr1.size, Math.round(((viewDimensions.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-        const endBP2 = Math.min(chr2.size, Math.round(((viewDimensions.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
+        const endBP1 = Math.min(chr1.size, Math.round(((viewDimensions.width / pixelsPerBin) * bpPerBin)) + startBP1);
+        const endBP2 = Math.min(chr2.size, Math.round(((viewDimensions.height / pixelsPerBin) * bpPerBin)) + startBP2);
 
         const x = { chr:chr1.name, start:startBP1, end:endBP1 };
         const y = { chr:chr2.name, start:startBP2, end:endBP2 };
@@ -85567,26 +85681,23 @@ class LocusGoto {
 
     receiveEvent(event) {
         if (event.type === "LocusChange") {
-            let xy;
+            let loci;
             const state = event.data.state || this.browser.state;
             const isWholeGenome = this.browser.dataset.isWholeGenome(state.chr1);
             if (isWholeGenome) {
-                xy = 'All';
+                loci = 'All';
             } else {
-                const chr1 = this.browser.dataset.chromosomes[state.chr1];
-                const chr2 = this.browser.dataset.chromosomes[state.chr2];
-                const bpPerBin = this.browser.dataset.bpResolutions[state.zoom];
-                const dimensionsPixels = this.browser.contactMatrixView.getViewDimensions();
-                const pixelsPerBin = state.pixelSize;
-                const startBP1 = 1 + Math.round(state.x * bpPerBin);
-                const startBP2 = 1 + Math.round(state.y * bpPerBin);
-                const endBP1 = Math.min(chr1.size, Math.round(((dimensionsPixels.width / pixelsPerBin) * bpPerBin)) + startBP1 - 1);
-                const endBP2 = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + startBP2 - 1);
 
-                xy = `${chr1.name}:${numberFormatter$2(startBP1)}-${numberFormatter$2(endBP1)} ` +
-                    `${chr2.name}:${numberFormatter$2(startBP2)}-${numberFormatter$2(endBP2)}`;
+                const { chr:chrX, start:sX, end:eX } = state.locus.x;
+                const strX = `${chrX}:${prettyPrint(1 + sX)}-${prettyPrint(eX)}`;
+
+                const { chr:chrY, start:sY, end:eY } = state.locus.y;
+                const strY = `${chrY}:${prettyPrint(1 + sY)}-${prettyPrint(eY)}`;
+
+                loci = `${strX} ${strY}`;
+
             }
-            this.resolutionSelectorElement.value = xy;
+            this.resolutionSelectorElement.value = loci;
         }
     }
 }
@@ -87691,7 +87802,7 @@ class AnnotationWidget {
             row.appendChild(displayModeIcon);
         }
 
-        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, { width: (29 * 24 + 2) }, () => {
+        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
             const nextElement = row.nextElementSibling;
             if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
                 nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
@@ -87832,20 +87943,20 @@ class AnnotationWidget {
     }
 }
 
-function createAnnotationPanelColorpickerContainer(parent, config, closeHandler) {
+function createAnnotationPanelColorpickerContainer(parent, size, closeHandler) {
 
     const container = document.createElement('div');
     container.className = 'hic-color-swatch-container';
     parent.appendChild(container);
 
     // width
-    if (config && config.width) {
-        container.style.width = `${config.width}px`;
+    if (size && size.width) {
+        container.style.width = `${size.width}px`;
     }
 
     // height
-    if (config && config.height) {
-        container.style.height = `${config.height}px`;
+    if (size && size.height) {
+        container.style.height = `${size.height}px`;
     }
 
     // header
@@ -89349,15 +89460,19 @@ class HICBrowser {
 
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'hic-root unselect';
-
-        if (config.width) {
-            this.rootElement.style.width = `${config.width}`;
-        }
-        if (config.height) {
-            this.rootElement.style.height = `${config.height + getNavbarHeight()}`;
-        }
-
         appContainer.appendChild(this.rootElement);
+
+        let width, height;
+        if (config.state) {
+            width = config.state.width;
+            height = config.state.height;
+        } else {
+            width = defaultSize.width;
+            height = defaultSize.height;
+        }
+
+        this.rootElement.style.width = `${width}`;
+        this.rootElement.style.height = `${height + getNavbarHeight()}`;
 
         this.layoutController = new LayoutController(this, this.rootElement);
 
@@ -90146,7 +90261,7 @@ class HICBrowser {
                 let newBinSize;
                 let newZoom;
                 let newPixelSize;
-                let zoomChanged;
+                let resolutionChanged;
 
                 if (this.resolutionLocked ||
                     (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
@@ -90155,12 +90270,12 @@ class HICBrowser {
                     newBinSize = currentResolution.binSize;
                     newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor);
                     newZoom = this.state.zoom;
-                    zoomChanged = false;
+                    resolutionChanged = false;
                 } else {
                     const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor;
                     newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions);
                     newBinSize = bpResolutions[newZoom].binSize;
-                    zoomChanged = newZoom !== this.state.zoom;
+                    resolutionChanged = newZoom !== this.state.zoom;
                     newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize);
                 }
                 const z = await this.minZoom(this.state.chr1, this.state.chr2);
@@ -90173,34 +90288,11 @@ class HICBrowser {
                     await this.setChromosomes(xLocus, yLocus);
                 } else {
 
-                    const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom);
+                    await this.state.panWithZoom(newZoom, newPixelSize, anchorPx, anchorPy, newBinSize, this, this.dataset, this.contactMatrixView.getViewDimensions(), bpResolutions);
 
-                    const state = this.state;
+                    await this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1/scaleFactor);
 
-                    newPixelSize = Math.max(newPixelSize, minPS);
-
-                    // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize;
-                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize;
-
-                    state.x = gx / newBinSize - anchorPx / newPixelSize;
-                    state.y = gy / newBinSize - anchorPy / newPixelSize;
-
-                    state.zoom = newZoom;
-                    state.pixelSize = newPixelSize;
-
-                    this.clamp();
-
-                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor);
-
-                    let event = HICEvent("LocusChange", {
-                        state: state,
-                        resolutionChanged: zoomChanged,
-                        chrChanged: false
-                    });
-
-                    this.update(event);
-                    //this.eventBus.post(event);
+                    await this.update(HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }));
                 }
             } finally {
                 this.stopSpinner();
@@ -90219,7 +90311,10 @@ class HICBrowser {
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
 
-        if (!this.dataset) return
+        if (undefined === this.dataset) {
+            console.warn('Dataset is undefined');
+            return
+        }
 
         if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
             // jump from whole genome to chromosome
@@ -90231,31 +90326,37 @@ class HICBrowser {
             const yLocus = { chr: chrY.name, start: 0, end: chrY.size, wholeChr: true };
             await this.setChromosomes(xLocus, yLocus);
         } else {
-            const resolutions = this.getResolutions();
-            const { width, height } = this.contactMatrixView.getViewDimensions();
-            const dx = centerPX === undefined ? 0 : centerPX - width / 2;
-            const dy = centerPY === undefined ? 0 : centerPY - height / 2;
 
+            const { width, height } = this.contactMatrixView.getViewDimensions();
+
+            const dx = centerPX === undefined ? 0 : centerPX - width / 2;
             this.state.x += (dx / this.state.pixelSize);
+
+            const dy = centerPY === undefined ? 0 : centerPY - height / 2;
             this.state.y += (dy / this.state.pixelSize);
 
+            const resolutions = this.getResolutions();
             const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index;
             const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index;
             if (this.resolutionLocked || directionPositive || directionNegative) {
 
                 const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom);
-                const state = this.state;
-                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
-                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize;
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS);
 
-                state.pixelSize = newPixelSize;
-                state.x += shiftRatio * (width / state.pixelSize);
-                state.y += shiftRatio * (height / state.pixelSize);
+                const shiftRatio = (newPixelSize - this.state.pixelSize) / newPixelSize;
 
-                this.clamp();
+                this.state.pixelSize = newPixelSize;
 
-                this.update(HICEvent("LocusChange", {state, resolutionChanged: false, chrChanged: false}));
+
+                this.state.x += shiftRatio * (width / this.state.pixelSize);
+                this.state.y += shiftRatio * (height / this.state.pixelSize);
+
+                this.state.clampXY(this.dataset, this.contactMatrixView.getViewDimensions());
+
+                this.state.configureLocus(this, this.dataset, { width, height });
+
+                this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged: false, chrChanged: false}));
 
             } else {
                 let i;
@@ -90277,37 +90378,13 @@ class HICBrowser {
      */
     async setZoom(zoom) {
 
-        const {width, height} = this.contactMatrixView.getViewDimensions();
-
-        // bin = bin + pixel * bin/pixel = bin
-        const xCenter = this.state.x + (width/2) / this.state.pixelSize;
-        const yCenter = this.state.y + (height/2) / this.state.pixelSize;
-
-        const binSize = this.dataset.bpResolutions[this.state.zoom];
-        const binSizeNew = this.dataset.bpResolutions[zoom];
-
-        const scaleFactor = binSize / binSizeNew;
-
-        const xCenterNew = xCenter * scaleFactor;
-        const yCenterNew = yCenter * scaleFactor;
-
-        const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom);
-
-        this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize);
-
-        const resolutionChanged = (this.state.zoom !== zoom);
-
-        this.state.zoom = zoom;
-        this.state.x = Math.max(0, xCenterNew - width / (2 * this.state.pixelSize));
-        this.state.y = Math.max(0, yCenterNew - height / (2 * this.state.pixelSize));
-
-        this.clamp();
+        const resolutionChanged = await this.state.setWithZoom(zoom, this.contactMatrixView.getViewDimensions(), this, this.dataset);
 
         await this.contactMatrixView.zoomIn();
 
-        this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged, chrChanged: false}));
+        this.update(HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }));
 
-    };
+    }
 
     async setChromosomes(xLocus, yLocus) {
 
@@ -90348,7 +90425,7 @@ class HICBrowser {
      */
     async updateLayout() {
 
-        this.clamp();
+        this.state.clampXY(this.dataset, this.contactMatrixView.getViewDimensions());
 
         for (const trackXYPair of this.trackPairs) {
 
@@ -90385,7 +90462,8 @@ class HICBrowser {
 
         // Derive locus if none is present in source state
         if (undefined === state.locus) {
-            this.state.configureLocus(this, this.dataset);
+            const viewDimensions = this.contactMatrixView.getViewDimensions();
+            this.state.configureLocus(this, this.dataset, viewDimensions);
         }
 
         const hicEvent = new HICEvent("LocusChange", { state: this.state, resolutionChanged: true, chrChanged });
@@ -90443,10 +90521,12 @@ class HICBrowser {
 
     shiftPixels(dx, dy) {
 
-        if (!this.dataset) return
-        this.state.x += (dx / this.state.pixelSize);
-        this.state.y += (dy / this.state.pixelSize);
-        this.clamp();
+        if (undefined === this.dataset) {
+            console.warn('dataset is undefined');
+            return
+        }
+
+        this.state.panShift(dx, dy, this, this.dataset, this.contactMatrixView.getViewDimensions());
 
         const locusChangeEvent = HICEvent("LocusChange", {
             state: this.state,
@@ -90458,23 +90538,6 @@ class HICBrowser {
 
         this.update(locusChangeEvent);
         this.eventBus.post(locusChangeEvent);
-    }
-
-    clamp() {
-        var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            chr1Length = this.dataset.chromosomes[this.state.chr1].size,
-            chr2Length = this.dataset.chromosomes[this.state.chr2].size,
-            binSize = this.dataset.bpResolutions[this.state.zoom],
-            maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
-            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize);
-
-        // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
-        maxX = Math.max(0, maxX);
-        maxY = Math.max(0, maxY);
-
-
-        this.state.x = Math.min(Math.max(0, this.state.x), maxX);
-        this.state.y = Math.min(Math.max(0, this.state.y), maxY);
     }
 
     /**
@@ -90564,7 +90627,7 @@ class HICBrowser {
         if (Globals.selectedGene) {
             jsonOBJ.selectedGene = Globals.selectedGene;
         }
-        let nviString = getNviString(this.dataset);
+        let nviString = this.dataset.hicFile.config.nvi;
         if (nviString) {
             jsonOBJ.nvi = nviString;
         }
@@ -90577,7 +90640,7 @@ class HICBrowser {
             if (displayMode) {
                 jsonOBJ.displayMode = this.getDisplayMode();
             }
-            nviString = getNviString(this.controlDataset);
+            nviString = this.controlDataset.hicFile.config.nvi;
             if (nviString) {
                 jsonOBJ.controlNvi = nviString;
             }
@@ -90664,47 +90727,6 @@ class HICBrowser {
         return Math.min(width / nBins1, height / nBins2)
 
     }
-}
-
-function extractName(config) {
-    if (config.name === undefined) {
-        const urlOrFile = config.url;
-        if (isFile(urlOrFile)) {
-            return urlOrFile.name
-        } else {
-            const str = urlOrFile.split('?').shift();
-            const idx = urlOrFile.lastIndexOf("/");
-            return idx > 0 ? str.substring(idx + 1) : str
-        }
-    } else {
-        return config.name
-    }
-}
-
-function getNviString(dataset) {
-
-    return dataset.hicFile.config.nvi
-    // if (dataset.hicFile.normalizationVectorIndexRange) {
-    //     var range = dataset.hicFile.normalizationVectorIndexRange,
-    //         nviString = String(range.start) + "," + String(range.size);
-    //     return nviString
-    // } else {
-    //     return undefined;
-    // }
-}
-
-function presentError(prefix, error) {
-    const httpMessages = {
-        "401": "Access unauthorized",
-        "403": "Access forbidden",
-        "404": "Not found"
-    };
-    var msg = error.message;
-    if (httpMessages.hasOwnProperty(msg)) {
-        msg = httpMessages[msg];
-    }
-    Alert$1.presentAlert(prefix + ": " + msg);
-
 }
 
 /*
@@ -90822,37 +90844,12 @@ function getAllBrowsers() {
 
 function setDefaults(config) {
 
-    // if (config.state) {
-    //
-    //     config.state = StringUtils.isString(config.state) ? State.parse(config.state) : new State(
-    //         config.state.chr1,
-    //         config.state.chr2,
-    //         config.state.zoom,
-    //         config.state.x,
-    //         config.state.y,
-    //         config.width,
-    //         config.height,
-    //         config.state.pixelSize,
-    //         config.state.normalization
-    //     );
-    // }
-
     if (config.figureMode === true) {
         config.showLocusGoto = false;
         config.showHicContactMapLabel = false;
         config.showChromosomeSelector = false;
     } else {
 
-        if (config.state) {
-            const { width, height } = config.state;
-            config.width = width;
-            config.height = height;
-        } else {
-            config.width = defaultSize.width;
-            config.height = defaultSize.height;
-        }
-        // config.width = config.width ?? config.state?.width ?? defaultSize.width;
-        // config.height = config.height ?? config.state?.height ?? defaultSize.height;
 
         config.showLocusGoto = config.showLocusGoto ?? true;
         config.showHicContactMapLabel = config.showHicContactMapLabel ?? true;

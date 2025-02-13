@@ -1,3 +1,6 @@
+import {Alert} from '../node_modules/igv-ui/dist/igv-ui.js'
+import {isFile} from "./fileUtils.js"
+
 function createDOMFromHTMLString(string) {
     const template = document.createElement('template');
     template.innerHTML = string.trim(); // Removes whitespace to avoid unintended text nodes
@@ -34,5 +37,31 @@ function prettyPrint(number) {
     return integerPart.toLocaleString()
 }
 
+function extractName(config) {
+    if (config.name === undefined) {
+        const urlOrFile = config.url
+        if (isFile(urlOrFile)) {
+            return urlOrFile.name
+        } else {
+            const str = urlOrFile.split('?').shift()
+            const idx = urlOrFile.lastIndexOf("/")
+            return idx > 0 ? str.substring(idx + 1) : str
+        }
+    } else {
+        return config.name
+    }
+}
 
-export { createDOMFromHTMLString, getOffset, parseRgbString, prettyPrint }
+function presentError(prefix, error) {
+    const httpMessages =
+        {
+            401: "Access unauthorized",
+            403: "Access forbidden",
+            404: "Not found"
+        };
+
+    const msg = httpMessages[error.message] || error.message;
+    Alert.presentAlert(`${prefix}: ${msg}`);
+}
+
+export { createDOMFromHTMLString, getOffset, parseRgbString, prettyPrint, extractName, presentError }

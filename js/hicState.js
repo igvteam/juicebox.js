@@ -69,6 +69,49 @@ class State {
 
     }
 
+    clampXY(dataset, viewDimensions) {
+
+        const { width, height } = viewDimensions
+        const { chromosomes, bpResolutions } = dataset;
+
+        const binSize = bpResolutions[this.zoom];
+        const maxX = Math.max(0, chromosomes[this.chr1].size / binSize -  width / this.pixelSize);
+        const maxY = Math.max(0, chromosomes[this.chr2].size / binSize - height / this.pixelSize);
+
+        this.x = Math.min(Math.max(0, this.x), maxX);
+        this.y = Math.min(Math.max(0, this.y), maxY);
+    }
+
+    async panWithZoom(zoom, pixelSize, anchorPx, anchorPy, binSize, browser, dataset, viewDimensions, bpResolutions){
+
+        const minPixelSize = await browser.minPixelSize(this.chr1, this.chr2, zoom)
+        pixelSize = Math.max(pixelSize, minPixelSize)
+
+        // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
+        bpResolutions[this.zoom]
+        const gx = (this.x + anchorPx / this.pixelSize) * bpResolutions[this.zoom].binSize
+        const gy = (this.y + anchorPy / this.pixelSize) * bpResolutions[this.zoom].binSize
+
+        this.x = gx / binSize - anchorPx / pixelSize
+        this.y = gy / binSize - anchorPy / pixelSize
+
+        this.zoom = zoom
+        this.pixelSize = pixelSize
+
+        this.clampXY(dataset, viewDimensions)
+
+    }
+
+    panShift(dx, dy, browser, dataset, viewDimensions) {
+
+        this.x += (dx / this.pixelSize)
+        this.y += (dy / this.pixelSize)
+        this.clampXY(dataset, viewDimensions)
+
+        this.configureLocus(browser, dataset, viewDimensions)
+
+    }
+
     async setWithZoom(zoom, viewDimensions, browser, dataset){
 
         const {width, height} = viewDimensions
@@ -95,7 +138,7 @@ class State {
         this.x = Math.max(0, xCenterNew - width / (2 * this.pixelSize))
         this.y = Math.max(0, yCenterNew - height / (2 * this.pixelSize))
 
-        browser.clamp()
+        this.clampXY(dataset, viewDimensions)
 
         this.configureLocus(browser, dataset, viewDimensions)
 

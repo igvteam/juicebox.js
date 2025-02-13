@@ -54,6 +54,7 @@ import {defaultSize, getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
 import {setTrackReorderArrowColors} from "./trackPair.js"
 import nvi from './nvi.js'
+import {extractName, presentError} from "./utils.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
@@ -882,7 +883,7 @@ class HICBrowser {
                 let newBinSize
                 let newZoom
                 let newPixelSize
-                let zoomChanged
+                let resolutionChanged
 
                 if (this.resolutionLocked ||
                     (this.state.zoom === bpResolutions.length - 1 && scaleFactor > 1) ||
@@ -891,12 +892,12 @@ class HICBrowser {
                     newBinSize = currentResolution.binSize
                     newPixelSize = Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * scaleFactor)
                     newZoom = this.state.zoom
-                    zoomChanged = false
+                    resolutionChanged = false
                 } else {
                     const targetBinSize = (currentResolution.binSize / this.state.pixelSize) / scaleFactor
                     newZoom = this.findMatchingZoomIndex(targetBinSize, bpResolutions)
                     newBinSize = bpResolutions[newZoom].binSize
-                    zoomChanged = newZoom !== this.state.zoom
+                    resolutionChanged = newZoom !== this.state.zoom
                     newPixelSize = Math.min(MAX_PIXEL_SIZE, newBinSize / targetBinSize)
                 }
                 const z = await this.minZoom(this.state.chr1, this.state.chr2)
@@ -909,34 +910,11 @@ class HICBrowser {
                     await this.setChromosomes(xLocus, yLocus)
                 } else {
 
-                    const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, newZoom)
+                    await this.state.panWithZoom(newZoom, newPixelSize, anchorPx, anchorPy, newBinSize, this, this.dataset, this.contactMatrixView.getViewDimensions(), bpResolutions)
 
-                    const state = this.state
+                    await this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1/scaleFactor)
 
-                    newPixelSize = Math.max(newPixelSize, minPS)
-
-                    // Genomic anchor  -- this position should remain at anchorPx, anchorPy after state change
-                    const gx = (state.x + anchorPx / state.pixelSize) * currentResolution.binSize
-                    const gy = (state.y + anchorPy / state.pixelSize) * currentResolution.binSize
-
-                    state.x = gx / newBinSize - anchorPx / newPixelSize
-                    state.y = gy / newBinSize - anchorPy / newPixelSize
-
-                    state.zoom = newZoom
-                    state.pixelSize = newPixelSize
-
-                    this.clamp()
-
-                    this.contactMatrixView.zoomIn(anchorPx, anchorPy, 1 / scaleFactor)
-
-                    let event = HICEvent("LocusChange", {
-                        state: state,
-                        resolutionChanged: zoomChanged,
-                        chrChanged: false
-                    })
-
-                    this.update(event)
-                    //this.eventBus.post(event);
+                    await this.update(HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }))
                 }
             } finally {
                 this.stopSpinner()
@@ -996,7 +974,7 @@ class HICBrowser {
                 this.state.x += shiftRatio * (width / this.state.pixelSize)
                 this.state.y += shiftRatio * (height / this.state.pixelSize)
 
-                this.clamp()
+                this.state.clampXY(this.dataset, this.contactMatrixView.getViewDimensions())
 
                 this.state.configureLocus(this, this.dataset, { width, height })
 
@@ -1069,7 +1047,7 @@ class HICBrowser {
      */
     async updateLayout() {
 
-        this.clamp()
+        this.state.clampXY(this.dataset, this.contactMatrixView.getViewDimensions())
 
         for (const trackXYPair of this.trackPairs) {
 
@@ -1170,11 +1148,7 @@ class HICBrowser {
             return
         }
 
-        this.state.x += (dx / this.state.pixelSize)
-        this.state.y += (dy / this.state.pixelSize)
-        this.clamp()
-
-        this.state.configureLocus(this, this.dataset, this.contactMatrixView.getViewDimensions())
+        this.state.panShift(dx, dy, this, this.dataset, this.contactMatrixView.getViewDimensions())
 
         const locusChangeEvent = HICEvent("LocusChange", {
             state: this.state,
@@ -1186,20 +1160,6 @@ class HICBrowser {
 
         this.update(locusChangeEvent)
         this.eventBus.post(locusChangeEvent)
-    }
-
-    clamp() {
-
-        const { width, height } = this.contactMatrixView.getViewDimensions();
-        const { chr1, chr2, zoom, pixelSize, x, y } = this.state;
-        const { chromosomes, bpResolutions } = this.dataset;
-
-        const binSize = bpResolutions[zoom];
-        const maxX = Math.max(0, chromosomes[chr1].size / binSize - width / pixelSize);
-        const maxY = Math.max(0, chromosomes[chr2].size / binSize - height / pixelSize);
-
-        this.state.x = Math.min(Math.max(0, x), maxX);
-        this.state.y = Math.min(Math.max(0, y), maxY);
     }
 
     /**
@@ -1289,7 +1249,7 @@ class HICBrowser {
         if (Globals.selectedGene) {
             jsonOBJ.selectedGene = Globals.selectedGene
         }
-        let nviString = getNviString(this.dataset)
+        let nviString = this.dataset.hicFile.config.nvi
         if (nviString) {
             jsonOBJ.nvi = nviString
         }
@@ -1302,7 +1262,7 @@ class HICBrowser {
             if (displayMode) {
                 jsonOBJ.displayMode = this.getDisplayMode()
             }
-            nviString = getNviString(this.controlDataset)
+            nviString = this.controlDataset.hicFile.config.nvi
             if (nviString) {
                 jsonOBJ.controlNvi = nviString
             }
@@ -1389,47 +1349,6 @@ class HICBrowser {
         return Math.min(width / nBins1, height / nBins2)
 
     }
-}
-
-function extractName(config) {
-    if (config.name === undefined) {
-        const urlOrFile = config.url
-        if (isFile(urlOrFile)) {
-            return urlOrFile.name
-        } else {
-            const str = urlOrFile.split('?').shift()
-            const idx = urlOrFile.lastIndexOf("/")
-            return idx > 0 ? str.substring(idx + 1) : str
-        }
-    } else {
-        return config.name
-    }
-}
-
-function getNviString(dataset) {
-
-    return dataset.hicFile.config.nvi
-    // if (dataset.hicFile.normalizationVectorIndexRange) {
-    //     var range = dataset.hicFile.normalizationVectorIndexRange,
-    //         nviString = String(range.start) + "," + String(range.size);
-    //     return nviString
-    // } else {
-    //     return undefined;
-    // }
-}
-
-function presentError(prefix, error) {
-    const httpMessages = {
-        "401": "Access unauthorized",
-        "403": "Access forbidden",
-        "404": "Not found"
-    }
-    var msg = error.message
-    if (httpMessages.hasOwnProperty(msg)) {
-        msg = httpMessages[msg]
-    }
-    Alert.presentAlert(prefix + ": " + msg)
-
 }
 
 export { MAX_PIXEL_SIZE, DEFAULT_PIXEL_SIZE }

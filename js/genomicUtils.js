@@ -1,5 +1,3 @@
-import {StringUtils} from "../node_modules/igv-utils/src/index.js";
-
 function getLocus(dataset, state, width, height, bpPerPixel){
 
     // bp/bin = (bp/pixel) * (pixel/bin) = bp
@@ -25,14 +23,4 @@ function getLocus(dataset, state, width, height, bpPerPixel){
 
 }
 
-function locusDescription(locus) {
-
-    const { xStartBP, yStartBP, xEndBP, yEndBP, chromosome1, chromosome2, pixelSize } = locus
-
-    const str1 = `${chromosome1.name}:${StringUtils.numberFormatter(xStartBP)}-${StringUtils.numberFormatter(xEndBP)}`
-    const str2 = `${chromosome2.name}:${StringUtils.numberFormatter(yStartBP)}-${StringUtils.numberFormatter(yEndBP)}`
-
-    return `${ str1 } ${ str2 } pixelSize ${ pixelSize }`
-
-}
-export { getLocus, locusDescription }
+export { getLocus }
