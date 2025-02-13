@@ -25,6 +25,7 @@
  * Created by dat on 3/3/17.
  */
 import { StringUtils } from '../node_modules/igv-utils/src/index.js';
+import {prettyPrint} from "./utils.js"
 
 class LocusGoto {
 
@@ -70,6 +71,8 @@ class LocusGoto {
 
                 const yStartBP = 1 + Math.round(state.y * bpPerBin);
                 const yEndBP = Math.min(chr2.size, Math.round(((dimensionsPixels.height / pixelsPerBin) * bpPerBin)) + yStartBP - 1);
+
+                console.log(`xStartBP ${ prettyPrint(xStartBP) } locus.x.start ${ prettyPrint(1 + state.locus.x.start) }`)
 
                 xy = `${chr1.name}:${StringUtils.numberFormatter(xStartBP)}-${StringUtils.numberFormatter(xEndBP)} ` +
                     `${chr2.name}:${StringUtils.numberFormatter(yStartBP)}-${StringUtils.numberFormatter(yEndBP)}`;
