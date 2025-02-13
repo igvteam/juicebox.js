@@ -23,6 +23,41 @@
     import juicebox from '../js/index.js';
     // import juicebox from "https://cdn.jsdelivr.net/gh/igvteam/juicebox.js@juicebox-llm-project/dist/juicebox.esm.js";
 
+    const config_erez_bug =
+        {
+            "browsers": [
+                {
+                    "backgroundColor": "255,255,255",
+                    "url": "https://s3.us-east-1.wasabisys.com/aiden-suhas/hic_files/FINAL_GRCh38_processing/LCL/LCL_combined/8_1_22/inter_30.hic/inter_30.hic",
+                    "name": "inter_30.hic",
+                    "state": "23,23,6,5052.633675000001,5049.383675000001,640,640,4,VC",
+                    "colorScale": "R:500:6.214608098422191,255,0,0:6.214608098422191,0,0,255",
+                    "nvi": "1373857641721,71224",
+                    "controlUrl": "https://www.encodeproject.org/files/ENCFF053VBX/@@download/ENCFF053VBX.hic",
+                    "controlName": "MboI primary+replicate GM12878 experiment",
+                    "displayMode": "AOB",
+                    "controlNvi": "54305946375,47429"
+                },
+                {
+                    "backgroundColor": "255,255,255",
+                    "url": "https://www.encodeproject.org/files/ENCFF053VBX/@@download/ENCFF053VBX.hic",
+                    "name": "MboI primary+replicate GM12878 experiment",
+                    "state": "23,23,6,5052.633675000001,5049.383675000001,640,640,4,VC",
+                    "colorScale": "84.58193578581977,255,0,0",
+                    "nvi": "54305946375,47429"
+                },
+                {
+                    "backgroundColor": "255,255,255",
+                    "url": "https://s3.us-east-1.wasabisys.com/aiden-suhas/hic_files/FINAL_GRCh38_processing/LCL/LCL_combined/8_1_22/inter_30.hic/inter_30.hic",
+                    "name": "inter_30.hic",
+                    "state": "23,23,6,5052.633675000001,5049.383675000001,640,640,4,VC",
+                    "colorScale": "52.98886154812313,255,0,0",
+                    "nvi": "1373857641721,71224"
+                }
+            ],
+            "caption": "left panel: deep lcl in situ hg19; middle panel: encode gm12878 in situ hg38 & deep lcl intact; right panel: encode gm12878 in situ hg38"
+        };
+
     const config_locus_state_hacks = {
         "url": "https://www.encodeproject.org/files/ENCFF799QGA/@@download/ENCFF799QGA.hic",
         "name": "in-situ agar GM12878 MboI experiment",
@@ -138,12 +173,19 @@
             "selectedGene": "egfr"
         };
 
-    juicebox.init(document.getElementById("app-container"), config)
+    juicebox.init(document.getElementById("app-container"), config_erez_bug)
         .then(browser => {
 
-            console.log(`${browser.id} is good to go`)
+            if (Array.isArray(browser)) {
+                for (const b of browser) {
+                    console.log(`${b.id} is good to go`)
+                }
 
-            const result = browser.toJSON()
+            } else {
+                console.log(`${browser.id} is good to go`)
+            }
+
+            // const result = browser.toJSON()
 
             // console.log(`${ JSON.stringify(result, null, 2) }`)
 

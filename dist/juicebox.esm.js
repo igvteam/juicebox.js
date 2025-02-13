@@ -85463,7 +85463,8 @@ class State {
         this.x = xBinNew;
         this.y = yBinNew;
         this.pixelSize = pixelSizeNew;
-        this.locus = { ...targetState.locus };
+
+        this.configureLocus(browser, dataset, browser.contactMatrixView.getViewDimensions());
 
         return { zoomChanged, chrChanged }
 
@@ -90010,8 +90011,6 @@ class HICBrowser {
                 EventBus.globalBus.post(HICEvent("GenomeChange", this.genome.id));
             }
 
-            this.eventBus.post(HICEvent("MapLoad", this.dataset));
-
             if (config.locus) {
                 this.state = State.default(config);
                 await this.parseGotoInput(config.locus);
@@ -90032,6 +90031,8 @@ class HICBrowser {
             } else {
                 await this.setState(State.default(config));
             }
+
+            this.eventBus.post(HICEvent("MapLoad", this.dataset));
 
             // Initiate loading of the norm vector index, but don't block if the "nvi" parameter is not available.
             // Let it load in the background
