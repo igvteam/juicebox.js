@@ -23,4 +23,16 @@ function parseRgbString(rgbString) {
     return match.slice(1, 4).map(Number);
 }
 
-export { createDOMFromHTMLString, getOffset, parseRgbString }
+function prettyPrint(number) {
+
+    if (typeof number !== "number") {
+        console.error(`${ number } must be a number`)
+        return
+    }
+
+    const integerPart = Math.trunc(number)
+    return integerPart.toLocaleString()
+}
+
+
+export { createDOMFromHTMLString, getOffset, parseRgbString, prettyPrint }

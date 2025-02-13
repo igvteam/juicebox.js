@@ -27,8 +27,8 @@
  */
 
 import { defaultSize } from './createBrowser.js'
-import {MAX_PIXEL_SIZE} from "./hicBrowser.js"
-import js from "./index.js"
+import {DEFAULT_PIXEL_SIZE, MAX_PIXEL_SIZE} from "./hicBrowser.js"
+import HICEvent from "./hicEvent.js"
 
 class State {
 
@@ -69,7 +69,40 @@ class State {
 
     }
 
-    configureLocus(browser, dataset){
+    async setWithZoom(zoom, viewDimensions, browser, dataset){
+
+        const {width, height} = viewDimensions
+
+        // bin = bin + pixel * bin/pixel = bin
+        const xCenter = this.x + (width/2) / this.pixelSize
+        const yCenter = this.y + (height/2) / this.pixelSize
+
+        const binSize = dataset.bpResolutions[this.zoom]
+        const binSizeNew = dataset.bpResolutions[zoom]
+
+        const scaleFactor = binSize / binSizeNew
+
+        const xCenterNew = xCenter * scaleFactor
+        const yCenterNew = yCenter * scaleFactor
+
+        const minPixelSize = await browser.minPixelSize(this.chr1, this.chr2, zoom)
+
+        this.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
+
+        const resolutionChanged = (this.zoom !== zoom)
+
+        this.zoom = zoom
+        this.x = Math.max(0, xCenterNew - width / (2 * this.pixelSize))
+        this.y = Math.max(0, yCenterNew - height / (2 * this.pixelSize))
+
+        browser.clamp()
+
+        this.configureLocus(browser, dataset, viewDimensions)
+
+        return resolutionChanged
+    }
+
+    configureLocus(browser, dataset, viewDimensions){
 
         const bpPerBin = dataset.bpResolutions[this.zoom];
 
@@ -78,7 +111,6 @@ class State {
 
         const chr1 = dataset.chromosomes[this.chr1];
         const chr2 = dataset.chromosomes[this.chr2];
-        const viewDimensions = browser.contactMatrixView.getViewDimensions();
         const pixelsPerBin = this.pixelSize;
         const endBP1 = Math.min(chr1.size, Math.round(((viewDimensions.width / pixelsPerBin) * bpPerBin)) + startBP1);
         const endBP2 = Math.min(chr2.size, Math.round(((viewDimensions.height / pixelsPerBin) * bpPerBin)) + startBP2);

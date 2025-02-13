@@ -955,7 +955,10 @@ class HICBrowser {
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
 
-        if (!this.dataset) return
+        if (undefined === this.dataset) {
+            console.warn('Dataset is undefined')
+            return
+        }
 
         if (this.dataset.isWholeGenome(this.state.chr1) && direction > 0) {
             // jump from whole genome to chromosome
@@ -967,31 +970,37 @@ class HICBrowser {
             const yLocus = { chr: chrY.name, start: 0, end: chrY.size, wholeChr: true }
             await this.setChromosomes(xLocus, yLocus)
         } else {
-            const resolutions = this.getResolutions()
-            const { width, height } = this.contactMatrixView.getViewDimensions()
-            const dx = centerPX === undefined ? 0 : centerPX - width / 2
-            const dy = centerPY === undefined ? 0 : centerPY - height / 2
 
+            const { width, height } = this.contactMatrixView.getViewDimensions()
+
+            const dx = centerPX === undefined ? 0 : centerPX - width / 2
             this.state.x += (dx / this.state.pixelSize)
+
+            const dy = centerPY === undefined ? 0 : centerPY - height / 2
             this.state.y += (dy / this.state.pixelSize)
 
+            const resolutions = this.getResolutions()
             const directionPositive = direction > 0 && this.state.zoom === resolutions[resolutions.length - 1].index
             const directionNegative = direction < 0 && this.state.zoom === resolutions[0].index
             if (this.resolutionLocked || directionPositive || directionNegative) {
 
                 const minPS = await this.minPixelSize(this.state.chr1, this.state.chr2, this.state.zoom)
-                const state = this.state
-                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS)
 
-                const shiftRatio = (newPixelSize - state.pixelSize) / newPixelSize
+                const newPixelSize = Math.max(Math.min(MAX_PIXEL_SIZE, this.state.pixelSize * (direction > 0 ? 2 : 0.5)), minPS)
 
-                state.pixelSize = newPixelSize
-                state.x += shiftRatio * (width / state.pixelSize)
-                state.y += shiftRatio * (height / state.pixelSize)
+                const shiftRatio = (newPixelSize - this.state.pixelSize) / newPixelSize
+
+                this.state.pixelSize = newPixelSize
+
+
+                this.state.x += shiftRatio * (width / this.state.pixelSize)
+                this.state.y += shiftRatio * (height / this.state.pixelSize)
 
                 this.clamp()
 
-                this.update(HICEvent("LocusChange", {state, resolutionChanged: false, chrChanged: false}))
+                this.state.configureLocus(this, this.dataset, { width, height })
+
+                this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged: false, chrChanged: false}))
 
             } else {
                 let i
@@ -1013,37 +1022,13 @@ class HICBrowser {
      */
     async setZoom(zoom) {
 
-        const {width, height} = this.contactMatrixView.getViewDimensions()
-
-        // bin = bin + pixel * bin/pixel = bin
-        const xCenter = this.state.x + (width/2) / this.state.pixelSize
-        const yCenter = this.state.y + (height/2) / this.state.pixelSize
-
-        const binSize = this.dataset.bpResolutions[this.state.zoom]
-        const binSizeNew = this.dataset.bpResolutions[zoom]
-
-        const scaleFactor = binSize / binSizeNew
-
-        const xCenterNew = xCenter * scaleFactor
-        const yCenterNew = yCenter * scaleFactor
-
-        const minPixelSize = await this.minPixelSize(this.state.chr1, this.state.chr2, zoom)
-
-        this.state.pixelSize = Math.max(DEFAULT_PIXEL_SIZE, minPixelSize)
-
-        const resolutionChanged = (this.state.zoom !== zoom)
-
-        this.state.zoom = zoom
-        this.state.x = Math.max(0, xCenterNew - width / (2 * this.state.pixelSize))
-        this.state.y = Math.max(0, yCenterNew - height / (2 * this.state.pixelSize))
-
-        this.clamp()
+        const resolutionChanged = await this.state.setWithZoom(zoom, this.contactMatrixView.getViewDimensions(), this, this.dataset)
 
         await this.contactMatrixView.zoomIn()
 
-        this.update(HICEvent("LocusChange", {state: this.state, resolutionChanged, chrChanged: false}))
+        this.update(HICEvent("LocusChange", { state: this.state, resolutionChanged, chrChanged: false }))
 
-    };
+    }
 
     async setChromosomes(xLocus, yLocus) {
 
@@ -1121,7 +1106,8 @@ class HICBrowser {
 
         // Derive locus if none is present in source state
         if (undefined === state.locus) {
-            this.state.configureLocus(this, this.dataset)
+            const viewDimensions = this.contactMatrixView.getViewDimensions();
+            this.state.configureLocus(this, this.dataset, viewDimensions)
         }
 
         const hicEvent = new HICEvent("LocusChange", { state: this.state, resolutionChanged: true, chrChanged })
@@ -1179,10 +1165,16 @@ class HICBrowser {
 
     shiftPixels(dx, dy) {
 
-        if (!this.dataset) return
+        if (undefined === this.dataset) {
+            console.warn('dataset is undefined')
+            return
+        }
+
         this.state.x += (dx / this.state.pixelSize)
         this.state.y += (dy / this.state.pixelSize)
         this.clamp()
+
+        this.state.configureLocus(this, this.dataset, this.contactMatrixView.getViewDimensions())
 
         const locusChangeEvent = HICEvent("LocusChange", {
             state: this.state,
@@ -1197,20 +1189,17 @@ class HICBrowser {
     }
 
     clamp() {
-        var viewDimensions = this.contactMatrixView.getViewDimensions(),
-            chr1Length = this.dataset.chromosomes[this.state.chr1].size,
-            chr2Length = this.dataset.chromosomes[this.state.chr2].size,
-            binSize = this.dataset.bpResolutions[this.state.zoom],
-            maxX = (chr1Length / binSize) - (viewDimensions.width / this.state.pixelSize),
-            maxY = (chr2Length / binSize) - (viewDimensions.height / this.state.pixelSize)
 
-        // Negative maxX, maxY indicates pixelSize is not enough to fill view.  In this case we clamp x, y to 0,0
-        maxX = Math.max(0, maxX)
-        maxY = Math.max(0, maxY)
+        const { width, height } = this.contactMatrixView.getViewDimensions();
+        const { chr1, chr2, zoom, pixelSize, x, y } = this.state;
+        const { chromosomes, bpResolutions } = this.dataset;
 
+        const binSize = bpResolutions[zoom];
+        const maxX = Math.max(0, chromosomes[chr1].size / binSize - width / pixelSize);
+        const maxY = Math.max(0, chromosomes[chr2].size / binSize - height / pixelSize);
 
-        this.state.x = Math.min(Math.max(0, this.state.x), maxX)
-        this.state.y = Math.min(Math.max(0, this.state.y), maxY)
+        this.state.x = Math.min(Math.max(0, x), maxX);
+        this.state.y = Math.min(Math.max(0, y), maxY);
     }
 
     /**
@@ -1443,6 +1432,6 @@ function presentError(prefix, error) {
 
 }
 
-export { MAX_PIXEL_SIZE }
+export { MAX_PIXEL_SIZE, DEFAULT_PIXEL_SIZE }
 export default HICBrowser
 
