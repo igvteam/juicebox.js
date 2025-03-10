@@ -43,8 +43,8 @@ import ResolutionSelector from "./hicResolutionSelector.js"
 import ColorScaleWidget from "./hicColorScaleWidget.js"
 import ControlMapWidget from "./controlMapWidget.js"
 import NormalizationWidget from "./normalizationWidget.js"
-import ChromosomeSelectorWidget from "./chromosomeSelectorWidget.js"
-import AnnotationWidget from "./annotationWidget.js"
+import createChromosomeSelector from "./chromosomeSelector.js"
+import createAnnotationWidget from "./annotationWidget.js"
 import SweepZoom from "./sweepZoom.js"
 import ScrollbarWidget from "./scrollbarWidget.js"
 import ContactMatrixView from "./contactMatrixView.js"
@@ -122,14 +122,14 @@ class HICBrowser {
         this.menuElement = this.createMenu(this.rootElement);
         this.menuElement.style.display = 'none';
 
-        this.chromosomeSelector = new ChromosomeSelectorWidget(this, this.menuElement.querySelector('.hic-chromosome-selector-widget-container'));
+        createChromosomeSelector(this, this.menuElement.querySelector('.hic-chromosome-selector-widget-container'));
 
         const annotation2DWidgetConfig = {
             title: '2D Annotations',
             alertMessage: 'No 2D annotations currently loaded for this map'
         };
 
-        this.annotation2DWidget = new AnnotationWidget(this, this.menuElement.querySelector(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
+        createAnnotationWidget(this, this.menuElement.querySelector(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
 
         // prevent user interaction during lengthy data loads
         this.userInteractionShield = document.createElement('div');
