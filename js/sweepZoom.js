@@ -21,8 +21,6 @@
  *
  */
 
-import {getOffset} from "./utils.js"
-
 class SweepZoom {
 
     constructor(browser, targetElement) {
