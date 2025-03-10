@@ -28,11 +28,13 @@
 
 import { defaultSize } from './createBrowser.js'
 import {DEFAULT_PIXEL_SIZE, MAX_PIXEL_SIZE} from "./hicBrowser.js"
-import HICEvent from "./hicEvent.js"
 
 class State {
 
     constructor(chr1, chr2, locus, zoom, x, y, width, height, pixelSize, normalization) {
+        // Private properties
+        this._width = width;
+        this._height = height;
 
         if (chr1 <= chr2) {
             this.chr1 = chr1;
@@ -51,9 +53,6 @@ class State {
 
         this.zoom = zoom;
 
-        this.width = width
-        this.height = height
-
         if (undefined === normalization) {
             console.warn("Normalization is undefined. Will use NONE");
             normalization = 'NONE';
@@ -66,11 +65,26 @@ class State {
         this.pixelSize = pixelSize;
 
         this.locus = locus
+    }
 
+    // Getters and setters for width and height
+    get width() {
+        return this._width;
+    }
+
+    set width(value) {
+        this._width = value;
+    }
+
+    get height() {
+        return this._height;
+    }
+
+    set height(value) {
+        this._height = value;
     }
 
     clampXY(dataset, viewDimensions) {
-
         const { width, height } = viewDimensions
         const { chromosomes, bpResolutions } = dataset;
 
@@ -237,11 +251,10 @@ class State {
 
     stringify() {
         if (this.normalization) {
-            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this.width},${this.height},${this.pixelSize},${this.normalization}`
+            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this._width},${this._height},${this.pixelSize},${this.normalization}`
         } else {
-            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this.width},${this.height},${this.pixelSize}`
+            return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this._width},${this._height},${this.pixelSize}`
         }
-
     }
 
     clone() {
@@ -301,7 +314,6 @@ class State {
 
     // Method 1: Convert the State object to a JSON object
     toJSON() {
-
         const json =
             {
                 chr1: this.chr1,
@@ -309,8 +321,8 @@ class State {
                 zoom: this.zoom,
                 x: this.x,
                 y: this.y,
-                width: this.width,
-                height: this.height,
+                width: this._width,
+                height: this._height,
                 pixelSize: this.pixelSize,
                 normalization: this.normalization || 'NONE'
             }
@@ -339,7 +351,6 @@ class State {
     }
 
     static default(configOrUndefined) {
-
         const state = new State(0, 0, undefined, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE")
         if (configOrUndefined && configOrUndefined.width && configOrUndefined.height) {
             state.width = configOrUndefined.width
