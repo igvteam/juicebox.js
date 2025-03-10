@@ -21,72 +21,71 @@
  *
  */
 
-import { Alert, createColorSwatchSelector } from '../node_modules/igv-ui/dist/igv-ui.js';
-import { makeDraggable } from '../node_modules/igv-ui/dist/igv-ui.js';
-import HICEvent from './hicEvent.js';
 import Track2D from './track2D.js';
 
-/**
- * Creates and manages the annotation widget UI component
- * @param {HICBrowser} browser - The HIC browser instance
- * @param {HTMLElement} container - The container element for the annotation widget
- * @param {Object} config - Configuration object containing title and alertMessage
- * @param {Function} trackListRetrievalCallback - Function to get the list of tracks
- */
-function createAnnotationWidget(browser, container, { title, alertMessage }, trackListRetrievalCallback) {
-    const button = container.querySelector("button");
-    button.textContent = title;
+class AnnotationWidget {
+    constructor(browser, container, config) {
+        this.browser = browser;
+        this.container = container;
+        this.config = config;
+        this.panel = null;
+        this.isPanelVisible = false;
 
-    let panel = null;
-    let isPanelVisible = false;
-
-    button.addEventListener('click', () => {
-        if (!isPanelVisible) {
-            showPanel();
-        } else {
-            hidePanel();
-        }
-    });
-
-    function showPanel() {
-        if (!panel) {
-            panel = createPanel();
-        }
-        panel.style.display = 'block';
-        isPanelVisible = true;
+        this.initialize();
     }
 
-    function hidePanel() {
-        if (panel) {
-            panel.style.display = 'none';
-            isPanelVisible = false;
+    initialize() {
+        const button = this.container.querySelector("button");
+        button.textContent = this.config.title;
+
+        button.addEventListener('click', () => {
+            if (!this.isPanelVisible) {
+                this.showPanel();
+            } else {
+                this.hidePanel();
+            }
+        });
+    }
+
+    showPanel() {
+        if (!this.panel) {
+            this.panel = this.createPanel();
+        }
+        this.panel.style.display = 'block';
+        this.isPanelVisible = true;
+    }
+
+    hidePanel() {
+        if (this.panel) {
+            this.panel.style.display = 'none';
+            this.isPanelVisible = false;
         }
     }
 
-    function createPanel() {
+    createPanel() {
         const panel = document.createElement('div');
         panel.className = 'hic-annotation-panel';
         panel.style.display = 'none';
-        container.appendChild(panel);
+        this.container.appendChild(panel);
 
-        const tracks = trackListRetrievalCallback();
+        const tracks = this.browser.tracks2D;
         if (!tracks || tracks.length === 0) {
             const message = document.createElement('div');
             message.className = 'hic-annotation-panel-message';
-            message.textContent = alertMessage;
+            message.textContent = this.config.alertMessage;
             panel.appendChild(message);
             return panel;
         }
 
         tracks.forEach(track => {
-            const row = annotationPanelRow(panel, track);
+            const row = this.createAnnotationPanelRow(panel, track);
             panel.appendChild(row);
         });
 
         return panel;
     }
 
-    function annotationPanelRow(container, track) {
+    createAnnotationPanelRow(container, track) {
         const isTrack2D = track instanceof Track2D;
         const rowContainer = document.createElement('div');
         rowContainer.className = 'hic-annotation-panel-row-container';
@@ -115,22 +114,22 @@ function createAnnotationWidget(browser, container, { title, alertMessage }, tra
             }
 
             displayModeIcon.addEventListener('click', () => {
-                displayModeHandler(displayModeIcon, track);
-                browser.contactMatrixView.clearImageCaches();
-                browser.contactMatrixView.update();
+                this.displayModeHandler(displayModeIcon, track);
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
             });
 
             row.appendChild(displayModeIcon);
         }
 
-        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
+        const colorpickerContainer = this.createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
             const nextElement = row.nextElementSibling;
             if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
                 nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
             }
         });
 
-        const colorpickerButton = annotationColorSwatch(isTrack2D ? track.getColor() : track.x.track.color);
+        const colorpickerButton = this.createAnnotationColorSwatch(isTrack2D ? track.getColor() : track.x.track.color);
         row.appendChild(colorpickerButton);
 
         colorpickerButton.addEventListener('click', () => {
@@ -146,7 +145,7 @@ function createAnnotationWidget(browser, container, { title, alertMessage }, tra
         return rowContainer;
     }
 
-    function displayModeHandler(displayModeIcon, track) {
+    displayModeHandler(displayModeIcon, track) {
         switch (track.displayMode) {
             case 'lower':
                 track.displayMode = 'upper';
@@ -165,7 +164,7 @@ function createAnnotationWidget(browser, container, { title, alertMessage }, tra
         }
     }
 
-    function createAnnotationPanelColorpickerContainer(container, style, clickHandler) {
+    createAnnotationPanelColorpickerContainer(container, style, clickHandler) {
         const colorpickerContainer = document.createElement('div');
         colorpickerContainer.className = 'hic-color-swatch-container';
         Object.assign(colorpickerContainer.style, style);
@@ -173,7 +172,7 @@ function createAnnotationWidget(browser, container, { title, alertMessage }, tra
         return colorpickerContainer;
     }
 
-    function annotationColorSwatch(color) {
+    createAnnotationColorSwatch(color) {
         const colorSwatch = document.createElement('div');
         colorSwatch.className = 'hic-color-swatch';
         colorSwatch.style.backgroundColor = color;
@@ -181,4 +180,4 @@ function createAnnotationWidget(browser, container, { title, alertMessage }, tra
     }
 }
 
-export default createAnnotationWidget;
+export default AnnotationWidget;

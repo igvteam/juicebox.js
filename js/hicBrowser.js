@@ -32,29 +32,18 @@ import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js"
 import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
-import LayoutController, {getNavbarContainer, getNavbarHeight, trackHeight} from './layoutController.js'
+import LayoutController, {getNavbarHeight, trackHeight} from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
 import State from './hicState.js'
 import { geneSearch } from './geneSearch.js'
-import LocusGoto from "./hicLocusGoto.js"
-import ResolutionSelector from "./hicResolutionSelector.js"
-import ColorScaleWidget from "./hicColorScaleWidget.js"
-import ControlMapWidget from "./controlMapWidget.js"
-import NormalizationWidget from "./normalizationWidget.js"
-import createChromosomeSelector from "./chromosomeSelector.js"
-import createAnnotationWidget from "./annotationWidget.js"
-import SweepZoom from "./sweepZoom.js"
-import ScrollbarWidget from "./scrollbarWidget.js"
-import ContactMatrixView from "./contactMatrixView.js"
-import ColorScale, {defaultColorScaleConfig} from "./colorScale.js"
-import RatioColorScale, {defaultRatioColorScaleConfig} from "./ratioColorScale.js"
 import {defaultSize, getAllBrowsers, syncBrowsers} from "./createBrowser.js"
 import {isFile} from "./fileUtils.js"
 import {setTrackReorderArrowColors} from "./trackPair.js"
 import nvi from './nvi.js'
 import {extractName, presentError} from "./utils.js"
+import BrowserUIManager from "./browserUIManager.js"
 
 const DEFAULT_PIXEL_SIZE = 1
 const MAX_PIXEL_SIZE = 128
@@ -80,10 +69,6 @@ class HICBrowser {
 
         this.isMobile = hicUtils.isMobile();
 
-        this.rootElement = document.createElement('div');
-        this.rootElement.className = 'hic-root unselect';
-        appContainer.appendChild(this.rootElement);
-
         let width, height
         if (config.state) {
             width = config.state.width
@@ -93,43 +78,25 @@ class HICBrowser {
             height = defaultSize.height
         }
 
+        this.rootElement = document.createElement('div');
+        this.rootElement.className = 'hic-root unselect';
+        appContainer.appendChild(this.rootElement);
+
         this.rootElement.style.width = `${width}`;
         this.rootElement.style.height = `${height + getNavbarHeight()}`;
 
         this.layoutController = new LayoutController(this, this.rootElement);
 
-        // nav bar related objects
-        this.locusGoto = new LocusGoto(this, getNavbarContainer(this));
-        this.resolutionSelector = new ResolutionSelector(this, getNavbarContainer(this));
-        this.resolutionSelector.setResolutionLock(this.resolutionLocked);
-        this.colorscaleWidget = new ColorScaleWidget(this, getNavbarContainer(this));
-        this.controlMapWidget = new ControlMapWidget(this, getNavbarContainer(this));
-        this.normalizationSelector = new NormalizationWidget(this, getNavbarContainer(this));
         this.inputDialog = new InputDialog(appContainer, this);
-
-        // contact map container related objects
-        const sweepZoom = new SweepZoom(this, this.layoutController.getContactMatrixViewport());
-        const scrollbarWidget = new ScrollbarWidget(this, this.layoutController.getXAxisScrollbarContainer(), this.layoutController.getYAxisScrollbarContainer());
-
-        const colorScale = new ColorScale(defaultColorScaleConfig);
-
-        const ratioColorScale = new RatioColorScale(defaultRatioColorScaleConfig.threshold);
-        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.negative, '-');
-        ratioColorScale.setColorComponents(defaultRatioColorScaleConfig.positive, '+');
-        const backgroundColor = config.backgroundColor || ContactMatrixView.defaultBackgroundColor;
-        this.contactMatrixView = new ContactMatrixView(this, this.layoutController.getContactMatrixViewport(), sweepZoom, scrollbarWidget, colorScale, ratioColorScale, backgroundColor);
 
         this.menuElement = this.createMenu(this.rootElement);
         this.menuElement.style.display = 'none';
 
-        createChromosomeSelector(this, this.menuElement.querySelector('.hic-chromosome-selector-widget-container'));
+        // Initialize UI components through BrowserUIManager
+        this.ui = new BrowserUIManager(this);
 
-        const annotation2DWidgetConfig = {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-
-        createAnnotationWidget(this, this.menuElement.querySelector(".hic-annotation-presentation-button-container"), annotation2DWidgetConfig, () => this.tracks2D);
+        // Get the contact matrix view from UI manager
+        this.contactMatrixView = this.ui.getComponent('contactMatrix');
 
         // prevent user interaction during lengthy data loads
         this.userInteractionShield = document.createElement('div');
@@ -138,7 +105,6 @@ class HICBrowser {
         this.userInteractionShield.style.display = 'none';
 
         this.hideCrosshairs();
-
     }
 
     async init(config) {
@@ -203,7 +169,7 @@ class HICBrowser {
             this.contactMatrixView.colorScaleThresholdCache = tmp;
 
             if (config.cycle) {
-                this.controlMapWidget.toggleDisplayModeCycle();
+                this.ui.getComponent('controlMap').toggleDisplayModeCycle();
             } else {
                 await this.update();
             }
@@ -1266,7 +1232,8 @@ class HICBrowser {
             if (nviString) {
                 jsonOBJ.controlNvi = nviString
             }
-            if (this.controlMapWidget.getDisplayModeCycle() !== undefined) {
+            const controlMapWidget = this.ui.getComponent('controlMap');
+            if (controlMapWidget.getDisplayModeCycle() !== undefined) {
                 jsonOBJ.cycle = true
             }
         }

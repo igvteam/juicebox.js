@@ -23,63 +23,69 @@
 
 /**
  * Creates and manages the chromosome selector UI component
- * @param {HICBrowser} browser - The HIC browser instance
- * @param {HTMLElement} container - The container element for the chromosome selector
  */
-function createChromosomeSelector(browser, container) {
-    const xAxisSelector = container.querySelector("select[name='x-axis-selector']");
-    const yAxisSelector = container.querySelector("select[name='y-axis-selector']");
+class ChromosomeSelector {
+    constructor(browser, container) {
+        this.browser = browser;
+        this.container = container;
+        this.xAxisSelector = container.querySelector("select[name='x-axis-selector']");
+        this.yAxisSelector = container.querySelector("select[name='y-axis-selector']");
 
-    // Sync selectors when either changes
-    xAxisSelector.addEventListener('change', () => syncSelectors(xAxisSelector, yAxisSelector));
-    yAxisSelector.addEventListener('change', () => syncSelectors(yAxisSelector, xAxisSelector));
+        this.initialize();
+    }
 
-    // Handle chromosome swap button click
-    const nextDiv = yAxisSelector.nextElementSibling;
-    if (nextDiv) {
-        nextDiv.addEventListener('click', async () => {
-            const chrX = browser.dataset.chromosomes[parseInt(xAxisSelector.value, 10)];
-            const chrY = browser.dataset.chromosomes[parseInt(yAxisSelector.value, 10)];
+    initialize() {
+        // Sync selectors when either changes
+        this.xAxisSelector.addEventListener('change', () => this.syncSelectors(this.xAxisSelector, this.yAxisSelector));
+        this.yAxisSelector.addEventListener('change', () => this.syncSelectors(this.yAxisSelector, this.xAxisSelector));
 
-            const xLocus = browser.parseLocusString(chrX.name);
-            const yLocus = browser.parseLocusString(chrY.name);
+        // Handle chromosome swap button click
+        const nextDiv = this.yAxisSelector.nextElementSibling;
+        if (nextDiv) {
+            nextDiv.addEventListener('click', async () => {
+                const chrX = this.browser.dataset.chromosomes[parseInt(this.xAxisSelector.value, 10)];
+                const chrY = this.browser.dataset.chromosomes[parseInt(this.yAxisSelector.value, 10)];
 
-            await browser.setChromosomes(xLocus, yLocus);
+                const xLocus = this.browser.parseLocusString(chrX.name);
+                const yLocus = this.browser.parseLocusString(chrY.name);
+
+                await this.browser.setChromosomes(xLocus, yLocus);
+            });
+        }
+
+        // Subscribe to browser events
+        this.browser.eventBus.subscribe("MapLoad", (event) => {
+            this.respondToDataLoadWithDataset(event.data);
+        });
+
+        this.browser.eventBus.subscribe("LocusChange", (event) => {
+            this.respondToLocusChangeWithState(event.data.state);
         });
     }
 
-    // Subscribe to browser events
-    browser.eventBus.subscribe("MapLoad", (event) => {
-        respondToDataLoadWithDataset(event.data);
-    });
-
-    browser.eventBus.subscribe("LocusChange", (event) => {
-        respondToLocusChangeWithState(event.data.state);
-    });
-
-    function syncSelectors(sourceSelector, targetSelector) {
+    syncSelectors(sourceSelector, targetSelector) {
         const value = sourceSelector.value;
         if (parseInt(value, 10) === 0 || parseInt(targetSelector.value, 10) === 0) {
             targetSelector.value = value;
         }
     }
 
-    function respondToDataLoadWithDataset(dataset) {
+    respondToDataLoadWithDataset(dataset) {
         const { chromosomes } = dataset;
         const options = chromosomes.map(({ name }, index) => `<option value="${index}">${name}</option>`).join('');
-        xAxisSelector.innerHTML = options;
-        yAxisSelector.innerHTML = options;
+        this.xAxisSelector.innerHTML = options;
+        this.yAxisSelector.innerHTML = options;
 
-        xAxisSelector.value = browser.state.chr1;
-        yAxisSelector.value = browser.state.chr2;
+        this.xAxisSelector.value = this.browser.state.chr1;
+        this.yAxisSelector.value = this.browser.state.chr2;
     }
 
-    function respondToLocusChangeWithState(state) {
-        if (!xAxisSelector.options.length || !yAxisSelector.options.length) return;
+    respondToLocusChangeWithState(state) {
+        if (!this.xAxisSelector.options.length || !this.yAxisSelector.options.length) return;
 
-        xAxisSelector.value = state.chr1;
-        yAxisSelector.value = state.chr2;
+        this.xAxisSelector.value = state.chr1;
+        this.yAxisSelector.value = state.chr2;
     }
 }
 
-export default createChromosomeSelector; 
+export default ChromosomeSelector; 

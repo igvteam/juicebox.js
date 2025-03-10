@@ -24,7 +24,6 @@
 /**
  * Created by dat on 3/3/17.
  */
-import { StringUtils } from '../node_modules/igv-utils/src/index.js';
 import {prettyPrint} from "./utils.js"
 
 class LocusGoto {
