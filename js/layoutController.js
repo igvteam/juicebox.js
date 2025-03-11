@@ -9,37 +9,11 @@ import HICEvent from "./hicEvent.js";
 import EventBus from "./eventBus.js";
 import { createDOMFromHTMLString } from "./utils.js"
 
-// Keep these magic numbers in sync with corresponding juicebox.scss variables
-
-// $nav-bar-label-height: 36px;
-const navBarLabelHeight = 36;
-
-// $nav-bar-widget-container-height: 36px;
-const navBarWidgetContainerHeight = 36;
-
-// $nav-bar-widget-container-margin: 4px;
-const navBarWidgetContainerMargin = 4;
-
-// $hic-scrollbar-height: 20px;
-const scrollbarHeight = 20;
-
-// $hic-axis-height: 40px;
-const axisHeight = 40;
-
-// $track-margin: 2px;
-const trackMargin = 2;
-
-// $track-height: 36px;
-const trackHeight = 36;
-
 class LayoutController {
 
     constructor(browser, rootElement) {
-
         this.browser = browser;
-
         createNavBar(browser, rootElement);
-
         this.createAllContainers(browser, rootElement);
     }
 
@@ -148,6 +122,8 @@ class LayoutController {
 
     updateLayoutWithTracks(tracks) {
 
+        const { trackHeight } = getLayoutDimensions()
+
         this.resizeLayoutWithTrackXYPairCount(tracks.length + this.browser.trackPairs.length)
 
         for (const track of tracks) {
@@ -213,6 +189,7 @@ class LayoutController {
     }
 
     resizeLayoutWithTrackXYPairCount(trackXYPairCount) {
+        const { trackHeight, trackMargin, axisHeight, scrollbarHeight } = getLayoutDimensions();
         const trackAggregateHeight = (trackXYPairCount === 0) ? 0 : trackXYPairCount * (trackHeight + trackMargin);
 
         let tokens = [getNavbarHeight(), trackAggregateHeight].map(number => `${number}px`);
@@ -251,12 +228,29 @@ class LayoutController {
 
 }
 
+function getNavbarContainer(browser) {
+    return browser.rootElement.querySelector('.hic-navbar-container');
+}
+
 function getNavbarHeight() {
+    const { navBarLabelHeight, navBarWidgetContainerHeight, navBarWidgetContainerMargin } = getLayoutDimensions();
     return 2 * (navBarLabelHeight + navBarWidgetContainerHeight + (2 * navBarWidgetContainerMargin));
 }
 
-function getNavbarContainer(browser) {
-    return browser.rootElement.querySelector('.hic-navbar-container');
+function getCSSVariable(name) {
+    return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name));
+}
+
+function getLayoutDimensions() {
+    return {
+        navBarLabelHeight: getCSSVariable('--nav-bar-label-height'),
+        navBarWidgetContainerHeight: getCSSVariable('--nav-bar-widget-container-height'),
+        navBarWidgetContainerMargin: getCSSVariable('--nav-bar-widget-container-margin'),
+        scrollbarHeight: getCSSVariable('--hic-scrollbar-height'),
+        axisHeight: getCSSVariable('--hic-axis-height'),
+        trackMargin: getCSSVariable('--track-margin'),
+        trackHeight: getCSSVariable('--track-height')
+    };
 }
 
 function createNavBar(browser, root) {
@@ -308,6 +302,7 @@ function createNavBar(browser, root) {
     hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlLowerHicNavBarWidgetContainer));
 }
 
-export {getNavbarHeight, getNavbarContainer, trackHeight};
+// trackHeight
+export {getNavbarHeight, getNavbarContainer, getLayoutDimensions};
 
 export default LayoutController;
