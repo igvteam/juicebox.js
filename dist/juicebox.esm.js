@@ -89114,79 +89114,111 @@ class ChromosomeSelector {
  */
 
 class AnnotationWidget {
-    constructor(browser, container, config) {
+    constructor(browser, container, { title, alertMessage }, trackListRetrievalCallback) {
         this.browser = browser;
-        this.container = container;
-        this.config = config;
-        this.panel = null;
-        this.isPanelVisible = false;
+        this.trackListRetrievalCallback = trackListRetrievalCallback;
 
-        this.initialize();
+        this.annotationPresentationButton(container, alertMessage);
+        this.annotationPanel(browser.rootElement, title);
     }
 
-    initialize() {
-        const button = this.container.querySelector("button");
-        button.textContent = this.config.title;
+    updateBody(tracks) {
+
+        this.annotationPanelElement.querySelectorAll('.hic-annotation-row-container').forEach(el => el.remove());
+
+        if (tracks[0] instanceof Track2D) {
+            for (let i = tracks.length - 1; i >= 0; i--) {
+                this.annotationPanelRow(this.annotationPanelElement, tracks[i]);
+            }
+        } else {
+            for (const trackRenderer of tracks) {
+                this.annotationPanelRow(this.annotationPanelElement, trackRenderer);
+            }
+        }
+    }
+
+    annotationPresentationButton(parent, alertMessage) {
+        const button = parent.querySelector('button');
 
         button.addEventListener('click', () => {
-            if (!this.isPanelVisible) {
-                this.showPanel();
+            const list = this.trackListRetrievalCallback();
+
+            if (list.length > 0) {
+                this.updateBody(this.trackListRetrievalCallback());
+                this.annotationPanelElement.style.display =
+                    this.annotationPanelElement.style.display === 'none' ? 'flex' : 'none';
             } else {
-                this.hidePanel();
+                Alert$1.presentAlert(alertMessage);
             }
+
+            this.browser.hideMenu();
         });
     }
 
-    showPanel() {
-        if (!this.panel) {
-            this.panel = this.createPanel();
-        }
-        this.panel.style.display = 'block';
-        this.isPanelVisible = true;
-    }
+    annotationPanel(parent, title) {
+        this.annotationPanelElement = document.createElement('div');
+        this.annotationPanelElement.className = 'hic-annotation-panel-container';
+        parent.appendChild(this.annotationPanelElement);
 
-    hidePanel() {
-        if (this.panel) {
-            this.panel.style.display = 'none';
-            this.isPanelVisible = false;
-        }
-    }
+        const panelHeader = document.createElement('div');
+        panelHeader.className = 'hic-annotation-panel-header';
+        this.annotationPanelElement.appendChild(panelHeader);
 
-    createPanel() {
-        const panel = document.createElement('div');
-        panel.className = 'hic-annotation-panel';
-        panel.style.display = 'none';
-        this.container.appendChild(panel);
+        const titleDiv = document.createElement('div');
+        titleDiv.textContent = title;
+        panelHeader.appendChild(titleDiv);
 
-        const tracks = this.browser.tracks2D;
-        if (!tracks || tracks.length === 0) {
-            const message = document.createElement('div');
-            message.className = 'hic-annotation-panel-message';
-            message.textContent = this.config.alertMessage;
-            panel.appendChild(message);
-            return panel;
-        }
+        const closeButtonDiv = document.createElement('div');
+        closeButtonDiv.className = 'hic-menu-close-button';
+        panelHeader.appendChild(closeButtonDiv);
 
-        tracks.forEach(track => {
-            const row = this.createAnnotationPanelRow(panel, track);
-            panel.appendChild(row);
+        const closeIcon = document.createElement('i');
+        closeIcon.className = 'fa fa-times';
+        closeButtonDiv.appendChild(closeIcon);
+
+        closeIcon.addEventListener('click', () => {
+            this.annotationPanelElement.style.display =
+                this.annotationPanelElement.style.display === 'none' ? 'flex' : 'none';
         });
 
-        return panel;
+        makeDraggable(this.annotationPanelElement, panelHeader);
+        this.annotationPanelElement.style.display = 'none';
     }
 
-    createAnnotationPanelRow(container, track) {
+    annotationPanelRow(container, track) {
         const isTrack2D = track instanceof Track2D;
+        const trackList = this.trackListRetrievalCallback();
+
+        let trackRenderer;
+        if (false === isTrack2D) {
+            trackRenderer = track.x.track.trackView;
+        }
+
         const rowContainer = document.createElement('div');
-        rowContainer.className = 'hic-annotation-panel-row-container';
+        rowContainer.className = 'hic-annotation-row-container';
+        container.appendChild(rowContainer);
+
         const row = document.createElement('div');
-        row.className = 'hic-annotation-panel-row';
+        row.className = 'hic-annotation-modal-row';
         rowContainer.appendChild(row);
 
-        const name = document.createElement('div');
-        name.className = 'hic-annotation-panel-name';
-        name.textContent = isTrack2D ? track.name : track.x.track.name;
-        row.appendChild(name);
+        const trackName = document.createElement('div');
+        trackName.textContent = isTrack2D ? track.config.name : track.x.track.config.name;
+        row.appendChild(trackName);
+
+        if (isTrack2D) {
+            const visibilityIcon = document.createElement('i');
+            visibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+            row.appendChild(visibilityIcon);
+
+            visibilityIcon.addEventListener('click', () => {
+                track.isVisible = !track.isVisible;
+                visibilityIcon.className = track.isVisible ? 'fa fa-eye fa-lg' : 'fa fa-eye-slash fa-lg';
+
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
+            });
+        }
 
         if (isTrack2D) {
             const displayModeIcon = document.createElement('div');
@@ -89212,14 +89244,14 @@ class AnnotationWidget {
             row.appendChild(displayModeIcon);
         }
 
-        const colorpickerContainer = this.createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
+        const colorpickerContainer = createAnnotationPanelColorpickerContainer(rowContainer, {width: (29 * 24 + 2)}, () => {
             const nextElement = row.nextElementSibling;
             if (nextElement && nextElement.classList.contains('hic-color-swatch-container')) {
                 nextElement.style.display = nextElement.style.display === 'none' ? 'flex' : 'none';
             }
         });
 
-        const colorpickerButton = this.createAnnotationColorSwatch(isTrack2D ? track.getColor() : track.x.track.color);
+        const colorpickerButton = this.annotationColorSwatch(isTrack2D ? track.getColor() : track.x.track.color);
         row.appendChild(colorpickerButton);
 
         colorpickerButton.addEventListener('click', () => {
@@ -89230,44 +89262,159 @@ class AnnotationWidget {
         });
 
         colorpickerContainer.style.display = 'none';
-        rowContainer.appendChild(colorpickerContainer);
 
-        return rowContainer;
+        const colorHandler = color => {
+            const swatch = row.querySelector('.fa-square');
+            if (swatch) {
+                swatch.style.color = color;
+            }
+
+            if (isTrack2D) {
+                track.color = color;
+                this.browser.eventBus.post(HICEvent('TrackState2D', track));
+            } else {
+                trackRenderer.setColor(color);
+            }
+        };
+
+        createColorSwatchSelector(colorpickerContainer, colorHandler);
+
+        // track up/down
+        const upDownContainer = document.createElement('div');
+        upDownContainer.className = 'up-down-arrow-container';
+        row.appendChild(upDownContainer);
+
+        const upTrack = document.createElement('i');
+        upTrack.className = 'fa fa-arrow-up';
+        upTrack.setAttribute('aria-hidden', 'true');
+        upDownContainer.appendChild(upTrack);
+
+        const downTrack = document.createElement('i');
+        downTrack.className = 'fa fa-arrow-down';
+        downTrack.setAttribute('aria-hidden', 'true');
+        upDownContainer.appendChild(downTrack);
+
+        const hiddenColor = '#f7f7f7';
+        if (trackList.length === 1) {
+            upTrack.style.color = hiddenColor;
+            downTrack.style.color = hiddenColor;
+        } else if (track === trackList[0]) {
+            const arrow = isTrack2D ? downTrack : upTrack;
+            arrow.style.color = hiddenColor;
+        } else if (track === trackList[trackList.length - 1]) {
+            const arrow = isTrack2D ? upTrack : downTrack;
+            arrow.style.color = hiddenColor;
+        }
+
+        const index = trackList.indexOf(track);
+
+        const moveUp = () => {
+            const temp = trackList[index + 1];
+            trackList[index + 1] = trackList[index];
+            trackList[index] = temp;
+
+            if (isTrack2D) {
+                this.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+                this.updateBody(trackList);
+            } else {
+                this.browser.updateLayout();
+                this.updateBody(trackList);
+            }
+        };
+
+        const moveDown = () => {
+            const temp = trackList[index - 1];
+            trackList[index - 1] = trackList[index];
+            trackList[index] = temp;
+
+            if (isTrack2D) {
+                this.browser.eventBus.post(HICEvent('TrackState2D', trackList));
+                this.updateBody(trackList);
+            } else {
+                this.browser.updateLayout();
+                this.updateBody(trackList);
+            }
+        };
+
+        upTrack.addEventListener('click', isTrack2D ? moveUp : moveDown);
+        downTrack.addEventListener('click', isTrack2D ? moveDown : moveUp);
+
+
+        const deleteIcon = document.createElement('i');
+        deleteIcon.className = 'fa fa-trash-o fa-lg';
+        row.appendChild(deleteIcon);
+
+        deleteIcon.addEventListener('click', () => {
+            const index = trackList.indexOf(track);
+            if (isTrack2D) {
+                trackList.splice(index, 1);
+                this.browser.contactMatrixView.clearImageCaches();
+                this.browser.contactMatrixView.update();
+                this.browser.eventBus.post(HICEvent('TrackLoad2D', trackList));
+            } else {
+                this.browser.layoutController.removeTrackXYPair(track.x.track.trackRenderPair);
+            }
+
+            this.updateBody(trackList);
+        });
     }
 
-    displayModeHandler(displayModeIcon, track) {
-        switch (track.displayMode) {
-            case 'lower':
-                track.displayMode = 'upper';
-                displayModeIcon.classList.remove('matrix-diagonal-widget-lower');
-                displayModeIcon.classList.add('matrix-diagonal-widget-upper');
-                break;
-            case 'upper':
-                track.displayMode = 'all';
-                displayModeIcon.classList.remove('matrix-diagonal-widget-upper');
-                displayModeIcon.classList.add('matrix-diagonal-widget-all');
-                break;
-            default:
-                track.displayMode = 'lower';
-                displayModeIcon.classList.remove('matrix-diagonal-widget-all');
-                displayModeIcon.classList.add('matrix-diagonal-widget-lower');
+    displayModeHandler(icon, track2D) {
+        if (icon.classList.contains('matrix-diagonal-widget-all')) {
+            icon.classList.replace('matrix-diagonal-widget-all', 'matrix-diagonal-widget-lower');
+            track2D.displayMode = 'lower';
+        } else if (icon.classList.contains('matrix-diagonal-widget-lower')) {
+            icon.classList.replace('matrix-diagonal-widget-lower', 'matrix-diagonal-widget-upper');
+            track2D.displayMode = 'upper';
+        } else {
+            icon.classList.replace('matrix-diagonal-widget-upper', 'matrix-diagonal-widget-all');
+            track2D.displayMode = undefined;
         }
     }
 
-    createAnnotationPanelColorpickerContainer(container, style, clickHandler) {
-        const colorpickerContainer = document.createElement('div');
-        colorpickerContainer.className = 'hic-color-swatch-container';
-        Object.assign(colorpickerContainer.style, style);
-        colorpickerContainer.addEventListener('click', clickHandler);
-        return colorpickerContainer;
+    annotationColorSwatch(color) {
+        const swatch = document.createElement('div');
+        swatch.className = 'igv-color-swatch';
+
+        const icon = document.createElement('i');
+        icon.className = 'fa fa-square fa-lg';
+        icon.style.color = color;
+        swatch.appendChild(icon);
+
+        return swatch;
+    }
+}
+
+function createAnnotationPanelColorpickerContainer(parent, size, closeHandler) {
+
+    const container = document.createElement('div');
+    container.className = 'hic-color-swatch-container';
+    parent.appendChild(container);
+
+    // width
+    if (size && size.width) {
+        container.style.width = `${size.width}px`;
     }
 
-    createAnnotationColorSwatch(color) {
-        const colorSwatch = document.createElement('div');
-        colorSwatch.className = 'hic-color-swatch';
-        colorSwatch.style.backgroundColor = color;
-        return colorSwatch;
+    // height
+    if (size && size.height) {
+        container.style.height = `${size.height}px`;
     }
+
+    // header
+    const header = document.createElement('div');
+    container.appendChild(header);
+
+    // close button
+    const closeButton = document.createElement('i');
+    closeButton.className = 'fa fa-times';
+    header.appendChild(closeButton);
+
+    closeButton.addEventListener('click', () => {
+        closeHandler();
+    });
+
+    return container;
 }
 
 /*
@@ -89319,11 +89466,12 @@ class BrowserUIManager {
         this.components.set('chromosomeSelector', new ChromosomeSelector(this.browser, chromosomeSelectorContainer));
 
         const annotationContainer = this.browser.menuElement.querySelector('.hic-annotation-presentation-button-container');
-        const annotationConfig = {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-        this.components.set('annotationWidget', new AnnotationWidget(this.browser, annotationContainer, annotationConfig));
+        const annotation2DWidgetConfig =
+            {
+                title: '2D Annotations',
+                alertMessage: 'No 2D annotations currently loaded for this map'
+            };
+        this.components.set('annotationWidget', new AnnotationWidget(this.browser, annotationContainer, annotation2DWidgetConfig, () => this.browser.tracks2D));
 
         const sweepZoom = new SweepZoom(this.browser, this.browser.layoutController.getContactMatrixViewport());
         const scrollbarWidget = new ScrollbarWidget(

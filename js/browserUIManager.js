@@ -61,11 +61,12 @@ class BrowserUIManager {
         this.components.set('chromosomeSelector', new ChromosomeSelector(this.browser, chromosomeSelectorContainer));
 
         const annotationContainer = this.browser.menuElement.querySelector('.hic-annotation-presentation-button-container');
-        const annotationConfig = {
-            title: '2D Annotations',
-            alertMessage: 'No 2D annotations currently loaded for this map'
-        };
-        this.components.set('annotationWidget', new AnnotationWidget(this.browser, annotationContainer, annotationConfig));
+        const annotation2DWidgetConfig =
+            {
+                title: '2D Annotations',
+                alertMessage: 'No 2D annotations currently loaded for this map'
+            };
+        this.components.set('annotationWidget', new AnnotationWidget(this.browser, annotationContainer, annotation2DWidgetConfig, () => this.browser.tracks2D));
 
         const sweepZoom = new SweepZoom(this.browser, this.browser.layoutController.getContactMatrixViewport());
         const scrollbarWidget = new ScrollbarWidget(
