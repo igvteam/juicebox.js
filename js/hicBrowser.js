@@ -32,7 +32,7 @@ import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js"
 import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
-import LayoutController, {getNavbarHeight, trackHeight} from './layoutController.js'
+import LayoutController, { getLayoutDimensions, getNavbarHeight } from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
@@ -432,6 +432,7 @@ class HICBrowser {
                     config.autoscale = true;
                 }
 
+                const { trackHeight } = getLayoutDimensions()
                 config.height = trackHeight;
 
                 if (config.format === undefined || ['bedpe', 'interact'].includes(config.format)) {
