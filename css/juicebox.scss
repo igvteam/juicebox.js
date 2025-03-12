@@ -6,7 +6,19 @@
   --hic-axis-height: 40px;
   --track-margin: 2px;
   --track-height: 36px;
+  --hic-viewport-width: 640px;
+  --hic-viewport-height: 640px;
+  --hic-viewport-spinner-size: 120px;
 }
+
+// Layout dimensions synced with CSS custom properties
+$nav-bar-label-height: var(--nav-bar-label-height);
+$nav-bar-widget-container-height: var(--nav-bar-widget-container-height);
+$nav-bar-widget-container-margin: var(--nav-bar-widget-container-margin);
+$hic-scrollbar-height: var(--hic-scrollbar-height);
+$hic-axis-height: var(--hic-axis-height);
+$track-margin: var(--track-margin);
+$track-height: var(--track-height);
 
 //
 $hic-color-swatch-size: 24px;
@@ -19,13 +31,7 @@ $igv-trackgear-default-font-face: 'Open Sans', sans-serif;
 $nav-bar-widget-height: 24px;
 
 // ::::::::::::::: Used by layoutController.js :::::::::::::::
-$nav-bar-label-height: var(--nav-bar-label-height);
-$nav-bar-widget-container-height: var(--nav-bar-widget-container-height);
-$nav-bar-widget-container-margin: var(--nav-bar-widget-container-margin);
-$hic-scrollbar-height: var(--hic-scrollbar-height);
-$hic-axis-height: var(--hic-axis-height);
-$track-margin: var(--track-margin);
-$track-height: var(--track-height);
+// These values are now managed through CSS custom properties in :root
 // !!!!!!!!!!!! Keep in sync with layoutController.js !!!!!!!!!!!!!!!
 
 //
@@ -40,11 +46,7 @@ $track-count: 0;
 $track-aggregate-height: calc(#{$track-count} * var(--track-height));
 
 //
-//$hic-viewport-width: 800px;
-//$hic-viewport-height: 800px;
-$hic-viewport-width: 640px;
-$hic-viewport-height: 640px;
-$hic-viewport-spinner-size: 120px;
+$hic-viewport-spinner-size: var(--hic-viewport-spinner-size);
 
 //
 $hic-menu-item-height: 64px;
@@ -54,8 +56,8 @@ $hic-menu-margin: 8px;
 $nav-bar-height: calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + (2 * var(--nav-bar-widget-container-margin))));
 
 //
-$hic-root-width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + #{$hic-viewport-width});
-$hic-root-height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + #{$nav-bar-height} + #{$hic-viewport-height});
+$hic-root-width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + var(--hic-viewport-width));
+$hic-root-height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + #{$nav-bar-height} + var(--hic-viewport-height));
 
 $hic-annotation-modal-row-height: 40px;
 
@@ -78,151 +80,105 @@ $default-font-family: 'Open Sans', sans-serif;
 
 @mixin x-scrollbar-label {
   div {
-
     display: inline-block;
-
-    // center vertically/horizontally
     position: absolute;
     margin: auto;
-
     left: 0;
     top: 0;
-
     right: 0;
     bottom: 0;
-
-    height: $hic-scrollbar-height;
+    height: var(--hic-scrollbar-height);
     width: 100%;
-
     z-index: 512;
-
     vertical-align: middle;
     text-align: center;
-    line-height: $hic-scrollbar-height;
-
+    line-height: var(--hic-scrollbar-height);
     color: #373737;
-
     font-family: $default-font-family;
     font-size: medium;
     font-weight: 400;
-
     white-space: nowrap;
-
   }
 }
 
 @mixin y-scrollbar-label {
   div {
-
     display: inline-block;
-
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translateX(-50%) translateY(-50%) rotate(-90deg);
-
     z-index: 512;
-
     vertical-align: middle;
     text-align: center;
-    line-height: $hic-scrollbar-height;
-
+    line-height: var(--hic-scrollbar-height);
     color: #373737;
-
     font-family: $default-font-family;
     font-size: medium;
     font-weight: 400;
-
     white-space: nowrap;
-
   }
 }
 
 @mixin navbar-select {
-
   select {
     display: block;
-
-    height: $nav-bar-widget-container-height - 4px;
+    height: calc(var(--nav-bar-widget-container-height) - 4px);
     width: 96px;
-
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
-
-    //direction: rtl;
   }
-
 }
 
 @mixin navbar-input {
-
   input {
     display: block;
-
-    height: $nav-bar-widget-container-height - 4px;
+    height: calc(var(--nav-bar-widget-container-height) - 4px);
     width: 100%;
     padding-left: 4px;
-
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
     text-align: left;
-
     outline: none;
-
     border-style: solid;
     border-width: thin;
     border-color: $default-medium-color;
-
     background-color: white;
   }
-
 }
 
 @mixin navbar-color-scale-input {
-
   input {
     display: block;
-
     margin-right: 4px;
-    height: $nav-bar-widget-container-height - 4px;
+    height: calc(var(--nav-bar-widget-container-height) - 4px);
     width: 96px;
     padding: 4px;
-
     font-family: $default-font-family;
     font-weight: 400;
     color: $default-dark-color;
     text-align: left;
-
     outline: none;
-
     border-style: solid;
     border-width: thin;
     border-color: $default-medium-color;
-
     background-color: white;
   }
-
 }
 
 @mixin menu-item {
-
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: space-around;
   align-items: flex-start;
-
   width: 100%;
-
   padding-left: $hic-menu-item-padding;
-
   margin-top: $hic-menu-margin;
   margin-bottom: $hic-menu-margin;
-
   background-color: transparent;
-
 }
 
 // juiceboxjs  hack of igv.css class
@@ -236,45 +192,35 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .igv-app-dropdown-item-cloud-storage {
-
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-
   height: 18px;
-
   margin-top: 4px;
   margin-bottom: 4px;
-
   div:first-child {
     margin-right: 4px;
   }
   div:last-child {
     margin-left: 4px;
   }
-
 }
 
 #hic-modal-button-container {
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-
   margin-top: 64px;
   margin-left: 32px;
-
   height: 64px;
-
   > div {
     margin-left: 12px;
     margin-right: 12px;
   }
-
 }
 
 #hic-encode-modal > .modal-dialog {
@@ -284,20 +230,15 @@ $default-font-family: 'Open Sans', sans-serif;
 
 .hic-root {
   position: relative;
-
   left: 0;
   right: 0;
   width: $hic-root-width;
   height: $hic-root-height;
-
   margin: 4px;
-
   background-color: white;
-
   border-style: solid;
   border-width: 2px;
   border-color: #bfbfbf;
-
 }
 
 .hic-root-prevent-interaction {
@@ -307,308 +248,212 @@ $default-font-family: 'Open Sans', sans-serif;
   width: 100%;
   height: 100%;
   background-color: rgba(99, 99, 99, 0.25);
-
   z-index: 1024;
 }
 
 .hic-menu {
   position: absolute;
-
   bottom: 0;
   left: 0;
   width: 200px;
   height: 100%;
-
   z-index: 4096;
-
   background-color: $scrollbar-color;
-
   border-right-style: solid;
   border-right-width: thin;
   border-right-color: $default-dark-color;
-
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-
-  // container: chromosome-label | chromosome-selector-container
   .hic-chromosome-selector-widget-container {
-
     @include menu-item;
-
-    // label: 'Chromosome'
     div {
       padding-top: 2px;
       padding-bottom: 4px;
     }
-
-    // container: selector-container
     div {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: space-between;
       align-items: flex-start;
-
       select {
         display: block;
         cursor: pointer;
         width: 64px;
         height: $nav-bar-widget-height;
-
         margin-right: 8px;
         direction: rtl;
       }
-
       div {
         width: 24px;
         height: 24px;
         background-image: url('img/circular-arrows-24-grey.png');
         background-repeat: no-repeat;
       }
-
       div:hover,
       div:focus,
       div:active {
         cursor: pointer;
         background-image: url('img/circular-arrows-24-blue.png');
       }
-
     }
-
   }
-
-  // colorscale
   .hic-colorscale-widget-container {
-
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-around;
     align-items: center;
-
     width: 95%;
-
     margin-top: calc(2 * #{$hic-menu-item-padding});
     margin-bottom: $hic-menu-item-padding;
-
     @include navbar-color-scale-input;
-
     i.fa {
       display: block;
       margin-left: 4px;
       margin-right: 4px;
       color: $default-dark-color;
     }
-
     i.fa:hover,
     i.fa:focus,
     i.fa:active {
       cursor: pointer;
       color: $default-hover-color;
     }
-
   }
-
-  // normalization
   .hic-normalization-selector-container {
-
     @include menu-item;
-
     @include navbar-select;
-
     select {
       width: 95%;
     }
-
   }
-
-  // resolution
   .hic-resolution-selector-container {
-
     @include menu-item;
-
     div#hic-resolution-label-container {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       align-items: flex-start;
-
       cursor: pointer;
-
       i.fa#hic-resolution-lock {
         display: block;
         font-size: 12px;
         padding-top: 4px;
         padding-left: 5px;
       }
-
       i.fa:hover,
       i.fa:focus,
       i.fa:active {
         cursor: pointer;
         color: $default-hover-color;
       }
-
     }
-
     @include navbar-select;
-
     select {
       width: 95%;
     }
-
   }
-
-  // annotations
   .hic-annotation-presentation-button-container {
-
     @include menu-item;
-
     button {
       display: block;
-
       width: 90%;
-
       padding: 8px;
-
       box-shadow: none;
-
       border-radius: 0;
-
       border-style: solid;
       border-width: thin;
       border-color: $default-medium-color;
-
       background-color: transparent;
-
     }
-
     button:hover,
     button:active {
       cursor: pointer;
       background-color: #dfdfdf;
     }
-
     button:focus {
       outline: none;
     }
-
-
   }
-
 }
-
 .hic-menu > div:hover,
 .hic-menu > div:focus,
 .hic-menu > div:active {
   cursor: pointer;
 }
-
-// menu close
 .hic-menu-close-button {
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
-
   width: 100%;
-  height: $hic-menu-item-height / 2;
-
-  margin-top: $hic-menu-margin / 2;
-  margin-bottom: $hic-menu-margin / 2;
-
+  height: calc(#{$hic-menu-item-height} / 2);
+  margin-top: calc(#{$hic-menu-margin} / 2);
+  margin-bottom: calc(#{$hic-menu-margin} / 2);
   padding-right: $hic-menu-margin;
-
   i.fa {
     display: block;
     margin-left: 4px;
     margin-right: 4px;
     color: $default-dark-color;
   }
-
   i.fa:hover,
   i.fa:focus,
   i.fa:active {
     cursor: pointer;
     color: $default-hover-color;
   }
-
 }
-
 .hic-annotation-panel-container {
-
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   align-items: flex-start;
-
   position: absolute;
   top: 25%;
   left: 15%;
-
   width: 700px;
-
   border-style: solid;
   border-width: thin;
   border-color: $default-dark-color;
-
   background-color: white;
-
   z-index: 5000;
-
   color: #0f0f0f;
   font-family: $default-font-family;
   font-size: 12px;
   font-weight: 600;
-
   .hic-annotation-panel-header {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-
     width: 100%;
     height: $hic-color-swatch-size;
-
     border-bottom-style: solid;
     border-bottom-width: thin;
     border-bottom-color: #dddddd;
-
     background-color: #dddddd;
-
     div:first-child {
-
       display: block;
       margin-top: 2px;
       margin-left: 8px;
       margin-right: 4px;
       text-align: left;
       text-overflow: ellipsis;
-
-
-
-      //display: flex;
-      //flex-flow: row;
-      //flex-wrap: nowrap;
-      //justify-content: center;
-      //align-items: center;
-
       width: 200px;
       height: 100%;
     }
-
     i.fa {
       display: block;
       margin-right: 4px;
       color: $default-dark-color;
     }
-
     i.fa:hover,
     i.fa:focus,
     i.fa:active {
@@ -616,58 +461,42 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-hover-color;
     }
   }
-
   .hic-annotation-panel-load-container {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-
     width: 100%;
     height: $hic-annotation-modal-row-height;
-
     border-bottom-style: solid;
     border-bottom-width: thin;
     border-bottom-color: #dddddd;
-
     font-size: 14px;
     font-weight: 400;
-
     div {
       margin-left: 8px;
       background-color: rgba(94, 219, 255, 0.51);
     }
-
   }
-
   .hic-annotation-row-container {
-
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-
     width: 100%;
-
   }
-
   .hic-annotation-modal-row {
-
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-
     width: 100%;
     height: 40px;
-
     background-color: white;
-
     cursor: default;
-
     >div:first-child {
       display: block;
       margin-left: 8px;
@@ -676,106 +505,78 @@ $default-font-family: 'Open Sans', sans-serif;
       text-overflow: ellipsis;
       width: 384px;
     }
-
     >i.fa {
       display: block;
-      //margin-left: 32px;
-      //margin-right: 32px;
       color: $default-dark-color;
     }
-
     >i.fa:last-child {
       margin-right: 32px;
     }
     .matrix-diagonal-widget-container {
-
       cursor: pointer;
-
       width: $matrix-diagonal-widget-container-size;
       height: $matrix-diagonal-widget-container-size;
-
       background-repeat: no-repeat;
       background-size: $matrix-diagonal-widget-container-size $matrix-diagonal-widget-container-size;
     }
-
     .matrix-diagonal-widget-all {
       background: url(img/matrix-diagonal-all.svg);
     }
-
     .matrix-diagonal-widget-lower {
       background: url(img/matrix-diagonal-lower.svg);
     }
-
     .matrix-diagonal-widget-upper {
       background: url(img/matrix-diagonal-upper.svg);
     }
-
     .up-down-arrow-container {
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-end;
       align-items: center;
-
       i.fa:first-child {
         display: block;
         margin-left: 32px;
         margin-right: 8px;
         color: $default-dark-color;
       }
-
       i.fa:last-child {
         display: block;
         margin-left: 8px;
         margin-right: 32px;
         color: $default-dark-color;
       }
-
     }
-
   }
-
   .hic-annotation-modal-row:hover,
   .hic-annotation-modal-row:focus,
   .hic-annotation-modal-row:active {
     background-color: #f7f7f7;
   }
-
 }
-
-// menu - annotation panel - color picker
 .hic-color-swatch-container {
-
   position: absolute;
-
   z-index: 4096;
-
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
-
   width: 100%;
-
   background-color: white;
-
   div:first-child {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
     align-items: center;
-
     width: 100%;
     height: $hic-color-swatch-size;
-
     i.fa {
       display: block;
       margin-right: 4px;
       color: $default-dark-color;
     }
-
     i.fa:hover,
     i.fa:focus,
     i.fa:active {
@@ -783,799 +584,529 @@ $default-font-family: 'Open Sans', sans-serif;
       color: $default-hover-color;
     }
   }
-
 }
-
-// navbar
 .hic-navbar-container {
-
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-
   width: 100%;
-
   color: $default-dark-color;
   font-family: $default-font-family;
-
   font-size: 14px;
   font-weight: 400;
-
   background-color: $default-light-color;
-
-  // container: contact map label | menu button | browser delete button
   div[id$="hic-nav-bar-map-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-
     width: 95%;
-    height: $nav-bar-label-height;
-
-    // nav-bar contact map label
+    height: var(--nav-bar-label-height);
     div[id$="hic-nav-bar-map-label"] {
-
       height: 100%;
-
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
-
       vertical-align: middle;
-      line-height: $nav-bar-label-height;
-
+      line-height: var(--nav-bar-label-height);
       background-color: transparent;
-
     }
-
-    // menu presentation
     .hic-nav-bar-button-container {
-
       height: 100%;
-
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-end;
       align-items: center;
-
       color: $default-dark-color;
-
       i {
         display: block;
         margin-top: 8px;
-
       }
-
       i:first-child {
         margin-right: 4px;
       }
-
       i:last-child {
         margin-left: 4px;
       }
-
       i:hover {
         cursor: pointer;
         color: $default-hover-color;
       }
-
     }
-
   }
-
-  // nav-bar widget container. Two instances are used
   div[id$="hic-nav-bar-widget-container"] {
-
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
-
     width: 95%;
-    height: $nav-bar-widget-container-height;
-
-    margin-top: $nav-bar-widget-container-margin;
-    margin-bottom: $nav-bar-widget-container-margin;
+    height: var(--nav-bar-widget-container-height);
+    margin-top: var(--nav-bar-widget-container-margin);
+    margin-bottom: var(--nav-bar-widget-container-margin);
   }
-
 }
-
-// navbar - chromosome goto
 .hic-chromosome-goto-container {
   width: 75%;
   @include navbar-input;
 }
-
-// navbar - colorscale
 .hic-colorscale-widget-container {
-
   width: 30%;
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
-
   > i.fa-minus {
     display: block;
     margin-left: 1%;
     margin-right: 1%;
     color: $default-dark-color;
   }
-
   > i.fa-plus {
     display: block;
     margin-left: 1%;
     margin-right: 1%;
     color: $default-dark-color;
   }
-
   @include navbar-color-scale-input;
-
   input {
     width: 30%;
     height: 32px;
   }
-
   i.fa-minus {
     display: block;
     margin-left: 2%;
     margin-right: 2%;
     color: $default-dark-color;
   }
-
   i.fa-minus:hover,
   i.fa-minus:focus,
   i.fa-minus:active {
     cursor: pointer;
     color: $default-hover-color;
   }
-
   i.fa-plus {
     display: block;
     margin-left: 2%;
     margin-right: 2%;
     color: $default-dark-color;
   }
-
   i.fa-plus:hover,
   i.fa-plus:focus,
   i.fa-plus:active {
     cursor: pointer;
     color: $default-hover-color;
   }
-
 }
-
-// navbar - control map
 .hic-control-map-selector-container {
-
-  // shim
   margin-left: 40px;
-
   width: 20%;
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-
   @include navbar-select;
-
   div {
     cursor: pointer;
     margin-left: 6px;
     margin-top: 6px;
   }
-
 }
-
-// navbar - normalization
 .hic-normalization-selector-container {
-
-  //margin-left: 2%;
   width: 25%;
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
-
   div {
     display: block;
     margin-right: 6px;
   }
-
   @include navbar-select;
-
   select {
     width: 75%;
   }
-
 }
-
-// navbar - resolution
 .hic-resolution-selector-container {
-
   width: 25%;
-
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-end;
   align-items: center;
-
   div#hic-resolution-label-container {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     align-items: flex-start;
-
     margin-right: 6px;
     cursor: pointer;
-
     i.fa#hic-resolution-lock {
       display: block;
       font-size: 12px;
       padding-top: 4px;
       padding-left: 5px;
     }
-
     i.fa:hover,
     i.fa:focus,
     i.fa:active {
       cursor: pointer;
       color: $default-hover-color;
     }
-
   }
-
   @include navbar-select;
-
   select {
     width: 74%;
   }
-
 }
-
-// container: track-shim | x-tracks
 div[id$="x-track-container"] {
   display: flex;
   flex-flow: row;
   flex-wrap: nowrap;
   justify-content: flex-start;
-
   width: 100%;
   height: $track-aggregate-height;
-
   background-color: white;
-
-  // track shim
   div[id$="track-shim"] {
     width: $track-aggregate-height;
     height: 100%;
-    margin-right: $hic-axis-height;
+    margin-right: var(--hic-axis-height);
   }
-
-  // x-tracks
   div[id$="x-tracks"] {
-
     position: relative;
-
     display: flex;
     flex-flow: column;
     flex-wrap: nowrap;
     justify-content: flex-start;
-
     width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
     height: 100%;
-    margin-right: $hic-scrollbar-height;
-
-    // y - guide
+    margin-right: var(--hic-scrollbar-height);
     div[id$="y-track-guide"] {
       position: absolute;
-
       top: 0;
       left: 50%;
-
       width: 1px;
       height: 100%;
-
       border-left-style: dotted;
       border-left-width: thin;
       border-left-color: rgba(32, 32, 32, 1);
-
       user-select: none;
       -moz-user-select: none;
       -webkit-user-select: none;
-
       z-index: 666;
     }
-
-    // canvas container
     .x-track-canvas-container {
-
       cursor: pointer;
-
-      // reference point for child divs with position: absolute
       position: relative;
-
       width: 100%;
       margin-right: 0;
-
-      margin-bottom: $track-margin;
-
-      // canvas inserted here
-
-      // x-track label
+      margin-bottom: var(--track-margin);
       .x-track-reorder-handle {
         display: block;
-
         position: absolute;
         top: 0;
         left: -32px;
-
         width: 16px;
         height: 100%;
-
         background-color: transparent;
-
         >i {
           color: #7F7F7F;
           font-size: 0.80rem;
           display: block;
         }
-
         >i:first-child {
           margin-top: 2px;
           margin-bottom: 1px;
         }
-
         >i:last-child {
           margin-top: 1px;
           margin-bottom: 2px;
         }
-
       }
-
-      // x-track label
       .x-track-label {
         display: inline-block;
-
         position: absolute;
         top: 0;
         left: 0;
-
         height: 22px;
         width: 120px;
-
         margin-top: calc(0.125 * var(--track-height));
-
         padding-left: 4px;
         padding-right: 4px;
         padding-top: 1px;
         padding-bottom: 1px;
-
         font-family: $default-font-family;
         font-size: 12px;
         font-weight: 400;
-
         text-align: center;
         vertical-align: top;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
-
-      // x-track spinner container
       .x-track-spinner {
         position: absolute;
-
         top: 0;
         left: 50%;
-
-        width: $track-height;
-        height: $track-height;
-
+        width: var(--track-height);
+        height: var(--track-height);
         margin-left: -($track-height/2);
-
         background-color: rgba(255, 255, 255, 0);
       }
-
     }
-
   }
-
 }
-
-// container : (container: x-axis) | (container: y-tracks | y-axis | viewport | y-scrollbar) | (container: x-scrollbar)
 div[id$="content-container"] {
   display: flex;
   flex-flow: column;
   flex-wrap: nowrap;
   justify-content: space-between;
-
   width: 100%;
-
-  // Use for Bootstrap-ped site
   height: calc(100% - (#{$nav-bar-height} + #{$track-aggregate-height}));
-
   background-color: white;
-
-  // container: x-axis
   div[id$="x-axis-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
-
     width: 100%;
-    height: $hic-axis-height;
-
-    // x-axis
+    height: var(--hic-axis-height);
     div[id$="x-axis"] {
-
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
-      margin-right: $hic-scrollbar-height;
+      margin-right: var(--hic-scrollbar-height);
       background-color: white;
-
       div[id$="x-axis-whole-genome-container"] {
-
         width: 100%;
         height: 100%;
-
         display: flex;
         flex-flow: row;
         flex-wrap: nowrap;
         justify-content: flex-start;
-
         .x-axis-whole-genome-chromosome-container {
-
           font-family: $default-font-family;
           font-size: 8px;
           font-weight: 400;
           color: #444;
-
           height: 100%;
-
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-
           >div {
             display: flex;
             flex-direction: column;
             flex-wrap: nowrap;
             justify-content: center;
             align-items: center;
-
             width: 100%;
             height: 100%;
             border-left-color: #868686;
             border-left-style: solid;
             border-left-width: thin;
-
           }
-
         }
-
       }
-
     }
-
   }
-
-  // container: y-tracks | y-axis | viewport | y-scrollbar
   div[id$="y-tracks-y-axis-viewport-y-scrollbar"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
-
     width: 100%;
-
     height: calc(100% - (#{$hic-axis-height} + #{$hic-scrollbar-height}));
-
     background-color: white;
-
-    // y-tracks
     div[id$="y-tracks"] {
-
       position: relative;
-
       display: flex;
       flex-flow: row;
       flex-wrap: nowrap;
       justify-content: flex-start;
-
       width: $track-aggregate-height;
       height: 100%;
-
       background-color: white;
-
-      // y - guide
       div[id$="x-track-guide"] {
         position: absolute;
-
         top: 50%;
         left: 0;
-
         width: 100%;
         height: 1px;
-
         border-top-style: dotted;
         border-top-width: thin;
         border-top-color: rgba(32, 32, 32, 1);
-
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-
         z-index: 666;
       }
-
-      // y-track canvas container
       .y-track-canvas-container {
         display: block;
         position: relative;
         height: 100%;
-
-        margin-right: $track-margin;
-
+        margin-right: var(--track-margin);
         background-color: white;
-
-        // canvas inserted here
-
-        // y-track spinner container
         .y-track-spinner {
           display: block;
           position: absolute;
-
           top: 50%;
           left: 0;
-
-          width: $track-height;
-          height: $track-height;
-
+          width: var(--track-height);
+          height: var(--track-height);
           margin-top: -($track-height/2);
-
-          //z-index: 512;
-
           background-color: rgba(255, 255, 255, 0);
         }
       }
-
     }
-
-    // y-axis
     div[id$="y-axis"] {
-
-      width: $hic-axis-height;
+      width: var(--hic-axis-height);
       height: 100%;
-      margin-bottom: $hic-scrollbar-height;
+      margin-bottom: var(--hic-scrollbar-height);
       background-color: white;
-
       div[id$="y-axis-whole-genome-container"] {
-
         width: 100%;
         height: 100%;
-
         display: flex;
         flex-flow: column;
         flex-wrap: nowrap;
         justify-content: flex-start;
-
         .y-axis-whole-genome-chromosome-container {
-
           font-family: $default-font-family;
           font-size: 8px;
           font-weight: 400;
           color: #444;
-
           width: 100%;
-
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-
           >div {
             display: flex;
             flex-direction: column;
             flex-wrap: nowrap;
             justify-content: center;
             align-items: center;
-
             width: 100%;
             height: 100%;
             border-top-color: #868686;
             border-top-style: solid;
             border-top-width: thin;
-
           }
-
         }
-
       }
-
     }
-
-    // viewport
     div[id$="viewport"] {
       display: block;
-
       position: relative;
       left: 0;
       top: 0;
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
-
       overflow-x: hidden;
       overflow-y: hidden;
-
-      // spinner container
       div[id$="viewport-spinner-container"] {
         display: table-cell;
-
         margin: auto;
-
         position: absolute;
         top: 25%;
-        //bottom:0;
-
         left: 0;
         right: 0;
-
-        height: $hic-viewport-spinner-size;
-        width: $hic-viewport-spinner-size;
-
+        height: var(--hic-viewport-spinner-size);
+        width: var(--hic-viewport-spinner-size);
         z-index: 2048;
-
         pointer-events: none;
-
         background-color: rgba(255, 255, 255, 0);
-
       }
-
-      // sweep zoom container
       div[id$="sweep-zoom-container"] {
         display: block;
-
         position: absolute;
         top: 0;
         left: 0;
         width: 1px;
         height: 1px;
-
         z-index: 512;
         background-color: rgba(68, 134, 247, 0.25);
       }
-
-      // x - guide
       div[id$="x-guide"] {
         position: absolute;
-
         top: 50%;
         left: 0;
-
         width: 100%;
         height: 1px;
-
         border-top-style: dotted;
         border-top-width: thin;
         border-top-color: rgba(32, 32, 32, 1);
-
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-
         z-index: 555;
       }
-
-      // y - guide
       div[id$="y-guide"] {
         position: absolute;
-
         top: 0;
         left: 50%;
-
         width: 1px;
         height: 100%;
-
         border-left-style: dotted;
         border-left-width: thin;
         border-left-color: rgba(32, 32, 32, 1);
-
         user-select: none;
         -moz-user-select: none;
         -webkit-user-select: none;
-
         z-index: 666;
       }
-
     }
-
-    // y-scrollbar
     div[id$="y-axis-scrollbar-container"] {
       display: block;
       position: relative;
-
-      width: $hic-scrollbar-height;
+      width: var(--hic-scrollbar-height);
       height: 100%;
       background-color: $scrollbar-color;
-
       div[id$="y-axis-scrollbar"] {
         position: relative;
-
-        /* dynamic y and height */
         top: 25%;
         height: 50%;
-
         left: 0;
         width: 100%;
         background-color: $scrollbar-handle-color;
-
         @include y-scrollbar-label;
-
       }
-
     }
-
   }
-
-  // container: x-scrollbar
   div[id$="x-scrollbar-container"] {
     display: flex;
     flex-flow: row;
     flex-wrap: nowrap;
     justify-content: flex-end;
-
     width: 100%;
-    height: $hic-scrollbar-height;
-
-    // x-scrollbar
+    height: var(--hic-scrollbar-height);
     div[id$="x-axis-scrollbar-container"] {
       display: block;
       position: relative;
-
       width: calc(100% - (#{$track-aggregate-height} + #{$hic-axis-height} + #{$hic-scrollbar-height}));
       height: 100%;
-      margin-right: $hic-scrollbar-height;
+      margin-right: var(--hic-scrollbar-height);
       background-color: $scrollbar-color;
-
       div[id$="x-axis-scrollbar"] {
         position: relative;
-
-        /* dynamic x and width */
         left: 25%;
         width: 50%;
-
         top: 0;
         height: 100%;
         background-color: $scrollbar-handle-color;
-
         @include x-scrollbar-label;
       }
-
     }
-
   }
 }
-
 .hic-whole-genome-chromosome-highlight {
   cursor: pointer;
-  //background-color: $hic-whole-genome-chromosome-highlight-color;
 }
-
 .hic-track-menu {
   position: absolute;
   color: white;
@@ -1583,11 +1114,9 @@ div[id$="content-container"] {
   height: 120px;
   background-color: #3a8ab4;
 }
-
 .hic-root-selected {
   border-color: #5f5f5f;
 }
-
 .unselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -1595,7 +1124,6 @@ div[id$="content-container"] {
   -ms-user-select: none;
   user-select: none;
 }
-
 .igv-trackgear-container {
   position: relative;
   width: 14px;
@@ -1603,7 +1131,6 @@ div[id$="content-container"] {
   margin-left: 4px;
   color: $igv-trackgear-grey-color;
 }
-
 .igv-trackgear-container:hover {
   cursor: pointer;
   color: #444;
