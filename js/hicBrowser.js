@@ -32,7 +32,7 @@ import * as hicUtils from './hicUtils.js'
 import {Globals} from "./globals.js"
 import EventBus from "./eventBus.js"
 import Track2D from './track2D.js'
-import LayoutController, { getLayoutDimensions, getNavbarHeight } from './layoutController.js'
+import LayoutController, {getLayoutDimensions, setViewportSize} from './layoutController.js'
 import HICEvent from './hicEvent.js'
 import Dataset from './hicDataset.js'
 import Genome from './genome.js'
@@ -69,21 +69,14 @@ class HICBrowser {
 
         this.isMobile = hicUtils.isMobile();
 
-        // let width, height
-        // if (config.state) {
-        //     width = config.state.width
-        //     height = config.state.height
-        // } else {
-        //     width = defaultSize.width
-        //     height = defaultSize.height
-        // }
-
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'hic-root unselect';
         appContainer.appendChild(this.rootElement);
 
-        // this.rootElement.style.width = `${width}`;
-        // this.rootElement.style.height = `${height + getNavbarHeight()}`;
+
+        if (config.width && config.height) {
+            setViewportSize(config.width, config.height)
+        }
 
         this.layoutController = new LayoutController(this, this.rootElement);
 

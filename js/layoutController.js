@@ -241,6 +241,10 @@ function getCSSVariable(name) {
     return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name));
 }
 
+function setCSSVariable(name, value) {
+    document.documentElement.style.setProperty(name, `${value}px`);
+}
+
 function getLayoutDimensions() {
     return {
         navBarLabelHeight: getCSSVariable('--nav-bar-label-height'),
@@ -251,6 +255,11 @@ function getLayoutDimensions() {
         trackMargin: getCSSVariable('--track-margin'),
         trackHeight: getCSSVariable('--track-height')
     };
+}
+
+function setViewportSize(width, height) {
+    setCSSVariable('--hic-viewport-width', width);
+    setCSSVariable('--hic-viewport-height', height);
 }
 
 function createNavBar(browser, root) {
@@ -302,7 +311,6 @@ function createNavBar(browser, root) {
     hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlLowerHicNavBarWidgetContainer));
 }
 
-// trackHeight
-export {getNavbarHeight, getNavbarContainer, getLayoutDimensions};
+export {getNavbarHeight, getNavbarContainer, getLayoutDimensions, setViewportSize};
 
 export default LayoutController;

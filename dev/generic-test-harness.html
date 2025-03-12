@@ -69,12 +69,13 @@
         {
             "browsers": [
                 {
+                    "locus": "egfr",
                     width: 512,
                     height: 512,
                     "backgroundColor": "136,133,1",
                     "url": "https://www.encodeproject.org/files/ENCFF473CAA/@@download/ENCFF473CAA.hic",
                     "name": "browser - thing one",
-                    "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
+                    // "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
                     "colorScale": "12,131,249,2",
                     "selectedGene": "ace",
                     "nvi": "1077514950,36479",
@@ -92,12 +93,13 @@
                     ]
                 },
                 {
+                    "locus": "egfr",
                     width: 720,
                     height: 720,
                     "backgroundColor": "136,133,1",
                     "url": "https://www.encodeproject.org/files/ENCFF473CAA/@@download/ENCFF473CAA.hic",
                     "name": "browser - thing two",
-                    "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
+                    // "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
                     "colorScale": "12,131,249,2",
                     "selectedGene": "ace",
                     "nvi": "1077514950,36479",
@@ -119,35 +121,35 @@
         };
 
 
-    // const config_2d_track =
-    //     {
-    //         "browsers": [
-    //             {
-    //                 width: 384,
-    //                 height: 384,
-    //                 "backgroundColor": "136,133,1",
-    //                 "url": "https://www.encodeproject.org/files/ENCFF473CAA/@@download/ENCFF473CAA.hic",
-    //                 "name": "in-situ agar GM12878 MboI experiment",
-    //                 "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
-    //                 "colorScale": "12,131,249,2",
-    //                 "selectedGene": "ace",
-    //                 "nvi": "1077514950,36479",
-    //                 "tracks": [
-    //                     {
-    //                         "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt",
-    //                         "name": "Rao & Huntley et al. | Cell 2014 | GM12878 combined loops",
-    //                         "color": "#ffce6e"
-    //                     },
-    //                     {
-    //                         "url": "https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/combined_peaks.txt",
-    //                         "name": "Rao & Huntley et al. | Cell 2014 | HUVEC combined loops",
-    //                         "color": "#ff39ff"
-    //                     }
-    //                 ]
-    //             }
-    //         ],
-    //         "selectedGene": "ace"
-    //     };
+    const config_2d_track =
+        {
+            "browsers": [
+                {
+                    width: 512,
+                    height: 512,
+                    "backgroundColor": "136,133,1",
+                    "url": "https://www.encodeproject.org/files/ENCFF473CAA/@@download/ENCFF473CAA.hic",
+                    "name": "in-situ agar GM12878 MboI experiment",
+                    "state": "17,17,8,12025.0154,12025.0154,640,640,1,NONE",
+                    "colorScale": "12,131,249,2",
+                    "selectedGene": "ace",
+                    "nvi": "1077514950,36479",
+                    "tracks": [
+                        {
+                            "url": "https://hicfiles.s3.amazonaws.com/hiseq/gm12878/in-situ/combined_peaks.txt",
+                            "name": "Rao & Huntley et al. | Cell 2014 | GM12878 combined loops",
+                            "color": "#ffce6e"
+                        },
+                        {
+                            "url": "https://hicfiles.s3.amazonaws.com/hiseq/huvec/in-situ/combined_peaks.txt",
+                            "name": "Rao & Huntley et al. | Cell 2014 | HUVEC combined loops",
+                            "color": "#ff39ff"
+                        }
+                    ]
+                }
+            ],
+            "selectedGene": "ace"
+        };
 
     const config =
         {
@@ -227,7 +229,7 @@
             "selectedGene": "egfr"
         };
 
-    juicebox.init(document.getElementById("app-container"), config)
+    juicebox.init(document.getElementById("app-container"), config_2d_track)
         .then(browser => {
 
             if (Array.isArray(browser)) {

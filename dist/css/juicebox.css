@@ -6,6 +6,9 @@
   --hic-axis-height: 40px;
   --track-margin: 2px;
   --track-height: 36px;
+  --hic-viewport-width: 640px;
+  --hic-viewport-height: 640px;
+  --hic-viewport-spinner-size: 120px;
 }
 
 .jb-igv-menu-popup {
@@ -193,8 +196,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + 640px);
-  height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))) + 640px);
+  width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + var(--hic-viewport-width));
+  height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))) + var(--hic-viewport-height));
   margin: 4px;
   background-color: white;
   border-style: solid;
@@ -285,7 +288,7 @@
 .hic-menu .hic-colorscale-widget-container input {
   display: block;
   margin-right: 4px;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   padding: 4px;
   font-family: "Open Sans", sans-serif;
@@ -324,7 +327,7 @@
 }
 .hic-menu .hic-normalization-selector-container select {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -366,7 +369,7 @@
 }
 .hic-menu .hic-resolution-selector-container select {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -420,9 +423,9 @@
   justify-content: flex-end;
   align-items: center;
   width: 100%;
-  height: 32px;
-  margin-top: 4px;
-  margin-bottom: 4px;
+  height: calc(64px / 2);
+  margin-top: calc(8px / 2);
+  margin-bottom: calc(8px / 2);
   padding-right: 8px;
 }
 .hic-menu-close-button i.fa {
@@ -687,7 +690,7 @@
 }
 .hic-chromosome-goto-container input {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 100%;
   padding-left: 4px;
   font-family: "Open Sans", sans-serif;
@@ -724,7 +727,7 @@
 .hic-colorscale-widget-container input {
   display: block;
   margin-right: 4px;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   padding: 4px;
   font-family: "Open Sans", sans-serif;
@@ -777,7 +780,7 @@
 }
 .hic-control-map-selector-container select {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -803,7 +806,7 @@
 }
 .hic-normalization-selector-container select {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -843,7 +846,7 @@
 }
 .hic-resolution-selector-container select {
   display: block;
-  height: var(--nav-bar-widget-container-height)-4px;
+  height: calc(var(--nav-bar-widget-container-height) - 4px);
   width: 96px;
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
@@ -1107,8 +1110,8 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
   top: 25%;
   left: 0;
   right: 0;
-  height: 120px;
-  width: 120px;
+  height: var(--hic-viewport-spinner-size);
+  width: var(--hic-viewport-spinner-size);
   z-index: 2048;
   pointer-events: none;
   background-color: rgba(255, 255, 255, 0);
@@ -1160,7 +1163,6 @@ div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$
 }
 div[id$=content-container] div[id$=y-tracks-y-axis-viewport-y-scrollbar] div[id$=y-axis-scrollbar-container] div[id$=y-axis-scrollbar] {
   position: relative;
-  /* dynamic y and height */
   top: 25%;
   height: 50%;
   left: 0;
@@ -1201,7 +1203,6 @@ div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollb
 }
 div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollbar-container] div[id$=x-axis-scrollbar] {
   position: relative;
-  /* dynamic x and width */
   left: 25%;
   width: 50%;
   top: 0;

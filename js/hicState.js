@@ -68,21 +68,21 @@ class State {
     }
 
     // Getters and setters for width and height
-    get width() {
-        return this._width;
-    }
-
-    set width(value) {
-        this._width = value;
-    }
-
-    get height() {
-        return this._height;
-    }
-
-    set height(value) {
-        this._height = value;
-    }
+    // get width() {
+    //     return this._width;
+    // }
+    //
+    // set width(value) {
+    //     this._width = value;
+    // }
+    //
+    // get height() {
+    //     return this._height;
+    // }
+    //
+    // set height(value) {
+    //     this._height = value;
+    // }
 
     clampXY(dataset, viewDimensions) {
         const { width, height } = viewDimensions

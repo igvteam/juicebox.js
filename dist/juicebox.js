@@ -76293,6 +76293,10 @@
         return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name));
     }
 
+    function setCSSVariable(name, value) {
+        document.documentElement.style.setProperty(name, `${value}px`);
+    }
+
     function getLayoutDimensions() {
         return {
             navBarLabelHeight: getCSSVariable('--nav-bar-label-height'),
@@ -76303,6 +76307,11 @@
             trackMargin: getCSSVariable('--track-margin'),
             trackHeight: getCSSVariable('--track-height')
         };
+    }
+
+    function setViewportSize(width, height) {
+        setCSSVariable('--hic-viewport-width', width);
+        setCSSVariable('--hic-viewport-height', height);
     }
 
     function createNavBar(browser, root) {
@@ -85304,21 +85313,21 @@
         }
 
         // Getters and setters for width and height
-        get width() {
-            return this._width;
-        }
-
-        set width(value) {
-            this._width = value;
-        }
-
-        get height() {
-            return this._height;
-        }
-
-        set height(value) {
-            this._height = value;
-        }
+        // get width() {
+        //     return this._width;
+        // }
+        //
+        // set width(value) {
+        //     this._width = value;
+        // }
+        //
+        // get height() {
+        //     return this._height;
+        // }
+        //
+        // set height(value) {
+        //     this._height = value;
+        // }
 
         clampXY(dataset, viewDimensions) {
             const { width, height } = viewDimensions;
@@ -89556,21 +89565,14 @@
 
             this.isMobile = isMobile();
 
-            // let width, height
-            // if (config.state) {
-            //     width = config.state.width
-            //     height = config.state.height
-            // } else {
-            //     width = defaultSize.width
-            //     height = defaultSize.height
-            // }
-
             this.rootElement = document.createElement('div');
             this.rootElement.className = 'hic-root unselect';
             appContainer.appendChild(this.rootElement);
 
-            // this.rootElement.style.width = `${width}`;
-            // this.rootElement.style.height = `${height + getNavbarHeight()}`;
+
+            if (config.width && config.height) {
+                setViewportSize(config.width, config.height);
+            }
 
             this.layoutController = new LayoutController(this, this.rootElement);
 
