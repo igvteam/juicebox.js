@@ -193,8 +193,8 @@
   position: relative;
   left: 0;
   right: 0;
-  width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + 800px);
-  height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))) + 800px);
+  width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + 512px);
+  height: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + 2 * var(--nav-bar-widget-container-margin))) + 512px);
   margin: 4px;
   background-color: white;
   border-style: solid;

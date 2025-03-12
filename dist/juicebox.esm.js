@@ -89550,21 +89550,21 @@ class HICBrowser {
 
         this.isMobile = isMobile();
 
-        let width, height;
-        if (config.state) {
-            width = config.state.width;
-            height = config.state.height;
-        } else {
-            width = defaultSize.width;
-            height = defaultSize.height;
-        }
+        // let width, height
+        // if (config.state) {
+        //     width = config.state.width
+        //     height = config.state.height
+        // } else {
+        //     width = defaultSize.width
+        //     height = defaultSize.height
+        // }
 
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'hic-root unselect';
         appContainer.appendChild(this.rootElement);
 
-        this.rootElement.style.width = `${width}`;
-        this.rootElement.style.height = `${height + getNavbarHeight()}`;
+        // this.rootElement.style.width = `${width}`;
+        // this.rootElement.style.height = `${height + getNavbarHeight()}`;
 
         this.layoutController = new LayoutController(this, this.rootElement);
 

@@ -40,8 +40,10 @@ $track-count: 0;
 $track-aggregate-height: calc(#{$track-count} * var(--track-height));
 
 //
-$hic-viewport-width: 800px;
-$hic-viewport-height: 800px;
+//$hic-viewport-width: 800px;
+//$hic-viewport-height: 800px;
+$hic-viewport-width: 512px;
+$hic-viewport-height: 512px;
 $hic-viewport-spinner-size: 120px;
 
 //
