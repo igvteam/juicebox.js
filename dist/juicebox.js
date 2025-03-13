@@ -85276,11 +85276,7 @@
 
     class State {
 
-        constructor(chr1, chr2, locus, zoom, x, y, width, height, pixelSize, normalization) {
-            // Private properties
-            this._width = width;
-            this._height = height;
-
+        constructor(chr1, chr2, locus, zoom, x, y, pixelSize, normalization) {
             if (chr1 <= chr2) {
                 this.chr1 = chr1;
                 this['x'] = x;
@@ -85496,9 +85492,9 @@
 
         stringify() {
             if (this.normalization) {
-                return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this._width},${this._height},${this.pixelSize},${this.normalization}`
+                return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},0,0,${this.pixelSize},${this.normalization}`
             } else {
-                return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},${this._width},${this._height},${this.pixelSize}`
+                return `${this.chr1},${this.chr2},${this.zoom},${this.x},${this.y},0,0,${this.pixelSize}`
             }
         }
 
@@ -85521,11 +85517,9 @@
         }
 
         static parse(string) {
-
             const tokens = string.split(",");
 
             if (tokens.length <= 7) {
-
                 // Backwards compatibility
                 return new State(
                     parseInt(tokens[0]),    // chr1
@@ -85534,13 +85528,10 @@
                     parseFloat(tokens[2]), // zoom
                     parseFloat(tokens[3]), // x
                     parseFloat(tokens[4]), // y
-                    defaultSize.width,      // width
-                    defaultSize.height,     // height
                     parseFloat(tokens[5]), // pixelSize
                     tokens.length > 6 ? tokens[6] : "NONE"   // normalization
                 )
             } else {
-
                 return new State(
                     parseInt(tokens[0]),    // chr1
                     parseInt(tokens[1]),    // chr2
@@ -85548,13 +85539,10 @@
                     parseFloat(tokens[2]), // zoom
                     parseFloat(tokens[3]), // x
                     parseFloat(tokens[4]), // y
-                    parseInt(tokens[5]), // width
-                    parseInt(tokens[6]), // height
                     parseFloat(tokens[7]), // pixelSize
                     tokens.length > 8 ? tokens[8] : "NONE"   // normalization
                 )
             }
-
         }
 
         // Method 1: Convert the State object to a JSON object
@@ -85566,8 +85554,6 @@
                     zoom: this.zoom,
                     x: this.x,
                     y: this.y,
-                    width: this._width,
-                    height: this._height,
                     pixelSize: this.pixelSize,
                     normalization: this.normalization || 'NONE'
                 };
@@ -85588,20 +85574,13 @@
                 json.zoom,
                 json.x,
                 json.y,
-                json.width,
-                json.height,
                 json.pixelSize,
                 json.normalization
             );
         }
 
         static default(configOrUndefined) {
-            const state = new State(0, 0, undefined, 0, 0, 0, defaultSize.width, defaultSize.height, 1, "NONE");
-            if (configOrUndefined && configOrUndefined.width && configOrUndefined.height) {
-                state.width = configOrUndefined.width;
-                state.height = configOrUndefined.height;
-            }
-
+            const state = new State(0, 0, undefined, 0, 0, 1, "NONE");
             return state
         }
 
@@ -90811,8 +90790,6 @@
     /*
      * @author Jim Robinson Dec-2020
      */
-
-    const defaultSize = { width: 640, height: 640 };
 
     let allBrowsers = [];
     let currentBrowser;
