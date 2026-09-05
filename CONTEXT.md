@@ -128,7 +128,8 @@ _Avoid_: browser session, browser context, embed.
 Membership is a rule rather than a container: a browser joins when it has not
 opted out and its dataset is compatible with the other's. What travels the group
 is canonical state and, by deliberate exception, view preferences — never dataset
-choices. See `docs/adr/0014`.
+choices. See `docs/adr/0014`. Dataset choices reach several browsers by the other
+mechanism, the **target set** — `docs/adr/0015`.
 _Avoid_: sync set, linked browsers.
 
 **Sync state** — canonical state as a *peer* reads it: chromosomes by name and a
@@ -139,6 +140,19 @@ Membership decides who is handed one; whether a particular one can be acted on
 is a separate question, because a receiver's genome need not know every name a
 peer can publish — `canResolveSyncState` in `js/syncGroup.js`, issue #605.
 _Avoid_: sync payload, target state.
+
+**Target set** — the browsers a *load* reaches: the ones the user has
+explicitly aimed at by shift-clicking their navbars, plus the current browser,
+which is always in it. Per registry, and read as `registry.targetedBrowsers`.
+A target set is **not** a sync group, and confusing the two is the mistake
+`docs/adr/0015` exists to prevent: membership here is an explicit gesture rather
+than a computed rule, the cargo is dataset choices rather than canonical state,
+and it lasts until the user re-aims rather than standing. The browsers in one
+are **targeted browsers**.
+_Avoid_: **selection**, **selected browsers** — `registry.select()`, the
+`BrowserSelect` event and `hic-root-selected` already spend that word on the
+current browser. Also avoid *target group*: `js/targetGroup.js` is named for its
+neighbour `js/syncGroup.js`, but what it holds is a set, not a group.
 
 **View preference** — a setting the user makes on one browser that changes how
 that browser interprets a gesture, without being part of what the view *is*.

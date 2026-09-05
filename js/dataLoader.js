@@ -387,7 +387,15 @@ class DataLoader {
     }
 
     /**
-     * Load tracks (1D and 2D) from configuration.
+     * Load tracks (1D and 2D) from configuration, reporting a failure in this
+     * embed's alert dialog.
+     *
+     * It catches and resolves rather than rejecting, and that is contract:
+     * `HICBrowser.loadTracks` is published surface, two hosts call it, and what
+     * they observe is that a bad track raises a modal and the promise settles.
+     * The body is `loadTracksOrThrow` below, which is what the target-set
+     * fan-out calls -- N loads reported once, on the host's own notification
+     * surface, cannot be built over a loader that swallows. #615.
      *
      * @param {Array<Object>} configs - Array of track configuration objects
      * @returns {Promise<void>}
@@ -396,6 +404,26 @@ class DataLoader {
         const errorPrefix = configs.length === 1 ?
             `Error loading track ${configs[0].name}` :
             "Error loading tracks";
+
+        try {
+            await this.loadTracksOrThrow(configs);
+        } catch (error) {
+            presentError(this.browser.registry, errorPrefix, error);
+            console.error(error);
+        }
+    }
+
+    /**
+     * The load itself: everything `loadTracks` above does except the reporting.
+     *
+     * The spinner is here rather than in the wrapper because it belongs to the
+     * work, not to the reporting -- both callers want it, and a caller that
+     * throws still has to put it away.
+     *
+     * @param {Array<Object>} configs - Array of track configuration objects
+     * @returns {Promise<void>}
+     */
+    async loadTracksOrThrow(configs) {
 
         try {
             this.browser.contactMatrixView.startSpinner();
@@ -478,9 +506,6 @@ class DataLoader {
                 }
             }
 
-        } catch (error) {
-            presentError(this.browser.registry, errorPrefix, error);
-            console.error(error);
         } finally {
             this.browser.contactMatrixView.stopSpinner();
         }

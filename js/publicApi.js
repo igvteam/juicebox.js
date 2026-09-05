@@ -199,6 +199,19 @@ export const REGISTRY_SURFACE = [
     // default. Decision 6.
     'sync',
 
+    // The target set, new in #615: which browsers a *load* reaches, the one
+    // gesture that changes it, and the fan-out itself. A different mechanism
+    // from the sync group, with different membership and different cargo --
+    // ADR-0015. Declared rather than discovered because a host is what calls
+    // the fan-out: the track menu that issues one lives in juicebox-web.
+    //
+    // Nothing existing became plural to get here. `currentBrowser`,
+    // `BrowserSelect` and `HICBrowser.loadTracks` mean exactly what they meant
+    // before; a host opts in by calling the new method.
+    'targetedBrowsers',
+    'toggleTarget',
+    'loadTracksIntoTargets',
+
     // A session describes one embed; these are where one is actually written
     // and read. The exported `toJSON`/`restoreSession` delegate here.
     'toJSON',
@@ -340,6 +353,7 @@ export const COORDINATOR_PAYLOAD_SHAPES = [
 export const EVENTS_POSTED = [
     {name: 'GenomeChange', bus: 'global'},
     {name: 'BrowserSelect', bus: 'global'},
+    {name: 'BrowserTargetChange', bus: 'global'},
     {name: 'TrackXYPairLoad', bus: 'global'},
     {name: 'TrackXYPairRemoval', bus: 'global'},
     {name: 'DidHideCrosshairs', bus: 'browser'},
@@ -360,6 +374,11 @@ export const EVENTS_POSTED = [
  * Declaration only; verifying it means posting a real track load.
  */
 export const EVENT_PAYLOAD_SHAPES = [
+    // Plural name because the subject is a set, unlike `BrowserSelect`, whose
+    // payload is the one browser. It carries the *resolved* array so a host
+    // need not re-derive the implicit-current rule, and the registry because
+    // the bus is page-wide while a target set is per embed. #615.
+    {event: 'BrowserTargetChange', payload: '{registry, targetedBrowsers}', readsInto: ['registry', 'targetedBrowsers']},
     {event: 'TrackXYPairLoad', payload: 'the TrackPair itself', readsInto: ['track', 'track.name', 'track.config.format']},
     {event: 'TrackXYPairRemoval', payload: 'the TrackPair itself', readsInto: ['track', 'track.name', 'track.config.format']}
 ]

@@ -1300,6 +1300,14 @@ div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollb
   border-color: #5f5f5f;
 }
 
+/* The target set (#615): a load reaches these panels. Deliberately a second
+   class and a second visual, not the selected border -- a user still needs to
+   see at a glance which panel the widgets are reading. */
+.hic-root-targeted {
+  outline: 2px dashed #3a8ab4;
+  outline-offset: -2px;
+}
+
 .unselect {
   -webkit-touch-callout: none;
   -webkit-user-select: none;

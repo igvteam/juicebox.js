@@ -4,7 +4,7 @@
 import Ruler from './ruler.js'
 import TrackPair, {setTrackReorderArrowColors} from './trackPair.js'
 import TrackRenderer from './trackRenderer.js';
-import {deleteBrowser, setCurrentBrowser} from './createBrowser.js'
+import {deleteBrowser} from './createBrowser.js'
 import HICEvent from "./hicEvent.js";
 import EventBus from "./eventBus.js";
 import { createDOMFromHTMLString } from "./utils.js"
@@ -288,10 +288,19 @@ function createNavBar(browser, root) {
     hicNavbarContainer.className = 'hic-navbar-container';
     root.appendChild(hicNavbarContainer);
 
+    // Plain click selects; shift-click aims. The navbar and not the whole panel,
+    // because a shift over the contact map already means crosshairs -- see
+    // `contactMatrixView`. A plain click is what it has always been, except
+    // that it now also clears the target set: it is the only way back from a
+    // large aim. #615, docs/adr/0015.
     hicNavbarContainer.addEventListener('click', e => {
         e.stopPropagation();
         e.preventDefault();
-        setCurrentBrowser(browser);
+        if (e.shiftKey) {
+            browser.registry.toggleTarget(browser);
+        } else {
+            browser.registry.retarget(browser);
+        }
     });
 
     const htmlContactMapHicNavBarMapContainer =
