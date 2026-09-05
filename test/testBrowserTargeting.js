@@ -157,6 +157,34 @@ describe('the target set', () => {
         expect(registry.targetedBrowsers).toEqual([a])
     })
 
+    it('drops explicit membership when a browser becomes current', () => {
+        // A host selects through `select`, not only through the plain click. A
+        // browser aimed at and then selected must not stay in the explicit set:
+        // shift-clicking it while current is a no-op, so it would be
+        // un-removable, and it would silently stay targeted afterwards.
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        registry.select(a)
+        registry.toggleTarget(b)
+
+        registry.select(b)
+        expect(registry.isTargetedExplicitly(b)).toBe(false)
+
+        registry.select(a)
+        expect(registry.targetedBrowsers).toEqual([a])
+    })
+
+    it('ignores a browser this registry does not own', () => {
+        const a = add('a', {genomeId: 'hg38'})
+        registry.select(a)
+        const stranger = fakeBrowser('stranger', {genomeId: 'hg38'})
+
+        registry.toggleTarget(stranger)
+
+        expect(registry.targetedBrowsers).toEqual([a])
+        expect(registry.isTargetedExplicitly(stranger)).toBe(false)
+    })
+
     it('is cleared by a plain click on the browser that is already current', () => {
         // The case a "clear only on a real transition" rule would miss: the
         // user has aimed at three panels and clicks the one the widgets are
@@ -300,6 +328,20 @@ describe('the target set through a lifecycle', () => {
         registry.reclaimSlot(b, slot, false, wasTargeted)
 
         expect(registry.targetedBrowsers).toEqual([a, b])
+    })
+
+    it('lets go of the aim when the registry gives up its browsers', () => {
+        // `clear()` is the other half of the restore: `createBrowserList` calls
+        // it before rebuilding. The getter filters over `browsers`, so a
+        // reference left here would be invisible rather than harmless.
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        registry.select(a)
+        registry.toggleTarget(b)
+
+        registry.clear()
+
+        expect(registry.isTargetedExplicitly(b)).toBe(false)
     })
 
     it('starts empty after a restore, and is never serialized', () => {

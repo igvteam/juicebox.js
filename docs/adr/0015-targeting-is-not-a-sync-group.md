@@ -56,6 +56,12 @@ it. With nothing explicitly aimed at, the set is `[currentBrowser]` and every
 load behaves exactly as it does today. That is what makes the feature opt-in at
 the *gesture* rather than at the call site.
 
+The invariant underneath it is that the current browser is **never also in the
+explicit set**: `select` drops the browser it makes current. Without that, a
+browser aimed at and then selected — which a host does through `select`, not only
+through a plain click — would be stuck: shift-clicking it is a no-op while it is
+current, and it would silently stay targeted once the selection moved on.
+
 **4. Shift-click aims; plain click re-aims.** Shift-click on a panel's **navbar**
 toggles that browser in or out; a plain click clears the set and makes that panel
 current, which is the only way back from a large aim. The navbar and not the whole
@@ -67,6 +73,17 @@ browser becomes current, how a deleted browser's selection falls through to a
 survivor, and how a restore settles — and none of those is the user re-aiming.
 Folding the clear into `select` would mean that adding a panel silently destroys
 the aim, which decision 6 says it must not.
+
+**4a. The badge ships in the library, not in the harness.** `hic-root-targeted`
+is applied by the registry, beside `hic-root-selected`, and styled in
+`css/juicebox.scss`. The gesture that sets a target set is library-side —
+shift-click is bound in `layoutController` — so its feedback has to be, or every
+host would have to reimplement the same outline to stop the gesture from looking
+broken. It is a *second* class and a second visual deliberately: the selected
+border keeps meaning what it means, because a user still needs to see at a glance
+which panel the widgets are reading. The three states are current (which is also
+targeted), targeted, and neither. `dev/multi-browser-targeting.html` overrides the
+rule with a louder one; that is a harness decision, not the library's.
 
 **5. Skip, do not throw.** A target with no dataset, or on a genome other than the
 **originating** browser's, is skipped and reported as skipped. Tracks carry no
@@ -102,10 +119,14 @@ one modal per browser. *Where* it appears is a host's decision, and juicebox-web
 and Spacewalk have different notification surfaces.
 
 This is what forced the loader split. `DataLoader.loadTracks` catches, alerts and
-resolves, so a fan-out over it could not tell failure from success. Its body is now
-`loadTracksOrThrow`, and the public method is a try/catch wrapper around it that
-is byte-identical in behaviour — because that behaviour is contract:
-`HICBrowser.loadTracks` is published surface and two hosts call it.
+resolves, so a fan-out over it could not tell failure from success. The work is now
+a private `#loadTracks`, with two wrappers over it: the public `loadTracks`, which
+reports, and `loadTracksOrThrow`, which the fan-out calls. The spinner is started
+in the body and stopped by each wrapper rather than wrapped around the body,
+because that is what keeps the public method **byte-identical in behaviour** —
+including the order in which it reports and then puts the spinner away. That
+behaviour is contract: `HICBrowser.loadTracks` is published surface and two hosts
+call it.
 
 **8. Nothing existing becomes plural.** `currentBrowser`, `BrowserSelect`,
 `HICBrowser.loadTracks` and `layoutController.removeTrackXYPair` mean exactly what

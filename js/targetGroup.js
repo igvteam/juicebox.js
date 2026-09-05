@@ -56,6 +56,10 @@ function trackSkipReason(originating, target) {
 /**
  * Load `configs` into every browser in `targets` that can take them.
  *
+ * Named for the fan-out rather than for the registry method that calls it
+ * (`registry.loadTracksIntoTargets`), so a grep or a stack trace says which of
+ * the two is which.
+ *
  * Concurrent and unbounded, over `Promise.allSettled`: one gesture, N loads,
  * and no target's failure stops another's. Concurrency is deliberately *not*
  * capped here -- #588 is the unbounded-track-load problem and it deserves one
@@ -83,7 +87,7 @@ function trackSkipReason(originating, target) {
  * @param {Function} [load] - how one browser is loaded; the seam a test drives
  * @returns {Promise<{loaded: Array, failed: Array, skipped: Array}>}
  */
-async function loadTracksIntoTargets(originating, targets, configs, load = (browser, ownConfigs) => browser.loadTracksOrThrow(ownConfigs)) {
+async function fanOutTracks(originating, targets, configs, load = (browser, ownConfigs) => browser.loadTracksOrThrow(ownConfigs)) {
 
     const summary = {loaded: [], failed: [], skipped: []}
 
@@ -113,4 +117,4 @@ async function loadTracksIntoTargets(originating, targets, configs, load = (brow
     return summary
 }
 
-export {trackSkipReason, loadTracksIntoTargets}
+export {trackSkipReason, fanOutTracks}

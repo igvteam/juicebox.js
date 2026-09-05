@@ -87,6 +87,8 @@
 
 <div class="aim" id="aim">aim: —</div>
 
+<div class="aim" id="roster">panels: —</div>
+
 <div class="summary" id="summary">No load yet.</div>
 
 <div id="panels"></div>
@@ -151,6 +153,13 @@
     const panels = document.getElementById('panels')
     const summaryElement = document.getElementById('summary')
     const aimElement = document.getElementById('aim')
+    const rosterElement = document.getElementById('roster')
+
+    // What each panel was built to be, so a map that fails to load is *visible*
+    // rather than quietly degrading into the no-dataset skip. That degradation is
+    // the failure mode this page is least able to afford: it would collapse the two
+    // skip paths into one and leave the genome rule untested while looking fine.
+    const built = []
 
     const label = browser => browser.dataset ? (browser.config?.name || browser.id) : `${browser.id} (no map)`
 
@@ -161,10 +170,22 @@
     // when a user adds a second map.
     let registry
 
-    async function addPanel(config) {
-        return undefined === registry
-            ? hic.init(panels, config ?? {})
-            : hic.createBrowser(panels, config ?? {})
+    async function addPanel(config, expectedGenome) {
+        const browser = undefined === registry
+            ? await hic.init(panels, config ?? {})
+            : await hic.createBrowser(panels, config ?? {})
+        built.push({browser, expectedGenome})
+        return browser
+    }
+
+    function renderRoster() {
+        rosterElement.textContent = 'panels: ' + built
+            .map(({browser, expectedGenome}) => {
+                const actual = browser.genome?.id ?? 'no map'
+                const wrong = (expectedGenome ?? 'no map') !== actual
+                return `${label(browser)} = ${actual}${wrong ? ` ⚠ expected ${expectedGenome ?? 'no map'}` : ''}`
+            })
+            .join(' | ')
     }
 
     function renderAim() {
@@ -199,28 +220,32 @@
     ;(async function () {
 
         // Panel 1: hg38, and the one everything is aimed from to begin with.
-        const first = await addPanel(hg38Maps[0])
+        const first = await addPanel(hg38Maps[0], 'hg38')
         registry = first.registry
 
         // Sequential rather than Promise.all: panel order is registry order, and this
         // page is about which panel is which.
 
         // Panels 2 and 3: hg38 peers, the happy path.
-        await addPanel(hg38Maps[1])
-        await addPanel(hg38Maps[2])
+        await addPanel(hg38Maps[1], 'hg38')
+        await addPanel(hg38Maps[2], 'hg38')
 
         // Panel 4: no map. An empty browser is a normal transient state, and aiming at
         // one must skip rather than fail.
-        await addPanel()
+        await addPanel(undefined, undefined)
 
         // Panel 5: mm10. The skip that prevents the nasty failure -- a track drawn at
         // meaningless coordinates in a panel nobody was watching.
-        await addPanel(mm10Map)
+        await addPanel(mm10Map, 'mm10')
 
         renderAim()
+        renderRoster()
 
         document.getElementById('add-browser')
-            .addEventListener('click', () => addPanel(hg38Maps[0]).then(renderAim))
+            .addEventListener('click', () => addPanel(hg38Maps[0], 'hg38').then(() => {
+                renderAim()
+                renderRoster()
+            }))
 
         document.getElementById('load-1d').addEventListener('click', () => fanOut([track1D]))
         document.getElementById('load-2d').addEventListener('click', () => fanOut([track2D]))

@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest'
-import {trackSkipReason, loadTracksIntoTargets} from '../js/targetGroup.js'
+import {trackSkipReason, fanOutTracks} from '../js/targetGroup.js'
 
 /**
  * The target-set rules -- see #615 and `docs/adr/0015`.
@@ -49,7 +49,7 @@ describe('trackSkipReason', () => {
     })
 })
 
-describe('loadTracksIntoTargets', () => {
+describe('fanOutTracks', () => {
 
     const configs = [{url: 'https://example.com/a.bigWig', name: 'a'}]
 
@@ -67,7 +67,7 @@ describe('loadTracksIntoTargets', () => {
         const b = fakeBrowser('b', {genomeId: 'hg38'})
         const record = []
 
-        const summary = await loadTracksIntoTargets(a, [a, b], configs, recordingLoad(record))
+        const summary = await fanOutTracks(a, [a, b], configs, recordingLoad(record))
 
         expect(summary.loaded).toEqual([a, b])
         expect(summary.failed).toEqual([])
@@ -81,7 +81,7 @@ describe('loadTracksIntoTargets', () => {
         const mouse = fakeBrowser('mouse', {genomeId: 'mm10'})
         const record = []
 
-        const summary = await loadTracksIntoTargets(a, [a, empty, mouse], configs, recordingLoad(record))
+        const summary = await fanOutTracks(a, [a, empty, mouse], configs, recordingLoad(record))
 
         expect(summary.loaded).toEqual([a])
         expect(summary.skipped).toEqual([
@@ -97,7 +97,7 @@ describe('loadTracksIntoTargets', () => {
         const c = fakeBrowser('c', {genomeId: 'hg38'})
         const record = []
 
-        const summary = await loadTracksIntoTargets(a, [a, b, c], configs, recordingLoad(record, new Set([b])))
+        const summary = await fanOutTracks(a, [a, b, c], configs, recordingLoad(record, new Set([b])))
 
         expect(summary.loaded).toEqual([a, c])
         expect(summary.failed.map(({browser}) => browser)).toEqual([b])
@@ -109,7 +109,7 @@ describe('loadTracksIntoTargets', () => {
         const b = fakeBrowser('b', {genomeId: 'hg38'})
         const record = []
 
-        await loadTracksIntoTargets(a, [a, b], configs, recordingLoad(record))
+        await fanOutTracks(a, [a, b], configs, recordingLoad(record))
 
         const [first, second] = record
         expect(first.configs[0]).toEqual(configs[0])
@@ -123,14 +123,14 @@ describe('loadTracksIntoTargets', () => {
             ownConfigs[0].autoscale = true
         }
 
-        await loadTracksIntoTargets(a, [a], configs, mutating)
+        await fanOutTracks(a, [a], configs, mutating)
 
         expect(configs[0].autoscale).toBeUndefined()
     })
 
     it('returns an empty summary for an empty target set', async () => {
         const a = fakeBrowser('a', {genomeId: 'hg38'})
-        expect(await loadTracksIntoTargets(a, [], configs, recordingLoad([])))
+        expect(await fanOutTracks(a, [], configs, recordingLoad([])))
             .toEqual({loaded: [], failed: [], skipped: []})
     })
 })

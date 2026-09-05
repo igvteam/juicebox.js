@@ -406,19 +406,21 @@ class DataLoader {
             "Error loading tracks";
 
         try {
-            await this.loadTracksOrThrow(configs);
+            await this.#loadTracks(configs);
         } catch (error) {
             presentError(this.browser.registry, errorPrefix, error);
             console.error(error);
+        } finally {
+            this.browser.contactMatrixView.stopSpinner();
         }
     }
 
     /**
-     * The load itself: everything `loadTracks` above does except the reporting.
+     * The load, rejecting on failure: `loadTracks` above without the reporting.
      *
-     * The spinner is here rather than in the wrapper because it belongs to the
-     * work, not to the reporting -- both callers want it, and a caller that
-     * throws still has to put it away.
+     * Internal in the sense the registry's `releaseSlot` is -- not declared
+     * surface, and reached from one place: `HICBrowser.loadTracksOrThrow`, which
+     * the target-set fan-out calls. #615.
      *
      * @param {Array<Object>} configs - Array of track configuration objects
      * @returns {Promise<void>}
@@ -426,88 +428,104 @@ class DataLoader {
     async loadTracksOrThrow(configs) {
 
         try {
-            this.browser.contactMatrixView.startSpinner();
-
-            const tracks = [];
-            const promises2D = [];
-
-            for (let config of configs) {
-                const fileName = isFile(config.url)
-                    ? config.url.name
-                    : config.filename || await FileUtils.getFilename(config.url);
-
-                const extension = hicUtils.getExtension(fileName);
-
-                if (['fasta', 'fa'].includes(extension)) {
-                    config.type = config.format = 'sequence';
-                }
-
-                // What the *load* discovers, and only that: a missing `max` means
-                // autoscale, and the height comes from the live layout. Neither
-                // is a question a session document can answer.
-                //
-                // The annotation colour and display mode used to be defaulted
-                // here too, conditioned on `config.type === 'annotation'`. They
-                // were a second copy of two `normalizeTrackConfigs` rules, kept
-                // through #533 because a track added at runtime met no normalize
-                // stage. It meets one at `HICBrowser.loadTracks` now, so the copy
-                // is gone and this loader defaults nothing a config carries
-                // (#536).
-                if (config.max === undefined) {
-                    config.autoscale = true;
-                }
-
-                const { trackHeight } = getLayoutDimensions();
-                config.height = trackHeight;
-
-                // 2D tracks: bedpe/interact by format or extension, or a juicebox
-                // loops/peaks list (.txt) for which igv.js can't infer a 1D format.
-                // Note: hicUtils.getExtension() strips .txt as an aux extension, so
-                // test the raw filename rather than `extension` for the .txt case.
-                const lowerName = fileName.toLowerCase();
-                const is2D = ['bedpe', 'interact'].includes(config.format)
-                    || ['bedpe', 'interact'].includes(extension)
-                    || (config.format === undefined
-                        && (lowerName.endsWith('.txt') || lowerName.endsWith('.txt.gz')));
-                if (is2D) {
-                    promises2D.push(Track2D.loadTrack2D(config, this.browser.genome));
-                } else {
-                    // igv reads the track through its own bundled loaders, which juicebox cannot
-                    // reach into — the config's `url` is the only lever. mapTrackConfig carries the
-                    // original alongside so toJSON can serialize it. See issue #450.
-                    const track = await igv.createTrack(mapTrackConfig(config), this.browser);
-
-                    if (typeof track.postInit === 'function') {
-                        await track.postInit();
-                    }
-
-                    tracks.push(track);
-                }
-            }
-
-            if (tracks.length > 0) {
-                this.browser.layoutController.updateLayoutWithTracks(tracks);
-
-                const gearContainer = document.querySelector('.hic-igv-right-hand-gutter');
-                if (this.browser.showTrackLabelAndGutter) {
-                    gearContainer.style.display = 'block';
-                } else {
-                    gearContainer.style.display = 'none';
-                }
-
-                await this.browser.updateLayout();
-            }
-
-            if (promises2D.length > 0) {
-                const tracks2D = await Promise.all(promises2D);
-                if (tracks2D && tracks2D.length > 0) {
-                    this.browser.tracks2D = this.browser.tracks2D.concat(tracks2D);
-                    this.browser.coordinator.onTrackLoad2D(this.browser.tracks2D);
-                }
-            }
-
+            await this.#loadTracks(configs);
         } finally {
             this.browser.contactMatrixView.stopSpinner();
+        }
+    }
+
+    /**
+     * The work both of the two above do, minus what each does about failure.
+     *
+     * The spinner is *started* here and stopped by each caller, rather than
+     * wrapped around this whole method, so that `loadTracks` keeps the exact
+     * order it has always had: report first, then put the spinner away. That
+     * order is observable -- the alert is modal -- and the split was required to
+     * leave the public method byte-identical in behaviour.
+     *
+     * @param {Array<Object>} configs - Array of track configuration objects
+     * @returns {Promise<void>}
+     */
+    async #loadTracks(configs) {
+
+        this.browser.contactMatrixView.startSpinner();
+
+        const tracks = [];
+        const promises2D = [];
+
+        for (let config of configs) {
+            const fileName = isFile(config.url)
+                ? config.url.name
+                : config.filename || await FileUtils.getFilename(config.url);
+
+            const extension = hicUtils.getExtension(fileName);
+
+            if (['fasta', 'fa'].includes(extension)) {
+                config.type = config.format = 'sequence';
+            }
+
+            // What the *load* discovers, and only that: a missing `max` means
+            // autoscale, and the height comes from the live layout. Neither
+            // is a question a session document can answer.
+            //
+            // The annotation colour and display mode used to be defaulted
+            // here too, conditioned on `config.type === 'annotation'`. They
+            // were a second copy of two `normalizeTrackConfigs` rules, kept
+            // through #533 because a track added at runtime met no normalize
+            // stage. It meets one at `HICBrowser.loadTracks` now, so the copy
+            // is gone and this loader defaults nothing a config carries
+            // (#536).
+            if (config.max === undefined) {
+                config.autoscale = true;
+            }
+
+            const { trackHeight } = getLayoutDimensions();
+            config.height = trackHeight;
+
+            // 2D tracks: bedpe/interact by format or extension, or a juicebox
+            // loops/peaks list (.txt) for which igv.js can't infer a 1D format.
+            // Note: hicUtils.getExtension() strips .txt as an aux extension, so
+            // test the raw filename rather than `extension` for the .txt case.
+            const lowerName = fileName.toLowerCase();
+            const is2D = ['bedpe', 'interact'].includes(config.format)
+                || ['bedpe', 'interact'].includes(extension)
+                || (config.format === undefined
+                    && (lowerName.endsWith('.txt') || lowerName.endsWith('.txt.gz')));
+            if (is2D) {
+                promises2D.push(Track2D.loadTrack2D(config, this.browser.genome));
+            } else {
+                // igv reads the track through its own bundled loaders, which juicebox cannot
+                // reach into — the config's `url` is the only lever. mapTrackConfig carries the
+                // original alongside so toJSON can serialize it. See issue #450.
+                const track = await igv.createTrack(mapTrackConfig(config), this.browser);
+
+                if (typeof track.postInit === 'function') {
+                    await track.postInit();
+                }
+
+                tracks.push(track);
+            }
+        }
+
+        if (tracks.length > 0) {
+            this.browser.layoutController.updateLayoutWithTracks(tracks);
+
+            const gearContainer = document.querySelector('.hic-igv-right-hand-gutter');
+            if (this.browser.showTrackLabelAndGutter) {
+                gearContainer.style.display = 'block';
+            } else {
+                gearContainer.style.display = 'none';
+            }
+
+            await this.browser.updateLayout();
+        }
+
+        if (promises2D.length > 0) {
+            const tracks2D = await Promise.all(promises2D);
+            if (tracks2D && tracks2D.length > 0) {
+                this.browser.tracks2D = this.browser.tracks2D.concat(tracks2D);
+                this.browser.coordinator.onTrackLoad2D(this.browser.tracks2D);
+            }
         }
     }
 

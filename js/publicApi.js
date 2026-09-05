@@ -169,6 +169,17 @@ export const BROWSER_SURFACE = [
  * settled once -- and mean nothing to a caller outside it; and `alertDialog`,
  * which is the lazily built igv-ui dialog behind `presentAlert`. A host raises
  * an alert; which widget the registry does it with is ours to change.
+ *
+ * Also deliberately not declared, and new in #615: `retarget`, which is the
+ * plain-click gesture (a host that wants its effect calls `select`, and the
+ * clear that goes with it is the *user's* re-aim, not an API operation);
+ * `isTargetedExplicitly`, which exists so `HICBrowser.reset` can carry
+ * membership across its own teardown, as `releaseSlot` and `reclaimSlot`
+ * already carry the slot; and the browser's own `loadTracksOrThrow`, which is
+ * `loadTracks` without the alert and is what the fan-out is built on. A host
+ * that wants a rejecting load should be given a declared name for it rather
+ * than finding this one -- absence from this file is not permission, and
+ * naming them here is what makes that decision visible.
  */
 export const REGISTRY_SURFACE = [
     // The element this registry owns, which is what it is keyed by.
@@ -210,6 +221,11 @@ export const REGISTRY_SURFACE = [
     // before; a host opts in by calling the new method.
     'targetedBrowsers',
     'toggleTarget',
+    // Resolves to `{loaded, failed, skipped}`. The two skip reasons --
+    // `'no-dataset'` and `'genome-mismatch'` -- are as much contract as the
+    // field names: a host branching on a third spelling nobody declared is
+    // exactly the failure #471 was. They are defined in `js/targetGroup.js` and
+    // pinned by `test/testTargetGroup.js`.
     'loadTracksIntoTargets',
 
     // A session describes one embed; these are where one is actually written

@@ -151,8 +151,9 @@ and it lasts until the user re-aims rather than standing. The browsers in one
 are **targeted browsers**.
 _Avoid_: **selection**, **selected browsers** — `registry.select()`, the
 `BrowserSelect` event and `hic-root-selected` already spend that word on the
-current browser. Also avoid *target group*: `js/targetGroup.js` is named for its
-neighbour `js/syncGroup.js`, but what it holds is a set, not a group.
+current browser. Do not call the thing a *target group* in prose either:
+`js/targetGroup.js` is named for its neighbour `js/syncGroup.js` so the pair is
+visible in the tree, and that filename is the one place the word is allowed.
 
 **View preference** — a setting the user makes on one browser that changes how
 that browser interprets a gesture, without being part of what the view *is*.

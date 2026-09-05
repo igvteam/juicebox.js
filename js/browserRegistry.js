@@ -2,7 +2,7 @@ import {AlertDialog} from 'igv-ui'
 import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
 import {pairSynchable} from './syncGroup.js'
-import {loadTracksIntoTargets} from './targetGroup.js'
+import {fanOutTracks} from './targetGroup.js'
 import {normalizeSession} from './normalizeSession.js'
 // A cycle, deliberately: `createBrowser.js` resolves its registry from a
 // container, and `restoreSession` below needs browsers built. Neither module
@@ -125,6 +125,11 @@ class BrowserRegistry {
      */
     clear() {
         this.browsers = []
+        // The aim goes with them. `targetedBrowsers` filters over `browsers`, so
+        // leaving these behind would be invisible -- and invisible is exactly
+        // the wrong thing to be holding references to browsers that are on
+        // their way to being disposed.
+        this.#targeted.clear()
     }
 
     /**
@@ -150,6 +155,14 @@ class BrowserRegistry {
         // Outside the transition check below: a browser already current in its
         // own registry is not necessarily the last one selected page-wide.
         mostRecentlySelectedBrowser = browser
+
+        // The invariant that keeps `toggleTarget`'s early return honest: the
+        // current browser is targeted *implicitly*, so it is never also in the
+        // explicit set. Without this, a browser aimed at and then selected --
+        // which a host does through `select`, not only through a plain click --
+        // would be un-removable while current (the toggle is a no-op there) and
+        // would silently stay targeted once the selection moved on.
+        this.#targeted.delete(browser)
 
         if (browser !== this.currentBrowser) {
             this.currentBrowser?.rootElement.classList.remove('hic-root-selected')
@@ -201,7 +214,11 @@ class BrowserRegistry {
      */
     toggleTarget(browser) {
 
-        if (browser === this.currentBrowser) {
+        // A browser this registry does not own has no slot in its aim, and
+        // recording one would be the retained reference `releaseSlot` exists to
+        // avoid -- `targetedBrowsers` filters it out, so it would never be seen
+        // again either.
+        if (browser === this.currentBrowser || !this.browsers.includes(browser)) {
             return
         }
 
@@ -230,7 +247,7 @@ class BrowserRegistry {
      * @returns {Promise<{loaded: Array, failed: Array, skipped: Array}>}
      */
     async loadTracksIntoTargets(configs) {
-        return loadTracksIntoTargets(this.currentBrowser, this.targetedBrowsers, configs)
+        return fanOutTracks(this.currentBrowser, this.targetedBrowsers, configs)
     }
 
     /**
@@ -398,7 +415,6 @@ class BrowserRegistry {
             // `#assertNotDisposed`, not merely stale, so the registry should
             // not still be holding a reference to one.
             this.#targeted.delete(browser)
-            browser.rootElement?.classList.remove('hic-root-targeted')
             if (browser === this.currentBrowser) {
                 this.#select(this.browsers[0])
             }
