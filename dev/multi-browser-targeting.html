@@ -72,6 +72,13 @@
 </p>
 
 <p class="note">
+    <b>Go to annotations</b> navigates to where the loaded 2D features actually are,
+    computed from <code>browser.tracks2D</code> — repeated clicks cycle the chromosome
+    pairs. The fixture's loops are motif-resolution anchors, tens of bp wide, so they
+    draw at the one-pixel floor: small marks on the diagonal, not blocks.
+</p>
+
+<p class="note">
     The <b>first</b> shift-click of a new aim also makes that panel current. The load is
     issued from the current panel, and it is that panel's genome the skips below are
     measured against — so the aim line names its origin. Aim from the mm10 panel and the
@@ -90,6 +97,7 @@
     <button id="load-1d">Load 1D track into targets</button>
     <button id="load-2d">Load 2D annotation into targets</button>
     <button id="load-both">Load both into targets</button>
+    <button id="goto-2d">Go to annotations</button>
 </div>
 
 <div class="aim" id="aim">aim: —</div>
@@ -226,6 +234,93 @@
         renderSummary(await registry.loadTracksIntoTargets(configs))
     }
 
+    /**
+     * Where a browser's 2D annotations actually are, one entry per chromosome pair.
+     *
+     * `track.featureMap` is keyed `"chr1_chr2"` and each feature carries
+     * `chr1/x1/x2` and `chr2/y1/y2`, so the extent is a min/max over the map --
+     * no need to know anything about the file that was loaded. That matters for a
+     * harness: a 2D fan-out that lands off-screen is indistinguishable from one
+     * that did not happen.
+     */
+    function annotationRegions(browser) {
+
+        const regions = []
+
+        for (const track of browser.tracks2D ?? []) {
+            for (const features of Object.values(track.featureMap ?? {})) {
+
+                if (0 === features.length) {
+                    continue
+                }
+
+                const extent = features.reduce((acc, f) => ({
+                    x1: Math.min(acc.x1, f.x1), x2: Math.max(acc.x2, f.x2),
+                    y1: Math.min(acc.y1, f.y1), y2: Math.max(acc.y2, f.y2)
+                }), {x1: Infinity, x2: -Infinity, y1: Infinity, y2: -Infinity})
+
+                const {chr1, chr2} = features[0]
+                regions.push({...extent, chr1, chr2, count: features.length, name: track.name})
+            }
+        }
+
+        return regions
+    }
+
+    // Padded, with a floor: these fixtures are motif-resolution anchors tens of bp
+    // wide, and an unpadded window on one would be a view no map has a rung for.
+    function locusString({chr1, chr2, x1, x2, y1, y2}) {
+
+        // On the diagonal, both axes get the union. A cluster of intrachromosomal
+        // loops shares one anchor, so its x extent is a few tens of bp against a
+        // y extent of hundreds of kb -- and axes that far apart put the diagonal,
+        // which is where the features sit, off screen.
+        if (chr1 === chr2) {
+            const [lo, hi] = [Math.min(x1, y1), Math.max(x2, y2)]
+            ;[x1, x2, y1, y2] = [lo, hi, lo, hi]
+        }
+
+        const pad = ([start, end]) => {
+            const padding = Math.max((end - start) * 0.2, 25000)
+            return [Math.max(0, Math.round(start - padding)), Math.round(end + padding)]
+        }
+        const [xStart, xEnd] = pad([x1, x2])
+        const [yStart, yEnd] = pad([y1, y2])
+        return `${chr1}:${xStart}-${xEnd} ${chr2}:${yStart}-${yEnd}`
+    }
+
+    // Repeated clicks cycle the chromosome pairs, since a 2D file routinely covers
+    // several and only one can be on screen at a time.
+    let nextRegion = 0
+
+    async function goToAnnotations() {
+
+        const regions = annotationRegions(registry.currentBrowser)
+
+        if (0 === regions.length) {
+            summaryElement.textContent = `no 2D annotations loaded in ${label(registry.currentBrowser)} — load some first`
+            return
+        }
+
+        const region = regions[nextRegion++ % regions.length]
+        const locus = locusString(region)
+
+        // Every targeted panel that carries this same chromosome pair, so the
+        // panels the fan-out reached all land in the same place. A panel without
+        // the annotation is left where it is rather than sent to coordinates that
+        // mean nothing to it -- the same rule the fan-out itself follows.
+        const going = registry.targetedBrowsers.filter(browser => annotationRegions(browser)
+            .some(({chr1, chr2}) => chr1 === region.chr1 && chr2 === region.chr2))
+
+        await Promise.all(going.map(browser => browser.parseGotoInput(locus)))
+
+        summaryElement.textContent = [
+            `went to: ${locus}`,
+            `region:  ${region.chr1}/${region.chr2}, ${region.count} feature(s) from "${region.name}"`,
+            `panels:  ${going.map(label).join(', ') || '—'}`
+        ].join('\n')
+    }
+
     // The event a host subscribes to instead of re-deriving the implicit-current rule.
     EventBus.globalBus.subscribe('BrowserTargetChange', () => renderAim())
 
@@ -268,6 +363,7 @@
         document.getElementById('load-1d').addEventListener('click', () => fanOut([track1D]))
         document.getElementById('load-2d').addEventListener('click', () => fanOut([track2D]))
         document.getElementById('load-both').addEventListener('click', () => fanOut([track1D, track2D]))
+        document.getElementById('goto-2d').addEventListener('click', () => goToAnnotations())
 
     })()
 
