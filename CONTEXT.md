@@ -143,7 +143,9 @@ _Avoid_: sync payload, target state.
 
 **Target set** — the browsers a *load* reaches: the ones the user has
 explicitly aimed at by shift-clicking their navbars, plus the current browser,
-which is always in it. Per registry, and read as `registry.targetedBrowsers`.
+which is always in it. The first shift-click of a new aim also makes that browser
+current, because the load is issued from the current browser and it is that
+browser's genome the aim is measured against — see `docs/adr/0015` decision 4a. Per registry, and read as `registry.targetedBrowsers`.
 A target set is **not** a sync group, and confusing the two is the mistake
 `docs/adr/0015` exists to prevent: membership here is an explicit gesture rather
 than a computed rule, the cargo is dataset choices rather than canonical state,

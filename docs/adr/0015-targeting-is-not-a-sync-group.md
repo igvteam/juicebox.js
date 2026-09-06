@@ -56,11 +56,10 @@ it. With nothing explicitly aimed at, the set is `[currentBrowser]` and every
 load behaves exactly as it does today. That is what makes the feature opt-in at
 the *gesture* rather than at the call site.
 
-The invariant underneath it is that the current browser is **never also in the
-explicit set**: `select` drops the browser it makes current. Without that, a
-browser aimed at and then selected — which a host does through `select`, not only
-through a plain click — would be stuck: shift-clicking it is a no-op while it is
-current, and it would silently stay targeted once the selection moved on.
+The current browser **is** also recorded in the explicit set while an aim is in
+progress, even though it would be resolved into the set anyway. That redundancy is
+load-bearing: an empty explicit set is how the gesture knows the next shift-click
+starts a *new* aim rather than adding to one — see decision 4a.
 
 **4. Shift-click aims; plain click re-aims.** Shift-click on a panel's **navbar**
 toggles that browser in or out; a plain click clears the set and makes that panel
@@ -74,7 +73,27 @@ survivor, and how a restore settles — and none of those is the user re-aiming.
 Folding the clear into `select` would mean that adding a panel silently destroys
 the aim, which decision 6 says it must not.
 
-**4a. The badge ships in the library, not in the harness.** `hic-root-targeted`
+**4a. The first shift-click of a new aim also selects.** This was decided the
+other way first — targeting and selection are different questions, so a gesture
+named for one should not move the other — and testing the harness showed why that
+is wrong.
+
+The fan-out is issued from the current browser, and decision 5 makes the current
+browser the *track's genome declaration*. So an aim inherits its genome from
+whichever panel happened to be current, which is the last one built. Shift-click
+two hg38 panels while an mm10 panel is current and the two panels the user chose
+are reported `genome-mismatch` while the track lands in the one panel they never
+touched. Every symptom points at targeting being broken; nothing is, except the
+question of where the aim is measured from.
+
+Selecting on the first click makes the browser an aim *starts from* the browser it
+is *measured against*, which is the only pair a user can see. Later clicks in the
+same aim do not move the selection, so the origin stays where the user put it.
+
+Shift-clicking the current browser remains a no-op in everything observable — the
+resolved set and the event are unchanged — and internally it starts the aim.
+
+**4b. The badge ships in the library, not in the harness.** `hic-root-targeted`
 is applied by the registry, beside `hic-root-selected`, and styled in
 `css/juicebox.scss`. The gesture that sets a target set is library-side —
 shift-click is bound in `layoutController` — so its feedback has to be, or every

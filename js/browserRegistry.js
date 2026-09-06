@@ -43,9 +43,11 @@ class BrowserRegistry {
      * a caller gets is the *resolved* set, derived from `browsers` on every
      * ask, so a browser that has left the registry cannot linger in it.
      *
-     * The current browser is not normally in here -- it is targeted implicitly
-     * -- but it can be, when a browser that was already aimed at later becomes
-     * current. See `toggleTarget`.
+     * The current browser **is** in here while an aim is in progress, even
+     * though it would be targeted implicitly anyway. That redundancy is
+     * load-bearing: an empty set is how `toggleTarget` knows the next
+     * shift-click is starting a *new* aim rather than adding to one, which is
+     * what makes the first click of an aim the one that selects.
      */
     #targeted = new Set()
 
@@ -156,14 +158,6 @@ class BrowserRegistry {
         // own registry is not necessarily the last one selected page-wide.
         mostRecentlySelectedBrowser = browser
 
-        // The invariant that keeps `toggleTarget`'s early return honest: the
-        // current browser is targeted *implicitly*, so it is never also in the
-        // explicit set. Without this, a browser aimed at and then selected --
-        // which a host does through `select`, not only through a plain click --
-        // would be un-removable while current (the toggle is a no-op there) and
-        // would silently stay targeted once the selection moved on.
-        this.#targeted.delete(browser)
-
         if (browser !== this.currentBrowser) {
             this.currentBrowser?.rootElement.classList.remove('hic-root-selected')
             browser.rootElement.classList.add('hic-root-selected')
@@ -218,11 +212,33 @@ class BrowserRegistry {
         // recording one would be the retained reference `releaseSlot` exists to
         // avoid -- `targetedBrowsers` filters it out, so it would never be seen
         // again either.
-        if (browser === this.currentBrowser || !this.browsers.includes(browser)) {
+        if (!this.browsers.includes(browser)) {
             return
         }
 
         this.#announce(() => {
+
+            // The first shift-click of a new aim also **selects**. The load is
+            // issued from the current browser, and the current browser is the
+            // track's genome declaration (`js/targetGroup.js`), so without this
+            // an aim inherits its genome from whichever panel happened to be
+            // current -- typically the last one built, which the user never
+            // touched. The panels they actually aimed at are then reported as
+            // `genome-mismatch` and the track lands in the one panel they did
+            // not choose. Selecting here makes the browser the aim *starts*
+            // from the browser it is measured against.
+            //
+            // Semantically odd -- a gesture named for targeting also moves the
+            // selection -- and deliberate: the alternative is an aim whose
+            // origin the user cannot see or set.
+            if (0 === this.#targeted.size) {
+                this.#targeted.add(browser)
+                this.#select(browser)
+                return
+            }
+
+            // Every later click just joins or leaves. The selection does not
+            // move again, so the aim keeps the origin its first click set.
             if (!this.#targeted.delete(browser)) {
                 this.#targeted.add(browser)
             }

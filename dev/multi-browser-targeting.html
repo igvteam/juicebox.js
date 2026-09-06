@@ -72,6 +72,13 @@
 </p>
 
 <p class="note">
+    The <b>first</b> shift-click of a new aim also makes that panel current. The load is
+    issued from the current panel, and it is that panel's genome the skips below are
+    measured against — so the aim line names its origin. Aim from the mm10 panel and the
+    hg38 panels are the ones skipped.
+</p>
+
+<p class="note">
     Two of the panels are here to exercise the <b>skip</b> paths, which are the parts
     most likely to be silently wrong: one panel has <b>no map</b> at all, and one is on
     <b>mm10</b> while the loads below are hg38. Aim at them and the summary must report
@@ -194,7 +201,12 @@
         if (undefined === registry) {
             return
         }
+        // The origin is named, not just the members: it is the current browser,
+        // and it is the genome every skip is measured against. An aim whose
+        // origin you cannot see is one whose skips look inexplicable.
+        const origin = registry.currentBrowser
         aimElement.textContent = `aim: ${registry.targetedBrowsers.map(label).join(', ') || '—'}`
+            + `   (from ${origin ? label(origin) : '—'}, genome ${origin?.genome?.id ?? 'none'})`
     }
 
     function renderSummary(summary) {
@@ -237,6 +249,12 @@
         // Panel 5: mm10. The skip that prevents the nasty failure -- a track drawn at
         // meaningless coordinates in a panel nobody was watching.
         await addPanel(mm10Map, 'mm10')
+
+        // Panel 1 is made current before anything else happens. `add()` selects,
+        // so the last panel built -- the mm10 one -- would otherwise be the
+        // browser every default load is issued from and measured against, and
+        // this page would open in the one state it exists to explain.
+        registry.select(first)
 
         renderAim()
         renderRoster()

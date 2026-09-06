@@ -70,6 +70,20 @@ function add(name, options) {
 
 const isTargeted = browser => browser.rootElement.classList.contains('hic-root-targeted')
 
+/**
+ * The gesture as a user makes it: shift-click each panel in turn.
+ *
+ * The first click of a new aim also selects, so `aim(a, b)` leaves `a` current
+ * -- and `a` is therefore the browser a fan-out is issued from and measured
+ * against. Fixtures say `aim(...)` rather than `select` + `toggleTarget` so they
+ * cannot express a state the gesture cannot reach.
+ */
+function aim(...browsers) {
+    for (const browser of browsers) {
+        registry.toggleTarget(browser)
+    }
+}
+
 let events
 
 const targetListener = event => events.push(event)
@@ -102,6 +116,8 @@ describe('the target set', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
         registry.select(a)
+        // a starts the aim -- the first click selects, and a is already current
+        registry.toggleTarget(a)
 
         registry.toggleTarget(b)
         expect(registry.targetedBrowsers).toEqual([a, b])
@@ -114,21 +130,74 @@ describe('the target set', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
         const c = add('c', {genomeId: 'hg38'})
-        registry.select(b)
 
-        registry.toggleTarget(c)
-        registry.toggleTarget(a)
+        aim(b, c, a)
 
+        expect(registry.currentBrowser).toBe(b)
         expect(registry.targetedBrowsers).toEqual([a, b, c])
     })
 
-    it('ignores a toggle of the current browser, which is targeted implicitly', () => {
+    it('makes the first shift-click of a new aim the current browser', () => {
+        // The load is issued from the current browser, and that browser is the
+        // track's genome declaration. Without this, an aim inherits its genome
+        // from whichever panel happened to be current -- typically the last one
+        // built -- and every panel the user aimed at is reported as a mismatch.
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        const untouched = add('untouched', {genomeId: 'mm10'})
+        registry.select(untouched)
+
+        registry.toggleTarget(a)
+
+        expect(registry.currentBrowser).toBe(a)
+        expect(registry.targetedBrowsers).toEqual([a])
+
+        registry.toggleTarget(b)
+
+        expect(registry.currentBrowser).toBe(a)
+        expect(registry.targetedBrowsers).toEqual([a, b])
+    })
+
+    it('does not move the selection again once an aim is under way', () => {
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        const c = add('c', {genomeId: 'hg38'})
+        registry.select(c)
+
+        registry.toggleTarget(a)
+        registry.toggleTarget(b)
+        registry.toggleTarget(b)
+        registry.toggleTarget(b)
+
+        expect(registry.currentBrowser).toBe(a)
+        expect(registry.targetedBrowsers).toEqual([a, b])
+    })
+
+    it('starts a fresh aim after the last explicit member leaves', () => {
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        registry.select(a)
+
+        // a is the origin, and the only explicit member; taking it back out
+        // ends the aim, so the next click starts a new one and selects.
+        registry.toggleTarget(a)
+        registry.toggleTarget(a)
+        registry.toggleTarget(b)
+
+        expect(registry.currentBrowser).toBe(b)
+        expect(registry.targetedBrowsers).toEqual([b])
+    })
+
+    it('changes nothing visible when the current browser is shift-clicked', () => {
+        // #615: "shift-clicking it is a no-op". It is one in the resolved set
+        // and in the event -- it starts the aim, which is internal.
         const a = add('a', {genomeId: 'hg38'})
         registry.select(a)
         events.length = 0
 
         registry.toggleTarget(a)
 
+        expect(registry.currentBrowser).toBe(a)
         expect(registry.targetedBrowsers).toEqual([a])
         expect(events).toEqual([])
     })
@@ -148,30 +217,31 @@ describe('the target set', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
         const c = add('c', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
-        registry.toggleTarget(c)
+        aim(a, b, c)
 
         registry.retarget(a)
 
         expect(registry.targetedBrowsers).toEqual([a])
     })
 
-    it('drops explicit membership when a browser becomes current', () => {
-        // A host selects through `select`, not only through the plain click. A
-        // browser aimed at and then selected must not stay in the explicit set:
-        // shift-clicking it while current is a no-op, so it would be
-        // un-removable, and it would silently stay targeted afterwards.
+    it('keeps an aim across a selection a host makes', () => {
+        // `select` is a host's call, not the user's re-aim -- only a plain click
+        // clears. So an aim survives the selection moving, and the browsers the
+        // user chose are still the ones a load reaches.
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
+        const c = add('c', {genomeId: 'hg38'})
         registry.select(a)
+        registry.toggleTarget(a)
         registry.toggleTarget(b)
 
-        registry.select(b)
-        expect(registry.isTargetedExplicitly(b)).toBe(false)
+        registry.select(c)
 
-        registry.select(a)
-        expect(registry.targetedBrowsers).toEqual([a])
+        expect(registry.targetedBrowsers).toEqual([a, b, c])
+
+        registry.retarget(c)
+
+        expect(registry.targetedBrowsers).toEqual([c])
     })
 
     it('ignores a browser this registry does not own', () => {
@@ -191,8 +261,7 @@ describe('the target set', () => {
         // already reading.
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         registry.retarget(a)
 
@@ -205,7 +274,7 @@ describe('BrowserTargetChange', () => {
     it('fires on a toggle, carrying the registry and the resolved set', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
+        aim(a)
         events.length = 0
 
         registry.toggleTarget(b)
@@ -230,8 +299,7 @@ describe('BrowserTargetChange', () => {
     it('fires once for a plain click that both clears and re-aims', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
         events.length = 0
 
         registry.retarget(b)
@@ -254,8 +322,7 @@ describe('BrowserTargetChange', () => {
     it('drives the badge class, which is not the selected class', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         expect(isTargeted(a)).toBe(true)
         expect(isTargeted(b)).toBe(true)
@@ -272,8 +339,7 @@ describe('the target set through a lifecycle', () => {
     it('drops a deleted browser', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
         events.length = 0
 
         registry.delete(b)
@@ -289,8 +355,7 @@ describe('the target set through a lifecycle', () => {
         // has to be gone, not just filtered out on the way past.
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         registry.delete(b)
         registry.reclaimSlot(b, 1, false, false)
@@ -301,8 +366,7 @@ describe('the target set through a lifecycle', () => {
     it('does not add a newly created browser to the set', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         const c = add('c', {genomeId: 'hg38'})
 
@@ -319,8 +383,7 @@ describe('the target set through a lifecycle', () => {
         // captured before it disposed itself.
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         const wasTargeted = registry.isTargetedExplicitly(b)
         const slot = registry.browsers.indexOf(b)
@@ -336,8 +399,7 @@ describe('the target set through a lifecycle', () => {
         // reference left here would be invisible rather than harmless.
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         registry.clear()
 
@@ -347,8 +409,7 @@ describe('the target set through a lifecycle', () => {
     it('starts empty after a restore, and is never serialized', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         // The open of `restoreSession`, without the rebuild it cannot do
         // without a document.
@@ -367,8 +428,7 @@ describe('loadTracksIntoTargets', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
         const other = add('other', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         const summary = await registry.loadTracksIntoTargets(configs)
 
@@ -393,9 +453,11 @@ describe('loadTracksIntoTargets', () => {
         const a = add('a', {genomeId: 'hg38'})
         const empty = add('empty')
         const mouse = add('mouse', {genomeId: 'mm10'})
-        registry.select(a)
-        registry.toggleTarget(empty)
-        registry.toggleTarget(mouse)
+
+        // Aimed from the hg38 panel, which is what the two skips are measured
+        // against -- and, since the first click selects, what the user's own
+        // first shift-click establishes.
+        aim(a, empty, mouse)
 
         const summary = await registry.loadTracksIntoTargets(configs)
 
@@ -411,8 +473,7 @@ describe('loadTracksIntoTargets', () => {
     it('reports a failure rather than raising an alert', async () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
         b.failing = true
 
         // A registry built without a container has no alert dialog and no
@@ -427,8 +488,7 @@ describe('loadTracksIntoTargets', () => {
     it('hands each target its own copy of each config', async () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
-        registry.select(a)
-        registry.toggleTarget(b)
+        aim(a, b)
 
         await registry.loadTracksIntoTargets(configs)
 
