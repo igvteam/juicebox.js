@@ -184,7 +184,7 @@ Some data hosts refuse the request a browser is able to make, so their maps cann
 
 `www.encodeproject.org` is also routed through the proxy, but as a precaution rather than a live need: as of 2026-08-05 it serves `@@download` reads to any origin, so ENCODE maps and tracks load in development either way. It stays in the table because AWS WAF rules there have been switched on before and the entry costs one line.
 
-`dev-proxy/` is a **development-only** workaround: a Vite plugin that refetches the file from Node, where those headers are ours to set, plus the client-side rule that decides which hosts get routed that way. It is already wired into this repo's dev server — see `dev/encode-dev-proxy.html`. In a host application:
+`dev-proxy/` is a **development-only** workaround: a Vite plugin that refetches the file from Node, where those headers are ours to set, plus the client-side rule that decides which hosts get routed that way. It is already wired into this repo's dev server. In a host application:
 
 ```js
 // vite.config.js

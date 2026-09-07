@@ -173,10 +173,10 @@ sizing" is no longer true — see the resolution note under decision 5. The chec
 does not live in juicebox-web, and that is the part worth recording. juicebox-web's
 clone button copies the current browser's `width`/`height` into the new browser
 (`initializationHelper.js:387`), so its two panels are the same size by
-construction and look identical either side of #477. Per-browser scoping is
-therefore exercised by `dev/issue-477-per-browser-viewport-size.html`, which builds
+construction and look identical either side of #477. Per-browser scoping was
+therefore exercised by a purpose-built `dev/` harness (since retired), which built
 browsers at three different sizes plus one with no dimensions — the unsized one
 last, so the old last-writer-wins behaviour would show as an inherited size rather
-than the stylesheet default — and asserts that nothing writes `--hic-viewport-*` to
+than the stylesheet default — and asserted that nothing writes `--hic-viewport-*` to
 the page root. Also worth saying plainly, because the issue text did not: nothing
 in the app resizes a browser. The properties are written once, at construction.
