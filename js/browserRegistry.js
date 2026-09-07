@@ -2,6 +2,7 @@ import {AlertDialog} from 'igv-ui'
 import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
 import {pairSynchable} from './syncGroup.js'
+import {fanOutTracks} from './targetGroup.js'
 import {normalizeSession} from './normalizeSession.js'
 // A cycle, deliberately: `createBrowser.js` resolves its registry from a
 // container, and `restoreSession` below needs browsers built. Neither module
@@ -35,6 +36,30 @@ import {createBrowserList} from './createBrowser.js'
  * have landed: the selected gene and the alert dialog. See #481.
  */
 class BrowserRegistry {
+
+    /**
+     * The browsers the user has explicitly aimed a load at, as a set of
+     * references. Private, and read only through `targetedBrowsers` below: what
+     * a caller gets is the *resolved* set, derived from `browsers` on every
+     * ask, so a browser that has left the registry cannot linger in it.
+     *
+     * The current browser **is** in here while an aim is in progress, even
+     * though it would be targeted implicitly anyway. That redundancy is
+     * load-bearing: an empty set is how `toggleTarget` knows the next
+     * shift-click is starting a *new* aim rather than adding to one, which is
+     * what makes the first click of an aim the one that selects.
+     */
+    #targeted = new Set()
+
+    /**
+     * Depth of the `#announce` wrapper below, so that a mutation which runs
+     * another one inside it -- `releaseSlot` falling the selection through to a
+     * survivor -- posts one `BrowserTargetChange` for the whole gesture rather
+     * than one per nested step.
+     */
+    #announceDepth = 0
+
+    #announceBefore = []
 
     /**
      * @param {Element} [container] - the host element this registry owns.
@@ -102,6 +127,11 @@ class BrowserRegistry {
      */
     clear() {
         this.browsers = []
+        // The aim goes with them. `targetedBrowsers` filters over `browsers`, so
+        // leaving these behind would be invisible -- and invisible is exactly
+        // the wrong thing to be holding references to browsers that are on
+        // their way to being disposed.
+        this.#targeted.clear()
     }
 
     /**
@@ -110,6 +140,10 @@ class BrowserRegistry {
      * browser, which is the contract juicebox-web subscribes to.
      */
     select(browser) {
+        this.#announce(() => this.#select(browser))
+    }
+
+    #select(browser) {
 
         if (browser === undefined) {
             if (mostRecentlySelectedBrowser === this.currentBrowser) {
@@ -129,6 +163,184 @@ class BrowserRegistry {
             browser.rootElement.classList.add('hic-root-selected')
             this.currentBrowser = browser
             EventBus.globalBus.post(HICEvent("BrowserSelect", browser))
+        }
+    }
+
+    /**
+     * The browsers a *load* reaches: the current one, plus everything the user
+     * has explicitly aimed at.
+     *
+     * NOTE: public API function
+     *
+     * A getter returning an array rather than a stored list, computed over
+     * `browsers` on every ask, so it cannot drift out of sync with them: a
+     * browser that has been deleted is gone from here whether or not anything
+     * remembered to say so. In registry order, which is panel order.
+     *
+     * **The current browser is implicitly targeted.** So with nothing
+     * explicitly aimed at, this is `[currentBrowser]` and a fan-out behaves
+     * exactly as a single-browser load does today. That is what makes the
+     * feature opt-in at the gesture rather than at the call site.
+     *
+     * A target set is *not* a sync group -- see `js/targetGroup.js` and
+     * `docs/adr/0015`.
+     */
+    get targetedBrowsers() {
+        return this.browsers.filter(browser => browser === this.currentBrowser || this.#targeted.has(browser))
+    }
+
+    /**
+     * Put `browser` in the target set, or take it out. The single mutator: one
+     * gesture -- shift-click on a panel's navbar -- and one method, rather than
+     * a `target`/`untarget` pair no gesture asks for.
+     *
+     * NOTE: public API function
+     *
+     * Shift-clicking the current browser is a no-op, because the current
+     * browser is targeted implicitly and there is no state in which it is not.
+     * Returning early rather than adding it keeps that honest: recording it
+     * would make it explicitly targeted, and it would then stay in the set
+     * after it stopped being current, which is not what the user's shift-click
+     * meant.
+     *
+     * The way *back* from a large target set is a plain click, which re-aims at
+     * one browser -- see `retarget`.
+     */
+    toggleTarget(browser) {
+
+        // A browser this registry does not own has no slot in its aim, and
+        // recording one would be the retained reference `releaseSlot` exists to
+        // avoid -- `targetedBrowsers` filters it out, so it would never be seen
+        // again either.
+        if (!this.browsers.includes(browser)) {
+            return
+        }
+
+        this.#announce(() => {
+
+            // The first shift-click of a new aim also **selects**. The load is
+            // issued from the current browser, and the current browser is the
+            // track's genome declaration (`js/targetGroup.js`), so without this
+            // an aim inherits its genome from whichever panel happened to be
+            // current -- typically the last one built, which the user never
+            // touched. The panels they actually aimed at are then reported as
+            // `genome-mismatch` and the track lands in the one panel they did
+            // not choose. Selecting here makes the browser the aim *starts*
+            // from the browser it is measured against.
+            //
+            // Semantically odd -- a gesture named for targeting also moves the
+            // selection -- and deliberate: the alternative is an aim whose
+            // origin the user cannot see or set.
+            if (0 === this.#targeted.size) {
+                this.#targeted.add(browser)
+                this.#select(browser)
+                return
+            }
+
+            // Every later click just joins or leaves. The selection does not
+            // move again, so the aim keeps the origin its first click set.
+            if (!this.#targeted.delete(browser)) {
+                this.#targeted.add(browser)
+            }
+        })
+    }
+
+    /**
+     * Load `configs` into every targeted browser at once, and report what
+     * happened.
+     *
+     * NOTE: public API function
+     *
+     * The rules live in `js/targetGroup.js`; this is the registry-shaped door
+     * to them. The **originating** browser is the current one: the menu a track
+     * came from was built for whatever browser the widgets are reading, and
+     * that browser is therefore the track's genome declaration.
+     *
+     * Raises no alert of its own. The caller reports the summary -- one report
+     * per gesture, on whatever notification surface the host has.
+     *
+     * @param {Array<Object>} configs - track configs, as `loadTracks` takes them
+     * @returns {Promise<{loaded: Array, failed: Array, skipped: Array}>}
+     */
+    async loadTracksIntoTargets(configs) {
+        return fanOutTracks(this.currentBrowser, this.targetedBrowsers, configs)
+    }
+
+    /**
+     * Clear the aim and make `browser` current: the plain click.
+     *
+     * Internal -- a host selects through `select` and aims through
+     * `toggleTarget`; this is the one gesture that does both, and it is the
+     * only way back from a large target set.
+     *
+     * The clear is deliberately *not* folded into `select` itself, even though
+     * every plain click ends there. `select` is also how a new browser becomes
+     * current, how a deleted browser's selection falls through to a survivor,
+     * and how a restore settles -- and none of those is the user re-aiming.
+     * Per the lifecycle table in #615, adding a panel must not destroy the aim
+     * the user set up.
+     */
+    retarget(browser) {
+        this.#announce(() => {
+            this.#targeted.clear()
+            this.#select(browser)
+        })
+    }
+
+    /**
+     * Is `browser` in the target set by an explicit gesture, rather than by
+     * being the current one?
+     *
+     * Internal, and the question only `HICBrowser.reset` asks: a reset disposes
+     * and rebuilds, and the target set has to survive that (unlike the sync
+     * group, which is a rule that gets recomputed -- targeting is a user's act
+     * a reset should not silently undo). `reset` captures this before the
+     * teardown and hands it back to `reclaimSlot`.
+     */
+    isTargetedExplicitly(browser) {
+        return this.#targeted.has(browser)
+    }
+
+    /**
+     * Run `mutate`, and post `BrowserTargetChange` if the resolved target set
+     * came out different.
+     *
+     * One place computes the set before and after, so every route that can
+     * change it -- an explicit toggle, a re-aim, a selection moving, a browser
+     * leaving or coming back -- announces without each having to work out
+     * whether it did. The badge class is applied here for the same reason.
+     *
+     * The event carries the resolved array, so a host need not re-derive the
+     * implicit-current rule, and the registry, because the bus is page-wide
+     * while a target set is per embed. Plural name because the subject is a
+     * set, unlike `BrowserSelect`.
+     */
+    #announce(mutate) {
+
+        if (0 === this.#announceDepth++) {
+            this.#announceBefore = this.targetedBrowsers
+        }
+
+        try {
+            mutate()
+        } finally {
+            if (0 === --this.#announceDepth) {
+
+                const before = this.#announceBefore
+                const after = this.targetedBrowsers
+
+                if (before.length !== after.length || after.some((browser, i) => browser !== before[i])) {
+
+                    for (const browser of before) {
+                        browser.rootElement?.classList.remove('hic-root-targeted')
+                    }
+                    for (const browser of after) {
+                        browser.rootElement?.classList.add('hic-root-targeted')
+                    }
+
+                    EventBus.globalBus.post(HICEvent("BrowserTargetChange", {registry: this, targetedBrowsers: after}))
+                }
+            }
         }
     }
 
@@ -212,10 +424,17 @@ class BrowserRegistry {
      * *evict* on what a registry's own teardown does to the container map.
      */
     releaseSlot(browser) {
-        this.browsers = this.browsers.filter(b => b !== browser)
-        if (browser === this.currentBrowser) {
-            this.select(this.browsers[0])
-        }
+        this.#announce(() => {
+            this.browsers = this.browsers.filter(b => b !== browser)
+            // Dropped rather than left to the `browsers` filter in
+            // `targetedBrowsers`: a disposed browser is fatal on use, via
+            // `#assertNotDisposed`, not merely stale, so the registry should
+            // not still be holding a reference to one.
+            this.#targeted.delete(browser)
+            if (browser === this.currentBrowser) {
+                this.#select(this.browsers[0])
+            }
+        })
         this.refreshDeleteButtonVisibility()
     }
 
@@ -241,15 +460,22 @@ class BrowserRegistry {
      * @param {boolean} wasCurrent - whether this browser was the current one
      *   before it disposed itself.
      */
-    reclaimSlot(browser, index, wasCurrent) {
+    reclaimSlot(browser, index, wasCurrent, wasTargeted) {
 
-        this.browsers.splice(Math.min(index, this.browsers.length), 0, browser)
+        this.#announce(() => {
 
-        if (wasCurrent) {
-            this.currentBrowser = browser
-            browser.rootElement.classList.add('hic-root-selected')
-            mostRecentlySelectedBrowser = browser
-        }
+            this.browsers.splice(Math.min(index, this.browsers.length), 0, browser)
+
+            if (wasTargeted) {
+                this.#targeted.add(browser)
+            }
+
+            if (wasCurrent) {
+                this.currentBrowser = browser
+                browser.rootElement.classList.add('hic-root-selected')
+                mostRecentlySelectedBrowser = browser
+            }
+        })
 
         this.refreshDeleteButtonVisibility()
     }
