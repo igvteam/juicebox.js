@@ -46,8 +46,7 @@ files about pure pieces; it is now 57, most of them about wiring.
 This is the status quo made explicit rather than a new policy. The convention
 that emerged on its own — a per-issue `dev/issue-NNN-*.html` page for the eyeball
 check, paired with a node fixture test that pins the finding — is the documented
-one. See `dev/issue-477-per-browser-viewport-size.html` and the
-`bug-daphne-qin-*.html` pages.
+one. See the `bug-daphne-qin-*.html` pages.
 
 ## Considered options
 

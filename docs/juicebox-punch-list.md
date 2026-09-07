@@ -299,7 +299,7 @@ Two lessons from 3b worth carrying, because both cost a re-run:
 - **A manual box that names no gesture is a box nobody can check.** #549's original box read
   "confirm two panels size independently" — impossible, since nothing in the app resizes a browser
   and juicebox-web's clone copies the source's dimensions. It needed
-  `dev/issue-477-per-browser-viewport-size.html` instead.
+  a purpose-built `dev/` harness instead.
 - **Verify against the thing, not the reading of it.** #479 was checked statically — 13 call sites,
   all resolving one registry — and that was not the same as clicking.
 

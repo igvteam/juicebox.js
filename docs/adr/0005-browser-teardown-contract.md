@@ -22,8 +22,8 @@ undo some of that, and no two agree:
 Four facts, established by reading the checkout, shape the decision:
 
 1. **`reset()` has no callers inside this repo.** Its only callers are
-   juicebox-web (`initializationHelper.js:371`) and `dev/load-and-reset.html`. It
-   is consumer surface and nothing else.
+   juicebox-web (`initializationHelper.js:371`) and a `dev/` harness since
+   retired. It is consumer surface and nothing else.
 
 2. **`reset()` is already mostly redundant on juicebox-web's path.**
    `browser.reset()` clears state; the very next line, `browser.loadHicFile()`,
@@ -166,7 +166,7 @@ do.
 
 **Deprecating `reset()` in favour of hosts calling `delete()` + `createBrowser()`
 themselves.** Pushes lifecycle management into every host to save one method on a
-published surface, and would strand `dev/load-and-reset.html`.
+published surface.
 
 **Dropping the bus work entirely** (on the grounds that fact 5's staleness leaves
 nothing internal to unsubscribe). Rejected because the per-browser bus still holds
