@@ -602,6 +602,20 @@ class HICBrowser {
         return this.dataLoader.loadTracks(normalizeTrackConfigs(configs));
     }
 
+    /**
+     * `loadTracks`, but it rejects instead of alerting.
+     *
+     * Internal, and the one the target-set fan-out calls: a fan-out reports
+     * once per gesture, on the host's own notification surface, so it needs to
+     * be able to tell a target's failure from its success -- which the public
+     * method cannot say, because it catches, alerts and resolves. Same
+     * normalization, same loader body; only the reporting differs. #615.
+     */
+    async loadTracksOrThrow(configs) {
+        this.#assertNotDisposed('loadTracksOrThrow');
+        return this.dataLoader.loadTracksOrThrow(normalizeTrackConfigs(configs));
+    }
+
     async loadNormalizationFile(url) {
         return this.dataLoader.loadNormalizationFile(url);
     }
@@ -745,7 +759,9 @@ class HICBrowser {
      * siblings, its registry slot, and being the current browser.
      *
      * The sync group is not restored: `reset()` has always unsynced, and the
-     * registry re-pairs on the next `sync()`.
+     * registry re-pairs on the next `sync()`. The **target set** is restored,
+     * and the two diverge on purpose -- see `wasTargeted` below and
+     * `docs/adr/0015`.
      */
     reset() {
 
@@ -755,6 +771,13 @@ class HICBrowser {
         const appContainer = this.rootElement.parentElement
         const slot = registry.browsers.indexOf(this)
         const wasCurrent = registry.currentBrowser === this
+
+        // Captured before the teardown, because `dispose()` drops this browser
+        // from the target set on its way out -- and unlike the sync group, the
+        // target set survives a reset. Sync membership is a rule that gets
+        // recomputed; targeting is a user's act, and a reset should not
+        // silently undo it. #615.
+        const wasTargeted = registry.isTargetedExplicitly(this)
 
         // The node to re-insert before, and it has to be one that survives the
         // teardown: `rootElement`'s immediate sibling is this browser's own
@@ -792,7 +815,7 @@ class HICBrowser {
         // Not registered before the reset -- during `init()`, or in a test --
         // so there is no slot to take back and nothing to select.
         if (-1 !== slot) {
-            registry.reclaimSlot(this, slot, wasCurrent)
+            registry.reclaimSlot(this, slot, wasCurrent, wasTargeted)
         }
     }
 
