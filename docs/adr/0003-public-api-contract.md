@@ -371,3 +371,52 @@ makes them worth calling was not.
   user-driven and never derived from the data, so there is no automatic value for
   a host directive to be overwritten by. CONTEXT.md's *Color scale* entry states
   this distinction.
+
+---
+
+## Re-measurement — 2026-09-08, for the v4.3.0 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+**The first re-measurement that was run rather than reasoned.** #474 landed as
+`npm run measure-consumers` (PR #612), and `docs/release-ceremony.md` step 2 is
+now where it is invoked. The 2026-08-24 section above closed by saying the fix
+for both directions of drift was to make the measurement re-runnable; this is
+that, executed.
+
+Measured against `juicebox.js` at `bump-version-4.3.0`, `juicebox-web` `master`
+and `spacewalk` `main`.
+
+**Result: nothing undeclared in use, in either consumer.** Same as v4.0.0, and
+across a release that added public surface rather than only rearranging private
+surface.
+
+### The new finding: a declared name with no caller
+
+v4.3.0 declares four names that **no consumer calls yet** — `targetedBrowsers`,
+`toggleTarget` and `loadTracksIntoTargets` on the registry, and the
+`BrowserTargetChange` event. That is the first time this ADR has recorded the
+contract running *ahead* of the consumers rather than behind them.
+
+It is deliberate, and it is the opposite failure mode from the one that prompted
+this ADR. `MapLoad` was an event a host subscribed to that this repo had stopped
+posting — surface in use and undeclared. The target set is surface declared and
+not yet in use: the gesture is here, and the track menu that would issue a
+fan-out lives in juicebox-web and has not been written. ADR-0015 argues the
+declaration is what makes the mechanism host-callable at all, so declaring it
+before a caller exists is the point, not an oversight.
+
+The consequence for the measurement is that **zero call sites is the expected
+reading for these four, and is not evidence they are dead.** The script cannot
+tell that case apart from an abandoned member; only this note can. Re-check it
+at the next release: if juicebox-web has a targeting menu by then, these move
+into the tables as ordinary members. If it does not, the question of whether the
+mechanism earned its declaration is worth asking out loud.
+
+### Consequence
+
+**Nothing was required of the release.** The two skip reasons in
+`loadTracksIntoTargets`'s result — `'no-dataset'` and `'genome-mismatch'` — are
+named in `js/publicApi.js` and pinned by `test/testTargetGroup.js`, which is the
+`#471` lesson applied in advance: a host branching on a spelling nobody declared
+is the failure, so the spellings are declared.
