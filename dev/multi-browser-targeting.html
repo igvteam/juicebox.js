@@ -38,12 +38,16 @@
             margin: 8px 0;
         }
 
-        /* The badge the registry drives, exaggerated here so the three states --
-           current (which is also targeted), targeted, neither -- are obvious at a
-           glance. The library's own rule is in css/juicebox.scss. */
+        /* The badges the registry drives, exaggerated here so the four states --
+           plainly selected, the anchor of an aim, aimed at, neither -- are obvious
+           at a glance. The library's own rules are in css/juicebox.scss. */
         .hic-root-targeted {
-            outline: 3px dashed #3a8ab4;
-            outline-offset: -3px;
+            outline: 4px dashed #3a8ab4;
+            outline-offset: -4px;
+        }
+
+        .hic-root-target-anchor {
+            border-color: #3a8ab4;
         }
 
         #panels {
@@ -68,7 +72,8 @@
     <b>Shift-click a panel's navbar</b> to put it in the target set; <b>plain-click</b>
     a navbar to clear the set and make that panel current. The current panel is always
     targeted, so with nothing shift-clicked a load behaves exactly as it does today.
-    Dashed outline = targeted; solid border = current.
+    Dark solid border = current, no aim; blue solid border = the first shift-click,
+    which is both current and the head of the aim; blue dashed outline = aimed at.
 </p>
 
 <p class="note">

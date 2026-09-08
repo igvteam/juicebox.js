@@ -70,6 +70,13 @@ function add(name, options) {
 
 const isTargeted = browser => browser.rootElement.classList.contains('hic-root-targeted')
 
+// The head of an aim: current *and* explicitly targeted. Carries its own class
+// so a first shift-click does not look like a plain click.
+const isAnchor = browser => browser.rootElement.classList.contains('hic-root-target-anchor')
+
+// Aimed at, however it is drawn.
+const isBadged = browser => isTargeted(browser) || isAnchor(browser)
+
 /**
  * The gesture as a user makes it: shift-click each panel in turn.
  *
@@ -324,13 +331,32 @@ describe('BrowserTargetChange', () => {
         const b = add('b', {genomeId: 'hg38'})
         aim(a, b)
 
-        expect(isTargeted(a)).toBe(true)
+        // The anchor and the rest of the aim are drawn differently: `a` is the
+        // browser the widgets read *and* the head of the set, `b` is only aimed
+        // at.
+        expect(isAnchor(a)).toBe(true)
+        expect(isTargeted(a)).toBe(false)
         expect(isTargeted(b)).toBe(true)
+        expect(isAnchor(b)).toBe(false)
         expect(a.rootElement.classList.contains('hic-root-selected')).toBe(true)
         expect(b.rootElement.classList.contains('hic-root-selected')).toBe(false)
 
         registry.retarget(a)
-        expect(isTargeted(b)).toBe(false)
+        expect(isBadged(a)).toBe(false)
+        expect(isBadged(b)).toBe(false)
+    })
+
+    it('does not badge a plain selection, which is a set of one', () => {
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+
+        registry.retarget(b)
+
+        // `b` is targeted -- the current browser always is -- but implicitly,
+        // and an implicit set of one is just a selection.
+        expect(registry.targetedBrowsers).toEqual([b])
+        expect(isBadged(b)).toBe(false)
+        expect(isBadged(a)).toBe(false)
     })
 })
 
@@ -345,7 +371,7 @@ describe('the target set through a lifecycle', () => {
         registry.delete(b)
 
         expect(registry.targetedBrowsers).toEqual([a])
-        expect(isTargeted(b)).toBe(false)
+        expect(isBadged(b)).toBe(false)
         expect(events.length).toBe(1)
         expect(events[0].data.targetedBrowsers).toEqual([a])
     })

@@ -329,18 +329,64 @@ class BrowserRegistry {
                 const before = this.#announceBefore
                 const after = this.targetedBrowsers
 
+                // Repainted every time, not only when the set changed: the
+                // *shape* of the set can change while its membership does not
+                // -- the anchor is whichever targeted browser is also current,
+                // and a selection moving inside the set moves the badge
+                // without adding or removing a member.
+                this.#paintTargetBadges(before)
+
                 if (before.length !== after.length || after.some((browser, i) => browser !== before[i])) {
-
-                    for (const browser of before) {
-                        browser.rootElement?.classList.remove('hic-root-targeted')
-                    }
-                    for (const browser of after) {
-                        browser.rootElement?.classList.add('hic-root-targeted')
-                    }
-
                     EventBus.globalBus.post(HICEvent("BrowserTargetChange", {registry: this, targetedBrowsers: after}))
                 }
             }
+        }
+    }
+
+    /**
+     * Put the target-set badges on the panels, and take them off the ones that
+     * no longer carry them.
+     *
+     * Three appearances, because a user has to tell three states apart at a
+     * glance -- the plain selection, the browser an aim *starts* from, and the
+     * rest of the aim:
+     *
+     * - plain click, no aim: the selected border only (grey). The current
+     *   browser is implicitly targeted, but a set of one is just a selection
+     *   and badging it would make every panel look aimed at.
+     * - the anchor -- current *and* explicitly targeted, i.e. the first
+     *   shift-click: `hic-root-target-anchor`, which recolors the selected
+     *   border blue. Solid, because it is still the browser the widgets read.
+     * - every later shift-click: `hic-root-targeted`, the dashed blue outline.
+     *
+     * Reads `#targeted` rather than `targetedBrowsers` on purpose: the getter
+     * folds the implicit current browser in, and the distinction being drawn
+     * here is exactly the one it folds away.
+     *
+     * @param {Array} departed - browsers that were in the set before the
+     *   mutation. Painted too, so one that has since left the registry -- a
+     *   delete, a reset's teardown -- has its badge taken off rather than
+     *   keeping it on a detached element that may yet be reused.
+     */
+    #paintTargetBadges(departed = []) {
+
+        for (const browser of new Set([...departed, ...this.browsers])) {
+
+            const classList = browser.rootElement?.classList
+
+            if (undefined === classList) {
+                continue
+            }
+
+            const explicit = this.#targeted.has(browser)
+            const anchor = explicit && browser === this.currentBrowser
+
+            // add/remove rather than the two-argument `toggle`: the class list
+            // is the one DOM surface the registry touches, and this keeps the
+            // fakes the tests build to the two methods every other call here
+            // already uses.
+            classList[anchor ? 'add' : 'remove']('hic-root-target-anchor')
+            classList[explicit && !anchor ? 'add' : 'remove']('hic-root-targeted')
         }
     }
 
