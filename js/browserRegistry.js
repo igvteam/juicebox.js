@@ -347,6 +347,19 @@ class BrowserRegistry {
         } finally {
             if (0 === --this.#announceDepth) {
 
+                // An aim needs something to aim *between*: with fewer than two
+                // browsers the explicit set says nothing the selection does not
+                // already say, and drawing the anchor on a lone panel tells the
+                // user they are in a multi-select that has no second member.
+                // Both routes into that state end here -- a shift-click on the
+                // only panel, and deletes whittling an aim down to one -- so
+                // this is the one place it is refused. The *resolved* set is
+                // unchanged either way (the current browser is targeted
+                // implicitly), so this drops a badge, never a target. #621.
+                if (this.browsers.length < 2) {
+                    this.#targeted.clear()
+                }
+
                 const before = this.#announceBefore
                 const after = this.targetedBrowsers
 

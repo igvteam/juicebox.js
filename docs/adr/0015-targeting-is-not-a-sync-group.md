@@ -135,6 +135,15 @@ the publication.
 | browser added | does **not** join — a panel just created was not part of the aim the user set up |
 | `browser.reset()` | **survives** |
 | session restore | cleared; never serialized |
+| fewer than two browsers left | **lapses** — an explicit set of one is just a selection |
+
+The last row is enforced in one place, `#announce`, because both routes into it
+end there: a shift-click on the only panel, and deletes whittling an aim down to
+its last member. Neither should leave the user looking at the anchor border of a
+multi-select that has no second member. It costs nothing, because the *resolved*
+set is `[currentBrowser]` either way — what lapses is the badge, not a target —
+and an aim of one that later gains a neighbour does not come back: adding a panel
+must not resurrect an aim the user can no longer see. #621.
 
 The reset row is the one that diverges from the sync group, and on purpose: sync
 membership is a *rule* that gets recomputed, so losing it costs nothing; targeting

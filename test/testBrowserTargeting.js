@@ -361,6 +361,24 @@ describe('BrowserTargetChange', () => {
         expect(isBadged(b)).toBe(false)
     })
 
+    it('is not started by a shift-click on the only browser there is', () => {
+        // An aim needs something to aim between. A user who shift-clicks a lone
+        // panel -- or absent-mindedly holds shift after deleting their way down
+        // to one -- should not be shown the anchor border for a multi-select
+        // with no second member. #621.
+        const a = add('a', {genomeId: 'hg38'})
+        events.length = 0
+
+        registry.toggleTarget(a)
+
+        expect(registry.isTargetedExplicitly(a)).toBe(false)
+        expect(isBadged(a)).toBe(false)
+        // Still current, still the resolved set: the badge went, not the target.
+        expect(registry.currentBrowser).toBe(a)
+        expect(registry.targetedBrowsers).toEqual([a])
+        expect(events).toEqual([])
+    })
+
     it('does not badge a plain selection, which is a set of one', () => {
         const a = add('a', {genomeId: 'hg38'})
         const b = add('b', {genomeId: 'hg38'})
@@ -389,6 +407,27 @@ describe('the target set through a lifecycle', () => {
         expect(isBadged(b)).toBe(false)
         expect(events.length).toBe(1)
         expect(events[0].data.targetedBrowsers).toEqual([a])
+
+        // And the survivor stops being drawn as the head of an aim: what is
+        // left is one browser, which is a plain selection. #621.
+        expect(registry.isTargetedExplicitly(a)).toBe(false)
+        expect(isBadged(a)).toBe(false)
+    })
+
+    it('comes back once a second browser arrives, an aim of one having lapsed', () => {
+        // The lapse is not a punishment: adding a panel must not be the thing
+        // that resurrects an aim the user can no longer see, so the survivor
+        // starts plain and the next shift-click begins a fresh aim.
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        aim(a, b)
+        registry.delete(b)
+
+        const c = add('c', {genomeId: 'hg38'})
+
+        expect(registry.targetedBrowsers).toEqual([c])
+        expect(isBadged(a)).toBe(false)
+        expect(isBadged(c)).toBe(false)
     })
 
     it('does not let a deleted browser back in through a new one taking its place', () => {
