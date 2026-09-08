@@ -111,10 +111,10 @@ House style, from the existing releases:
 Two repos, each its own PR off a feature branch. Both pin
 `"juicebox.js": "github:aidenlab/juicebox.js#v<version>"`.
 
-| Repo | Path | Branch | Section | Source dir |
-|---|---|---|---|---|
-| juicebox-web | `../juicebox-web` | `master` | `devDependencies` | `js/` |
-| spacewalk | `../../SpacewalkDevelopment/spacewalk` | `main` | `dependencies` | `src/` |
+| Repo | Path | Branch | Section | Source dir | `package-lock.json` |
+|---|---|---|---|---|---|
+| juicebox-web | `../juicebox-web` | `master` | `devDependencies` | `js/` | **tracked — commit it** |
+| spacewalk | `../../SpacewalkDevelopment/spacewalk` | `main` | `dependencies` | `src/` | gitignored |
 
 Spacewalk is **not** a sibling of this repo — it lives under
 `SpacewalkDevelopment/`, and its source is `src/`, not `js/`.
@@ -123,8 +123,20 @@ Spacewalk is **not** a sibling of this repo — it lives under
 drifted to `#master` before and is on `#master` as this is written, which makes
 the bump a re-pin rather than a version bump.
 
-`package-lock.json` is gitignored in both consumers, so each bump PR is a
-one-line `package.json` change.
+**The two repos treat `package-lock.json` differently**, so the two bump PRs are
+not the same shape. Spacewalk gitignores it and its PR is a one-line
+`package.json` change. **juicebox-web tracks it** — the lockfile carries the
+resolved tag and commit, and leaving it out of the PR means merging a
+`package.json` that disagrees with the lockfile beside it. Stage both there.
+
+Check rather than remember: `git ls-files --error-unmatch package-lock.json`.
+
+**Check the consumer's working tree before branching.** These are working repos
+and a bump lands in the middle of whatever was already in progress there —
+juicebox-web had an unrelated dependency edit uncommitted when v4.3.0 was cut.
+`git stash push -- package.json package-lock.json`, branch, bump, then pop it
+back on the base branch. A `git add -A` in a consumer sweeps someone else's work
+into a release PR.
 
 ## The traps
 
