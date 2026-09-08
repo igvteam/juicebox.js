@@ -201,7 +201,7 @@
   margin: 4px;
   background-color: white;
   border-style: solid;
-  border-width: 2px;
+  border-width: 3px;
   border-color: #bfbfbf;
 }
 
@@ -1304,8 +1304,17 @@ div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollb
    class and a second visual, not the selected border -- a user still needs to
    see at a glance which panel the widgets are reading. */
 .hic-root-targeted {
-  outline: 2px dashed #3a8ab4;
-  outline-offset: -2px;
+  outline: 3px dashed #3a8ab4;
+  outline-offset: -3px;
+}
+
+/* The browser the aim starts from: current *and* explicitly targeted. Blue
+   rather than the plain selected grey, so the first shift-click reads as the
+   head of a target set rather than as an ordinary selection. Declared after
+   `.hic-root-selected` -- an anchor carries both classes and equal
+   specificity, so source order decides the color. */
+.hic-root-target-anchor {
+  border-color: #3a8ab4;
 }
 
 .unselect {

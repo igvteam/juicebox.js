@@ -93,16 +93,30 @@ same aim do not move the selection, so the origin stays where the user put it.
 Shift-clicking the current browser remains a no-op in everything observable — the
 resolved set and the event are unchanged — and internally it starts the aim.
 
-**4b. The badge ships in the library, not in the harness.** `hic-root-targeted`
-is applied by the registry, beside `hic-root-selected`, and styled in
-`css/juicebox.scss`. The gesture that sets a target set is library-side —
-shift-click is bound in `layoutController` — so its feedback has to be, or every
-host would have to reimplement the same outline to stop the gesture from looking
-broken. It is a *second* class and a second visual deliberately: the selected
-border keeps meaning what it means, because a user still needs to see at a glance
-which panel the widgets are reading. The three states are current (which is also
-targeted), targeted, and neither. `dev/multi-browser-targeting.html` overrides the
-rule with a louder one; that is a harness decision, not the library's.
+**4b. The badges ship in the library, not in the harness.** `hic-root-targeted`
+and `hic-root-target-anchor` are applied by the registry, beside
+`hic-root-selected`, and styled in `css/juicebox.scss`. The gesture that sets a
+target set is library-side — shift-click is bound in `layoutController` — so its
+feedback has to be, or every host would have to reimplement the same outline to
+stop the gesture from looking broken. They are *separate* classes and separate
+visuals deliberately: the selected border keeps meaning what it means, because a
+user still needs to see at a glance which panel the widgets are reading.
+
+Four appearances, because the first shift-click must not look like a plain click:
+
+| state | appearance |
+| --- | --- |
+| unselected | grey border |
+| selected, no aim | dark border |
+| the anchor — current *and* explicitly targeted, i.e. the first shift-click | blue border |
+| aimed at, not current | blue dashed outline |
+
+The current browser is targeted implicitly, but an implicit set of one is just a
+selection, so it carries no badge — only an *explicit* target wears one. Borders
+are a pixel thicker than before across every state so the color reads at a
+glance; the width lives on `.hic-root` itself, not on the state classes, so
+selecting a panel cannot resize it. `dev/multi-browser-targeting.html` overrides
+the rules with louder ones; that is a harness decision, not the library's.
 
 **5. Skip, do not throw.** A target with no dataset, or on a genome other than the
 **originating** browser's, is skipped and reported as skipped. Tracks carry no
