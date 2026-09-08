@@ -259,6 +259,31 @@ describe('BrowserRegistry', () => {
             expect(selectEvents).toHaveLength(0)
         })
 
+        it('cannot be re-selected once deleted, so a stray click leaves a survivor current', () => {
+            // The delete button sits inside the navbar whose click handler
+            // selects, and the propagation path is fixed when the click is
+            // dispatched -- so a click that deletes used to go on and
+            // `retarget` the browser it had just disposed. The result was a
+            // registry whose current browser was a zombie and whose panels all
+            // looked unselected. `js/layoutController.js` stops the click; this
+            // is the registry refusing the gesture whatever the DOM does. #619.
+            const a = fakeBrowser('a')
+            const b = fakeBrowser('b')
+            registry.add(a)
+            registry.add(b)
+            registry.select(b)
+            selectEvents.length = 0
+
+            registry.delete(b)
+            registry.retarget(b)
+            registry.select(b)
+
+            expect(registry.currentBrowser).toBe(a)
+            expect(isSelected(a)).toBe(true)
+            expect(isSelected(b)).toBe(false)
+            expect(selectEvents.map(e => e.data)).toEqual([a])
+        })
+
         it('leaves selection undefined once deleting empties the registry', () => {
             const a = fakeBrowser('a')
             registry.add(a)

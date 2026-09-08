@@ -262,6 +262,21 @@ describe('the target set', () => {
         expect(registry.isTargetedExplicitly(stranger)).toBe(false)
     })
 
+    it('is left alone by a plain click on a browser this registry does not own', () => {
+        // The other half of the delete-button bug: the stray click both
+        // re-selected the corpse and, through `retarget`, wiped the aim. #619.
+        const a = add('a', {genomeId: 'hg38'})
+        const b = add('b', {genomeId: 'hg38'})
+        registry.toggleTarget(a)
+        registry.toggleTarget(b)
+
+        const stranger = fakeBrowser('stranger', {genomeId: 'hg38'})
+        registry.retarget(stranger)
+
+        expect(registry.targetedBrowsers).toEqual([a, b])
+        expect(registry.currentBrowser).toBe(a)
+    })
+
     it('is cleared by a plain click on the browser that is already current', () => {
         // The case a "clear only on a real transition" rule would miss: the
         // user has aimed at three panels and clicks the one the widgets are
