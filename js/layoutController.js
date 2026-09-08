@@ -319,7 +319,17 @@ function createNavBar(browser, root) {
     browser.menuPresentDismiss.addEventListener('click', e => browser.toggleMenu());
 
     browser.browserPanelDeleteButton = hicNavbarContainer.querySelector('.fa-minus-circle');
-    browser.browserPanelDeleteButton.addEventListener('click', e => deleteBrowser(browser));
+
+    // Stopped here, and it is load-bearing: this button is *inside* the navbar
+    // whose click handler selects. The propagation path is computed when the
+    // click is dispatched, so removing `rootElement` mid-dispatch does not take
+    // the navbar out of it -- the same click would go on to `retarget` the
+    // browser that has just disposed, undoing the selection `releaseSlot` fell
+    // through to a survivor and making a zombie current. #619.
+    browser.browserPanelDeleteButton.addEventListener('click', e => {
+        e.stopPropagation();
+        deleteBrowser(browser);
+    });
 
     // Delete button is only visible if there is more than one browser
     browser.browserPanelDeleteButton.style.display = 'none';

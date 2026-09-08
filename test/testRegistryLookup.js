@@ -213,6 +213,10 @@ describe('the zero-argument getters', () => {
         const [one, two] = twoRegistries()
         const a = fakeBrowser('a', one)
         const b = fakeBrowser('b', two)
+        // Registered, not merely back-pointed: a registry only selects browsers
+        // it owns, which is what keeps a deleted one from becoming current.
+        one.register(a)
+        two.register(b)
 
         setCurrentBrowser(a)
         expect(getCurrentBrowser()).toBe(a)
@@ -241,6 +245,7 @@ describe('the zero-argument getters', () => {
         // page-wide pointer is what names the registry to clear.
         const [one] = twoRegistries()
         const a = fakeBrowser('a', one)
+        one.register(a)
 
         setCurrentBrowser(a)
         setCurrentBrowser(undefined)
@@ -261,6 +266,8 @@ describe('the zero-argument getters', () => {
         const [one, two] = twoRegistries()
         const a = fakeBrowser('a', one)
         const b = fakeBrowser('b', two)
+        one.register(a)
+        two.register(b)
 
         setCurrentBrowser(a)
         setCurrentBrowser(b)

@@ -138,12 +138,26 @@ class BrowserRegistry {
      * Make `browser` the current one, or clear the selection when given
      * `undefined`. Posts `BrowserSelect` only on a real transition to a
      * browser, which is the contract juicebox-web subscribes to.
+     *
+     * A browser this registry does not own is ignored, not an error -- see
+     * `#select`.
      */
     select(browser) {
         this.#announce(() => this.#select(browser))
     }
 
     #select(browser) {
+
+        // A browser this registry does not own -- one already deleted, above
+        // all -- can never become current. The membership check is here rather
+        // than only at the callers because this is the one door: `select`,
+        // `retarget`, `toggleTarget` and `releaseSlot` all come through it, and
+        // the invariant *the current browser is one of `browsers`* should not
+        // depend on each of them remembering. A stray click that lands after a
+        // delete is the case that made this necessary. #619.
+        if (browser !== undefined && !this.browsers.includes(browser)) {
+            return
+        }
 
         if (browser === undefined) {
             if (mostRecentlySelectedBrowser === this.currentBrowser) {
@@ -281,6 +295,13 @@ class BrowserRegistry {
      * the user set up.
      */
     retarget(browser) {
+
+        // Early, as in `toggleTarget`: a plain click on a browser this registry
+        // does not own should not clear the aim either. #619.
+        if (!this.browsers.includes(browser)) {
+            return
+        }
+
         this.#announce(() => {
             this.#targeted.clear()
             this.#select(browser)
@@ -325,6 +346,19 @@ class BrowserRegistry {
             mutate()
         } finally {
             if (0 === --this.#announceDepth) {
+
+                // An aim needs something to aim *between*: with fewer than two
+                // browsers the explicit set says nothing the selection does not
+                // already say, and drawing the anchor on a lone panel tells the
+                // user they are in a multi-select that has no second member.
+                // Both routes into that state end here -- a shift-click on the
+                // only panel, and deletes whittling an aim down to one -- so
+                // this is the one place it is refused. The *resolved* set is
+                // unchanged either way (the current browser is targeted
+                // implicitly), so this drops a badge, never a target. #621.
+                if (this.browsers.length < 2) {
+                    this.#targeted.clear()
+                }
 
                 const before = this.#announceBefore
                 const after = this.targetedBrowsers
