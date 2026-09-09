@@ -126,7 +126,11 @@ _Avoid_: browser session, browser context, embed.
 
 **Sync group** — the set of browsers a browser publishes its canonical state to.
 Membership is a rule rather than a container: a browser joins when it has not
-opted out and its dataset is compatible with the other's. What travels the group
+opted out and its dataset is compatible with the other's — *compatible* meaning
+the two chromosome tables share enough named chromosomes, at agreeing sizes, to
+be the same assembly (`Dataset.compareChromosomes`), not that the tables are
+identical. A subset `.hic` therefore joins, and the per-state question is left to
+`canResolveSyncState`. What travels the group
 is canonical state and, by deliberate exception, view preferences — never dataset
 choices. See `docs/adr/0014`. Dataset choices reach several browsers by the other
 mechanism, the **target set** — `docs/adr/0015`.
@@ -139,6 +143,10 @@ chromosomes differently and offer a different resolution array. A projection
 Membership decides who is handed one; whether a particular one can be acted on
 is a separate question, because a receiver's genome need not know every name a
 peer can publish — `canResolveSyncState` in `js/syncGroup.js`, issue #605.
+Both refusals — no compatible peer, and a peer state naming a chromosome this
+map lacks — are reported to the host as **`onSyncRefused`** rather than dropped
+silently (#626). It is a notification, not a repair: both refusals are correct,
+and what was missing was any way to tell that one had happened.
 _Avoid_: sync payload, target state.
 
 **Target set** — the browsers a *load* reaches: the ones the user has

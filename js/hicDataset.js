@@ -166,22 +166,53 @@ class Dataset {
     }
 
     /**
-     * Compare chromosomes with another dataset
+     * Do these two maps describe the same assembly?
+     *
+     * Compares the chromosomes the two tables **share**, by name. Until #626 it
+     * compared them positionally and demanded the tables be the same length,
+     * which made the rule "byte-identical chromosome table" rather than "same
+     * assembly": one extra scaffold, or the same scaffolds in another order, and
+     * two maps of the same genome did not pair. `Dataset.isCompatible` hides
+     * that for hg19/hg38/mm10 by short-circuiting on the genome id, so what the
+     * old rule actually governed was every *other* assembly -- including mm9 and
+     * dm6, which `matchGenome` below canonicalizes but `isCompatible` does not
+     * list. Two dm6 maps from different pipelines never synced. #626.
+     *
+     * A **name shared with a different size** is the disqualifying evidence: it
+     * says these are different assemblies wearing the same labels, which is
+     * exactly how hg19 and hg38 differ. A name present on one side only is not
+     * evidence either way -- a subset `.hic` is an ordinary artifact -- so it is
+     * skipped rather than counted against the pair.
+     *
+     * The threshold mirrors `matchGenome`'s own four-chromosome line, relaxed to
+     * the smaller table so that a subset map still pairs when every real
+     * chromosome it carries is accounted for. Pairing a subset is deliberate:
+     * `canResolveSyncState` (`syncGroup.js`) is what declines the individual
+     * states it cannot place, and it is a per-state question, not a per-pair one.
+     *
+     * `All` is excluded. It is a zoom rung, not a chromosome (ADR-0010), and its
+     * size is in kb besides, so comparing it compares two different units.
+     *
      * @param {Dataset} otherDataset - Other dataset to compare
-     * @returns {boolean} True if chromosomes match
+     * @returns {boolean} True if both maps look like the same assembly
      */
     compareChromosomes(otherDataset) {
-        const chrs = this.chromosomes;
-        const otherChrs = otherDataset.chromosomes;
-        if (chrs.length !== otherChrs.length) {
-            return false;
+
+        const real = chromosomes => (chromosomes || []).filter(c => 'all' !== c.name.toLowerCase());
+
+        const mine = real(this.chromosomes);
+        const theirs = real(otherDataset?.chromosomes);
+        const theirSizeByName = new Map(theirs.map(c => [c.name.toLowerCase(), c.size]));
+
+        let shared = 0;
+        for (const chromosome of mine) {
+            const size = theirSizeByName.get(chromosome.name.toLowerCase());
+            if (undefined === size) continue;
+            if (size !== chromosome.size) return false;
+            shared++;
         }
-        for (let i = 0; i < chrs.length; i++) {
-            if (chrs[i].size !== otherChrs[i].size) {
-                return false;
-            }
-        }
-        return true;
+
+        return shared > 0 && shared >= Math.min(4, mine.length, theirs.length);
     }
 
     /**

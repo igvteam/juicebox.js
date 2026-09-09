@@ -310,7 +310,8 @@ export const COORDINATOR_CALLBACKS = [
     'onLocusChange',
     'onGenomeChange',
     'onBackgroundColorChange',
-    'onForegroundColorChange'
+    'onForegroundColorChange',
+    'onSyncRefused'
 ]
 
 /**
