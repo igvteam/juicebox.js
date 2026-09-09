@@ -307,7 +307,12 @@ in, one stage further down. There are four, and they are branches rather than
 published methods: `dataLoader.loadHicFile` walks a three-**rung** ladder — a
 config-level `locus`, a `state` token, and the `State.default()` fallback — and
 `dataLoader.loadLiveContactMap` is a fourth door walking its own copy of the
-middle of that ladder. Only two rungs reach `browser.setState`.
+middle of that ladder. All four reach `browser.setState`, the chokepoint: the
+`locus` rung reaches it with `State.default()` and *then* lets `parseGotoInput`
+move the browser, which is why the state a door hands over is never the state in
+force afterwards and why `onMapLoaded` reads its state back off the browser
+(#558). Until #559 the `locus` rung went to `parseGotoInput` without reaching the
+chokepoint at all, and ending that is ADR-0009 decision 1.
 `test/testRestoreGolden.js` snapshots all four (#557). There was a fifth, a
 `config.synchState` rung, deleted by #566: it was unreachable, and the job it
 was written for in 2017 had been taken over by the sync step at the end of a
