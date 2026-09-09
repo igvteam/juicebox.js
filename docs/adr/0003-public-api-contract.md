@@ -141,9 +141,11 @@ These are contract too, and are easy to miss because they are one dot further ou
   incomplete within a week.
 - `coordinator.addCallback(name, fn)` — Spacewalk registers `onMapLoaded`,
   `onBackgroundColorChange` and `onForegroundColorChange`. The coordinator accepts
-  **six** names and throws on anything else, so all six are published behaviour;
-  `onControlMapLoaded`, `onLocusChange` and `onGenomeChange` are registerable and
-  currently unused.
+  **seven** names and throws on anything else, so all seven are published
+  behaviour; `onControlMapLoaded`, `onLocusChange`, `onGenomeChange` and
+  `onSyncRefused` are registerable and currently unused. `onSyncRefused` was
+  added by #626 and is the one of the seven that reports a *non-event*: a panel
+  that did not follow its sibling, and which rule declined it.
 - `dataset.isLive`, `activeDataset.isLive` — Spacewalk
 
 **Event payloads are contract too.** juicebox-web's `TrackXYPairLoad` /

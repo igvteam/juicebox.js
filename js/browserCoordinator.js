@@ -58,7 +58,8 @@ class BrowserCoordinator {
             onLocusChange: [],
             onGenomeChange: [],
             onBackgroundColorChange: [],
-            onForegroundColorChange: []
+            onForegroundColorChange: [],
+            onSyncRefused: []
         };
     }
 
@@ -380,6 +381,35 @@ class BrowserCoordinator {
             if (this.browser.state) {
                 this.widgets.normalizationWidget.announceSubstitution(reason, this.browser.state);
             }
+        }
+    }
+
+    /**
+     * Report that this browser did not follow a sibling panel, and why.
+     *
+     * A pure notification: nothing here changes what is drawn. Both refusals it
+     * carries are *correct* -- a map cannot be panned to a chromosome it does
+     * not contain, and two unrelated assemblies should not sync -- so there is
+     * nothing to repair. What was wrong until #626 is that both were silent, and
+     * a host watching two panels drift apart had no way to learn which of the
+     * two rules had fired, or that a rule had fired at all.
+     *
+     * No widget surface, which is the difference from `onNormalizationSubstituted`
+     * next door. ADR-0012 put a substitution on the normalization selector
+     * because a selector is *already* displaying the value that got substituted;
+     * a refused sync has no such control to contradict, and inventing a badge for
+     * it would be new UI answering a question hosts have not asked yet. The
+     * `console.warn` is the developer-facing half and the callback is the host
+     * facing half; either can grow a surface later without moving this call.
+     *
+     * @param {Object} detail
+     * @param {string} detail.reason - `'no-compatible-peer'` or `'unresolved-chromosome'`
+     * @param {string} detail.message - The same thing in a sentence
+     */
+    onSyncRefused(detail) {
+        console.warn(`juicebox: panel not synced -- ${detail.message}`);
+        for (const callback of this.externalCallbacks.onSyncRefused) {
+            callback({ ...detail, browser: this.browser });
         }
     }
 

@@ -1284,7 +1284,23 @@ class HICBrowser {
      * it -- see the comment there.
      */
     async syncState(targetState) {
-        if (!targetState || !isSynchable(this) || !this.state || !canResolveSyncState(this.genome, targetState)) {
+        if (!targetState || !isSynchable(this) || !this.state) {
+            return;
+        }
+
+        // Reported rather than dropped since #626. The other three conditions
+        // above stay silent on purpose: two are "nothing to sync yet" and the
+        // third is the host's own `synchable: false`, which it does not need
+        // telling about. This one is the surprise -- the pair is legitimate, the
+        // panels are side by side, and only this particular state cannot cross.
+        if (!canResolveSyncState(this.genome, targetState)) {
+            this.coordinator.onSyncRefused({
+                reason: 'unresolved-chromosome',
+                message: `this map has no ${[targetState.chr1Name, targetState.chr2Name].join(' / ')}`,
+                chr1Name: targetState.chr1Name,
+                chr2Name: targetState.chr2Name,
+                genomeId: this.dataset?.genomeId
+            });
             return;
         }
 

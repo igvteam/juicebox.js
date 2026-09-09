@@ -218,6 +218,19 @@ class DataLoader {
             );
             if (peer) {
                 await this.browser.syncState(peer.getSyncState());
+            } else {
+                // Only worth reporting when there was in fact something to pair
+                // with. A first panel loading into an empty registry finds no
+                // peer and that is not a refusal, it is an empty room. #626.
+                const others = registry.browsers.filter(b => b !== this.browser && b.dataset);
+                if (others.length > 0) {
+                    this.browser.coordinator.onSyncRefused({
+                        reason: 'no-compatible-peer',
+                        message: `no open panel holds a compatible map (this is ${this.browser.dataset.genomeId}, the others are ${others.map(b => b.dataset.genomeId).join(', ')})`,
+                        genomeId: this.browser.dataset.genomeId,
+                        peerGenomeIds: others.map(b => b.dataset.genomeId)
+                    });
+                }
             }
 
             return dataset;
