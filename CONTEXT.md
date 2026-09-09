@@ -311,7 +311,9 @@ middle of that ladder. Only two rungs reach `browser.setState`.
 `test/testRestoreGolden.js` snapshots all four (#557). There was a fifth, a
 `config.synchState` rung, deleted by #566: it was unreachable, and the job it
 was written for in 2017 had been taken over by the sync step at the end of a
-load.
+load. That closing step, and everything else `loadHicFile` does once the state
+has landed, is dark to any suite built on `test/utils/stubbedLoads.js`, which
+stubs `loadHicFile` whole — see the header there, and #628.
 
 A **stated viewport** is a `{width, height}` a fixture declares rather than
 measures. The test environment is `node`, JSDOM is opt-in per suite and does no

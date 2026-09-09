@@ -143,20 +143,26 @@ function buildDataset(chrs, config) {
         // The shipping method short-circuits on three known genome-id pairs
         // (hg19/GRCh37, hg38/GRCh38, mm10/GRCm38) and otherwise falls to
         // `compareChromosomes`, which compares the chromosomes two tables share
-        // (#626). This is a bare id comparison: on this fixture, same id always
-        // pairs and every other pair is refused.
+        // (#626). This is a bare id comparison: on this fixture, same id is
+        // always compatible and every other pairing is refused.
         //
         // That is the right answer for the suites here -- they are about the
-        // restore ladder, and want a pairing rule that is one line of a test's
-        // own arithmetic rather than the assembly question. It is the wrong
-        // answer for anyone whose subject *is* the pairing rule: a test standing
-        // on this fixture is testing this override, not `isCompatible`, and will
-        // pass for maps the shipping rule refuses. #626 was two such defects,
-        // and no suite on this fixture could have caught either.
+        // restore ladder, and want a compatibility rule that is one line of a
+        // test's own arithmetic rather than the assembly question. It is the
+        // wrong answer for anyone whose subject *is* the compatibility rule: a
+        // test standing on this fixture is testing this override, not
+        // `isCompatible`, and it errs in both directions -- it will pair maps
+        // the shipping rule refuses, and refuse maps it pairs, hg19 against
+        // GRCh37 among them. That second direction is #626's cause A, which no
+        // suite on this fixture could have caught.
         //
-        // A pairing-rule test builds on the real `Dataset.prototype` instead --
+        // A compatibility-rule test builds on the real `Dataset.prototype` --
         // see `test/testSyncOnLoad.js`, which does exactly that and is why the
-        // bug was visible at all. #628.
+        // bug was visible at all. It cannot be done from here: this fixture is a
+        // plain object literal on no prototype, and the file imports nothing on
+        // purpose (see `datasetModule` below), so there is no real method to
+        // fall through to. Deleting the override is not an option -- made to
+        // throw, it takes 48 tests across eight suites down. #628.
         isCompatible(other) {
             return other?.genomeId === this.genomeId
         },

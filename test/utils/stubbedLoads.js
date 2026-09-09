@@ -23,16 +23,24 @@ import {restoreDataset} from './restoreDataset.js'
  * records, so a two-chromosome stand-in with no `getMatrix` is not a dataset
  * this path can be driven against at all.
  *
- * **What stubbing `loadHicFile` whole makes dark.** The replacement below runs
- * the first two rungs and stops. Everything the real `loadHicFile` does after
- * the state lands -- the norm-vector branch, `registry.sync()`, the peer search
- * and the sync-on-load call that closes it -- is not executed by any suite that
- * stands on this fixture. That block ran unexercised until #626, whose two
- * defects both lived in it. A test whose subject is anything past the state
- * chokepoint has to move the seam one step out, to `Dataset.loadDataset`, and
- * let the ladder run for real: `restoreDataset.js`'s header is the #557 case for
- * doing so, and `test/testSyncOnLoad.js` is the sync case. Choosing this fixture
- * for such a test is choosing to not run the code under test. #628.
+ * **What stubbing `loadHicFile` whole makes dark.** The replacement below is the
+ * `config.state` rung and nothing else: it does not branch, so a config carrying
+ * `config.locus` falls to `decodeState(undefined)`, which is `State.default()`,
+ * and the locus is never parsed -- the real ladder's `parseGotoInput` rung does
+ * not run here at all. And everything the real
+ * `loadHicFile` does *after* the state lands is simply absent --
+ * `coordinator.onMapLoaded`, the norm-vector branch, `registry.sync()`, the peer
+ * search and the sync-on-load call that closes the method. No suite standing on
+ * this fixture executes any of it.
+ *
+ * That tail ran unexercised until #626, and both of #626's causes were reached
+ * through it (the defect itself was in `compareChromosomes`; the second cause
+ * was `canResolveSyncState` refusing correctly but silently). A test whose
+ * subject is anything past the state chokepoint has to move the seam one step
+ * out, to `Dataset.loadDataset`, and let the ladder run for real:
+ * `restoreDataset.js`'s header is the #557 case for doing so, and
+ * `test/testSyncOnLoad.js` is the sync case. Choosing this fixture for such a
+ * test is choosing to not run the code under test. #628.
  *
  * The two update paths are stubbed for the same reason `browserFixture` stubs
  * the 2D context: what a session carries is state, and every route out of a
