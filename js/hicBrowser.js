@@ -1280,9 +1280,7 @@ class HICBrowser {
      * The second half of the gate is `canResolveSyncState`, also from
      * `syncGroup.js`: a state naming a chromosome this browser's genome cannot
      * place is skipped rather than carried into `State.sync`, which would throw
-     * on it (#605). Since #632 it is an assert -- pairing already requires
-     * two-way chromosome parity, so it cannot fire unless that rule is wrong.
-     * See the comment there and ADR-0016 decision 5.
+     * on it (#605). An assert since #632 -- see the comment there.
      */
     async syncState(targetState) {
         if (!targetState || !isSynchable(this) || !this.state) {

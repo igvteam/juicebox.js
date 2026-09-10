@@ -29,11 +29,13 @@ const DM6 = {genomeId: 'dm6', rows: [
     ['chr2L', 23513712], ['chr2R', 25286936], ['chr3L', 28110227], ['chr3R', 32079331], ['chrX', 23542271],
 ]}
 
-/** hg19 as another pipeline writes it: no `chr` prefix, `MT` for the mitochondrion, upper case. */
+/** hg19 as another pipeline writes it: no `chr` prefix, and `MT` for the mitochondrion. */
 const HG19_M = [...HG19, ['chrM', 16571]]
 const HG19_UCSC = {genomeId: 'hg19', rows: HG19_M}
 const HG19_ENSEMBL = {genomeId: 'GRCh37', rows: HG19_M.map(([name, size]) =>
-    ['chrM' === name ? 'MT' : name.substring(3).toUpperCase(), size])}
+    ['chrM' === name ? 'MT' : name.substring(3), size])}
+/** hg19 with its names capitalized: `Chr1`, `ChrX`, `ChrM`. */
+const HG19_CAPITALIZED = {genomeId: 'hg19', rows: HG19_M.map(([name, size]) => ['C' + name.substring(1), size])}
 
 /** Each browser's partners, by panel order, so a failure names who holds whom. */
 function membership(browsers) {
@@ -99,16 +101,18 @@ describe('panels pair only on two-way chromosome parity', () => {
         expect(membership(browsers)).toEqual([[2], [3], [0], [1]])
     })
 
-    it('pairs maps whose names differ by chr prefix, MT/chrM and case, and syncs on load', async () => {
-        serveMaps([HG19_UCSC, HG19_ENSEMBL])
-        const a = await createBrowser(dom.container, {url: url('ucsc')})
-        await a.setState(new State(2, 2, 5, 7, 9, 1, 'NONE'))
-        const b = await createBrowser(dom.container, {url: url('ensembl')})
+    for (const [label, other] of [['chr prefix and MT/chrM', HG19_ENSEMBL], ['case', HG19_CAPITALIZED]]) {
+        it(`pairs maps whose names differ by ${label}, and syncs on load`, async () => {
+            serveMaps([HG19_UCSC, other])
+            const a = await createBrowser(dom.container, {url: url('ucsc')})
+            await a.setState(new State(2, 2, 5, 7, 9, 1, 'NONE'))
+            const b = await createBrowser(dom.container, {url: url('other')})
 
-        expect(membership([a, b])).toEqual([[1], [0]])
-        expect(b.state.chr1).toBe(2)
-        expect(b.state.zoom).toBe(5)
-    })
+            expect(membership([a, b])).toEqual([[1], [0]])
+            expect(b.state.chr1).toBe(2)
+            expect(b.state.zoom).toBe(5)
+        })
+    }
 
     it('brings a panel joining a group on load to its peer\'s current view', async () => {
         serveMaps([WHOLE_HG19, WHOLE_HG19])

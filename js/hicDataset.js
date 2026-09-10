@@ -206,10 +206,8 @@ class Dataset {
      */
     compareChromosomes(otherDataset) {
 
-        const real = chromosomes => (chromosomes || []).filter(c => 'all' !== c.name.toLowerCase());
-
-        const mine = real(this.chromosomes);
-        const theirs = real(otherDataset?.chromosomes);
+        const mine = realChromosomes(this.chromosomes);
+        const theirs = realChromosomes(otherDataset?.chromosomes);
         const theirSizeByName = new Map(theirs.map(c => [c.name.toLowerCase(), c.size]));
 
         let shared = 0;
@@ -329,8 +327,11 @@ class Dataset {
      *
      * "Can place" is `Genome.getChromosome` over the other map's own table --
      * the lookup `State.sync` dereferences, built from the table the way a load
-     * builds `browser.genome` (`dataLoader.js`). It aliases `1`/`chr1`,
-     * `MT`/`chrM` and the dMel `arm_` names, and matches case-insensitively.
+     * builds `browser.genome` (`dataLoader.js`). It aliases `1`/`chr1` and
+     * `MT`/`chrM`, and matches case-insensitively. Its dMel `arm_` aliasing runs
+     * one way only (`arm_2L` places `chr2L`, not the reverse), so an `arm_`
+     * table does not pair with a `chr` one -- nor did it before, since
+     * `isCompatible` refuses that pair for dm6 on its own.
      * Never compare name sets instead: that is stricter than the lookup and
      * refuses pairs that sync correctly. Decision 3.
      *
@@ -352,9 +353,12 @@ class Dataset {
  */
 function placesEveryChromosome(receiver, sender) {
     const genome = new Genome(receiver.genomeId, receiver.chromosomes || []);
-    return (sender.chromosomes || [])
-        .filter(c => 'all' !== c.name.toLowerCase())
-        .every(c => undefined !== genome.getChromosome(c.name));
+    return realChromosomes(sender.chromosomes).every(c => undefined !== genome.getChromosome(c.name));
+}
+
+/** A chromosome table without `All`, which is a zoom rung and not a chromosome (ADR-0010). */
+function realChromosomes(chromosomes) {
+    return (chromosomes || []).filter(c => 'all' !== c.name.toLowerCase());
 }
 
 /**
