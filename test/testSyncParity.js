@@ -6,7 +6,7 @@ import {createBrowser} from '../js/createBrowser.js'
 import {withContainers} from './utils/browserFixture.js'
 import State from '../js/hicState.js'
 import BrowserCoordinator from '../js/browserCoordinator.js'
-import {HG19, WHOLE_HG19, serveMaps} from './utils/servedMaps.js'
+import {HG19, HG38 as HG38_ROWS, DM6 as DM6_ROWS, WHOLE_HG19, ensemblNames, serveMaps} from './utils/servedMaps.js'
 
 /**
  * Two panels pair only if they can follow each other everywhere: same assembly
@@ -22,18 +22,13 @@ import {HG19, WHOLE_HG19, serveMaps} from './utils/servedMaps.js'
 const url = name => `https://example.com/${name}.hic`
 
 const SUBSET_HG19 = {genomeId: 'hg19', rows: HG19.slice(0, 1)}          // All + chr1 only
-const HG38 = {genomeId: 'hg38', rows: [
-    ['chr1', 248956422], ['chr2', 242193529], ['chr3', 198295559], ['chr4', 190214555],
-]}
-const DM6 = {genomeId: 'dm6', rows: [
-    ['chr2L', 23513712], ['chr2R', 25286936], ['chr3L', 28110227], ['chr3R', 32079331], ['chrX', 23542271],
-]}
+const HG38 = {genomeId: 'hg38', rows: HG38_ROWS}
+const DM6 = {genomeId: 'dm6', rows: DM6_ROWS}
 
-/** hg19 as another pipeline writes it: no `chr` prefix, and `MT` for the mitochondrion. */
+/** hg19 with a mitochondrion, as UCSC and as Ensembl name it. */
 const HG19_M = [...HG19, ['chrM', 16571]]
 const HG19_UCSC = {genomeId: 'hg19', rows: HG19_M}
-const HG19_ENSEMBL = {genomeId: 'GRCh37', rows: HG19_M.map(([name, size]) =>
-    ['chrM' === name ? 'MT' : name.substring(3), size])}
+const HG19_ENSEMBL = {genomeId: 'GRCh37', rows: ensemblNames(HG19_M)}
 /** hg19 with its names capitalized: `Chr1`, `ChrX`, `ChrM`. */
 const HG19_CAPITALIZED = {genomeId: 'hg19', rows: HG19_M.map(([name, size]) => ['C' + name.substring(1), size])}
 

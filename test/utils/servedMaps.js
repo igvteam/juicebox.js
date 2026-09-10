@@ -28,13 +28,33 @@ export const MM10 = [
     ['chr5', 151834684], ['chr6', 149736546], ['chr7', 145441459], ['chr8', 129401213],
 ]
 
+/** hg38, cut to a few autosomes plus `chrX` and `chrM` -- enough to alias. */
+export const HG38 = [
+    ['chr1', 248956422], ['chr2', 242193529], ['chr3', 198295559], ['chr4', 190214555],
+    ['chr5', 181538259], ['chrX', 156040895], ['chrM', 16569],
+]
+
+export const DM6 = [
+    ['chr2L', 23513712], ['chr2R', 25286936], ['chr3L', 28110227], ['chr3R', 32079331], ['chrX', 23542271],
+]
+
 /** A whole-genome map of each assembly -- the ordinary case. */
 export const WHOLE_HG19 = {genomeId: 'hg19', rows: HG19}
 export const WHOLE_MM10 = {genomeId: 'mm10', rows: MM10}
 
+/**
+ * A table as another pipeline names it: no `chr` prefix, and `MT` for the
+ * mitochondrion. Same assembly, different spelling -- what parity has to see
+ * through (ADR-0016 decision 3).
+ */
+export function ensemblNames(rows) {
+    return rows.map(([name, size]) => ['chrM' === name ? 'MT' : name.substring(3), size])
+}
+
 const BP_RESOLUTIONS = [2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000]
 
-function chromosomeTable(rows) {
+/** `rows` as a dataset's chromosome table: `All` at index 0, then each row in order. */
+export function chromosomeTable(rows) {
     const named = rows.map(([name, size], i) => ({index: i + 1, name, size}))
     const all = {index: 0, name: 'All', size: named.reduce((sum, c) => sum + c.size, 0)}
     return [all, ...named]

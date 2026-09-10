@@ -1,5 +1,6 @@
 import {describe, it, expect} from 'vitest'
 import Dataset from '../js/hicDataset.js'
+import {HG19, HG38, chromosomeTable, ensemblNames} from './utils/servedMaps.js'
 
 /**
  * The two predicates ADR-0016 decision 2 separates. `isCompatible` asks "same
@@ -13,18 +14,10 @@ import Dataset from '../js/hicDataset.js'
  */
 
 function dataset(genomeId, rows) {
-    const named = rows.map(([name, size], i) => ({index: i + 1, name, size}))
-    const all = {index: 0, name: 'All', size: named.reduce((sum, c) => sum + c.size, 0)}
-    return Object.assign(Object.create(Dataset.prototype), {genomeId, chromosomes: [all, ...named]})
+    return Object.assign(Object.create(Dataset.prototype), {genomeId, chromosomes: chromosomeTable(rows)})
 }
 
-const HG38 = [
-    ['chr1', 248956422], ['chr2', 242193529], ['chr3', 198295559], ['chr4', 190214555],
-    ['chr5', 181538259], ['chrX', 156040895], ['chrM', 16569],
-]
-
-/** hg38 as another pipeline names it: no `chr` prefix, `MT` for the mitochondrion. */
-const HG38_ENSEMBL = HG38.map(([name, size]) => ['chrM' === name ? 'MT' : name.substring(3), size])
+const HG38_ENSEMBL = ensemblNames(HG38)
 
 /** Both argument orders, so every row of the table also asserts symmetry. */
 function bothWays(a, b) {
@@ -83,11 +76,10 @@ describe('Dataset.canSyncWith', () => {
     })
 
     it('refuses a different assembly even when every name is shared', () => {
-        const HG19 = [
-            ['chr1', 249250621], ['chr2', 243199373], ['chr3', 198022430], ['chr4', 191154276],
-            ['chr5', 180915260], ['chrX', 155270560], ['chrM', 16571],
-        ]
-        expect(bothWays(dataset('hg38', HG38), dataset('hg19', HG19))).toBe(false)
+        // hg19 at hg19's sizes, over exactly hg38's names.
+        const hg19Sizes = new Map([...HG19, ['chrM', 16571]])
+        const sameNames = HG38.map(([name]) => [name, hg19Sizes.get(name)])
+        expect(bothWays(dataset('hg38', HG38), dataset('hg19', sameNames))).toBe(false)
     })
 
     it('is not satisfied by the hg38/GRCh38 genome-id short-circuit alone', () => {
