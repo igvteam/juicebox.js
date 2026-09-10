@@ -83,17 +83,23 @@ isolation that lets two embeds share a page. ADR-0004.
 _Avoid_: browser session, browser context, embed.
 
 **Sync group** — the set of browsers a browser publishes its canonical state to.
-A rule, not a container: a browser joins when it has not opted out and its
-dataset is compatible with the other's — the same assembly, not identical
-chromosome tables. Recomputed wherever the open maps change, never accumulated.
-Carries canonical state and view preferences, never dataset choices. ADR-0014.
+A rule, not a container, and **static**: settled when panels pair, unchanged
+while anyone pans. A browser joins when it has not opted out and its dataset
+`canSyncWith` the other's — the same assembly **and** two-way chromosome parity:
+each map can place every real chromosome the other carries, aliases and case
+aside. So a subset `.hic` does not join a whole-genome group, and groups
+partition the synchable panels. Recomputed wherever the open maps change, never
+accumulated. Carries canonical state and view preferences, never dataset
+choices. ADR-0014, ADR-0016.
 _Avoid_: sync set, linked browsers.
 
 **Sync state** — canonical state as a *peer* reads it: chromosomes by name and a
 bin size rather than a zoom index, because the receiver may order its chromosomes
 and resolutions differently. A projection (`State.getSyncState`), consumed by
-`State.sync`. A refused sync reaches the host as `onSyncRefused` rather than
-being dropped silently. `js/syncGroup.js`.
+`State.sync`. Membership already guarantees the receiver can place it, so the
+one refusal a host sees is a newly loaded panel with no compatible peer,
+reported as `onSyncRefused` rather than dropped silently. `js/syncGroup.js`,
+ADR-0016.
 _Avoid_: sync payload, target state.
 
 **Target set** — the browsers a *load* reaches: the ones the user has aimed at by

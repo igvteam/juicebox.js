@@ -38,6 +38,7 @@ function stubDataset() {
         bpResolutions: [1000, 100],
         datasetType: 'hic',
         isCompatible: () => true,
+        canSyncWith: () => true,
         getChrIndexFromName: name => CHROMOSOMES.find(c => c.name === name)?.index
     }
 }

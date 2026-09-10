@@ -210,11 +210,13 @@ class DataLoader {
 
             // Find a browser to sync with, if any. The opt-out is `syncState`'s
             // own guard, as it was before #562 -- this filter has never looked
-            // at `synchable`.
+            // at `synchable`. `canSyncWith`, the pairing predicate, not the
+            // control-map one below: a peer this panel could not pair with is
+            // not one whose view it should adopt. ADR-0016 decision 2.
             const peer = registry.browsers.find(
                 b => b !== this.browser &&
                      b.dataset &&
-                     b.dataset.isCompatible(this.browser.dataset)
+                     b.dataset.canSyncWith(this.browser.dataset)
             );
             if (peer) {
                 await this.browser.syncState(peer.getSyncState());

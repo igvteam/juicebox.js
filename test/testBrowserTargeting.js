@@ -53,9 +53,9 @@ function fakeBrowser(name, {genomeId} = {}) {
         }
     }
     if (genomeId !== undefined) {
-        // `isCompatible` because the registry recomputes the sync group
-        // whenever a browser arrives or leaves -- #635.
-        browser.dataset = {genomeId, isCompatible: other => other.genomeId === genomeId}
+        // `canSyncWith` because the registry recomputes the sync group
+        // whenever a browser arrives or leaves -- #635, #636.
+        browser.dataset = {genomeId, canSyncWith: other => other.genomeId === genomeId}
         browser.genome = {id: genomeId}
     }
     return browser

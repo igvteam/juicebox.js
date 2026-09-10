@@ -394,6 +394,11 @@ class BrowserCoordinator {
      * a host watching two panels drift apart had no way to learn which of the
      * two rules had fired, or that a rule had fired at all.
      *
+     * Since #632 only the load-time refusal is emitted. Membership is settled
+     * when panels pair (ADR-0016), so a map missing a chromosome its peer
+     * carries never pairs in the first place, and the per-state refusal it used
+     * to produce is now a `console.error` assert in `HICBrowser.syncState`.
+     *
      * No widget surface, which is the difference from `onNormalizationSubstituted`
      * next door. ADR-0012 put a substitution on the normalization selector
      * because a selector is *already* displaying the value that got substituted;
@@ -403,7 +408,9 @@ class BrowserCoordinator {
      * facing half; either can grow a surface later without moving this call.
      *
      * @param {Object} detail
-     * @param {string} detail.reason - `'no-compatible-peer'` or `'unresolved-chromosome'`
+     * @param {string} detail.reason - `'no-compatible-peer'` or `'unresolved-chromosome'`.
+     *   `'unresolved-chromosome'` is no longer emitted since #632; it stays in the
+     *   union so host code that branches on it keeps compiling and running.
      * @param {string} detail.message - The same thing in a sentence
      */
     onSyncRefused(detail) {
