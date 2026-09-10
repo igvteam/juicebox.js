@@ -18,8 +18,9 @@ import {HG19, WHOLE_HG19, WHOLE_MM10, serveMaps} from './utils/servedMaps.js'
  */
 
 const SUBSET_HG19 = {genomeId: 'hg19', rows: HG19.slice(0, 1)}          // All + chr1 only
-const EXTRA_SCAFFOLD = {genomeId: 'hg19_scaffolds', rows: [...HG19, ['scaffold_7', 12345]]}
-const PLAIN_HG19 = {genomeId: 'hg19_no_alt', rows: HG19}
+const SCAFFOLD = ['scaffold_7', 12345]
+const EXTRA_SCAFFOLD = {genomeId: 'hg19_scaffolds', rows: [...HG19, SCAFFOLD]}
+const PLAIN_HG19 = {genomeId: 'hg19_no_alt', rows: [SCAFFOLD, ...HG19]}   // scaffold first
 /** A map binned no finer than 100kb -- a low-coverage or coarse .hic. */
 const COARSE_HG19 = {genomeId: 'hg19', rows: HG19, resolutions: [2500000, 1000000, 500000, 250000, 100000]}
 
@@ -58,19 +59,19 @@ describe('a second panel loading a map syncs to the first panel', () => {
         expect(b.state.zoom).toBe(5)
     })
 
-    it('syncs when the second map is a chr1-only subset and panel 1 sits on chr1', async () => {
-        const [, b] = await twoPanels(dom.container, WHOLE_HG19, SUBSET_HG19, new State(1, 1, 5, 7, 9, 1, 'NONE'))
-        expect(b.state.chr1).toBe(1)
-        expect(b.state.chr2).toBe(1)
-    })
-
     it('syncs two maps of one assembly whose chromosome tables differ', async () => {
         // #626. Both are hg19, but neither id is one `isCompatible`
-        // short-circuits on and one carries an extra scaffold, so the pair used
-        // to fall to `compareChromosomes`' byte-identical rule and be refused.
+        // short-circuits on and the two list their chromosomes in different
+        // orders, so the pair used to fall to `compareChromosomes`'
+        // byte-identical rule and be refused. Both carry the scaffold: one
+        // carried by only one side is a coverage mismatch, and since #632 that
+        // does not pair (ADR-0016).
         const [a, b] = await twoPanels(dom.container, PLAIN_HG19, EXTRA_SCAFFOLD, MOVED())
-        expect(a.state.chr1).toBe(2)
-        expect(b.state.chr1).toBe(2)
+        // By name: the scaffold leads one table, so the indices differ.
+        const nameAt = (browser, index) => browser.dataset.chromosomes[index].name
+        expect(nameAt(a, a.state.chr1)).toBe('chr1')
+        expect(nameAt(b, b.state.chr1)).toBe('chr1')
+        expect(nameAt(b, b.state.chr2)).toBe('chr1')
         expect(b.state.x).toBe(7)
         expect(b.state.y).toBe(9)
     })
@@ -118,17 +119,18 @@ describe('a panel that cannot follow its sibling says so', () => {
         return [a, b, refusals]
     }
 
-    it('reports the chromosome the second map does not have', async () => {
-        // The guard itself is correct and stays: chr2 cannot be shown on a map
-        // that stops at chr1. What #626 adds is that the host is told.
+    it('reports a subset map beside a whole-genome one as having no peer, once, on load', async () => {
+        // Until #632 these paired, and every state naming a chromosome the
+        // subset lacks was refused one at a time as `'unresolved-chromosome'`.
+        // Now the pair never forms, so the refusal is the load-time one, and
+        // `'unresolved-chromosome'` is not emitted at all.
         const [, b, refusals] = await loadAndWatch(
             dom.container, WHOLE_HG19, SUBSET_HG19, new State(2, 2, 5, 7, 9, 1, 'NONE'))
 
         expect(b.state.chr1).not.toBe(2)
         expect(refusals).toHaveLength(1)
-        expect(refusals[0].reason).toBe('unresolved-chromosome')
-        expect(refusals[0].chr1Name).toBe('chr2')
-        expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('chr2'))
+        expect(refusals[0].reason).toBe('no-compatible-peer')
+        expect(refusals.some(detail => detail.reason === 'unresolved-chromosome')).toBe(false)
     })
 
     it('reports a peer whose map is a different assembly', async () => {
@@ -161,12 +163,12 @@ describe('a panel that cannot follow its sibling says so', () => {
 
         const received = []
         const unsubscribe = browser.coordinator.addCallback('onSyncRefused', detail => received.push(detail))
-        browser.coordinator.onSyncRefused({reason: 'unresolved-chromosome', message: 'no chrZ'})
+        browser.coordinator.onSyncRefused({reason: 'no-compatible-peer', message: 'no peer'})
         unsubscribe()
-        browser.coordinator.onSyncRefused({reason: 'unresolved-chromosome', message: 'ignored'})
+        browser.coordinator.onSyncRefused({reason: 'no-compatible-peer', message: 'ignored'})
 
         expect(received).toHaveLength(1)
-        expect(received[0].reason).toBe('unresolved-chromosome')
+        expect(received[0].reason).toBe('no-compatible-peer')
         expect(received[0].browser).toBe(browser)
     })
 

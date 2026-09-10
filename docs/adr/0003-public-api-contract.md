@@ -145,7 +145,10 @@ These are contract too, and are easy to miss because they are one dot further ou
   behaviour; `onControlMapLoaded`, `onLocusChange`, `onGenomeChange` and
   `onSyncRefused` are registerable and currently unused. `onSyncRefused` was
   added by #626 and is the one of the seven that reports a *non-event*: a panel
-  that did not follow its sibling, and which rule declined it.
+  that did not follow its sibling, and why. Since #632 only one of its two
+  `reason` values is emitted (`'no-compatible-peer'`, on load); the other,
+  `'unresolved-chromosome'`, stays in the payload contract so host code that
+  branches on it keeps working. ADR-0016.
 - `dataset.isLive`, `activeDataset.isLive` — Spacewalk
 
 **Event payloads are contract too.** juicebox-web's `TrackXYPairLoad` /

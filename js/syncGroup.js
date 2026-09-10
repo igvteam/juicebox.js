@@ -23,9 +23,15 @@ function isSynchable(browser) {
  * later be one call over a concatenated array.
  *
  * A browser joins the group only if it has not opted out (`synchable === false`)
- * and has a dataset to sync. Each surviving combination is tested once rather
- * than in both orders, which `Dataset.isCompatible` permits: it compares genome
- * ids and chromosome sizes, so it is symmetric.
+ * and has a dataset to sync. Two such browsers pair when `Dataset.canSyncWith`
+ * says their maps can follow each other -- same assembly and two-way chromosome
+ * parity (ADR-0016 decisions 2-4). Not `isCompatible`: that is the control-map
+ * question, and it pairs a subset map with a whole-genome one.
+ *
+ * Each surviving combination is tested once rather than in both orders. That
+ * relies on `canSyncWith` being symmetric, which it is by construction: parity
+ * is checked in both directions. It is an equivalence relation besides, so the
+ * pairs this returns are the complete graphs of disjoint groups -- a partition.
  *
  * @param {Array} browsers
  * @returns {Array<Array>} each compatible pair once, as `[a, b]`
@@ -38,7 +44,7 @@ function pairSynchable(browsers) {
     for (let i = 0; i < synchableBrowsers.length; i++) {
         for (let j = i + 1; j < synchableBrowsers.length; j++) {
             const [a, b] = [synchableBrowsers[i], synchableBrowsers[j]]
-            if (a !== b && a.dataset.isCompatible(b.dataset)) {
+            if (a !== b && a.dataset.canSyncWith(b.dataset)) {
                 pairs.push([a, b])
             }
         }
@@ -50,11 +56,14 @@ function pairSynchable(browsers) {
 /**
  * Can this genome place both chromosomes a sync state names?
  *
- * Deliberately *not* part of `isSynchable`. Membership is a property of the two
- * browsers -- have they opted out, do they have maps -- and holds across every
- * state they exchange; this is a property of one particular state, and a pair
- * that legitimately syncs can still fail on a single publication. Folding it
- * into the membership rule would change who pairs, not just who syncs.
+ * A defensive assert since #632, not a decision. Pairing now requires two-way
+ * chromosome parity (`Dataset.canSyncWith`, ADR-0016), and every state a peer
+ * publishes names chromosomes from the peer's own table, so a paired browser can
+ * place it by construction. Unreachable, then -- and kept, for two reasons: it
+ * is the guard #605 added against a real TypeError, and an unreachable guard
+ * that fires is the cheapest detector of a bug in the pairing rule. That is why
+ * `HICBrowser.syncState` answers it with `console.error` rather than a message
+ * to the host: the user cannot cause it, so only we can.
  *
  * Asked of the **genome** because the genome is what `State.sync` consumes: it
  * dereferences `genome.getChromosome(name).index`, and a name it cannot resolve
@@ -64,12 +73,14 @@ function pairSynchable(browsers) {
  * guarding: the genome aliases `1` to `chr1` and `MT` to `chrM`, and matches
  * case-insensitively. Guarding with the stricter expression would refuse peer
  * states that sync correctly today, trading a rare throw for a routine false
- * negative. What this admits is exactly what `State.sync` can use.
+ * negative. What this admits is exactly what `State.sync` can use -- and it is
+ * the same lookup `canSyncWith` decides parity with, which is what makes this
+ * unreachable rather than merely unlikely.
  *
- * Reachable because `Dataset.isCompatible` short-circuits to `true` on a known
- * genome-id pair without comparing chromosomes at all, so a subset `.hic`
- * labelled `hg38` pairs with a whole-genome one and is then published names it
- * does not have.
+ * It was reachable until #632, because pairing asked `Dataset.isCompatible`,
+ * which short-circuits to `true` on a known genome-id pair without comparing
+ * chromosomes at all: a subset `.hic` labelled `hg38` paired with a whole-genome
+ * one and was then published names it did not have.
  *
  * @param {Object} genome - the receiving browser's genome
  * @param {Object} syncState - as `State.getSyncState` publishes it

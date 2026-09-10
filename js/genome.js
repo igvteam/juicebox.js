@@ -72,7 +72,7 @@ class Genome {
                 const alias = name.startsWith("chr") ? name.substring(3) : "chr" + name;
                 chrAliasTable[alias] = name;
                 if (name === "chrM") chrAliasTable["MT"] = "chrM";
-                if (name === "MT") chrAliasTable["chrmM"] = "MT";
+                if (name === "MT") chrAliasTable["chrM"] = "MT";
             }
             this.chromosomeLookupTable[name.toLowerCase()] = chromosome;
         }

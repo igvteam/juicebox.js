@@ -65,7 +65,8 @@ function fakeBrowser(name, {dataset, synchable} = {}) {
 function fakeDataset(genomeId) {
     return {
         genomeId,
-        isCompatible: other => other.genomeId === genomeId
+        isCompatible: other => other.genomeId === genomeId,
+        canSyncWith: other => other.genomeId === genomeId
     }
 }
 

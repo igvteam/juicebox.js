@@ -30,7 +30,8 @@ function stubDataset() {
             { name: 'chr1', size: 1000, index: 1 }
         ],
         datasetType: 'hic',
-        isCompatible: () => false
+        isCompatible: () => false,
+        canSyncWith: () => false
     }
 }
 
