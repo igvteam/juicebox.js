@@ -425,3 +425,50 @@ mechanism earned its declaration is worth asking out loud.
 named in `js/publicApi.js` and pinned by `test/testTargetGroup.js`, which is the
 `#471` lesson applied in advance: a host branching on a spelling nobody declared
 is the failure, so the spellings are declared.
+
+## Re-measurement — 2026-09-10, for the v4.4.0 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+Measured against `juicebox.js` at `bump-version-4.4.0`, `juicebox-web` `master`
+(pinned to `#v4.3.0`) and `spacewalk` at `bump-juicebox-4.3.0` — the branch of
+its still-open v4.3.0 bump PR (spacewalk #91), whose only difference from `main`
+is the pin.
+
+**Result: nothing undeclared in use, in either consumer.** Third release running.
+
+### The v4.3.0 re-check: two of the four target-set names now have a caller
+
+The previous section asked that the four target-set names be re-checked here.
+juicebox-web's track menu landed (juicebox-web #81, *Send track loads to every
+targeted browser*) and calls **`loadTracksIntoTargets`** and
+**`targetedBrowsers`** from `js/trackLoad.js`. Those two are now ordinary members
+with a caller, and the question of whether the mechanism earned its declaration
+is answered.
+
+The other two — **`toggleTarget`** and the **`BrowserTargetChange`** event —
+still have no consumer caller. That is not the same reading as before. The
+gesture that toggles a target is library chrome, so a host never needs to call
+`toggleTarget` to get a target set (`js/layoutController.js` calls it); and
+juicebox-web reads the set at the moment a gesture needs it rather than
+subscribing to changes. Both are host-optional surface, and zero
+call sites is a stable reading for them, not a pending one.
+
+### The new declared name: `onSyncRefused`
+
+v4.4.0 adds one name to `COORDINATOR_CALLBACKS`, `onSyncRefused` (#626,
+ADR-0016). **No consumer registers it**, which is expected: it is new, and a
+host only needs it to put the refusal reason into its own UI — the library's own
+isolation mark (#637) already shows it on the panel. As with the target set in
+v4.3.0, zero call sites is the expected reading and is not evidence it is dead.
+
+`js/publicApi.js` also names, as deliberately *undeclared*, `isolationMark`,
+`setIsolationReason` and `dataset.missingChromosomes`. The measurement finds no
+consumer reaching for any of the three.
+
+### Consequence
+
+**Nothing was required of the release.** The payload's two `reason` spellings,
+`'no-compatible-peer'` and `'unresolved-chromosome'`, are declared above,
+including the one no longer emitted since #632, so a host that branches on
+either keeps working.
