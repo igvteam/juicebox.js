@@ -8,14 +8,20 @@ import Genome from '../js/genome.js'
  * `pairSynchable` is the rule alone: given browsers, which of them should sync
  * with which. It reads no module state and touches no DOM, so the browsers here
  * are fabricated objects carrying only what the rule reads -- a `synchable`
- * flag and a `dataset` that can answer `isCompatible`.
+ * flag and a `dataset` that can answer `canSyncWith`, the sync predicate
+ * (ADR-0016 decision 2). `isCompatible` is the control-map predicate and the
+ * rule must not read it: the fake answers it with the opposite of `canSyncWith`
+ * so that a rule reading the wrong one fails here.
  */
 
 function fakeDataset(genomeId) {
     return {
         genomeId,
-        isCompatible(other) {
+        canSyncWith(other) {
             return other.genomeId === genomeId
+        },
+        isCompatible(other) {
+            return other.genomeId !== genomeId
         }
     }
 }
@@ -85,6 +91,28 @@ describe('pairSynchable', () => {
         const empty = fakeBrowser('empty')
 
         expect(pairSynchable([a, other, b, optedOut, empty, c])).toEqual([[a, b], [a, c], [b, c]])
+    })
+
+    it('yields a partition: every browser in exactly one group, each group fully paired', () => {
+        // `canSyncWith` is an equivalence relation, so the pairs are the
+        // complete graphs of disjoint groups -- "which group is this panel in"
+        // has one answer. ADR-0016 decision 4.
+        const browsers = ['hg38', 'dm6', 'hg38', 'mm10', 'dm6', 'hg38']
+            .map((genomeId, i) => fakeBrowser(`${genomeId}-${i}`, {dataset: fakeDataset(genomeId)}))
+
+        const partners = new Map(browsers.map(b => [b, new Set([b])]))
+        for (const [a, b] of pairSynchable(browsers)) {
+            partners.get(a).add(b)
+            partners.get(b).add(a)
+        }
+
+        const groups = new Set([...partners.values()].map(group => [...group].map(b => b.name).sort().join(' ')))
+        expect([...groups].sort()).toEqual(['dm6-1 dm6-4', 'hg38-0 hg38-2 hg38-5', 'mm10-3'])
+        for (const browser of browsers) {
+            for (const peer of partners.get(browser)) {
+                expect(partners.get(peer)).toEqual(partners.get(browser))
+            }
+        }
     })
 })
 

@@ -125,30 +125,37 @@ isolation that lets two embeds coexist on a page — see `docs/adr/0004`.
 _Avoid_: browser session, browser context, embed.
 
 **Sync group** — the set of browsers a browser publishes its canonical state to.
-Membership is a rule rather than a container: a browser joins when it has not
-opted out and its dataset is compatible with the other's — *compatible* meaning
-the two chromosome tables share enough named chromosomes, at agreeing sizes, to
-be the same assembly (`Dataset.compareChromosomes`), not that the tables are
-identical. A subset `.hic` therefore joins, and the per-state question is left to
-`canResolveSyncState`. Being a rule, it is derived afresh — `registry.sync()` —
-wherever the open maps change: a load, a failed load, a browser arriving or
-leaving, a restore. It is never accumulated (#635). What travels the group
-is canonical state and, by deliberate exception, view preferences — never dataset
-choices. See `docs/adr/0014`. Dataset choices reach several browsers by the other
-mechanism, the **target set** — `docs/adr/0015`.
+Membership is a rule rather than a container, and it is **static**: settled when
+panels pair and unchanged while anyone pans (`docs/adr/0016`). A browser joins
+when it has not opted out and its dataset `canSyncWith` the other's — the same
+assembly (`Dataset.isCompatible`) **and** two-way chromosome parity: each map can
+place every real chromosome the other carries, through the aliasing,
+case-insensitive `Genome.getChromosome` lookup, `All` excluded. Parity is not
+identical tables — `1`/`chr1`, `MT`/`chrM`, case and table order do not matter —
+but a subset `.hic` no longer joins a whole-genome group of the same assembly
+(#632 reverses #627 here). Two-way parity is an equivalence relation, so groups
+are **partitions**: every mapped, synchable panel is in exactly one. Being a
+rule, it is derived afresh — `registry.sync()` — wherever the open maps change:
+a load, a failed load, a browser arriving or leaving, a restore. It is never
+accumulated (#635). What travels the group is canonical state and, by deliberate
+exception, view preferences — never dataset choices. See `docs/adr/0014`.
+Dataset choices reach several browsers by the other mechanism, the **target
+set** — `docs/adr/0015`.
 _Avoid_: sync set, linked browsers.
 
 **Sync state** — canonical state as a *peer* reads it: chromosomes by name and a
 bin size rather than a zoom index, because the receiving browser may order its
 chromosomes differently and offer a different resolution array. A projection
 (`State.getSyncState(dataset)`), consumed by `State.sync` on the other side.
-Membership decides who is handed one; whether a particular one can be acted on
-is a separate question, because a receiver's genome need not know every name a
-peer can publish — `canResolveSyncState` in `js/syncGroup.js`, issue #605.
-Both refusals — no compatible peer, and a peer state naming a chromosome this
-map lacks — are reported to the host as **`onSyncRefused`** rather than dropped
-silently (#626). It is a notification, not a repair: both refusals are correct,
-and what was missing was any way to tell that one had happened.
+Membership decides who is handed one, and since #632 membership already
+guarantees the receiver can place it: per-state resolution is an **assert**, not
+a decision. `canResolveSyncState` in `js/syncGroup.js` (#605) stays as a guard
+that `console.error`s if the pairing rule ever admits a pair it should not have.
+The refusal a host can still see is the load-time one — a newly loaded panel
+with no peer it can sync with while other panels hold maps — reported as
+**`onSyncRefused`** (`'no-compatible-peer'`) rather than dropped silently (#626).
+`'unresolved-chromosome'` stays in that callback's `reason` union but is no
+longer emitted.
 _Avoid_: sync payload, target state.
 
 **Target set** — the browsers a *load* reaches: the ones the user has

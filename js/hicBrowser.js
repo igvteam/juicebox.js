@@ -1279,28 +1279,24 @@ class HICBrowser {
      *
      * The second half of the gate is `canResolveSyncState`, also from
      * `syncGroup.js`: a state naming a chromosome this browser's genome cannot
-     * place is skipped silently rather than carried into `State.sync`, which
-     * would throw on it (#605). It sits beside the membership rule but outside
-     * it -- see the comment there.
+     * place is skipped rather than carried into `State.sync`, which would throw
+     * on it (#605). Since #632 it is an assert -- pairing already requires
+     * two-way chromosome parity, so it cannot fire unless that rule is wrong.
+     * See the comment there and ADR-0016 decision 5.
      */
     async syncState(targetState) {
         if (!targetState || !isSynchable(this) || !this.state) {
             return;
         }
 
-        // Reported rather than dropped since #626. The other three conditions
-        // above stay silent on purpose: two are "nothing to sync yet" and the
-        // third is the host's own `synchable: false`, which it does not need
-        // telling about. This one is the surprise -- the pair is legitimate, the
-        // panels are side by side, and only this particular state cannot cross.
+        // Unreachable by construction since #632: `pairSynchable` admits only
+        // pairs with two-way chromosome parity, so every state a partner
+        // publishes names chromosomes this genome can place. If it fires, the
+        // pairing rule is wrong -- a message for us, on `console.error`, and not
+        // for the host, which `onSyncRefused` carried here until #632 and which
+        // the user can no longer have caused. ADR-0016 decision 5.
         if (!canResolveSyncState(this.genome, targetState)) {
-            this.coordinator.onSyncRefused({
-                reason: 'unresolved-chromosome',
-                message: `this map has no ${[targetState.chr1Name, targetState.chr2Name].join(' / ')}`,
-                chr1Name: targetState.chr1Name,
-                chr2Name: targetState.chr2Name,
-                genomeId: this.dataset?.genomeId
-            });
+            console.error(`juicebox: the sync pairing rule admitted a pair it should not have -- this map has no ${[targetState.chr1Name, targetState.chr2Name].join(' / ')}`);
             return;
         }
 

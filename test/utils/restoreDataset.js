@@ -166,6 +166,17 @@ function buildDataset(chrs, config) {
         isCompatible(other) {
             return other?.genomeId === this.genomeId
         },
+        // Stands in for `Dataset.canSyncWith`, the sync-pairing predicate
+        // (ADR-0016), and carries the caveat above twice over. The shipping
+        // method is `isCompatible` **and** two-way chromosome parity through
+        // `Genome.getChromosome`; this is the same bare id comparison, and
+        // never reads a chromosome table. So a fixture cut down to `All` +
+        // `chr1` still pairs here with a whole-genome one -- exactly the pair
+        // the shipping rule refuses since #632. A test whose subject is who
+        // pairs with whom builds on the real prototype: `testSyncParity.js`.
+        canSyncWith(other) {
+            return other?.genomeId === this.genomeId
+        },
         wholeGenomeChromosome: chrs[0],
         isWholeGenome(chrIndex) {
             return chrIndex === 0

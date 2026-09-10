@@ -30,6 +30,7 @@ import {isFile} from "./fileUtils.js"
 import {getUrlMapper} from "./urlMapper.js"
 import Straw from 'hic-straw'
 import {SENTINEL_ZOOM} from './sentinelZoom.js'
+import Genome from './genome.js'
 
 const knownGenomes = {
 
@@ -185,10 +186,17 @@ class Dataset {
      * skipped rather than counted against the pair.
      *
      * The threshold mirrors `matchGenome`'s own four-chromosome line, relaxed to
-     * the smaller table so that a subset map still pairs when every real
-     * chromosome it carries is accounted for. Pairing a subset is deliberate:
-     * `canResolveSyncState` (`syncGroup.js`) is what declines the individual
-     * states it cannot place, and it is a per-state question, not a per-pair one.
+     * the smaller table so that a subset map still counts as the same assembly
+     * when every real chromosome it carries is accounted for.
+     *
+     * That is the *assembly* answer, and it is right for the control-map load.
+     * It is no longer the sync answer. #627 argued here that pairing a subset
+     * was deliberate, leaving `canResolveSyncState` to decline states one at a
+     * time -- which made a subset panel follow its peer across chr1, stall at
+     * chr8 and resume on the way back. ADR-0016 reverses that: sync pairs on
+     * `canSyncWith`, which adds two-way chromosome parity, so a subset map does
+     * not pair with a whole-genome one. Do not loosen `canSyncWith` back to
+     * this rule; the ADR records why at length.
      *
      * `All` is excluded. It is a zoom rung, not a chromosome (ADR-0010), and its
      * size is in kb besides, so comparing it compares two different units.
@@ -307,6 +315,46 @@ class Dataset {
             ((id1 === "mm10" || id1 === "GRCm38") && (id2 === "mm10" || id2 === "GRCm38")) ||
             this.compareChromosomes(d2)
     }
+
+    /**
+     * Can a panel showing this map and a panel showing the other follow each
+     * other? The sync-pairing question, where `isCompatible` above is the
+     * control-map one. ADR-0016 decision 2.
+     *
+     * Same assembly -- exactly `isCompatible` -- **and** two-way chromosome
+     * parity: every real chromosome on each side is one the other side can
+     * place. `isCompatible` alone is not enough, because it short-circuits on
+     * hg38/hg19/mm10 without reading the tables, and that is the right answer
+     * for a control map and the wrong one for a sync partner.
+     *
+     * "Can place" is `Genome.getChromosome` over the other map's own table --
+     * the lookup `State.sync` dereferences, built from the table the way a load
+     * builds `browser.genome` (`dataLoader.js`). It aliases `1`/`chr1`,
+     * `MT`/`chrM` and the dMel `arm_` names, and matches case-insensitively.
+     * Never compare name sets instead: that is stricter than the lookup and
+     * refuses pairs that sync correctly. Decision 3.
+     *
+     * Checked in both directions, so the answer is symmetric and a subset map
+     * does not pair with a whole-genome one (decision 4). `All` is skipped on
+     * both sides (ADR-0010).
+     *
+     * @param {Dataset} other
+     * @returns {boolean}
+     */
+    canSyncWith(other) {
+        return this.isCompatible(other) && placesEveryChromosome(this, other) && placesEveryChromosome(other, this);
+    }
+}
+
+/**
+ * Can `receiver`'s genome lookup place every real chromosome `sender` carries?
+ * One direction of `Dataset.canSyncWith`'s parity.
+ */
+function placesEveryChromosome(receiver, sender) {
+    const genome = new Genome(receiver.genomeId, receiver.chromosomes || []);
+    return (sender.chromosomes || [])
+        .filter(c => 'all' !== c.name.toLowerCase())
+        .every(c => undefined !== genome.getChromosome(c.name));
 }
 
 /**
