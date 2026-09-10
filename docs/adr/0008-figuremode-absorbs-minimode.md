@@ -93,5 +93,5 @@ because truthiness is what `HICBrowser` applied.
   in that file's authorised-movements table. It is the only *behavioural*
   movement in #536; the rest of that ticket's snapshot diff is fields appearing
   in the resolved config because a default moved up into it.
-- The resolved-config schema in `CONTEXT.md` records the rule, and this ADR is
+- The resolved-config schema in `docs/config-schema.md` records the rule, and this ADR is
   what it points at for the reasoning.

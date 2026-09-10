@@ -21,8 +21,8 @@
  * #536 closed the stage: the readers below the seam stopped defaulting, and the
  * defaults they held came up here rather than being deleted -- `synchable`, the
  * background colour, `miniMode` as a spelling of `figureMode`, and `cycle` as a
- * display mode. What a resolved config carries is written down in `CONTEXT.md`
- * under *Resolved config*; this module is the executable copy of it.
+ * display mode. What a resolved config carries is written down in
+ * `docs/config-schema.md`; this module is the executable copy of it.
  *
  * ## Session-level and browser-level, in that order
  *

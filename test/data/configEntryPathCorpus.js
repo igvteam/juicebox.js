@@ -4,7 +4,7 @@
  *
  * Candidate 9 is "give the config schema one reader". There is one now:
  * `normalizeSession` (`js/normalizeSession.js`, #532–#536), reached once per
- * session at the entry, with `CONTEXT.md` recording in prose what it resolves a
+ * session at the entry, with `docs/config-schema.md` recording in prose what it resolves a
  * config to. When these fixtures were written there were four normalizers and
  * which of them a config met depended on the door it came in through; #533 moved
  * the last of the decoder's normalization behind the shared stage, #534 collapsed

@@ -282,7 +282,7 @@ class HICBrowser {
             // dataset's, so the question cannot be asked before the load. It
             // falls back to `NONE` rather than rejecting -- a saved link naming
             // a normalization this map does not carry still opens. Recorded in
-            // CONTEXT.md as a load-stage rule, not part of the resolved schema.
+            // docs/config-schema.md as a load-stage rule, not part of the resolved schema.
             //
             // The rule itself lives in `#resolveNormalization` and
             // is spelled out once (#561, ADR-0009 decision 5). It used to be
