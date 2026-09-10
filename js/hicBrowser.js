@@ -1314,6 +1314,23 @@ class HICBrowser {
         this.coordinator.onLocusChange(eventData);
     }
 
+    /**
+     * Show why this panel cannot join any sync group, or -- given `undefined`
+     * -- that it can. The isolation mark beside the contact-map label; the
+     * reason is its tooltip. ADR-0016 decisions 7-8, #637.
+     *
+     * Internal: the registry calls it right after recomputing membership, with
+     * what `isolationReasons` in `syncGroup.js` decided, and nothing else does.
+     * That is what keeps the mark still while the user pans -- it moves only
+     * when the open maps do.
+     *
+     * @param {string|undefined} reason
+     */
+    setIsolationReason(reason) {
+        this.isolationMark.hidden = undefined === reason;
+        this.isolationMark.title = reason ?? '';
+    }
+
     setNormalization(normalization) {
         if (this.#state) {
             this.#state.normalization = normalization;

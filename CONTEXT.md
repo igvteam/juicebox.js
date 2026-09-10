@@ -102,6 +102,15 @@ reported as `onSyncRefused` rather than dropped silently. `js/syncGroup.js`,
 ADR-0016.
 _Avoid_: sync payload, target state.
 
+**Isolation mark** — the quiet mark in a panel's navbar, beside the contact-map
+label, on a panel holding a map that belongs to no sync group; its tooltip says
+why (different assembly, mismatched coverage, or `synchable: false`). It shows
+**isolation, never membership**: a panel with a partner is unmarked, whichever
+group it is in. The **empty room** is exempt — fewer than two mapped panels mark
+nothing. Moves only when the open maps change, never while anyone pans.
+`isolationReasons` in `js/syncGroup.js`, ADR-0016 decisions 7–8.
+_Avoid_: sync badge, unsynced indicator.
+
 **Target set** — the browsers a *load* reaches: the ones the user has aimed at by
 shift-clicking their navbars, plus the current browser. Its members are
 **targeted browsers**. Not a sync group: membership is an explicit gesture, the

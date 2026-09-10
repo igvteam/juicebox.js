@@ -1,14 +1,13 @@
 # ADR-0016 — Sync membership is static: settled at pair time, never per state
 
-**Status:** Proposed — accept when #632 lands. The decision is made; the code it
-describes is not written yet, and this file should not read as Accepted before it is.
+**Status:** Accepted — #632 landed as #635, #636 and #637.
 
 **Date:** 2026-09-10
 **Related:** #632 (the work), #626 / #627 (the refusal this reverses in part),
 #605 (`canResolveSyncState`, the guard being demoted), ADR-0014 (what crosses a
 sync group), ADR-0015 (targeting is not a sync group — the mechanism this is
 *not*), ADR-0010 (`All` is a zoom rung), ADR-0003 (public API contract),
-`CONTEXT.md` (*Sync group*, *Sync state*), `js/syncGroup.js`, `js/hicDataset.js`
+`CONTEXT.md` (*Sync group*, *Sync state*, *Isolation mark*), `js/syncGroup.js`, `js/hicDataset.js`
 
 ## Context
 
@@ -137,8 +136,9 @@ the map label, non-dismissible, reason in the `title`.
 | `synchable: false` | yes — "sync is disabled for this panel" |
 | the only panel open | **no** |
 
-The last row is the empty room, not a refusal, and `dataLoader.js:222` already
-draws exactly this line. Marking it would put a permanent badge on the most common
+The last row is the empty room, not a refusal — the line the load-time refusal
+already drew (#626), and which `isolationReasons` in `js/syncGroup.js` now draws
+for both the mark and that refusal. Marking it would put a permanent badge on the most common
 view in the application and teach every user to ignore the mark before they ever
 saw it mean something.
 

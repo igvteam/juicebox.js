@@ -36,6 +36,7 @@ import Track2D from './track2D.js'
 
 import {decodeState} from "./sessionCodec.js"
 import {mapTrackConfig} from "./urlMapper.js"
+import {isolationReasons, isSynchable} from "./syncGroup.js"
 
 /**
  * How this module reports a `config.state` that is neither a state token nor a
@@ -208,27 +209,40 @@ class DataLoader {
 
             registry.sync(); // Sync browsers to ensure all browsers are updated with the new dataset
 
-            // Find a browser to sync with, if any. The opt-out is `syncState`'s
-            // own guard, as it was before #562 -- this filter has never looked
-            // at `synchable`. `canSyncWith`, the pairing predicate, not the
-            // control-map one below: a peer this panel could not pair with is
-            // not one whose view it should adopt. ADR-0016 decision 2.
+            // Find a browser to sync with, if any: one this panel would pair
+            // with, so the pairing rule's two questions -- `isSynchable` and
+            // `canSyncWith` -- and not the control-map predicate below. Until
+            // #637 this filter ignored the *peer's* `synchable`, so a newcomer
+            // adopted the view of an opted-out panel it is in no group with,
+            // and wore the isolation mark while the host heard nothing. This
+            // panel's own opt-out is `syncState`'s guard. ADR-0016 decision 2.
             const peer = registry.browsers.find(
                 b => b !== this.browser &&
-                     b.dataset &&
+                     isSynchable(b) &&
                      b.dataset.canSyncWith(this.browser.dataset)
             );
             if (peer) {
                 await this.browser.syncState(peer.getSyncState());
             } else {
-                // Only worth reporting when there was in fact something to pair
-                // with. A first panel loading into an empty registry finds no
-                // peer and that is not a refusal, it is an empty room. #626.
-                const others = registry.browsers.filter(b => b !== this.browser && b.dataset);
-                if (others.length > 0) {
+                // Reported exactly when the panel wears the isolation mark, and
+                // in its words, so the host's log and the screen agree (#637).
+                // That rule is what stays quiet in the empty room -- a first
+                // panel loading into an empty registry finds no peer and that is
+                // not a refusal (#626) -- and for a panel the host opted out,
+                // which the host needs no telling about even though the person
+                // looking at the screen does.
+                //
+                // Asked over the registry *and* this browser: `createBrowser`
+                // loads before it registers, so a newcomer is not in the list yet.
+                const browsers = registry.browsers.includes(this.browser) ? registry.browsers : [...registry.browsers, this.browser];
+                const reason = isolationReasons(browsers).get(this.browser);
+                if (undefined !== reason && isSynchable(this.browser)) {
+                    // The panels the message is about: the synchable company,
+                    // one id per panel. Opted-out panels are not in it.
+                    const others = registry.browsers.filter(b => b !== this.browser && isSynchable(b));
                     this.browser.coordinator.onSyncRefused({
                         reason: 'no-compatible-peer',
-                        message: `no open panel holds a compatible map (this is ${this.browser.dataset.genomeId}, the others are ${others.map(b => b.dataset.genomeId).join(', ')})`,
+                        message: reason,
                         genomeId: this.browser.dataset.genomeId,
                         peerGenomeIds: others.map(b => b.dataset.genomeId)
                     });

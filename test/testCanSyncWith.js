@@ -122,3 +122,31 @@ describe('Dataset.isCompatible keeps its answers', () => {
         expect(dataset('custom', HG38).isCompatible(dataset('custom', resized))).toBe(false)
     })
 })
+
+/**
+ * The names behind a failed parity check, for the isolation mark's tooltip
+ * (#637). The same lookup `canSyncWith` decides with, so a spelling difference
+ * is never reported as a missing chromosome.
+ */
+describe('Dataset.missingChromosomes', () => {
+
+    it('names what the other map carries and this one cannot place, in the other\'s order', () => {
+        const subset = dataset('hg38', HG38.slice(0, 2))
+        expect(subset.missingChromosomes(dataset('hg38', [...HG38].reverse()))).toEqual(['chrM', 'chrX', 'chr5', 'chr4', 'chr3'])
+    })
+
+    it('is empty when this map is the superset', () => {
+        expect(dataset('hg38', HG38).missingChromosomes(dataset('hg38', HG38.slice(0, 1)))).toEqual([])
+    })
+
+    it('does not count a name this map places through an alias or another case', () => {
+        expect(dataset('hg38', HG38).missingChromosomes(dataset('hg38', HG38_ENSEMBL))).toEqual([])
+        expect(dataset('hg38', HG38).missingChromosomes(dataset('hg38', HG38.map(([n, s]) => [n.toUpperCase(), s])))).toEqual([])
+    })
+
+    it('never names All', () => {
+        const noAll = dataset('hg38', HG38.slice(0, 1))
+        noAll.chromosomes = noAll.chromosomes.slice(1)
+        expect(noAll.missingChromosomes(dataset('hg38', HG38.slice(0, 1)))).toEqual([])
+    })
+})

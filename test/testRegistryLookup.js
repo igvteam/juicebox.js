@@ -62,6 +62,7 @@ function fakeBrowser(name, registry) {
         },
         browserPanelDeleteButton: {style: {display: 'none'}},
         synchedBrowsers: new Set(),
+        setIsolationReason: () => undefined,
         unsyncSelf: () => {
         }
     }

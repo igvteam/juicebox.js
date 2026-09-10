@@ -650,6 +650,16 @@
   line-height: var(--nav-bar-label-height);
   background-color: transparent;
 }
+.hic-navbar-container div[id$=hic-nav-bar-map-container] i.hic-isolation-mark {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  margin-right: auto;
+  color: #b5534b;
+  cursor: default;
+}
+.hic-navbar-container div[id$=hic-nav-bar-map-container] i.hic-isolation-mark[hidden] {
+  display: none;
+}
 .hic-navbar-container div[id$=hic-nav-bar-map-container] .hic-nav-bar-button-container {
   height: 100%;
   display: flex;

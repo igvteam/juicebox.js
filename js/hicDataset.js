@@ -343,17 +343,25 @@ class Dataset {
      * @returns {boolean}
      */
     canSyncWith(other) {
-        return this.isCompatible(other) && placesEveryChromosome(this, other) && placesEveryChromosome(other, this);
+        return this.isCompatible(other) && 0 === this.missingChromosomes(other).length && 0 === other.missingChromosomes(this).length;
     }
-}
 
-/**
- * Can `receiver`'s genome lookup place every real chromosome `sender` carries?
- * One direction of `Dataset.canSyncWith`'s parity.
- */
-function placesEveryChromosome(receiver, sender) {
-    const genome = new Genome(receiver.genomeId, receiver.chromosomes || []);
-    return realChromosomes(sender.chromosomes).every(c => undefined !== genome.getChromosome(c.name));
+    /**
+     * The real chromosomes `other` carries that this map cannot place, by
+     * name, in `other`'s table order. One direction of `canSyncWith`'s parity,
+     * and the names the isolation mark gives when that parity fails (#637) --
+     * so the tooltip and the pairing cannot disagree about what is missing.
+     *
+     * Placed by this map's genome lookup, as `canSyncWith` documents: an alias
+     * or a difference of case is not a missing chromosome. `All` is never one.
+     *
+     * @param {Dataset} other
+     * @returns {Array<string>}
+     */
+    missingChromosomes(other) {
+        const genome = new Genome(this.genomeId, this.chromosomes || []);
+        return realChromosomes(other.chromosomes).filter(c => undefined === genome.getChromosome(c.name)).map(c => c.name);
+    }
 }
 
 /** A chromosome table without `All`, which is a zoom rung and not a chromosome (ADR-0010). */
