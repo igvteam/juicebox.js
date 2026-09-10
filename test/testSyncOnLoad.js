@@ -6,7 +6,7 @@ import {createBrowser} from '../js/createBrowser.js'
 import {withContainers} from './utils/browserFixture.js'
 import State from '../js/hicState.js'
 import BrowserCoordinator from '../js/browserCoordinator.js'
-import {HG19, MM10, serveMaps} from './utils/servedMaps.js'
+import {HG19, WHOLE_HG19, WHOLE_MM10, serveMaps} from './utils/servedMaps.js'
 
 /**
  * The user's scenario, end to end: load a map into a panel, move it, add a
@@ -17,7 +17,6 @@ import {HG19, MM10, serveMaps} from './utils/servedMaps.js'
  * it; see `test/utils/servedMaps.js` for why that is the seam.
  */
 
-const WHOLE_HG19 = {genomeId: 'hg19', rows: HG19}
 const SUBSET_HG19 = {genomeId: 'hg19', rows: HG19.slice(0, 1)}          // All + chr1 only
 const EXTRA_SCAFFOLD = {genomeId: 'hg19_scaffolds', rows: [...HG19, ['scaffold_7', 12345]]}
 const PLAIN_HG19 = {genomeId: 'hg19_no_alt', rows: HG19}
@@ -134,7 +133,7 @@ describe('a panel that cannot follow its sibling says so', () => {
 
     it('reports a peer whose map is a different assembly', async () => {
         const [, , refusals] = await loadAndWatch(
-            dom.container, WHOLE_HG19, {genomeId: 'mm10', rows: MM10}, new State(2, 2, 5, 7, 9, 1, 'NONE'))
+            dom.container, WHOLE_HG19, WHOLE_MM10, new State(2, 2, 5, 7, 9, 1, 'NONE'))
 
         expect(refusals).toHaveLength(1)
         expect(refusals[0].reason).toBe('no-compatible-peer')

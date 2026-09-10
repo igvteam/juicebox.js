@@ -28,6 +28,10 @@ export const MM10 = [
     ['chr5', 151834684], ['chr6', 149736546], ['chr7', 145441459], ['chr8', 129401213],
 ]
 
+/** A whole-genome map of each assembly -- the ordinary case. */
+export const WHOLE_HG19 = {genomeId: 'hg19', rows: HG19}
+export const WHOLE_MM10 = {genomeId: 'mm10', rows: MM10}
+
 const BP_RESOLUTIONS = [2500000, 1000000, 500000, 250000, 100000, 50000, 25000, 10000, 5000]
 
 function chromosomeTable(rows) {
