@@ -256,6 +256,7 @@ function fakeBrowser(name, registry) {
         rootElement: {classList: {add: () => undefined, remove: () => undefined}},
         browserPanelDeleteButton: {style: {display: 'none'}},
         synchedBrowsers: new Set(),
+        setIsolationReason: () => undefined,
         unsyncSelf: () => undefined,
         toJSON: () => ({name})
     }

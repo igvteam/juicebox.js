@@ -41,6 +41,10 @@ function fakeBrowser(name, {dataset, synchable} = {}) {
         rootElement: fakeElement(),
         browserPanelDeleteButton: {style: {display: 'none'}},
         synchedBrowsers: new Set(),
+        isolationReason: undefined,
+        setIsolationReason(reason) {
+            this.isolationReason = reason
+        },
         unsyncSelfCalls: 0,
         unsyncSelf() {
             this.unsyncSelfCalls++

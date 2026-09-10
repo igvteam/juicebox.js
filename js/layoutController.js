@@ -306,6 +306,7 @@ function createNavBar(browser, root) {
     const htmlContactMapHicNavBarMapContainer =
         `<div id="${browser.id}-contact-map-hic-nav-bar-map-container">
             <div id="${browser.id}-contact-map-hic-nav-bar-map-label"></div>
+            <i class="fa fa-chain-broken hic-isolation-mark" hidden></i>
              <div class="hic-nav-bar-button-container">
                 <i class="fa fa-bars fa-lg" title="Present menu"></i>
                 <i class="fa fa-minus-circle fa-lg" title="Delete browser panel" style="display: none;"></i>
@@ -315,6 +316,12 @@ function createNavBar(browser, root) {
     hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlContactMapHicNavBarMapContainer));
 
     browser.contactMapLabel = hicNavbarContainer.querySelector(`div[id$='contact-map-hic-nav-bar-map-label']`);
+
+    // Shown only while this panel cannot join any sync group, with the reason
+    // as its tooltip; the registry sets it (`HICBrowser.setIsolationReason`).
+    // A sibling of the label rather than a child, because a load writes the
+    // label's `textContent`. ADR-0016 decision 7, #637.
+    browser.isolationMark = hicNavbarContainer.querySelector('.hic-isolation-mark');
     browser.menuPresentDismiss = hicNavbarContainer.querySelector('.fa-bars');
     browser.menuPresentDismiss.addEventListener('click', e => browser.toggleMenu());
 

@@ -54,6 +54,97 @@ function pairSynchable(browsers) {
 }
 
 /**
+ * Which browsers cannot join any sync group, and why -- the isolation mark's
+ * rule, as a pure function beside the pairing rule it explains. ADR-0016
+ * decisions 7-8, #637.
+ *
+ * Reads the same things `pairSynchable` does -- `synchable`, `dataset`, and the
+ * dataset's own predicates -- and no DOM or module state, so what a panel shows
+ * is a function of the open maps and nothing else. That is what keeps the mark
+ * still while the user pans.
+ *
+ * It reports **isolation, never membership**: a panel with a partner is never
+ * in the result, whichever group that partner is in. And it reports nothing in
+ * the **empty room** -- fewer than two mapped panels -- because a lone map is
+ * the most common view there is, and a badge on it would teach every user to
+ * ignore the mark before it ever meant something.
+ *
+ * A synchable panel whose only mapped company has opted out is not marked
+ * either. It *is* partnerless, but the opted-out panels' own marks already say
+ * why nothing moves together, and marking both sides would say it twice.
+ *
+ * @param {Array} browsers
+ * @returns {Map<Object, string>} the reason text, for each browser to be marked
+ */
+function isolationReasons(browsers) {
+
+    const mapped = browsers.filter(browser => browser.dataset !== undefined)
+    const reasons = new Map()
+
+    if (mapped.length < 2) {
+        return reasons
+    }
+
+    const synchable = mapped.filter(isSynchable)
+
+    for (const browser of mapped) {
+
+        if (browser.synchable === false) {
+            reasons.set(browser, 'sync is disabled for this panel')
+            continue
+        }
+
+        const others = synchable.filter(other => other !== browser)
+        if (0 === others.length || others.some(other => browser.dataset.canSyncWith(other.dataset))) {
+            continue
+        }
+
+        reasons.set(browser, partnerlessReason(browser.dataset, others.map(other => other.dataset)))
+    }
+
+    return reasons
+}
+
+/**
+ * Why a synchable map pairs with none of `others`: coverage, if any of them is
+ * the same assembly, and the assembly otherwise.
+ *
+ * Coverage is read through `missingChromosomes`, the lookup `canSyncWith`
+ * decides parity with, so the names in the tooltip are exactly the ones that
+ * refused the pair -- `1` and `chr1` are never reported as a difference.
+ */
+function partnerlessReason(dataset, others) {
+
+    const sameAssembly = others.filter(other => dataset.isCompatible(other))
+
+    if (sameAssembly.length > 0) {
+
+        const lacking = union(sameAssembly.map(other => dataset.missingChromosomes(other)))
+        if (lacking.length > 0) {
+            return `this map has no ${firstNames(lacking)} — the other panels do`
+        }
+
+        const surplus = union(sameAssembly.map(other => other.missingChromosomes(dataset)))
+        if (surplus.length > 0) {
+            return `the other panels have no ${firstNames(surplus)} — this map does`
+        }
+    }
+
+    const genomeIds = [...new Set(others.map(other => other.genomeId))]
+    return `no other panel holds a compatible map (this is ${dataset.genomeId}; the others are ${genomeIds.join(', ')})`
+}
+
+/** Names from several lists, each once, in the order they are first met. */
+function union(lists) {
+    return [...new Set(lists.flat())]
+}
+
+/** The first three names, and an ellipsis when there are more. */
+function firstNames(names) {
+    return names.length > 3 ? `${names.slice(0, 3).join(', ')}, …` : names.join(', ')
+}
+
+/**
  * Can this genome place both chromosomes a sync state names?
  *
  * A defensive assert since #632, not a decision. Pairing now requires two-way
@@ -91,4 +182,4 @@ function canResolveSyncState(genome, syncState) {
     return resolves(syncState.chr1Name) && resolves(syncState.chr2Name)
 }
 
-export {pairSynchable, isSynchable, canResolveSyncState}
+export {pairSynchable, isSynchable, isolationReasons, canResolveSyncState}

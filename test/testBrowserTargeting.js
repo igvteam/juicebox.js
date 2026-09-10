@@ -38,6 +38,7 @@ function fakeBrowser(name, {genomeId} = {}) {
         rootElement: fakeElement(),
         browserPanelDeleteButton: {style: {display: 'none'}},
         synchedBrowsers: new Set(),
+        setIsolationReason: () => undefined,
         loadedConfigs: [],
         failing: false,
         unsyncSelf() {},
@@ -54,8 +55,10 @@ function fakeBrowser(name, {genomeId} = {}) {
     }
     if (genomeId !== undefined) {
         // `canSyncWith` because the registry recomputes the sync group
-        // whenever a browser arrives or leaves -- #635, #636.
-        browser.dataset = {genomeId, canSyncWith: other => other.genomeId === genomeId}
+        // whenever a browser arrives or leaves -- #635, #636 -- and
+        // `isCompatible` because it repaints the isolation marks then, which
+        // asks a partnerless panel why (#637).
+        browser.dataset = {genomeId, canSyncWith: other => other.genomeId === genomeId, isCompatible: other => other.genomeId === genomeId}
         browser.genome = {id: genomeId}
     }
     return browser

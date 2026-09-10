@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest'
-import {pairSynchable, canResolveSyncState} from '../js/syncGroup.js'
+import {pairSynchable, canResolveSyncState, isolationReasons} from '../js/syncGroup.js'
 import Genome from '../js/genome.js'
 
 /**
@@ -168,5 +168,140 @@ describe('canResolveSyncState', () => {
 
     it('refuses a state whose names are missing altogether', () => {
         expect(canResolveSyncState(genome(), state(undefined, undefined))).toBe(false)
+    })
+})
+
+/**
+ * Which panels wear the isolation mark, and what its tooltip says. #637,
+ * ADR-0016 decisions 7-8.
+ *
+ * Pure, like `pairSynchable`, so the browsers are fabricated again. The fake
+ * dataset is an assembly plus a list of chromosome names, and answers the three
+ * questions the rule asks of a real one: `isCompatible` (same assembly),
+ * `canSyncWith` (same assembly and the same chromosomes) and
+ * `missingChromosomes` (what the other carries that this cannot place).
+ */
+describe('isolationReasons', () => {
+
+    function coverage(genomeId, names) {
+        return {
+            genomeId,
+            names,
+            isCompatible: other => other.genomeId === genomeId,
+            canSyncWith(other) {
+                return other.genomeId === genomeId &&
+                    0 === this.missingChromosomes(other).length &&
+                    0 === other.missingChromosomes(this).length
+            },
+            missingChromosomes: other => other.names.filter(name => !names.includes(name))
+        }
+    }
+
+    const WHOLE = ['chr1', 'chr2', 'chr3', 'chr4', 'chr5']
+    const whole = (genomeId = 'hg19') => coverage(genomeId, WHOLE)
+    const chr1Only = (genomeId = 'hg19') => coverage(genomeId, ['chr1'])
+
+    /** The reasons as `{name: reason}`, so a failure says who got what. */
+    function reasons(browsers) {
+        return Object.fromEntries([...isolationReasons(browsers)].map(([browser, reason]) => [browser.name, reason]))
+    }
+
+    it('marks nobody when no panel holds a map', () => {
+        expect(reasons([fakeBrowser('a'), fakeBrowser('b')])).toEqual({})
+    })
+
+    it('marks nobody in the empty room: one mapped panel, alone', () => {
+        expect(reasons([fakeBrowser('a', {dataset: whole()})])).toEqual({})
+    })
+
+    it('marks nobody in the empty room: one mapped panel beside empty ones', () => {
+        const browsers = [fakeBrowser('a', {dataset: whole()}), fakeBrowser('empty')]
+        expect(reasons(browsers)).toEqual({})
+    })
+
+    it('does not mark an opted-out panel alone in the empty room either', () => {
+        const browsers = [fakeBrowser('a', {dataset: whole(), synchable: false}), fakeBrowser('empty')]
+        expect(reasons(browsers)).toEqual({})
+    })
+
+    it('marks nobody when every mapped panel has a partner', () => {
+        const browsers = [
+            fakeBrowser('a', {dataset: whole('hg38')}), fakeBrowser('b', {dataset: whole('dm6')}),
+            fakeBrowser('c', {dataset: whole('hg38')}), fakeBrowser('d', {dataset: whole('dm6')}),
+        ]
+        expect(reasons(browsers)).toEqual({})
+    })
+
+    it('never marks a panel without a map', () => {
+        const browsers = [fakeBrowser('a', {dataset: whole('hg38')}), fakeBrowser('b', {dataset: whole('dm6')}), fakeBrowser('empty')]
+        expect(reasons(browsers)).not.toHaveProperty('empty')
+    })
+
+    it('marks an opted-out panel as disabled, whatever it could have paired with', () => {
+        const browsers = [fakeBrowser('a', {dataset: whole()}), fakeBrowser('b', {dataset: whole()}), fakeBrowser('off', {dataset: whole(), synchable: false})]
+        expect(reasons(browsers)).toEqual({off: 'sync is disabled for this panel'})
+    })
+
+    it('leaves a synchable panel whose only company is opted out unmarked', () => {
+        // The opted-out panel's own mark already accounts for the stillness.
+        const browsers = [fakeBrowser('a', {dataset: whole()}), fakeBrowser('off', {dataset: whole('dm6'), synchable: false})]
+        expect(reasons(browsers)).toEqual({off: 'sync is disabled for this panel'})
+    })
+
+    it('marks every panel when all of them are opted out', () => {
+        const browsers = [fakeBrowser('a', {dataset: whole(), synchable: false}), fakeBrowser('b', {dataset: whole(), synchable: false})]
+        expect(reasons(browsers)).toEqual({a: 'sync is disabled for this panel', b: 'sync is disabled for this panel'})
+    })
+
+    it('blames coverage on both sides of a subset and a whole-genome map of one assembly', () => {
+        const browsers = [fakeBrowser('whole', {dataset: whole()}), fakeBrowser('subset', {dataset: chr1Only()})]
+        expect(reasons(browsers)).toEqual({
+            whole: 'the other panels have no chr2, chr3, chr4, … — this map does',
+            subset: 'this map has no chr2, chr3, chr4, … — the other panels do',
+        })
+    })
+
+    it('names every missing chromosome, without an ellipsis, when there are three or fewer', () => {
+        const browsers = [fakeBrowser('a', {dataset: coverage('hg19', ['chr1', 'chr2', 'chr3'])}), fakeBrowser('b', {dataset: chr1Only()})]
+        expect(reasons(browsers)).toEqual({
+            a: 'the other panels have no chr2, chr3 — this map does',
+            b: 'this map has no chr2, chr3 — the other panels do',
+        })
+    })
+
+    it('takes the union of what the same-assembly peers carry, in the table order of whichever carries it', () => {
+        const browsers = [
+            fakeBrowser('subset', {dataset: chr1Only()}),
+            fakeBrowser('p', {dataset: coverage('hg19', ['chr1', 'chr7'])}),
+            fakeBrowser('q', {dataset: coverage('hg19', ['chr7', 'chr1', 'chr2', 'chr9'])}),
+        ]
+        expect(reasons(browsers).subset).toBe('this map has no chr7, chr2, chr9 — the other panels do')
+    })
+
+    it('blames the assembly when no peer is the same assembly, naming each other genome once', () => {
+        const browsers = [
+            fakeBrowser('fly', {dataset: whole('dm6')}),
+            fakeBrowser('a', {dataset: whole('hg38')}), fakeBrowser('b', {dataset: whole('hg38')}),
+            fakeBrowser('m', {dataset: whole('mm10')}), fakeBrowser('n', {dataset: whole('mm10')}),
+        ]
+        expect(reasons(browsers)).toEqual({fly: 'no other panel holds a compatible map (this is dm6; the others are hg38, mm10)'})
+    })
+
+    it('blames the assembly on both sides of an hg38 and a dm6 map', () => {
+        const browsers = [fakeBrowser('human', {dataset: whole('hg38')}), fakeBrowser('fly', {dataset: whole('dm6')})]
+        expect(reasons(browsers)).toEqual({
+            human: 'no other panel holds a compatible map (this is hg38; the others are dm6)',
+            fly: 'no other panel holds a compatible map (this is dm6; the others are hg38)',
+        })
+    })
+
+    it('blames coverage, not the assembly, when any partnerless peer is the same assembly', () => {
+        const browsers = [fakeBrowser('subset', {dataset: chr1Only('hg38')}), fakeBrowser('whole', {dataset: whole('hg38')}), fakeBrowser('fly', {dataset: whole('dm6')})]
+        expect(reasons(browsers).subset).toBe('this map has no chr2, chr3, chr4, … — the other panels do')
+    })
+
+    it('leaves out opted-out panels when naming the other genomes', () => {
+        const browsers = [fakeBrowser('human', {dataset: whole('hg38')}), fakeBrowser('fly', {dataset: whole('dm6')}), fakeBrowser('off', {dataset: whole('mm10'), synchable: false})]
+        expect(reasons(browsers).human).toBe('no other panel holds a compatible map (this is hg38; the others are dm6)')
     })
 })

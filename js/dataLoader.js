@@ -36,6 +36,7 @@ import Track2D from './track2D.js'
 
 import {decodeState} from "./sessionCodec.js"
 import {mapTrackConfig} from "./urlMapper.js"
+import {isolationReasons, isSynchable} from "./syncGroup.js"
 
 /**
  * How this module reports a `config.state` that is neither a state token nor a
@@ -221,14 +222,23 @@ class DataLoader {
             if (peer) {
                 await this.browser.syncState(peer.getSyncState());
             } else {
-                // Only worth reporting when there was in fact something to pair
-                // with. A first panel loading into an empty registry finds no
-                // peer and that is not a refusal, it is an empty room. #626.
-                const others = registry.browsers.filter(b => b !== this.browser && b.dataset);
-                if (others.length > 0) {
+                // Reported exactly when the panel wears the isolation mark, and
+                // in its words, so the host's log and the screen agree (#637).
+                // That rule is what stays quiet in the empty room -- a first
+                // panel loading into an empty registry finds no peer and that is
+                // not a refusal (#626) -- and for a panel the host opted out,
+                // which the host needs no telling about even though the person
+                // looking at the screen does.
+                //
+                // Asked over the registry *and* this browser: `createBrowser`
+                // loads before it registers, so a newcomer is not in the list yet.
+                const browsers = registry.browsers.includes(this.browser) ? registry.browsers : [...registry.browsers, this.browser];
+                const reason = isolationReasons(browsers).get(this.browser);
+                if (undefined !== reason && isSynchable(this.browser)) {
+                    const others = registry.browsers.filter(b => b !== this.browser && b.dataset);
                     this.browser.coordinator.onSyncRefused({
                         reason: 'no-compatible-peer',
-                        message: `no open panel holds a compatible map (this is ${this.browser.dataset.genomeId}, the others are ${others.map(b => b.dataset.genomeId).join(', ')})`,
+                        message: reason,
                         genomeId: this.browser.dataset.genomeId,
                         peerGenomeIds: others.map(b => b.dataset.genomeId)
                     });

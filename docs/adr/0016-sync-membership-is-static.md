@@ -1,14 +1,13 @@
 # ADR-0016 — Sync membership is static: settled at pair time, never per state
 
-**Status:** Proposed — accept when #632 lands. The decision is made; the code it
-describes is not written yet, and this file should not read as Accepted before it is.
+**Status:** Accepted — #632 landed as #635, #636 and #637.
 
 **Date:** 2026-09-10
 **Related:** #632 (the work), #626 / #627 (the refusal this reverses in part),
 #605 (`canResolveSyncState`, the guard being demoted), ADR-0014 (what crosses a
 sync group), ADR-0015 (targeting is not a sync group — the mechanism this is
 *not*), ADR-0010 (`All` is a zoom rung), ADR-0003 (public API contract),
-`CONTEXT.md` (*Sync group*, *Sync state*), `js/syncGroup.js`, `js/hicDataset.js`
+`CONTEXT.md` (*Sync group*, *Sync state*, *Isolation mark*), `js/syncGroup.js`, `js/hicDataset.js`
 
 ## Context
 

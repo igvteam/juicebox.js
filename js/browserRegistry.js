@@ -1,7 +1,7 @@
 import {AlertDialog} from 'igv-ui'
 import EventBus from './eventBus.js'
 import HICEvent from './hicEvent.js'
-import {pairSynchable} from './syncGroup.js'
+import {pairSynchable, isolationReasons} from './syncGroup.js'
 import {fanOutTracks} from './targetGroup.js'
 import {normalizeSession} from './normalizeSession.js'
 // A cycle, deliberately: `createBrowser.js` resolves its registry from a
@@ -16,9 +16,10 @@ import {createBrowserList} from './createBrowser.js'
  * their sync group. See `CONTEXT.md` and `docs/adr/0004-browser-registry-per-container.md`.
  *
  * A registry never constructs a browser -- `js/createBrowser.js` does that and
- * hands the result over. The registry reads only four things off a browser:
- * `rootElement`, `browserPanelDeleteButton`, `synchedBrowsers` and `dispose()`.
- * That is what makes it constructible in a test. Nor does it tear one down:
+ * hands the result over. The registry reads only five things off a browser:
+ * `rootElement`, `browserPanelDeleteButton`, `synchedBrowsers`,
+ * `setIsolationReason()` and `dispose()` -- plus what the membership rules in
+ * `syncGroup.js` read. That is what makes it constructible in a test. Nor does it tear one down:
  * `delete` and `deleteAll` call `dispose()`, and the browser gives its slot back.
  *
  * One registry owns one container element; `registryForContainer` below is how
@@ -593,6 +594,12 @@ class BrowserRegistry {
      * the result is symmetric whatever the caller passes. It runs wherever the
      * open maps change: a load or a failed one (`dataLoader.js`), a browser
      * arriving (`add`) or leaving (`releaseSlot`), and a restore.
+     *
+     * The isolation marks are painted here too, from the same list, for the
+     * reason the target badges are painted in `#announce`: this is the one
+     * place membership changes, so a panel's mark cannot fall out of step with
+     * its group -- and cannot move while the user pans, since panning never
+     * reaches here. ADR-0016 decisions 7-8, #637.
      */
     sync(browsers = this.browsers) {
 
@@ -606,6 +613,11 @@ class BrowserRegistry {
         for (const [b1, b2] of pairSynchable(browsers)) {
             b1.synchedBrowsers.add(b2)
             b2.synchedBrowsers.add(b1)
+        }
+
+        const reasons = isolationReasons(browsers)
+        for (const browser of browsers) {
+            browser.setIsolationReason(reasons.get(browser))
         }
     }
 

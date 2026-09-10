@@ -614,6 +614,25 @@ $default-font-family: 'Open Sans', sans-serif;
       line-height: var(--nav-bar-label-height);
       background-color: transparent;
     }
+    // The isolation mark: this panel cannot join any sync group, and the
+    // tooltip says why (#637, ADR-0016 decision 7). Quiet and permanent, so a
+    // muted rose rather than an alert colour -- and neither the grey of the
+    // selected border nor the blue of the target set (ADR-0015 decision 4b).
+    // `margin-right: auto` keeps it beside the label while the container spaces
+    // the label and the buttons apart; hidden, it is out of the flow entirely,
+    // so the navbar lays out exactly as it does without it.
+    i.hic-isolation-mark {
+      flex: 0 0 auto;
+      margin-left: 6px;
+      margin-right: auto;
+      color: #b5534b;
+      cursor: default;
+    }
+    // Font Awesome's `.fa` sets `display: inline-block`, which outranks the
+    // user agent's `[hidden]` -- without this the hidden mark would still show.
+    i.hic-isolation-mark[hidden] {
+      display: none;
+    }
     .hic-nav-bar-button-container {
       height: 100%;
       display: flex;

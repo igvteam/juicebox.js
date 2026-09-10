@@ -399,19 +399,20 @@ class BrowserCoordinator {
      * carries never pairs in the first place, and the per-state refusal it used
      * to produce is now a `console.error` assert in `HICBrowser.syncState`.
      *
-     * No widget surface, which is the difference from `onNormalizationSubstituted`
-     * next door. ADR-0012 put a substitution on the normalization selector
-     * because a selector is *already* displaying the value that got substituted;
-     * a refused sync has no such control to contradict, and inventing a badge for
-     * it would be new UI answering a question hosts have not asked yet. The
-     * `console.warn` is the developer-facing half and the callback is the host
-     * facing half; either can grow a surface later without moving this call.
+     * The user-facing half is not here. Static membership is what made a panel
+     * surface affordable -- a mark that cannot flicker -- so since #637 the
+     * panel itself says it is isolated, with a mark the registry paints from
+     * `isolationReasons` (ADR-0016 decision 7). The load-time refusal reads the
+     * same rule and carries the mark's text as its `message`, so the host's log
+     * and the screen cannot disagree. The `console.warn` is the developer-facing
+     * half and the callback is the host-facing half.
      *
      * @param {Object} detail
      * @param {string} detail.reason - `'no-compatible-peer'` or `'unresolved-chromosome'`.
      *   `'unresolved-chromosome'` is no longer emitted since #632; it stays in the
      *   union so host code that branches on it keeps compiling and running.
-     * @param {string} detail.message - The same thing in a sentence
+     * @param {string} detail.message - The same thing in a sentence: since #637,
+     *   the isolation mark's tooltip on the refused panel, word for word.
      */
     onSyncRefused(detail) {
         console.warn(`juicebox: panel not synced -- ${detail.message}`);
