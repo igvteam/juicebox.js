@@ -327,7 +327,7 @@ flowchart TB
           <div class="p-5 space-y-4 text-sm">
             <p class="font-mono text-xs text-slate-500">js/normalizeSession.js · drawn from js/sessionCodec.js, js/createBrowser.js, js/hicBrowser.js (constructor, init), js/createWidgets.js, js/dataLoader.js</p>
 
-            <p><strong>The module exists, it is the only reader of the config schema, and the schema is written down.</strong> When this card was first drawn, no file stated what a config contained: several modules each interpreted a subset and applied their own defaults, which is how the four entry paths silently diverged. <a class="underline" href="../CONTEXT.md">CONTEXT.md</a> § <em>Resolved config</em> is the prose copy — every field, what is defaulted, what is coerced — and this module is the executable one.</p>
+            <p><strong>The module exists, it is the only reader of the config schema, and the schema is written down.</strong> When this card was first drawn, no file stated what a config contained: several modules each interpreted a subset and applied their own defaults, which is how the four entry paths silently diverged. <a class="underline" href="config-schema.md">docs/config-schema.md</a> is the prose copy — every field, what is defaulted, what is coerced — and this module is the executable one.</p>
 
             <div class="grid md:grid-cols-2 gap-5">
               <div class="rounded border border-rose-300 bg-rose-50 p-4 space-y-2">

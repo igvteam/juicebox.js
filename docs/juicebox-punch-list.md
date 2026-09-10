@@ -287,7 +287,7 @@ Eight of eleven. Phases 0, 1 and 2 are complete. Full outcomes are in the green 
 | 4 | Give the browser registry an owner | ADR-0004 → #476, #478–#483. **Closes #384**, open since 2023, and #475 |
 | 8 | Give the browser a teardown that matches its construction | ADR-0005 → #491–#496. Four teardown verbs → two. Not breaking |
 | 5 | One decoder for session and URL | ADR-0006 → #499–#509. One deliberate break (`juiceboxURL=`); eight follow-ups filed |
-| 9 | Give the config schema one reader | ADR-0008 → #531–#536. `normalizeSession` runs once at the entry; schema in `CONTEXT.md` |
+| 9 | Give the config schema one reader | ADR-0008 → #531–#536. `normalizeSession` runs once at the entry; schema in `docs/config-schema.md` |
 | 6 | Fold `StateManager` into `State`, and make restore use the chokepoint | ADR-0009 → #510, #557–#563. Restore is a translator; `StateManager` deleted; the state has one writer. Owes a release note |
 
 **Phase 3b — candidate 4's loose ends — is closed.** #477 scoped the `--hic-viewport-*` properties
