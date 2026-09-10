@@ -116,6 +116,10 @@ class BrowserRegistry {
      */
     add(browser) {
         this.register(browser)
+        // A browser arriving with its map already loaded -- `createBrowser`
+        // loads before it hands over -- changes the open maps, and the load's
+        // own recompute ran while this one was not yet in the list. #635.
+        this.sync()
         this.select(browser)
         this.refreshDeleteButtonVisibility()
     }
@@ -515,6 +519,12 @@ class BrowserRegistry {
                 this.#select(this.browsers[0])
             }
         })
+        // The open maps have changed. Here rather than in `delete` and
+        // `deleteAll`, because every door out -- those two, a host's own
+        // `dispose()`, a `reset()` -- passes through this slot. `dispose()`
+        // has already cut this browser's edges; what this adds is that the
+        // survivors' membership is derived, not merely what was left. #635.
+        this.sync()
         this.refreshDeleteButtonVisibility()
     }
 
@@ -567,13 +577,33 @@ class BrowserRegistry {
     }
 
     /**
-     * Join the compatible browsers into each other's sync group. Defaults to
+     * Derive the sync group afresh: afterwards every browser in the list holds
+     * exactly its partners under `pairSynchable`, and nothing else. Defaults to
      * this registry's browsers; an explicit list is how a caller syncs a subset
      * (and, per decision 6 of the ADR, how a cross-registry group would later
      * be expressed).
+     *
+     * Recomputed rather than accumulated, per ADR-0016 decision 6. It used to
+     * only add, so a panel that loaded an incompatible map kept the pairing its
+     * old map earned and went on receiving states its new genome cannot place.
+     * Membership is a pure function of the open maps; nothing about it is worth
+     * remembering between calls.
+     *
+     * An edge to a browser *outside* the list is dropped from both ends, so
+     * the result is symmetric whatever the caller passes. It runs wherever the
+     * open maps change: a load or a failed one (`dataLoader.js`), a browser
+     * arriving (`add`) or leaving (`releaseSlot`), and a restore.
      */
-    sync(browsers) {
-        for (const [b1, b2] of pairSynchable(browsers || this.browsers)) {
+    sync(browsers = this.browsers) {
+
+        for (const browser of browsers) {
+            for (const peer of browser.synchedBrowsers) {
+                peer.synchedBrowsers.delete(browser)
+            }
+            browser.synchedBrowsers.clear()
+        }
+
+        for (const [b1, b2] of pairSynchable(browsers)) {
             b1.synchedBrowsers.add(b2)
             b2.synchedBrowsers.add(b1)
         }
@@ -654,9 +684,11 @@ class BrowserRegistry {
 
         await createBrowserList(this.container, session)
 
-        if (false !== session.syncDatasets) {
-            this.sync()
-        }
+        // Whatever `syncDatasets` says. `false` already reached every browser
+        // as `synchable: false` in the normalization above, so the recompute
+        // pairs nothing -- and skipping it would leave whatever the loads
+        // assembled on their way in standing instead of derived. #635.
+        this.sync()
     }
 
     /**

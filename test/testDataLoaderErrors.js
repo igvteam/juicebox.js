@@ -24,7 +24,8 @@ function stubBrowser() {
         userInteractionShield: { style: {} },
         controlDataset: undefined,
         // Alerts land in the browser's own embed, not a page-wide singleton -- #481.
-        registry: { presentAlert: (message) => presented.push(message) }
+        // A failed load recomputes sync membership on its way out -- #635.
+        registry: { presentAlert: (message) => presented.push(message), sync: () => undefined }
     };
 }
 

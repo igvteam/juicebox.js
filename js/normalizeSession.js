@@ -263,9 +263,11 @@ function resolveBackgroundColor(config) {
  * `createBrowserList` did and is the reading that makes the session-level member
  * worth having.
  *
- * Only a literal `false` opts out, matching the `false !== session.syncDatasets`
- * test `BrowserRegistry.restoreSession` makes about the same field. Absent or
- * true writes nothing, so a browser that opted out on its own is left alone.
+ * Only a literal `false` opts out. Absent or true writes nothing, so a browser
+ * that opted out on its own is left alone. This is now the *only* reader of the
+ * field: `BrowserRegistry.restoreSession` used to test it too, and skip its
+ * closing `sync()` on `false`; since #635 it recomputes regardless, and what
+ * is written here is why that recompute pairs nothing.
  */
 function resolveSyncDatasets(session, configs) {
 
