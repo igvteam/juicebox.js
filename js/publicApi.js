@@ -97,6 +97,15 @@ export const NAMESPACE_SURFACE = [
  * Seven more are assigned in the constructor rather than declared on the
  * prototype, so they are invisible to any check that reflects on the class
  * instead of building an instance.
+ *
+ * Deliberately *not* declared, and new in #637: `isolationMark`, the navbar
+ * element, and `setIsolationReason`, which the registry calls to paint it after
+ * recomputing membership. The mark is library chrome and needs no host
+ * (ADR-0016 decision 9); a host that wants the reason has `onSyncRefused`,
+ * whose `message` is the same text. Nor is `dataset.missingChromosomes`, the
+ * lookup behind the mark's coverage wording, although `dataset` is declared.
+ * Absence from this file is not permission, and naming them here is what makes
+ * that decision visible.
  */
 export const BROWSER_SURFACE = [
     // Delegating loaders and lookups -- no internal callers, hosts only

@@ -5,8 +5,10 @@
  * until #562 -- here, in `HICBrowser.syncState`, and in
  * `StateManager.canBeSynched` -- and its readers now share this one expression
  * rather than each restating it. The third reader, `canBeSynched`, went with
- * the `config.synchState` rung it was the only production caller of (#566);
- * `HICBrowser.syncState` and `pairSynchable` below are what is left.
+ * the `config.synchState` rung it was the only production caller of (#566).
+ * Its readers now are `HICBrowser.syncState`, the load-time peer search in
+ * `dataLoader.js`, and the two rules below -- `pairSynchable` and
+ * `isolationReasons` (#637).
  *
  * @param {Object} browser
  * @returns {boolean}
@@ -89,7 +91,8 @@ function isolationReasons(browsers) {
 
     for (const browser of mapped) {
 
-        if (browser.synchable === false) {
+        // Among mapped browsers, not synchable means opted out.
+        if (!isSynchable(browser)) {
             reasons.set(browser, 'sync is disabled for this panel')
             continue
         }

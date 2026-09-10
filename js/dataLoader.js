@@ -209,14 +209,16 @@ class DataLoader {
 
             registry.sync(); // Sync browsers to ensure all browsers are updated with the new dataset
 
-            // Find a browser to sync with, if any. The opt-out is `syncState`'s
-            // own guard, as it was before #562 -- this filter has never looked
-            // at `synchable`. `canSyncWith`, the pairing predicate, not the
-            // control-map one below: a peer this panel could not pair with is
-            // not one whose view it should adopt. ADR-0016 decision 2.
+            // Find a browser to sync with, if any: one this panel would pair
+            // with, so the pairing rule's two questions -- `isSynchable` and
+            // `canSyncWith` -- and not the control-map predicate below. Until
+            // #637 this filter ignored the *peer's* `synchable`, so a newcomer
+            // adopted the view of an opted-out panel it is in no group with,
+            // and wore the isolation mark while the host heard nothing. This
+            // panel's own opt-out is `syncState`'s guard. ADR-0016 decision 2.
             const peer = registry.browsers.find(
                 b => b !== this.browser &&
-                     b.dataset &&
+                     isSynchable(b) &&
                      b.dataset.canSyncWith(this.browser.dataset)
             );
             if (peer) {
@@ -235,7 +237,9 @@ class DataLoader {
                 const browsers = registry.browsers.includes(this.browser) ? registry.browsers : [...registry.browsers, this.browser];
                 const reason = isolationReasons(browsers).get(this.browser);
                 if (undefined !== reason && isSynchable(this.browser)) {
-                    const others = registry.browsers.filter(b => b !== this.browser && b.dataset);
+                    // The panels the message is about: the synchable company,
+                    // one id per panel. Opted-out panels are not in it.
+                    const others = registry.browsers.filter(b => b !== this.browser && isSynchable(b));
                     this.browser.coordinator.onSyncRefused({
                         reason: 'no-compatible-peer',
                         message: reason,

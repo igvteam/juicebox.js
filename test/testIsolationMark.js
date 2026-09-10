@@ -210,6 +210,38 @@ describe('the isolation mark', () => {
             expect(refused).not.toHaveBeenCalled()
             expect(off.isolationMark.title).toBe(DISABLED)
         })
+
+        it('reports a marked newcomer whose only compatible company is opted out, and leaves its view alone', async () => {
+            // The opted-out panel is not a peer: it is in no group, so a panel
+            // that adopted its view would be following a panel it does not
+            // follow. Until this, the load's peer search ignored `synchable`
+            // and found it -- the newcomer took its view, wore the mark, and
+            // the host heard nothing.
+            serveMaps([WHOLE_HG19, WHOLE_MM10, WHOLE_HG19])
+            const off = await createBrowser(dom.container, {url: url('off'), synchable: false})
+            await off.setState(new State(2, 2, 5, 7, 9, 1, 'NONE'))
+            await createBrowser(dom.container, {url: url('mouse')})
+            const refused = vi.spyOn(BrowserCoordinator.prototype, 'onSyncRefused')
+            const b = await createBrowser(dom.container, {url: url('human')})
+
+            expect(b.isolationMark.title).toBe(assembly('hg19', 'mm10'))
+            expect(refused).toHaveBeenCalledTimes(1)
+            expect(refused.mock.calls[0][0].message).toBe(b.isolationMark.title)
+            expect(b.state.zoom).not.toBe(5)
+        })
+
+        it('names in peerGenomeIds exactly the panels the message is about', async () => {
+            // The opted-out mouse panel is in the room but not in the message,
+            // so it is not in the ids either.
+            serveMaps([WHOLE_MM10, DM6, WHOLE_HG19])
+            await createBrowser(dom.container, {url: url('off'), synchable: false})
+            await createBrowser(dom.container, {url: url('fly')})
+            const refused = vi.spyOn(BrowserCoordinator.prototype, 'onSyncRefused')
+            await createBrowser(dom.container, {url: url('human')})
+
+            expect(refused.mock.calls[0][0].message).toBe(assembly('hg19', 'dm6'))
+            expect(refused.mock.calls[0][0].peerGenomeIds).toEqual(['dm6'])
+        })
     })
 
     describe('stays still while the user moves', () => {
