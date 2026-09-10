@@ -239,6 +239,13 @@ class DataLoader {
             this.browser.contactMapLabel.title = "";
             config.name = name;
 
+            // `clearDataset()` stripped this browser from its peers but left its
+            // own set standing (#492), for the load to address the group on its
+            // way past. A load that fails never reaches the recompute above, so
+            // it runs here: the open maps have changed, whatever state this
+            // browser is left in. #635.
+            this.browser.registry.sync();
+
             // A bot challenge is the one failure the host app cannot explain to the user, since the
             // tell is a response header it never sees. Everything else is left to the host, which
             // may already report the rethrow — see issue #441.

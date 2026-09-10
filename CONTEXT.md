@@ -130,7 +130,9 @@ opted out and its dataset is compatible with the other's — *compatible* meanin
 the two chromosome tables share enough named chromosomes, at agreeing sizes, to
 be the same assembly (`Dataset.compareChromosomes`), not that the tables are
 identical. A subset `.hic` therefore joins, and the per-state question is left to
-`canResolveSyncState`. What travels the group
+`canResolveSyncState`. Being a rule, it is derived afresh — `registry.sync()` —
+wherever the open maps change: a load, a failed load, a browser arriving or
+leaving, a restore. It is never accumulated (#635). What travels the group
 is canonical state and, by deliberate exception, view preferences — never dataset
 choices. See `docs/adr/0014`. Dataset choices reach several browsers by the other
 mechanism, the **target set** — `docs/adr/0015`.
