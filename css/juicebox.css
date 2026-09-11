@@ -1310,20 +1310,26 @@ div[id$=content-container] div[id$=x-scrollbar-container] div[id$=x-axis-scrollb
   border-color: #5f5f5f;
 }
 
+/* The target badges are qualified with `.hic-root` (#625). An anchor also
+   carries `hic-root-selected`, and a host stylesheet loaded after this one may
+   redeclare a bare `.hic-root-selected` -- juicebox-web did. The extra class
+   lets the badges win on specificity, whatever order the host loads styles in.
+   Every element wearing a badge is a `.hic-root`, so the selectors match the
+   same panels as before. A host that wants to restyle a badge must match this
+   specificity too. */
+
 /* The target set (#615): a load reaches these panels. Deliberately a second
    class and a second visual, not the selected border -- a user still needs to
    see at a glance which panel the widgets are reading. */
-.hic-root-targeted {
+.hic-root.hic-root-targeted {
   outline: 3px dashed #3a8ab4;
   outline-offset: -3px;
 }
 
 /* The browser the aim starts from: current *and* explicitly targeted. Blue
    rather than the plain selected grey, so the first shift-click reads as the
-   head of a target set rather than as an ordinary selection. Declared after
-   `.hic-root-selected` -- an anchor carries both classes and equal
-   specificity, so source order decides the color. */
-.hic-root-target-anchor {
+   head of a target set rather than as an ordinary selection. */
+.hic-root.hic-root-target-anchor {
   border-color: #3a8ab4;
 }
 

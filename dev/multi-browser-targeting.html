@@ -38,18 +38,6 @@
             margin: 8px 0;
         }
 
-        /* The badges the registry drives, exaggerated here so the four states --
-           plainly selected, the anchor of an aim, aimed at, neither -- are obvious
-           at a glance. The library's own rules are in css/juicebox.scss. */
-        .hic-root-targeted {
-            outline: 4px dashed #3a8ab4;
-            outline-offset: -4px;
-        }
-
-        .hic-root-target-anchor {
-            border-color: #3a8ab4;
-        }
-
         #panels {
             display: flex;
             flex-wrap: wrap;
@@ -118,6 +106,29 @@
     import hic from '../js/index.js'
     import EventBus from '../js/eventBus.js'
     import {devMapUrl} from '../dev-proxy/map-url.js'
+
+    // Page styles that must land after the library's. Importing js/index.js injects
+    // juicebox.scss at the end of <head>, so rules in the <style> above lose to it on
+    // source order; these are appended once the imports have run.
+    //
+    // - The badges the registry drives, exaggerated so the four states -- plainly
+    //   selected, the anchor of an aim, aimed at, neither -- are obvious at a glance.
+    //   The library qualifies its badges with .hic-root, so this does too.
+    // - A hostile host (#625): juicebox-web's app.scss redeclared .hic-root-selected
+    //   after juicebox.css. The anchor must stay blue anyway; if it turns grey, the
+    //   badge is winning on source order again.
+    const pageStyles = document.createElement('style')
+    pageStyles.textContent = `
+        .hic-root.hic-root-targeted {
+            outline: 4px dashed #3a8ab4;
+            outline-offset: -4px;
+        }
+
+        .hic-root-selected {
+            border-color: #5f5f5f;
+        }
+    `
+    document.head.appendChild(pageStyles)
 
     // Dev-only: routes .hic reads on hosts that answer localhost with a bot challenge
     // (encodeproject.org today) through the dev server's proxy. The mm10 panel below is
