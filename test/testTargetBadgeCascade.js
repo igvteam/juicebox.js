@@ -26,8 +26,8 @@ const compileScss = file => execFileSync(process.execPath,
     {encoding: 'utf8'})
 
 const libraryStylesheets = {
-    'css/juicebox.scss': () => compileScss(resolve(cssDir, 'juicebox.scss')),
-    'css/juicebox.css': () => readFileSync(resolve(cssDir, 'juicebox.css'), 'utf8'),
+    'css/juicebox.scss': compileScss(resolve(cssDir, 'juicebox.scss')),
+    'css/juicebox.css': readFileSync(resolve(cssDir, 'juicebox.css'), 'utf8'),
 }
 
 // A host stylesheet loaded after juicebox.css. The border rule is what
@@ -39,6 +39,7 @@ const hostileHost = `
 `
 
 const anchorBlue = 'rgb(58, 138, 180)'
+const selectedGrey = 'rgb(95, 95, 95)'
 
 // A fresh document per case: the library stylesheet, then the host's, then a
 // root div wearing the given classes.
@@ -50,21 +51,21 @@ function mount(libraryCss, classes) {
     return window.getComputedStyle(window.document.querySelector('div'))
 }
 
-describe.each(Object.entries(libraryStylesheets))('target badges in %s', (_, load) => {
+describe.each(Object.entries(libraryStylesheets))('target badges in %s', (_, libraryCss) => {
 
     it('keeps the anchor border blue when a host redeclares .hic-root-selected later', () => {
-        const style = mount(load(), 'hic-root hic-root-selected hic-root-target-anchor')
+        const style = mount(libraryCss, 'hic-root hic-root-selected hic-root-target-anchor')
         expect(style.borderTopColor).toBe(anchorBlue)
     })
 
     it('keeps the targeted outline when a host clears the outline on .hic-root-selected later', () => {
-        const style = mount(load(), 'hic-root hic-root-selected hic-root-targeted')
+        const style = mount(libraryCss, 'hic-root hic-root-selected hic-root-targeted')
         // jsdom keeps `outline` as a shorthand and never fills the longhands.
         expect(style.outline).toContain('dashed')
     })
 
     it('still paints a plain selection with the library grey', () => {
-        const style = mount(load(), 'hic-root hic-root-selected')
-        expect(style.borderTopColor).toBe('rgb(95, 95, 95)')
+        const style = mount(libraryCss, 'hic-root hic-root-selected')
+        expect(style.borderTopColor).toBe(selectedGrey)
     })
 })
