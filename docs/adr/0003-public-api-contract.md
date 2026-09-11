@@ -472,3 +472,31 @@ consumer reaching for any of the three.
 `'no-compatible-peer'` and `'unresolved-chromosome'`, are declared above,
 including the one no longer emitted since #632, so a host that branches on
 either keeps working.
+
+## Re-measurement — 2026-09-11, for the v4.4.1 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+Measured against `juicebox.js` at `bump-version-4.4.1`, `juicebox-web` `master`
+and `spacewalk` `main`, both pinned to `#v4.4.0`.
+
+**Result: nothing undeclared in use, in either consumer.** Fourth release running.
+
+`js/publicApi.js` is byte-identical to v4.4.0. `toggleTarget`,
+`BrowserTargetChange` and `onSyncRefused` still have no consumer caller, the
+stable reading the previous section recorded for them.
+
+### Outside the contract: the badge class names
+
+The one change in this release (#625) is to two CSS selectors,
+`.hic-root-selected` and `.hic-root-target-anchor`, which now carry a `.hic-root`
+qualifier so a host stylesheet that redeclares either at single-class specificity
+no longer wins on source order. Class names are not declared surface and this ADR
+does not measure them, but the failure was a host's stylesheet reaching into the
+library's, so it was checked by hand: neither consumer's stylesheets or source
+mention either class. juicebox-web's copy of `.hic-root-selected` — the one that
+exposed the bug — was already removed in juicebox-web `b20c7fb`.
+
+### Consequence
+
+**Nothing was required of the release.**
