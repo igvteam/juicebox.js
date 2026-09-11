@@ -183,13 +183,22 @@ Component: `js/ruler.js`
 
 ### Cross-browser sync
 
-When two or more browsers are linked (multi-panel mode):
+When two or more browsers are in one sync group:
 
 | User action in browser A | Effect on browser B |
 |---|---|
 | Any state mutation (any of the above) | `browser.coordinator.onLocusChange` fires → linked browsers receive the event → `browser.syncState(syncState)` → `state.sync(...)` |
 
 The receiving browser's mutation path is `state.sync`, regardless of what the source action was.
+
+Who is linked is decided before any of this runs. `registry.sync()` recomputes every browser's
+partners from `pairSynchable` whenever the open maps change — a load, a failed load, a browser
+added or released, a restore — and two maps pair only on the same assembly and two-way chromosome
+parity (`Dataset.canSyncWith`). Membership is static between those moments (ADR-0016), so every
+state a partner publishes names chromosomes the receiver can place; `syncState`'s
+`canResolveSyncState` check is a guard against a wrong pairing rule, not a user-reachable refusal.
+The resolution lock is not canonical state, but it mirrors across the group alongside it
+(ADR-0014).
 
 ## Programmatic entry points (public browser API)
 
@@ -257,8 +266,8 @@ For BP coordinates, always go through `state.getLocus(dataset, viewDimensions)`.
 
 - `js/hicState.js` — `State` class. Canonical fields, all translators, `setView`, `getLocus`, helpers (`_adjustPixelSize`, `clampXY`).
 - `js/interactionHandler.js` — bridges UI events to translators. Should not mutate state fields directly.
-- `js/syncGroup.js` — the sync-group rule: which browsers pair (`pairSynchable`) and whether one browser is in the group at all (`isSynchable`). The only reader of `synchable` (#562). `canBeSynched` lived here too until #566 deleted it with the `config.synchState` rung.
-- `js/hicBrowser.js` — public API methods, mostly thin delegations to `interactionHandler`; the state itself (a private field), `setState`, and `resolveNormalization`. `js/stateManager.js` used to hold the field and the restore path; #563 folded it away once the behaviour had left it.
+- `js/syncGroup.js` — the sync-group rules, as pure functions: which browsers pair (`pairSynchable`, via `Dataset.canSyncWith`), whether one browser is in any group at all (`isSynchable`, the one statement of the `synchable` opt-out), which panels cannot join a group and why (`isolationReasons`, the isolation mark), and whether a sync state names chromosomes this genome can place (`canResolveSyncState`). ADR-0016.
+- `js/hicBrowser.js` — public API methods, mostly thin delegations to `interactionHandler`; the state itself (a private field), `setState`, and `resolveNormalization`.
 - `js/dataLoader.js` — session/URL ingestion path.
 - `test/testState.js` — characterization tests for every translator and the chokepoint. The behavioral contract.
 

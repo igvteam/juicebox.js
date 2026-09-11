@@ -14,7 +14,7 @@
  * only show by accident: **normalize rejects nothing**.
  *
  * @see js/normalizeSession.js
- * @see docs/juicebox-punch-list.md — candidate 9
+ * @see docs/config-schema.md
  */
 import {describe, expect, test} from 'vitest'
 import {normalizeSession, normalizeTrackConfigs} from '../js/normalizeSession.js'
