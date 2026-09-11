@@ -13,8 +13,10 @@ import EventBus from '../js/eventBus.js'
  * The browsers are fabricated, as in `test/testBrowserRegistry.js`: the
  * registry reads only a handful of members off one, which is what makes it
  * constructible without a document. Per ADR-0013 the shift-click handler and
- * the badge get no automated test; the class the badge is keyed on is asserted
- * here because the registry is what applies it.
+ * the badge's rendering get no automated test; the class the badge is keyed on
+ * is asserted here because the registry is what applies it. Whether the badge
+ * rules survive a host stylesheet is a cascade question, pinned separately in
+ * `test/testTargetBadgeCascade.js`.
  */
 
 function fakeElement() {
