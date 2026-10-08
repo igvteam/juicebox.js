@@ -378,6 +378,15 @@ _Avoid_: host hook.
 `test/testPublicApi.js`. Check it before deleting anything: "no callers in this
 repo" is half a finding. ADR-0003.
 
+**Replicate** — what a host does when it reproduces one panel's appearance on
+another panel, on the same page or a different one: it observes the changes the
+first reports and applies them to the second. The host's act, not the
+library's — the library reports changes and knows nothing of where they go.
+Unlike a sync group, it may carry normalization, the colour scale, display mode
+and track appearance. ADR-0021.
+_Avoid_: mirror (how a view preference travels inside a sync group, ADR-0014),
+sync, follow.
+
 ## Architecture vocabulary
 
 Refactoring here uses the deep-module vocabulary — **module**, **interface**,
