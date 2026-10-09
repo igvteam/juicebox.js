@@ -521,11 +521,13 @@ class HICBrowser {
     }
 
     async setDisplayMode(mode) {
+        this.#assertNotDisposed('setDisplayMode');
         await this.contactMatrixView.setDisplayMode(mode)
         this.coordinator.onDisplayMode(mode)
     }
 
     getDisplayMode() {
+        this.#assertNotDisposed('getDisplayMode');
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined
     }
 
@@ -599,10 +601,12 @@ class HICBrowser {
     }
 
     getColorScale() {
+        this.#assertNotDisposed('getColorScale');
         return this.contactMatrixView?.getColorScale()
     }
 
     setColorScaleThreshold(threshold) {
+        this.#assertNotDisposed('setColorScaleThreshold');
         this.contactMatrixView.setColorScaleThreshold(threshold)
         // The threshold is on the scale before the view's repaint is awaited,
         // so what is announced is what will be drawn. The auto-threshold path
@@ -1366,6 +1370,7 @@ class HICBrowser {
      * @returns {Promise<void>}
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
+        this.#assertNotDisposed('zoomAndCenter');
         return this.interactions.zoomAndCenter(direction, centerPX, centerPY);
     }
 
@@ -1652,6 +1657,7 @@ class HICBrowser {
      * browser rather than about the view.
      */
     getSyncState() {
+        this.#assertNotDisposed('getSyncState');
         if (!this.dataset || !this.state) {
             return undefined;
         }
@@ -1676,6 +1682,7 @@ class HICBrowser {
      * on it (#605). An assert since #632 -- see the comment there.
      */
     async syncState(targetState) {
+        this.#assertNotDisposed('syncState');
         if (!targetState || !isSynchable(this) || !this.state) {
             return;
         }
@@ -1725,6 +1732,7 @@ class HICBrowser {
     }
 
     setNormalization(normalization) {
+        this.#assertNotDisposed('setNormalization');
         if (this.#state) {
             this.#state.normalization = normalization;
         }
