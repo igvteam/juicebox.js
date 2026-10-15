@@ -161,14 +161,10 @@ export const BROWSER_SURFACE = [
     // Commands and projections a host drives a browser with from outside its
     // own widgets: the view (`zoomAndCenter`), the display mode, the colour
     // scale and its threshold, the normalization, and sync state as a peer
-    // reads and applies it (`getSyncState` / `syncState`, ADR-0016). Plus the
-    // two track collections and the control-map dataset, which a host reads to
-    // mirror what a panel holds. All existed and were reachable before they
-    // were named here; declaring them is what makes "no callers in this repo"
-    // a complete finding rather than half of one (ADR-0003).
-    'controlDataset',
-    'trackPairs',
-    'tracks2D',
+    // reads and applies it (`getSyncState` / `syncState`, ADR-0016). All
+    // existed and were reachable before they were named here; declaring them
+    // is what makes "no callers in this repo" a complete finding rather than
+    // half of one (ADR-0003).
     'zoomAndCenter',
     'setColorScaleThreshold',
     'setNormalization',
@@ -191,7 +187,12 @@ export const BROWSER_SURFACE = [
     'eventBus',
     'coordinator',
     'layoutController',
-    'contactMatrixView'
+    'contactMatrixView',
+    // The two track collections and the control-map dataset, which a host
+    // reads to mirror what a panel holds (ADR-0021).
+    'controlDataset',
+    'trackPairs',
+    'tracks2D'
 ]
 
 /**
