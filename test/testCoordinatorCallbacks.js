@@ -45,6 +45,7 @@ function fakeCoordinator() {
             clearSubstitution: vi.fn(),
             clearSubstitutionIfStale: vi.fn(),
             setNormalizationProgrammatically: vi.fn(),
+            reselect: vi.fn(() => Promise.resolve()),
             announceSubstitution: vi.fn()
         }
     }
@@ -77,7 +78,7 @@ describe('coordinator callbacks a host can subscribe to', () => {
     })
 
     it('delivers onNormalizationChange with the normalization set', () => {
-        const {browser, coordinator} = fakeCoordinator()
+        const {browser, widgets, coordinator} = fakeCoordinator()
         const received = subscribe(coordinator, 'onNormalizationChange')
 
         coordinator.onNormalizationChange('VC')
@@ -86,6 +87,8 @@ describe('coordinator callbacks a host can subscribe to', () => {
         expectDeclaredFields('onNormalizationChange', received[0])
         expect(received[0].normalization).toBe('VC')
         expect(received[0].browser).toBe(browser)
+        // The Norm dropdown still re-selects through `reselect` (#724).
+        expect(widgets.normalizationWidget.reselect).toHaveBeenCalledWith('VC')
     })
 
     it('delivers onNormalizationSubstituted with what was asked, what is drawn, and why', () => {
