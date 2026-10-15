@@ -311,7 +311,7 @@ export const POST_LOAD_SURFACE = [
     {path: 'browser.genome', populatedBy: 'dataLoader, on map load'},
     {path: 'browser.dataset.isLive', populatedBy: 'the Dataset constructor'},
     {path: 'browser.activeDataset.isLive', populatedBy: 'the Dataset constructor'},
-    // juicebox-remote reads a panel's locus this way to mirror it. One dot past
+    // A host mirroring one panel onto another reads its locus this way. One dot past
     // `state`, which is a sub-surface owner in every other respect but does not
     // exist until a map loads, so it is declared here rather than in
     // `SUB_SURFACES` (ADR-0021).
@@ -338,7 +338,7 @@ export const SUB_SURFACES = [
     // ADR-0003's measurement and found while reviewing #470 -- which is the
     // point: a hand-measured table missed it, and a test would not have.
     {owner: 'contactMatrixView', member: 'viewportElement'},
-    // juicebox-remote mirrors a panel's colours onto another through these two.
+    // A host mirroring one panel onto another applies its colours through these.
     // Undeclared they were invisible, which ADR-0003 is about (ADR-0021).
     {owner: 'contactMatrixView', member: 'setColorScale'},
     {owner: 'contactMatrixView', member: 'setBackgroundColor'},

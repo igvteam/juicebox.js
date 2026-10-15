@@ -141,14 +141,15 @@ These are contract too, and are easy to miss because they are one dot further ou
   incomplete within a week.
 - `coordinator.addCallback(name, fn)` — Spacewalk registers `onMapLoaded`,
   `onBackgroundColorChange` and `onForegroundColorChange`. The coordinator accepts
-  **eleven** names and throws on anything else, so all eleven are published
+  **thirteen** names and throws on anything else, so all thirteen are published
   behaviour; `onControlMapLoaded`, `onLocusChange`, `onGenomeChange` and
   `onSyncRefused` are registerable and currently unused, as are the four added
   for a host mirroring one panel onto another -- `onColorScaleChange`,
   `onNormalizationChange`, `onNormalizationSubstituted` and
-  `onDisplayModeChange`, the last of which reverses an explicit no in
-  ADR-0012. `onSyncRefused` was
-  added by #626 and is the one of the seven that reports a *non-event*: a panel
+  `onDisplayModeChange` (ADR-0021); publishing `onNormalizationSubstituted`
+  reverses an explicit no in ADR-0012, and the two crosshair callbacks of
+  ADR-0020, described below. `onSyncRefused` was
+  added by #626 and is the one of the thirteen that reports a *non-event*: a panel
   that did not follow its sibling, and why. Since #632 only one of its two
   `reason` values is emitted (`'no-compatible-peer'`, on load); the other,
   `'unresolved-chromosome'`, stays in the payload contract so host code that

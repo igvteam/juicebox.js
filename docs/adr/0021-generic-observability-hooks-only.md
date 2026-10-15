@@ -71,6 +71,9 @@ needed is added as an observation or a declaration any host could use:
   the colon, `kb`/`mb` suffixes, the word `chromosome` before a name, and a
   `{chr, start, end}` object. Locus *parsing* belongs in the viewer.
 
+**Two channels.** A change to one panel's view is a coordinator callback; a
+panel or track appearing, changing or going away is a global-bus event.
+
 **2. Additive, and named by what happened in the viewer.** A new payload
 field is added beside the old ones (`type` on `onForegroundColorChange`), never
 in place of them. A hook is named for the change it reports — a colour scale,

@@ -129,7 +129,7 @@ describe('post-load surface', () => {
 
     it('declares a locus read the state a map load sets still has', () => {
         // `browser.state` is undefined on a bare instance, so the check is made
-        // on what `setState` installs. juicebox-remote reads it (ADR-0021).
+        // on what `setState` installs. A host mirroring a panel reads it (ADR-0021).
         expect(POST_LOAD_SURFACE.map(entry => entry.path)).toContain('browser.state.getLocus')
         expect(typeof State.prototype.getLocus).toBe('function')
     })
