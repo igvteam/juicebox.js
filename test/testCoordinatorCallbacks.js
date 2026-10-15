@@ -202,4 +202,40 @@ describe('the browser feeds the new callbacks', () => {
         expect(received).toHaveLength(1)
         expect(received[0].mode).toBe('B')
     })
+
+    it('fires onNormalizationChange when a host sets the normalization', () => {
+        const {browser} = context
+        const received = subscribe(browser.coordinator, 'onNormalizationChange')
+
+        browser.setNormalization('VC')
+
+        expect(received).toHaveLength(1)
+        expect(received[0].browser).toBe(browser)
+    })
+
+    it('fires onNormalizationChange when the user picks from the Norm dropdown', () => {
+        const {browser} = context
+        const received = subscribe(browser.coordinator, 'onNormalizationChange')
+        const {normalizationSelector} = browser.coordinator.widgets.normalizationWidget
+        const option = normalizationSelector.ownerDocument.createElement('option')
+        option.value = 'VC'
+        normalizationSelector.appendChild(option)
+
+        normalizationSelector.value = 'VC'
+        normalizationSelector.dispatchEvent(new normalizationSelector.ownerDocument.defaultView.Event('change'))
+
+        expect(received).toHaveLength(1)
+        expect(received[0].browser).toBe(browser)
+    })
+
+    it('fires onForegroundColorChange with the half of the scale the user\'s swatch touched', () => {
+        const {browser} = context
+        const received = subscribe(browser.coordinator, 'onForegroundColorChange')
+        const {plusColorPicker, minusColorPicker} = browser.coordinator.widgets.colorScaleWidget
+
+        plusColorPicker.container.querySelector('.igv-ui-color-swatch').click()
+        minusColorPicker.container.querySelector('.igv-ui-color-swatch').click()
+
+        expect(received.map(payload => payload.type)).toEqual(['+', '-'])
+    })
 })
