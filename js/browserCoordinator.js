@@ -374,6 +374,24 @@ class BrowserCoordinator {
     }
 
     /**
+     * Tell subscribers a restore changed the normalization.
+     *
+     * The widget is not told here: a restore reaches the selector through the
+     * map load (`onNormVectorIndexLoad`) or `onNormalizationResolved`, and
+     * `onNormalizationChange` above would clear an announcement the restore
+     * just raised. A host mirroring this panel still has to hear it, as
+     * `onNormalizationChange` with what is drawn -- after a substitution, the
+     * substitute, which `onNormalizationSubstituted` has already explained.
+     *
+     * @param {string} normalization - the normalization now in force
+     */
+    onNormalizationRestored(normalization) {
+        for (const callback of this.externalCallbacks.onNormalizationChange) {
+            callback({ normalization, browser: this.browser });
+        }
+    }
+
+    /**
      * Orchestrate component updates for normalization file load status.
      * 
      * @param {string} status - Load status ("start" or "stop")

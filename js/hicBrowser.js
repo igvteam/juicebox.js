@@ -392,8 +392,12 @@ class HICBrowser {
             // the question, not the answer: which field is being asked about,
             // and when.
             if (config.normalization) {
+                const restoredNormalization = this.state.normalization;
                 this.state.normalization = await this.#resolveNormalization(config.normalization);
                 await this.#announceSubstitution(config.normalization, this.state.normalization);
+                if (restoredNormalization !== this.state.normalization) {
+                    this.coordinator.onNormalizationRestored(this.state.normalization);
+                }
 
                 // And the selector catches up, because it cannot have been
                 // right before this line (#603). The mechanism is written down
@@ -1507,6 +1511,7 @@ class HICBrowser {
         const requestedNormalization = restored.normalization;
         restored.normalization = await this.#resolveNormalization(requestedNormalization);
 
+        const outgoingNormalization = this.#state?.normalization;
         this.#state = restored;
 
         // After the assignment, because the announcement is scoped to the view
@@ -1514,6 +1519,9 @@ class HICBrowser {
         // and `onLocusChange`, which follow: both run on this same view, so
         // neither retires it (#372, ADR-0012).
         await this.#announceSubstitution(requestedNormalization, restored.normalization);
+        if (outgoingNormalization !== restored.normalization) {
+            this.coordinator.onNormalizationRestored(restored.normalization);
+        }
 
         const eventData = {
             state: this.state,
