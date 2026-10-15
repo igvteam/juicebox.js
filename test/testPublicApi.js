@@ -6,6 +6,7 @@ import EventBus from '../js/eventBus.js'
 import BrowserRegistry from '../js/browserRegistry.js'
 import {initRegistry} from '../js/init.js'
 import {filenameFromUrl} from '../js/utils.js'
+import State from '../js/hicState.js'
 import {NAMESPACE_SURFACE, BROWSER_SURFACE, REGISTRY_SURFACE, POST_LOAD_SURFACE, SUB_SURFACES, COORDINATOR_CALLBACKS, COORDINATOR_PAYLOAD_SHAPES, DEPRECATED_SURFACE, EVENTS_POSTED, EVENT_PAYLOAD_SHAPES} from '../js/publicApi.js'
 
 /**
@@ -124,6 +125,13 @@ describe('post-load surface', () => {
         // and the tempting fix, dropping it, would make real contract invisible.
         expect(BROWSER_SURFACE).not.toContain('genome')
         expect(POST_LOAD_SURFACE.map(entry => entry.path)).toContain('browser.genome')
+    })
+
+    it('declares a locus read the state a map load sets still has', () => {
+        // `browser.state` is undefined on a bare instance, so the check is made
+        // on what `setState` installs. juicebox-remote reads it (ADR-0021).
+        expect(POST_LOAD_SURFACE.map(entry => entry.path)).toContain('browser.state.getLocus')
+        expect(typeof State.prototype.getLocus).toBe('function')
     })
 
     it('exposes isLive on a dataset', () => {
