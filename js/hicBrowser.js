@@ -392,8 +392,12 @@ class HICBrowser {
             // the question, not the answer: which field is being asked about,
             // and when.
             if (config.normalization) {
+                const restoredNormalization = this.state.normalization;
                 this.state.normalization = await this.#resolveNormalization(config.normalization);
                 await this.#announceSubstitution(config.normalization, this.state.normalization);
+                if (restoredNormalization !== this.state.normalization) {
+                    this.coordinator.onNormalizationRestored(this.state.normalization);
+                }
 
                 // And the selector catches up, because it cannot have been
                 // right before this line (#603). The mechanism is written down
@@ -521,11 +525,13 @@ class HICBrowser {
     }
 
     async setDisplayMode(mode) {
+        this.#assertNotDisposed('setDisplayMode');
         await this.contactMatrixView.setDisplayMode(mode)
         this.coordinator.onDisplayMode(mode)
     }
 
     getDisplayMode() {
+        this.#assertNotDisposed('getDisplayMode');
         return this.contactMatrixView ? this.contactMatrixView.displayMode : undefined
     }
 
@@ -599,11 +605,18 @@ class HICBrowser {
     }
 
     getColorScale() {
+        this.#assertNotDisposed('getColorScale');
         return this.contactMatrixView?.getColorScale()
     }
 
     setColorScaleThreshold(threshold) {
+        this.#assertNotDisposed('setColorScaleThreshold');
         this.contactMatrixView.setColorScaleThreshold(threshold)
+        // The threshold is on the scale before the view's repaint is awaited,
+        // so what is announced is what will be drawn. The auto-threshold path
+        // announces itself from the tile source; this one is the user's edit,
+        // and used to say nothing.
+        this.coordinator.onColorScale(this.contactMatrixView.getColorScale())
     }
 
     /**
@@ -1361,6 +1374,7 @@ class HICBrowser {
      * @returns {Promise<void>}
      */
     async zoomAndCenter(direction, centerPX, centerPY) {
+        this.#assertNotDisposed('zoomAndCenter');
         return this.interactions.zoomAndCenter(direction, centerPX, centerPY);
     }
 
@@ -1497,6 +1511,7 @@ class HICBrowser {
         const requestedNormalization = restored.normalization;
         restored.normalization = await this.#resolveNormalization(requestedNormalization);
 
+        const outgoingNormalization = this.#state?.normalization;
         this.#state = restored;
 
         // After the assignment, because the announcement is scoped to the view
@@ -1504,6 +1519,9 @@ class HICBrowser {
         // and `onLocusChange`, which follow: both run on this same view, so
         // neither retires it (#372, ADR-0012).
         await this.#announceSubstitution(requestedNormalization, restored.normalization);
+        if (outgoingNormalization !== restored.normalization) {
+            this.coordinator.onNormalizationRestored(restored.normalization);
+        }
 
         const eventData = {
             state: this.state,
@@ -1635,7 +1653,7 @@ class HICBrowser {
             ? substitutionReason.notInBothMaps(requested, resolved)
             : substitutionReason.notInFile(requested, resolved);
 
-        this.coordinator.onNormalizationSubstituted(resolved, reason);
+        this.coordinator.onNormalizationSubstituted({requested, effective: resolved, reason});
     }
 
     /**
@@ -1647,6 +1665,7 @@ class HICBrowser {
      * browser rather than about the view.
      */
     getSyncState() {
+        this.#assertNotDisposed('getSyncState');
         if (!this.dataset || !this.state) {
             return undefined;
         }
@@ -1671,6 +1690,7 @@ class HICBrowser {
      * on it (#605). An assert since #632 -- see the comment there.
      */
     async syncState(targetState) {
+        this.#assertNotDisposed('syncState');
         if (!targetState || !isSynchable(this) || !this.state) {
             return;
         }
@@ -1720,6 +1740,7 @@ class HICBrowser {
     }
 
     setNormalization(normalization) {
+        this.#assertNotDisposed('setNormalization');
         if (this.#state) {
             this.#state.normalization = normalization;
         }
@@ -1759,10 +1780,11 @@ class HICBrowser {
         }
 
         this.#state.normalization = effective;
-        this.coordinator.onNormalizationSubstituted(
+        this.coordinator.onNormalizationSubstituted({
+            requested,
             effective,
-            substitutionReason.notAtThisView(requested, effective)
-        );
+            reason: substitutionReason.notAtThisView(requested, effective)
+        });
     }
 
     async shiftPixels(dx, dy) {

@@ -302,6 +302,11 @@ shown or hidden for both at once. Per browser. On the y track it reads
 bottom-to-top, like the ruler beside it.
 _Avoid_: track title, track name (the property, not the thing drawn).
 
+**2D track** — a set of 2D features, such as loops or domains, drawn on the
+contact map itself rather than along an axis. Lives in one panel. The
+annotation panel lists a panel's 2D tracks alongside its track pairs.
+_Avoid_: 2D annotation, 2D feature track.
+
 **Pending track** — a 1D track a load has named but not yet finished loading,
 shown as a placeholder row in its place with its name and a spinner. A restore
 does not wait for it: the map is usable while it is pending. It is still part
@@ -313,7 +318,7 @@ _Avoid_: loading track, track placeholder (the row, not the track).
 
 **Genome change** — a successful map load into a panel whose genome id differs
 from the one its previous map had. The id, not the assembly: hg38 to GRCh38 is a
-genome change. A panel's tracks — track pairs, pending tracks and 2D annotations
+genome change. A panel's tracks — track pairs, pending tracks and 2D tracks
 — belong to its genome, so a genome change removes them all; the user's act of
 loading the other genome's map is the consent. A failed load is not a genome
 change: the old genome, and its tracks, stay. ADR-0019.
@@ -362,6 +367,12 @@ else fetches directly, so a genuine CORS failure stays visible.
 `js/index.js`, every member of a browser instance and what those members reach,
 the coordinator callback names, and posted events with their payloads. Mostly
 undeclared by construction.
+
+**Observability hook** — a coordinator callback or a global-bus event a host
+subscribes to, named for what happened in the viewer. A change to one panel's
+view is a coordinator callback; a panel or track appearing, changing or going
+away is a global-bus event. ADR-0021.
+_Avoid_: host hook, MCP hook.
 
 **Manifest** — `js/publicApi.js`, the public surface named as data and checked by
 `test/testPublicApi.js`. Check it before deleting anything: "no callers in this

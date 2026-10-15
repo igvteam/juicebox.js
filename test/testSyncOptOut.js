@@ -25,6 +25,7 @@ vi.mock('../js/hicDataset.js', () => ({
 
 const { default: DataLoader } = await import('../js/dataLoader.js')
 const { default: HICBrowser } = await import('../js/hicBrowser.js')
+const { withContainers } = await import('./utils/browserFixture.js')
 
 const CHROMOSOMES = [
     { name: 'All', size: 2000, index: 0 },
@@ -54,13 +55,17 @@ function stubPeer() {
 }
 
 /**
- * The stub takes `HICBrowser`'s real `syncState` -- the guard under test is in
- * it, so a hand-written stand-in would test nothing. Everything that method
- * touches beyond the guard is stubbed: `state.sync` records the call, `update`
- * and the coordinator do nothing.
+ * A real `HICBrowser`, so its real `syncState` runs -- the guard under test is
+ * in it, so a hand-written stand-in would test nothing. A real instance rather
+ * than the method borrowed onto a plain object, because `syncState` refuses a
+ * disposed browser through a private method, which brand-checks its receiver.
+ * Everything that method touches beyond the guard is shadowed by an own
+ * property: `state.sync` records the call, `update` and the coordinator do
+ * nothing.
  */
-function stubBrowser({ synchable, peer, synched }) {
-    const browser = {
+function stubBrowser(container, { synchable, peer, synched }) {
+    const browser = new HICBrowser(container, {})
+    Object.defineProperties(browser, Object.getOwnPropertyDescriptors({
         synchable,
         genome: { getChromosome: name => CHROMOSOMES.find(c => c.name === name) },
         state: {
@@ -88,14 +93,15 @@ function stubBrowser({ synchable, peer, synched }) {
         registry: { presentAlert: () => undefined, sync: () => undefined, browsers: [peer] },
         setActiveDataset: dataset => { browser.dataset = dataset },
         setState: async () => undefined,
-        parseGotoInput: async () => undefined,
-        syncState: targetState => HICBrowser.prototype.syncState.call(browser, targetState)
-    }
+        parseGotoInput: async () => undefined
+    }))
     browser.registry.browsers.push(browser)
     return browser
 }
 
 describe('the sync step at the end of a map load', () => {
+
+    const dom = withContainers()
 
     beforeEach(() => {
         loadDataset.mockReset()
@@ -104,7 +110,7 @@ describe('the sync step at the end of a map load', () => {
 
     test('a browser that opted out of syncing does not take a compatible peer\'s state', async () => {
         const synched = []
-        const browser = stubBrowser({ synchable: false, peer: stubPeer(), synched })
+        const browser = stubBrowser(dom.container, { synchable: false, peer: stubPeer(), synched })
 
         await new DataLoader(browser).loadHicFile({ url: 'https://example.org/a.hic' }, true)
 
@@ -113,7 +119,7 @@ describe('the sync step at the end of a map load', () => {
 
     test('a browser that did not opt out takes it', async () => {
         const synched = []
-        const browser = stubBrowser({ synchable: undefined, peer: stubPeer(), synched })
+        const browser = stubBrowser(dom.container, { synchable: undefined, peer: stubPeer(), synched })
 
         await new DataLoader(browser).loadHicFile({ url: 'https://example.org/a.hic' }, true)
 
@@ -131,9 +137,11 @@ describe('the sync step at the end of a map load', () => {
  */
 describe('the sync a browser pushes to the browsers it is linked with', () => {
 
+    const dom = withContainers()
+
     test('a browser that opted out after the group was built does not take the state', async () => {
         const synched = []
-        const recipient = stubBrowser({ synchable: undefined, peer: undefined, synched })
+        const recipient = stubBrowser(dom.container, { synchable: undefined, peer: undefined, synched })
         recipient.dataset = stubDataset()
 
         const source = {

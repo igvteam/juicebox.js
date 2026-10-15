@@ -98,7 +98,7 @@ export const NAMESPACE_SURFACE = [
  * internal detail to published name, freezing this decomposition into the
  * contract. See #467.
  *
- * Seven more are assigned in the constructor rather than declared on the
+ * Ten more are assigned in the constructor rather than declared on the
  * prototype, so they are invisible to any check that reflects on the class
  * instead of building an instance.
  *
@@ -158,6 +158,22 @@ export const BROWSER_SURFACE = [
     'state',
     'activeState',
 
+    // Commands and projections a host drives a browser with from outside its
+    // own widgets: the view (`zoomAndCenter`), the display mode, the colour
+    // scale and its threshold, the normalization, and sync state as a peer
+    // reads and applies it (`getSyncState` / `syncState`, ADR-0016). All
+    // existed and were reachable before they were named here; declaring them
+    // is what makes "no callers in this repo" a complete finding rather than
+    // half of one (ADR-0003).
+    'zoomAndCenter',
+    'setColorScaleThreshold',
+    'setNormalization',
+    'setDisplayMode',
+    'getDisplayMode',
+    'getColorScale',
+    'getSyncState',
+    'syncState',
+
     // Constructor-assigned fields
     'id',
     'config',
@@ -171,7 +187,12 @@ export const BROWSER_SURFACE = [
     'eventBus',
     'coordinator',
     'layoutController',
-    'contactMatrixView'
+    'contactMatrixView',
+    // The two track collections and the control-map dataset, which a host
+    // reads to mirror what a panel holds (ADR-0021).
+    'controlDataset',
+    'trackPairs',
+    'tracks2D'
 ]
 
 /**
@@ -290,7 +311,12 @@ export const REGISTRY_SURFACE = [
 export const POST_LOAD_SURFACE = [
     {path: 'browser.genome', populatedBy: 'dataLoader, on map load'},
     {path: 'browser.dataset.isLive', populatedBy: 'the Dataset constructor'},
-    {path: 'browser.activeDataset.isLive', populatedBy: 'the Dataset constructor'}
+    {path: 'browser.activeDataset.isLive', populatedBy: 'the Dataset constructor'},
+    // A host mirroring one panel onto another reads its locus this way. One dot past
+    // `state`, which is a sub-surface owner in every other respect but does not
+    // exist until a map loads, so it is declared here rather than in
+    // `SUB_SURFACES` (ADR-0021).
+    {path: 'browser.state.getLocus', populatedBy: 'setState, on map load'}
 ]
 
 /**
@@ -313,6 +339,10 @@ export const SUB_SURFACES = [
     // ADR-0003's measurement and found while reviewing #470 -- which is the
     // point: a hand-measured table missed it, and a test would not have.
     {owner: 'contactMatrixView', member: 'viewportElement'},
+    // A host mirroring one panel onto another applies its colours through these.
+    // Undeclared they were invisible, which ADR-0003 is about (ADR-0021).
+    {owner: 'contactMatrixView', member: 'setColorScale'},
+    {owner: 'contactMatrixView', member: 'setBackgroundColor'},
     {owner: 'coordinator', member: 'addCallback'},
     // Spacewalk subscribes DidHideCrosshairs on the per-browser bus -- an event
     // deprecated in #709, though the bus itself is not. Nothing in
@@ -340,6 +370,18 @@ export const SUB_SURFACES = [
  * The coordinator got here on its own -- it validates against its own declared
  * list and throws. That is the only self-describing, self-enforcing piece of
  * the browser contract, and it is the pattern this whole module generalises.
+ *
+ * The last four -- the colour scale, canonical `normalization`, a substitution
+ * of it, and the display mode -- are what a host mirroring one panel onto
+ * another has to follow, and none of them crosses a sync group (ADR-0014), so
+ * the host is the only route. They used to reach only the widgets: a host had
+ * to patch the coordinator's own methods to hear them. Each fires from the
+ * same coordinator method the widget is told through, so the two cannot
+ * disagree; two of those methods predate the `on*Change` naming
+ * (`onColorScale`, `onDisplayMode`) and keep their names, per ADR-0002.
+ * `onNormalizationSubstituted` carries the request as well as the answer,
+ * because a peer must mirror what is *drawn* (ADR-0012, whose explicit no on
+ * publishing it is reversed by this addition), not what was asked.
  */
 export const COORDINATOR_CALLBACKS = [
     'onMapLoaded',
@@ -349,6 +391,10 @@ export const COORDINATOR_CALLBACKS = [
     'onBackgroundColorChange',
     'onForegroundColorChange',
     'onSyncRefused',
+    'onColorScaleChange',
+    'onNormalizationChange',
+    'onNormalizationSubstituted',
+    'onDisplayModeChange',
     // The crosshairs, new in #709: where the source's pointer is, and that it
     // has gone. Once per pointer move, from the source only, never from an
     // echo -- and again when the view changes under a still pointer. There is
@@ -387,6 +433,47 @@ export const COORDINATOR_PAYLOAD_SHAPES = [
     {
         callback: 'onControlMapLoaded',
         payload: ['controlDataset', 'browser']
+    },
+    // `dragging` is true for each step of a drag that pans the view and false
+    // for every other move -- a jump, a zoom, a restore, a sync. No locus change
+    // marks the drag's end. `DragStopped` on the browser's bus is posted when
+    // the gesture ends, which can be before its last pan has settled, so the
+    // last `dragging: true` may arrive after it.
+    {
+        callback: 'onLocusChange',
+        payload: ['state', 'changes', 'dragging', 'browser'],
+        readsInto: ['changes.resolutionChanged', 'changes.chrChanged']
+    },
+    // `type` is which component the edit touched, in the spelling
+    // `SignedColorScale.setColorComponents` already takes: `'+'` for the
+    // positive scale -- the only one a single-sided scale has -- and `'-'` for
+    // the negative. Additive: `rgb` and `browser` are what they always were.
+    {
+        callback: 'onForegroundColorChange',
+        payload: ['rgb', 'type', 'browser'],
+        values: {type: ['+', '-']}
+    },
+    // Fires from the auto-threshold path and from `setColorScaleThreshold`,
+    // so a user's threshold edit is heard the same way a computed one is.
+    {
+        callback: 'onColorScaleChange',
+        payload: ['colorScale', 'browser']
+    },
+    {
+        callback: 'onNormalizationChange',
+        payload: ['normalization', 'browser']
+    },
+    // Both substitution moments of ADR-0012, restore-time and mid-render.
+    // `effective` is what canonical state now names; `reason` is the sentence
+    // the widget shows.
+    {
+        callback: 'onNormalizationSubstituted',
+        payload: ['requested', 'effective', 'reason', 'browser']
+    },
+    {
+        callback: 'onDisplayModeChange',
+        payload: ['mode', 'browser'],
+        values: {mode: ['A', 'B', 'AOB', 'BOA', 'AMB']}
     },
     // `chr1` and `chr2` are chromosome *names*, and never `All`: the host is not
     // told in the whole-genome view. `extents` is the visible bp on each axis,

@@ -251,6 +251,58 @@ describe('normalization is validated against the loaded dataset at restore (#561
         expect(announcement(browser)).toBeDefined()
     })
 
+    test('a coerced restore reaches a subscriber with the request and the answer', async () => {
+
+        // The host-facing half of the announcement. A host mirroring this
+        // panel has to follow what is drawn, and this is the restore-time
+        // moment; the mid-render one is watched in testSubstitutionIsSticky.
+        offered = ['NONE', 'VC']
+        const browser = embed()
+        const received = []
+        browser.coordinator.addCallback('onNormalizationSubstituted', payload => received.push(payload))
+
+        await browser.loadHicFile({url: HIC_URL, state: savedWith('KR')}, true)
+
+        expect(received).toHaveLength(1)
+        expect(received[0].requested).toBe('KR')
+        expect(received[0].effective).toBe('NONE')
+        expect(received[0].reason).toContain('KR')
+        expect(received[0].browser).toBe(browser)
+    })
+
+    test('a restore reaches an onNormalizationChange subscriber with what is drawn', async () => {
+
+        // The selector hears a restore through `onNormalizationResolved`, and
+        // a host mirroring this panel has to hear what the selector hears.
+        // What is drawn, not what was asked: KR survives here, NONE replaces
+        // it in the next case.
+        for (const [offeredHere, drawn] of [[['NONE', 'VC', 'KR'], 'KR'], [['NONE', 'VC'], 'NONE']]) {
+            offered = offeredHere
+            const browser = embed()
+            const received = []
+            browser.coordinator.addCallback('onNormalizationChange', payload => received.push(payload))
+
+            await browser.loadHicFile({url: HIC_URL, state: savedWith('KR')}, true)
+
+            expect(received.map(payload => payload.normalization)).toEqual([drawn])
+            expect(received[0].browser).toBe(browser)
+        }
+    })
+
+    test('a top-level config.normalization reaches the subscriber after the saved one', async () => {
+
+        // Two restores in one init: the saved state's, then the host's field
+        // over it. A subscriber hears each normalization that was in force.
+        offered = ['NONE', 'VC', 'KR']
+        const browser = embed()
+        const received = []
+        browser.coordinator.addCallback('onNormalizationChange', payload => received.push(payload.normalization))
+
+        await browser.init({url: HIC_URL, state: savedWith('NONE'), normalization: 'KR'})
+
+        expect(received).toEqual(['NONE', 'KR'])
+    })
+
     test('a restore with nothing to report stays quiet', async () => {
 
         offered = ['NONE', 'VC', 'KR']
