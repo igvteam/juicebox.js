@@ -519,8 +519,9 @@ const UNITS = {kb: 1e3, mb: 1e6};
  * `parseLocusString` reads.
  *
  * A `{chr, start, end}` object is spelled out -- `start` and `end` together,
- * or neither for the whole chromosome. A string is split on whitespace, the
- * word `chromosome` is dropped, and a range token is joined to the chromosome
+ * or neither for the whole chromosome; one without the other is ignored. A
+ * string is split on whitespace, the word `chromosome` is dropped before a
+ * name, and a range token is joined to the chromosome
  * name before it. Only a chromosome name: a gene symbol followed by a range
  * keeps meaning what it meant, the gene.
  *
@@ -534,8 +535,9 @@ function locusStrings(input, isChromosome) {
         return [undefined === start || undefined === end ? String(chr) : `${chr}:${start}-${end}`];
     }
     const loci = [];
-    for (const token of input.trim().split(/\s+/)) {
-        if ('chromosome' === token.toLowerCase()) continue;
+    const tokens = input.trim().split(/\s+/);
+    for (const [i, token] of tokens.entries()) {
+        if ('chromosome' === token.toLowerCase() && i < tokens.length - 1) continue;
         const last = loci.length - 1;
         if (isRange(token) && last >= 0 && isChromosome(loci[last])) {
             loci[last] += `:${token}`;

@@ -142,8 +142,10 @@ describe('the looser spellings', () => {
 describe('invalid input', () => {
 
     // One strict form and one loose form: neither names a chromosome or a gene,
-    // so both fall through to the alert, as the strict one always has.
-    test.each(['nosuchplace:1000-2000', 'nosuchplace 10mb-20mb'])('%s is still rejected with an alert and no navigation', async input => {
+    // so both fall through to the alert, as the strict one always has. So does
+    // the word `chromosome` with no name after it: it introduces a name, and
+    // with none to introduce it is looked up like any other word.
+    test.each(['nosuchplace:1000-2000', 'nosuchplace 10mb-20mb', 'chromosome'])('%s is still rejected with an alert and no navigation', async input => {
         const alert = vi.fn()
         vi.stubGlobal('alert', alert)
         vi.spyOn(console, 'error').mockImplementation(() => {})

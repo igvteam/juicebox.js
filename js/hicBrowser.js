@@ -1298,6 +1298,16 @@ class HICBrowser {
         return this.dataLoader.loadHicControlFileOrThrow(config, noUpdates);
     }
 
+    /**
+     * Navigate to a locus given as a string or a `{chr, start, end}` object.
+     *
+     * In the object, `start` is 1-based like the string's, and `{chr}` alone
+     * is the whole chromosome. The spellings accepted are listed on
+     * `InteractionHandler.parseGotoInput`. #726.
+     *
+     * @param {string|{chr: string, start?: number, end?: number}} input
+     * @returns {Promise<void>}
+     */
     async parseGotoInput(input) {
         this.#assertNotDisposed('parseGotoInput');
         return this.interactions.parseGotoInput(input);
