@@ -8,7 +8,7 @@
 first explicit no is reversed here), ADR-0014 (normalization and the colour
 scale are not view preferences, so no sync group carries them), ADR-0016
 (sync state as a peer reads it), `CONTEXT.md` (*Coordinator*, *Public
-surface*, *Manifest*, *Substitution*, *Track pair*), `js/publicApi.js`,
+surface*, *Manifest*, *Substitution*, *Observability hook*), `js/publicApi.js`,
 `test/testPublicApi.js`
 
 ## Context
@@ -47,29 +47,23 @@ needed is added as an observation or a declaration any host could use:
   `onDisplayModeChange {mode, browser}`. Each fires from the same coordinator
   method the widget is told through, so a host and a widget cannot disagree.
   `setColorScaleThreshold`, which announced nothing, now notifies the
-  coordinator the way the auto-threshold path always did.
-- One global event, `TrackXYPairChange {trackPair, property, value}`, posted
-  by every setter on `TrackPair` — colour, data range, name, autoscale and
-  log scale — which the gear menu, colour picker and data-range dialog all go
-  through. These were the last mutations of what a browser shows that reached
-  neither the coordinator nor a bus.
+  coordinator the way the auto-threshold path always did, and a restore that
+  changes the normalization reaches `onNormalizationChange` too.
+- Two fields on existing callbacks: `dragging` on `onLocusChange`, true on
+  each pan step of a drag, and `type` on `onForegroundColorChange`, the half
+  of the scale (`'+'` or `'-'`) the edit touched.
 - Eleven browser members named in `BROWSER_SURFACE`: `controlDataset`,
   `trackPairs`, `tracks2D`, `zoomAndCenter`, `setColorScaleThreshold`,
   `setNormalization`, `setDisplayMode`, `getDisplayMode`, `getColorScale`,
   `getSyncState`, `syncState`. All existed; declaring them makes the finding
   whole and gives the eight methods the post-dispose guard of ADR-0005.
-- The same for a 2D track. Three new browser members, `removeTrack2D`,
-  `setTrack2DColor` and `setTrack2DName`, which the annotation panel's delete
-  and colour swatches now go through, and three global events:
-  `Track2DLoad` and `Track2DRemoval`, carrying the `Track2D` as the
-  track-pair ones carry the pair, and `Track2DChange {track2D, property,
-  value}`. A separate event rather than a widened `TrackXYPairChange`, whose
-  `trackPair` key a subscriber reads as a track pair. Before them a host could
-  only splice `tracks2D` and repaint through undeclared members, and heard
-  nothing.
-- `parseGotoInput` accepts the looser spellings a person types: a space for
-  the colon, `kb`/`mb` suffixes, the word `chromosome` before a name, and a
-  `{chr, start, end}` object. Locus *parsing* belongs in the viewer.
+- Three members one dot further out: `contactMatrixView.setColorScale` and
+  `contactMatrixView.setBackgroundColor` in `SUB_SURFACES`, and
+  `state.getLocus` in `POST_LOAD_SURFACE`, since `state` does not exist
+  until a map loads.
+
+What a track's appearance and changes need, and the looser locus spellings
+the prototype parsed for itself, are decided separately (#728, #726).
 
 **Two channels.** A change to one panel's view is a coordinator callback; a
 panel or track appearing, changing or going away is a global-bus event.
@@ -77,7 +71,7 @@ panel or track appearing, changing or going away is a global-bus event.
 **2. Additive, and named by what happened in the viewer.** A new payload
 field is added beside the old ones (`type` on `onForegroundColorChange`), never
 in place of them. A hook is named for the change it reports — a colour scale,
-a normalization, a track pair's property — not for who is listening or why.
+a normalization, a display mode — not for who is listening or why.
 The two coordinator methods that predate the convention (`onColorScale`,
 `onDisplayMode`) keep their names, per ADR-0002.
 
@@ -90,7 +84,8 @@ and it names only juicebox-web, a consumer ADR-0003 already measures.
 
 **4. Everything goes through the manifest.** Each addition is declared in
 `js/publicApi.js` — `COORDINATOR_CALLBACKS` and `COORDINATOR_PAYLOAD_SHAPES`,
-`EVENTS_POSTED` and `EVENT_PAYLOAD_SHAPES`, `BROWSER_SURFACE` — and has a test
+`BROWSER_SURFACE`, `SUB_SURFACES`, `POST_LOAD_SURFACE`, and for a global-bus
+event `EVENTS_POSTED` and `EVENT_PAYLOAD_SHAPES` — and has a test
 that drives it and asserts the payload against the manifest. An addition that
 is not in the manifest is not public, whatever a host has found it can reach.
 
@@ -101,11 +96,12 @@ control layer's; the viewer parses loci and reports changes.
 
 ## Consequences
 
-**A host mirrors a panel without patching anything.** Every observation the
-prototype took by force is now a subscription or an event, and every member
-it reached is named. The prototype's patches are deleted on its side; a
-future one that finds itself patching has found a missing hook, and files for
-it here rather than working around it.
+**A host mirrors a panel's view without patching anything.** The colour
+scale, normalization, substitution and display mode the prototype took by
+force are now subscriptions, and every member it reached is named. Its patches
+for these are deleted on its side; a future one that finds itself patching
+has found a missing hook, and files for it here rather than working around
+it.
 
 **ADR-0012's first explicit no is reversed**, dated in place: a host has
 asked, `onNormalizationSubstituted` is published, and its name and payload are
