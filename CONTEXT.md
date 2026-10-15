@@ -372,7 +372,7 @@ undeclared by construction.
 subscribes to, named for what happened in the viewer. A change to one panel's
 view is a coordinator callback; a panel or track appearing, changing or going
 away is a global-bus event. ADR-0021.
-_Avoid_: host hook, MCP hook.
+_Avoid_: host hook.
 
 **Manifest** — `js/publicApi.js`, the public surface named as data and checked by
 `test/testPublicApi.js`. Check it before deleting anything: "no callers in this
