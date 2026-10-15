@@ -260,7 +260,15 @@ class BrowserCoordinator {
             this.widgets.normalizationWidget.clearSubstitution();
         }
         this.contactMatrixView.receiveEvent({ type: "NormalizationChange", data: normalization });
-        // NormalizationWidget updates via selector change, no direct notification needed
+        // A host's `setNormalization` never touched the dropdown, so it is
+        // re-selected here; programmatic selection fires no `change`, so this
+        // does not come back around to `setNormalization`. `reselect`, not a
+        // bare programmatic set: a value with no entry rebuilds the list
+        // rather than leaving nothing selected.
+        if (this.widgets.normalizationWidget) {
+            this.widgets.normalizationWidget.reselect(normalization)
+                .catch(error => console.error('Error re-selecting normalization:', error));
+        }
     }
 
     /**
