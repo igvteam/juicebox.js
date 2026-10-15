@@ -41,14 +41,14 @@ describe('the Norm dropdown follows browser.setNormalization()', () => {
         return widget
     }
 
-    test('the selector shows the new value and setNormalization is not re-entered', () => {
+    test('the selector shows the new value and setNormalization is not re-entered', async () => {
         const {browser} = context
         const widget = widgetOffering(['NONE', 'KR'])
         const spy = vi.spyOn(browser, 'setNormalization')
 
         browser.setNormalization('KR')
 
-        expect(widget.normalizationSelector.value).toBe('KR')
+        await vi.waitFor(() => expect(widget.normalizationSelector.value).toBe('KR'))
         expect(spy).toHaveBeenCalledTimes(1)
     })
 
