@@ -140,3 +140,53 @@ describe('internal subscribers', () => {
         expect(offenders, `these subscribe internally instead of using the coordinator: ${offenders.join(', ')}`).toEqual([])
     })
 })
+
+describe('post', () => {
+
+    it('a throwing subscriber does not stop the rest, and its error still reaches the poster', () => {
+        // One host's bug must not cost another host its notification.
+        const bus = new EventBus()
+        const seen = []
+        const failure = new Error('host bug')
+
+        bus.subscribe('DragStopped', () => seen.push('before'))
+        bus.subscribe('DragStopped', () => { throw failure })
+        bus.subscribe('DragStopped', () => seen.push('after'))
+
+        expect(() => bus.post(HICEvent('DragStopped'))).toThrow(failure)
+        expect(seen).toEqual(['before', 'after'])
+    })
+
+    it('reports every failure when more than one subscriber throws', () => {
+        const bus = new EventBus()
+        const seen = []
+        const first = new Error('first')
+        const second = new Error('second')
+
+        bus.subscribe('DragStopped', () => { throw first })
+        bus.subscribe('DragStopped', () => seen.push('between'))
+        bus.subscribe('DragStopped', () => { throw second })
+
+        let thrown
+        try {
+            bus.post(HICEvent('DragStopped'))
+        } catch (error) {
+            thrown = error
+        }
+
+        expect(thrown).toBeInstanceOf(AggregateError)
+        expect(thrown.errors).toEqual([first, second])
+        expect(seen).toEqual(['between'])
+    })
+
+    it('delivers to every subscriber, in order, without throwing when none fail', () => {
+        const bus = new EventBus()
+        const seen = []
+
+        bus.subscribe('DragStopped', event => seen.push(['function', event.type]))
+        bus.subscribe('DragStopped', {receiveEvent: event => seen.push(['receiveEvent', event.type])})
+
+        expect(() => bus.post(HICEvent('DragStopped'))).not.toThrow()
+        expect(seen).toEqual([['function', 'DragStopped'], ['receiveEvent', 'DragStopped']])
+    })
+})
