@@ -168,6 +168,24 @@ describe('coordinator delivery', () => {
             .toContain(received.datasetType)
     })
 
+    it('delivers the declared onBackgroundColorChange payload to a host callback', () => {
+        // A host mirroring one panel onto another reads the colour off it.
+        const shape = COORDINATOR_PAYLOAD_SHAPES.find(entry => 'onBackgroundColorChange' === entry.callback)
+        expect(shape, 'onBackgroundColorChange declares no payload').toBeDefined()
+
+        const {browser} = context
+        let received
+        browser.coordinator.addCallback('onBackgroundColorChange', payload => { received = payload })
+
+        browser.coordinator.onBackgroundColorChange({r: 1, g: 2, b: 3})
+
+        for (const field of shape.payload) {
+            expect(field in received, `onBackgroundColorChange no longer delivers "${field}"`).toBe(true)
+        }
+        expect(received.rgb).toEqual({r: 1, g: 2, b: 3})
+        expect(received.browser).toBe(browser)
+    })
+
     it('delivers normalization widget updates without the widget subscribing', () => {
         const widget = context.browser.coordinator.widgets.normalizationWidget
         const stopNotReady = vi.spyOn(widget, 'stopNotReady').mockImplementation(() => {})

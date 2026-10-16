@@ -28,6 +28,7 @@ const { decodeState } = await import('../js/sessionCodec.js');
 const { default: HICBrowser } = await import('../js/hicBrowser.js');
 const { default: ContactMatrixView } = await import('../js/contactMatrixView.js');
 const { default: TrackPair } = await import('../js/trackPair.js');
+const { EVENT_PAYLOAD_SHAPES } = await import('../js/publicApi.js');
 const { setUrlMapper } = await import('../js/urlMapper.js');
 
 function config(name) {
@@ -105,6 +106,31 @@ describe("a pending track is a placeholder row", function () {
         for (const { resolve } of pending.values()) resolve();
         await load;
         expect(alerts).toEqual([]);
+    });
+
+    test("a loaded track's load and removal carry every field the manifest declares", async function () {
+        // juicebox-remote reads the panel off the pair and the url off its config. #730.
+        const { browser } = context;
+        // A real igv track keeps the config it was made from; the stand-in makes its own.
+        createTrack.mockImplementation(async trackConfig => ({ ...track(trackConfig.name), config: trackConfig }));
+        const heard = [];
+        const listener = event => heard.push(event);
+        const types = ["TrackXYPairLoad", "TrackXYPairRemoval"];
+        for (const type of types) EventBus.globalBus.subscribe(type, listener);
+        try {
+            await browser.loadTracks([config("a")]);
+            browser.layoutController.removeTrackXYPair(browser.trackPairs[0]);
+        } finally {
+            for (const type of types) EventBus.globalBus.unsubscribe(type, listener);
+        }
+        expect(heard.map(({ type }) => type)).toEqual(["TrackXYPairLoad", "TrackXYPairRemoval"]);
+        for (const { type, data } of heard) {
+            const { readsInto } = EVENT_PAYLOAD_SHAPES.find(entry => type === entry.event);
+            expect(readsInto).toEqual(expect.arrayContaining(["browser", "track.config.url"]));
+            for (const field of readsInto) expect(data, `${type} payload lacks "${field}"`).toHaveProperty(field);
+            expect(data.browser).toBe(browser);
+            expect(data.track.config.url).toBe(config("a").url);
+        }
     });
 
     test("a placeholder becomes its track pair while the others still pend", async function () {

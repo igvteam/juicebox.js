@@ -163,6 +163,18 @@ describe('post-load surface', () => {
         expect(typeof State.prototype.getLocus).toBe('function')
     })
 
+    it('declares what a host names a panel by and reads its locus with', () => {
+        // juicebox-remote, #730.
+        const paths = POST_LOAD_SURFACE.map(entry => entry.path)
+        for (const path of ['browser.dataset.url', 'browser.dataset.name', 'browser.dataset.genomeId',
+            'browser.dataset.isWholeGenome', 'browser.state.chr1',
+            'browser.controlDataset.url', 'browser.controlDataset.name']) {
+            expect(paths).toContain(path)
+        }
+        expect(typeof HiCDataset.prototype.isWholeGenome).toBe('function')
+        expect(new State(1, 1, 0, 0, 0, 1).chr1).toBe(1)
+    })
+
     it('exposes isLive on a dataset', () => {
         // Spacewalk reads this to tell a live contact map from a static .hic.
         // A dataset constructs without a browser, so unlike genome this one can
@@ -181,6 +193,12 @@ describe('sub-surfaces', () => {
             expect(context.browser[owner], `browser no longer exposes "${owner}"`).toBeDefined()
             expect(member in context.browser[owner], `browser.${owner} no longer exposes "${member}"`).toBe(true)
         }
+    })
+
+    it('declares the view size a locus read takes', () => {
+        // `state.getLocus(dataset, viewDimensions)` wants it, so a host that
+        // reads a locus reads this too. juicebox-remote does. #730.
+        expect(SUB_SURFACES).toContainEqual({owner: 'contactMatrixView', member: 'getViewDimensions'})
     })
 
     it('declares owners that are themselves declared surface', () => {
