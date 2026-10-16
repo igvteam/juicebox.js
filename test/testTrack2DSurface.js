@@ -1,6 +1,11 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest'
 import EventBus from '../js/eventBus.js'
 import Track2D from '../js/track2D.js'
+import DataLoader from '../js/dataLoader.js'
+import ContactMatrixView from '../js/contactMatrixView.js'
+import HICBrowser from '../js/hicBrowser.js'
+import {decodeState} from '../js/sessionCodec.js'
+import {restoreDataset} from './utils/restoreDataset.js'
 import {BROWSER_SURFACE, EVENTS_POSTED, EVENT_PAYLOAD_SHAPES} from '../js/publicApi.js'
 import {withBrowser} from './utils/browserFixture.js'
 
@@ -135,6 +140,68 @@ describe('2D track surface', () => {
 
             expect(seen).toEqual([{type: 'Track2DLoad', data: loops}])
             expect(heldWhenPosted).toEqual([loops])
+        })
+    })
+
+    describe('browser', () => {
+
+        // Which panel a 2D track belongs to, as `trackPair.browser` says for a
+        // track pair. Set as the track loads, so a restored one has it too, and
+        // kept after removal, so a `Track2DRemoval` subscriber can still tell
+        // which panel the track left.
+
+        const flush = () => new Promise(resolve => setTimeout(resolve, 0))
+
+        it('is the panel the track loaded into', async () => {
+            const loops = track2D('loops')
+            vi.spyOn(Track2D, 'loadTrack2D').mockResolvedValue(loops)
+            let browserWhenPosted
+            const onLoad = event => browserWhenPosted = event.data.browser
+            EventBus.globalBus.subscribe('Track2DLoad', onLoad)
+
+            try {
+                await context.browser.loadTracks([{name: 'loops', url: 'https://example.org/loops.bedpe'}])
+            } finally {
+                EventBus.globalBus.unsubscribe('Track2DLoad', onLoad)
+            }
+
+            expect(loops.browser).toBe(context.browser)
+            expect(browserWhenPosted).toBe(context.browser)
+        })
+
+        it('is the panel a session restored the track into', async () => {
+            const loops = track2D('loops')
+            vi.spyOn(Track2D, 'loadTrack2D').mockResolvedValue(loops)
+            vi.spyOn(ContactMatrixView.prototype, 'update').mockImplementation(async () => undefined)
+            vi.spyOn(HICBrowser.prototype, 'update').mockImplementation(async () => undefined)
+            vi.spyOn(DataLoader.prototype, 'loadHicFile').mockImplementation(async function (config) {
+                this.browser.setActiveDataset(restoreDataset(config))
+                await this.browser.setState(decodeState(undefined))
+            })
+
+            await context.browser.init({url: 'https://example.org/map.hic', tracks: [{name: 'loops', url: 'https://example.org/loops.bedpe'}]})
+            await flush()
+
+            expect(context.browser.tracks2D).toEqual([loops])
+            expect(loops.browser).toBe(context.browser)
+        })
+
+        it('is still the panel once the track is removed', async () => {
+            const loops = track2D('loops')
+            vi.spyOn(Track2D, 'loadTrack2D').mockResolvedValue(loops)
+            await context.browser.loadTracks([{name: 'loops', url: 'https://example.org/loops.bedpe'}])
+            let browserWhenRemoved
+            const onRemoval = event => browserWhenRemoved = event.data.browser
+            EventBus.globalBus.subscribe('Track2DRemoval', onRemoval)
+
+            try {
+                context.browser.removeTrack2D(loops)
+            } finally {
+                EventBus.globalBus.unsubscribe('Track2DRemoval', onRemoval)
+            }
+
+            expect(browserWhenRemoved).toBe(context.browser)
+            expect(loops.browser).toBe(context.browser)
         })
     })
 

@@ -1219,7 +1219,7 @@ class HICBrowser {
      * panel's delete goes through here.
      */
     removeTrack2D(track2D) {
-        assertNotDisposed(this, 'removeTrack2D')
+        this.#assertNotDisposed('removeTrack2D')
         const index = this.tracks2D.indexOf(track2D)
         if (-1 === index) {
             return
@@ -1236,7 +1236,7 @@ class HICBrowser {
      * here.
      */
     setTrack2DColor(track2D, color) {
-        assertNotDisposed(this, 'setTrack2DColor')
+        this.#assertNotDisposed('setTrack2DColor')
         track2D.color = color
         EventBus.globalBus.post(HICEvent('Track2DChange', {track2D, property: 'color', value: color}))
         this.coordinator.onTrackState2D(track2D)
@@ -1248,7 +1248,7 @@ class HICBrowser {
      * `Track2DChange`.
      */
     setTrack2DName(track2D, name) {
-        assertNotDisposed(this, 'setTrack2DName')
+        this.#assertNotDisposed('setTrack2DName')
         track2D.name = name
         EventBus.globalBus.post(HICEvent('Track2DChange', {track2D, property: 'name', value: name}))
     }
