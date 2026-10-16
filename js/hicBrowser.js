@@ -1933,6 +1933,13 @@ class HICBrowser {
     /**
      * Synchronize this browser's state to other synched browsers.
      * Called separately from rendering to keep concerns separated.
+     *
+     * Only along an edge both ends still hold. A map load opens with
+     * `clearDataset()`, which strips this browser from its peers' sets and
+     * deliberately leaves its own standing, so the load can still reach the
+     * group (ADR-0014 decision 3b). Until the load's `registry.sync()` re-pairs
+     * it, this browser's view is the whole-genome default its first `setState`
+     * installs, and pushing that would move the group to `All`. #719.
      */
     syncToOtherBrowsers() {
         if (this.synchedBrowsers.size === 0) {
@@ -1941,7 +1948,9 @@ class HICBrowser {
 
         const syncState = this.getSyncState()
         for (const browser of [...this.synchedBrowsers]) {
-            browser.syncState(syncState)
+            if (browser.synchedBrowsers.has(this)) {
+                browser.syncState(syncState)
+            }
         }
     }
 
