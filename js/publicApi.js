@@ -329,7 +329,17 @@ export const POST_LOAD_SURFACE = [
     // `state`, which is a sub-surface owner in every other respect but does not
     // exist until a map loads, so it is declared here rather than in
     // `SUB_SURFACES` (ADR-0021).
-    {path: 'browser.state.getLocus', populatedBy: 'setState, on map load'}
+    {path: 'browser.state.getLocus', populatedBy: 'setState, on map load'},
+    // juicebox-remote names a panel by its maps and genome, sends their urls to
+    // peers, and reads the locus box's text off the state. #730.
+    // Neither is set on a live map, and a map opened from a local file has no url.
+    {path: 'browser.dataset.url', populatedBy: 'Dataset.loadDataset, for a map opened from a URL'},
+    {path: 'browser.dataset.name', populatedBy: 'the Dataset constructor, and dataLoader on a file load'},
+    {path: 'browser.dataset.genomeId', populatedBy: 'HiCDataset.init, on map load'},
+    {path: 'browser.dataset.isWholeGenome', populatedBy: 'the Dataset class'},
+    {path: 'browser.state.chr1', populatedBy: 'setState, on map load'},
+    {path: 'browser.controlDataset.url', populatedBy: 'Dataset.loadDataset, for a control map opened from a URL'},
+    {path: 'browser.controlDataset.name', populatedBy: 'the Dataset constructor, and dataLoader on a control load'}
 ]
 
 /**
@@ -356,6 +366,9 @@ export const SUB_SURFACES = [
     // Undeclared they were invisible, which ADR-0003 is about (ADR-0021).
     {owner: 'contactMatrixView', member: 'setColorScale'},
     {owner: 'contactMatrixView', member: 'setBackgroundColor'},
+    // What `state.getLocus` takes as its second argument, so a host reading a
+    // locus reads this too. juicebox-remote does. #730.
+    {owner: 'contactMatrixView', member: 'getViewDimensions'},
     {owner: 'coordinator', member: 'addCallback'},
     // Spacewalk subscribes DidHideCrosshairs on the per-browser bus -- an event
     // deprecated in #709, though the bus itself is not. Nothing in
@@ -456,6 +469,11 @@ export const COORDINATOR_PAYLOAD_SHAPES = [
         callback: 'onLocusChange',
         payload: ['state', 'changes', 'dragging', 'browser'],
         readsInto: ['changes.resolutionChanged', 'changes.chrChanged']
+    },
+    // juicebox-remote mirrors a panel's background colour from `rgb`. #730.
+    {
+        callback: 'onBackgroundColorChange',
+        payload: ['rgb', 'browser']
     },
     // `type` is which component the edit touched, in the spelling
     // `SignedColorScale.setColorComponents` already takes: `'+'` for the
@@ -571,7 +589,9 @@ export const EVENTS_POSTED = [
  * refactor that changed what a track pair looks like would break a host that
  * never named the type.
  *
- * Declaration only; verifying it means posting a real track load.
+ * juicebox-remote reads the same payload for the panel it belongs to, `browser`,
+ * and the url a peer loads it from, `track.config.url`. #730. Checked by
+ * `test/testPendingTrackRow.js`, which posts a real track load and removal.
  */
 export const EVENT_PAYLOAD_SHAPES = [
     // The one browser, as `BrowserSelect` carries it. `BrowserAdd` is posted
@@ -586,8 +606,8 @@ export const EVENT_PAYLOAD_SHAPES = [
     // need not re-derive the implicit-current rule, and the registry because
     // the bus is page-wide while a target set is per embed. #615.
     {event: 'BrowserTargetChange', payload: '{registry, targetedBrowsers}', readsInto: ['registry', 'targetedBrowsers']},
-    {event: 'TrackXYPairLoad', payload: 'the TrackPair itself', readsInto: ['track', 'track.name', 'track.config.format']},
-    {event: 'TrackXYPairRemoval', payload: 'the TrackPair itself', readsInto: ['track', 'track.name', 'track.config.format']},
+    {event: 'TrackXYPairLoad', payload: 'the TrackPair itself', readsInto: ['browser', 'track', 'track.name', 'track.config.format', 'track.config.url']},
+    {event: 'TrackXYPairRemoval', payload: 'the TrackPair itself', readsInto: ['browser', 'track', 'track.name', 'track.config.format', 'track.config.url']},
     // One event for every mutation of a track pair's appearance, so a host
     // mirroring one need not patch the setters. `property` names which
     // setter ran and `value` is its new value: a colour string or undefined,
@@ -597,7 +617,7 @@ export const EVENT_PAYLOAD_SHAPES = [
     {
         event: 'TrackXYPairChange',
         payload: '{trackPair, property, value}',
-        readsInto: ['trackPair', 'property', 'value'],
+        readsInto: ['trackPair', 'trackPair.browser', 'property', 'value'],
         values: {property: ['color', 'dataRange', 'name', 'autoscale', 'logScale']}
     },
     // The 2D-track counterparts of the three above. Load and removal carry the

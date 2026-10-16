@@ -60,6 +60,15 @@ describe('TrackXYPairChange', () => {
         expect(DECLARED_PROPERTIES, `"${property}" is posted but not declared in the manifest`).toContain(property)
     }
 
+    it('carries every field the manifest declares, the pair\'s panel among them', () => {
+        // juicebox-remote names the panel a change came from by it. #730.
+        const trackPair = pair()
+        trackPair.setColor('rgb(1,2,3)')
+        const {readsInto} = EVENT_PAYLOAD_SHAPES.find(entry => 'TrackXYPairChange' === entry.event)
+        expect(readsInto).toContain('trackPair.browser')
+        for (const field of readsInto) expect(seen[0].data, `payload lacks "${field}"`).toHaveProperty(field)
+    })
+
     it('setColor posts the new colour', () => {
         const trackPair = pair()
         trackPair.setColor('rgb(1,2,3)')
