@@ -663,3 +663,66 @@ for any of the three, neither host observes the narrowing.
 
 **Spacewalk's pin moves from `#master` to `#v4.9.0`.** Nothing else was required
 of the release.
+
+## Re-measurement — 2026-10-16, for the v4.11.0 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+Measured against `juicebox.js` at `release-4.11.0-730`, `juicebox-web` `master`
+(committed pin `^4.9.0`) and `spacewalk` `main` (pinned `#v4.9.0`). There is no
+v4.10.0: that number went to the weiszd fork's `-mcp` prereleases, and this
+release folds their hooks in (#722).
+
+**Result: nothing undeclared in use, in either consumer.** Tenth release running.
+
+`js/publicApi.js` grows, and only grows. Nothing is removed. New since v4.9.0:
+`deleteBrowser` on the namespace; eleven browser methods a host mirroring one
+panel onto another drives it through (`zoomAndCenter`, `setColorScaleThreshold`,
+`setNormalization`, `setDisplayMode`, `getDisplayMode`, `getColorScale`,
+`getSyncState`, `syncState`, `removeTrack2D`, `setTrack2DColor` and
+`setTrack2DName`) and three members
+(`controlDataset`, `trackPairs`, `tracks2D`); four coordinator callbacks
+(`onColorScaleChange`, `onNormalizationChange`, `onNormalizationSubstituted`,
+`onDisplayModeChange`) and payload shapes for seven; and six global events
+(`BrowserAdd`, `BrowserDelete`, `TrackXYPairChange`, `Track2DLoad`,
+`Track2DRemoval`, `Track2DChange`). ADR-0021.
+
+### A third consumer: juicebox-remote
+
+`@aidenlab/juicebox-remote` (weiszd/juicebox-mcp, `packages/remote`) is the
+consumer these hooks were written for. It is not one of the two hosts this
+script measures, so it was measured by hand and then by the script, pointed at
+a copy of its `src/` through `JUICEBOX_WEB_PATH`.
+
+Every hook it subscribes to was already declared. Against v4.9.0's manifest
+plus the hooks above, the script still reported five names: `genomeId`,
+`getViewDimensions`, `isWholeGenome`, `name` and `url`. A hand reading found
+payload fields it reads that no shape named: `onBackgroundColorChange`'s
+`rgb`, `browser` and `track.config.url` on the track-pair events, and
+`trackPair.browser` on `TrackXYPairChange`. It also reads `state.chr1` and a
+control map's `url` and `name`. All of these are now declared and tested (#730),
+and the script reports nothing.
+
+What the manifest has no layer for, and so stays undeclared:
+
+- **The colour scale `getColorScale()` returns**: `getThreshold`,
+  `getColorComponents`, `setColorComponents`, and `positiveScale`, which it
+  reads to tell a two-map scale from a one-map one.
+- **A track pair's own members**: `setColor`, `setDataRange`, `setAutoscale`,
+  `setLogScale`, a pending pair's `config`, and its igv track's `name` (which
+  it assigns, and reads off `TrackXYPairChange`), `color`, `dataRange`,
+  `autoscale` and `logScale`.
+- **Three return shapes**: `state.getLocus()`'s `{x, y}`, each
+  `{chr, start, end}`; `hic.toJSON()`'s `browsers`, which leaves out a panel
+  with no map url; and the `compressedSession()` string, `session=blob:` then
+  url-safe base64 of raw-deflated JSON, which it decodes itself. ADR-0011 makes
+  that string the contract between hosts, so this is a third reader of it.
+
+The script cannot see these. They hang off objects it does not treat as roots,
+or are shapes rather than names, and it checks no payloads. The v4.11.0 release notes list them as known
+undeclared dependencies.
+
+### Consequence
+
+**Both consumers' pins move to v4.11.0. weiszd/juicebox-web's `4.10.0-mcp.2`
+pin can move too, as David Weisz's change.** Nothing else was required of the release.
