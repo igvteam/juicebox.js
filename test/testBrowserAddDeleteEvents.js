@@ -2,13 +2,13 @@ import {describe, it, expect, afterEach} from 'vitest'
 import HICBrowser from '../js/hicBrowser.js'
 import {registryForContainer} from '../js/browserRegistry.js'
 import EventBus from '../js/eventBus.js'
+import {EVENT_PAYLOAD_SHAPES} from '../js/publicApi.js'
 import {withContainers} from './utils/browserFixture.js'
 import {withStubbedLoads} from './utils/stubbedLoads.js'
 
 /**
- * `BrowserAdd` and `BrowserDelete` on the global bus: what a host mirroring
- * this embed on another page needs to open and close panels in step. Each
- * carries the browser, and each is posted while the browser is in
+ * `BrowserAdd` and `BrowserDelete` on the global bus: a panel appearing in,
+ * and going away from, its registry. Each carries the browser, and each is posted while the browser is in
  * `registry.browsers`, so its position is readable from the payload alone.
  * A restore (`deleteAll` then the session path's `register`) and a `reset()`
  * post neither: they are not the user opening or closing a panel.
@@ -32,6 +32,23 @@ describe('BrowserAdd and BrowserDelete', () => {
     afterEach(() => {
         EventBus.globalBus.unsubscribe('BrowserAdd', onAdd)
         EventBus.globalBus.unsubscribe('BrowserDelete', onDelete)
+    })
+
+    it('each payload carries what the manifest says a host reads into', () => {
+        const registry = registryForContainer(dom.container)
+        listening()
+
+        const browser = new HICBrowser(dom.container, {})
+        registry.add(browser)
+        registry.delete(browser)
+
+        for (const {name, browser: payload} of heard) {
+            const {readsInto} = EVENT_PAYLOAD_SHAPES.find(entry => name === entry.event)
+            for (const field of readsInto) {
+                expect(payload, `${name} payload lacks "${field}"`).toHaveProperty(field)
+            }
+        }
+        expect(heard.map(({name}) => name)).toEqual(['BrowserAdd', 'BrowserDelete'])
     })
 
     it('add posts BrowserAdd once the browser is in the list', () => {

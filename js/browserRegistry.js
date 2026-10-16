@@ -129,9 +129,7 @@ class BrowserRegistry {
         this.sync()
         // Posted once the browser is in the list, so a host can read its
         // position; not posted by the session path, which registers without
-        // adding -- a restore is not the user opening a panel. A host that
-        // mirrors this embed on another page opens a panel there on this
-        // event and closes one on `BrowserDelete`.
+        // adding -- a restore is not the user opening a panel.
         EventBus.globalBus.post(HICEvent("BrowserAdd", browser))
         this.select(browser)
         this.refreshDeleteButtonVisibility()
