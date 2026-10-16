@@ -246,7 +246,7 @@ describe("a load mixing 1D and 2D tracks", function () {
         await new DataLoader(browser).loadTracks([config("a"), config2D("b"), config2D("c")]);
 
         expect(rows()).toEqual(["a"]);
-        expect(browser.tracks2D).toEqual([{ name: "b" }]);
+        expect(browser.tracks2D.map(({ name }) => name)).toEqual(["b"]);
         expect(presented).toEqual(["Error loading tracks: c: Bad bedpe"]);
     });
 

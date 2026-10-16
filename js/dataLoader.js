@@ -792,6 +792,12 @@ class DataLoader {
             return;
         }
 
+        // The panel it belongs to, as `trackPair.browser` is. Set here, the one
+        // place every 2D track loads through, restored ones included, and never
+        // cleared, so a `Track2DRemoval` subscriber can still tell which panel
+        // the track left.
+        track2D.browser = this.browser;
+
         arrived.set(index, track2D);
 
         const {tracks2D} = this.browser;
@@ -803,6 +809,7 @@ class DataLoader {
 
         this.browser.tracks2D = [...tracks2D.slice(0, at), track2D, ...tracks2D.slice(at)];
         this.browser.coordinator.onTrackLoad2D(this.browser.tracks2D);
+        EventBus.globalBus.post(HICEvent("Track2DLoad", track2D));
     }
 
     /**
