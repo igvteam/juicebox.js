@@ -581,7 +581,7 @@ describe('the accepted asymmetries', () => {
         registry.register({toJSON: () => null})
         registry.register({toJSON: () => null})
 
-        expect(await roundTrip(registry.toJSON())).toEqual({browsers: []})
+        expect(await roundTrip(registry.toJSON())).toEqual({browsers: [], navbarVisible: true})
     })
 
     /**

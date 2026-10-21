@@ -169,10 +169,12 @@ describe('navbar visibility', () => {
     })
 
     /**
-     * A session records a hidden navbar, and restoring it hides it (#747). The
-     * field is the registry's, next to the selected gene, and is written only
-     * when hidden: a session saved with the navbar shown is unchanged.
-     * juicebox-mcp ADR-0009 records why it rides in the session.
+     * A session records whether the navbar is shown, and restoring it shows
+     * or hides it (#747). The field is the registry's, next to the selected
+     * gene, and is always written (#754): a session saved while shown has to
+     * show the navbar of a registry that hid it. One saved before #754 has no
+     * field and leaves the setting alone. juicebox-mcp ADR-0009 records why it
+     * rides in the session.
      */
     describe('in a session', () => {
 
@@ -189,11 +191,25 @@ describe('navbar visibility', () => {
             expect(registry.toJSON().navbarVisible).toBe(false)
         })
 
-        it('adds nothing to a session saved while shown', async () => {
+        it('is recorded when shown', async () => {
             const registry = registryForContainer(dom.container)
             await registry.restoreSession(structuredClone(saved))
 
-            expect(Object.hasOwn(registry.toJSON(), 'navbarVisible')).toBe(false)
+            expect(registry.toJSON().navbarVisible).toBe(true)
+        })
+
+        it('shows a hidden registry from a session saved while shown', async () => {
+            // A Page that starts hidden and joins a Room where the navbar is
+            // shown restores the Room's session over its own setting. #754.
+            const first = registryForContainer(dom.container)
+            await first.restoreSession(structuredClone(saved))
+
+            const second = registryForContainer(dom.another())
+            second.setNavbarVisible(false)
+            await second.restoreSession(first.toJSON())
+
+            expect(second.isNavbarVisible()).toBe(true)
+            expect(second.browsers.map(navbarShown)).toEqual([true, true])
         })
 
         it('hides every restored browser', async () => {
