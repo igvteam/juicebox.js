@@ -73,6 +73,8 @@ class BrowserRegistry {
      * the selected gene, so a browser built later follows it and another
      * registry on the page does not. Read by `HICBrowser` as it builds its
      * root, and by `createBrowser` once the load it awaits is done. #745.
+     * Carried in the session as `navbarVisible: false`, and only when hidden.
+     * #747.
      */
     #navbarVisible = true
 
@@ -728,8 +730,8 @@ class BrowserRegistry {
     }
 
     /**
-     * Serialize this embed as a session: its browsers, and the gene it has
-     * selected.
+     * Serialize this embed as a session: its browsers, the gene it has
+     * selected, and its navbar when hidden.
      *
      * A session describes one embed, not the page. That is the whole point of
      * decision 5 of ADR-0004: the exported zero-argument `toJSON()` has no
@@ -753,6 +755,12 @@ class BrowserRegistry {
 
         if (this.selectedGene) {
             json.selectedGene = this.selectedGene
+        }
+
+        // Only when hidden, so a session saved with the navbar shown is the
+        // document it always was. #747, juicebox-mcp ADR-0009.
+        if (!this.#navbarVisible) {
+            json.navbarVisible = false
         }
 
         return json
@@ -801,6 +809,16 @@ class BrowserRegistry {
 
         if (Object.hasOwn(session, 'selectedGene')) {
             this.selectedGene = session.selectedGene
+        }
+
+        // Before the browsers are built, so each comes up as the session says.
+        // A session without the field leaves the setting alone, as it does the
+        // selected gene: absent says nothing, and browsers built later follow
+        // the registry, whether a host hid it before `init` or a session it
+        // composes never names it. A real change posts
+        // `NavbarVisibilityChange`, which keeps a host's button in step. #747.
+        if (Object.hasOwn(session, 'navbarVisible')) {
+            this.setNavbarVisible(session.navbarVisible)
         }
 
         await createBrowserList(this.container, session)

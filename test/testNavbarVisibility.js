@@ -6,6 +6,8 @@ import HICBrowser from '../js/hicBrowser.js'
 import {registryForContainer} from '../js/browserRegistry.js'
 import EventBus from '../js/eventBus.js'
 import {withContainers} from './utils/browserFixture.js'
+import {withStubbedLoads} from './utils/stubbedLoads.js'
+import {extractConfig} from '../js/urlUtils.js'
 
 /**
  * A host hides and shows the navbar on every browser in a registry at once
@@ -163,6 +165,120 @@ describe('navbar visibility', () => {
             juicebox.setNavbarVisible(false)
 
             expect(heard.map(({visible}) => visible)).toEqual([false])
+        })
+    })
+
+    /**
+     * A session records a hidden navbar, and restoring it hides it (#747). The
+     * field is the registry's, next to the selected gene, and is written only
+     * when hidden: a session saved with the navbar shown is unchanged.
+     * juicebox-mcp ADR-0009 records why it rides in the session.
+     */
+    describe('in a session', () => {
+
+        withStubbedLoads()
+
+        const saved = {browsers: [{url: 'https://example.com/a.hic'}, {url: 'https://example.com/b.hic'}]}
+
+        it('is recorded when hidden', async () => {
+            const registry = registryForContainer(dom.container)
+            await registry.restoreSession(structuredClone(saved))
+
+            registry.setNavbarVisible(false)
+
+            expect(registry.toJSON().navbarVisible).toBe(false)
+        })
+
+        it('adds nothing to a session saved while shown', async () => {
+            const registry = registryForContainer(dom.container)
+            await registry.restoreSession(structuredClone(saved))
+
+            expect(Object.hasOwn(registry.toJSON(), 'navbarVisible')).toBe(false)
+        })
+
+        it('hides every restored browser', async () => {
+            const first = registryForContainer(dom.container)
+            await first.restoreSession(structuredClone(saved))
+            first.setNavbarVisible(false)
+
+            const second = registryForContainer(dom.another())
+            await second.restoreSession(first.toJSON())
+
+            expect(second.isNavbarVisible()).toBe(false)
+            expect(second.browsers).toHaveLength(2)
+            for (const browser of second.browsers) {
+                expect(navbarShown(browser)).toBe(false)
+            }
+        })
+
+        it('stays shown after restoring a session without the field', async () => {
+            const registry = registryForContainer(dom.container)
+
+            await registry.restoreSession(structuredClone(saved))
+
+            expect(registry.isNavbarVisible()).toBe(true)
+            expect(registry.browsers.map(navbarShown)).toEqual([true, true])
+        })
+
+        it('is left alone by a session without the field', async () => {
+            // Absent says nothing: a host that hid the navbar before `init`,
+            // or restores a session it composed, keeps the navbar hidden.
+            const registry = registryForContainer(dom.container)
+            registry.setNavbarVisible(false)
+
+            await registry.restoreSession(structuredClone(saved))
+
+            expect(registry.isNavbarVisible()).toBe(false)
+            expect(registry.browsers.map(navbarShown)).toEqual([false, false])
+        })
+
+        it('shows again from a session saying navbarVisible: true', async () => {
+            const registry = registryForContainer(dom.container)
+            registry.setNavbarVisible(false)
+
+            await registry.restoreSession({...structuredClone(saved), navbarVisible: true})
+
+            expect(registry.browsers.map(navbarShown)).toEqual([true, true])
+        })
+
+        it('posts NavbarVisibilityChange when the restore changes it, and only then', async () => {
+            const heard = []
+            const listener = ({data}) => heard.push(data.visible)
+            EventBus.globalBus.subscribe('NavbarVisibilityChange', listener)
+            try {
+                const registry = registryForContainer(dom.container)
+                const hidden = {...saved, navbarVisible: false}
+                const shown = {...saved, navbarVisible: true}
+
+                await registry.restoreSession(structuredClone(hidden))
+                await registry.restoreSession(structuredClone(hidden))
+                await registry.restoreSession(structuredClone(saved))
+                await registry.restoreSession(structuredClone(shown))
+                await registry.restoreSession(structuredClone(shown))
+
+                expect(heard).toEqual([false, true])
+            } finally {
+                EventBus.globalBus.unsubscribe('NavbarVisibilityChange', listener)
+            }
+        })
+
+        it('survives the compressed ?session= form', async () => {
+            const first = registryForContainer(dom.container)
+            await first.restoreSession(structuredClone(saved))
+            first.select(first.browsers[0])
+            first.setNavbarVisible(false)
+
+            // Through the share link's own reader, as a host restoring
+            // `?session=` from its address bar does.
+            const decoded = await extractConfig(`http://localhost/juicebox/?${juicebox.compressedSession()}`)
+
+            expect(decoded.navbarVisible).toBe(false)
+
+            const second = registryForContainer(dom.another())
+            await second.restoreSession(decoded)
+
+            expect(second.isNavbarVisible()).toBe(false)
+            expect(second.browsers.map(navbarShown)).toEqual([false, false])
         })
     })
 })
