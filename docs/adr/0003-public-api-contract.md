@@ -726,3 +726,30 @@ undeclared dependencies.
 
 **Both consumers' pins move to v4.11.0. weiszd/juicebox-web's `4.10.0-mcp.2`
 pin can move too, as David Weisz's change.** Nothing else was required of the release.
+
+## Re-measurement — 2026-10-21, for the v4.12.0 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+Measured against `juicebox.js` at `release-4.12.0`, `juicebox-web` `master`
+(committed pin `^4.11.0`), `spacewalk` `main` (pinned `#v4.11.0`) and
+juicebox-remote (weiszd/juicebox-mcp `packages/remote` at `1da3b3a`, through a
+copy of its `src/` and `JUICEBOX_WEB_PATH`, as for v4.11.0).
+
+**Result: nothing undeclared in use, in any of the three consumers.** Eleventh
+release running.
+
+`js/publicApi.js` grows, and only grows. Nothing is removed. New since
+v4.11.0: `setNavbarVisible` and `isNavbarVisible`, on the namespace (acting on
+the current registry) and on the registry; the global event
+`NavbarVisibilityChange` and its payload shape, `{registry, visible}` (#745).
+The session gains a registry-level `navbarVisible`, written only as `false`, so
+a session saved with the navbar shown is unchanged (#747).
+
+No consumer references any of the new names yet. juicebox-view's Header button
+and juicebox-remote are the two waiting on them (juicebox-view#17).
+
+### Consequence
+
+**Both consumers' pins move to v4.12.0.** Nothing else was required of the
+release.
