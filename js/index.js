@@ -23,7 +23,7 @@
 
 import '../css/juicebox.scss';
 import {igvxhr} from 'igv-utils'
-import {createBrowser, deleteBrowser, setCurrentBrowser, getAllBrowsers, getCurrentBrowser} from './createBrowser.js';
+import {createBrowser, deleteBrowser, setCurrentBrowser, getAllBrowsers, getCurrentBrowser, setNavbarVisible, isNavbarVisible} from './createBrowser.js';
 import {version} from "./version.js";
 import {compressedSession, restoreSession, toJSON} from "./session.js";
 import {init, initRegistry} from "./init.js"
@@ -43,6 +43,8 @@ export default {
     getCurrentBrowser,
     setCurrentBrowser,
     getAllBrowsers,
+    setNavbarVisible,
+    isNavbarVisible,
     igvxhr,
     EventBus,
     setUrlMapper,
