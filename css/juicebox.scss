@@ -56,7 +56,8 @@ $hic-menu-item-padding: 8px;
 $hic-menu-margin: 8px;
 
 // Declared on `.hic-root`, not `:root`: the one value both this stylesheet and
-// layoutController.js read, per browser. #746
+// layoutController.js read, per browser. The other layout terms are still
+// page-scoped. #746
 $nav-bar-height: var(--nav-bar-height);
 
 //
