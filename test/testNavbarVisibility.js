@@ -7,7 +7,7 @@ import {registryForContainer} from '../js/browserRegistry.js'
 import EventBus from '../js/eventBus.js'
 import {withContainers} from './utils/browserFixture.js'
 import {withStubbedLoads} from './utils/stubbedLoads.js'
-import {decodeSession} from '../js/sessionCodec.js'
+import {extractConfig} from '../js/urlUtils.js'
 
 /**
  * A host hides and shows the navbar on every browser in a registry at once
@@ -247,9 +247,8 @@ describe('navbar visibility', () => {
             EventBus.globalBus.subscribe('NavbarVisibilityChange', listener)
             try {
                 const registry = registryForContainer(dom.container)
-                const hidden = {...structuredClone(saved), navbarVisible: false}
-
-                const shown = {...structuredClone(saved), navbarVisible: true}
+                const hidden = {...saved, navbarVisible: false}
+                const shown = {...saved, navbarVisible: true}
 
                 await registry.restoreSession(structuredClone(hidden))
                 await registry.restoreSession(structuredClone(hidden))
@@ -269,7 +268,9 @@ describe('navbar visibility', () => {
             first.select(first.browsers[0])
             first.setNavbarVisible(false)
 
-            const decoded = await decodeSession(juicebox.compressedSession())
+            // Through the share link's own reader, as a host restoring
+            // `?session=` from its address bar does.
+            const decoded = await extractConfig(`http://localhost/juicebox/?${juicebox.compressedSession()}`)
 
             expect(decoded.navbarVisible).toBe(false)
 
