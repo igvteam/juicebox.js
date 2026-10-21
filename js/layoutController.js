@@ -305,10 +305,11 @@ class LayoutController {
         const { trackHeight, trackMargin, axisHeight, scrollbarHeight } = getLayoutDimensions();
         const trackAggregateHeight = (trackXYPairCount === 0) ? 0 : trackXYPairCount * (trackHeight + trackMargin);
 
-        let tokens = [getNavbarHeight(), trackAggregateHeight].map(number => `${number}px`);
-        const heightCalc = `calc(100% - (${tokens.join(' + ')}))`;
+        // The navbar height is left to the browser root's `--nav-bar-height`,
+        // its one source, rather than resolved here. #746
+        const heightCalc = `calc(100% - (var(--nav-bar-height) + ${trackAggregateHeight}px))`;
 
-        tokens = [trackAggregateHeight, axisHeight, scrollbarHeight].map(number => `${number}px`);
+        const tokens = [trackAggregateHeight, axisHeight, scrollbarHeight].map(number => `${number}px`);
         const widthCalc = `calc(100% - (${tokens.join(' + ')}))`;
 
         // x-track container
@@ -345,11 +346,6 @@ function getNavbarContainer(browser) {
     return browser.rootElement.querySelector('.hic-navbar-container');
 }
 
-function getNavbarHeight() {
-    const { navBarLabelHeight, navBarWidgetContainerHeight, navBarWidgetContainerMargin } = getLayoutDimensions();
-    return 2 * (navBarLabelHeight + navBarWidgetContainerHeight + (2 * navBarWidgetContainerMargin));
-}
-
 function getCSSVariable(name) {
     return parseInt(getComputedStyle(document.documentElement).getPropertyValue(name));
 }
@@ -360,9 +356,6 @@ function setCSSVariable(element, name, value) {
 
 function getLayoutDimensions() {
     return {
-        navBarLabelHeight: getCSSVariable('--nav-bar-label-height'),
-        navBarWidgetContainerHeight: getCSSVariable('--nav-bar-widget-container-height'),
-        navBarWidgetContainerMargin: getCSSVariable('--nav-bar-widget-container-margin'),
         scrollbarHeight: getCSSVariable('--hic-scrollbar-height'),
         axisHeight: getCSSVariable('--hic-axis-height'),
         trackMargin: getCSSVariable('--track-margin'),
@@ -468,6 +461,6 @@ function createNavBar(browser, root) {
     hicNavbarContainer.appendChild(createDOMFromHTMLString(htmlLowerHicNavBarWidgetContainer));
 }
 
-export {getNavbarHeight, getNavbarContainer, getLayoutDimensions, setViewportSize};
+export {getNavbarContainer, getLayoutDimensions, setViewportSize};
 
 export default LayoutController;

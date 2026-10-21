@@ -55,7 +55,9 @@ $hic-menu-item-height: 64px;
 $hic-menu-item-padding: 8px;
 $hic-menu-margin: 8px;
 
-$nav-bar-height: calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + (2 * var(--nav-bar-widget-container-margin))));
+// Declared on `.hic-root`, not `:root`: the one value both this stylesheet and
+// layoutController.js read, per browser. #746
+$nav-bar-height: var(--nav-bar-height);
 
 //
 $hic-root-width: calc(var(--hic-scrollbar-height) + var(--hic-axis-height) + var(--hic-viewport-width));
@@ -229,6 +231,7 @@ $default-font-family: 'Open Sans', sans-serif;
 }
 
 .hic-root {
+  --nav-bar-height: calc(2 * (var(--nav-bar-label-height) + var(--nav-bar-widget-container-height) + (2 * var(--nav-bar-widget-container-margin))));
   position: relative;
   left: 0;
   right: 0;
