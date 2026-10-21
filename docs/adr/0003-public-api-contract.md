@@ -753,3 +753,28 @@ and juicebox-remote are the two waiting on them (juicebox-view#17).
 
 **Both consumers' pins move to v4.12.0.** Nothing else was required of the
 release.
+
+## Re-measurement — 2026-10-21, for the v4.12.1 release
+
+Appended, not revised. The tables above stay as the measurement they were.
+
+Measured against `juicebox.js` at `release-4.12.1`, `juicebox-web` `master`
+(committed pin `^4.12.0`), `spacewalk` `main` (pinned `#v4.12.0`) and
+juicebox-remote (weiszd/juicebox-mcp `packages/remote` at `1da3b3a`, through a
+copy of its `src/` and `JUICEBOX_WEB_PATH`, as for v4.12.0).
+
+**Result: nothing undeclared in use, in any of the three consumers.** Twelfth
+release running.
+
+`js/publicApi.js` is byte-identical to v4.12.0. The one change is a payload
+shape: the session's `navbarVisible`, which v4.12.0 wrote only as `false`, is
+now always written, `true` or `false` (#754). A session saved while the navbar
+is shown therefore shows the navbar of a registry that hid it, which is what a
+juicebox-view Page joining a Room needs. A session without the field, saved
+before this release, still leaves the setting alone. No consumer reads the
+field; juicebox-mcp has no reference to it.
+
+### Consequence
+
+**Both consumers' pins move to v4.12.1.** Nothing else was required of the
+release.
