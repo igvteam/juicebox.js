@@ -69,6 +69,13 @@ class BrowserRegistry {
     #deleting = new Set()
 
     /**
+     * Whether this embed's browsers show their navbar. Per registry, like the
+     * selected gene, so a browser built later follows it and another embed on
+     * the page does not. Read by `HICBrowser` as it builds its root. #745.
+     */
+    #navbarVisible = true
+
+    /**
      * @param {Element} [container] - the host element this registry owns.
      *   Absent only in tests that exercise the registry without a document.
      */
@@ -103,6 +110,31 @@ class BrowserRegistry {
     presentAlert(alert, callback) {
         this.alertDialog ??= new AlertDialog(this.container ?? document.body)
         this.alertDialog.present(alert, callback)
+    }
+
+    isNavbarVisible() {
+        return this.#navbarVisible
+    }
+
+    /**
+     * Show or hide the navbar on every browser in this embed, and on every
+     * browser built in it afterwards. Hidden, each browser is shorter by the
+     * navbar's height and its contact map keeps its size: the root's
+     * `--nav-bar-height` goes to zero, see `.hic-navbar-hidden`.
+     *
+     * Posts `NavbarVisibilityChange` only on a real change. Hosts relay it
+     * across rooms, so a set that changes nothing must say nothing.
+     */
+    setNavbarVisible(visible) {
+        visible = Boolean(visible)
+        if (visible === this.#navbarVisible) {
+            return
+        }
+        this.#navbarVisible = visible
+        for (const browser of this.browsers) {
+            browser.rootElement.classList.toggle('hic-navbar-hidden', !visible)
+        }
+        EventBus.globalBus.post(HICEvent("NavbarVisibilityChange", {registry: this, visible}))
     }
 
     /**

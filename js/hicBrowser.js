@@ -280,6 +280,9 @@ class HICBrowser {
 
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'hic-root unselect';
+        // A browser built while its embed's navbar is hidden comes up hidden.
+        // The registry flips the class on the ones it already holds. #745.
+        this.rootElement.classList.toggle('hic-navbar-hidden', !this.registry.isNavbarVisible());
         appContainer.appendChild(this.rootElement);
 
 

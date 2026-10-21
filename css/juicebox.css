@@ -206,6 +206,17 @@
   border-color: #bfbfbf;
 }
 
+/* A host hid the navbar on this browser's registry (#745). Zeroing the one
+   height both the root and the content container subtract (#746) takes the
+   navbar's height off the root and leaves the contact map its size. */
+.hic-root.hic-navbar-hidden {
+  --nav-bar-height: 0px;
+}
+
+.hic-root.hic-navbar-hidden .hic-navbar-container {
+  display: none;
+}
+
 .hic-root-prevent-interaction {
   position: absolute;
   top: 0;

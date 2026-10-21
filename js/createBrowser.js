@@ -176,6 +176,26 @@ function getAllBrowsers() {
     return currentRegistry()?.browsers || [];
 }
 
+/**
+ * Show or hide the navbar on every browser of the registry owning the current
+ * browser, and on every browser built in it afterwards. #745.
+ *
+ * The same single-embed convenience as `getAllBrowsers`: a multi-embed caller
+ * wants `registry.setNavbarVisible`. Before anything has been selected there is
+ * no registry to act on, and this does nothing.
+ */
+function setNavbarVisible(visible) {
+    currentRegistry()?.setNavbarVisible(visible);
+}
+
+/**
+ * Whether the current browser's registry shows its navbar; `true`, the
+ * default, before anything has been selected.
+ */
+function isNavbarVisible() {
+    return currentRegistry()?.isNavbarVisible() ?? true;
+}
+
 export {
     defaultSize,
     createBrowser,
@@ -184,5 +204,7 @@ export {
     setCurrentBrowser,
     getCurrentBrowser,
     deleteAllBrowsers,
-    getAllBrowsers
+    getAllBrowsers,
+    setNavbarVisible,
+    isNavbarVisible
 };

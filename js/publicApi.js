@@ -78,6 +78,11 @@ export const NAMESPACE_SURFACE = [
     'getCurrentBrowser',
     'setCurrentBrowser',
     'getAllBrowsers',
+    // The navbar on every browser of the current registry, and on those built
+    // in it afterwards. The single-embed convenience over the registry's own
+    // pair below, as `getAllBrowsers` is over `browsers`. #745.
+    'setNavbarVisible',
+    'isNavbarVisible',
     'igvxhr',
     'EventBus',
     'setUrlMapper',
@@ -251,6 +256,11 @@ export const REGISTRY_SURFACE = [
 
     // Per embed rather than page-wide because it is serialized per session.
     'selectedGene',
+
+    // Per embed for the same reason: whether its browsers show their navbar.
+    // How a host with two embeds hides one of them. #745.
+    'setNavbarVisible',
+    'isNavbarVisible',
 
     // Lifecycle. `add` and `delete` are the registry-scoped counterparts of the
     // exported `createBrowser` and `setCurrentBrowser`.
@@ -567,6 +577,7 @@ export const EVENTS_POSTED = [
     {name: 'BrowserAdd', bus: 'global'},
     {name: 'BrowserDelete', bus: 'global'},
     {name: 'BrowserTargetChange', bus: 'global'},
+    {name: 'NavbarVisibilityChange', bus: 'global'},
     {name: 'TrackXYPairLoad', bus: 'global'},
     {name: 'TrackXYPairRemoval', bus: 'global'},
     {name: 'TrackXYPairChange', bus: 'global'},
@@ -606,6 +617,11 @@ export const EVENT_PAYLOAD_SHAPES = [
     // need not re-derive the implicit-current rule, and the registry because
     // the bus is page-wide while a target set is per embed. #615.
     {event: 'BrowserTargetChange', payload: '{registry, targetedBrowsers}', readsInto: ['registry', 'targetedBrowsers']},
+    // Posted only on a real change, never on a set that changes nothing:
+    // hosts relay it across rooms. Carries the registry for the same reason
+    // `BrowserTargetChange` does. Checked by `test/testNavbarVisibility.js`.
+    // #745.
+    {event: 'NavbarVisibilityChange', payload: '{registry, visible}', readsInto: ['registry', 'visible']},
     {event: 'TrackXYPairLoad', payload: 'the TrackPair itself', readsInto: ['browser', 'track', 'track.name', 'track.config.format', 'track.config.url']},
     {event: 'TrackXYPairRemoval', payload: 'the TrackPair itself', readsInto: ['browser', 'track', 'track.name', 'track.config.format', 'track.config.url']},
     // One event for every mutation of a track pair's appearance, so a host

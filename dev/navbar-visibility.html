@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Navbar visibility — per registry</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="../css/juicebox.css">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            margin: 16px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .embeds {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .embed {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            border: 1px dashed #aaa;
+            padding: 4px;
+        }
+
+        .log {
+            font-family: Menlo, Consolas, monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<p>
+    Issue #745. <b>Embed A</b> and <b>embed B</b> are two containers, so two registries.
+    Hiding the navbar acts on one registry: every panel in it loses the navbar and
+    gets shorter by its height, the contact map keeps its size, and a panel added
+    while it is hidden comes up hidden. The other embed is untouched.
+    <code>NavbarVisibilityChange</code> is logged below; a set that changes nothing
+    must log nothing.
+</p>
+
+<div class="controls">
+    <button id="namespace-toggle">hic.setNavbarVisible(!hic.isNavbarVisible())</button>
+    <button id="namespace-noop">hic.setNavbarVisible(hic.isNavbarVisible()) — no-op</button>
+    <button id="toggle-a">Toggle embed A (registry)</button>
+    <button id="toggle-b">Toggle embed B (registry)</button>
+    <button id="add-a">Add panel to embed A</button>
+</div>
+
+<div class="log" id="sizes"></div>
+<div class="log" id="log">events:</div>
+
+<div class="embeds">
+    <div class="embed" id="embed-a"></div>
+    <div class="embed" id="embed-b"></div>
+</div>
+
+<script type="module">
+
+    import hic from '../js/index.js'
+    import EventBus from '../js/eventBus.js'
+
+    // Reachable from a browser directly; see dev/multi-browser-targeting.html.
+    const map = {
+        url: 'https://s3.us-east-1.wasabisys.com/aiden-suhas/hic_files/FINAL_GRCh38_processing/LCL/GM12878/diploid/r.hic',
+        name: 'GM12878 diploid (r) — hg38',
+        width: 300,
+        height: 300
+    }
+
+    const embedA = document.getElementById('embed-a')
+    const embedB = document.getElementById('embed-b')
+    const sizesElement = document.getElementById('sizes')
+    const logElement = document.getElementById('log')
+
+    const registryA = await hic.initRegistry(embedA, {browsers: [map, map]})
+    const registryB = await hic.initRegistry(embedB, {browsers: [map]})
+    const name = registry => registry === registryA ? 'A' : 'B'
+
+    // The panel's height and the map's, so "shorter by the navbar, map unchanged"
+    // can be read rather than eyeballed.
+    function renderSizes() {
+        sizesElement.textContent = [registryA, registryB].map(registry =>
+            `embed ${name(registry)} navbar ${registry.isNavbarVisible() ? 'shown' : 'hidden'}: ` +
+            registry.browsers.map(browser =>
+                `panel ${browser.rootElement.offsetHeight}px / map ${browser.contactMatrixView.viewportElement.offsetHeight}px`
+            ).join(', ')
+        ).join('\n')
+    }
+
+    EventBus.globalBus.subscribe('NavbarVisibilityChange', ({data: {registry, visible}}) => {
+        logElement.textContent += `\nNavbarVisibilityChange embed ${name(registry)} visible=${visible}`
+        renderSizes()
+    })
+
+    document.getElementById('namespace-toggle').addEventListener('click', () => hic.setNavbarVisible(!hic.isNavbarVisible()))
+    document.getElementById('namespace-noop').addEventListener('click', () => hic.setNavbarVisible(hic.isNavbarVisible()))
+    document.getElementById('toggle-a').addEventListener('click', () => registryA.setNavbarVisible(!registryA.isNavbarVisible()))
+    document.getElementById('toggle-b').addEventListener('click', () => registryB.setNavbarVisible(!registryB.isNavbarVisible()))
+    document.getElementById('add-a').addEventListener('click', async () => {
+        await hic.createBrowser(embedA, map)
+        renderSizes()
+    })
+
+    renderSizes()
+</script>
+</body>
+</html>
