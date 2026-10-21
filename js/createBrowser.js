@@ -3,7 +3,7 @@
  */
 
 import HICBrowser from './hicBrowser.js';
-import {registryForContainer, getMostRecentlySelectedBrowser, currentRegistry} from './browserRegistry.js';
+import {registryForContainer, getMostRecentlySelectedBrowser, currentRegistry, showNavbar} from './browserRegistry.js';
 import {normalizeSession} from './normalizeSession.js';
 
 const defaultSize = { width: 640, height: 640 };
@@ -82,7 +82,13 @@ async function buildBrowser(hicContainer, config, callback) {
 
     if (typeof callback === "function") callback();
 
-    registryForContainer(hicContainer).add(browser);
+    const registry = registryForContainer(hicContainer);
+
+    // Again, though the constructor did it: the browser is in no registry's
+    // list until `add`, so a set made during the load above missed it. #745.
+    showNavbar(browser, registry.isNavbarVisible());
+
+    registry.add(browser);
 
     return browser;
 }

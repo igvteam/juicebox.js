@@ -69,9 +69,10 @@ class BrowserRegistry {
     #deleting = new Set()
 
     /**
-     * Whether this embed's browsers show their navbar. Per registry, like the
-     * selected gene, so a browser built later follows it and another embed on
-     * the page does not. Read by `HICBrowser` as it builds its root. #745.
+     * Whether this registry's browsers show their navbar. Per registry, like
+     * the selected gene, so a browser built later follows it and another
+     * registry on the page does not. Read by `HICBrowser` as it builds its
+     * root, and by `createBrowser` once the load it awaits is done. #745.
      */
     #navbarVisible = true
 
@@ -117,7 +118,7 @@ class BrowserRegistry {
     }
 
     /**
-     * Show or hide the navbar on every browser in this embed, and on every
+     * Show or hide the navbar on every browser in this registry, and on every
      * browser built in it afterwards. Hidden, each browser is shorter by the
      * navbar's height and its contact map keeps its size: the root's
      * `--nav-bar-height` goes to zero, see `.hic-navbar-hidden`.
@@ -132,7 +133,7 @@ class BrowserRegistry {
         }
         this.#navbarVisible = visible
         for (const browser of this.browsers) {
-            browser.rootElement.classList.toggle('hic-navbar-hidden', !visible)
+            showNavbar(browser, visible)
         }
         EventBus.globalBus.post(HICEvent("NavbarVisibilityChange", {registry: this, visible}))
     }
@@ -824,6 +825,15 @@ class BrowserRegistry {
 }
 
 /**
+ * Show or hide one browser's navbar. Hidden zeroes the root's
+ * `--nav-bar-height`, so the root sheds the navbar's height and the contact map
+ * keeps its size -- see `.hic-navbar-hidden` in `css/juicebox.scss`. #745.
+ */
+function showNavbar(browser, visible) {
+    browser.rootElement.classList.toggle('hic-navbar-hidden', !visible)
+}
+
+/**
  * Every registry on the page, keyed by the container element it owns.
  *
  * A `WeakMap` rather than a property on the container, per decision 8 of the
@@ -904,4 +914,4 @@ function currentRegistry() {
 }
 
 export default BrowserRegistry
-export {registryForContainer, getMostRecentlySelectedBrowser, currentRegistry}
+export {registryForContainer, getMostRecentlySelectedBrowser, currentRegistry, showNavbar}

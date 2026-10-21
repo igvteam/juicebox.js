@@ -1,4 +1,4 @@
-import {describe, it, expect, beforeEach, afterEach} from 'vitest'
+import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest'
 import {resolve} from 'node:path'
 import {execFileSync} from 'node:child_process'
 import juicebox from '../js/index.js'
@@ -51,7 +51,10 @@ describe('navbar visibility', () => {
 
     // The registries live as long as their containers, and each test has fresh
     // ones; this only puts the page-wide answer back for the next suite.
-    afterEach(() => juicebox.setNavbarVisible(true))
+    afterEach(() => {
+        juicebox.setNavbarVisible(true)
+        vi.restoreAllMocks()
+    })
 
     it('is shown by default', () => {
         const browser = added(dom.container)
@@ -89,6 +92,21 @@ describe('navbar visibility', () => {
         juicebox.setNavbarVisible(false)
 
         const later = added(dom.container)
+
+        expect(navbarShown(later)).toBe(false)
+    })
+
+    it('reaches a browser hidden while it was still loading its map', async () => {
+        // `createBrowser` constructs, awaits the load, and only then adds: a
+        // set made in between finds the browser in no registry's list.
+        const registry = added(dom.container).registry
+        let finishLoad
+        vi.spyOn(HICBrowser.prototype, 'init').mockImplementation(() => new Promise(resolve => finishLoad = resolve))
+
+        const creating = juicebox.createBrowser(dom.container, {})
+        registry.setNavbarVisible(false)
+        finishLoad()
+        const later = await creating
 
         expect(navbarShown(later)).toBe(false)
     })

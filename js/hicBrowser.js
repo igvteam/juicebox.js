@@ -31,7 +31,7 @@ import EventBus from "./eventBus.js"
 import HICEvent from "./hicEvent.js"
 import LayoutController, {setViewportSize} from './layoutController.js'
 import { geneSearch } from './geneSearch.js'
-import {registryForContainer} from "./browserRegistry.js"
+import {registryForContainer, showNavbar} from "./browserRegistry.js"
 import {setTrackReorderArrowColors} from "./trackPair.js"
 import createWidgets from "./createWidgets.js"
 import BrowserCoordinator from "./browserCoordinator.js"
@@ -280,9 +280,9 @@ class HICBrowser {
 
         this.rootElement = document.createElement('div');
         this.rootElement.className = 'hic-root unselect';
-        // A browser built while its embed's navbar is hidden comes up hidden.
-        // The registry flips the class on the ones it already holds. #745.
-        this.rootElement.classList.toggle('hic-navbar-hidden', !this.registry.isNavbarVisible());
+        // A browser built while its registry's navbar is hidden comes up
+        // hidden. The registry flips the ones it already holds. #745.
+        showNavbar(this, this.registry.isNavbarVisible());
         appContainer.appendChild(this.rootElement);
 
 

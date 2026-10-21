@@ -257,8 +257,8 @@ export const REGISTRY_SURFACE = [
     // Per embed rather than page-wide because it is serialized per session.
     'selectedGene',
 
-    // Per embed for the same reason: whether its browsers show their navbar.
-    // How a host with two embeds hides one of them. #745.
+    // Per registry for the same reason: whether its browsers show their
+    // navbar. How a host with two registries hides one of them. #745.
     'setNavbarVisible',
     'isNavbarVisible',
 
