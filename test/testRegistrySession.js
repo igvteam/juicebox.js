@@ -197,7 +197,7 @@ describe('exported toJSON', () => {
 
         expect(compressed.startsWith('session=blob:')).toBe(true)
         expect(JSON.parse(BGZip.uncompressString(compressed.slice('session=blob:'.length))))
-            .toEqual({browsers: [{name: 'a'}], selectedGene: 'ace', version: SESSION_VERSION})
+            .toEqual({browsers: [{name: 'a'}], selectedGene: 'ace', navbarVisible: true, version: SESSION_VERSION})
     })
 })
 

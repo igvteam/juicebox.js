@@ -42,7 +42,7 @@ the object.
 | `url`, `controlUrl`, every track's `url` | **Coerced**: a `*s3/`, `*s3e/`, `*s3_/`, `*s3e_/` or `*enc/` prefix expands to the URL it stands for. Non-strings (a local `File`) pass through |
 | `tracks[]` | Each track: the default annotation colour `rgb(22, 129, 198)` dropped so the renderer's own applies, `NaN` data-range bounds dropped, `displayMode` forced to `"COLLAPSED"` (an override, not a default — see #525). A `tracks` that is not an array is left alone |
 | `selectedGene` | Session-level. Hoisted up from a browser that names one, last writer winning, unless the session names its own |
-| `navbarVisible` | Session-level, and **not** resolved here: `BrowserRegistry.restoreSession` applies it to the registry when present. Written only as `false`. Absent leaves the registry's setting alone. #747 |
+| `navbarVisible` | Session-level, and **not** resolved here: `BrowserRegistry.restoreSession` applies it to the registry when present. Always written, `true` or `false`. Absent, as in a session saved before #754, leaves the registry's setting alone. #747, #754 |
 | `state` | **Not** resolved here: it arrives as a `State` from the query path and as a plain object from a host config, and `DataLoader` decodes it at load time. A known type divergence, pinned as a probe in the corpus |
 
 Three things a config carries are honoured on one path only, and are not part of
