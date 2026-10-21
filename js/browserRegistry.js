@@ -730,7 +730,7 @@ class BrowserRegistry {
 
     /**
      * Serialize this embed as a session: its browsers, the gene it has
-     * selected, and its navbar when hidden.
+     * selected, and whether its navbar is shown.
      *
      * A session describes one embed, not the page. That is the whole point of
      * decision 5 of ADR-0004: the exported zero-argument `toJSON()` has no
@@ -813,8 +813,10 @@ class BrowserRegistry {
         // A session without the field leaves the setting alone, as it does the
         // selected gene: absent says nothing, and browsers built later follow
         // the registry, whether a host hid it before `init` or a session it
-        // composes never names it. A real change posts
-        // `NavbarVisibilityChange`, which keeps a host's button in step. #747.
+        // composes never names it. A session saved since #754 always names it,
+        // shown or hidden, so restoring one overrides the host's setting. A
+        // real change posts `NavbarVisibilityChange`, which keeps a host's
+        // button in step. #747.
         if (Object.hasOwn(session, 'navbarVisible')) {
             this.setNavbarVisible(session.navbarVisible)
         }

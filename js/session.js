@@ -15,8 +15,8 @@ import {encodeSession} from "./sessionCodec.js";
  */
 
 /**
- * Serialize a session: the browsers of one embed, its selected gene, its
- * navbar when hidden, and the page caption.
+ * Serialize a session: the browsers of one embed, its selected gene, whether
+ * its navbar is shown, and the page caption.
  *
  * Which embed is the page-wide one, because `toJSON()` is a published
  * zero-argument export with no container to resolve from -- the same
